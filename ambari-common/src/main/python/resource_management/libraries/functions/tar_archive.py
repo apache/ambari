@@ -48,7 +48,13 @@ def archive_directory_dereference(archive, directory):
 
 def untar_archive(archive, directory, silent=True):
   """
+  Extracts a tarball using the system's tar utility. This is more
+  efficient than Python 2.x's tarfile module.
+
   :param directory:   can be a symlink and is followed
+  :param silent:  True if the output should be suppressed. This is a good
+  idea in most cases as the streamed output of a huge tarball can cause
+  a performance degredation
   """
   options = "-xf" if silent else "-xvf"
 

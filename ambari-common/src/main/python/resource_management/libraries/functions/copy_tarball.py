@@ -70,7 +70,7 @@ def _prepare_tez_tarball():
   sudo.chmod(tez_temp_dir, 0777)
 
   Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
-  tar_archive.extract_archive(mapreduce_source_file, mapreduce_temp_dir)
+  tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
 
   Logger.info("Extracting {0} to {1}".format(tez_source_file, tez_temp_dir))
   tar_archive.untar_archive(tez_source_file, tez_temp_dir)
@@ -169,7 +169,7 @@ def _prepare_mapreduce_tarball():
     raise Fail("Unable to seed the mapreduce tarball with native LZO libraries since the source Hadoop native lib directory {0} does not exist".format(hadoop_lib_native_source_dir))
 
   Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
-  tar_archive.extract_archive(mapreduce_source_file, mapreduce_temp_dir)
+  tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
 
   mapreduce_lib_dir = os.path.join(mapreduce_temp_dir, "hadoop", "lib")
 

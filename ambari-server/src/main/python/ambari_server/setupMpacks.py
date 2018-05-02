@@ -39,7 +39,7 @@ from ambari_server.userInput import get_YN_input
 from ambari_server.dbConfiguration import ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
 
 from resource_management.core import sudo
-from resource_management.libraries.functions.tar_archive import extract_archive, get_archive_root_dir
+from resource_management.libraries.functions.tar_archive import untar_archive, get_archive_root_dir
 from resource_management.libraries.functions.version import compare_versions
 
 
@@ -157,7 +157,8 @@ def expand_mpack(archive_path):
   print_info_msg("Expand management pack at temp location {0}".format(tmp_root_dir))
   if os.path.exists(tmp_root_dir):
     sudo.rmtree(tmp_root_dir)
-  extract_archive(archive_path, tmpdir)
+
+  untar_archive(archive_path, tmpdir)
 
   if not os.path.exists(tmp_root_dir):
     print_error_msg("Malformed management pack. Failed to expand management pack!")
