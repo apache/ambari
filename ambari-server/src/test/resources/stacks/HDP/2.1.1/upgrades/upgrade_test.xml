@@ -227,6 +227,7 @@
           <task xsi:type="configure" id="hdp_2_1_1_hive_server_conditions"/>
           <task xsi:type="configure" id="hdp_2_1_1_hive_server_conditions_skip"/>
           <task xsi:type="configure" id="hdp_2_1_1_no_conditions_met"/>
+          <task xsi:type="configure" id="hdp_2_1_1_regex_replace"/>
         </pre-upgrade>
         <pre-downgrade copy-upgrade="true" />
         <upgrade />

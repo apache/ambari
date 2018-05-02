@@ -471,9 +471,15 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
           newValues.put(replacement.key, replaced);
 
-          updateBufferWithMessage(outputBuffer,
-              MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"", configType,
-                  replacement.key, replacement.find, replacement.replaceWith));
+          // customize the replacement message if the new value is empty
+          if (StringUtils.isEmpty(replacement.replaceWith)) {
+            updateBufferWithMessage(outputBuffer, MessageFormat.format(
+                "Removed \"{0}\" from {1}/{2}", replacement.find, configType, replacement.key));
+          } else {
+            updateBufferWithMessage(outputBuffer,
+                MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"", configType,
+                    replacement.key, replacement.find, replacement.replaceWith));
+          }
         }
       } else {
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
