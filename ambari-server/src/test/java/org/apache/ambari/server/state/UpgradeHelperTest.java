@@ -661,7 +661,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     assertEquals(4, groups.get(0).items.size());
     assertEquals(8, groups.get(1).items.size());
-    assertEquals(5, groups.get(2).items.size());
+    assertEquals(6, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());
     assertEquals(8, groups.get(4).items.size());
   }
@@ -1021,6 +1021,82 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     assertEquals("fooKey", keyValuePairs.get(0).key);
     assertEquals("fooValue", keyValuePairs.get(0).value);
+  }
+
+  /**
+   * Tests that the regex replacement is working for configurations.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testConfigureRegexTask() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    ConfigUpgradePack cup = ambariMetaInfo.getConfigUpgradePack("HDP", "2.1.1");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,context);
+    assertEquals(7, groups.size());
+
+    // grab the regex task out of Hive
+    UpgradeGroupHolder hiveGroup = groups.get(4);
+    assertEquals("HIVE", hiveGroup.name);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(5).getTasks().get(0).getTasks().get(0);
+    assertEquals("hdp_2_1_1_regex_replace", configureTask.getId());
+
+    // now set the property in the if-check in the set element so that we have a match
+    Map<String, String> hiveConfigs = new HashMap<>();
+    StringBuilder builder = new StringBuilder();
+    builder.append("1-foo-2");
+    builder.append(System.lineSeparator());
+    builder.append("1-bar-2");
+    builder.append(System.lineSeparator());
+    builder.append("3-foo-4");
+    builder.append(System.lineSeparator());
+    builder.append("1-foobar-2");
+    builder.append(System.lineSeparator());
+    hiveConfigs.put("regex-replace-key-one", builder.toString());
+
+    ConfigurationRequest configurationRequest = new ConfigurationRequest();
+    configurationRequest.setClusterName(cluster.getClusterName());
+    configurationRequest.setType("hive-site");
+    configurationRequest.setVersionTag("version2");
+    configurationRequest.setProperties(hiveConfigs);
+
+    final ClusterRequest clusterRequest = new ClusterRequest(
+        cluster.getClusterId(), cluster.getClusterName(),
+        cluster.getDesiredStackVersion().getStackVersion(), null);
+
+    clusterRequest.setDesiredConfig(singletonList(configurationRequest));
+    m_managementController.updateClusters(new HashSet<ClusterRequest>() {
+      {
+        add(clusterRequest);
+      }
+    }, null);
+
+    // the configure task should now return different properties to set based on
+    // the if-condition checks
+    Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
+    assertFalse(configProperties.isEmpty());
+    assertEquals(configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
+
+    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_REPLACEMENTS);
+    assertNotNull(configurationJson);
+
+    List<ConfigUpgradeChangeDefinition.Replace> replacements = m_gson.fromJson(
+        configurationJson,
+        new TypeToken<List<ConfigUpgradeChangeDefinition.Replace>>() {}.getType());
+
+    assertEquals("1-foo-2\n", replacements.get(0).find);
+    assertEquals("REPLACED", replacements.get(0).replaceWith);
+    assertEquals("3-foo-4\n", replacements.get(1).find);
+    assertEquals("REPLACED", replacements.get(1).replaceWith);
+    assertEquals(2, replacements.size());
   }
 
   @Test

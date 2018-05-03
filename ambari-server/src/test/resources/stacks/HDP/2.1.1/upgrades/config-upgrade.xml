@@ -199,6 +199,11 @@
             <type>hive-site</type>
             <set key="fooKey" value="fooValue" if-type="hive-site" if-key="ifFooKey" if-value="ifFooValue"/>
           </definition>
+          
+          <definition xsi:type="configure" id="hdp_2_1_1_regex_replace">
+            <type>hive-site</type>
+            <regex-replace key="regex-replace-key-one" find="^\d-foo-\d[\r\n]+" replace-with="REPLACED" match-all="true"/>
+          </definition>          
         </changes>
       </component>
     </service>

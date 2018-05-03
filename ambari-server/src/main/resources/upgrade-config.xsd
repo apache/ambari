@@ -103,6 +103,7 @@
             <xs:attribute name="key" use="required" type="xs:string"/>
             <xs:attribute name="find" use="required" type="xs:string"/>
             <xs:attribute name="replace-with" use="required" type="xs:string"/>
+            <xs:attribute name="match-all" use="optional" type="xs:boolean"/>
             <xs:attribute name="if-key" use="optional" type="xs:string"/>
             <xs:attribute name="if-type" use="optional" type="xs:string"/>
             <xs:attribute name="if-value" use="optional" type="xs:string"/>
