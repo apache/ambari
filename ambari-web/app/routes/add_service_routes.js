@@ -62,12 +62,13 @@ module.exports = App.WizardRoute.extend({
                 var mainPopupContext = this;
                 var controller = router.get('addServiceController');
                 var currentStep = controller.get('currentStep');
+                const DEPLOY_STEP = '6';
                 App.ModalPopup.show({
                   encodeBody: false,
-                  header: currentStep == 6 ? Em.I18n.t('common.warning') : Em.I18n.t('popup.confirmation.commonHeader'),
-                  primaryClass: currentStep == 6 ? 'btn-warning' : 'btn-success',
+                  header: currentStep == DEPLOY_STEP ? Em.I18n.t('common.warning') : Em.I18n.t('popup.confirmation.commonHeader'),
+                  primaryClass: currentStep == DEPLOY_STEP ? 'btn-warning' : 'btn-success',
                   secondary: Em.I18n.t('form.cancel'),
-                  body: currentStep == 6 ? Em.I18n.t('services.add.warningStep6') : Em.I18n.t('services.add.warning'),
+                  body: currentStep == DEPLOY_STEP ? Em.I18n.t('services.add.warningStep6') : Em.I18n.t('services.add.warning'),
                   onPrimary: function () {
                     this.hide();
                     mainPopupContext.afterWarning();
