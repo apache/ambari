@@ -79,9 +79,11 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.topology.validators.HiveServiceValidator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -235,6 +237,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK = "servicedesiredstateservicename";
   protected static final String COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcmpnntdesiredstatecmpnntnme";
   protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
+  protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
+  protected static final String CONFIGURATION_CORE_SITE = "core-site";
+  protected static final String PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS = "hadoop.proxyuser.HTTP.hosts";
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
@@ -1017,36 +1022,62 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
   @Override
   protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
-    if (artifactEntity == null)
+    if (artifactEntity == null) {
       return;
+    }
 
     Map<String, Object> data = artifactEntity.getArtifactData();
-    if (data == null)
+    if (data == null) {
       return;
+    }
 
     final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
-    if (kerberosDescriptor == null)
+    if (kerberosDescriptor == null) {
       return;
+    }
 
     Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
     KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
-    if (ambariInfraService == null)
-      return;
+    if (ambariInfraService != null) {
+      ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
+      services.remove(AMBARI_INFRA_OLD_NAME);
+      services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
+      kerberosDescriptor.setServices(services);
 
-    ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
-    services.remove(AMBARI_INFRA_OLD_NAME);
-    services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
-    kerberosDescriptor.setServices(services);
-
-    for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
-      updateKerberosIdentities(serviceDescriptor);
-      for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
-        updateKerberosIdentities(componentDescriptor);
+      for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
+        updateKerberosIdentities(serviceDescriptor);
+        for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
+          updateKerberosIdentities(componentDescriptor);
+        }
       }
     }
 
-    artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-    artifactDAO.merge(artifactEntity);
+    final boolean updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive = updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(kerberosDescriptor);
+
+    if (ambariInfraService != null || updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive) {
+      artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+      artifactDAO.merge(artifactEntity);
+    }
+  }
+
+  private boolean updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(KerberosDescriptor kerberosDescriptor) {
+    boolean updated = false;
+    final KerberosServiceDescriptor hiveService = kerberosDescriptor.getServices().get(HiveServiceValidator.HIVE_SERVICE);
+    if (hiveService != null) {
+      final KerberosComponentDescriptor webhcatServer = hiveService.getComponent(HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER);
+      if (webhcatServer != null) {
+        final KerberosConfigurationDescriptor coreSiteConfiguration = webhcatServer.getConfiguration(CONFIGURATION_CORE_SITE);
+        if (coreSiteConfiguration != null) {
+          final String currentHadoopProxyuserHttpHosts = coreSiteConfiguration.getProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS);
+          if (StringUtils.isNotBlank(currentHadoopProxyuserHttpHosts)) {
+            LOG.info("Updating hadoop.proxyuser.HTTP.hosts...");
+            coreSiteConfiguration.putProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS, currentHadoopProxyuserHttpHosts.replace("webhcat_server_host|", "webhcat_server_hosts|"));
+            updated = true;
+          }
+        }
+      }
+    }
+    return updated;
   }
 
   protected void addUserAuthenticationSequence() throws SQLException {
