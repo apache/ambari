@@ -160,6 +160,21 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   /**
+   * TODO remove when functionality to skip master components ready
+   * @param jsonData
+   */
+  loadServiceComponentsSuccessCallback: function(jsonData) {
+    if (App.Stack.find().findProperty('isSelected', true).get('stackName') === 'HDF') {
+      jsonData.items.forEach((service) => {
+        service.components = service.components.reject((component) => {
+          return ['ACTIVITY_ANALYZER', 'ACTIVITY_EXPLORER'].contains(component.StackServiceComponents.component_name);
+        });
+      });
+    }
+    this._super(jsonData);
+  },
+
+  /**
    * total set of hosts registered to cluster, analog of App.Host model,
    * used in Installer wizard until hosts are installed
    */
