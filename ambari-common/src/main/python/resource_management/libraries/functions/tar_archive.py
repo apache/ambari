@@ -64,10 +64,6 @@ def untar_archive(archive, directory, silent=True):
     try_sleep = 1,
   )
 
-def extract_archive(archive, directory):
-  with closing(tarfile.open(archive, mode(archive))) as tar:
-    tar.extractall(directory)
-
 def get_archive_root_dir(archive):
   root_dir = None
   with closing(tarfile.open(archive, mode(archive))) as tar:
