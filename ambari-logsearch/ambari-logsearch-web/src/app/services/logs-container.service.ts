@@ -630,9 +630,6 @@ export class LogsContainerService {
       return Object.assign(currentObject, item);
     }, {});
     this.filtersForm = new FormGroup(formItems);
-    // this.loadComponents();
-    // this.loadClusters();
-    // this.loadHosts();
 
     this.componentsStorage.getAll().subscribe(this.setComponentsFilters);
     this.clustersStorage.getAll().subscribe(this.setClustersFilters);
@@ -641,10 +638,12 @@ export class LogsContainerService {
     appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => this.activeLog = value);
     appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
     appState.getParameter('activeLogsType').subscribe((value: LogsType) => {
-      if (this.activeLogsType !== value) {
+      if (this.isLogsTypeSupported(value)) {
         this.activeLogsType = value;
+        this.loadLogs(this.activeLogsType);
       }
     });
+
     appSettings.getParameter('timeZone').subscribe((value: string) => this.timeZone = value || this.defaultTimeZone);
     tabsStorage.mapCollection((tab: Tab): Tab => {
       return Object.assign({}, tab, {
@@ -712,7 +711,6 @@ export class LogsContainerService {
    * @param {Tab} tab
    */
   private setAppStateByTab(tab: Tab): void {
-    this.activeLogsType = tab.appState.activeLogsType; // there are dependencies on this prop...
     this.appState.setParameters(tab.appState);
   }
 
@@ -733,9 +731,9 @@ export class LogsContainerService {
    * @param {Tab} activeTab
    */
   switchTab(activeTab: Tab): void {
+    this.syncTabFiltersToFilterForms(activeTab);
     this.setActiveTab(activeTab);
     this.setAppStateByTab(activeTab);
-    this.syncTabFiltersToFilterForms(activeTab);
   }
 
   /**
@@ -805,59 +803,67 @@ export class LogsContainerService {
     return true;
   }
 
+  isLogsTypeSupported(logsType: LogsType): boolean {
+    return !!this.logsTypeMap[logsType];
+  }
+
   loadLogs = (logsType: LogsType = this.activeLogsType): void => {
-    this.httpClient.get(logsType, this.getParams('listFilters')).subscribe((response: Response): void => {
-      const jsonResponse = response.json(),
-        model = this.logsTypeMap[logsType].logsModel;
-      model.clear();
-      if (jsonResponse) {
-        const logs = jsonResponse.logList,
-          count = jsonResponse.totalCount || 0;
-        if (logs) {
-          model.addInstances(logs);
-        }
-        this.totalCount = count;
-      }
-    });
-    this.httpClient.get(this.logsTypeMap[logsType].graphRequestName, this.getParams('graphFilters'))
-      .subscribe((response: Response): void => {
+    if (this.isLogsTypeSupported(logsType)) {
+      this.httpClient.get(logsType, this.getParams('listFilters', {}, logsType)).subscribe((response: Response): void => {
         const jsonResponse = response.json(),
-          model = this.logsTypeMap[logsType].graphModel;
+          model = this.logsTypeMap[logsType].logsModel;
         model.clear();
         if (jsonResponse) {
-          const graphData = jsonResponse.graphData;
-          if (graphData) {
-            model.addInstances(graphData);
+          const logs = jsonResponse.logList,
+            count = jsonResponse.totalCount || 0;
+          if (logs) {
+            model.addInstances(logs);
           }
+          this.totalCount = count;
         }
       });
-    if (logsType === 'auditLogs') {
-      this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
-        field: 'resource'
-      }), {
-        number: this.topResourcesCount
-      }).subscribe((response: Response): void => {
-        const jsonResponse = response.json();
-        if (jsonResponse) {
-          const data = jsonResponse.graphData;
-          if (data) {
-            this.topResourcesGraphData = this.parseAuditLogsTopData(data);
+      this.httpClient.get(this.logsTypeMap[logsType].graphRequestName, this.getParams('graphFilters', {}, logsType))
+        .subscribe((response: Response): void => {
+          const jsonResponse = response.json(),
+            model = this.logsTypeMap[logsType].graphModel;
+          model.clear();
+          if (jsonResponse) {
+            const graphData = jsonResponse.graphData;
+            if (graphData) {
+              model.addInstances(graphData);
+            }
           }
-        }
-      });
-      this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
-        field: 'reqUser'
-      }), {
-        number: this.topUsersCount
-      }).subscribe((response: Response): void => {
-        const jsonResponse = response.json();
-        if (jsonResponse) {
-          const data = jsonResponse.graphData;
-          if (data) {
-            this.topUsersGraphData = this.parseAuditLogsTopData(data);
+        });
+      if (logsType === 'auditLogs') {
+        this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
+          field: 'resource'
+        }, logsType), {
+          number: this.topResourcesCount
+        }).subscribe((response: Response): void => {
+          const jsonResponse = response.json();
+          if (jsonResponse) {
+            const data = jsonResponse.graphData;
+            if (data) {
+              this.topResourcesGraphData = this.parseAuditLogsTopData(data);
+            }
           }
-        }
-      });
+        });
+        this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
+          field: 'reqUser'
+        }, logsType), {
+          number: this.topUsersCount
+        }).subscribe((response: Response): void => {
+          const jsonResponse = response.json();
+          if (jsonResponse) {
+            const data = jsonResponse.graphData;
+            if (data) {
+              this.topUsersGraphData = this.parseAuditLogsTopData(data);
+            }
+          }
+        });
+      }
+    } else {
+      console.error(`Logs Type does not supported: ${logsType}`);
     }
   }
 

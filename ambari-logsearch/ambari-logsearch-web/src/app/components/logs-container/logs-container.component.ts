@@ -149,7 +149,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.push(
-      Observable.fromEvent(window, 'scroll').throttleTime(10).subscribe(() => {
+      Observable.fromEvent(window, 'scroll').subscribe(() => {
         this.setFixedPositionValue();
       })
     );

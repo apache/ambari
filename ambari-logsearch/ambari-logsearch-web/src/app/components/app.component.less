@@ -30,8 +30,10 @@
     background-color: @navbar-background-color;
     color: #fff;
     .stretch-flex;
+    align-items: center;
     h1 {
       align-items: center;
+      align-self: stretch;
       background-color: lighten(@navbar-background-color, 5%);
       display: flex;
       margin: 0 2em 0 0;
@@ -49,6 +51,11 @@
     /deep/ top-menu {
       margin-left: auto;
       margin-right: 5em;
+    }
+    &:not(.authorized) {
+      h1 {
+        margin: 0;
+      }
     }
   }
 }
