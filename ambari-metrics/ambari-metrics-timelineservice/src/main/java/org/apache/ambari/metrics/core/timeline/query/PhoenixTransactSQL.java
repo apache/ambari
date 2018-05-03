@@ -459,7 +459,7 @@ public class PhoenixTransactSQL {
   public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
     "METRIC_AGGREGATE_DAILY_UUID";
 
-  public static final Pattern PHOENIX_TABLES_REGEX_PATTERN = Pattern.compile("METRIC_");
+  public static final Pattern PHOENIX_TABLES_REGEX_PATTERN = Pattern.compile("METRIC_.*_UUID");
 
   public static final String[] PHOENIX_TABLES = {
     METRICS_RECORD_TABLE_NAME,
