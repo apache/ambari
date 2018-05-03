@@ -205,7 +205,8 @@ public class ConfigUpgradeChangeDefinition {
 
     List<Replace> list = new ArrayList<>();
     for (Replace r : replacements) {
-      if (null == r.key || null == r.find || null == r.replaceWith) {
+
+      if (StringUtils.isBlank(r.key) || StringUtils.isEmpty(r.find) || null == r.replaceWith) {
         LOG.warn(String.format("Replacement %s is invalid", r));
         continue;
       }
@@ -231,7 +232,7 @@ public class ConfigUpgradeChangeDefinition {
 
     List<Replace> list = new ArrayList<>();
     for (RegexReplace regexReplaceObj : regexReplacements) {
-      if (null == regexReplaceObj.key || null == regexReplaceObj.find
+      if (StringUtils.isBlank(regexReplaceObj.key) || StringUtils.isEmpty(regexReplaceObj.find)
           || null == regexReplaceObj.replaceWith) {
         LOG.warn(String.format("Replacement %s is invalid", regexReplaceObj));
         continue;

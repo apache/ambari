@@ -532,7 +532,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
         newValues.put(insert.key, valueToInsertInto);
 
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
-            "Updated {0}/{1} by inserting {2}", configType, insert.key, insert.value));
+            "Updated {0}/{1} by inserting \"{2}\"", configType, insert.key, insert.value));
       } else {
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
             "Skipping insertion for {0}/{1} because it does not exist or is empty.", configType,
