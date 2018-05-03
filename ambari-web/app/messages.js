@@ -2341,7 +2341,8 @@ Em.I18n.translations = {
   'services.service.widgets.list-widget.nothingSelected': 'Nothing selected',
 
   'services.add.header':'Add Service Wizard',
-  'services.add.warning': 'Closing this dialog will continue to install the selected service(s) in the background, but the installed services need to be started manually. Are you sure you want to quit?',
+  'services.add.warning': 'Add Service Wizard is in progress. Do you really want to exit the Add Service Wizard?',
+  'services.add.warningStep6': 'Closing this dialog will continue to install the selected service(s) in the background, but the installed services need to be started manually. Are you sure you want to quit?',
   'services.reassign.header':'Move Master Wizard',
   'services.service.add':'Add Service',
   'services.service.startAll':'Start All',
