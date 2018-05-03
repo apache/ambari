@@ -43,6 +43,7 @@ import org.apache.ambari.logsearch.model.metadata.AuditFieldMetadataResponse;
 import org.apache.ambari.logsearch.model.request.impl.body.AuditBarGraphBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.body.AuditLogBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.body.AuditServiceLoadBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ClusterBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.body.TopFieldAuditLogBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.body.UserExportBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.query.AuditBarGraphQueryRequest;
@@ -73,7 +74,17 @@ public class AuditLogsResource {
   @Path("/schema/fields")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_SCHEMA_FIELD_LIST_OD)
-  public AuditFieldMetadataResponse getSolrFieldList() {
+  public AuditFieldMetadataResponse getSolrFieldListGet() {
+    return auditLogsManager.getAuditLogSchemaMetadata();
+  }
+
+
+  @POST
+  @Path("/schema/fields")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_SCHEMA_FIELD_LIST_OD)
+  public AuditFieldMetadataResponse getSolrFieldListPost() {
     return auditLogsManager.getAuditLogSchemaMetadata();
   }
 
@@ -104,8 +115,16 @@ public class AuditLogsResource {
   @Path("/components")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_COMPONENTS_OD)
-  public Map<String, String> getAuditComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+  public Map<String, String> getAuditComponentsGet(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return auditLogsManager.getAuditComponents(clusters);
+  }
+
+  @POST
+  @Path("/components")
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_COMPONENTS_OD)
+  public Map<String, String> getAuditComponentsPost(@Nullable ClusterBodyRequest clusterBodyRequest) {
+    return auditLogsManager.getAuditComponents(clusterBodyRequest != null ? clusterBodyRequest.getClusters() : null);
   }
 
   @GET
@@ -180,7 +199,16 @@ public class AuditLogsResource {
   @Path("/clusters")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_CLUSTERS_OD)
-  public List<String> getClustersForAuditLog() {
+  public List<String> getClustersForAuditLogGet() {
+    return auditLogsManager.getClusters();
+  }
+
+  @POST
+  @Path("/clusters")
+  @Produces({MediaType.APPLICATION_JSON})
+  @Consumes({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_CLUSTERS_OD)
+  public List<String> getClustersForAuditLogPost() {
     return auditLogsManager.getClusters();
   }
 

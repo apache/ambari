@@ -41,6 +41,7 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.model.metadata.FieldMetadata;
 import org.apache.ambari.logsearch.model.metadata.ServiceComponentMetadataWrapper;
+import org.apache.ambari.logsearch.model.request.impl.body.ClusterBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.body.HostLogFilesBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.body.ServiceAnyGraphBodyRequest;
 import org.apache.ambari.logsearch.model.request.impl.body.ServiceGraphBodyRequest;
@@ -114,8 +115,17 @@ public class ServiceLogsResource {
   @Path("/hosts")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_HOSTS_OD)
-  public GroupListResponse getHosts(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+  public GroupListResponse getHostsGet(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getHosts(clusters);
+  }
+
+  @POST
+  @Path("/hosts")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_HOSTS_OD)
+  public GroupListResponse getHostsPost(@Nullable ClusterBodyRequest clusterBodyRequest) {
+    return serviceLogsManager.getHosts(clusterBodyRequest != null ? clusterBodyRequest.getClusters() : null);
   }
 
   @GET
@@ -124,6 +134,15 @@ public class ServiceLogsResource {
   @ApiOperation(GET_COMPONENTS_OD)
   public ServiceComponentMetadataWrapper getComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getComponentMetadata(clusters);
+  }
+
+  @POST
+  @Path("/components")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_COMPONENTS_OD)
+  public ServiceComponentMetadataWrapper getComponents(@Nullable ClusterBodyRequest clusterBodyRequest) {
+    return serviceLogsManager.getComponentMetadata(clusterBodyRequest != null ? clusterBodyRequest.getClusters() : null);
   }
 
   @GET
@@ -147,16 +166,34 @@ public class ServiceLogsResource {
   @Path("/components/count")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_COMPONENTS_COUNT_OD)
-  public CountDataListResponse getComponentsCount(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+  public CountDataListResponse getComponentsCountGet(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getComponentsCount(clusters);
+  }
+
+  @POST
+  @Path("/components/count")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_COMPONENTS_COUNT_OD)
+  public CountDataListResponse getComponentsCountPost(@Nullable ClusterBodyRequest clusterBodyRequest) {
+    return serviceLogsManager.getComponentsCount(clusterBodyRequest != null ? clusterBodyRequest.getClusters() : null);
   }
 
   @GET
   @Path("/hosts/count")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_HOSTS_COUNT_OD)
-  public CountDataListResponse getHostsCount(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+  public CountDataListResponse getHostsCountGet(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getHostsCount(clusters);
+  }
+
+  @POST
+  @Path("/hosts/count")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_HOSTS_COUNT_OD)
+  public CountDataListResponse getHostsCountPost(@Nullable ClusterBodyRequest clusterBodyRequest) {
+    return serviceLogsManager.getHostsCount(clusterBodyRequest != null ? clusterBodyRequest.getClusters() : null);
   }
 
   @GET
@@ -266,7 +303,16 @@ public class ServiceLogsResource {
   @Path("/schema/fields")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD)
-  public List<FieldMetadata> getServiceLogsSchemaFieldsName() {
+  public List<FieldMetadata> getServiceLogsSchemaFieldsNameGet() {
+    return serviceLogsManager.getServiceLogsSchemaFieldsName();
+  }
+
+  @POST
+  @Path("/schema/fields")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD)
+  public List<FieldMetadata> getServiceLogsSchemaFieldsNamePost() {
     return serviceLogsManager.getServiceLogsSchemaFieldsName();
   }
 
@@ -308,7 +354,17 @@ public class ServiceLogsResource {
   @Path("/request/cancel")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(REQUEST_CANCEL)
-  public String cancelRequest() {
+  public String cancelRequestGet() {
+    // TODO: create function that cancels an ongoing solr request
+    return "{\"endpoint status\": \"not supported yet\"}";
+  }
+
+  @POST
+  @Path("/request/cancel")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(REQUEST_CANCEL)
+  public String cancelRequestPost() {
     // TODO: create function that cancels an ongoing solr request
     return "{\"endpoint status\": \"not supported yet\"}";
   }
@@ -336,7 +392,16 @@ public class ServiceLogsResource {
   @Path("/clusters")
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_SERVICE_CLUSTERS_OD)
-  public List<String> getClustersForServiceLog() {
+  public List<String> getClustersForServiceLogGet() {
+    return serviceLogsManager.getClusters();
+  }
+
+  @POST
+  @Path("/clusters")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_SERVICE_CLUSTERS_OD)
+  public List<String> getClustersForServiceLogPost() {
     return serviceLogsManager.getClusters();
   }
 
