@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -74,7 +75,6 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.AmbariEvent;
-import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
@@ -100,6 +100,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
@@ -647,6 +648,7 @@ public class UpgradeCatalog260Test {
     Injector injector = getInjector();
 
     final Clusters clusters = injector.getInstance(Clusters.class);
+    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
     final Cluster cluster = createMock(Cluster.class);
     final Config zeppelinEnvConf = createMock(Config.class);
     final Config coreSiteConf = createMock(Config.class);
@@ -655,10 +657,12 @@ public class UpgradeCatalog260Test {
 
     Capture<? extends Map<String, String>> captureCoreSiteConfProperties = newCapture();
 
+    configHelper.updateAgentConfigs(anyObject(Set.class));
+    expectLastCall();
+
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
 
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.6")).atLeastOnce();
     expect(cluster.getDesiredConfigByType("zeppelin-env")).andReturn(zeppelinEnvConf).atLeastOnce();
     expect(cluster.getDesiredConfigByType("core-site")).andReturn(coreSiteConf).atLeastOnce();
@@ -675,16 +679,13 @@ public class UpgradeCatalog260Test {
     expect(controller.createConfig(eq(cluster), anyObject(StackId.class), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class)))
         .andReturn(coreSiteConfNew)
         .once();
-    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
-        .andReturn(createNiceMock(MetadataUpdateEvent.class))
-        .once();
 
-    replay(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller);
+    replay(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller, configHelper);
 
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.ensureZeppelinProxyUserConfigs();
 
-    verify(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller);
+    verify(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller, configHelper);
 
     assertTrue(captureCoreSiteConfProperties.hasCaptured());
     Assert.assertEquals("existing_value", captureCoreSiteConfProperties.getValue().get("hadoop.proxyuser.zeppelin_user.hosts"));
@@ -723,6 +724,11 @@ public class UpgradeCatalog260Test {
     Capture<Map<String, Object>> captureMap = newCapture();
     expect(artifactEntity.getForeignKeys()).andReturn(Collections.singletonMap("cluster", "2")).times(2);
     artifactEntity.setArtifactData(capture(captureMap));
+    expectLastCall().once();
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+
+    configHelper.updateAgentConfigs(anyObject(Set.class));
     expectLastCall().once();
 
     ArtifactDAO artifactDAO = createMock(ArtifactDAO.class);
@@ -768,7 +774,6 @@ public class UpgradeCatalog260Test {
     expect(cluster.getConfigsByType("ranger-kms-audit")).andReturn(Collections.singletonMap("version1", config)).anyTimes();
     expect(cluster.getServiceByConfigType("ranger-kms-audit")).andReturn("RANGER").anyTimes();
     expect(cluster.getClusterName()).andReturn("cl1").anyTimes();
-    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
     expect(cluster.getConfig(eq("ranger-kms-audit"), anyString())).andReturn(newConfig).once();
     expect(cluster.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated ranger-kms-audit during Ambari Upgrade from 2.5.2 to 2.6.0.")).andReturn(response).once();
 
@@ -795,15 +800,12 @@ public class UpgradeCatalog260Test {
     expect(controller.createConfig(eq(cluster), eq(stackId), eq("hive-interactive-site"), capture(captureHsiProperties), anyString(), anyObject(Map.class)))
             .andReturn(null)
             .anyTimes();
-    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
-        .andReturn(createNiceMock(MetadataUpdateEvent.class))
-        .once();
 
-    replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller, stackId);
+    replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller, stackId, configHelper);
 
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
-    verify(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller, stackId);
+    verify(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller, stackId, configHelper);
     KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(captureMap.getValue());
     Assert.assertNotNull(kerberosDescriptorUpdated);
 
@@ -1107,6 +1109,7 @@ public class UpgradeCatalog260Test {
         binder.bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
         binder.bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
+        binder.bind(ConfigHelper.class).toInstance(createStrictMock(ConfigHelper.class));
 
         binder.install(new FactoryModuleBuilder().build(RequestFactory.class));
         binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));

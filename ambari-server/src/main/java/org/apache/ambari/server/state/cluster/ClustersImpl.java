@@ -38,6 +38,7 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
@@ -151,6 +152,9 @@ public class ClustersImpl implements Clusters {
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
+
+  @Inject
+  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   @Inject
   private Provider<MetadataHolder> m_metadataHolder;
@@ -305,6 +309,14 @@ public class ClustersImpl implements Clusters {
       for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
         clusterHostsMap1.get(clusterEntity.getClusterName()).add(host);
         cSet.add(clustersByName.get(clusterEntity.getClusterName()));
+      }
+    }
+    // init host configs
+    for (Long hostId : hostsById.keySet()) {
+      try {
+        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
+      } catch (AmbariException e) {
+        LOG.error("Agent configs initialization was failed", e);
       }
     }
   }
@@ -479,6 +491,12 @@ public class ClustersImpl implements Clusters {
 
     if (null != hostId) {
       getHostsById().put(hostId, host);
+      // init host configs
+      try {
+        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
+      } catch (AmbariException e) {
+        LOG.error("Agent configs initialization was failed for host with id %s", hostId, e);
+      }
     }
   }
 
