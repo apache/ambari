@@ -709,7 +709,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         hostComponentNames.put(request.getClusterName(), new HashMap<>());
       }
       if (!hostComponentNames.get(request.getClusterName())
-          .containsKey(request.getServiceName())) {
+          .containsKey(request.getServiceGroupName())) {
         hostComponentNames.get(request.getClusterName()).put(
             request.getServiceGroupName(), new HashMap<>());
       }

@@ -438,7 +438,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       try {
         ServiceComponent sc = s.getServiceComponent(request.getComponentName());
-        if (sc != null && (sc.getServiceId().equals(cluster.getService(request.getServiceName()).getServiceId()))) {
+        if (sc != null && (sc.getServiceId().equals(cluster.getService(request.getServiceGroupName(), request.getServiceName()).getServiceId()))) {
           // throw error later for dup
           duplicates.add(request.toString());
           continue;
