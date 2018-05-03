@@ -1018,6 +1018,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         alertsDAO.merge(alertHistoryEntity);
       }
     }
+
+    // Force the clusters object to reload to ensure the renamed service is accounted for
+    getEntityManagerProvider().get().getEntityManagerFactory().getCache().evictAll();
+    clusters.invalidateAllClusters();
   }
 
   @Override

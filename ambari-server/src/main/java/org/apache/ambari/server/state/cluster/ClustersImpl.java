@@ -1006,4 +1006,17 @@ public class ClustersImpl implements Clusters {
     getClustersByName().put(clusterEntity.getClusterName(), currentCluster);
     getClustersById().put(currentCluster.getClusterId(), currentCluster);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void invalidateAllClusters() {
+    if(clustersByName != null) {
+      Collection<Cluster> clusters = clustersByName.values();
+      for (Cluster cluster : clusters) {
+        invalidate(cluster);
+      }
+    }
+  }
 }
