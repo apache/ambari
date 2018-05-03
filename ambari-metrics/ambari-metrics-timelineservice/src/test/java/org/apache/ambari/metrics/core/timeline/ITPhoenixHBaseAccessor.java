@@ -409,7 +409,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     Assert.assertFalse("Normalizer disabled.", normalizerEnabled);
     Assert.assertTrue("Durability Set.", tableDurabilitySet);
-    Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
+    Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD_UUID.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
     Assert.assertEquals("FIFO compaction policy is set for aggregate tables", DATE_TIERED_COMPACTION_POLICY, aggregateTableCompactionPolicy);
     Assert.assertEquals("Precision TTL value as expected.", 86400, precisionTtl);
 
@@ -441,7 +441,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     metric.setExitCode(0);
     List<ContainerMetric> list = Arrays.asList(metric);
     hdb.insertContainerMetrics(list);
-    PreparedStatement stmt = conn.prepareStatement("SELECT * FROM CONTAINER_METRICS");
+    PreparedStatement stmt = conn.prepareStatement("SELECT * FROM CONTAINER_METRICS_UUID");
     ResultSet set = stmt.executeQuery();
     // check each filed is set properly when read back.
     boolean foundRecord = false;

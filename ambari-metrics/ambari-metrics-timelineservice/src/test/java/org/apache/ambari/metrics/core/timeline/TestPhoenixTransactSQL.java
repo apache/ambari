@@ -154,7 +154,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_MINUTE_UUID"));
     verify(connection, preparedStatement);
   }
 
@@ -183,7 +183,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_UUID"));
     Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -201,7 +201,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_MINUTE_UUID"));
     Assert.assertEquals(Precision.MINUTES, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -219,7 +219,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY_UUID"));
     Assert.assertEquals(Precision.HOURS, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -237,7 +237,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_DAILY"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_DAILY_UUID"));
     Assert.assertEquals(Precision.DAYS, condition.getPrecision());
     verify(connection, preparedStatement);
   }
@@ -256,7 +256,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY_UUID"));
     verify(connection, preparedStatement);
   }
 
@@ -274,7 +274,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE_UUID"));
     verify(connection, preparedStatement);
   }
 
@@ -301,7 +301,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_UUID"));
     Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
     verify(connection, preparedStatement);
     reset(connection, preparedStatement);
@@ -320,7 +320,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_UUID"));
     Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -338,7 +338,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE_UUID"));
     Assert.assertEquals(Precision.MINUTES, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -355,7 +355,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY_UUID"));
     Assert.assertEquals(Precision.HOURS, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -372,7 +372,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_DAILY"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_DAILY_UUID"));
     Assert.assertEquals(Precision.DAYS, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -398,7 +398,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement, parameterMetaData);
     PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_UUID"));
     Assert.assertTrue(stmt.contains("JOIN"));
     verify(connection, preparedStatement, parameterMetaData);
   }
@@ -441,7 +441,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY_UUID"));
     verify(connection, preparedStatement);
   }
 
@@ -476,7 +476,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_UUID"));
     verify(connection, preparedStatement);
 
     //Check without passing precision. Should be OK!
@@ -492,7 +492,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_UUID"));
     verify(connection, preparedStatement);
 
     //Check with more hosts and lesser metrics for 1 day data = 11520 points Should be OK!
@@ -518,7 +518,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE_UUID"));
     verify(connection, preparedStatement);
 
     //Check with 20 metrics, NO hosts and 1 day data = 5760 points. Should be OK!
@@ -540,7 +540,7 @@ public class TestPhoenixTransactSQL {
     replay(connection, preparedStatement);
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_MINUTE"));
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_MINUTE_UUID"));
     verify(connection, preparedStatement);
 
     //Check with 5 hosts and 10 metrics for 1 hour data = 18000 points. Should throw out Exception!
@@ -584,7 +584,7 @@ public class TestPhoenixTransactSQL {
 
     String conditionClause = condition.getConditionClause().toString();
     String expectedClause = " UUID IN (" +
-      "SELECT UUID FROM METRIC_RECORD WHERE " +
+      "SELECT UUID FROM METRIC_RECORD_UUID WHERE " +
       "(UUID IN (?, ?)) AND " +
       "SERVER_TIME >= ? AND SERVER_TIME < ? " +
       "GROUP BY UUID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) AND SERVER_TIME >= ? AND SERVER_TIME < ?";
@@ -602,7 +602,7 @@ public class TestPhoenixTransactSQL {
 
     String conditionClause = condition.getConditionClause().toString();
     String expectedClause = " UUID IN (" +
-      "SELECT UUID FROM METRIC_RECORD WHERE " +
+      "SELECT UUID FROM METRIC_RECORD_UUID WHERE " +
       "(UUID IN (?, ?, ?)) AND " +
       "SERVER_TIME >= ? AND SERVER_TIME < ? " +
       "GROUP BY UUID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) AND SERVER_TIME >= ? AND SERVER_TIME < ?";

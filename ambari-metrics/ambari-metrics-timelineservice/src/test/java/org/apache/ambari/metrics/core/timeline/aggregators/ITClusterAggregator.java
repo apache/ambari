@@ -291,7 +291,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     agg.doWork(startTime, ctime + hour + 1000);
 
     // THEN
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_DAILY");
+    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_DAILY_UUID");
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
@@ -353,7 +353,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     hdb.saveClusterAggregateRecords(records);
     agg.doWork(oldCtime, ctime + second);
 
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_MINUTE");
+    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_MINUTE_UUID");
     int count = 0;
     long diff = 0 ;
     while (rs.next()) {
@@ -412,7 +412,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     agg.doWork(startTime, ctime + minute);
 
     // THEN
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY");
+    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY_UUID");
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
@@ -471,7 +471,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     agg.doWork(startTime, ctime + minute);
 
     // THEN
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY");
+    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY_UUID");
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
@@ -681,7 +681,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     agg.doWork(startTime, ctime + minute);
 
     // THEN
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY");
+    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY_UUID");
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
