@@ -309,7 +309,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       }
 
       if (hostComponents.containsKey(hostComponent.getHostName())) {
-        if (hostComponents.get(hostComponent.getHostName()).getServiceGroupName().equalsIgnoreCase(hostComponent.getServiceGroupName())) {
+        if (hostComponents.get(hostComponent.getHostName()).getServiceGroupName().equals(hostComponent.getServiceGroupName())) {
           throw new AmbariException("Cannot add duplicate ServiceComponentHost" + ", clusterName="
                   + service.getCluster().getClusterName() + ", clusterId="
                   + service.getCluster().getClusterId() + ", serviceName=" + service.getName()

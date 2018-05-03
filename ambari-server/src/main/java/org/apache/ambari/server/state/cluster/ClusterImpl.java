@@ -750,7 +750,7 @@ public class ClusterImpl implements Cluster {
 
     if (serviceComponentHosts.get(serviceName).get(componentName).containsKey(
       hostname)) {
-      if(serviceComponentHosts.get(serviceName).get(componentName).get(hostname).getServiceGroupName().equalsIgnoreCase(svcCompHost.getServiceGroupName())) {
+      if(serviceComponentHosts.get(serviceName).get(componentName).get(hostname).getServiceGroupName().equals(svcCompHost.getServiceGroupName())) {
         throw new AmbariException("Duplicate entry for ServiceComponentHost"
                 + ", serviceName=" + serviceName + ", serviceComponentName"
                 + componentName + ", hostname= " + hostname);
@@ -948,7 +948,7 @@ public class ClusterImpl implements Cluster {
   public Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType)
       throws AmbariException {
     if (services.containsKey(serviceName)) {
-      if (services.get(serviceName).getServiceGroupName().equalsIgnoreCase(serviceGroup.getServiceGroupName())) {
+      if (services.get(serviceName).getServiceGroupName().equals(serviceGroup.getServiceGroupName())) {
         String message = MessageFormat.format("The {0} service already exists in {1}", serviceName,
                 getClusterName());
 

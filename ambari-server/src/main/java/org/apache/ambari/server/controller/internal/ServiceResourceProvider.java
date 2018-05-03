@@ -1108,7 +1108,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
       try {
         Service s = cluster.getService(serviceName);
-        if (s != null && (s.getServiceGroupName() == serviceGroupName)) {
+        if (s != null && (s.getServiceGroupName().equals(serviceGroupName))) {
           // throw error later for dup
           duplicates.add(serviceName);
           continue;
