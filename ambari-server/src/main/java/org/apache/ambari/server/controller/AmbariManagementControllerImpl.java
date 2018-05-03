@@ -1704,6 +1704,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<ConfigurationResponse> configurationResponses =
       new LinkedList<>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
+    boolean nonServiceConfigsChanged = false;
 
     if (desiredConfigs != null && request.getServiceConfigVersionRequest() != null) {
       String msg = "Unable to set desired configs and rollback at same time, request = " + request;
@@ -1864,6 +1865,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 configChangeLog.info("(configchange)    Config type '{}' was modified with the following keys, {}", config.getType(), configOutput);
               }
             }
+          } else {
+            nonServiceConfigsChanged = true;
           }
         }
       }
@@ -2012,7 +2015,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     }
-    if (serviceConfigVersionResponse != null) {
+    if (serviceConfigVersionResponse != null || nonServiceConfigsChanged) {
       configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
 
