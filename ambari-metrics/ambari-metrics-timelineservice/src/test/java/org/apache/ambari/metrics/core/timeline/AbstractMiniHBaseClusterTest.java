@@ -121,16 +121,16 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
       conn = getConnection(getUrl());
       stmt = conn.createStatement();
 
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_V2");
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_MINUTE_V2");
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_HOURLY_V2");
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_DAILY_V2");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_V2");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_MINUTE_V2");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_HOURLY_V2");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_DAILY_V2");
-      deleteTableIgnoringExceptions(stmt, "METRICS_METADATA_V2");
-      deleteTableIgnoringExceptions(stmt, "HOSTED_APPS_METADATA_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_MINUTE_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_HOURLY_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_DAILY_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_MINUTE_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_HOURLY_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_DAILY_UUID");
+      deleteTableIgnoringExceptions(stmt, "METRICS_METADATA_UUID");
+      deleteTableIgnoringExceptions(stmt, "HOSTED_APPS_METADATA_UUID");
 
       conn.commit();
     } catch (Exception e) {
