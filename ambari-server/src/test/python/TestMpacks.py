@@ -215,11 +215,11 @@ class TestMpacks(TestCase):
     os_path_exists_mock.assert_has_calls(os_path_exists_calls)
 
   @patch("os.path.exists")
-  @patch("ambari_server.setupMpacks.extract_archive")
+  @patch("ambari_server.setupMpacks.untar_archive")
   @patch("ambari_server.setupMpacks.get_archive_root_dir")
   @patch("ambari_server.setupMpacks.download_mpack")
   @patch("ambari_server.setupMpacks.get_ambari_properties")
-  def test_install_mpack_with_malformed_mpack(self, get_ambari_properties_mock, download_mpack_mock, get_archive_root_dir_mock, extract_archive_mock, os_path_exists_mock):
+  def test_install_mpack_with_malformed_mpack(self, get_ambari_properties_mock, download_mpack_mock, get_archive_root_dir_mock, untar_archive_mock, os_path_exists_mock):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/mpack.tar.gz"
     download_mpack_mock.return_value = "/tmp/mpack.tar.gz"
@@ -237,7 +237,7 @@ class TestMpacks(TestCase):
 
     get_archive_root_dir_mock.return_value = "mpack"
     os_path_exists_mock.side_effect = [True, True, False, False]
-    extract_archive_mock.return_value = None
+    untar_archive_mock.return_value = None
     fail = False
     try:
       install_mpack(options)
@@ -248,7 +248,7 @@ class TestMpacks(TestCase):
 
     get_archive_root_dir_mock.return_value = "mpack"
     os_path_exists_mock.side_effect = [True, True, False, True, False]
-    extract_archive_mock.return_value = None
+    untar_archive_mock.return_value = None
     fail = False
     try:
       install_mpack(options)
