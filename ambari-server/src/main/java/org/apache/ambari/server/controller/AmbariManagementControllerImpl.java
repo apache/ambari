@@ -663,7 +663,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     // do all validation checks
-    Map<String, Map<String, Map<String, Set<String>>>> hostComponentNames = new HashMap<>();
+    Map<String, Map<String, Map<String, Map<String, Set<String>>>>> hostComponentNames =
+            new HashMap<>();
     Set<String> duplicates = new HashSet<>();
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
@@ -708,18 +709,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         hostComponentNames.put(request.getClusterName(), new HashMap<>());
       }
       if (!hostComponentNames.get(request.getClusterName())
-          .containsKey(request.getServiceName())) {
+          .containsKey(request.getServiceGroupName())) {
         hostComponentNames.get(request.getClusterName()).put(
+            request.getServiceGroupName(), new HashMap<>());
+      }
+      if (!hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
+          .containsKey(request.getServiceName())) {
+        hostComponentNames.get(request.getClusterName()).get(request.getServiceGroupName()).put(
             request.getServiceName(), new HashMap<String, Set<String>>());
       }
       if (!hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
           .get(request.getServiceName())
           .containsKey(request.getComponentName())) {
         hostComponentNames.get(request.getClusterName())
+            .get(request.getServiceGroupName())
             .get(request.getServiceName()).put(request.getComponentName(),
                 new HashSet<String>());
       }
       if (hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
           .get(request.getServiceName())
           .get(request.getComponentName())
           .contains(request.getHostname())) {
@@ -728,6 +738,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         continue;
       }
       hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
           .get(request.getServiceName()).get(request.getComponentName())
           .add(request.getHostname());
 
@@ -852,7 +863,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
 

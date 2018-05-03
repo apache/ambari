@@ -309,11 +309,13 @@ public class ServiceComponentImpl implements ServiceComponent {
       }
 
       if (hostComponents.containsKey(hostComponent.getHostName())) {
-        throw new AmbariException("Cannot add duplicate ServiceComponentHost" + ", clusterName="
-            + service.getCluster().getClusterName() + ", clusterId="
-            + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-            + ", serviceComponentName=" + getName() + ", hostname=" + hostComponent.getHostName()
-            + ", recoveryEnabled=" + isRecoveryEnabled());
+        if (hostComponents.get(hostComponent.getHostName()).getServiceGroupName().equals(hostComponent.getServiceGroupName())) {
+          throw new AmbariException("Cannot add duplicate ServiceComponentHost" + ", clusterName="
+                  + service.getCluster().getClusterName() + ", clusterId="
+                  + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
+                  + ", serviceComponentName=" + getName() + ", hostname=" + hostComponent.getHostName()
+                  + ", recoveryEnabled=" + isRecoveryEnabled());
+        }
       }
       // FIXME need a better approach of caching components by host
       ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
