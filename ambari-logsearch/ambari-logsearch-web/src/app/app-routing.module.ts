@@ -23,13 +23,15 @@ import {LoginFormComponent} from '@app/components/login-form/login-form.componen
 import {AuthGuardService} from '@app/services/auth-guard.service';
 import {TabGuard} from '@app/services/tab.guard';
 import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
+import {LoginScreenGuardService} from '@app/services/login-screen-guard.service';
 
 const appRoutes: Routes = [{
     path: 'login',
     component: LoginFormComponent,
     data: {
       breadcrumbs: 'login.title'
-    }
+    },
+    canActivate: [LoginScreenGuardService]
   }, {
     path: 'logs/:activeTab',
     component: LogsContainerComponent,

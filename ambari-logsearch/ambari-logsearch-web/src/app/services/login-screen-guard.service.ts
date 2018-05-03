@@ -23,20 +23,19 @@ import {Observable} from 'rxjs/Observable';
 import {AuthService} from '@app/services/auth.service';
 
 /**
- * This guard goal is to prevent to display screens where authorization needs.
+ * The goal of this guard service is to prevent to display the login screen when the user is logged in.
  */
 @Injectable()
-export class AuthGuardService implements CanActivate {
+export class LoginScreenGuardService implements CanActivate {
 
   constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     return this.authService.isAuthorized().map((isAuthorized: boolean) => {
-      this.authService.redirectUrl = state.url;
-      if (!isAuthorized) {
-        this.router.navigate(['/login']);
+      if (isAuthorized && state.url === '/login') {
+        this.router.navigate(['/']);
       }
-      return isAuthorized;
+      return !isAuthorized;
     });
   }
 
