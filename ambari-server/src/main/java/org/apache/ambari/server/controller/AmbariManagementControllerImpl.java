@@ -5700,6 +5700,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
 
+      m_metadataHolder.get().updateData(getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+
       if (request.getVersion() != null) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
           throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
