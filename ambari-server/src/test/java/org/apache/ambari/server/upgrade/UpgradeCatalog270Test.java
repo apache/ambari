@@ -1228,14 +1228,14 @@ public class UpgradeCatalog270Test {
 
   @Test
   public void testupdateKerberosDescriptorArtifact() throws Exception {
+    //there is HIVE -> WEBHCAT_SERVER -> configurations -> core-site -> hadoop.proxyuser.HTTP.hosts
     String kerberosDescriptorJson = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("org/apache/ambari/server/upgrade/kerberos_descriptor.json"), "UTF-8");
 
     ArtifactEntity artifactEntity = new ArtifactEntity();
     artifactEntity.setArtifactName("kerberos_descriptor");
     artifactEntity.setArtifactData(GSON.<Map<String, Object>>fromJson(kerberosDescriptorJson, Map.class));
 
-    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
-            .createMock();
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class).createMock();
 
     expect(artifactDAO.merge(artifactEntity)).andReturn(artifactEntity);
 
@@ -1243,9 +1243,13 @@ public class UpgradeCatalog270Test {
 
     upgradeCatalog270.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
 
+    final String newKerberosDescriptorJson = GSON.toJson(artifactEntity.getArtifactData());
+
     int oldCount = substringCount(kerberosDescriptorJson, AMBARI_INFRA_OLD_NAME);
-    int newCount = substringCount(GSON.toJson(artifactEntity.getArtifactData()), AMBARI_INFRA_NEW_NAME);
+    int newCount = substringCount(newKerberosDescriptorJson, AMBARI_INFRA_NEW_NAME);
     assertThat(newCount, is(oldCount));
+
+    assertTrue(newKerberosDescriptorJson.contains("webhcat_server_hosts|"));
 
     verify(upgradeCatalog270);
   }
