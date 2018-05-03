@@ -80,6 +80,16 @@
       <name>snapshots</name>
       <url>https://repository.apache.org/content/repositories/snapshots</url>
     </repository>
+    <repository>
+      <id>clojars</id>
+      <name>clojars</name>
+      <url>http://clojars.org/repo/</url>
+    </repository>
+    <repository>
+      <id>conjars</id>
+      <name>conjars</name>
+      <url>http://conjars.org/repo/</url>
+    </repository>
   </repositories>
   <dependencyManagement>
     <dependencies>
