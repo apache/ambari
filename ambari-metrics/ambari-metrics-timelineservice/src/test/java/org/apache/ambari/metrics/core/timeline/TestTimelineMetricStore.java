@@ -118,6 +118,11 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
     return null;
   }
 
+  @Override
+  public TimelineMetricServiceSummary getTimelineMetricServiceSummary() {
+    return null;
+  }
+
 }
 
 

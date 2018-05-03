@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.EventHistoryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.EventHistoryQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class EventHistoryRequestQueryConverterTest extends AbstractRequestConver
   @Test
   public void testConvert() {
     // GIVEN
-    EventHistoryRequest request = new EventHistoryRequest();
+    EventHistoryRequest request = new EventHistoryQueryRequest();
     request.setRowType("myRowType"); // TODO: validate these 3 fields @Valid on EventHistoryRequest object -> not null
     request.setFilterName("myFilterName");
     request.setClusters("cl1,cl2");

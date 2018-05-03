@@ -113,6 +113,11 @@ public abstract class AmbariEvent {
     CLUSTER_RENAME,
 
     /**
+     * The cluster was successfully provisioned.
+     */
+    CLUSTER_PROVISIONED,
+
+    /**
      * The service component recovery enabled field changed.
      */
     SERVICE_COMPONENT_RECOVERY_CHANGED,

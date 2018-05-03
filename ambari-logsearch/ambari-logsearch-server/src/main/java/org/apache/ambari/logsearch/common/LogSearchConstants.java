@@ -113,8 +113,8 @@ public class LogSearchConstants {
   public static final String REQUEST_PARAM_FIELD = "field";
   public static final String REQUEST_PARAM_FORMAT = "format";
   public static final String REQUEST_PARAM_LAST_PAGE = "lastPage";
-  public static final String REQUEST_PARAM_I_MESSAGE = "iMessage";
-  public static final String REQUEST_PARAM_E_MESSAGE = "eMessage";
+  public static final String REQUEST_PARAM_I_MESSAGE = "includeMessage";
+  public static final String REQUEST_PARAM_E_MESSAGE = "excludeMessage";
   public static final String REQUEST_PARAM_MUST_BE = "mustBe";
   public static final String REQUEST_PARAM_MUST_NOT = "mustNot";
   public static final String REQUEST_PARAM_INCLUDE_QUERY = "includeQuery";

@@ -41,7 +41,7 @@ const shipperRoutes: Routes = [{
     breadcrumbs: ['shipperConfiguration.breadcrumbs.title', 'shipperConfiguration.breadcrumbs.update'],
     multiClusterFilter: false
   },
-  canActivate: [AuthGuardService],
+  canActivate: [AuthGuardService, ShipperGuard],
   canDeactivate: [CanDeactivateGuardService]
 }, {
   path: 'shipper/:cluster',
@@ -69,5 +69,4 @@ const shipperRoutes: Routes = [{
     RouterModule
   ]
 })
-export class ShipperRoutingModule {
-}
+export class ShipperRoutingModule {}

@@ -23,6 +23,7 @@ import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtil
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getTimeSlices;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
 import static org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND;
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -54,7 +55,7 @@ public class TimelineMetricClusterAggregatorSecondTest {
     long metricInterval = 10000l;
 
     TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
-    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class))).andReturn(new byte[16]).once();
+    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class), anyBoolean())).andReturn(new byte[16]).once();
     replay(metricMetadataManagerMock);
 
     long roundedEndTime = getRoundedAggregateTimeMillis(aggregatorInterval);

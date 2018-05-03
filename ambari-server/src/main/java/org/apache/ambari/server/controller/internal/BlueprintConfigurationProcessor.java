@@ -58,6 +58,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -89,10 +91,23 @@ public class BlueprintConfigurationProcessor {
   private final static String HAWQ_SITE_HAWQ_STANDBY_ADDRESS_HOST = "hawq_standby_address_host";
   private final static String HAWQSTANDBY = "HAWQSTANDBY";
 
+  private final static String HDFS_HA_INITIAL_CONFIG_TYPE = CLUSTER_ENV_CONFIG_TYPE_NAME;
+  private final static String HDFS_ACTIVE_NAMENODE_PROPERTY_NAME = "dfs_ha_initial_namenode_active";
+  private final static String HDFS_STANDBY_NAMENODE_PROPERTY_NAME = "dfs_ha_initial_namenode_standby";
   private final static String HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME = "dfs_ha_initial_namenode_active_set";
   private final static String HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME = "dfs_ha_initial_namenode_standby_set";
-
   private final static String HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME = "dfs_ha_initial_cluster_id";
+  private final static Set<String> HDFS_HA_INITIAL_PROPERTIES = ImmutableSet.of(
+      HDFS_ACTIVE_NAMENODE_PROPERTY_NAME, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME,
+      HDFS_STANDBY_NAMENODE_PROPERTY_NAME, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME,
+      HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME);
+
+  /**
+   * These properties are only required during deployment, and should be removed afterwards.
+   */
+  public static final Map<String, Set<String>> TEMPORARY_PROPERTIES_FOR_CLUSTER_DEPLOYMENT = ImmutableMap.of(
+    HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_HA_INITIAL_PROPERTIES
+  );
 
   private final static String HADOOP_ENV_CONFIG_TYPE_NAME = "hadoop-env";
 
@@ -189,10 +204,14 @@ public class BlueprintConfigurationProcessor {
         new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
         new SimplePropertyNameExportFilter("container_dn", "kerberos-env"),
         new SimplePropertyNameExportFilter("domains", "krb5-conf"),
-        new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", HADOOP_ENV_CONFIG_TYPE_NAME),
-        new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", HADOOP_ENV_CONFIG_TYPE_NAME),
+        new SimplePropertyNameExportFilter(HDFS_ACTIVE_NAMENODE_PROPERTY_NAME, HADOOP_ENV_CONFIG_TYPE_NAME),
+        new SimplePropertyNameExportFilter(HDFS_STANDBY_NAMENODE_PROPERTY_NAME, HADOOP_ENV_CONFIG_TYPE_NAME),
         new SimplePropertyNameExportFilter(HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, HADOOP_ENV_CONFIG_TYPE_NAME),
         new SimplePropertyNameExportFilter(HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, HADOOP_ENV_CONFIG_TYPE_NAME),
+        new SimplePropertyNameExportFilter(HDFS_ACTIVE_NAMENODE_PROPERTY_NAME, HDFS_HA_INITIAL_CONFIG_TYPE),
+        new SimplePropertyNameExportFilter(HDFS_STANDBY_NAMENODE_PROPERTY_NAME, HDFS_HA_INITIAL_CONFIG_TYPE),
+        new SimplePropertyNameExportFilter(HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, HDFS_HA_INITIAL_CONFIG_TYPE),
+        new SimplePropertyNameExportFilter(HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, HDFS_HA_INITIAL_CONFIG_TYPE),
         new StackPropertyTypeFilter(),
         new KerberosAuthToLocalRulesFilter(authToLocalPerClusterMap)};
     }
@@ -354,11 +373,18 @@ public class BlueprintConfigurationProcessor {
     // specified in the stacks, and the filters defined in this class
     doFilterPriorToClusterUpdate(clusterConfig, configTypesUpdated);
 
+    Set<String> propertiesMoved = clusterConfig.moveProperties(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_HA_INITIAL_PROPERTIES);
+    if (!propertiesMoved.isEmpty()) {
+      configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
+      configTypesUpdated.add(HDFS_HA_INITIAL_CONFIG_TYPE);
+    }
+
     // this needs to be called after doFilterPriorToClusterUpdate() to ensure that the returned
     // set of properties (copy) doesn't include the removed properties.  If an updater
     // removes a property other than the property it is registered for then we will
     // have an issue as it won't be removed from the clusterProps map as it is a copy.
     Map<String, Map<String, String>> clusterProps = clusterConfig.getFullProperties();
+
     for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
         String type = entry.getKey();
@@ -433,13 +459,13 @@ public class BlueprintConfigurationProcessor {
           // set the properties that configure which namenode is active,
           // and which is a standby node in this HA deployment
           Iterator<String> nnHostIterator = nnHosts.iterator();
-          clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, "dfs_ha_initial_namenode_active", nnHostIterator.next());
-          clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, "dfs_ha_initial_namenode_standby", nnHostIterator.next());
+          clusterConfig.setProperty(HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_ACTIVE_NAMENODE_PROPERTY_NAME, nnHostIterator.next());
+          clusterConfig.setProperty(HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_STANDBY_NAMENODE_PROPERTY_NAME, nnHostIterator.next());
 
-          configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
+          configTypesUpdated.add(HDFS_HA_INITIAL_CONFIG_TYPE);
         }
       } else {
-        if (!isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME) && !isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME)) {
+        if (!isPropertySet(clusterProps, HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME) && !isPropertySet(clusterProps, HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME)) {
           // multiple nameservices indicates an HDFS NameNode Federation install
           // process each nameservice to determine the active/standby nodes
           LOG.info("Processing multiple HDFS NameService instances, which indicates a NameNode Federation deployment");
@@ -477,15 +503,15 @@ public class BlueprintConfigurationProcessor {
 
             // set the properties what configure the NameNode Active/Standby status for each nameservice
             if (!activeNameNodeHostnames.isEmpty() && !standbyNameNodeHostnames.isEmpty()) {
-              clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, String.join(",", activeNameNodeHostnames));
-              clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, String.join(",", standbyNameNodeHostnames));
+              clusterConfig.setProperty(HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, String.join(",", activeNameNodeHostnames));
+              clusterConfig.setProperty(HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, String.join(",", standbyNameNodeHostnames));
 
               // also set the clusterID property, required for Federation installs of HDFS
-              if (!isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME)) {
-                clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, getClusterName());
+              if (!isPropertySet(clusterProps, HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME)) {
+                clusterConfig.setProperty(HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, getClusterName());
               }
 
-              configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
+              configTypesUpdated.add(HDFS_HA_INITIAL_CONFIG_TYPE);
             } else {
               LOG.warn("Error in processing the set of active/standby namenodes in this federated cluster, please check hdfs-site configuration");
             }
@@ -1076,7 +1102,7 @@ public class BlueprintConfigurationProcessor {
    *         false if the initial active namenode property has not been configured
    */
   static boolean isNameNodeHAInitialActiveNodeSet(Map<String, Map<String, String>> configProperties) {
-    return configProperties.containsKey(HADOOP_ENV_CONFIG_TYPE_NAME) && configProperties.get(HADOOP_ENV_CONFIG_TYPE_NAME).containsKey("dfs_ha_initial_namenode_active");
+    return configProperties.containsKey(HDFS_HA_INITIAL_CONFIG_TYPE) && configProperties.get(HDFS_HA_INITIAL_CONFIG_TYPE).containsKey(HDFS_ACTIVE_NAMENODE_PROPERTY_NAME);
   }
 
 
@@ -1090,7 +1116,7 @@ public class BlueprintConfigurationProcessor {
    *         false if the initial standby namenode property has not been configured
    */
   static boolean isNameNodeHAInitialStandbyNodeSet(Map<String, Map<String, String>> configProperties) {
-    return configProperties.containsKey(HADOOP_ENV_CONFIG_TYPE_NAME) && configProperties.get(HADOOP_ENV_CONFIG_TYPE_NAME).containsKey("dfs_ha_initial_namenode_standby");
+    return configProperties.containsKey(HDFS_HA_INITIAL_CONFIG_TYPE) && configProperties.get(HDFS_HA_INITIAL_CONFIG_TYPE).containsKey(HDFS_STANDBY_NAMENODE_PROPERTY_NAME);
   }
 
   /**
@@ -2512,6 +2538,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> mHadoopEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> shHadoopEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> clusterEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> hiveEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> hiveInteractiveEnvMap = new HashMap<>();
@@ -2571,6 +2598,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("ranger-storm-audit", rangerStormAuditPropsMap);
     singleHostTopologyUpdaters.put("ranger-atlas-audit", rangerAtlasAuditPropsMap);
     singleHostTopologyUpdaters.put(HADOOP_ENV_CONFIG_TYPE_NAME, shHadoopEnvMap);
+    singleHostTopologyUpdaters.put(CLUSTER_ENV_CONFIG_TYPE_NAME, clusterEnvMap);
 
     singleHostTopologyUpdaters.put("hawq-site", hawqSiteMap);
     singleHostTopologyUpdaters.put("zookeeper-env", zookeeperEnvMap);
@@ -2619,8 +2647,8 @@ public class BlueprintConfigurationProcessor {
     multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false, false, true));
     multiHdfsSiteMap.put("dfs.encryption.key.provider.uri", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false, false, false));
     // Explicit initial primary/secondary node assignment in HA
-    shHadoopEnvMap.put("dfs_ha_initial_namenode_active", new SingleHostTopologyUpdater("NAMENODE"));
-    shHadoopEnvMap.put("dfs_ha_initial_namenode_standby", new SingleHostTopologyUpdater("NAMENODE"));
+    clusterEnvMap.put(HDFS_ACTIVE_NAMENODE_PROPERTY_NAME, new SingleHostTopologyUpdater("NAMENODE"));
+    clusterEnvMap.put(HDFS_STANDBY_NAMENODE_PROPERTY_NAME, new SingleHostTopologyUpdater("NAMENODE"));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));

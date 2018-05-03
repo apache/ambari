@@ -56,7 +56,7 @@ import io.swagger.annotations.ApiResponses;
  * Service responsible for cluster resource requests.
  */
 @Path("/clusters")
-@Api(value = "/clusters", description = "Endpoint for cluster-specific operations")
+@Api(value = "Clusters", description = "Endpoint for cluster-specific operations")
 public class ClusterService extends BaseService {
 
   private static final String CLUSTER_REQUEST_TYPE = "org.apache.ambari.server.api.services.ClusterRequestSwagger";

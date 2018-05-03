@@ -98,16 +98,21 @@
       </div>
       {{#if controller.isHDFSFederatedSummary}}
         {{#if controller.selectedNSWidgetLayout}}
-          <div style="margin-left: 21px; margin-top: 25px; position: relative">
+          <div class="widgets-group-select-wrapper">
             <h5 class="widgets-group-title">{{t dashboard.widgets.nameSpace}}</h5>
-            <button type="button" style="min-width: 200px; text-align: left;" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-              {{controller.selectedNSWidgetLayout.displayName}} &nbsp; <span class="caret pull-right" style="position: relative; top: 6px;"></span>
-            </button>
-            <ul class="dropdown-menu">
-              {{#each option in controller.activeNSWidgetLayouts}}
-                <li><a href="#" {{action switchNameServiceLayout option target="controller"}}>{{option.displayName}}</a></li>
-              {{/each}}
-            </ul>
+            <div class="btn-group dropdown">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                <span class="selected-item">{{controller.selectedNSWidgetLayout.displayName}}</span>
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                {{#each option in controller.activeNSWidgetLayouts}}
+                  <li>
+                    <a href="#" {{action switchNameServiceLayout option target="controller"}}>{{option.displayName}}</a>
+                  </li>
+                {{/each}}
+              </ul>
+            </div>
           </div>
           <div class="panel-body service-widgets-box">
             <div id="ns_widget_layout" class="thumbnails">

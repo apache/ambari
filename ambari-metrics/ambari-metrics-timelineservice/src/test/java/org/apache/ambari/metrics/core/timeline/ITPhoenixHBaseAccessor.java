@@ -89,7 +89,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     long endTime = ctime + minute;
-    List<byte[]> uuids = metadataManager.getUuids(new ArrayList<String>() {{ add("disk_free"); }},
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_free"); }},
       Collections.singletonList("local1"),
       "host", null);
 
@@ -134,7 +134,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    List<byte[]> uuids = metadataManager.getUuids(new ArrayList<String>() {{ add("disk_%"); }},
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_%"); }},
       Collections.singletonList("local1"),
       "host", null);
     Condition condition = new DefaultCondition(uuids,
@@ -189,7 +189,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    List<byte[]> uuids = metadataManager.getUuids(new ArrayList<String>() {{ add("disk_used"); }},
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_used"); }},
       Collections.singletonList("test_host"),
       "test_app", "test_instance");
 
@@ -236,7 +236,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    List<byte[]> uuids = metadataManager.getUuids(new ArrayList<String>() {{ add("disk_free"); }},
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_free"); }},
       null,
       "host", null);
 
@@ -280,7 +280,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    List<byte[]> uuids = metadataManager.getUuids(new ArrayList<String>() {{ add("disk_free"); }},
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_free"); }},
       null,
       "host", null);
 
@@ -328,7 +328,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    List<byte[]> uuids = metadataManager.getUuids(new ArrayList<String>() {{ add("disk_used"); }},
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_used"); }},
       null,
       "test_app",
       "instance_id");

@@ -498,6 +498,8 @@
             "min_user_id": "1000"
         },
         "cluster-env": {
+            "dfs_ha_initial_namenode_active": "c6401.ambari.apache.org",
+            "dfs_ha_initial_namenode_standby": "c6402.ambari.apache.org",
             "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
@@ -518,9 +520,7 @@
             "dtnode_heapsize": "1024m", 
             "proxyuser_group": "users",
             "hadoop_heapsize": "1024", 
-            "hadoop_pid_dir_prefix": "/var/run/hadoop",
-            "dfs_ha_initial_namenode_active" : "c6401.ambari.apache.org",
-            "dfs_ha_initial_namenode_standby" : "c6402.ambari.apache.org"
+            "hadoop_pid_dir_prefix": "/var/run/hadoop"
         },
         "hive-env": {
             "hcat_pid_dir": "/var/run/webhcat", 

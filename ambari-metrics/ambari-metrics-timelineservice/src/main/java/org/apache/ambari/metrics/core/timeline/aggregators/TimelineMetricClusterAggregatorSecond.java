@@ -22,11 +22,11 @@ import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguratio
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_EVENT_METRIC_PATTERNS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
-import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getJavaRegexFromSqlRegex;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getTimeSlices;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricUtils.getJavaMetricPatterns;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -37,9 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -69,7 +66,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   protected final boolean interpolationEnabled;
   private TimelineMetricMetadataManager metadataManagerInstance;
   private String skipAggrPatternStrings;
-  private Set<Pattern> skipInterpolationMetricPatterns = new HashSet<>();
+  private List<String> skipInterpolationMetricPatterns = new ArrayList<>();
   private final static String liveHostsMetricName = "live_hosts";
 
   public TimelineMetricClusterAggregatorSecond(AGGREGATOR_NAME aggregatorName,
@@ -98,12 +95,10 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     String skipInterpolationMetricPatternStrings = metricsConf.get(TIMELINE_METRICS_EVENT_METRIC_PATTERNS, "");
 
     if (StringUtils.isNotEmpty(skipInterpolationMetricPatternStrings)) {
-      for (String patternString : skipInterpolationMetricPatternStrings.split(",")) {
-        String javaPatternString = getJavaRegexFromSqlRegex(patternString);
-        LOG.info("SQL pattern " + patternString + " converted to Java pattern : " + javaPatternString);
-        skipInterpolationMetricPatterns.add(Pattern.compile(javaPatternString));
-      }
+      LOG.info("Skipping Interpolation for patterns : " + skipInterpolationMetricPatternStrings);
+      skipInterpolationMetricPatterns.addAll(getJavaMetricPatterns(skipInterpolationMetricPatternStrings));
     }
+
     this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager, true);
   }
 
@@ -221,14 +216,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
       return 0;
     }
 
-    boolean skipInterpolationForMetric = false;
-    for (Pattern pattern : skipInterpolationMetricPatterns) {
-      Matcher m = pattern.matcher(metric.getMetricName());
-      if (m.matches()) {
-        skipInterpolationForMetric = true;
-        LOG.debug("Skipping interpolation for " + metric.getMetricName());
-      }
-    }
+    boolean skipInterpolationForMetric = shouldInterpolationBeSkipped(metric.getMetricName());
 
     Map<TimelineClusterMetric, Double> clusterMetrics = sliceFromTimelineMetric(metric, timeSlices, !skipInterpolationForMetric && interpolationEnabled);
 
@@ -279,10 +267,17 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
       MetricClusterAggregate metricClusterAggregate = new MetricClusterAggregate(
         (double) numOfHosts, 1, null, (double) numOfHosts, (double) numOfHosts);
 
-      metadataManagerInstance.getUuid(timelineClusterMetric);
-
+      metadataManagerInstance.getUuid(timelineClusterMetric, true);
       aggregateClusterMetrics.put(timelineClusterMetric, metricClusterAggregate);
     }
+  }
 
+  private boolean shouldInterpolationBeSkipped(String metricName) {
+    for (String pattern : skipInterpolationMetricPatterns) {
+      if (metricName.matches(pattern)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

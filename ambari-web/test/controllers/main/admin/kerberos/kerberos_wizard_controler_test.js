@@ -529,7 +529,54 @@ describe('App.KerberosWizardController', function() {
     });
   });
 
-
+  describe('#removeIdentityReferences', function() {
+    it('should return filtered descriptor', function() {
+      var descriptor = {
+        services: [
+          {
+            identities: [
+              {
+                reference: 'bar'
+              },
+              {
+                name: 'foo'
+              }
+            ],
+            components: [
+              {
+                identities: [
+                  {
+                    reference: 'bar'
+                  },
+                  {
+                    name: 'foo'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      expect(controller.removeIdentityReferences(descriptor)).to.be.eql({
+        services: [
+          {
+            identities: [
+              {
+                name: 'foo'
+              }
+            ],
+            components: [
+              {
+                identities: [
+                  {
+                    name: 'foo'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+    });
+  });
 });
-
-

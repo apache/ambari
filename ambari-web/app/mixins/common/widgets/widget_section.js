@@ -145,9 +145,70 @@ App.WidgetSectionMixin = Ember.Mixin.create({
    */
   getActiveWidgetLayoutSuccessCallback: function (data) {
     var self = this;
+    if (this.get('isHDFSFederatedSummary')) {
+      this.getNameNodeWidgets().done(function (widgets) {
+        widgets = widgets.items;
+        var widgetsNamespaces = widgets.mapProperty('WidgetInfo.tag').uniq().without(null);
+        var namespaces = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
+        var defaultNNWidgets = widgets.filterProperty('WidgetInfo.tag', null);
+        var widgetsToCreateCount;
+        if (namespaces.length > widgetsNamespaces.length) {
+          widgetsToCreateCount = (namespaces.length - widgetsNamespaces.length) * defaultNNWidgets.length;
+          namespaces.forEach(function (namespace) {
+            if (!widgetsNamespaces.contains(namespace)) {
+              defaultNNWidgets.forEach(function (widget) {
+                if (widget.href) {
+                  delete widget.href;
+                  delete widget.WidgetInfo.id;
+                  delete widget.WidgetInfo.cluster_name;
+                  delete widget.WidgetInfo.author;
+                  widget.WidgetInfo.metrics = JSON.parse(widget.WidgetInfo.metrics);
+                  widget.WidgetInfo.values = JSON.parse(widget.WidgetInfo.values);
+                }
+                widget.WidgetInfo.tag = namespace;
+                self.postWidget(widget).done(function () {
+                  if (!--widgetsToCreateCount) {
+                    self.createLayouts(data);
+                  }
+                });
+              });
+            }
+          });
+        } else {
+          self.createLayouts(data);
+        }
+      })
+    } else {
+      this.createLayouts(data);
+    }
+  },
+
+  getNameNodeWidgets: function () {
+    return App.ajax.send({
+      name: 'widgets.get',
+      sender: this,
+      data: {
+        urlParams: 'WidgetInfo/widget_type.in(GRAPH,NUMBER,GAUGE)&WidgetInfo/scope=CLUSTER&WidgetInfo/metrics.matches(.*\"component_name\":\"NAMENODE\".*)&fields=*'
+      }
+    });
+  },
+
+  postWidget: function (data) {
+    return App.ajax.send({
+      name: 'widgets.wizard.add',
+      sender: this,
+      data: {
+        data: data
+      }
+    });
+  },
+
+  createLayouts: function (data) {
+    var self = this;
+    var namespaces = App.HDFSService.find().objectAt(0).get('masterComponentGroups');
     if (data.items[0]) {
-      if (this.get('isHDFSFederatedSummary') && data.items.length === 1) {
-        this.createFederationWidgetLayouts(data.items[0]);
+      if (this.get('isHDFSFederatedSummary') && namespaces.length + 2 !== data.items.length) {
+        this.createFederationWidgetLayouts(data);
       } else {
         self.getWidgetLayoutSuccessCallback(data);
       }
@@ -323,50 +384,99 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     this.set('activeNSWidgetLayouts', []);
   },
 
-  createFederationWidgetLayouts: function (currentLWidgetLayout) {
+  createFederationWidgetLayouts: function (data) {
     var self = this;
-    currentLWidgetLayout = currentLWidgetLayout.WidgetLayoutInfo;
-    var newLayoutsIds = [currentLWidgetLayout.id];
-    var userLayoutName = this.get('userLayoutName');
-    var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups');
-    var nameServiceToWidgetMap = {all: []};
-    var nonNameServiceSpecific = [];
-    this.getDefaultWidgetLayoutByName(this.get('defaultLayoutName')).done(function (defaultWidgetLayoutData) {
-      var newLayout = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
-
-      newLayout.widgets.forEach(function (widget) {
-        var tag = widget.WidgetInfo.tag;
-        if (widget.WidgetInfo.scope === 'CLUSTER' && tag) {
-          if (!nameServiceToWidgetMap[tag]) {
-            nameServiceToWidgetMap[tag] = [];
-          }
-          nameServiceToWidgetMap[tag].push(widget);
-          nameServiceToWidgetMap.all.push(widget);
-        } else {
-          nonNameServiceSpecific.push(widget);
-        }
-      });
-
-      Em.keys(nameServiceToWidgetMap).forEach(function (nameService) {
-        newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
-        newLayout.display_name = nameService === 'all' ? 'All' : nameService;
-        newLayout.widgets = nameServiceToWidgetMap[nameService];
-        self.createUserWidgetLayout(newLayout).done(function (data) {
-          newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
-          if (newLayoutsIds.length >= nameServices.length) {
-            self.saveActiveWidgetLayouts({
-              "WidgetLayouts": newLayoutsIds.map(function (layout) {
-                return {id: layout};
-              })
-            }).done(function () {
-              currentLWidgetLayout.widgets = nonNameServiceSpecific;
-              self.updateUserWidgetLayout(currentLWidgetLayout).done(function () {
-                self.getActiveWidgetLayout();
-              });
-            });
+    var currentLayouts = data.items;
+    self.getDefaultWidgetLayoutByName(self.get('defaultLayoutName')).done(function (defaultWidgetLayoutData) {
+      self.getNameNodeWidgets().done(function (widgets) {
+        var newNameServices = [];
+        var newWidgets = [];
+        var currentLayoutsNames = [];
+        var newLayout = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
+        var newLayoutsIds = [];
+        var nameServiceToWidgetMap = {all: []};
+        var namespaces = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
+        var nonNameServiceSpecific = newLayout.widgets.slice();
+        var userLayoutName = self.get('userLayoutName');
+        widgets.items.forEach(function (widget) {
+          var tag = widget.WidgetInfo.tag;
+          nonNameServiceSpecific = nonNameServiceSpecific.without(nonNameServiceSpecific.findProperty('WidgetInfo.id', widget.WidgetInfo.id));
+          if (tag) {
+            if (!nameServiceToWidgetMap[tag]) {
+              nameServiceToWidgetMap[tag] = [];
+            }
+            nameServiceToWidgetMap[tag].push(widget);
+            nameServiceToWidgetMap.all.push(widget);
           }
         });
-      })
+        if (currentLayouts.length === 1) {
+          self.removeWidgetLayout(currentLayouts[0].WidgetLayoutInfo.id).done(function () {
+            newLayout.layout_name = userLayoutName;
+            newLayout.widgets = nonNameServiceSpecific;
+            self.createUserWidgetLayout(newLayout).done(function (data) {
+              newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
+              Em.keys(nameServiceToWidgetMap).forEach(function (nameService) {
+                newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
+                newLayout.display_name = nameService === 'all' ? 'All' : nameService;
+                newLayout.widgets = nameServiceToWidgetMap[nameService];
+                self.createUserWidgetLayout(newLayout).done(function (data) {
+                  newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
+                  if (newLayoutsIds.length >= Em.keys(nameServiceToWidgetMap).length + 1) {
+                    self.saveActiveWidgetLayouts({
+                      "WidgetLayouts": newLayoutsIds.map(function (layout) {
+                        return {id: layout};
+                      })
+                    }).done(function () {
+                      self.getActiveWidgetLayout();
+                    });
+                  }
+                });
+              })
+            });
+          });
+        } else {
+          currentLayoutsNames = currentLayouts.map(function (l) {
+            return l.WidgetLayoutInfo.layout_name.split('_nameservice_')[1];
+          }).without(undefined).without('all');
+          namespaces.forEach(function (n) {
+            if (!currentLayoutsNames.contains(n)) {
+              newNameServices.push(n);
+            }
+          });
+          newNameServices.forEach(function (nameService) {
+            newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
+            newLayout.display_name = nameService;
+            newLayout.widgets = nameServiceToWidgetMap[nameService];
+            newWidgets = newWidgets.concat(nameServiceToWidgetMap[nameService]);
+            self.createUserWidgetLayout(newLayout).done(function (data) {
+              newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
+              if (newLayoutsIds.length >= newNameServices.length) {
+                self.saveActiveWidgetLayouts({
+                  "WidgetLayouts": newLayoutsIds.concat(currentLayouts.mapProperty('WidgetLayoutInfo.id')).map(function (layout) {
+                    return {id: layout};
+                  })
+                }).done(function () {
+                  var allNSLayout = currentLayouts.findProperty('WidgetLayoutInfo.display_name', 'All').WidgetLayoutInfo;
+                  allNSLayout.widgets = allNSLayout.widgets.concat(newWidgets);
+                  self.updateUserWidgetLayout(allNSLayout).done(function() {
+                    self.getActiveWidgetLayout();
+                  });
+                });
+              }
+            });
+          })
+        }
+      });
+    });
+  },
+
+  removeWidgetLayout: function (id) {
+    return App.ajax.send({
+      name: 'widget.layout.delete',
+      sender: this,
+      data: {
+        layoutId: id
+      },
     });
   }
 });

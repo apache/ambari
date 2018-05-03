@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-import {AbstractControl, AsyncValidatorFn, ValidatorFn} from '@angular/forms';
+import {AbstractControl, ValidatorFn} from '@angular/forms';
 import {ShipperClusterService} from '@modules/shipper/models/shipper-cluster-service.type';
 import {ValidationErrors} from '@angular/forms/src/directives/validators';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
-import {Observable} from 'rxjs/Observable';
 
 export function configurationValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {

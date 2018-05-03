@@ -107,7 +107,6 @@ class CommandStatusDict():
     FAILED. Statuses for COMPLETE or FAILED commands are forgotten after
     generation
     """
-    logger.info("Reporting {0}".format(self.current_state))
     self.generated_reports = []
     from ActionQueue import ActionQueue
     with self.lock: # Synchronized

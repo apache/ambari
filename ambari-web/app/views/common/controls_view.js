@@ -250,6 +250,7 @@ App.ServiceConfigTextFieldUserGroupWithID = Ember.View.extend(App.ServiceConfigP
   valueBinding: 'serviceConfig.value',
   placeholderBinding: 'serviceConfig.savedValue',
   classNamesBindings: 'view.fullWidth::display-inline-block',
+  isPopoverEnabled: 'false',
 
   fullWidth: false,
 

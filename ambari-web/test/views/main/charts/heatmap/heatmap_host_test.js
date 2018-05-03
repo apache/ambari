@@ -458,12 +458,20 @@ describe('App.MainChartsHeatmapHostView', function () {
     it("host value is undefined", function () {
       view.set('controller.selectedMetric', Em.Object.create({
         name: 'm1',
-        hostToValueMap: {}
+        hostToValueMap: {},
+        slotDefinitions: {
+          7: Em.Object.create({
+            label: 'na'
+          })
+        }
       }));
+      view.set('controller.hostToSlotMap', {
+        'host1': 7
+      });
       view.setMetric(viewObject, {hostName: 'host1'});
       expect(viewObject.get('details')).to.eql({
         metricName: 'm1',
-        metricValue: Em.I18n.t('charts.heatmap.unknown')
+        metricValue: 'na'
       });
     });
 
@@ -487,12 +495,20 @@ describe('App.MainChartsHeatmapHostView', function () {
         name: 'm1',
         hostToValueMap: {
           host1: 'val'
+        },
+        slotDefinitions: {
+          7: Em.Object.create({
+            label: 'na'
+          })
         }
       }));
+      view.set('controller.hostToSlotMap', {
+        'host1': 7
+      });
       view.setMetric(viewObject, {hostName: 'host1'});
       expect(viewObject.get('details')).to.eql({
         metricName: 'm1',
-        metricValue: Em.I18n.t('charts.heatmap.unknown')
+        metricValue: 'na'
       });
     });
 

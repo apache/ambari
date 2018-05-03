@@ -373,7 +373,7 @@ public class StageUtils {
           // a higher priority lookup
           for (Service service : cluster.getServices().values()) {
             for (ServiceComponent sc : service.getServiceComponents().values()) {
-              if (!sc.isClientComponent() && sc.getName().equals(hostComponent)) {
+              if (sc.getName().equals(hostComponent)) {
                 roleName = hostComponent.toLowerCase() + "_hosts";
                 additionalComponentToClusterInfoKeyMap.put(hostComponent, roleName);
               }

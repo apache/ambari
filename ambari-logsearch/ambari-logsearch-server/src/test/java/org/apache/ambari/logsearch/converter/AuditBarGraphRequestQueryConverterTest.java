@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.AuditBarGraphQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class AuditBarGraphRequestQueryConverterTest extends AbstractRequestConve
   @Test
   public void testConvert() {
     // GIVEN
-    AuditBarGraphRequest request = new AuditBarGraphRequest();
+    AuditBarGraphRequest request = new AuditBarGraphQueryRequest();
     request.setUserList("joe,steven");
     // WHEN
     fillBaseLogRequestWithTestData(request);
@@ -53,7 +54,7 @@ public class AuditBarGraphRequestQueryConverterTest extends AbstractRequestConve
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    AuditBarGraphRequest request = new AuditBarGraphRequest();
+    AuditBarGraphRequest request = new AuditBarGraphQueryRequest();
     // WHEN
     SolrQuery query = underTest.convert(request);
     // THEN

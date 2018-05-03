@@ -32,8 +32,9 @@
         {{#each comp in group.components}}
           <div {{bindAttr class="comp.isSubComponent:component-small :component :col-md-3 comp.componentName :row"}}>
             <div {{bindAttr class=":summary-value comp.summaryValueClassName"}}>
-        <span rel='SummaryComponentHealthTooltip'
-          {{bindAttr class="comp.statusClass comp.statusIconClass" data-original-title="comp.passiveTooltip"}}></span>
+              <span rel='SummaryComponentHealthTooltip'
+                {{bindAttr class="comp.statusClass comp.statusIconClass"
+                  data-original-title="comp.passiveTooltip"}}></span>
               <span class="main-info">{{comp.componentTextStatus}}</span>
               {{#if comp.alertsCount}}
                 <span {{action "showServiceAlertsPopup" comp target="controller"}}
@@ -57,7 +58,7 @@
       </div>
     </div>
     {{#if group.componentWidgetsView}}
-      {{view group.componentWidgetsView}}
+      {{view group.componentWidgetsView slaveComponentsViewBinding="view.slaveComponentsView"}}
     {{/if}}
   {{/if}}
 {{/each}}

@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.ambari.metrics.core.timeline.aggregators.Function;
 
@@ -43,6 +44,7 @@ public class ConditionBuilder {
   private boolean isBottomN;
   private Function topNFunction;
   private List<byte[]> uuids;
+  private List<String> transientMetricNames;
 
   public ConditionBuilder(List<String> metricNames) {
     this.metricNames = metricNames;
@@ -128,16 +130,27 @@ public class ConditionBuilder {
     return this;
   }
 
+  public ConditionBuilder transientMetricNames(List<String> transientMetricNames) {
+    this.transientMetricNames = transientMetricNames;
+    return this;
+  }
+
   public Condition build() {
     if (topN == null) {
-      return new DefaultCondition(
-        uuids, metricNames,
-        hostnames, appId, instanceId, startTime, endTime,
-        precision, limit, grouped);
+      if (CollectionUtils.isEmpty(transientMetricNames)) {
+        return new DefaultCondition(
+          uuids, metricNames,
+          hostnames, appId, instanceId, startTime, endTime,
+          precision, limit, grouped);
+      } else {
+        return new TransientMetricCondition(
+          uuids, metricNames,
+          hostnames, appId, instanceId, startTime, endTime,
+          precision, limit, grouped, transientMetricNames);
+      }
     } else {
       return new TopNCondition(uuids, metricNames, hostnames, appId, instanceId,
         startTime, endTime, precision, limit, grouped, topN, topNFunction, isBottomN);
     }
   }
-
 }

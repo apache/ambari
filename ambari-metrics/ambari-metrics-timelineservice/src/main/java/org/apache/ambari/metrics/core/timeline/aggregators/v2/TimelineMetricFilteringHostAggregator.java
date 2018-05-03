@@ -77,7 +77,7 @@ public class TimelineMetricFilteringHostAggregator extends TimelineMetricHostAgg
       LOG.debug("Already aggregated hostnames based on postedAggregatedMap : " + aggregatedHostnames);
       LOG.debug("Hostnames that will be aggregated : " + notAggregatedHostnames);
     }
-    List<byte[]> uuids = metricMetadataManager.getUuids(new ArrayList<String>(), notAggregatedHostnames, "", "");
+    List<byte[]> uuids = metricMetadataManager.getUuidsForGetMetricQuery(new ArrayList<String>(), notAggregatedHostnames, "", "");
 
     EmptyCondition condition = new EmptyCondition();
     condition.setDoUpdate(true);

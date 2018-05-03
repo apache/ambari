@@ -527,7 +527,7 @@ h2.table-title {
   border-left: 3px solid #3FAE2A !important;
 }
 .wizard {
-  border: 2px solid #ebecf1;
+  border: 2px solid rgba(233, 233, 233, 0.5);
 }
 .wizard .wizard-header h3 {
   font-family: 'Roboto', sans-serif;
@@ -543,7 +543,7 @@ h2.table-title {
   margin: 0;
 }
 .wizard .wizard-body .wizard-content {
-  background: #ebecf1;
+  background: rgba(233, 233, 233, 0.5);
   padding-top: 15px;
   float: left;
   margin-bottom: -99999px;

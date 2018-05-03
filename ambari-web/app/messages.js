@@ -1562,22 +1562,17 @@ Em.I18n.translations = {
       '</ol>',
 
   'admin.highAvailability.wizard.step8.body':
-    '<div class="alert alert-info">' +
     '<ol>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Initialize the metadata for NameNode automatic failover by running:' +
     '<div class="code-snippet">sudo su {0} -l -c \'hdfs zkfc -formatZK\'</div></li>' +
-    '</div>' +
-    '<div class="alert alert-info">' +
-    '<ol start="3">' +
     '<li>Login to the Additional NameNode host <b>{2}</b>.<br>' +
     '<div class="alert alert-warning"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
     '</li>' +
     '<li>Initialize the metadata for the Additional NameNode by running:' +
     '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
-    '</ol>' +
-    '</div>' +
-    'Please proceed once you have completed the steps above.',
+    '</ol>',
+  'admin.highAvailability.wizard.step8.proceed': 'Please proceed once you have completed the steps above.',
   'admin.highAvailability.wizard.step6.body':
     '<ol>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
@@ -1602,11 +1597,11 @@ Em.I18n.translations = {
     '</div>',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running the additional NameNode.<br/> In addition,' +
     ' select the hosts to run JournalNodes, which store NameNode edit logs in a fault tolerant manner.',
-  'admin.highAvailability.wizard.step1.body':'This wizard will walk you through enabling NameNode HA on your cluster.<br/>' +
-    'Once enabled, you will be running a Standby NameNode in addition to your Active NameNode.<br/>' +
-    'This allows for an Active-Standby NameNode configuration that automatically performs failover.<br/><br/>' +
+  'admin.highAvailability.wizard.step1.body':'This wizard will walk you through enabling NameNode HA on your cluster.' +
+    'Once enabled, you will be running a Standby NameNode in addition to your Active NameNode.' +
+    'This allows for an Active-Standby NameNode configuration that automatically performs failover.' +
     'The process to enable HA involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
-    '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
+    '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).' +
     '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling NameNode HA.</b>',
   'admin.highAvailability.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
   'admin.highAvailability.wizard.step1.hawq.alert':'<br/><br/>You will need to perform additional manual ' +
@@ -1680,7 +1675,7 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step1.alert':'You should plan a cluster maintenance window and prepare for cluster downtime when adding a new HDFS Namespace as this Wizard will restart all services.',
   'admin.nameNodeFederation.wizard.step1.nameserviceid':'New Nameservice ID',
   'admin.nameNodeFederation.wizard.step1.nameserviceid.existing':'Existing Nameservice ID',
-  'admin.nameNodeFederation.wizard.step1.nameserviceid.error':'Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
+  'admin.nameNodeFederation.wizard.step1.nameserviceid.error':'Must be unique and consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
   'admin.nameNodeFederation.wizard.step2.header': 'Select Hosts',
   'admin.nameNodeFederation.wizard.step2.body': 'Select hosts running the NameNodes for {0}',
   'admin.nameNodeFederation.wizard.step3.header': 'Review',
@@ -1697,16 +1692,17 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step4.task2.title': 'Install Additional NameNodes',
   'admin.nameNodeFederation.wizard.step4.task3.title': 'Install Additional ZKFCs',
   'admin.nameNodeFederation.wizard.step4.task4.title': 'Start JournalNodes',
-  'admin.nameNodeFederation.wizard.step4.task5.title': 'Start NameNodes',
-  'admin.nameNodeFederation.wizard.step4.task6.title': 'Format NameNode',
-  'admin.nameNodeFederation.wizard.step4.task7.title': 'Format ZKFC',
-  'admin.nameNodeFederation.wizard.step4.task8.title': 'Start ZKFC',
-  'admin.nameNodeFederation.wizard.step4.task9.title': 'Start NameNode',
-  'admin.nameNodeFederation.wizard.step4.task10.title': 'Bootstrap NameNode',
-  'admin.nameNodeFederation.wizard.step4.task11.title': 'Create widgets',
-  'admin.nameNodeFederation.wizard.step4.task12.title': 'Start ZKFC',
-  'admin.nameNodeFederation.wizard.step4.task13.title': 'Start NameNode',
-  'admin.nameNodeFederation.wizard.step4.task14.title': 'Restart Required Services',
+  'admin.nameNodeFederation.wizard.step4.task5.title': 'Start Infra Solr',
+  'admin.nameNodeFederation.wizard.step4.task6.title': 'Start Ranger',
+  'admin.nameNodeFederation.wizard.step4.task7.title': 'Start NameNodes',
+  'admin.nameNodeFederation.wizard.step4.task8.title': 'Format NameNode',
+  'admin.nameNodeFederation.wizard.step4.task9.title': 'Format ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task10.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task11.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task12.title': 'Bootstrap NameNode',
+  'admin.nameNodeFederation.wizard.step4.task13.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task14.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task15.title': 'Restart Required Services',
 
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
@@ -1830,10 +1826,12 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.pause': "Upgrade: Action Required",
   'admin.stackVersions.version.upgrade.notFinalized.warning': "The upgrade has not been finalized yet. After the cluster is verified to be functional, do not forget to finalize the upgrade as soon as possible (within a couple of days is highly recommended) as running the cluster in unfinalized state causes extra resource requirements on HDFS.",
   'admin.stackVersions.version.upgrade.running': "Upgrade: In Process",
+  'admin.stackVersions.version.upgrade.running.nonWizard': "Upgrade: In Process | Initiated by {0}",
   'admin.stackVersions.version.upgrade.aborted': "Upgrade: Aborted",
   'admin.stackVersions.version.upgrade.suspended': "Upgrade: Paused",
   'admin.stackVersions.version.downgrade.pause': "Downgrade: Action Required",
   'admin.stackVersions.version.downgrade.running': "Downgrade: In Process",
+  'admin.stackVersions.version.downgrade.running.nonWizard': "Downgrade: In Process | Initiated by {0}",
   'admin.stackVersions.version.downgrade.aborted': "Downgrade: Aborted",
   'admin.stackVersions.version.downgrade.suspended': "Downgrade: Paused",
   'admin.stackUpgrade.state.paused.fail.header': "Pause Upgrade failed",
@@ -2314,7 +2312,7 @@ Em.I18n.translations = {
   'services.service.config.configOverride.head':'Config Override',
   'services.service.config.configOverride.body':'Cannot override a config that has not been saved yet.',
   'services.service.config.exitPopup.body':'You have unsaved changes. Save changes or discard?',
-  'services.service.config.exitChangesPopup.body':'You will be brought back to the \"Assign Slaves and Clients\" step and will lose all your current customizations. Are you sure?',
+  'services.service.config.exitChangesPopup.body':'Going back to the previous step will result in losing all your current customizations. Are you sure?',
   'services.service.config.propertyFilterPopover.title':'Properties filter',
   'services.service.config.propertyFilterPopover.content':'Enter keywords to filter properties by property name, value, or description.',
   'services.service.config.hive.oozie.postgresql': 'Existing PostgreSQL Database',

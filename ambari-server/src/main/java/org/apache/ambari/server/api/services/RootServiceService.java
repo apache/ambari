@@ -57,7 +57,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @Path("/services")
-@Api(value = "/services", description = "Endpoint for querying root-level services, ie. Ambari Server and Ambari Agents")
+@Api(value = "Services", description = "Endpoint for querying root-level services, ie. Ambari Server and Ambari Agents")
 public class RootServiceService extends BaseService {
 
   private static final String KEY_COMPONENTS = "components";

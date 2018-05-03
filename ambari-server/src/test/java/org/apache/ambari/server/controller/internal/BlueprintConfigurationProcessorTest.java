@@ -1137,6 +1137,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     assertNull("Initial NameNode HA property exported although should not have", hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
     assertNull("Initial NameNode HA property exported although should not have", hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    assertTrue("Initial NameNode HA property exported although should not have", clusterEnv == null || clusterEnv.get("dfs_ha_initial_namenode_active") == null);
+    assertTrue("Initial NameNode HA property exported although should not have", clusterEnv == null || clusterEnv.get("dfs_ha_initial_namenode_standby") == null);
   }
 
   @Test
@@ -2886,13 +2890,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has set the internal required properties
     // that determine the active and standby node hostnames for this HA setup
     // one of the two hosts should be set to active and the other to standby
-    String activeHost = hadoopEnvProperties.get("dfs_ha_initial_namenode_active");
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    String activeHost = clusterEnv.get("dfs_ha_initial_namenode_active");
     if (activeHost.equals(expectedHostName)) {
       assertEquals("Standby Namenode hostname was not set correctly",
-        expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+        expectedHostNameTwo, clusterEnv.get("dfs_ha_initial_namenode_standby"));
     } else if (activeHost.equals(expectedHostNameTwo)) {
       assertEquals("Standby Namenode hostname was not set correctly",
-        expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+        expectedHostName, clusterEnv.get("dfs_ha_initial_namenode_standby"));
     } else {
       fail("Active Namenode hostname was not set correctly: " + activeHost);
     }
@@ -5284,7 +5289,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has set the internal required properties
     // that determine the active and standby node hostnames for this HA setup.
     // one host should be active and the other standby
-    String initialActiveHost = hadoopEnvProperties.get("dfs_ha_initial_namenode_active");
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    String initialActiveHost = clusterEnv.get("dfs_ha_initial_namenode_active");
     String expectedStandbyHost = null;
     if (initialActiveHost.equals(expectedHostName)) {
       expectedStandbyHost = expectedHostNameTwo;
@@ -5294,7 +5300,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       fail("Active Namenode hostname was not set correctly");
     }
     assertEquals("Standby Namenode hostname was not set correctly",
-      expectedStandbyHost, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+      expectedStandbyHost, clusterEnv.get("dfs_ha_initial_namenode_standby"));
 
 
     assertEquals("fs.defaultFS should not be modified by cluster update when NameNode HA is enabled.",
@@ -5316,14 +5322,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that correct configuration types were listed as updated in the returned set
-    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      3, updatedConfigTypes.size());
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hdfs-site"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hadoop-env"));
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
   }
 
   @Test
@@ -5449,14 +5448,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that correct configuration types were listed as updated in the returned set
-    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      3, updatedConfigTypes.size());
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hdfs-site"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hadoop-env"));
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
   }
 
 
@@ -5632,37 +5624,32 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that correct configuration types were listed as updated in the returned set
-    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      3, updatedConfigTypes.size());
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hdfs-site"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hadoop-env"));
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
+
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
 
     // verify that the standard, single-nameservice HA properties are
     // NOT set in this configuration
     assertFalse("Single-node nameservice config should not have been set",
-                hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_active"));
+                clusterEnv.containsKey("dfs_ha_initial_namenode_active"));
     assertFalse("Single-node nameservice config should not have been set",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_standby"));
+      clusterEnv.containsKey("dfs_ha_initial_namenode_standby"));
 
     // verify that the config processor sets the expected properties for
     // the sets of active and standby hostnames for NameNode deployment
     assertTrue("Expected active set not found in hadoop-env",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_active_set"));
+      clusterEnv.containsKey("dfs_ha_initial_namenode_active_set"));
     assertTrue("Expected standby set not found in hadoop-env",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_standby_set"));
+      clusterEnv.containsKey("dfs_ha_initial_namenode_standby_set"));
     assertTrue("Expected clusterId not found in hadoop-env",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_cluster_id"));
+      clusterEnv.containsKey("dfs_ha_initial_cluster_id"));
 
     // verify that the clusterID is set by default to the cluster name
     assertEquals("Expected clusterId was not set to expected value",
-      "clusterName", hadoopEnvProperties.get("dfs_ha_initial_cluster_id"));
+      "clusterName", clusterEnv.get("dfs_ha_initial_cluster_id"));
 
     // verify that the expected hostnames are included in the active set
-    String[] activeHostNames = hadoopEnvProperties.get("dfs_ha_initial_namenode_active_set").split(",");
+    String[] activeHostNames = clusterEnv.get("dfs_ha_initial_namenode_active_set").split(",");
     assertEquals("NameNode active set did not contain the expected number of hosts",
                  2, activeHostNames.length);
     Set<String> setOfActiveHostNames = new HashSet<String>(Arrays.asList(activeHostNames));
@@ -5673,7 +5660,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that the expected hostnames are included in the standby set
-    String[] standbyHostNames = hadoopEnvProperties.get("dfs_ha_initial_namenode_standby_set").split(",");
+    String[] standbyHostNames = clusterEnv.get("dfs_ha_initial_namenode_standby_set").split(",");
     assertEquals("NameNode standby set did not contain the expected number of hosts",
                  2, standbyHostNames.length);
     Set<String> setOfStandbyHostNames = new HashSet<String>(Arrays.asList(standbyHostNames));
@@ -5955,35 +5942,32 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that correct configuration types were listed as updated in the returned set
-    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      2, updatedConfigTypes.size());
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hdfs-site"));
+    assertEquals(ImmutableSet.of("cluster-env", "hadoop-env", "hdfs-site"), updatedConfigTypes);
+
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
 
     // verify that the standard, single-nameservice HA properties are
     // NOT set in this configuration
     assertFalse("Single-node nameservice config should not have been set",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_active"));
+      clusterEnv.containsKey("dfs_ha_initial_namenode_active"));
     assertFalse("Single-node nameservice config should not have been set",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_standby"));
+      clusterEnv.containsKey("dfs_ha_initial_namenode_standby"));
 
     // verify that the config processor sets the expected properties for
     // the sets of active and standby hostnames for NameNode deployment
     assertTrue("Expected active set not found in hadoop-env",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_active_set"));
+      clusterEnv.containsKey("dfs_ha_initial_namenode_active_set"));
     assertTrue("Expected standby set not found in hadoop-env",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_standby_set"));
+      clusterEnv.containsKey("dfs_ha_initial_namenode_standby_set"));
     assertTrue("Expected clusterId not found in hadoop-env",
-      hadoopEnvProperties.containsKey("dfs_ha_initial_cluster_id"));
+      clusterEnv.containsKey("dfs_ha_initial_cluster_id"));
 
     // verify that the clusterID is not set by processor, since user has already customized it
     assertEquals("Expected clusterId was not set to expected value",
-      "my-custom-cluster-name", hadoopEnvProperties.get("dfs_ha_initial_cluster_id"));
+      "my-custom-cluster-name", clusterEnv.get("dfs_ha_initial_cluster_id"));
 
     // verify that the expected hostnames are included in the active set
-    String[] activeHostNames = hadoopEnvProperties.get("dfs_ha_initial_namenode_active_set").split(",");
+    String[] activeHostNames = clusterEnv.get("dfs_ha_initial_namenode_active_set").split(",");
     assertEquals("NameNode active set did not contain the expected number of hosts",
       2, activeHostNames.length);
     Set<String> setOfActiveHostNames = new HashSet<String>(Arrays.asList(activeHostNames));
@@ -5994,7 +5978,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that the expected hostnames are included in the standby set
-    String[] standbyHostNames = hadoopEnvProperties.get("dfs_ha_initial_namenode_standby_set").split(",");
+    String[] standbyHostNames = clusterEnv.get("dfs_ha_initial_namenode_standby_set").split(",");
     assertEquals("NameNode standby set did not contain the expected number of hosts",
       2, standbyHostNames.length);
     Set<String> setOfStandbyHostNames = new HashSet<String>(Arrays.asList(standbyHostNames));
@@ -6153,12 +6137,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       hdfsSiteProperties.containsKey("dfs.namenode.rpc-address"));
 
     // verify that correct configuration types were listed as updated in the returned set
-    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      2, updatedConfigTypes.size());
-    assertTrue("Expected config type 'cluster-env' not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
-    assertTrue("Expected config type 'hdfs-site' not found in updated set",
-      updatedConfigTypes.contains("hdfs-site"));
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
   }
 
   @Test
@@ -6236,11 +6215,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has not overridden
     // the user's configuration to determine the active and
     // standby nodes in this NameNode HA cluster
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+
     assertEquals("Active Namenode hostname was not set correctly",
-      expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
+      expectedHostName, clusterEnv.get("dfs_ha_initial_namenode_active"));
 
     assertEquals("Standby Namenode hostname was not set correctly",
-      expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+      expectedHostNameTwo, clusterEnv.get("dfs_ha_initial_namenode_standby"));
   }
 
   @Test
@@ -6411,7 +6392,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Test
   public void testHadoopHaNameNode() throws Exception {
     // Given
-    final String configType = "hadoop-env";
+    final String configType = "cluster-env";
     Map<String, Map<String, String>> properties = new HashMap<>();
 
     // enable HA

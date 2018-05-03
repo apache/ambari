@@ -63,12 +63,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   serviceSummaryView: null,
 
-  /**
-   * @type {App.ViewInstance}
-   */
-  views: function () {
+
+  // TODO implement filtering of views related to current service
+  ///**
+  // * @type {App.ViewInstance}
+  // */
+  /*views: function () {
     return App.router.get('loggedIn') ? App.router.get('mainViewsController.visibleAmbariViews') : [];
-  }.property('App.router.mainViewsController.visibleAmbariViews.[]', 'App.router.loggedIn'),
+  }.property('App.router.mainViewsController.visibleAmbariViews.[]', 'App.router.loggedIn'),*/
 
   /**
    * @property {Object} serviceCustomViewsMap - custom views to embed
@@ -460,7 +462,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
                 groups.push({
                   components: [],
                   componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
-                    nameSpace: component.get('haNameSpace') || 'default'
+                    nameSpace: component.get('haNameSpace') || 'default',
+                    showSlaveComponents: true
                   })
                 });
               }

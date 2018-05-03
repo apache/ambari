@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.HostLogFilesQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class HostLogFilesRequestQueryConverterTest extends AbstractRequestConver
   @Test
   public void testConvertHostNameOnly() {
     // GIVEN
-    HostLogFilesRequest request = new HostLogFilesRequest();
+    HostLogFilesRequest request = new HostLogFilesQueryRequest();
     request.setHostName("hostName");
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
@@ -50,7 +51,7 @@ public class HostLogFilesRequestQueryConverterTest extends AbstractRequestConver
   @Test
   public void testConvertHostNameAndComponentName() {
     // GIVEN
-    HostLogFilesRequest request = new HostLogFilesRequest();
+    HostLogFilesRequest request = new HostLogFilesQueryRequest();
     request.setHostName("hostName");
     request.setComponentName("componentName");
     // WHEN
