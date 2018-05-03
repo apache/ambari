@@ -1158,7 +1158,8 @@ public class UpgradeHelper {
       }
     }
     if (configsChanged) {
-      m_configHelperProvider.get().updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
+      m_metadataHolder.get().updateData(m_controllerProvider.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
     }
   }
 

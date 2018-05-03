@@ -216,6 +216,14 @@ public class ClusterTest {
       hostEntity.setHostAttributes(gson.toJson(hostAttributes));
 
 
+//      hostDAO.merge(hostEntity);
+
+      HostVersionEntity hostVersionEntity = new HostVersionEntity();
+      hostVersionEntity.setRepositoryVersion(repositoryVersion);
+      hostVersionEntity.setState(RepositoryVersionState.CURRENT);
+      hostVersionEntity.setHostEntity(hostEntity);
+      hostEntity.setHostVersionEntities(Collections.singletonList(hostVersionEntity));
+
       hostDAO.merge(hostEntity);
     }
 
