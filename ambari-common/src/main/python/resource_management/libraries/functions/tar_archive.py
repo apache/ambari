@@ -20,31 +20,44 @@ limitations under the License.
 
 import os
 import tarfile
-import zipfile
+import tempfile
 from contextlib import closing
+
+from ambari_commons import os_utils
 from resource_management.core.resources.system import Execute
 
-def archive_dir(output_filename, input_dir):
-  Execute(('tar', '-zcf', output_filename, '-C', input_dir, '.'),
-    sudo = True,
-    tries = 3,
-    try_sleep = 1,
-  )
-
-def archive_directory_dereference(archive, directory):
+def archive_dir(output_filename, input_dir, follow_links=False):
   """
-  Creates an archive of the specified directory. This will ensure that
-  symlinks are not included, but instead are followed for recursive inclusion.
-  :param archive:   the name of the archive to create, including path
-  :param directory:   the directory to include
+  Creates an archive of the specified directory.
+  :param output_filename: the name of the archive to create, including path
+  :param input_dir: the directory to include
+  :param follow_links: if True, symlinks are followed and the files/directories they point to will be included in the archive
   :return:  None
   """
 
-  Execute(('tar', '-zchf', archive, '-C', directory, '.'),
+  options = '-zchf' if follow_links else '-zcf'
+
+  Execute(('tar', options, output_filename, '-C', input_dir, '.'),
     sudo = True,
     tries = 3,
     try_sleep = 1,
   )
+
+
+def archive_directory_dereference(archive, directory):
+  archive_dir(archive, directory, follow_links=True)
+
+
+def archive_dir_via_temp_file(archive, directory):
+  _, temp_output = tempfile.mkstemp()
+  try:
+    archive_directory_dereference(temp_output, directory)
+  except:
+    os_utils.remove_file(temp_output)
+    raise
+  else:
+    Execute(("mv", temp_output, archive))
+
 
 def untar_archive(archive, directory, silent=True):
   """
