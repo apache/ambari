@@ -34,9 +34,9 @@
     <!-- Needed for generating FindBugs warnings using parent pom -->
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
-    <hadoop.version>3.0.0.3.0.0.2-97</hadoop.version>
-    <phoenix.version>5.0.0.3.0.0.2-97</phoenix.version>
-    <hbase.version>2.0.0.3.0.0.2-97</hbase.version>
+    <hadoop.version>3.0.0.3.0.0.0-1181</hadoop.version>
+    <phoenix.version>5.0.0.3.0.0.0-1181</phoenix.version>
+    <hbase.version>2.0.0.3.0.0.0-1181</hbase.version>
   </properties>
 
   <build>
@@ -311,6 +311,10 @@
           <artifactId>zkclient</artifactId>
           <groupId>com.101tec</groupId>
         </exclusion>
+        <exclusion>
+          <artifactId>zookeeper</artifactId>
+          <groupId>org.apache.zookeeper</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <!-- zkclient is helix-core dependency but it need to be 0.9 in order for AMS HA to work on secure cluster-->
@@ -318,6 +322,11 @@
       <groupId>com.101tec</groupId>
       <artifactId>zkclient</artifactId>
       <version>0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+      <version>3.4.5.1.3.0.0-107</version>
     </dependency>
     <dependency>
       <groupId>org.apache.phoenix</groupId>
@@ -763,6 +772,11 @@
       <artifactId>ignite-log4j</artifactId>
       <version>2.1.0</version>
     </dependency>
+    <dependency>
+      <groupId>net.sf.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>2.10.0</version>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -925,7 +939,7 @@
                   <classpathPrefix></classpathPrefix>
                   <!-- Specifies the main class of the application -->
                   <mainClass>
-                    org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.MetricsLoadSimulator
+                    org.apache.ambari.metrics.core.loadsimulator.MetricsLoadSimulator
                   </mainClass>
                 </manifest>
               </archive>

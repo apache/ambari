@@ -53,7 +53,7 @@ class TestFalconServer(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/falcon-server/server/webapp/falcon/WEB-INF/lib/je-5.0.73.jar',
-      content=DownloadSource('http://c6401.ambari.apache.org:8080/resources//je-5.0.73.jar'),
+      content=DownloadSource('http://c6401.ambari.apache.org:8080/resources/je-5.0.73.jar'),
       mode=0755
     )
 

@@ -880,7 +880,7 @@ a:focus {
   }
 
   .col-md-3 {
-    min-height: 80px;
+    min-height: 70px;
     margin-left: 2px;
     min-width: 180px;
   }
@@ -1173,10 +1173,16 @@ a.services-menu-blocks{
     word-break:break-word;
   }
 
-  .glyphicon.glyphicon-refresh {
+  .glyphicon.glyphicon-refresh, .icon-medkit {
     margin-left: 4px;
     margin-right: 4px;
+    top: 0px;
   }
+
+  .icon-medkit {
+    color: @maintenance-grey;
+  }
+
   .menu-item-name.INSTALLED:not(.client-only-service) {
     color: @health-status-red;
   }
@@ -1225,7 +1231,7 @@ a.services-menu-blocks{
     margin-top: 10px;
   }
   .quick-links-block {
-    .panel-body > a{
+    .panel-body a {
       display: block;
       margin-bottom: 5px;
     }
@@ -2529,7 +2535,10 @@ a.abort-icon:hover {
 .summary-block {
   flex: 1;
   .metrics-summary {
-    margin-top:40px;
+    margin-top: 40px;
+    &.multiple-master-groups {
+      margin-top: 0;
+    }
   }
   .component-summary, .metrics-summary {
     .col-md-2 {
@@ -2934,4 +2943,9 @@ a.abort-icon:hover {
       display: block;
     }
   }
+}
+
+.widgets-group-title {
+  display: inline-block;
+  text-transform: uppercase;
 }

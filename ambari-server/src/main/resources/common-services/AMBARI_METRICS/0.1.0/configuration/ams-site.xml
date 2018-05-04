@@ -455,10 +455,9 @@
   </property>
   <property>
     <name>timeline.metrics.service.default.result.limit</name>
-    <value>15840</value>
+    <value>5760</value>
     <description>
-      Max result limit on number of rows returned. Calculated as follows:
-      22 aggregate metrics/min * 2 * 60 * 6 : Retrieve 10 SECOND data for 2 hours.
+      Max result limit on number of rows returned.
     </description>
     <display-name>Metrics service default result limit</display-name>
     <value-attributes>
@@ -788,6 +787,18 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>timeline.metrics.downsampler.event.metric.patterns</name>
+    <value>topology\.%</value>
+    <description>
+      Commas separated list of metric name regular expressions that are like events. No interpolation will be done for such
+      metrics, and the downsampling SUM aggregators will sum the values across time instead of averaging them out.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>cluster.zookeeper.quorum</name>
     <value>{{cluster_zookeeper_quorum_hosts}}</value>
     <description>Comma separated list of servers in the cluster ZooKeeper Quorum.
@@ -854,15 +865,16 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>timeline.metrics.downsampler.event.metric.patterns</name>
-    <value></value>
+    <name>timeline.metrics.transient.metric.patterns</name>
+    <value>topology\.%</value>
     <description>
-      Commas separated list of metric name regular expressions that are like events. No interpolation will be done for such
-      metrics, and the downsampling SUM aggregators will sum the values across time instead of averaging them out.
+      Comma separated list of metric patterns that will enable them to be stored, queried, aggregated and purged
+      separately so as to decrease pressure on low volume high density metrics aggregation.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
   </property>
+
 </configuration>

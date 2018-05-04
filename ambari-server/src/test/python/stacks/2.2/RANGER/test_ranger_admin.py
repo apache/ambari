@@ -122,7 +122,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('Execute', 'mysql -u root --password=aa -h localhost  -s -e "select version();"',logoutput = True,
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
         mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -167,7 +167,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('Execute', 'mysql -u root --password=rootpassword -h localhost  -s -e "select version();"',logoutput = True,
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
         mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',

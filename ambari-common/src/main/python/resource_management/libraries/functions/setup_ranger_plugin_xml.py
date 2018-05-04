@@ -45,7 +45,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         cache_service_list, plugin_audit_properties, plugin_audit_attributes,
                         plugin_security_properties, plugin_security_attributes,
                         plugin_policymgr_ssl_properties, plugin_policymgr_ssl_attributes,
-                        component_list, audit_db_is_enabled, credential_file, 
+                        component_list, audit_db_is_enabled, credential_file,
                         xa_audit_db_password, ssl_truststore_password,
                         ssl_keystore_password, api_version=None, stack_version_override = None, skip_if_rangeradmin_down = True,
                         is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
@@ -111,7 +111,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                                               policy_user)
 
     current_datetime = datetime.now()
-    
+
     File(format('{component_conf_dir}/ranger-security.xml'),
       owner = component_user,
       group = component_group,
@@ -174,7 +174,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
-        mode=0744) 
+        mode=0744)
     else:
       XmlConfig("ranger-policymgr-ssl.xml",
         conf_dir=component_conf_dir,
@@ -182,7 +182,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
-        mode=0744) 
+        mode=0744)
 
     # creating symblink should be done by rpm package
     # setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
@@ -193,8 +193,8 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
   else:
     File(format('{component_conf_dir}/ranger-security.xml'),
-      action="delete"      
-    )    
+      action="delete"
+    )
 
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
@@ -240,8 +240,8 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
     mode = 0640
   )
 
-def setup_core_site_for_required_plugins(component_user, component_group, create_core_site_path, configurations = {}, configuration_attributes = {}):
-  XmlConfig('core-site.xml',
+def setup_configuration_file_for_required_plugins(component_user, component_group, create_core_site_path, configurations = {}, configuration_attributes = {}, file_name='core-site.xml'):
+  XmlConfig(file_name,
     conf_dir = create_core_site_path,
     configurations = configurations,
     configuration_attributes = configuration_attributes,

@@ -222,7 +222,7 @@ if __name__=="__main__":
   parser.add_option("--backup-name", dest="backup_name", type="string", help="backup name of the index")
   parser.add_option("--collection", dest="collection", type="string", help="solr collection")
 
-  parser.add_option("--version", dest="index_version", type="string", default="6.6.2", help="lucene index version for migration (6.6.2 or 7.2.1)")
+  parser.add_option("--version", dest="index_version", type="string", default="6.6.2", help="lucene index version for migration (6.6.2 or 7.3.0)")
   parser.add_option("--request-tries", dest="request_tries", type="int", help="number of tries for BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-time-interval", dest="request_time_interval", type="int", help="time interval between BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-async", dest="async", action="store_true", default=False, help="skip BACKUP/RESTORE status api calls from the command")

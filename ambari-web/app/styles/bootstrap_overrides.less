@@ -31,6 +31,7 @@ select.form-control {
 }
 
 .popover {
+  word-wrap: break-word;  
   small {
     font-size: 1.3rem;
   }
@@ -432,6 +433,12 @@ select.form-control {
 .btn-group.open .dropdown-menu input[type="checkbox"] + label,
 .dropdown.open .dropdown-menu input[type="checkbox"] + label {
   line-height: 1.3em;
+}
+
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.sub-menu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.sub-menu {
+  padding: 5px 0;
+  background-color: #323544;
 }
 
 input[type="checkbox"]:checked + label:after {

@@ -34,7 +34,7 @@ index_helper_script = '/usr/lib/ambari-infra-solr-client/solrIndexHelper.sh'
 # folder location which contains the snapshot/core folder
 index_location = default("/commandParams/solr_index_location", None)
 
-# index version (available index versions: 6.6.2 and 7.2.1, second one is used by default)
+# index version (available index versions: 6.6.2 and 7.3.0, second one is used by default)
 index_version = default("/commandParams/solr_index_version", '6.6.2')
 
 # if this flag is false, skip upgrade if the version is proper, you can force to re-run the tool with setting the flag to true

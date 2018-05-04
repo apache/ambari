@@ -1,5 +1,5 @@
 {
-  "id": 45,
+  "id": 49,
   "title": "Infra Solr Cores",
   "originalTitle": "Infra Solr Cores",
   "tags": [
@@ -44,7 +44,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -63,7 +63,7 @@
           "targets": [
             {
               "aggregator": "none",
-              "alias": "size in bytes",
+              "alias": "size",
               "app": "ambari-infra-solr",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -78,7 +78,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Index Size In Bytes",
+          "title": "Index Size",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -117,7 +117,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -190,7 +190,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -277,7 +277,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -350,7 +350,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -423,7 +423,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -442,21 +442,7 @@
           "targets": [
             {
               "aggregator": "avg",
-              "alias": "requests",
-              "app": "ambari-infra-solr",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "infra.solr.core.*.QUERY./select.requests",
-              "precision": "default",
-              "refId": "A",
-              "sCore": "history.shard1.replica_n1",
-              "sCoreMetric": "infra.solr.core.history.shard1.replica_n1.QUERY./select.requests",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "avg",
-              "alias": "average requests per sec",
+              "alias": "average requests per second",
               "app": "ambari-infra-solr",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -510,7 +496,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -567,7 +553,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
         },
@@ -597,7 +583,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -614,20 +600,6 @@
           "stack": false,
           "steppedLine": false,
           "targets": [
-            {
-              "aggregator": "avg",
-              "alias": "requests",
-              "app": "ambari-infra-solr",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "infra.solr.core.*.UPDATE./update.requests",
-              "precision": "default",
-              "refId": "A",
-              "sCore": "history.shard1.replica_n1",
-              "sCoreMetric": "infra.solr.core.history.shard1.replica_n1.UPDATE./update.requests",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
             {
               "aggregator": "avg",
               "alias": "average requests per second",
@@ -684,7 +656,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -741,7 +713,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
         },
@@ -771,7 +743,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -788,20 +760,6 @@
           "stack": false,
           "steppedLine": false,
           "targets": [
-            {
-              "aggregator": "avg",
-              "alias": "requests",
-              "app": "ambari-infra-solr",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "infra.solr.core.*.QUERY./get.requests",
-              "precision": "default",
-              "refId": "A",
-              "sCore": "history.shard1.replica_n1",
-              "sCoreMetric": "infra.solr.core.history.shard1.replica_n1.QUERY./get.requests",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
             {
               "aggregator": "avg",
               "alias": "average requests per second",
@@ -858,7 +816,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -915,7 +873,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
         },
@@ -945,7 +903,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -962,20 +920,6 @@
           "stack": false,
           "steppedLine": false,
           "targets": [
-            {
-              "aggregator": "avg",
-              "alias": "requests",
-              "app": "ambari-infra-solr",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "infra.solr.core.*.ADMIN./admin/luke.requests",
-              "precision": "default",
-              "refId": "A",
-              "sCore": "history.shard1.replica_n1",
-              "sCoreMetric": "infra.solr.core.history.shard1.replica_n1.ADMIN./admin/luke.requests",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
             {
               "aggregator": "avg",
               "alias": "average requests per second",
@@ -1034,7 +978,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1091,7 +1035,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
         },
@@ -1121,7 +1065,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1138,20 +1082,6 @@
           "stack": false,
           "steppedLine": false,
           "targets": [
-            {
-              "aggregator": "avg",
-              "alias": "requests",
-              "app": "ambari-infra-solr",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "infra.solr.core.*.QUERY./get.requests",
-              "precision": "default",
-              "refId": "A",
-              "sCore": "history.shard1.replica_n1",
-              "sCoreMetric": "infra.solr.core.history.shard1.replica_n1.QUERY./get.requests",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
             {
               "aggregator": "avg",
               "alias": "average requests per second",
@@ -1208,7 +1138,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1265,7 +1195,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
         }
@@ -1304,7 +1234,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1323,7 +1253,7 @@
           "targets": [
             {
               "aggregator": "avg",
-              "alias": "hitratio",
+              "alias": "hit ratio",
               "app": "ambari-infra-solr",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -1377,7 +1307,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1450,7 +1380,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1523,7 +1453,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1596,7 +1526,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1669,7 +1599,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1744,7 +1674,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1817,7 +1747,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1890,7 +1820,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1963,7 +1893,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -2016,7 +1946,7 @@
     }
   ],
   "time": {
-    "from": "now-30m",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {
@@ -2050,8 +1980,9 @@
       {
         "allFormat": "glob",
         "current": {
+          "tags": [],
           "text": "All",
-          "value": "{audit_logs.shard0.replica_n1,audit_logs.shard0.replica_n2,hadoop_logs.shard0.replica_n1,hadoop_logs.shard0.replica_n2,history.shard1.replica_n1}"
+          "value": "{audit_logs.ADMIN./admin/luke,audit_logs.CACHE.core,audit_logs.CACHE.searcher,audit_logs.INDEX.sizeInBytes,audit_logs.QUERY./get,audit_logs.QUERY./select,audit_logs.UPDATE./update,audit_logs.UPDATE.updateHandler,audit_logs.shard0.replica_n1,audit_logs.shard1.replica_n2,audit_logs.shard2.replica_n4,audit_logs.shard3.replica_n6,audit_logs.shard4.replica_n7,hadoop_logs.QUERY./get,hadoop_logs.shard0.replica_n1,hadoop_logs.shard1.replica_n2,hadoop_logs.shard2.replica_n4,hadoop_logs.shard3.replica_n6,hadoop_logs.shard4.replica_n8,history.shard1.replica_n1}"
         },
         "datasource": null,
         "includeAll": true,
@@ -2061,34 +1992,109 @@
         "name": "Cores",
         "options": [
           {
+            "selected": true,
             "text": "All",
-            "value": "{audit_logs.shard0.replica_n1,audit_logs.shard0.replica_n2,hadoop_logs.shard0.replica_n1,hadoop_logs.shard0.replica_n2,history.shard1.replica_n1}",
-            "selected": true
+            "value": "{audit_logs.ADMIN./admin/luke,audit_logs.CACHE.core,audit_logs.CACHE.searcher,audit_logs.INDEX.sizeInBytes,audit_logs.QUERY./get,audit_logs.QUERY./select,audit_logs.UPDATE./update,audit_logs.UPDATE.updateHandler,audit_logs.shard0.replica_n1,audit_logs.shard1.replica_n2,audit_logs.shard2.replica_n4,audit_logs.shard3.replica_n6,audit_logs.shard4.replica_n7,hadoop_logs.QUERY./get,hadoop_logs.shard0.replica_n1,hadoop_logs.shard1.replica_n2,hadoop_logs.shard2.replica_n4,hadoop_logs.shard3.replica_n6,hadoop_logs.shard4.replica_n8,history.shard1.replica_n1}"
           },
           {
+            "selected": false,
+            "text": "audit_logs.ADMIN./admin/luke",
+            "value": "audit_logs.ADMIN./admin/luke"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.CACHE.core",
+            "value": "audit_logs.CACHE.core"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.CACHE.searcher",
+            "value": "audit_logs.CACHE.searcher"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.INDEX.sizeInBytes",
+            "value": "audit_logs.INDEX.sizeInBytes"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.QUERY./get",
+            "value": "audit_logs.QUERY./get"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.QUERY./select",
+            "value": "audit_logs.QUERY./select"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.UPDATE./update",
+            "value": "audit_logs.UPDATE./update"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.UPDATE.updateHandler",
+            "value": "audit_logs.UPDATE.updateHandler"
+          },
+          {
+            "selected": false,
             "text": "audit_logs.shard0.replica_n1",
-            "value": "audit_logs.shard0.replica_n1",
-            "selected": false
+            "value": "audit_logs.shard0.replica_n1"
           },
           {
-            "text": "audit_logs.shard0.replica_n2",
-            "value": "audit_logs.shard0.replica_n2",
-            "selected": false
+            "selected": false,
+            "text": "audit_logs.shard1.replica_n2",
+            "value": "audit_logs.shard1.replica_n2"
           },
           {
+            "selected": false,
+            "text": "audit_logs.shard2.replica_n4",
+            "value": "audit_logs.shard2.replica_n4"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.shard3.replica_n6",
+            "value": "audit_logs.shard3.replica_n6"
+          },
+          {
+            "selected": false,
+            "text": "audit_logs.shard4.replica_n7",
+            "value": "audit_logs.shard4.replica_n7"
+          },
+          {
+            "selected": false,
+            "text": "hadoop_logs.QUERY./get",
+            "value": "hadoop_logs.QUERY./get"
+          },
+          {
+            "selected": false,
             "text": "hadoop_logs.shard0.replica_n1",
-            "value": "hadoop_logs.shard0.replica_n1",
-            "selected": false
+            "value": "hadoop_logs.shard0.replica_n1"
           },
           {
-            "text": "hadoop_logs.shard0.replica_n2",
-            "value": "hadoop_logs.shard0.replica_n2",
-            "selected": false
+            "selected": false,
+            "text": "hadoop_logs.shard1.replica_n2",
+            "value": "hadoop_logs.shard1.replica_n2"
           },
           {
+            "selected": false,
+            "text": "hadoop_logs.shard2.replica_n4",
+            "value": "hadoop_logs.shard2.replica_n4"
+          },
+          {
+            "selected": false,
+            "text": "hadoop_logs.shard3.replica_n6",
+            "value": "hadoop_logs.shard3.replica_n6"
+          },
+          {
+            "selected": false,
+            "text": "hadoop_logs.shard4.replica_n8",
+            "value": "hadoop_logs.shard4.replica_n8"
+          },
+          {
+            "selected": false,
             "text": "history.shard1.replica_n1",
-            "value": "history.shard1.replica_n1",
-            "selected": false
+            "value": "history.shard1.replica_n1"
           }
         ],
         "query": "infra_solr_core",
@@ -2102,6 +2108,6 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 5,
+  "version": 9,
   "links": []
 }

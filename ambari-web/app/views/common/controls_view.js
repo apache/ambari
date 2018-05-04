@@ -250,6 +250,7 @@ App.ServiceConfigTextFieldUserGroupWithID = Ember.View.extend(App.ServiceConfigP
   valueBinding: 'serviceConfig.value',
   placeholderBinding: 'serviceConfig.savedValue',
   classNamesBindings: 'view.fullWidth::display-inline-block',
+  isPopoverEnabled: 'false',
 
   fullWidth: false,
 
@@ -904,7 +905,7 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
   classNames: ['master-host', 'col-md-6'],
   valueBinding: 'serviceConfig.value',
 
-  template: Ember.Handlebars.compile('{{value}}')
+  template: Ember.Handlebars.compile('{{view.value}}')
 
 });
 

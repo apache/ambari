@@ -22,13 +22,32 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['reconfigureServices', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'startInfraSolr', 'startRanger', 'startNameNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
+
+  initializeTasks: function () {
+    this._super();
+    this.removeUnneededTasks();
+  },
+
+  removeUnneededTasks: function () {
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    if (!installedServices.contains('RANGER')) {
+      this.removeTasks(['startInfraSolr', 'startRanger']);
+    }
+    if (!installedServices.contains('AMBARI_INFRA_SOLR')) {
+      this.removeTasks(['startInfraSolr']);
+    }
+  },
 
   newNameNodeHosts: function () {
     return this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', false).mapProperty('hostName');
   }.property('content.masterComponentHosts.@each.hostName'),
+
+  stopRequiredServices: function () {
+    this.stopServices(["ZOOKEEPER"]);
+  },
 
   reconfigureServices: function () {
     var configs = [];
@@ -72,6 +91,16 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.createInstallComponentTask('ZKFC', this.get('newNameNodeHosts'), "HDFS");
   },
 
+  startJournalNodes: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
+    this.updateComponent('JOURNALNODE', hostNames, "HDFS", "Start");
+  },
+
+  startNameNodes: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled').mapProperty('hostName');
+    this.updateComponent('NAMENODE', hostNames, "HDFS", "Start");
+  },
+
   formatNameNode: function () {
     App.ajax.send({
       name: 'nameNode.federation.formatNameNode',
@@ -100,6 +129,14 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.updateComponent('ZKFC', this.get('newNameNodeHosts')[0], "HDFS", "Start");
   },
 
+  startInfraSolr: function () {
+    this.startServices(false, ['AMBARI_INFRA_SOLR'], true);
+  },
+
+  startRanger: function () {
+    this.startServices(false, ['RANGER'], true);
+  },
+
   startNameNode: function () {
     this.updateComponent('NAMENODE', this.get('newNameNodeHosts')[0], "HDFS", "Start");
   },
@@ -116,74 +153,6 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     });
   },
 
-  createWidgets: function () {
-    var self = this;
-    this.getNameNodeWidgets().done(function (data) {
-      var newWidgetsIds = [];
-      var oldWidgetIds = [];
-      var nameservice1 = App.HDFSService.find().objectAt(0).get('masterComponentGroups')[0].name;
-      var nameservice2 = self.get('content.nameServiceId');
-      var widgetsCount = data.items.length;
-      data.items.forEach(function (widget) {
-        if (!widget.WidgetInfo.tag) {
-          var oldId = widget.WidgetInfo.id;
-          oldWidgetIds.push(oldId);
-          delete widget.href;
-          delete widget.WidgetInfo.id;
-          delete widget.WidgetInfo.cluster_name;
-          delete widget.WidgetInfo.author;
-          widget.WidgetInfo.tag = nameservice1;
-          widget.WidgetInfo.metrics = JSON.parse(widget.WidgetInfo.metrics);
-          widget.WidgetInfo.values = JSON.parse(widget.WidgetInfo.values);
-          self.createWidget(widget).done(function (w) {
-            newWidgetsIds.push(w.resources[0].WidgetInfo.id);
-            widget.WidgetInfo.tag = nameservice2;
-            self.createWidget(widget).done(function (w) {
-              newWidgetsIds.push(w.resources[0].WidgetInfo.id);
-              self.deleteWidget(oldId).done(function () {
-                if (!--widgetsCount) {
-                  self.getDefaultHDFStWidgetLayout().done(function (layout) {
-                    layout = layout.items[0].WidgetLayoutInfo;
-                    layout.widgets = layout.widgets.filter(function (w) {
-                      return !oldWidgetIds.contains(w.WidgetInfo.id);
-                    }).map(function (w) {
-                      return w.WidgetInfo.id;
-                    }).concat(newWidgetsIds);
-                    self.updateDefaultHDFStWidgetLayout(layout).done(function () {
-                      self.onTaskCompleted();
-                    });
-                  });
-                }
-              });
-            });
-          });
-        } else {
-          widgetsCount--;
-        }
-      });
-    });
-  },
-
-  createWidget: function (data) {
-    return App.ajax.send({
-      name: 'widgets.wizard.add',
-      sender: this,
-      data: {
-        data: data
-      }
-    });
-  },
-
-  deleteWidget: function (id) {
-    return App.ajax.send({
-      name: 'widget.action.delete',
-      sender: self,
-      data: {
-        id: id
-      }
-    });
-  },
-
   startZKFC2: function () {
     this.updateComponent('ZKFC', this.get('newNameNodeHosts')[1], "HDFS", "Start");
   },
@@ -194,56 +163,14 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   restartAllServices: function () {
     App.ajax.send({
-      name: 'restart.allServices',
+      name: 'restart.custom.filter',
       sender: this,
+      data: {
+        filter: "HostRoles/component_name!=NAMENODE&HostRoles/cluster_name=" + App.get('clusterName'),
+        context: "Restart Required Services"
+      },
       success: 'startPolling',
       error: 'onTaskError'
-    });
-  },
-
-  getNameNodeWidgets: function () {
-    return App.ajax.send({
-      name: 'widgets.get',
-      sender: this,
-      data: {
-        urlParams: 'WidgetInfo/widget_type.in(GRAPH,NUMBER,GAUGE)&WidgetInfo/scope=CLUSTER&WidgetInfo/metrics.matches(.*\"component_name\":\"NAMENODE\".*)&fields=*'
-      }
-    });
-  },
-
-  getDefaultHDFStWidgetLayout: function () {
-    return App.ajax.send({
-      name: 'widget.layout.get',
-      sender: this,
-      data: {
-        urlParams: 'WidgetLayoutInfo/layout_name=default_hdfs_dashboard'
-      }
-    });
-  },
-
-  updateDefaultHDFStWidgetLayout: function (widgetLayoutData) {
-    var layout = widgetLayoutData;
-    var data = {
-      "WidgetLayoutInfo": {
-        "display_name": layout.display_name,
-        "layout_name": layout.layout_name,
-        "id": layout.id,
-        "scope": "USER",
-        "section_name": layout.section_name,
-        "widgets": layout.widgets.map(function (id) {
-          return {
-            "id":id
-          }
-        })
-      }
-    };
-    return App.ajax.send({
-      name: 'widget.layout.edit',
-      sender: this,
-      data: {
-        layoutId: layout.id,
-        data: data
-      },
     });
   }
 });

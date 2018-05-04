@@ -53,6 +53,11 @@ App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, {
 
   subGroupId: Em.computed.alias('nameSpace'),
 
+  showSlaveComponents: false,
+
+  // should be bound to App.HDFSSlaveComponentsView instance
+  slaveComponentsView: null,
+
   nodeUptime: function () {
     const uptime = this.get('model.nameNodeStartTimeValues')[this.get('hostName')];
     if (uptime && uptime > 0) {
@@ -157,6 +162,8 @@ App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, {
     } else {
       return Em.I18n.t('services.service.summary.safeModeStatus.inSafeMode');
     }
-  }.property('safeModeStatusValue')
+  }.property('safeModeStatusValue'),
+
+  isNonFederatedHDFS: Em.computed.lt('model.masterComponentGroups.length', 2)
 
 });

@@ -78,6 +78,7 @@ public class TopologyDeleteFormer {
           .setVersion(hostComponent.getVersion())
           .setHostIds(new HashSet<>(Arrays.asList(hostComponent.getHostId())))
           .setHostNames(new HashSet<>(Arrays.asList(hostComponent.getHostName())))
+          .setLastComponentState(hostComponent.getLastComponentState())
           .build();
 
       String clusterId = hostComponent.getClusterId();

@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.jmx import get_value_from_jmx
 from resource_management.core.base import Fail
 from resource_management.core import shell
@@ -27,7 +28,8 @@ from resource_management.libraries.functions.hdfs_utils import is_https_enabled_
 
 
 __all__ = ["get_namenode_states", "get_active_namenode",
-           "get_property_for_active_namenodes", "get_property_for_active_namenode", "get_nameservices"]
+           "get_property_for_active_namenodes", "get_property_for_active_namenode", "get_nameservices",
+           "get_name_service_by_hostname"]
 
 HDFS_NN_STATE_ACTIVE = 'active'
 HDFS_NN_STATE_STANDBY = 'standby'
@@ -40,7 +42,9 @@ NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
 NAMENODE_RPC_FRAGMENT = 'dfs.namenode.rpc-address.{0}.{1}'
 NAMENODE_RPC_NON_HA = 'dfs.namenode.rpc-address'
-JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
+JMX_URI_DEFAULT = "{0}://{1}/jmx?qry={{0}}"
+JMX_BEAN_FS = "Hadoop:service=NameNode,name=FSNamesystem"
+JMX_BEAN_NN_INFO = "Hadoop:service=NameNode,name=NameNodeInfo"
 INADDR_ANY = '0.0.0.0'
 
 class NoActiveNamenodeException(Fail):
@@ -93,6 +97,30 @@ def _get_namenode_states_noretries_single_ns(hdfs_site, name_service, security_e
   standby_namenodes = []
   unknown_namenodes = []
 
+  for nn_unique_id, address, jmx_uri in all_jmx_namenode_addresses(hdfs_site, name_service):
+    is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
+    jmx_uri = jmx_uri.format(JMX_BEAN_FS)
+    state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled, last_retry)
+    # If JMX parsing failed
+    if not state:
+      check_service_cmd = "hdfs haadmin -ns {0} -getServiceState {1}".format(name_service, nn_unique_id)
+      code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
+      if code == 0 and out:
+        if HDFS_NN_STATE_STANDBY in out:
+          state = HDFS_NN_STATE_STANDBY
+        elif HDFS_NN_STATE_ACTIVE in out:
+          state = HDFS_NN_STATE_ACTIVE
+
+    if state == HDFS_NN_STATE_ACTIVE:
+      active_namenodes.append((nn_unique_id, address))
+    elif state == HDFS_NN_STATE_STANDBY:
+      standby_namenodes.append((nn_unique_id, address))
+    else:
+      unknown_namenodes.append((nn_unique_id, address))
+
+  return active_namenodes, standby_namenodes, unknown_namenodes
+
+def all_jmx_namenode_addresses(hdfs_site, name_service):
   nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
 
   # now we have something like 'nn1,nn2,nn3,nn4'
@@ -119,28 +147,25 @@ def _get_namenode_states_noretries_single_ns(hdfs_site, name_service, security_e
           rpc_host = rpc_value.split(":")[0]
           value = value.replace(INADDR_ANY, rpc_host)
 
-      jmx_uri = JMX_URI_FRAGMENT.format(protocol, value)
+    jmx_uri = JMX_URI_DEFAULT.format(protocol, value)
 
-      state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled, last_retry)
-      # If JMX parsing failed
-      if not state:
-        check_service_cmd = "hdfs haadmin -ns {0} -getServiceState {1}".format(name_service, nn_unique_id)
-        code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
-        if code == 0 and out:
-          if HDFS_NN_STATE_STANDBY in out:
-            state = HDFS_NN_STATE_STANDBY
-          elif HDFS_NN_STATE_ACTIVE in out:
-            state = HDFS_NN_STATE_ACTIVE
+    yield nn_unique_id, value, jmx_uri
 
-      if state == HDFS_NN_STATE_ACTIVE:
-        active_namenodes.append((nn_unique_id, value))
-      elif state == HDFS_NN_STATE_STANDBY:
-        standby_namenodes.append((nn_unique_id, value))
-      else:
-        unknown_namenodes.append((nn_unique_id, value))
 
-  return active_namenodes, standby_namenodes, unknown_namenodes
+def get_hdfs_cluster_id_from_jmx(hdfs_site, security_enabled, run_user):
+  name_services = get_nameservices(hdfs_site)
+  for name_service in name_services:
+    for nn_unique_id, address, jmx_uri in all_jmx_namenode_addresses(hdfs_site, name_service):
+      jmx_uri = jmx_uri.format(JMX_BEAN_NN_INFO)
+      is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
+      state = get_value_from_jmx(jmx_uri, 'ClusterId', security_enabled, run_user, is_https_enabled)
 
+      if state:
+        return state
+
+      Logger.info("Cannot get clusterId from {0}".format(jmx_uri))
+
+  raise Fail("Cannot get clsuterId from jmx, since none of the namenodes is running/accessible via jmx.")
 
 def _is_ha_config(hdfs_site):
   """
@@ -332,3 +357,58 @@ def get_initial_active_namenodes(hadoop_env):
     return frozenset(setting.split(','))
 
   return frozenset()
+
+
+def get_name_service_by_hostname(hdfs_site, host_name):
+  """
+   Finds the name service which the name node belongs to in an HA or federated setup.
+  :param hdfs_site: the hdfs config
+  :param host_name: the host name of the name node, can be None if there is only 1 name service
+  :return: the name service
+  """
+  #there has to be a name service - we are in HA at least
+  name_services_string = hdfs_site['dfs.internal.nameservices']
+  if is_empty(name_services_string):
+    return None
+  name_services = name_services_string.split(',')
+  if len(name_services) == 1:
+    return name_services[0]
+
+  if not host_name:
+    raise ValueError('Host name required when using namenode federation')
+
+  for ns in name_services:
+    ha_name_nodes = hdfs_site['dfs.ha.namenodes.{0}'.format(ns)].split(',')
+    for nn in ha_name_nodes:
+      nn_rpc_port = hdfs_site['dfs.namenode.rpc-address.{0}.{1}'.format(ns,nn)]
+      nn_rpc = nn_rpc_port.split(':')[0]
+      if nn_rpc == host_name:
+        return ns
+
+def get_namespace_mapping_for_hostname(hostname, hdfs_site, security_enabled, run_user):
+  namenode_address_map_list = get_namenode_states(hdfs_site, security_enabled, run_user)
+  namenode_logical_name = None
+  for each_namenode_address_map in namenode_address_map_list:
+    if len(each_namenode_address_map) != 0:
+      for namenode_hostname_logical_map_tuple in each_namenode_address_map:
+        namenode_hostname = namenode_hostname_logical_map_tuple[1].split(":")[0]
+        if hostname == namenode_hostname:
+          namenode_logical_name = namenode_hostname_logical_map_tuple[0]
+          break
+    if namenode_logical_name is not None:
+      break
+
+
+  namenode_nameservices = get_nameservices(hdfs_site)
+  namespace_nameservice = None
+  if namenode_nameservices and len(namenode_nameservices) > 0:
+    for name_service in namenode_nameservices:
+      namenode_logical_names_list = hdfs_site.get('dfs.ha.namenodes.' + str(name_service), None)
+      if namenode_logical_names_list and ',' in namenode_logical_names_list:
+        for each_namenode_logical_name in namenode_logical_names_list.split(','):
+          if namenode_logical_name == each_namenode_logical_name:
+            namespace_nameservice = name_service
+            break
+      if namespace_nameservice is not None:
+        break
+  return namespace_nameservice,namenode_logical_name

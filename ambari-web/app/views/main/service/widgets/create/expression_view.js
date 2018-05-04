@@ -352,8 +352,9 @@ App.AddMetricExpressionView = Em.View.extend({
     if (hasNameNodeFederation) {
       App.HDFSService.find().objectAt(0).get('masterComponentGroups').forEach(function(group) {
         nameServiceGroups.push({
-          displayName: group.name,
-          components: []
+          tag: group.name,
+          displayName: Em.I18n.t('dashboard.widgets.wizard.step2.nameSpaceDropDownItem').format(group.name),
+          component: null
         });
       });
     }
@@ -366,7 +367,7 @@ App.AddMetricExpressionView = Em.View.extend({
         if (App.HostComponent.getCount(componentName, 'totalCount') === 0) continue;
         if (hasNameNodeFederation && componentName === 'NAMENODE') {
           nameServiceGroups.forEach(function(group) {
-            group.components.push(this.createComponentItem(servicesMap[serviceName], serviceName, componentId, expressionId, group.displayName));
+            group.component = this.createComponentItem(servicesMap[serviceName], serviceName, componentId, expressionId, group.tag);
           }, this);
         } else {
           components.push(this.createComponentItem(servicesMap[serviceName], serviceName, componentId, expressionId));

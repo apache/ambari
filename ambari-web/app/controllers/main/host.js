@@ -30,22 +30,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * total number of installed hosts
    * @type {number}
    */
-  totalCount: function () {
-    return this.get('hostsCountMap')['TOTAL'] || 0;
-  }.property('hostsCountMap'),
+  totalCount: Em.computed.alias('App.allHostNames.length'),
 
   /**
    * @type {boolean}
    * @default false
    */
   resetStartIndex: false,
-
-  /**
-   * flag responsible for updating status counters of hosts
-   */
-  isCountersUpdating: false,
-
-  hostsCountMap: {},
 
   startIndex: 1,
 
@@ -58,6 +49,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * if true, do not clean stored filter before hosts page rendering.
    */
   showFilterConditionsFirstLoad: false,
+
+  saveSelection: false,
 
   content: App.Host.find(),
 
@@ -335,45 +328,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     return queryParams;
   },
 
-  /**
-   * update status counters of hosts
-   */
-  updateStatusCounters: function () {
-    var self = this;
-
-    if (this.get('isCountersUpdating')) {
-      App.ajax.send({
-        name: 'host.status.total_count',
-        sender: this,
-        data: {},
-        success: 'updateStatusCountersSuccessCallback',
-        error: 'updateStatusCountersErrorCallback',
-        callback: function() {
-          setTimeout(function () {
-            self.updateStatusCounters();
-          }, App.get('hostStatusCountersUpdateInterval'));
-        }
-      });
-    }
-  },
-
-  /**
-   * success callback on <code>updateStatusCounters()</code>
-   * map counters' value to categories
-   * @param data
-   */
-  updateStatusCountersSuccessCallback: function (data) {
-    var hostsCountMap = {
-      'TOTAL': data.Clusters.total_hosts
-    };
-
-    this.set('hostsCountMap', hostsCountMap);
-  },
-
-  /**
-   * success callback on <code>updateStatusCounters()</code>
-   */
-  updateStatusCountersErrorCallback: Em.K,
 
   /**
    * Return value without predicate

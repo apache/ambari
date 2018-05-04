@@ -34,6 +34,7 @@ App.WizardStep7View = Em.View.extend({
 
   willDestroyElement: function () {
     this.get('controller').clearStep();
+    this.get('controller').clearLastSelectedService();
   },
 
   /**

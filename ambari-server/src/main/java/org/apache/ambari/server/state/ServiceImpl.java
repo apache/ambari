@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.ServiceCredentialStoreUpdateEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -448,8 +449,21 @@ public class ServiceImpl implements Service {
     ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
 
     if (desiredStateEntity != null) {
+      ServiceCredentialStoreUpdateEvent serviceCredentialStoreUpdateEvent = null;
+      //create event only if the value changed
+      if (desiredStateEntity.isCredentialStoreEnabled() != credentialStoreEnabled) {
+        StackId stackId = getDesiredStackId();
+        serviceCredentialStoreUpdateEvent =
+            new ServiceCredentialStoreUpdateEvent(getClusterId(), stackId.getStackName(),
+                                                  stackId.getStackVersion(), getName());
+      }
       desiredStateEntity.setCredentialStoreEnabled(credentialStoreEnabled);
       desiredStateEntity = serviceDesiredStateDAO.merge(desiredStateEntity);
+
+      //publish event after the value has changed
+      if (serviceCredentialStoreUpdateEvent != null) {
+        eventPublisher.publish(serviceCredentialStoreUpdateEvent);
+      }
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
               + "previously deleted, serviceName = " + getName());

@@ -106,6 +106,7 @@ if "infra-solr-env" in config['configurations']:
   infra_solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']
   infra_solr_min_mem = format(config['configurations']['infra-solr-env']['infra_solr_minmem'])
   infra_solr_max_mem = format(config['configurations']['infra-solr-env']['infra_solr_maxmem'])
+  infra_solr_java_stack_size = format(config['configurations']['infra-solr-env']['infra_solr_java_stack_size'])
   infra_solr_instance_count = len(config['clusterHostInfo']['infra_solr_hosts'])
   infra_solr_datadir = format(config['configurations']['infra-solr-env']['infra_solr_datadir'])
   infra_solr_data_resources_dir = os.path.join(infra_solr_datadir, 'resources')

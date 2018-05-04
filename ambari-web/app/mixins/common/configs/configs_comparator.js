@@ -88,9 +88,10 @@ App.ConfigsComparator = Em.Mixin.create({
         if (serviceName === 'YARN' && configuration.type === 'capacity-scheduler') {
           this.addCompareCSConfigs(configuration, serviceVersionMap, item);
         } else {
-          for (var prop in configuration.properties) {
-            serviceVersionMap[item.service_config_version][prop + '-' + configuration.type] = {
-              name: prop,
+          for (const prop in configuration.properties) {
+            const name = JSON.parse('"' + prop + '"');
+            serviceVersionMap[item.service_config_version][name + '-' + configuration.type] = {
+              name: name,
               value: configuration.properties[prop],
               type: configuration.type,
               tag: configuration.tag,
@@ -98,8 +99,8 @@ App.ConfigsComparator = Em.Mixin.create({
               service_config_version: item.service_config_version,
               filename: App.config.getOriginalFileName(configuration.type)
             };
-            if (Em.isNone(configNamesMap[prop])) {
-              allConfigs.push(this.getMockConfig(prop, serviceName, App.config.getOriginalFileName(configuration.type)));
+            if (Em.isNone(configNamesMap[name])) {
+              allConfigs.push(this.getMockConfig(name, serviceName, App.config.getOriginalFileName(configuration.type)));
             }
           }
         }

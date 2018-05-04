@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.apache.hadoop.conf.Configuration;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -62,9 +63,9 @@ public class AggregatedMetricsPublisherTest {
                 new AggregatedMetricsPublisher(TimelineMetricsHolder.getInstance(), configuration, 60);
 
         String aggregatedJson = aggregatedMetricsPublisher.processMetrics(timelineMetricsHolder.extractMetricsForAggregationPublishing());
-        String expectedMetric1App1 = "{\"timelineMetric\":{\"metadata\":{},\"metricname\":\"metricName1\",\"appid\":\"app1\",\"starttime\":0,\"metrics\":{}},\"metricAggregate\":{\"sum\":6.0,\"deviation\":0.0,\"max\":3.0,\"min\":1.0,\"numberOfSamples\":3}}";
-        String expectedMetric2App2 = "{\"timelineMetric\":{\"metadata\":{},\"metricname\":\"metricName2\",\"appid\":\"app2\",\"starttime\":0,\"metrics\":{}},\"metricAggregate\":{\"sum\":15.0,\"deviation\":0.0,\"max\":6.0,\"min\":4.0,\"numberOfSamples\":3}}";
-        String expectedMetric3App3 = "{\"timelineMetric\":{\"metadata\":{},\"metricname\":\"metricName3\",\"appid\":\"app3\",\"starttime\":0,\"metrics\":{}},\"metricAggregate\":{\"sum\":24.0,\"deviation\":0.0,\"max\":9.0,\"min\":7.0,\"numberOfSamples\":3}}";
+        String expectedMetric1App1 = "{\"timelineMetric\":{\"timestamp\":0,\"metadata\":{},\"metricname\":\"metricName1\",\"appid\":\"app1\",\"starttime\":0,\"metrics\":{}},\"metricAggregate\":{\"sum\":6.0,\"deviation\":0.0,\"max\":3.0,\"min\":1.0,\"numberOfSamples\":3}}";
+        String expectedMetric2App2 = "{\"timelineMetric\":{\"timestamp\":0,\"metadata\":{},\"metricname\":\"metricName2\",\"appid\":\"app2\",\"starttime\":0,\"metrics\":{}},\"metricAggregate\":{\"sum\":15.0,\"deviation\":0.0,\"max\":6.0,\"min\":4.0,\"numberOfSamples\":3}}";
+        String expectedMetric3App3 = "{\"timelineMetric\":{\"timestamp\":0,\"metadata\":{},\"metricname\":\"metricName3\",\"appid\":\"app3\",\"starttime\":0,\"metrics\":{}},\"metricAggregate\":{\"sum\":24.0,\"deviation\":0.0,\"max\":9.0,\"min\":7.0,\"numberOfSamples\":3}}";
         Assert.assertNotNull(aggregatedJson);
         Assert.assertTrue(aggregatedJson.contains(expectedMetric1App1));
         Assert.assertTrue(aggregatedJson.contains(expectedMetric3App3));
@@ -116,7 +117,7 @@ public class AggregatedMetricsPublisherTest {
 
     @Test
     public void testGetMetricsFromCache() throws InterruptedException {
-        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4);
+        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4, Collections.EMPTY_LIST);
         timelineMetricsHolder.extractMetricsForAggregationPublishing();
         timelineMetricsHolder.extractMetricsForRawPublishing();
 

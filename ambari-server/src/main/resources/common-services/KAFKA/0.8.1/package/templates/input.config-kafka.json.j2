@@ -57,7 +57,7 @@
       },
       "log4j_format":"[%d] %p %m (%c)%n",
       "multiline_pattern":"^(\\[%{TIMESTAMP_ISO8601:logtime}\\])",
-      "message_pattern":"(?m)^\\[%{TIMESTAMP_ISO8601:logtime}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{GREEDYDATA:log_message}",
+      "message_pattern":"(?m)^\\[%{TIMESTAMP_ISO8601:logtime}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{

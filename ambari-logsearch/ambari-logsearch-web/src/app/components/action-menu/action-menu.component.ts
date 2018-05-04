@@ -30,6 +30,12 @@ import {ListItem} from '@app/classes/list-item';
 })
 export class ActionMenuComponent {
 
+  isLogIndexFilterDisplayed: boolean = false;
+
+  settingsForm: FormGroup = this.settings.settingsFormGroup;
+
+  isModalSubmitDisabled: boolean = true;
+
   constructor(
     private logsContainer: LogsContainerService, private historyManager: HistoryManagerService,
     private settings: UserSettingsService
@@ -52,22 +58,20 @@ export class ActionMenuComponent {
     return this.logsContainer.captureSeconds;
   }
 
-  isLogIndexFilterDisplayed: boolean = false;
-
-  settingsForm: FormGroup = this.settings.settingsFormGroup;
-
-  isModalSubmitDisabled: boolean = true;
-
   setModalSubmitDisabled(isDisabled: boolean): void {
     this.isModalSubmitDisabled = isDisabled;
   }
 
   undoLatest(): void {
-    this.historyManager.undo(this.undoItems[0]);
+    if (this.undoItems.length) {
+      this.historyManager.undo(this.undoItems[0]);
+    }
   }
 
   redoLatest(): void {
-    this.historyManager.redo(this.redoItems[0]);
+    if (this.redoItems.length) {
+      this.historyManager.redo(this.redoItems[0]);
+    }
   }
 
   undo(item: ListItem): void {

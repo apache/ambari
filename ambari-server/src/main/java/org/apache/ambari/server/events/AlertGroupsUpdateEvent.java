@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class AlertGroupsUpdateEvent extends AmbariUpdateEvent {
+public class AlertGroupsUpdateEvent extends STOMPEvent {
 
   @JsonProperty("groups")
   private List<AlertGroupUpdate> groups;

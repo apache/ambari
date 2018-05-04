@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Contains info about request update. This update will be sent to all subscribed recipients.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RequestUpdateEvent extends AmbariUpdateEvent {
+public class RequestUpdateEvent extends STOMPEvent {
 
   private String clusterName;
   private Long endTime;

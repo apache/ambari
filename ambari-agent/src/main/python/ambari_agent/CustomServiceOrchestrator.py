@@ -211,8 +211,8 @@ class CustomServiceOrchestrator():
     :return:
     """
     configtype_credentials = {}
-    if 'configuration_credentials' in commandJson:
-      for config_type, password_properties in commandJson['configuration_credentials'].items():
+    if 'serviceLevelParams' in commandJson and 'configuration_credentials' in commandJson['serviceLevelParams']:
+      for config_type, password_properties in commandJson['serviceLevelParams']['configuration_credentials'].items():
         if config_type in commandJson['configurations']:
           value_names = []
           config = commandJson['configurations'][config_type]
@@ -278,6 +278,9 @@ class CustomServiceOrchestrator():
     if len(configtype_credentials) == 0:
       logger.info("Credential store is enabled but no property are found that can be encrypted.")
       commandJson['credentialStoreEnabled'] = "false"
+    # CS is enabled and config properties are available
+    else:
+      commandJson['credentialStoreEnabled'] = "true"
 
     for config_type, credentials in configtype_credentials.items():
       config = commandJson['configurations'][config_type]
@@ -482,7 +485,17 @@ class CustomServiceOrchestrator():
     required_config_timestamp = command_header['requiredConfigTimestamp'] if 'requiredConfigTimestamp' in command_header else None
 
     command_dict = self.configuration_builder.get_configuration(cluster_id, service_name, component_name, required_config_timestamp)
+
+    # remove data populated from topology to avoid merge and just override
+    if 'clusterHostInfo' in command_header:
+      del command_dict['clusterHostInfo']
+
     command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
+
+    # topology needs to be decompressed if and only if it originates from command header
+    if 'clusterHostInfo' in command_header and command_header['clusterHostInfo']:
+      command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
+
     return command
 
   def requestComponentStatus(self, command_header):

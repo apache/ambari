@@ -26,7 +26,7 @@ import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.stomp.AmbariSubscriptionRegistry;
 import org.apache.ambari.server.api.AmbariSendToMethodReturnValueHandler;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
-import org.apache.ambari.server.events.listeners.requests.StateUpdateListener;
+import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +63,8 @@ public class RootStompConfig {
   }
 
   @Bean
-  public StateUpdateListener requestStatusListener(Injector injector) {
-    return new StateUpdateListener(injector);
+  public STOMPUpdateListener requestSTOMPListener(Injector injector) {
+    return new STOMPUpdateListener(injector);
   }
 
   @Bean

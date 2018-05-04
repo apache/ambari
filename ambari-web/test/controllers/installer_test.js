@@ -509,7 +509,9 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        sinon.spy(checker, 'loadStacksVersions');
+        sinon.stub(checker, 'loadStacksVersions').returns({
+          done: Em.clb
+        });
       });
 
       afterEach(function() {
@@ -1275,6 +1277,38 @@ describe('App.InstallerController', function () {
       expect(App.db.getLocalRepoVDFData()).to.be.undefined;
     });
 
+  });
+
+  describe('#finish', function() {
+    beforeEach(function() {
+      sinon.stub(installerController, 'setCurrentStep');
+      sinon.stub(installerController, 'clearStorageData');
+      sinon.stub(installerController, 'clearServiceConfigProperties');
+      sinon.stub(App.themesMapper, 'resetModels');
+      installerController.finish();
+    });
+    afterEach(function() {
+      installerController.setCurrentStep.restore();
+      installerController.clearStorageData.restore();
+      installerController.clearServiceConfigProperties.restore();
+      App.themesMapper.resetModels.restore();
+    });
+
+    it('setCurrentStep should be called', function() {
+      expect(installerController.setCurrentStep.calledWith('0')).to.be.true;
+    });
+
+    it('clearStorageData should be called', function() {
+      expect(installerController.clearStorageData.calledOnce).to.be.true;
+    });
+
+    it('clearServiceConfigProperties should be called', function() {
+      expect(installerController.clearServiceConfigProperties.calledOnce).to.be.true;
+    });
+
+    it('App.themesMapper.resetModels should be called', function() {
+      expect(App.themesMapper.resetModels.calledOnce).to.be.true;
+    });
   });
 
 });

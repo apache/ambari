@@ -59,7 +59,7 @@ class TestResourceFilesKeeper(TestCase):
                                     ResourceFilesKeeper.PACKAGE_DIR)
 
   if get_platform() != PLATFORM_WINDOWS:
-    DUMMY_UNCHANGEABLE_PACKAGE_HASH="ad9dc916d5b113b4763b37b119d8237d72c9c5e5"
+    DUMMY_UNCHANGEABLE_PACKAGE_HASH="a6e939662fce1f116054a1bfb8a5915f87e09319"
   else:
     DUMMY_UNCHANGEABLE_PACKAGE_HASH="2e438f4f9862420ed8930a56b8809b8aca359e87"
   DUMMY_HASH="dummy_hash"

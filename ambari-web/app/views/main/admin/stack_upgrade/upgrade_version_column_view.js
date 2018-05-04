@@ -23,9 +23,18 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   isVersionColumnView: true,
   classNames: ['version-column', 'col-md-4'],
 
+  /**
+   * Indicates whether block for version type should be displayed.
+   * True if any of available versions is of PATCH, MAINT or SERVICE type
+   * @type {Boolean}
+   */
+  displayVersionTypeBlock: false,
+
+  currentLabelClass: 'btn btn-primary',
+
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
-    App.tooltip($('.not-upgradable'), {title: Em.I18n.t('admin.stackVersions.version.service.notUpgradable')});
+    App.tooltip($('.not-upgradable'));
     if (!this.get('content.isCompatible')) {
       App.tooltip(this.$(".repo-version-tooltip"), {
         title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')
@@ -48,19 +57,23 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   }.observes('parentView.repoVersions.@each.isVisible'),
 
   services: function() {
-    var originalServices = this.get('content.stackServices');
+    const originalServices = this.get('content.stackServices');
     // sort the services in the order the same as service menu
-    return App.Service.find().map(function (service) {
+    return App.Service.find().map(service => {
 
-      var stackService = originalServices.findProperty('name', service.get('serviceName'));
-      var isAvailable = this.isStackServiceAvailable(stackService);
-
-      var notUpgradable = false;
+      const stackService = originalServices.findProperty('name', service.get('serviceName')),
+        isAvailable = this.isStackServiceAvailable(stackService);
+      let notUpgradable = false,
+        notUpgradableTitle = '';
       if (!stackService) {
-        console.error(stackService + " definition does not exist in the stack.")
+        console.error(`${stackService} definition does not exist in the stack.`);
         notUpgradable = true;
+        notUpgradableTitle = Em.I18n.t('admin.stackVersions.version.service.notSupported');
       } else {
         notUpgradable = this.getNotUpgradable(isAvailable, stackService.get('isUpgradable'));
+        if (notUpgradable) {
+          notUpgradableTitle = Em.I18n.t('admin.stackVersions.version.service.notUpgradable');
+        }
       }
 
       return Em.Object.create({
@@ -68,10 +81,11 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
         name: service.get('serviceName'),
         latestVersion: stackService ? stackService.get('latestVersion') : '',
         isVersionInvisible: !stackService,
-        notUpgradable: notUpgradable,
-        isAvailable: isAvailable
+        notUpgradable,
+        notUpgradableTitle,
+        isAvailable
       });
-    }, this);
+    });
   }.property(),
 
   getNotUpgradable: function(isAvailable, isUpgradable) {

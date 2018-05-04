@@ -95,7 +95,8 @@ class AptManager(GenericManager):
     packages = []
     available_packages = self._available_packages_dict(pkg_names, repo_filter)
 
-    with shell.process_executor(self.properties.installed_packages_cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(self.properties.installed_packages_cmd, error_callback=self._executor_error_handler,
+                                strategy=shell.ReaderStrategy.BufferedChunks) as output:
       for package, version in AptParser.packages_installed_reader(output):
         if package in available_packages:
           packages.append(available_packages[package])
@@ -113,7 +114,9 @@ class AptManager(GenericManager):
     :type repo_filter str|None
     """
 
-    with shell.process_executor(self.properties.available_packages_cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(self.properties.available_packages_cmd, error_callback=self._executor_error_handler,
+                                strategy=shell.ReaderStrategy.BufferedChunks) as output:
+
       for pkg_item in AptParser.packages_reader(output):
         if repo_filter and repo_filter not in pkg_item[2]:
           continue
@@ -198,7 +201,7 @@ class AptManager(GenericManager):
     r = shell.subprocess_executor(self.properties.verify_dependency_cmd)
     pattern = re.compile("has missing dependency|E:")
 
-    if r.code or (r.outout and pattern.search(r.out)):
+    if r.code or (r.out and pattern.search(r.out)):
       err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (VERIFY_DEPENDENCY_CMD, code, out))
       Logger.error(err_msg)
       return False
@@ -212,12 +215,16 @@ class AptManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     from resource_management.core import sudo
 
     apt_sources_list_tmp_dir = None
 
-    if context.is_upgrade or context.use_repos or not self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command was executed with no package name")
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
       copied_sources_files = []
       is_tmp_dir_created = False
@@ -261,6 +268,8 @@ class AptManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     context.is_upgrade = True
     return self.install_package(name, context)
@@ -273,8 +282,12 @@ class AptManager(GenericManager):
     :type name str
     :type context ambari_commons.shell.RepoCallContext
     :type ignore_dependencies bool
+
+    :raise ValueError if name is empty
     """
-    if self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command were executed with no package name passed")
+    elif self._check_existence(name):
       cmd = self.properties.remove_cmd[context.log_output] + [name]
       Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
       shell.repository_manager_executor(cmd, self.properties, context)
@@ -301,5 +314,6 @@ class AptManager(GenericManager):
     apt-get in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
+
     r = shell.subprocess_executor(self.properties.check_cmd % name)
     return not bool(r.code)

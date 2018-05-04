@@ -474,7 +474,7 @@ public class ClusterTest {
         hostComponentStateDAO.merge(hce);
       }
 
-      RepositoryVersionEntity rv = helper.getOrCreateRepositoryVersion(stackId, version);
+      helper.getOrCreateRepositoryVersion(stackId, version);
 
       // Simulate the StackVersionListener during the installation
       Service svc = cluster.getService(hce.getServiceName());
@@ -605,8 +605,8 @@ public class ClusterTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
 
-    Service s1 = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
-    Service s2 = serviceFactory.createNew(c1, "MAPREDUCE", repositoryVersion);
+    serviceFactory.createNew(c1, "HDFS", repositoryVersion);
+    serviceFactory.createNew(c1, "MAPREDUCE", repositoryVersion);
 
     Service s = c1.getService("HDFS");
     Assert.assertNotNull(s);
@@ -948,7 +948,7 @@ public class ClusterTest {
     Config config2 = configFactory.createNew(c1, "global", "version2",
         new HashMap<String, String>() {{ put("x", "y"); }}, c2PropAttributes);
 
-    Config config3 = configFactory.createNew(c1, "core-site", "version2",
+    configFactory.createNew(c1, "core-site", "version2",
         new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<>());
 
     c1.addDesiredConfig("_test", Collections.singleton(config1));
@@ -1080,7 +1080,7 @@ public class ClusterTest {
     c1.addService("MAPREDUCE", repositoryVersion);
 
     Service hdfs = c1.addService("HDFS", repositoryVersion);
-    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    hdfs.addServiceComponent("NAMENODE");
 
     assertEquals(2, c1.getServices().size());
     assertEquals(2, injector.getProvider(EntityManager.class).get().
@@ -1888,8 +1888,8 @@ public class ClusterTest {
     String v1 = "2.0.5-1";
     String v2 = "2.0.5-2";
     c1.setDesiredStackVersion(stackId);
-    RepositoryVersionEntity rve1 = helper.getOrCreateRepositoryVersion(stackId, v1);
-    RepositoryVersionEntity rve2 = helper.getOrCreateRepositoryVersion(stackId, v2);
+    helper.getOrCreateRepositoryVersion(stackId, v1);
+    helper.getOrCreateRepositoryVersion(stackId, v2);
 
     c1.setCurrentStackVersion(stackId);
 
@@ -2189,6 +2189,9 @@ public class ClusterTest {
     createDefaultCluster(Sets.newHashSet("host-1"), stackId);
 
     Cluster cluster = clusters.getCluster("c1");
+    cluster.setCurrentStackVersion(stackId);
+    cluster.setDesiredStackVersion(stackId);
+
     RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
@@ -2212,8 +2215,9 @@ public class ClusterTest {
     // make v1 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
 
-    // bump the repo version
+    // bump the repo version and the desired stack
     service.setDesiredRepositoryVersion(repoVersion220);
+    cluster.setDesiredStackVersion(newStackId);
 
     // save v2
     // config for v2 on new stack

@@ -23,9 +23,9 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
   selectedService: null,
   stepConfigs: [],
   serverConfigData: {},
-  federationConfig: $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig),
   once: false,
   isLoaded: false,
+  isConfigsLoaded: false,
   versionLoaded: true,
   hideDependenciesInfoBar: true,
 
@@ -40,6 +40,8 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
   clearStep: function () {
     this.get('stepConfigs').clear();
     this.set('serverConfigData', {});
+    this.set('isConfigsLoaded', false);
+    this.set('isLoaded', false);
   },
 
   loadStep: function () {
@@ -76,29 +78,42 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
   onLoadConfigs: function (data) {
     this.set('serverConfigData', data);
-    this.removeConfigs(this.get('configsToRemove'), data);
-    this.tweakServiceConfigs(this.get('federationConfig.configs'));
-    this.renderServiceConfigs(this.get('federationConfig'));
-    this.set('isLoaded', true);
+    this.set('isConfigsLoaded', true);
   },
+
+  onLoad: function () {
+    if (this.get('isConfigsLoaded') && App.router.get('clusterController.isHDFSNameSpacesLoaded')) {
+      var federationConfig =  $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig);
+      if (App.get('hasNameNodeFederation')) {
+       federationConfig.configs = federationConfig.configs.rejectProperty('firstRun');
+      }
+      federationConfig.configs = this.tweakServiceConfigs(federationConfig.configs);
+      this.removeConfigs(this.get('configsToRemove'), this.get('serverConfigData'));
+      this.renderServiceConfigs(federationConfig);
+      this.set('isLoaded', true);
+    }
+  }.observes('isConfigsLoaded', 'App.router.clusterController.isHDFSNameSpacesLoaded'),
 
   prepareDependencies: function () {
     var ret = {};
     var configsFromServer = this.get('serverConfigData.items');
     var journalNodes = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE');
     var nameNodes = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE');
-    ret.nameservice1 = App.HDFSService.find().objectAt(0).get('masterComponentGroups')[0].name;
-    ret.nameservice2 = this.get('content.nameServiceId');
-    ret.namenode1 = nameNodes.filterProperty('isInstalled').mapProperty('hostName')[0];
-    ret.namenode2 = nameNodes.filterProperty('isInstalled').mapProperty('hostName')[1];
-    ret.namenode3 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[0];
-    ret.namenode4 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[1];
+    var hdfsSiteConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
+    var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
+    ret.nameServicesList = nameServices.join(',');
+    ret.nameservice1 = nameServices[0];
+    ret.newNameservice = this.get('content.nameServiceId');
+    ret.namenode1 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn1'].split(':')[0];
+    ret.namenode2 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn2'].split(':')[0];
+    ret.newNameNode1Index = 'nn' + (nameNodes.length - 1);
+    ret.newNameNode2Index = 'nn' + nameNodes.length;
+    ret.newNameNode1 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[0];
+    ret.newNameNode2 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[1];
     ret.journalnodes = journalNodes.map(function (c) {
       return c.get('hostName') + ':8485'
     }).join(';');
     ret.clustername = App.get('clusterName');
-
-    var hdfsSiteConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
 
     var dfsHttpA = hdfsSiteConfigs['dfs.namenode.http-address'];
     ret.nnHttpPort = dfsHttpA ? dfsHttpA.split(':')[1] : 50070;
@@ -109,33 +124,68 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var dfsRpcA = hdfsSiteConfigs['dfs.namenode.rpc-address'];
     ret.nnRpcPort = dfsRpcA ? dfsRpcA.split(':')[1] : 8020;
 
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
-      var hdfsRangerConfigs = configsFromServer.findProperty('type', 'ranger-hdfs-security').properties;
-
-      if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
-        ret.ranger_service_name_ns1 = ret.clustername + '_hadoop_' + ret.nameservice1;
-        ret.ranger_service_name_ns2 = ret.clustername + '_hadoop_' + ret.nameservice2;
-      } else {
-        ret.ranger_service_name_ns1 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice1;
-        ret.ranger_service_name_ns2 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice2;
-      }
-    }
+    ret.journalnode_edits_dir = hdfsSiteConfigs['dfs.journalnode.edits.dir'];
 
     return ret;
   },
 
   tweakServiceConfigs: function (configs) {
     var dependencies = this.prepareDependencies();
+    var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
+    nameServices.push(dependencies.newNameservice);
+    var result = [];
+    var configsToRemove = [];
+    var hdfsSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'hdfs-site').properties;
+
+    if (!hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn1'] && !hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn2']) {
+      configsToRemove = configsToRemove.concat([
+        'dfs.namenode.servicerpc-address.{{nameservice1}}.nn1',
+        'dfs.namenode.servicerpc-address.{{nameservice1}}.nn2',
+        'dfs.namenode.servicerpc-address.{{newNameservice}}.{{newNameNode1Index}}',
+        'dfs.namenode.servicerpc-address.{{newNameservice}}.{{newNameNode2Index}}'
+      ]);
+    }
+
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      var hdfsRangerConfigs = this.get('serverConfigData').items.findProperty('type', 'ranger-hdfs-security').properties;
+
+      if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
+        nameServices.forEach(function (nameService) {
+          configs.push(this.createRangerServiceProperty(nameService, dependencies.clustername + '_hadoop_' + nameService));
+        }, this);
+      } else {
+        nameServices.forEach(function (nameService) {
+          configs.push(this.createRangerServiceProperty(nameService, hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + nameService));
+        }, this);
+      }
+    }
 
     configs.forEach(function (config) {
-      config.isOverridable = false;
-      config.name = this.replaceDependencies(config.name, dependencies);
-      config.displayName = this.replaceDependencies(config.displayName, dependencies);
-      config.value = this.replaceDependencies(config.value, dependencies);
-      config.recommendedValue = this.replaceDependencies(config.recommendedValue, dependencies);
+      if (!configsToRemove.contains(config.name)) {
+        config.isOverridable = false;
+        config.name = this.replaceDependencies(config.name, dependencies);
+        config.displayName = this.replaceDependencies(config.displayName, dependencies);
+        config.value = this.replaceDependencies(config.value, dependencies);
+        config.recommendedValue = this.replaceDependencies(config.recommendedValue, dependencies);
+        result.push(config);
+      }
     }, this);
 
-    return configs;
+    return result;
+  },
+
+  createRangerServiceProperty: function(nameservice, value) {
+    var name = "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".nameservice." + nameservice + ".ranger.service";
+    return {
+        "name": name,
+        "displayName": name,
+        "isReconfigurable": false,
+        "recommendedValue": value,
+        "value": value,
+        "category": "RANGER",
+        "filename": "ranger-tagsync-site",
+        "serviceName": 'MISC'
+      };
   },
 
   replaceDependencies: function (value, dependencies) {

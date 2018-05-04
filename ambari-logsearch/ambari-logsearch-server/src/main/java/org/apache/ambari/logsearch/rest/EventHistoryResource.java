@@ -32,7 +32,7 @@ import javax.ws.rs.Produces;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.manager.EventHistoryManager;
-import org.apache.ambari.logsearch.model.request.impl.EventHistoryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.EventHistoryQueryRequest;
 import org.apache.ambari.logsearch.model.response.EventHistoryData;
 import org.apache.ambari.logsearch.model.response.EventHistoryDataListResponse;
 import org.springframework.context.annotation.Scope;
@@ -67,7 +67,7 @@ public class EventHistoryResource {
   @GET
   @Produces({"application/json"})
   @ApiOperation(GET_EVENT_HISTORY_DATA_OD)
-  public EventHistoryDataListResponse getEventHistory(@BeanParam EventHistoryRequest request) {
+  public EventHistoryDataListResponse getEventHistory(@BeanParam EventHistoryQueryRequest request) {
     return eventHistoryManager.getEventHistory(request);
   }
 

@@ -65,6 +65,12 @@ App.MainServiceItemView = Em.View.extend({
        },
        {
          cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2interactive')),
+         service: 'HIVE',
+         component: 'HIVE_SERVER_INTERACTIVE'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
          service: 'ZOOKEEPER',
          component: 'ZOOKEEPER_SERVER'

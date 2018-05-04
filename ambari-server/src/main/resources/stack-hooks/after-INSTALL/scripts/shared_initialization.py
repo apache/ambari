@@ -85,7 +85,16 @@ def setup_config():
               configuration_attributes=params.config['configurationAttributes']['core-site'],
               owner=params.hdfs_user,
               group=params.user_group,
-              only_if=format("ls {hadoop_conf_dir}"))
+              only_if=format("ls {hadoop_conf_dir}"),
+              xml_include_file=params.mount_table_xml_inclusion_file_full_path
+              )
+
+    if params.mount_table_content:
+      File(os.path.join(params.hadoop_conf_dir, params.xml_inclusion_file_name),
+           owner=params.hdfs_user,
+           group=params.user_group,
+           content=params.mount_table_content
+           )
 
   Directory(params.logsearch_logfeeder_conf,
             mode=0755,

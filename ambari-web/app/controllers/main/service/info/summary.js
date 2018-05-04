@@ -226,21 +226,14 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    */
   setHiveEndPointsValue: function() {
     var self = this;
-    var tags = [
-      {
-        siteName: 'hive-site'
-      },
-      {
-        siteName: 'hive-interactive-site'
-      }
-    ];
+    const sites = ['hive-site', 'hive-interactive-site'];
 
     var siteToComponentMap = {
       'hive-site': 'HIVE_SERVER',
       'hive-interactive-site': 'HIVE_SERVER_INTERACTIVE'
     };
 
-    App.router.get('configurationController').getConfigsByTags(tags).done(function (configs) {
+    App.router.get('configurationController').getCurrentConfigsBySites(sites).done(function (configs) {
 
       var hiveSiteIndex =  configs.map(function(item){
         return item.type;
@@ -262,7 +255,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
           hiveSiteDynamicDiscovery = _config.properties['hive.server2.support.dynamic.service.discovery'] || hiveSiteDynamicDiscovery;
           hiveSiteZkQuorom = _config.properties['hive.zookeeper.quorum'] || hiveSiteZkQuorom;
           hiveSiteZkNameSpace = _config.properties['hive.server2.zookeeper.namespace'] || hiveSiteZkNameSpace;
-          if (_config.properties['hive.server2.active.passive.ha.enable'] === 'true') {
+          if (App.HostComponent.find().filterProperty('componentName','HIVE_SERVER_INTERACTIVE').length > 1) {
             hiveSiteServiceDiscorveryMode = 'zooKeeperHA';
             hiveSiteZkNameSpace = _config.properties['hive.server2.active.passive.ha.registry.namespace'];
           }

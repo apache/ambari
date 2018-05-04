@@ -23,6 +23,7 @@ import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.State;
 
 @NotThreadSafe
 public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
@@ -33,9 +34,9 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
   }
 
   public void addDeletedHostComponent(String componentName, String serviceName, String hostName, Long hostId,
-                                      String clusterId, String version) {
+                                      String clusterId, String version, State lastComponentState) {
     removedHostComponents.add(new HostComponent(componentName, serviceName, hostId,
-        hostName, clusterId, version));
+        hostName, clusterId, version, lastComponentState));
     addDeletedKey(componentName + "/" + hostName);
   }
 
@@ -58,15 +59,17 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
     private String hostName;
     private String clusterId;
     private String version;
+    private State lastComponentState;
 
     public HostComponent(String componentName, String serviceName, Long hostId, String hostName,
-                         String clusterId, String version) {
+                         String clusterId, String version, State lastComponentState) {
       this.componentName = componentName;
       this.serviceName = serviceName;
       this.hostId = hostId;
       this.hostName = hostName;
       this.clusterId = clusterId;
       this.version = version;
+      this.lastComponentState = lastComponentState;
     }
 
     public String getComponentName() {
@@ -115,6 +118,14 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
 
     public void setHostId(Long hostId) {
       this.hostId = hostId;
+    }
+
+    public State getLastComponentState() {
+      return lastComponentState;
+    }
+
+    public void setLastComponentState(State lastComponentState) {
+      this.lastComponentState = lastComponentState;
     }
   }
 }

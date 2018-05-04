@@ -72,7 +72,7 @@ public class UpgradePack {
 
   @XmlElementWrapper(name="order")
   @XmlElement(name="group")
-  private List<Grouping> groups;
+  private List<Grouping> groups = new ArrayList<>();
 
   @XmlElement(name="prerequisite-checks")
   private PrerequisiteChecks prerequisiteChecks;

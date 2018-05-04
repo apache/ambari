@@ -50,7 +50,7 @@ import io.swagger.annotations.ApiResponses;
  * Service responsible for hosts resource requests.
  */
 @Path("/hosts")
-@Api(value = "/hosts", description = "Endpoint for host-specific operations")
+@Api(value = "Hosts", description = "Endpoint for host-specific operations")
 public class HostService extends BaseService {
 
   private static final String UNKNOWN_HOSTS = "Attempt to add hosts that have not been registered";
@@ -90,7 +90,7 @@ public class HostService extends BaseService {
   @GET
   @Path("{hostName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Returns information about a single host", response = HostResponse.Wrapper.class)
+  @ApiOperation(value = "Returns information about a single host", response = HostResponse.HostResponseWrapper.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
   })
@@ -118,7 +118,8 @@ public class HostService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Returns a collection of all hosts", response = HostResponse.Wrapper.class, responseContainer = "List")
+  @ApiOperation(value = "Returns a collection of all hosts", response = HostResponse.HostResponseWrapper.class,
+          responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "Hosts/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, defaultValue = "Hosts/host_name.asc", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),

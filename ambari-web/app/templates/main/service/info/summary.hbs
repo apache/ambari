@@ -90,18 +90,20 @@
               {{#if view.quickLinksArray}}
                 <!--there are multiple masters eg, HBase multiple masters or HDFS HA enabled-->
                 {{#each group in view.quickLinksArray}}
-                  {{#if group.title}}
-                    <h5 class="ellipsis-overflow-nowrap"
-                      {{bindAttr data-title="group.title" rel="view.tooltipAttribute"}}>
-                      {{group.title}}
-                    </h5>
-                  {{/if}}
-                  {{#each quickLinks in group.links}}
-                    <h6>{{quickLinks.publicHostNameLabel}}</h6>
-                    {{#each quickLinks}}
-                      <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                  <div {{QAAttr "{group.title}-quick-links"}}>
+                    {{#if group.title}}
+                      <h5 class="ellipsis-overflow-nowrap"
+                        {{bindAttr data-title="group.title" rel="view.tooltipAttribute"}}>
+                        {{group.title}}
+                      </h5>
+                    {{/if}}
+                    {{#each quickLinks in group.links}}
+                      <h6>{{quickLinks.publicHostNameLabel}}</h6>
+                      {{#each quickLinks}}
+                        <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                      {{/each}}
                     {{/each}}
-                  {{/each}}
+                  </div>
                 {{/each}}
               {{else}}
                 {{#if view.quickLinks}}
@@ -126,20 +128,21 @@
           {{/if}}
         </div>
       {{/view}}
-      <div class="panel-heading">
+      {{! TODO implement display of views related to the current service}}
+      <!--div class="panel-heading">
          <div class="row col-md-8 col-lg-12">
-           <h4 class="panel-title">{{t common.views}}</h4>
+           <h4 class="panel-title">{{!t common.views}}</h4>
          </div>
       </div>
       <div class="panel-body">
-       {{#if view.views.length}}
-         {{#each item in view.views}}
-           <a href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a>
-         {{/each}}
-       {{else}}
-         <span>{{t menu.item.views.noViews}}</span>
-       {{/if}}
-      </div>
+       {{!#if view.views.length}}
+         {{!#each item in view.views}}
+           <a href="#" {{!action "setView" item target="App.router.mainViewsController"}}>{{!item.label}}</a>
+         {{!/each}}
+       {{!else}}
+         <span>{{!t menu.item.views.noViews}}</span>
+       {{!/if}}
+      </div-->
     </div>
   </div>
 </div>

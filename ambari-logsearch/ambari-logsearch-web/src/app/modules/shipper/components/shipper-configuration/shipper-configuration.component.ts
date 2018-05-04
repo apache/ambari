@@ -17,6 +17,7 @@
  */
 import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
+import {Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/skipWhile';
 
@@ -81,19 +82,6 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
   ) { }
 
   ngOnInit() {
-    // check if we have cluster name parameter.
-    this.clusterName$.first().subscribe((clusterName: ShipperCluster) => {
-      if (!clusterName) { // if not let's redirect to the first cluster
-        this.clustersStoreService.getAll()
-          .skipWhile((clusterList: ShipperCluster[]) => {
-            return !clusterList || !clusterList.length;
-          })
-          .map((clusterList: ShipperCluster[]) => clusterList[0])
-          .switchMap((cluster: ShipperCluster) => this.getPathMapForClusterFirstService(cluster))
-          .first()
-          .subscribe((path: string[]) => this.router.navigate(path));
-      }
-    });
     this.subscriptions.push(
       this.clusterSelectionStoreService
         .getParameter(ShipperConfigurationComponent.clusterSelectionStoreKey)
@@ -140,20 +128,13 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
 
   getResponseHandler(cmd: string, type: string, msgVariables?: {[key: string]: any}) {
     return (response: Response) => {
-      Observable.combineLatest(
-        this.translate.get(`shipperConfiguration.action.${cmd}.title`),
-        this.translate.get(`shipperConfiguration.action.${cmd}.${type}.message`)
-      ).first().subscribe(([title, message]: [string, string]) => {
-        let msg: string = message;
-        if (msgVariables) {
-          Object.keys(msgVariables).forEach((key: string) => {
-            if (typeof msgVariables[key] === 'string') {
-              msg = msg.replace(new RegExp('\\$\\{' + key + '\\}', 'gi'), msgVariables[key]);
-            }
-          });
-        }
-        this.notificationService.addNotification({type, title, message: msg});
-      });
+      const result = response.json();
+      // @ToDo change the backend response status to some error code if the configuration is not valid and don't use the .errorMessage prop
+      const resultType = response ? (response.ok && !result.errorMessage ? NotificationType.SUCCESS : NotificationType.ERROR) : type;
+      const translateParams = {errorMessage: '', ...msgVariables, ...result};
+      const title = this.translate.instant(`shipperConfiguration.action.${cmd}.title`, translateParams);
+      const message = this.translate.instant(`shipperConfiguration.action.${cmd}.${resultType}.message`, translateParams);
+      this.notificationService.addNotification({type: resultType, title, message});
     };
   }
 
@@ -171,18 +152,23 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
     });
   }
 
-  private handleValidationResult = (result: {[key: string]: any}) => {
+  private setValidationResult = (result: {[key: string]: any}) => {
     this.validationResponse = result;
   }
 
   onValidationFormSubmit(rawValue: ShipperClusterServiceValidationModel): void {
     this.validationResponse = null;
-    const request$: Observable<any> = this.shipperConfigurationService.testConfiguration(rawValue);
+    const request$: Observable<Response> = this.shipperConfigurationService.testConfiguration(rawValue);
     request$.subscribe(
       this.getResponseHandler('validate', NotificationType.SUCCESS, rawValue),
       this.getResponseHandler('validate', NotificationType.ERROR, rawValue)
     );
-    request$.map((response: Response) => response.json()).subscribe(this.handleValidationResult);
+    request$
+      .filter((response: Response): boolean => response.ok)
+      .map((response: Response) => response.json())
+      // @ToDo change the backend response status to some error code if the configuration is not valid and don't use the .errorMessage prop
+      .filter(result => result.errorMessage === undefined)
+      .subscribe(this.setValidationResult);
   }
 
   canDeactivate() {

@@ -247,6 +247,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertTrue(command.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_GROUPS));
     Assert.assertEquals("{\"zookeeperUser\":[\"zookeeperGroup\"]}", command.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_GROUPS));
     Assert.assertEquals(true, command.getForceRefreshConfigTagsBeforeExecution());
+    Assert.assertNull(command.getRepositoryFile());
   }
 
   @Test
@@ -573,6 +574,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertFalse(MapUtils.isEmpty(command.getComponentVersionMap()));
     Assert.assertEquals(1, command.getComponentVersionMap().size());
     Assert.assertTrue(command.getComponentVersionMap().containsKey("ZOOKEEPER"));
+    Assert.assertNull(command.getRepositoryFile());
   }
 
   /**
@@ -619,6 +621,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     ExecutionCommand command = commands.get(0).getExecutionCommand();
 
     Assert.assertTrue(MapUtils.isEmpty(command.getComponentVersionMap()));
+    Assert.assertNull(command.getRepositoryFile());
   }
 
   @Test

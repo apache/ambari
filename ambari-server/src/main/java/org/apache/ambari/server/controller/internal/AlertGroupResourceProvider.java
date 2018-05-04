@@ -45,7 +45,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -127,7 +127,7 @@ public class AlertGroupResourceProvider extends
   private static AlertDefinitionDAO s_definitionDao;
 
   @Inject
-  private static StateUpdateEventPublisher stateUpdateEventPublisher;
+  private static STOMPUpdatePublisher STOMPUpdatePublisher;
 
   /**
    * Constructor.
@@ -415,7 +415,7 @@ public class AlertGroupResourceProvider extends
       AlertGroupsUpdateEvent alertGroupsUpdateEvent = new AlertGroupsUpdateEvent(Collections.singletonList(
           new AlertGroupUpdate(entity)),
           UpdateEventType.UPDATE);
-      stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
+      STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
     }
   }
 

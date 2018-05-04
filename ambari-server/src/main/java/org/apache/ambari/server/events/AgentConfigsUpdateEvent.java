@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Host can be identified by AgentConfigsUpdateEvent#hostName.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Hashable {
+public class AgentConfigsUpdateEvent extends STOMPHostEvent implements Hashable {
 
   /**
    * Actual version hash.

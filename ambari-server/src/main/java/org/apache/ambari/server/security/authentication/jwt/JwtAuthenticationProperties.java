@@ -33,6 +33,7 @@ public class JwtAuthenticationProperties {
   private List<String> audiences = null;
   private String cookieName = "hadoop-jwt";
   private String originalUrlQueryParam = null;
+  private boolean enabledForAmbari;
 
   public String getAuthenticationProviderUrl() {
     return authenticationProviderUrl;
@@ -83,5 +84,13 @@ public class JwtAuthenticationProperties {
 
   public void setOriginalUrlQueryParam(String originalUrlQueryParam) {
     this.originalUrlQueryParam = originalUrlQueryParam;
+  }
+
+  public boolean isEnabledForAmbari() {
+    return enabledForAmbari;
+  }
+
+  public void setEnabledForAmbari(boolean enabledForAmbari) {
+    this.enabledForAmbari = enabledForAmbari;
   }
 }

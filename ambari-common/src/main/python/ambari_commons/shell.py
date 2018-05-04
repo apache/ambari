@@ -739,8 +739,9 @@ def repository_manager_executor(cmd, repo_properties, context=RepoCallContext(),
 
     should_stop_retries = __handle_retries(cmd, repo_properties, context, call_result, is_first_time, is_last_time)
     if (is_last_time or should_stop_retries) and call_result.code != 0:
-      message = "Failed to execute command '{0}', exited with code '{1}' with message: {2}".format(
-        cmd, call_result.code, call_result.error)
+      message = "Failed to execute command '{0}', exited with code '{1}', message: '{2}'".format(
+        cmd if not isinstance(cmd, (list, tuple)) else " ".join(cmd),
+        call_result.code, call_result.error)
 
       if context.ignore_errors:
         _logger.warning(message)

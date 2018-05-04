@@ -24,11 +24,11 @@ import {InMemoryBackendService} from 'angular-in-memory-web-api';
 import {TypeaheadModule, TooltipModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {StoreModule} from '@ngrx/store';
-import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import {StoreDevtoolsModule} from '@ngrx/store-devtools';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
 import {NgStringPipesModule} from 'angular-pipes';
-import { SimpleNotificationsModule } from 'angular2-notifications';
+import {SimpleNotificationsModule} from 'angular2-notifications';
 
 import {environment} from '@envs/environment';
 
@@ -38,7 +38,7 @@ import {ShipperModule} from '@modules/shipper/shipper.module';
 
 import {ServiceInjector} from '@app/classes/service-injector';
 
-import {mockApiDataService} from '@app/services/mock-api-data.service';
+import {MockApiDataService} from '@app/services/mock-api-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -123,7 +123,7 @@ export function getXHRBackend(
   } else {
     return new InMemoryBackendService(
       injector,
-      new mockApiDataService(),
+      new MockApiDataService(),
       {
         passThruUnknownUrl: true,
         rootPath: ''

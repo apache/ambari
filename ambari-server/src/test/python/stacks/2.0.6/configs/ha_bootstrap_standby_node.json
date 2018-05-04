@@ -13,7 +13,7 @@
         "user_list": "[\"ambari-qa\",\"hdfs\"]"
     },
     "ambariLevelParams": {
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "agent_stack_retry_count": "5", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "agent_stack_retry_on_unavailability": "false", 
@@ -23,12 +23,12 @@
         "ambari_db_rca_password": "mapred", 
         "host_sys_prepped": "false", 
         "db_name": "ambari", 
-        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources//ojdbc6.jar", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "ambari_db_rca_username": "mapred", 
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
     },
     "repositoryFile": {
         "resolved": true, 
@@ -498,6 +498,8 @@
             "min_user_id": "1000"
         },
         "cluster-env": {
+            "dfs_ha_initial_namenode_active": "c6401.ambari.apache.org",
+            "dfs_ha_initial_namenode_standby": "c6402.ambari.apache.org",
             "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
@@ -518,9 +520,7 @@
             "dtnode_heapsize": "1024m", 
             "proxyuser_group": "users",
             "hadoop_heapsize": "1024", 
-            "hadoop_pid_dir_prefix": "/var/run/hadoop",
-            "dfs_ha_initial_namenode_active" : "c6401.ambari.apache.org",
-            "dfs_ha_initial_namenode_standby" : "c6402.ambari.apache.org"
+            "hadoop_pid_dir_prefix": "/var/run/hadoop"
         },
         "hive-env": {
             "hcat_pid_dir": "/var/run/webhcat", 

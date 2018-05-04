@@ -23,6 +23,7 @@ import {LogsTableComponent} from '@app/classes/components/logs-table/logs-table-
 import {ServiceLog} from '@app/classes/models/service-log';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
 
 export enum ListLayout {
   Table = 'TABLE',
@@ -39,7 +40,8 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
   constructor(
     private logsContainer: LogsContainerService,
     private utils: UtilsService,
-    private cdRef:ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private notificationService: NotificationService
   ) {
     super();
   }
@@ -122,13 +124,25 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
       node.select();
       if (document.queryCommandEnabled('copy')) {
         document.execCommand('copy');
+        this.notificationService.addNotification({
+          type: 'success',
+          title: 'logs.copy.title',
+          message: 'logs.copy.success'
+        });
       } else {
-        // TODO open failed alert
+        this.notificationService.addNotification({
+          type: 'success',
+          title: 'logs.copy.title',
+          message: 'logs.copy.failed'
+        });
       }
-      // TODO success alert
       document.body.removeChild(node);
     } else {
-      // TODO failed alert
+      this.notificationService.addNotification({
+        type: 'success',
+        title: 'logs.copy.title',
+        message: 'logs.copy.notSupported'
+      });
     }
   };
 

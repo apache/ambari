@@ -79,6 +79,8 @@
   "filter.timeRange.custom": "Custom",
   "filter.timeRange.from": "from",
   "filter.timeRange.to": "to",
+  "filter.toggleTo.exclude": "Toggle to exclude",
+  "filter.toggleTo.include": "Toggle to include",
 
   "levels.fatal": "Fatal",
   "levels.error": "Error",
@@ -168,6 +170,10 @@
   "logs.addToQuery": "Add to Query",
   "logs.excludeFromQuery": "Exclude from Query",
   "logs.copy": "Copy",
+  "logs.copy.title": "Copy",
+  "logs.copy.success": "The log has been copied to the clipboard.",
+  "logs.copy.failed": "Error at copying the log into the clipboard.",
+  "logs.copy.notSupported": "This function is not supported in this browser.",
   "logs.open": "Open Log",
   "logs.context": "Context",
   "logs.loadMore": "Load more",
@@ -206,6 +212,9 @@
   "logIndexFilter.addHosts": "Add Hosts",
   "logIndexFilter.hostname": "Hostname",
   "logIndexFilter.expiryDate": "Expiry Date",
+  "logIndexFilter.update.title": "Log Index Filter Update",
+  "logIndexFilter.update.success": "Log Index Filter for cluster <span class='cluster-name'>{{cluster}}</span> has been successfully updated.",
+  "logIndexFilter.update.error": "Error at updating Log Index Filter for cluster <span class='cluster-name'>{{cluster}}</span>. {{message}}",
 
   "login.title": "Login",
 
@@ -226,6 +235,7 @@
   "shipperConfiguration.form.testBtn.label": "Test",
   "shipperConfiguration.form.errors.configuration.invalidJSON": "Invalid JSON!",
   "shipperConfiguration.form.errors.serviceName.exists": "This service name already exists.",
+  "shipperConfiguration.form.errors.componentNameField.serviceNameDoesNotExistInConfiguration": "This component is not in the configuration.",
   "shipperConfiguration.form.leavingDirty.title": "You have unsaved changes",
   "shipperConfiguration.form.leavingDirty.message": "Are you sure that you cancel the changes?",
 
@@ -233,15 +243,20 @@
   "shipperConfiguration.validator.componentNameLabel": "Component Name",
   "shipperConfiguration.validator.sampleDataLabel": "Sample Data",
   "shipperConfiguration.validator.filters": "Filters",
+  "shipperConfiguration.validator.result": "Validation result",
+
+  "shipperConfiguration.navigation.title": "Shipper Configuration",
+  "shipperConfiguration.navigation.invalidCluster": "The selected cluster name is invalid: <strong>{{cluster}}</strong>",
+  "shipperConfiguration.navigation.invalidService": "The selected service (<strong>{{service}}</strong>) is not on the selected cluster (<strong>{{cluster}}</strong>).",
 
   "shipperConfiguration.action.add.title": "New Configuration",
   "shipperConfiguration.action.add.success.message": "New configuration has been added successfully.",
-  "shipperConfiguration.action.add.error.message": "Error at adding new configuration:<br>Cluster: ${cluster}<br>Service: ${service}",
+  "shipperConfiguration.action.add.error.message": "Error at adding new configuration.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",
   "shipperConfiguration.action.update.title": "Update Configuration",
-  "shipperConfiguration.action.update.success.message": "The configuration has been updated successfully.",
-  "shipperConfiguration.action.update.error.message": "Error at updating the configuration:<br>Cluster: ${cluster}<br>Service: ${service}",
+  "shipperConfiguration.action.update.success.message": "The configuration has been updated successfully.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",
+  "shipperConfiguration.action.update.error.message": "Error at updating the configuration.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",
   "shipperConfiguration.action.validate.title": "Validate Configuration",
   "shipperConfiguration.action.validate.success.message": "The configuration is valid.",
-  "shipperConfiguration.action.validate.error.message": "The configuration is not valid."
+  "shipperConfiguration.action.validate.error.message": "The configuration is not valid.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div><div class='error-message'>{{errorMessage}}</div>"
 
 }

@@ -376,6 +376,9 @@ def run_threads(initializer_module):
   alert_status_reporter = AlertStatusReporter(initializer_module)
   alert_status_reporter.start()
 
+  # clean caches for non-existing clusters (ambari-server reset case)
+  heartbeat_thread.post_registration_actions += [component_status_executor.clean_not_existing_clusters_info, alert_status_reporter.clean_not_existing_clusters_info, host_status_reporter.clean_cache]
+
   initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():

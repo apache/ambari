@@ -16,21 +16,19 @@
  * limitations under the License.
  */
 
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {Response} from '@angular/http';
 import 'rxjs/add/operator/finally';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
-import {Subscription} from "rxjs/Subscription";
+import {Observable} from 'rxjs/Observable';
 
 @Component({
   selector: 'login-form',
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.less']
 })
-export class LoginFormComponent implements OnInit, OnDestroy {
-
-  private subscriptions: Subscription[] = [];
+export class LoginFormComponent {
 
   username: string;
 
@@ -38,19 +36,9 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   isLoginAlertDisplayed: boolean;
 
-  isLoginInProgress: boolean;
+  isLoginInProgress$: Observable<boolean> = this.appState.getParameter('isLoginInProgress');
 
   constructor(private authService: AuthService, private appState: AppStateService) {}
-
-  ngOnInit() {
-    this.subscriptions.push(
-      this.appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value)
-    );
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
-  }
 
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.

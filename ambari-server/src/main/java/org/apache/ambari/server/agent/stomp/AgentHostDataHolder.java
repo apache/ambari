@@ -26,9 +26,9 @@ import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.ambari.server.events.AmbariHostUpdateEvent;
-import org.apache.ambari.server.events.AmbariUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.STOMPEvent;
+import org.apache.ambari.server.events.STOMPHostEvent;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,11 +36,11 @@ import org.slf4j.LoggerFactory;
  * Is used to saving and updating last version of event in host scope
  * @param <T> event with hash to control version
  */
-public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hashable> extends AgentDataHolder<T> {
+public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> extends AgentDataHolder<T> {
   public static final Logger LOG = LoggerFactory.getLogger(AgentHostDataHolder.class);
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   private final Map<Long, T> data = new ConcurrentHashMap<>();
 
@@ -74,10 +74,10 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
       T hostData = getData(update.getHostId());
       regenerateDataIdentifiers(hostData);
       setIdentifiersToEventUpdate(update, hostData);
-      if (update.getType().equals(AmbariUpdateEvent.Type.AGENT_CONFIGS)) {
+      if (update.getType().equals(STOMPEvent.Type.AGENT_CONFIGS)) {
         LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
       }
-      stateUpdateEventPublisher.publish(update);
+      STOMPUpdatePublisher.publish(update);
     } else {
       // in case update does not have changes empty identifiers should be populated anyway
       T hostData = getData(update.getHostId());
@@ -97,7 +97,7 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
   public final void resetData(Long hostId) throws AmbariException {
     T newData = getCurrentData(hostId);
     data.replace(hostId, newData);
-    stateUpdateEventPublisher.publish(newData);
+    STOMPUpdatePublisher.publish(newData);
   }
 
   /**

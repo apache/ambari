@@ -21,9 +21,11 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.host.aggregator.TimelineMetricsHolder;
 import org.apache.hadoop.metrics2.host.aggregator.TimelineMetricsHolderTest;
+import org.easymock.cglib.core.CollectionUtils;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -62,7 +64,7 @@ public class RawMetricsPublisherTest {
                 new RawMetricsPublisher(TimelineMetricsHolder.getInstance(), configuration, 60);
 
         String rawJson = rawMetricsPublisher.processMetrics(timelineMetricsHolder.extractMetricsForRawPublishing());
-        String expectedResult = "{\"metrics\":[{\"metadata\":{},\"metricname\":\"metricName1\",\"appid\":\"app1\",\"starttime\":0,\"metrics\":{\"1\":1.0,\"2\":2.0,\"3\":3.0}},{\"metadata\":{},\"metricname\":\"metricName2\",\"appid\":\"app2\",\"starttime\":0,\"metrics\":{\"1\":4.0,\"2\":5.0,\"3\":6.0}},{\"metadata\":{},\"metricname\":\"metricName3\",\"appid\":\"app3\",\"starttime\":0,\"metrics\":{\"1\":7.0,\"2\":8.0,\"3\":9.0}}]}";
+        String expectedResult = "{\"metrics\":[{\"timestamp\":0,\"metadata\":{},\"metricname\":\"metricName1\",\"appid\":\"app1\",\"starttime\":0,\"metrics\":{\"1\":1.0,\"2\":2.0,\"3\":3.0}},{\"timestamp\":0,\"metadata\":{},\"metricname\":\"metricName2\",\"appid\":\"app2\",\"starttime\":0,\"metrics\":{\"1\":4.0,\"2\":5.0,\"3\":6.0}},{\"timestamp\":0,\"metadata\":{},\"metricname\":\"metricName3\",\"appid\":\"app3\",\"starttime\":0,\"metrics\":{\"1\":7.0,\"2\":8.0,\"3\":9.0}}]}";
         Assert.assertNotNull(rawJson);
         Assert.assertEquals(expectedResult, rawJson);
     }
@@ -113,7 +115,7 @@ public class RawMetricsPublisherTest {
     @Test
     public void testGetMetricsFromCache() throws InterruptedException {
 
-        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4);
+        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4, Collections.EMPTY_LIST);
         timelineMetricsHolder.extractMetricsForAggregationPublishing();
         timelineMetricsHolder.extractMetricsForRawPublishing();
 

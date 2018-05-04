@@ -16,8 +16,17 @@
  */
 
 @import '../../modules/shared/variables';
-
-.logs {
-  max-height: @dropdown-max-height; // TODO implement actual styles
-  overflow-y: auto;
+:host {
+  /deep/ .modal-body {
+    display: flex;
+    flex-direction: column;
+  }
+  .logs {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 1em 0;
+  }
+  .btn.btn-load-more {
+    width: 100%;
+  }
 }

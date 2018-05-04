@@ -33,6 +33,7 @@ import operator
 from ambari_commons import subprocess32
 from optparse import OptionParser
 import platform
+import socket
 import re
 import shutil
 import signal
@@ -1952,18 +1953,6 @@ class TestAmbariServer(TestCase):
     self.assertEqual("SuseFirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
     shell_call_mock.return_value = (0, "unused", "err")
-    self.assertFalse(firewall_obj.check_firewall())
-    self.assertEqual("err", firewall_obj.stderrdata)
-
-    get_os_type_mock.return_value = ""
-    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
-    get_os_major_version_mock.return_value = 6
-
-    firewall_obj = Firewall().getFirewallObject()
-    shell_call_mock.return_value = (0, "Table: filter", "err")
-    self.assertEqual("FirewallChecks", firewall_obj.__class__.__name__)
-    self.assertTrue(firewall_obj.check_firewall())
-    shell_call_mock.return_value = (3, "", "err")
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
@@ -7814,7 +7803,7 @@ class TestAmbariServer(TestCase):
 
     sync_ldap(options)
 
-    url = '{0}://{1}:{2!s}{3}'.format('https', '127.0.0.1', '8443', '/api/v1/ldap_sync_events')
+    url = '{0}://{1}:{2!s}{3}'.format('https', socket.getfqdn(), '8443', '/api/v1/ldap_sync_events')
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEquals(url, str(request.get_full_url()))
