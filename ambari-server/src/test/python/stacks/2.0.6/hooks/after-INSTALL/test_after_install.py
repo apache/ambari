@@ -57,7 +57,8 @@ class TestHookAfterInstall(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              only_if="ls /etc/hadoop/conf")
+                              only_if="ls /etc/hadoop/conf",
+                              xml_include_file=None)
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
                               mode = 0755,
@@ -104,7 +105,8 @@ class TestHookAfterInstall(RMFTestCase):
       conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
+      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf",
+      xml_include_file=None)
 
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
@@ -172,7 +174,8 @@ class TestHookAfterInstall(RMFTestCase):
       conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
+      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf",
+      xml_include_file=None)
 
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
@@ -275,7 +278,8 @@ class TestHookAfterInstall(RMFTestCase):
       conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
+      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf",
+      xml_include_file=None)
 
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
