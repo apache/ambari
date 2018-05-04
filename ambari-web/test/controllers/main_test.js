@@ -31,9 +31,16 @@ describe('App.MainController', function () {
       sinon.stub(App.router, 'get').returns({
         loadClusterData: function() {
           initialize = true;
+        },
+        startSubscriptions: Em.K
+      });
+      sinon.stub(App.StompClient, 'connect').returns({
+        done: function() {
+          return {
+            fail: Em.K
+          }
         }
       });
-      sinon.stub(App.StompClient, 'connect');
     });
     afterEach(function () {
       App.router.get.restore();
@@ -105,7 +112,6 @@ describe('App.MainController', function () {
   describe('#startPolling', function() {
     var mock,
         updateController = Em.Object.create({
-          startSubscriptions: sinon.spy(),
           isWorking: false
         }),
         backgroundOperationsController = Em.Object.create({
@@ -128,10 +134,6 @@ describe('App.MainController', function () {
 
     it('backgroundOperationsController should be working', function() {
       expect(backgroundOperationsController.get('isWorking')).to.be.true;
-    });
-
-    it('startSubscriptions should be called', function() {
-      expect(updateController.startSubscriptions.called).to.be.true;
     });
   });
 

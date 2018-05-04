@@ -105,8 +105,7 @@ module.exports = Em.Object.extend({
       this.onConnectionSuccess();
       dfd.resolve();
     }, () => {
-      this.onConnectionError(useSockJS);
-      dfd.reject();
+      dfd.reject(this.onConnectionError(useSockJS));
     });
     client.debug = Em.K;
     this.set('client', client);
@@ -151,7 +150,7 @@ module.exports = Em.Object.extend({
       this.reconnect(useSockJS);
     } else if (!useSockJS) {//if SockJs connection failed too the stop trying to connect
       //if webSocket failed on initial connect then switch to SockJS
-      this.connect(true);
+      return this.connect(true);
     }
   },
 
