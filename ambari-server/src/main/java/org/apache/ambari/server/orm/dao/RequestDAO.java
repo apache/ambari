@@ -97,9 +97,6 @@ public class RequestDAO implements Cleanable {
   private HostRoleCommandDAO hostRoleCommandDAO;
 
   @Inject
-  private StageDAO stageDAO;
-
-  @Inject
   private TopologyLogicalTaskDAO topologyLogicalTaskDAO;
 
   @Inject
@@ -315,11 +312,11 @@ public class RequestDAO implements Cleanable {
   protected <T> int cleanTableByIds(Set<Long> ids, String paramName, String entityName, Long beforeDateMillis,
                                   String entityQuery, Class<T> type) {
     LOG.info(String.format("Deleting %s entities before date %s", entityName, new Date(beforeDateMillis)));
-    EntityManager entityManager = entityManagerProvider.get();
     int affectedRows = 0;
-    // Batch delete
-    TypedQuery<T> query = entityManager.createNamedQuery(entityQuery, type);
     if (ids != null && !ids.isEmpty()) {
+      EntityManager entityManager = entityManagerProvider.get();
+      // Batch delete
+      TypedQuery<T> query = entityManager.createNamedQuery(entityQuery, type);
       for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
         int endRow = (i + BATCH_SIZE) > ids.size() ? ids.size() : (i + BATCH_SIZE);
         List<Long> idsSubList = new ArrayList<>(ids).subList(i, endRow);
@@ -350,11 +347,11 @@ public class RequestDAO implements Cleanable {
   protected <T> int cleanTableByStageEntityPK(List<StageEntityPK> ids, LinkedList<String> paramNames, String entityName, Long beforeDateMillis,
                                   String entityQuery, Class<T> type) {
     LOG.info(String.format("Deleting %s entities before date %s", entityName, new Date(beforeDateMillis)));
-    EntityManager entityManager = entityManagerProvider.get();
     int affectedRows = 0;
-    // Batch delete
-    TypedQuery<T> query = entityManager.createNamedQuery(entityQuery, type);
     if (ids != null && !ids.isEmpty()) {
+      EntityManager entityManager = entityManagerProvider.get();
+      // Batch delete
+      TypedQuery<T> query = entityManager.createNamedQuery(entityQuery, type);
       for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
         int endRow = (i + BATCH_SIZE) > ids.size() ? ids.size() : (i + BATCH_SIZE);
         List<StageEntityPK> idsSubList = new ArrayList<>(ids).subList(i, endRow);
@@ -374,10 +371,8 @@ public class RequestDAO implements Cleanable {
   @Transactional
   @Override
   public long cleanup(TimeBasedCleanupPolicy policy) {
-    long affectedRows = 0;
-    Long clusterId = null;
     try {
-      clusterId = m_clusters.get().getCluster(policy.getClusterName()).getClusterId();
+      final Long clusterId = m_clusters.get().getCluster(policy.getClusterName()).getClusterId();
       // find request and stage ids that were created before date populated by user.
       List<StageEntityPK> requestStageIds = findRequestAndStageIdsInClusterBeforeDate(clusterId, policy.getToDateInMillis());
 
@@ -392,7 +387,6 @@ public class RequestDAO implements Cleanable {
         }
       }
 
-
       Set<Long> requestIds = new HashSet<>();
       for (StageEntityPK ids : requestStageIds) {
         requestIds.add(ids.getRequestId());
@@ -400,28 +394,19 @@ public class RequestDAO implements Cleanable {
 
       // find task ids using request stage ids
       Set<Long> taskIds = hostRoleCommandDAO.findTaskIdsByRequestStageIds(requestStageIds);
-      LinkedList<String> params = new LinkedList<>();
-      params.add("stageId");
-      params.add("requestId");
 
       // find host task ids, to find related host requests and also to remove needed host tasks
-      Set<Long> hostTaskIds = new HashSet<>();
-      if (taskIds != null && !taskIds.isEmpty()) {
-        hostTaskIds = topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(taskIds);
-      }
+      final Set<Long> hostTaskIds = findHostTaskIds(taskIds);
 
       // find host request ids by host task ids to remove later needed host requests
-      Set<Long> hostRequestIds = new HashSet<>();
-      if (!hostTaskIds.isEmpty()) {
-        hostRequestIds = topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(hostTaskIds);
-      }
+      final Set<Long> hostRequestIds = findHostRequestIds(hostTaskIds);
 
-      Set<Long> topologyRequestIds = new HashSet<>();
-      if (!hostRequestIds.isEmpty()) {
-        topologyRequestIds = topologyLogicalRequestDAO.findRequestIdsByIds(hostRequestIds);
-      }
+      final Set<Long> topologyRequestIds = findTopologyRequestIds(hostRequestIds);
 
-
+      final LinkedList<String> params = new LinkedList<>();
+      params.add("stageId");
+      params.add("requestId");
+      long affectedRows = 0;
       //removing all entities one by one according to their relations using stage, task and request ids
       affectedRows += cleanTableByIds(taskIds, "taskIds", "ExecutionCommand", policy.getToDateInMillis(),
               "ExecutionCommandEntity.removeByTaskIds", ExecutionCommandEntity.class);
@@ -447,11 +432,55 @@ public class RequestDAO implements Cleanable {
       affectedRows += cleanTableByIds(requestIds, "requestIds", "Request", policy.getToDateInMillis(),
               "RequestEntity.removeByRequestIds", RequestEntity.class);
 
+      return affectedRows;
     } catch (AmbariException e) {
       LOG.error("Error while looking up cluster with name: {}", policy.getClusterName(), e);
       throw new IllegalStateException(e);
     }
-
-    return affectedRows;
   }
+
+  private Set<Long> findHostTaskIds(Set<Long> taskIds) {
+    final Set<Long> hostTaskIds = new HashSet<>();
+    final Set<Long> partialTaskIds = new HashSet<>();
+    taskIds.forEach(taskId -> {
+      if (partialTaskIds.size() <= BATCH_SIZE) {
+        partialTaskIds.add(taskId);
+      } else {
+        hostTaskIds.addAll(topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(partialTaskIds));
+        partialTaskIds.clear();
+      }
+    });
+    return hostTaskIds;
+  }
+
+  private Set<Long> findHostRequestIds(Set<Long> hostTaskIds) {
+    final Set<Long> hostRequestIds = new HashSet<>();
+    final Set<Long> partialHostTaskIds = new HashSet<>();
+
+    hostTaskIds.forEach(taskId -> {
+      if (partialHostTaskIds.size() <= BATCH_SIZE) {
+        partialHostTaskIds.add(taskId);
+      } else {
+        hostRequestIds.addAll(topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(partialHostTaskIds));
+        partialHostTaskIds.clear();
+      }
+    });
+    return hostRequestIds;
+  }
+
+  private Set<Long> findTopologyRequestIds(final Set<Long> hostRequestIds) {
+    final Set<Long> topologyRequestIds = new HashSet<>();
+    final Set<Long> partialHostRequestIds = new HashSet<>();
+
+    hostRequestIds.forEach(requestId -> {
+      if (partialHostRequestIds.size() <= BATCH_SIZE) {
+        partialHostRequestIds.add(requestId);
+      } else {
+        topologyRequestIds.addAll(topologyLogicalRequestDAO.findRequestIdsByIds(partialHostRequestIds));
+        partialHostRequestIds.clear();
+      }
+    });
+    return topologyRequestIds;
+  }
+
 }
