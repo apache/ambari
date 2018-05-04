@@ -23,11 +23,8 @@ __all__ = ["copy_to_hdfs", "get_sysprep_skip_copy_tarballs_hdfs"]
 import os
 import tempfile
 import re
-import tarfile
-from contextlib import closing
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import component_version
 from resource_management.libraries.functions import lzo_utils
 from resource_management.libraries.functions.default import default
@@ -126,14 +123,11 @@ def _prepare_tez_tarball():
 
   tez_tarball_with_native_lib = os.path.join(tez_native_tarball_staging_dir, "tez-native.tar.gz")
   Logger.info("Creating a new Tez tarball at {0}".format(tez_tarball_with_native_lib))
-
-  # tar up Tez, making sure to specify nothing for the arcname so that it does not include an absolute path
-  with closing(tarfile.open(tez_tarball_with_native_lib, "w:gz")) as new_tez_tarball:
-    new_tez_tarball.add(tez_temp_dir, arcname=os.path.sep)
+  tar_archive.archive_dir_via_temp_file(tez_tarball_with_native_lib, tez_temp_dir)
 
   # ensure that the tarball can be read and uploaded
   sudo.chmod(tez_tarball_with_native_lib, 0744)
-  
+
   # cleanup
   sudo.rmtree(mapreduce_temp_dir)
   sudo.rmtree(tez_temp_dir)
@@ -193,10 +187,7 @@ def _prepare_mapreduce_tarball():
 
   mapreduce_tarball_with_native_lib = os.path.join(mapreduce_native_tarball_staging_dir, "mapreduce-native.tar.gz")
   Logger.info("Creating a new mapreduce tarball at {0}".format(mapreduce_tarball_with_native_lib))
-
-  # tar up mapreduce, making sure to specify nothing for the arcname so that it does not include an absolute path
-  with closing(tarfile.open(mapreduce_tarball_with_native_lib, "w:gz")) as new_tarball:
-    new_tarball.add(mapreduce_temp_dir, arcname = os.path.sep)
+  tar_archive.archive_dir_via_temp_file(mapreduce_tarball_with_native_lib, mapreduce_temp_dir)
 
   # ensure that the tarball can be read and uploaded
   sudo.chmod(mapreduce_tarball_with_native_lib, 0744)
@@ -382,7 +373,6 @@ def _get_single_version_from_stack_select():
   :return: Returns a version string if successful, and None otherwise.
   """
   # Ubuntu returns: "stdin: is not a tty", as subprocess32 output, so must use a temporary file to store the output.
-  tmpfile = tempfile.NamedTemporaryFile()
   tmp_dir = Script.get_tmp_dir()
   tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")
   stack_version = None
