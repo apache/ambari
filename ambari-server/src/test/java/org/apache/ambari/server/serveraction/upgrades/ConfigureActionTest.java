@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.IfValueMatchType;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.InsertType;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
@@ -1693,6 +1694,185 @@ public class ConfigureActionTest {
 
     assertEquals(expectedPrepend, config.getProperties().get("key_to_prepend"));
     assertEquals(expectedAppend, config.getProperties().get("key_to_append"));
+  }
+
+  /**
+   * Tests using the {@code <insert/>} element in a configuration upgrade pack.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testInsertWithCondition() throws Exception {
+    Cluster c = clusters.getCluster("c1");
+    assertEquals(1, c.getConfigsByType("zoo.cfg").size());
+
+    final String lineSample = "This is before";
+    Map<String, String> properties = new HashMap<String, String>() {
+      {
+        put("item_not_inserted", lineSample);
+        put("item_inserted", lineSample);
+        put("item_partial_inserted", lineSample);
+        put("item_partial_not_inserted", lineSample);
+        put("item_value_not_inserted", lineSample);
+        put("item_partial_value_not_inserted", lineSample);
+        put("item_value_not_not_inserted", lineSample);
+        put("item_partial_value_not_not_inserted", lineSample);
+      }
+    };
+
+    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+
+    c.addDesiredConfig("user", Collections.singleton(config));
+    assertEquals(2, c.getConfigsByType("zoo.cfg").size());
+
+    createUpgrade(c, repoVersion2111);
+
+    Map<String, String> commandParams = new HashMap<>();
+    commandParams.put("clusterName", "c1");
+    commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
+
+
+    final String appendValue = " this will be after...";
+
+    // insert tasks
+    List<Insert> insertions = new ArrayList<>();
+
+    Insert in1 = new Insert();
+    Insert in2 = new Insert();
+    Insert in3 = new Insert();
+    Insert in4 = new Insert();
+    Insert in5 = new Insert();
+    Insert in6 = new Insert();
+    Insert in7 = new Insert();
+    Insert in8 = new Insert();
+
+    //expect: no changes
+    in1.insertType = InsertType.APPEND;
+    in1.key = "item_not_inserted";
+    in1.value = appendValue;
+    in1.newlineBefore = false;
+    in1.newlineAfter = false;
+    in1.ifType = "zoo.cfg";
+    in1.ifKey = "item_not_inserted";
+    in1.ifValue = "multiline";
+    in1.ifValueMatchType = IfValueMatchType.EXACT;
+
+    //expect: value appended to the property
+    in2.insertType = InsertType.APPEND;
+    in2.key = "item_inserted";
+    in2.value = appendValue;
+    in2.newlineBefore = false;
+    in2.newlineAfter = false;
+    in2.ifType = "zoo.cfg";
+    in2.ifKey = "item_inserted";
+    in2.ifValue = lineSample;
+    in2.ifValueMatchType = IfValueMatchType.EXACT;
+
+    //expect: value appended to the property
+    in3.insertType = InsertType.APPEND;
+    in3.key = "item_partial_inserted";
+    in3.value = appendValue;
+    in3.newlineBefore = false;
+    in3.newlineAfter = false;
+    in3.ifType = "zoo.cfg";
+    in3.ifKey = "item_partial_inserted";
+    in3.ifValue = "before";
+    in3.ifValueMatchType = IfValueMatchType.PARTIAL;
+
+    //expect: no changes
+    in4.insertType = InsertType.APPEND;
+    in4.key = "item_partial_not_inserted";
+    in4.value = appendValue;
+    in4.newlineBefore = false;
+    in4.newlineAfter = false;
+    in4.ifType = "zoo.cfg";
+    in4.ifKey = "item_partial_not_inserted";
+    in4.ifValue = "wrong word";
+    in4.ifValueMatchType = IfValueMatchType.PARTIAL;
+
+    //expect: value appended to the property
+    in5.insertType = InsertType.APPEND;
+    in5.key = "item_value_not_inserted";
+    in5.value = appendValue;
+    in5.newlineBefore = false;
+    in5.newlineAfter = false;
+    in5.ifType = "zoo.cfg";
+    in5.ifKey = "item_value_not_inserted";
+    in5.ifValue = "wrong word";
+    in5.ifValueMatchType = IfValueMatchType.EXACT;
+    in5.ifValueNotMatched = true;
+
+    //expect: value appended to the property
+    in6.insertType = InsertType.APPEND;
+    in6.key = "item_partial_value_not_inserted";
+    in6.value = appendValue;
+    in6.newlineBefore = false;
+    in6.newlineAfter = false;
+    in6.ifType = "zoo.cfg";
+    in6.ifKey = "item_partial_value_not_inserted";
+    in6.ifValue = "wrong word";
+    in6.ifValueMatchType = IfValueMatchType.PARTIAL;
+    in6.ifValueNotMatched = true;
+
+    //expect: no changes
+    in7.insertType = InsertType.APPEND;
+    in7.key = "item_value_not_not_inserted";
+    in7.value = appendValue;
+    in7.newlineBefore = false;
+    in7.newlineAfter = false;
+    in7.ifType = "zoo.cfg";
+    in7.ifKey = "item_value_not_not_inserted";
+    in7.ifValue = lineSample;
+    in7.ifValueMatchType = IfValueMatchType.EXACT;
+    in7.ifValueNotMatched = true;
+
+    //expect: no changes
+    in8.insertType = InsertType.APPEND;
+    in8.key = "item_partial_value_not_not_inserted";
+    in8.value = appendValue;
+    in8.newlineBefore = false;
+    in8.newlineAfter = false;
+    in8.ifType = "zoo.cfg";
+    in8.ifKey = "item_partial_value_not_not_inserted";
+    in8.ifValue = "before";
+    in8.ifValueMatchType = IfValueMatchType.PARTIAL;
+    in8.ifValueNotMatched = true;
+
+    insertions.add(in1);
+    insertions.add(in2);
+    insertions.add(in3);
+    insertions.add(in4);
+    insertions.add(in5);
+    insertions.add(in6);
+    insertions.add(in7);
+    insertions.add(in8);
+
+    commandParams.put(ConfigureTask.PARAMETER_INSERTIONS, new Gson().toJson(insertions));
+
+    ExecutionCommand executionCommand = getExecutionCommand(commandParams);
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+
+    config = c.getDesiredConfigByType("zoo.cfg");
+    assertNotNull(config);
+
+    // build the expected values
+    String expectedAppend = lineSample + appendValue;
+
+    assertEquals(expectedAppend, config.getProperties().get("item_inserted"));
+    assertEquals(expectedAppend, config.getProperties().get("item_partial_inserted"));
+    assertEquals(expectedAppend, config.getProperties().get("item_value_not_inserted"));
+    assertEquals(expectedAppend, config.getProperties().get("item_partial_value_not_inserted"));
+
+    assertTrue(lineSample.equalsIgnoreCase(config.getProperties().get("item_not_inserted")));
+    assertTrue(lineSample.equalsIgnoreCase(config.getProperties().get("item_partial_not_inserted")));
+    assertTrue(lineSample.equalsIgnoreCase(config.getProperties().get("item_value_not_not_inserted")));
+    assertTrue(lineSample.equalsIgnoreCase(config.getProperties().get("item_partial_value_not_not_inserted")));
   }
 
   /**
