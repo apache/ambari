@@ -443,13 +443,16 @@ public class RequestDAO implements Cleanable {
     final Set<Long> hostTaskIds = new HashSet<>();
     final Set<Long> partialTaskIds = new HashSet<>();
     taskIds.forEach(taskId -> {
-      if (partialTaskIds.size() <= BATCH_SIZE) {
-        partialTaskIds.add(taskId);
-      } else {
+      partialTaskIds.add(taskId);
+      if (partialTaskIds.size() == BATCH_SIZE) {
         hostTaskIds.addAll(topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(partialTaskIds));
         partialTaskIds.clear();
       }
     });
+
+    if (!partialTaskIds.isEmpty()) {
+      hostTaskIds.addAll(topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(partialTaskIds));
+    }
     return hostTaskIds;
   }
 
@@ -458,13 +461,16 @@ public class RequestDAO implements Cleanable {
     final Set<Long> partialHostTaskIds = new HashSet<>();
 
     hostTaskIds.forEach(taskId -> {
-      if (partialHostTaskIds.size() <= BATCH_SIZE) {
-        partialHostTaskIds.add(taskId);
-      } else {
+      partialHostTaskIds.add(taskId);
+      if (partialHostTaskIds.size() == BATCH_SIZE) {
         hostRequestIds.addAll(topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(partialHostTaskIds));
         partialHostTaskIds.clear();
       }
     });
+
+    if (!partialHostTaskIds.isEmpty()) {
+      hostRequestIds.addAll(topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(partialHostTaskIds));
+    }
     return hostRequestIds;
   }
 
@@ -473,13 +479,16 @@ public class RequestDAO implements Cleanable {
     final Set<Long> partialHostRequestIds = new HashSet<>();
 
     hostRequestIds.forEach(requestId -> {
-      if (partialHostRequestIds.size() <= BATCH_SIZE) {
-        partialHostRequestIds.add(requestId);
-      } else {
+      partialHostRequestIds.add(requestId);
+      if (partialHostRequestIds.size() == BATCH_SIZE) {
         topologyRequestIds.addAll(topologyLogicalRequestDAO.findRequestIdsByIds(partialHostRequestIds));
         partialHostRequestIds.clear();
       }
     });
+
+    if (!partialHostRequestIds.isEmpty()) {
+      topologyRequestIds.addAll(topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(partialHostRequestIds));
+    }
     return topologyRequestIds;
   }
 
