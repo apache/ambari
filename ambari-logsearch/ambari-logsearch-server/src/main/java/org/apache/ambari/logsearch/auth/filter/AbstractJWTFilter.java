@@ -99,7 +99,7 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
       return authentication;
     } catch (ExpiredJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
       LOG.info("URL = " + request.getRequestURL());
-      LOG.warn("Error during JWT authentication: ", e.getMessage());
+      LOG.warn("Error during JWT authentication: {}", e.getMessage());
       throw new BadCredentialsException(e.getMessage(), e);
     }
   }
