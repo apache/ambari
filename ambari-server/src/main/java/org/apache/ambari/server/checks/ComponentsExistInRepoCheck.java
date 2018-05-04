@@ -17,28 +17,24 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.serveraction.upgrades.DeleteUnsupportedServicesAndComponents;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.ServiceComponentSupport;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ServerActionTask;
+import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.commons.lang.StringUtils;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -48,105 +44,64 @@ import com.google.inject.Singleton;
  */
 @Singleton
 @UpgradeCheck(
-    group = UpgradeCheckGroup.TOPOLOGY,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+  group = UpgradeCheckGroup.INFORMATIONAL_WARNING,
+  required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING })
 public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
+  public static final String AUTO_REMOVE = "auto_remove";
+  public static final String MANUAL_REMOVE = "manual_remove";
+  @Inject
+  ServiceComponentSupport serviceComponentSupport;
+  @Inject
+  UpgradeHelper upgradeHelper;
 
-  /**
-   * Constructor.
-   */
   public ComponentsExistInRepoCheck() {
     super(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO);
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
-      throws AmbariException {
-    final String clusterName = request.getClusterName();
-    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+  public void perform(PrerequisiteCheck check, PrereqCheckRequest request) throws AmbariException {
+    Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+    String stackName = request.getTargetRepositoryVersion().getStackName();
+    String stackVersion = request.getTargetRepositoryVersion().getStackVersion();
+    Collection<String> allUnsupported = serviceComponentSupport.allUnsupported(cluster, stackName, stackVersion);
+    report(check, request, allUnsupported);
+  }
 
-    StackId sourceStack = request.getSourceStackId();
-    StackId targetStack = repositoryVersion.getStackId();
-
-    Set<ServiceDetail> failedServices = new TreeSet<>();
-    Set<ServiceComponentDetail> failedComponents = new TreeSet<>();
-
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
-    for (String serviceName : servicesInUpgrade) {
-      try {
-        ServiceInfo serviceInfo = ambariMetaInfo.get().getService(targetStack.getStackName(),
-            targetStack.getStackVersion(), serviceName);
-
-        if (serviceInfo.isDeleted() || !serviceInfo.isValid()) {
-          failedServices.add(new ServiceDetail(serviceName));
-          continue;
-        }
-
-        Service service = cluster.getService(serviceName);
-        Map<String, ServiceComponent> componentsInUpgrade = service.getServiceComponents();
-        for (String componentName : componentsInUpgrade.keySet()) {
-          try {
-            ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(
-                targetStack.getStackName(), targetStack.getStackVersion(), serviceName,
-                componentName);
-
-            // if this component isn't included in the upgrade, then skip it
-            if (!componentInfo.isVersionAdvertised()) {
-              continue;
-            }
-
-            if (componentInfo.isDeleted()) {
-              failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
-            }
-
-          } catch (StackAccessException stackAccessException) {
-            failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
-          }
-        }
-      } catch (StackAccessException stackAccessException) {
-        failedServices.add(new ServiceDetail(serviceName));
-      }
-    }
-
-    if (failedServices.isEmpty() && failedComponents.isEmpty()) {
+  private void report(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request, Collection<String> allUnsupported) throws AmbariException {
+    if (allUnsupported.isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
       return;
     }
-
-    Set<String> failedServiceNames = failedServices.stream().map(
-        failureDetail -> failureDetail.serviceName).collect(
-            Collectors.toCollection(LinkedHashSet::new));
-
-    Set<String> failedComponentNames = failedComponents.stream().map(
-        failureDetail -> failureDetail.componentName).collect(
-            Collectors.toCollection(LinkedHashSet::new));
-
-    LinkedHashSet<String> failures = new LinkedHashSet<>();
-    failures.addAll(failedServiceNames);
-    failures.addAll(failedComponentNames);
-
-    prerequisiteCheck.setFailedOn(failures);
-    prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-
-    prerequisiteCheck.getFailedDetail().addAll(failedServices);
-    prerequisiteCheck.getFailedDetail().addAll(failedComponents);
-
-    String message = "The following {0} exist in {1} but are not included in {2}. They must be removed before upgrading.";
-    String messageFragment = "";
-    if (!failedServices.isEmpty()) {
-      messageFragment = "services";
+    prerequisiteCheck.setFailedOn(new LinkedHashSet<>(allUnsupported));
+    if (hasDeleteUnsupportedServicesAction(upgradePack(request))) {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
+      prerequisiteCheck.setFailReason(getFailReason(AUTO_REMOVE, prerequisiteCheck, request));
+    } else {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(getFailReason(MANUAL_REMOVE, prerequisiteCheck, request));
     }
+  }
 
-    if( !failedComponents.isEmpty() ){
-      if(!StringUtils.isEmpty(messageFragment)){
-        messageFragment += " and ";
-      }
+  private UpgradePack upgradePack(PrereqCheckRequest request) throws AmbariException {
+    return upgradeHelper.suggestUpgradePack(
+      request.getClusterName(),
+      request.getSourceStackId(),
+      request.getTargetRepositoryVersion().getStackId(),
+      request.getDirection(),
+      request.getUpgradeType(),
+      null);
+  }
 
-      messageFragment += "components";
-    }
+  private boolean hasDeleteUnsupportedServicesAction(UpgradePack upgradePack) {
+    return upgradePack.getAllGroups().stream()
+      .filter(ClusterGrouping.class::isInstance)
+      .flatMap(group -> ((ClusterGrouping) group).executionStages.stream())
+      .map(executeStage -> executeStage.task)
+      .anyMatch(this::isDeleteUnsupportedTask);
+  }
 
-    message = MessageFormat.format(message, messageFragment, sourceStack, targetStack);
-    prerequisiteCheck.setFailReason(message);
+  private boolean isDeleteUnsupportedTask(Task task) {
+    return task instanceof ServerActionTask
+      && DeleteUnsupportedServicesAndComponents.class.getName().equals(((ServerActionTask)task).getImplementationClass());
   }
 }

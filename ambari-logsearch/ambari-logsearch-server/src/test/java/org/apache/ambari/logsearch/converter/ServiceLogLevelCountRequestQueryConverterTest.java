@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogLevelCountQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class ServiceLogLevelCountRequestQueryConverterTest extends AbstractReque
   @Test
   public void testConvert() {
     // GIVEN
-    ServiceLogLevelCountRequest request = new ServiceLogLevelCountRequest();
+    ServiceLogLevelCountRequest request = new ServiceLogLevelCountQueryRequest();
     fillBaseLogRequestWithTestData(request);
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
@@ -52,7 +53,7 @@ public class ServiceLogLevelCountRequestQueryConverterTest extends AbstractReque
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    ServiceLogLevelCountRequest request = new ServiceLogLevelCountRequest();
+    ServiceLogLevelCountRequest request = new ServiceLogLevelCountQueryRequest();
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN

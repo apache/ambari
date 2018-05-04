@@ -21,9 +21,9 @@
   <fieldType name="binary" class="solr.BinaryField"/>
   <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
   <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
-  <fieldType name="date" class="solr.TrieDateField" docValues="true"/>
-  <fieldType name="double" class="solr.TrieDoubleField" docValues="true"/>
-  <fieldType name="float" class="solr.TrieFloatField" docValues="true"/>
+  <fieldType name="date" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="double" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="float" class="solr.FloatPointField" docValues="true"/>
   <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true"/>
   <fieldType name="int" class="solr.IntPointField" docValues="true"/>
   <fieldType name="long" class="solr.LongPointField" docValues="true"/>
@@ -67,7 +67,7 @@
   <field name="_expire_at_" type="tdate" multiValued="false" stored="true"/>
   <field name="_router_field_" type="int" multiValued="false" indexed="false" stored="false"/>
   <field name="_ttl_" type="string" multiValued="false" indexed="true" stored="true"/>
-  <field name="_version_" type="long" indexed="false" stored="true"/>
+  <field name="_version_" type="long" indexed="false" stored="false"/>
   <field name="access" type="key_lower_case" multiValued="false"/>
   <field name="action" type="key_lower_case" multiValued="false"/>
   <field name="agent" type="key_lower_case" multiValued="false"/>

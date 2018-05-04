@@ -50,7 +50,7 @@ service_name = config['serviceName']
 logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
 
 agent_cache_dir = config['agentLevelParams']['agentCacheDir']
-service_package_folder = config['commandParams']['service_package_folder']
+service_package_folder = config['serviceLevelParams']['service_package_folder']
 logsearch_service_name = service_name.lower().replace("_", "-")
 logsearch_config_file_name = 'input.config-' + logsearch_service_name + ".json"
 logsearch_config_file_path = agent_cache_dir + "/" + service_package_folder + "/templates/" + logsearch_config_file_name + ".j2"
@@ -101,6 +101,16 @@ has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+
+  mount_table_xml_inclusion_file_full_path = None
+  mount_table_content = None
+  if 'mount-table' in config['configurations']:
+    xml_inclusion_file_name = 'mount-table.xml'
+    mount_table = config['configurations']['mount-table']
+
+    if 'content' in mount_table and mount_table['content'].strip():
+      mount_table_xml_inclusion_file_full_path = os.path.join(hadoop_conf_dir, xml_inclusion_file_name)
+      mount_table_content = mount_table['content']
 
 link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")

@@ -24,11 +24,11 @@ import {InMemoryBackendService} from 'angular-in-memory-web-api';
 import {TypeaheadModule, TooltipModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {StoreModule} from '@ngrx/store';
-import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import {StoreDevtoolsModule} from '@ngrx/store-devtools';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
 import {NgStringPipesModule} from 'angular-pipes';
-import { SimpleNotificationsModule } from 'angular2-notifications';
+import {SimpleNotificationsModule} from 'angular2-notifications';
 
 import {environment} from '@envs/environment';
 
@@ -114,6 +114,7 @@ import {TabGuard} from '@app/services/tab.guard';
 import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {LoginScreenGuardService} from '@app/services/login-screen-guard.service';
 
 export function getXHRBackend(
   injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions
@@ -239,7 +240,8 @@ export function getXHRBackend(
     HistoryManagerService,
     ClusterSelectionService,
     LogsFilteringUtilsService,
-    LogsStateService
+    LogsStateService,
+    LoginScreenGuardService
   ],
   bootstrap: [AppComponent],
   entryComponents: [

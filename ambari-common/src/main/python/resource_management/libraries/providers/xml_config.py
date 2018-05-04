@@ -38,7 +38,7 @@ class XmlConfigProvider(Provider):
     configuration_attrs = {} if is_empty(self.resource.configuration_attributes) else self.resource.configuration_attributes
 
     # |e - for html-like escaping of <,>,',"
-    config_content = InlineTemplate('''  <configuration>
+    config_content = InlineTemplate('''  <configuration  xmlns:xi="http://www.w3.org/2001/XInclude">
     {% for key, value in configurations_dict|dictsort %}
     <property>
       <name>{{ key|e }}</name>
@@ -54,8 +54,12 @@ class XmlConfigProvider(Provider):
       {%- endif %}
     </property>
     {% endfor %}
-  </configuration>''', extra_imports=[time, resource_management, resource_management.core, resource_management.core.source], configurations_dict=self.resource.configurations,
-                                    configuration_attrs=configuration_attrs)
+    {%- if not xml_include_file is none %}
+    <xi:include href="{{xml_include_file|e}}"/>
+    {% endif %}
+  </configuration>''', extra_imports=[time, resource_management, resource_management.core, resource_management.core.source],
+                                    configurations_dict=self.resource.configurations,
+                                    configuration_attrs=configuration_attrs, xml_include_file=self.resource.xml_include_file)
 
     xml_config_dest_file_path = os.path.join(xml_config_provider_config_dir, filename)
     Logger.info("Generating config: {0}".format(xml_config_dest_file_path))

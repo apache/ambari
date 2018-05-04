@@ -47,15 +47,7 @@ module.exports = App.WizardRoute.extend({
                 App.router.transitionTo('main.services.index');
               },
               onClose: function () {
-                var controller = router.get('addServiceController');
-                var currentStep = controller.get('currentStep');
-                const DEPLOY_STEP = '6';
-                if (currentStep === DEPLOY_STEP) {
-                  // Show a warning popup
-                  this.showWarningPopup();
-                } else {
-                  this.afterWarning();
-                }
+                this.showWarningPopup();
               },
               afterWarning: function () {
                 this.set('showCloseButton', false); // prevent user to click "Close" many times
@@ -68,12 +60,15 @@ module.exports = App.WizardRoute.extend({
               },
               showWarningPopup: function() {
                 var mainPopupContext = this;
+                var controller = router.get('addServiceController');
+                var currentStep = controller.get('currentStep');
+                const DEPLOY_STEP = '6';
                 App.ModalPopup.show({
                   encodeBody: false,
-                  header: Em.I18n.t('common.warning'),
-                  primaryClass: 'btn-warning',
+                  header: currentStep == DEPLOY_STEP ? Em.I18n.t('common.warning') : Em.I18n.t('popup.confirmation.commonHeader'),
+                  primaryClass: currentStep == DEPLOY_STEP ? 'btn-warning' : 'btn-success',
                   secondary: Em.I18n.t('form.cancel'),
-                  body: Em.I18n.t('services.add.warning'),
+                  body: currentStep == DEPLOY_STEP ? Em.I18n.t('services.add.warningStep6') : Em.I18n.t('services.add.warning'),
                   onPrimary: function () {
                     this.hide();
                     mainPopupContext.afterWarning();
@@ -268,13 +263,22 @@ module.exports = App.WizardRoute.extend({
 
     backTransition: function (router) {
       var controller = router.get('addServiceController');
+      var wizardStep7Controller = router.get('wizardStep7Controller');
+      var step = 'step1';
       if (!controller.get('content.skipSlavesStep')) {
-        return router.transitionTo('step3');
+        step = 'step3';
       }
-      if (!controller.get('content.skipMasterStep')) {
-        return router.transitionTo('step2');
+      else if (!controller.get('content.skipMasterStep')) {
+        step = 'step2';
       }
-      return router.transitionTo('step1');
+      var goToPreviousStep = function() {
+        router.transitionTo(step);
+      };
+      if (wizardStep7Controller.hasChanges()) {
+        wizardStep7Controller.showChangesWarningPopup(goToPreviousStep);
+      } else {
+        goToPreviousStep();
+      }
     },
     next: function (router) {
       var addServiceController = router.get('addServiceController');

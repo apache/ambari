@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogQueryRequest;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
@@ -40,7 +41,7 @@ public class BaseServiceLogRequestQueryConverterTest extends AbstractRequestConv
   @Test
   public void testConvertRequest() {
     // GIVEN
-    ServiceLogRequest logRequest = new ServiceLogRequest();
+    ServiceLogRequest logRequest = new ServiceLogQueryRequest();
     fillBaseLogRequestWithTestData(logRequest);
     logRequest.setLevel("FATAL,ERROR,WARN,UNKNOWN");
     logRequest.setFileName("/var/log/myfile-*-hdfs.log");
@@ -62,7 +63,7 @@ public class BaseServiceLogRequestQueryConverterTest extends AbstractRequestConv
   @Test
   public void testConvertRequestWithoutData() {
     // GIVEN
-    ServiceLogRequest logRequest = new ServiceLogRequest();
+    ServiceLogRequest logRequest = new ServiceLogQueryRequest();
     // WHEN
     SimpleQuery query = underTest.convert(logRequest);
     // THEN

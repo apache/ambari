@@ -211,8 +211,8 @@ class CustomServiceOrchestrator():
     :return:
     """
     configtype_credentials = {}
-    if 'configuration_credentials' in commandJson:
-      for config_type, password_properties in commandJson['configuration_credentials'].items():
+    if 'serviceLevelParams' in commandJson and 'configuration_credentials' in commandJson['serviceLevelParams']:
+      for config_type, password_properties in commandJson['serviceLevelParams']['configuration_credentials'].items():
         if config_type in commandJson['configurations']:
           value_names = []
           config = commandJson['configurations'][config_type]
@@ -278,6 +278,9 @@ class CustomServiceOrchestrator():
     if len(configtype_credentials) == 0:
       logger.info("Credential store is enabled but no property are found that can be encrypted.")
       commandJson['credentialStoreEnabled'] = "false"
+    # CS is enabled and config properties are available
+    else:
+      commandJson['credentialStoreEnabled'] = "true"
 
     for config_type, credentials in configtype_credentials.items():
       config = commandJson['configurations'][config_type]
@@ -482,7 +485,17 @@ class CustomServiceOrchestrator():
     required_config_timestamp = command_header['requiredConfigTimestamp'] if 'requiredConfigTimestamp' in command_header else None
 
     command_dict = self.configuration_builder.get_configuration(cluster_id, service_name, component_name, required_config_timestamp)
+
+    # remove data populated from topology to avoid merge and just override
+    if 'clusterHostInfo' in command_header:
+      del command_dict['clusterHostInfo']
+
     command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
+
+    # topology needs to be decompressed if and only if it originates from command header
+    if 'clusterHostInfo' in command_header and command_header['clusterHostInfo']:
+      command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
+
     return command
 
   def requestComponentStatus(self, command_header):
@@ -552,6 +565,49 @@ class CustomServiceOrchestrator():
       content = json.dumps(command, sort_keys = False, indent = 4)
       f.write(content)
     return file_path
+
+  def decompressClusterHostInfo(self, clusterHostInfo):
+    info = clusterHostInfo.copy()
+    #Pop info not related to host roles
+    hostsList = info.pop(self.HOSTS_LIST_KEY)
+    pingPorts = info.pop(self.PING_PORTS_KEY)
+    racks = info.pop(self.RACKS_KEY)
+    ipv4_addresses = info.pop(self.IPV4_ADDRESSES_KEY)
+
+    ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
+    ambariServerPort = info.pop(self.AMBARI_SERVER_PORT)
+    ambariServerUseSsl = info.pop(self.AMBARI_SERVER_USE_SSL)
+
+    decompressedMap = {}
+
+    for k,v in info.items():
+      # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8]
+      indexes = self.convertRangeToList(v)
+      # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
+      decompressedMap[k] = [hostsList[i] for i in indexes]
+
+    #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
+    pingPorts = self.convertMappedRangeToList(pingPorts)
+    racks = self.convertMappedRangeToList(racks)
+    ipv4_addresses = self.convertMappedRangeToList(ipv4_addresses)
+
+    #Convert all elements to str
+    pingPorts = map(str, pingPorts)
+
+    #Add ping ports to result
+    decompressedMap[self.PING_PORTS_KEY] = pingPorts
+    #Add hosts list to result
+    decompressedMap[self.HOSTS_LIST_KEY] = hostsList
+    #Add racks list to result
+    decompressedMap[self.RACKS_KEY] = racks
+    #Add ips list to result
+    decompressedMap[self.IPV4_ADDRESSES_KEY] = ipv4_addresses
+    #Add ambari-server properties to result
+    decompressedMap[self.AMBARI_SERVER_HOST] = ambariServerHost
+    decompressedMap[self.AMBARI_SERVER_PORT] = ambariServerPort
+    decompressedMap[self.AMBARI_SERVER_USE_SSL] = ambariServerUseSsl
+
+    return decompressedMap
 
   # Converts from 1-3,5,6-8 to [1,2,3,5,6,7,8]
   def convertRangeToList(self, list):

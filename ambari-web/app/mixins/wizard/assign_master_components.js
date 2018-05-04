@@ -746,15 +746,18 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    * @return {Object}
    */
   createComponentInstallationObject: function(fullComponent, hostName, savedComponent) {
-    var componentName = fullComponent.get('componentName');
-
-    var componentObj = {};
+    const componentName = fullComponent.get('componentName'),
+      resultingHostName = savedComponent ? savedComponent.hostName : hostName;
+    let componentObj = {};
     componentObj.component_name = componentName;
     componentObj.display_name = App.format.role(fullComponent.get('componentName'), false);
     componentObj.serviceId = fullComponent.get('serviceName');
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('mastersToMove').contains(componentName);
-    componentObj.selectedHost = savedComponent ? savedComponent.hostName : hostName;
+    componentObj.selectedHost = resultingHostName;
     componentObj.isInstalled = savedComponent ? savedComponent.isInstalled || (this.get('markSavedComponentsAsInstalled') && !this.get('mastersToCreate').contains(fullComponent.get('componentName'))) : false;
+    if (this.get('content.controllerName') === 'reassignMasterController' && componentName === 'NAMENODE' && App.get('hasNameNodeFederation')) {
+      componentObj.nameSpace = App.HostComponent.find(`${componentName}_${resultingHostName}`).get('haNameSpace');
+    }
     return componentObj;
   },
 

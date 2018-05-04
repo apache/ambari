@@ -396,6 +396,7 @@ class InstallPackages(Script):
           repos_to_use[repo_id] = self.repo_files[repo_id]
 
       self.repo_mgr.upgrade_package(stack_selector_package, RepoCallContext(
+        ignore_errors=False,
         use_repos=repos_to_use,
         retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
         retry_count=agent_stack_retry_count))
@@ -408,18 +409,22 @@ class InstallPackages(Script):
         available_packages_in_repos = self.repo_mgr.get_available_packages_in_repos(command_repos)
       except Exception:
         available_packages_in_repos = []
+
+      installation_context = RepoCallContext(
+        ignore_errors=False,
+        retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+        retry_count=agent_stack_retry_count
+      )
+
       for package in filtered_package_list:
         name = self.get_package_from_available(package['name'], available_packages_in_repos)
 
         # This enables upgrading non-versioned packages, despite the fact they exist.
         # Needed by 'mahout' which is non-version but have to be updated
-        self.repo_mgr.upgrade_package(name, RepoCallContext(
-          retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-          retry_count=agent_stack_retry_count
-        ))
+        self.repo_mgr.upgrade_package(name, installation_context)
     except Exception as err:
       ret_code = 1
-      Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))
+      Logger.logger.error("Package Manager failed to install packages: {0}".format(str(err)))
 
       # Remove already installed packages in case of fail
       if packages_were_checked and packages_installed_before:

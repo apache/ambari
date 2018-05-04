@@ -118,6 +118,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -148,6 +149,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -177,7 +179,6 @@ import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
-import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
@@ -313,6 +314,8 @@ public class UpgradeCatalog270Test {
     Method renameAmbariInfra = UpgradeCatalog270.class.getDeclaredMethod("renameAmbariInfra");
     Method updateKerberosDescriptorArtifacts = UpgradeCatalog270.class.getSuperclass().getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateSolrConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateSolrConfigurations");
+    Method updateAmsConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateAmsConfigs");
+
     UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
         .addMockedMethod(showHcatDeletedUserMessage)
         .addMockedMethod(addNewConfigurationsFromXml)
@@ -326,6 +329,7 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(renameAmbariInfra)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
         .addMockedMethod(updateSolrConfigurations)
+        .addMockedMethod(updateAmsConfigurations)
         .createMock();
 
 
@@ -361,6 +365,9 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.updateSolrConfigurations();
+    expectLastCall().once();
+
+    upgradeCatalog270.updateAmsConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog270);
@@ -424,6 +431,8 @@ public class UpgradeCatalog270Test {
     Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns = newCapture(CaptureType.ALL);
     Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns = newCapture(CaptureType.ALL);
     Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns = newCapture(CaptureType.ALL);
+    Capture<String[]> insertRepoOsTableRowColumns = newCapture(CaptureType.ALL);
+    Capture<String[]> insertRepoOsTableRowValues = newCapture(CaptureType.ALL);
     Capture<String[]> insertAmbariSequencesRowColumns = newCapture(CaptureType.ALL);
     Capture<String[]> insertAmbariSequencesRowValues = newCapture(CaptureType.ALL);
 
@@ -435,7 +444,7 @@ public class UpgradeCatalog270Test {
     prepareUpdateAdminPrivilegeRecords(dbAccessor, createAdminPrincipalTableCaptures);
     prepareUpdateUsersTable(dbAccessor, updateUserTableCaptures, alterUserTableCaptures);
     prepareUpdateRepoTables(dbAccessor, addRepoOsTableCapturedColumns, addRepoDefinitionTableCapturedColumns, addRepoTagsTableCapturedColumns,
-        insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
+        insertRepoOsTableRowColumns, insertRepoOsTableRowValues, insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
 
     // upgradeKerberosTables
     Capture<List<DBAccessor.DBColumnInfo>> kerberosKeytabColumnsCapture = newCapture();
@@ -547,7 +556,7 @@ public class UpgradeCatalog270Test {
     validateUpdateAdminPrivilegeRecords(createAdminPrincipalTableCaptures);
     validateUpdateUsersTable(updateUserTableCaptures, alterUserTableCaptures);
     validateCreateRepoOsTable(addRepoOsTableCapturedColumns, addRepoDefinitionTableCapturedColumns, addRepoTagsTableCapturedColumns,
-        insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
+        insertRepoOsTableRowColumns, insertRepoOsTableRowValues, insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
 
     verify(dbAccessor);
   }
@@ -733,6 +742,8 @@ public class UpgradeCatalog270Test {
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns,
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns,
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns,
+                                       Capture<String[]> insertRepoOsTableRowColumns,
+                                       Capture<String[]> insertRepoOsTableRowValues,
                                        Capture<String[]> insertAmbariSequencesRowColumns,
                                        Capture<String[]> insertAmbariSequencesRowValues)
       throws SQLException {
@@ -757,10 +768,10 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     expect(dbAccessor.tableHasColumn(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPOSITORIES_COLUMN))).andReturn(true).once();
-
-    expect(dbAccessor.getKeyToStringColumnMap(REPO_VERSION_TABLE, REPO_VERSION_REPO_VERSION_ID_COLUMN, REPO_VERSION_REPOSITORIES_COLUMN, null, null, true))
-        .andReturn(Collections.emptyMap())
-        .once();
+    final Map<Long, String> repoMap = new HashMap<>();
+    repoMap.put(1L, getSampleRepositoryData());
+    expect(dbAccessor.getKeyToStringColumnMap(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPO_VERSION_ID_COLUMN), eq(REPO_VERSION_REPOSITORIES_COLUMN), eq(null), eq(null), eq(true))).andReturn(repoMap).once();
+    expect(dbAccessor.insertRowIfMissing(eq(REPO_OS_TABLE), capture(insertRepoOsTableRowColumns), capture(insertRepoOsTableRowValues), eq(false))).andReturn(true).once();
 
     expect(dbAccessor.insertRowIfMissing(eq(AMBARI_SEQUENCES_TABLE),
         capture(insertAmbariSequencesRowColumns),
@@ -773,6 +784,13 @@ public class UpgradeCatalog270Test {
 
     dbAccessor.dropColumn(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPOSITORIES_COLUMN));
     expectLastCall().once();
+  }
+
+  /**
+   * @return sample JSON data from repo_version data (no repositories defined) where 'OperatingSystems/ambari_managed_repositories' is missing
+   */
+  private String getSampleRepositoryData() {
+    return "[{\"repositories\":[],\"OperatingSystems/os_type\":\"redhat7\"}]";
   }
 
   private void validateUpdateUsersTable(Capture<DBAccessor.DBColumnInfo> updateUserTableCaptures, Capture<DBAccessor.DBColumnInfo> alterUserTableCaptures) {
@@ -797,7 +815,9 @@ public class UpgradeCatalog270Test {
 
   private void validateCreateRepoOsTable(Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns,
                                          Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns,
-                                         Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns, Capture<String[]> insertAmbariSequencesRowColumns, Capture<String[]> insertAmbariSequencesRowValues) {
+                                         Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns,
+                                         Capture<String[]> insertRepoOsTableRowColumns, Capture<String[]> insertRepoOsTableRowValues,
+                                         Capture<String[]> insertAmbariSequencesRowColumns, Capture<String[]> insertAmbariSequencesRowValues) {
     Assert.assertTrue(addRepoOsTableCapturedColumns.hasCaptured());
     validateColumns(addRepoOsTableCapturedColumns.getValue(),
         Arrays.asList(
@@ -833,6 +853,16 @@ public class UpgradeCatalog270Test {
 
     List<String[]> values;
 
+    Assert.assertTrue(insertRepoOsTableRowColumns.hasCaptured());
+    values = insertRepoOsTableRowColumns.getValues();
+    Assert.assertEquals(1, values.size());
+    Assert.assertArrayEquals(new String[] {REPO_OS_ID_COLUMN, REPO_OS_REPO_VERSION_ID_COLUMN, REPO_OS_AMBARI_MANAGED_COLUMN, REPO_OS_FAMILY_COLUMN}, values.get(0));
+
+    Assert.assertTrue(insertRepoOsTableRowValues.hasCaptured());
+    values = insertRepoOsTableRowValues.getValues();
+    Assert.assertEquals(1, values.size());
+    Assert.assertArrayEquals(new String[] {"1", "1", "1", "'redhat7'"}, values.get(0));
+
     Assert.assertTrue(insertAmbariSequencesRowColumns.hasCaptured());
     values = insertAmbariSequencesRowColumns.getValues();
     Assert.assertEquals(2, values.size());
@@ -842,7 +872,7 @@ public class UpgradeCatalog270Test {
     Assert.assertTrue(insertAmbariSequencesRowValues.hasCaptured());
     values = insertAmbariSequencesRowValues.getValues();
     Assert.assertEquals(2, values.size());
-    Assert.assertArrayEquals(new String[]{"'repo_os_id_seq'", "1"}, values.get(0));
+    Assert.assertArrayEquals(new String[]{"'repo_os_id_seq'", "2"}, values.get(0));
     Assert.assertArrayEquals(new String[]{"'repo_definition_id_seq'", "1"}, values.get(1));
 
 
@@ -1082,7 +1112,6 @@ public class UpgradeCatalog270Test {
     expect(cluster1.getConfigsByType("kerberos-env")).andReturn(Collections.singletonMap("v1", configWithGroup)).atLeastOnce();
     expect(cluster1.getServiceByConfigType("kerberos-env")).andReturn("KERBEROS").atLeastOnce();
     expect(cluster1.getClusterName()).andReturn("c1").atLeastOnce();
-    expect(cluster1.getClusterId()).andReturn(1L).atLeastOnce();
     expect(cluster1.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster1.getConfig(eq("kerberos-env"), anyString())).andReturn(newConfig).atLeastOnce();
     expect(cluster1.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated kerberos-env during Ambari Upgrade from 2.6.2 to 2.7.0.")).andReturn(response).once();
@@ -1117,19 +1146,23 @@ public class UpgradeCatalog270Test {
         .createMock();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class))).andReturn(newConfig).once();
-    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster1))).andReturn(createNiceMock(MetadataUpdateEvent.class)).once();
 
 
     Injector injector = createNiceMock(Injector.class);
+    ConfigHelper configHelper = createStrictMock(ConfigHelper.class);
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(injector.getInstance(MetadataHolder.class)).andReturn(createNiceMock(MetadataHolder.class)).anyTimes();
     expect(injector.getInstance(AgentConfigsHolder.class)).andReturn(createNiceMock(AgentConfigsHolder.class)).anyTimes();
     expect(injector.getInstance(AmbariServer.class)).andReturn(createNiceMock(AmbariServer.class)).anyTimes();
+    expect(injector.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
     KerberosHelper kerberosHelperMock = createNiceMock(KerberosHelper.class);
     expect(kerberosHelperMock.createTemporaryDirectory()).andReturn(new File("/invalid/file/path")).times(2);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelperMock).anyTimes();
 
-    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock);
+    configHelper.updateAgentConfigs(anyObject(Set.class));
+    expectLastCall();
+
+    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock, configHelper);
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("configuration");
 
@@ -1145,7 +1178,7 @@ public class UpgradeCatalog270Test {
     field.set(upgradeCatalog270, createNiceMock(Configuration.class));
     upgradeCatalog270.updateKerberosConfigurations();
 
-    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog270);
+    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog270, configHelper);
 
 
     Assert.assertEquals(1, capturedProperties.getValues().size());
@@ -1199,14 +1232,14 @@ public class UpgradeCatalog270Test {
 
   @Test
   public void testupdateKerberosDescriptorArtifact() throws Exception {
+    //there is HIVE -> WEBHCAT_SERVER -> configurations -> core-site -> hadoop.proxyuser.HTTP.hosts
     String kerberosDescriptorJson = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("org/apache/ambari/server/upgrade/kerberos_descriptor.json"), "UTF-8");
 
     ArtifactEntity artifactEntity = new ArtifactEntity();
     artifactEntity.setArtifactName("kerberos_descriptor");
     artifactEntity.setArtifactData(GSON.<Map<String, Object>>fromJson(kerberosDescriptorJson, Map.class));
 
-    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
-            .createMock();
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class).createMock();
 
     expect(artifactDAO.merge(artifactEntity)).andReturn(artifactEntity);
 
@@ -1214,9 +1247,13 @@ public class UpgradeCatalog270Test {
 
     upgradeCatalog270.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
 
+    final String newKerberosDescriptorJson = GSON.toJson(artifactEntity.getArtifactData());
+
     int oldCount = substringCount(kerberosDescriptorJson, AMBARI_INFRA_OLD_NAME);
-    int newCount = substringCount(GSON.toJson(artifactEntity.getArtifactData()), AMBARI_INFRA_NEW_NAME);
+    int newCount = substringCount(newKerberosDescriptorJson, AMBARI_INFRA_NEW_NAME);
     assertThat(newCount, is(oldCount));
+
+    assertTrue(newKerberosDescriptorJson.contains("webhcat_server_hosts|"));
 
     verify(upgradeCatalog270);
   }
@@ -1239,9 +1276,9 @@ public class UpgradeCatalog270Test {
 
     replay(upgradeCatalog270);
 
-    String updated = upgradeCatalog270.updateLuceneMatchVersion(solrConfigXml,"7.2.1");
+    String updated = upgradeCatalog270.updateLuceneMatchVersion(solrConfigXml,"7.3.0");
 
-    assertThat(updated.contains("<luceneMatchVersion>7.2.1</luceneMatchVersion>"), is(true));
+    assertThat(updated.contains("<luceneMatchVersion>7.3.0</luceneMatchVersion>"), is(true));
     assertThat(updated.contains("<luceneMatchVersion>5.0.0</luceneMatchVersion>"), is(false));
     verify(upgradeCatalog270);
   }
@@ -1294,4 +1331,60 @@ public class UpgradeCatalog270Test {
     assertThat(updated, is(""));
     verify(upgradeCatalog270);
   }
+
+  @Test
+  public void testUpdateAmsConfigs() throws Exception {
+
+    Map<String, String> oldProperties = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.default.result.limit", "15840");
+      }
+    };
+    Map<String, String> newProperties = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.default.result.limit", "5760");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
+    expect(mockAmsSite.getProperties()).andReturn(oldProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+
+    replay(injector, clusters, mockAmsSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog270(injector2).updateAmsConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
 }

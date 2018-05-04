@@ -888,7 +888,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       data: {
         artifactName: 'kerberos_descriptor',
         data: {
-          artifact_data: kerberosDescriptor
+          artifact_data: this.removeIdentityReferences(kerberosDescriptor)
         }
       }
     };

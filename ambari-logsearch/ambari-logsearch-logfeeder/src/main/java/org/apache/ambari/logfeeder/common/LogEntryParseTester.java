@@ -137,7 +137,8 @@ public class LogEntryParseTester {
       }
     });
     input.outputLine(logEntry, new InputFileMarker(input, null, 0));
-    
+    input.outputLine(logEntry, new InputFileMarker(input, null, 0));
+
     return result.isEmpty() ?
         ImmutableMap.of("errorMessage", (Object)"Could not parse test log entry") :
         result;

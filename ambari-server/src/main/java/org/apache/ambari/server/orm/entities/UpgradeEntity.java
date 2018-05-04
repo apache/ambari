@@ -18,6 +18,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -498,4 +499,12 @@ public class UpgradeEntity {
         upgradePackage);
   }
 
+ /**
+ * Removes historical entries for a service component in this upgrade.
+ */
+ public void removeHistories(Collection<UpgradeHistoryEntity> upgradeHistoryEntity) {
+    if (upgradeHistory != null) {
+      upgradeHistory.removeAll(upgradeHistoryEntity);
+    }
+  }
 }

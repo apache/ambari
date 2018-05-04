@@ -18,64 +18,10 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.AnyGraphParamDefinition;
 import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class ServiceAnyGraphRequest extends ServiceLogRequest
-  implements AnyGraphParamDefinition, UnitParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_XAXIS)
-  private String xAxis;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_YAXIS)
-  private String yAxis;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_STACK_BY)
-  private String stackBy;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_UNIT)
-  private String unit;
-
-  @Override
-  public String getxAxis() {
-    return xAxis;
-  }
-
-  @Override
-  public void setxAxis(String xAxis) {
-    this.xAxis = xAxis;
-  }
-
-  @Override
-  public String getyAxis() {
-    return yAxis;
-  }
-
-  @Override
-  public void setyAxis(String yAxis) {
-    this.yAxis = yAxis;
-  }
-
-  @Override
-  public String getStackBy() {
-    return stackBy;
-  }
-
-  @Override
-  public void setStackBy(String stackBy) {
-    this.stackBy = stackBy;
-  }
-
-  @Override
-  public String getUnit() {
-    return unit;
-  }
-
-  @Override
-  public void setUnit(String unit) {
-    this.unit = unit;
-  }
+@Marker
+public interface ServiceAnyGraphRequest extends ServiceLogRequest, AnyGraphParamDefinition, UnitParamDefinition {
 }

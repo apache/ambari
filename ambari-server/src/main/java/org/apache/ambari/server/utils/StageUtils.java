@@ -90,8 +90,7 @@ public class StageUtils {
   protected static final String RACKS = "all_racks";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
 
-  private static Map<String, String> componentToClusterInfoKeyMap =
-    new HashMap<>();
+  private static Map<String, String> componentToClusterInfoKeyMap = new HashMap<>();
   private volatile static Gson gson;
 
   @Inject
@@ -147,42 +146,46 @@ public class StageUtils {
     StageUtils.configuration = configuration;
   }
 
+  private static void put2componentToClusterInfoKeyMap(String component){
+    componentToClusterInfoKeyMap.put(component, getClusterHostInfoKey(component));
+  }
+
+  /**
+   * Even though this map is populated systematically, we still need this map
+   * since components like Atlas Client that are missing from this map
+   * and cleint components are handled differently
+   */
   static {
-    componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
-    componentToClusterInfoKeyMap.put("JOBTRACKER", "jtnode_host");
-    componentToClusterInfoKeyMap.put("SECONDARY_NAMENODE", "snamenode_host");
-    componentToClusterInfoKeyMap.put("RESOURCEMANAGER", "rm_host");
-    componentToClusterInfoKeyMap.put("NODEMANAGER", "nm_hosts");
-    componentToClusterInfoKeyMap.put("HISTORYSERVER", "hs_host");
-    componentToClusterInfoKeyMap.put("JOURNALNODE", "journalnode_hosts");
-    componentToClusterInfoKeyMap.put("ZKFC", "zkfc_hosts");
-    componentToClusterInfoKeyMap.put("ZOOKEEPER_SERVER", "zookeeper_hosts");
-    componentToClusterInfoKeyMap.put("FLUME_HANDLER", "flume_hosts");
-    componentToClusterInfoKeyMap.put("HBASE_MASTER", "hbase_master_hosts");
-    componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
-    componentToClusterInfoKeyMap.put("HIVE_SERVER", "hive_server_host");
-    componentToClusterInfoKeyMap.put("HIVE_METASTORE", "hive_metastore_host");
-    componentToClusterInfoKeyMap.put("OOZIE_SERVER", "oozie_server");
-    componentToClusterInfoKeyMap.put("WEBHCAT_SERVER", "webhcat_server_host");
-    componentToClusterInfoKeyMap.put("MYSQL_SERVER", "hive_mysql_host");
-    componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
-    componentToClusterInfoKeyMap.put("GANGLIA_SERVER", "ganglia_server_host");
-    componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
-    componentToClusterInfoKeyMap.put("TASKTRACKER", "mapred_tt_hosts");
-    componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
-    componentToClusterInfoKeyMap.put("ACCUMULO_MASTER", "accumulo_master_hosts");
-    componentToClusterInfoKeyMap.put("ACCUMULO_MONITOR", "accumulo_monitor_hosts");
-    componentToClusterInfoKeyMap.put("ACCUMULO_GC", "accumulo_gc_hosts");
-    componentToClusterInfoKeyMap.put("ACCUMULO_TRACER", "accumulo_tracer_hosts");
-    componentToClusterInfoKeyMap.put("ACCUMULO_TSERVER", "accumulo_tserver_hosts");
+    put2componentToClusterInfoKeyMap("NAMENODE");
+    put2componentToClusterInfoKeyMap("JOBTRACKER");
+    put2componentToClusterInfoKeyMap("SECONDARY_NAMENODE");
+    put2componentToClusterInfoKeyMap("RESOURCEMANAGER");
+    put2componentToClusterInfoKeyMap("NODEMANAGER");
+    put2componentToClusterInfoKeyMap("HISTORYSERVER");
+    put2componentToClusterInfoKeyMap("JOURNALNODE");
+    put2componentToClusterInfoKeyMap("ZKFC");
+    put2componentToClusterInfoKeyMap("ZOOKEEPER_SERVER");
+    put2componentToClusterInfoKeyMap("FLUME_HANDLER");
+    put2componentToClusterInfoKeyMap("HBASE_MASTER");
+    put2componentToClusterInfoKeyMap("HBASE_REGIONSERVER");
+    put2componentToClusterInfoKeyMap("HIVE_SERVER");
+    put2componentToClusterInfoKeyMap("HIVE_METASTORE");
+    put2componentToClusterInfoKeyMap("OOZIE_SERVER");
+    put2componentToClusterInfoKeyMap("WEBHCAT_SERVER");
+    put2componentToClusterInfoKeyMap("MYSQL_SERVER");
+    put2componentToClusterInfoKeyMap("DASHBOARD");
+    put2componentToClusterInfoKeyMap("GANGLIA_SERVER");
+    put2componentToClusterInfoKeyMap("DATANODE");
+    put2componentToClusterInfoKeyMap("TASKTRACKER");
+    put2componentToClusterInfoKeyMap("ACCUMULO_MASTER");
+    put2componentToClusterInfoKeyMap("ACCUMULO_MONITOR");
+    put2componentToClusterInfoKeyMap("ACCUMULO_GC");
+    put2componentToClusterInfoKeyMap("ACCUMULO_TRACER");
+    put2componentToClusterInfoKeyMap("ACCUMULO_TSERVER");
   }
 
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
-  }
-
-  public static Map<String, String> getComponentToClusterInfoKeyMap() {
-    return componentToClusterInfoKeyMap;
   }
 
   public static long[] getRequestStage(String actionId) {
@@ -265,6 +268,16 @@ public class StageUtils {
       commandParams.put("rolling_restart", "true");
     }
     return commandParams;
+  }
+
+  /**
+   * A helper method for generating keys for the clusterHostInfo section.
+   */
+  public static String getClusterHostInfoKey(String componentName){
+    if (componentName == null){
+      throw new IllegalArgumentException("Component name cannot be null");
+    }
+    return componentName.toLowerCase()+"_hosts";
   }
 
   public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) throws AmbariException {
@@ -351,7 +364,7 @@ public class StageUtils {
       Collection<String> hostComponents = entry.getValue();
 
       for (String hostComponent : hostComponents) {
-        String roleName = componentToClusterInfoKeyMap.get(hostComponent);
+        String roleName = getClusterHostInfoKey(hostComponent);
         if (null == roleName) {
           roleName = additionalComponentToClusterInfoKeyMap.get(hostComponent);
         }
@@ -360,7 +373,7 @@ public class StageUtils {
           // a higher priority lookup
           for (Service service : cluster.getServices().values()) {
             for (ServiceComponent sc : service.getServiceComponents().values()) {
-              if (!sc.isClientComponent() && sc.getName().equals(hostComponent)) {
+              if (sc.getName().equals(hostComponent)) {
                 roleName = hostComponent.toLowerCase() + "_hosts";
                 additionalComponentToClusterInfoKeyMap.put(hostComponent, roleName);
               }

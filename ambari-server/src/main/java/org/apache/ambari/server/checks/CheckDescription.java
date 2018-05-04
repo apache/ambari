@@ -343,11 +343,13 @@ public class CheckDescription {
           .build());
 
   public static CheckDescription COMPONENTS_EXIST_IN_TARGET_REPO = new CheckDescription("COMPONENTS_EXIST_IN_TARGET_REPO",
-      PrereqCheckType.CLUSTER,
-      "Verify Cluster Components Exist In Target Repository",
-      new ImmutableMap.Builder<String, String>()
-        .put(AbstractCheckDescriptor.DEFAULT, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
-          .build());
+    PrereqCheckType.CLUSTER,
+    "Check installed services which are not supported in the installed stack",
+    new ImmutableMap.Builder<String, String>()
+      .put(ComponentsExistInRepoCheck.AUTO_REMOVE, "The following services and/or components do not exist in the target stack and will be automatically removed during the upgrade.")
+      .put(ComponentsExistInRepoCheck.MANUAL_REMOVE, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
+      .build()
+    );
 
   public static CheckDescription DRUID_HA_WARNING = new CheckDescription(
       "DRUID_HA",
@@ -360,7 +362,7 @@ public class CheckDescription {
           )
           .build()
   );
-  
+
   public static CheckDescription VALID_SERVICES_INCLUDED_IN_REPOSITORY = new CheckDescription("VALID_SERVICES_INCLUDED_IN_REPOSITORY",
       PrereqCheckType.CLUSTER,
       "The repository is missing services which are required",

@@ -38,6 +38,7 @@ class ComponentStatusExecutor(threading.Thread):
     self.stop_event = initializer_module.stop_event
     self.recovery_manager = initializer_module.recovery_manager
     self.reported_component_status = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:None))) # component statuses which were received by server
+    self.server_responses_listener = initializer_module.server_responses_listener
     threading.Thread.__init__(self)
 
   def run(self):
@@ -145,8 +146,10 @@ class ComponentStatusExecutor(threading.Thread):
     if not cluster_reports or not self.initializer_module.is_registered:
       return
 
-    self.initializer_module.connection.send(message={'clusters': cluster_reports}, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    correlation_id = self.initializer_module.connection.send(message={'clusters': cluster_reports}, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_reported_component_status(cluster_reports)
 
+  def save_reported_component_status(self, cluster_reports):
     for cluster_id, reports in cluster_reports.iteritems():
       for report in reports:
         component_name = report['componentName']

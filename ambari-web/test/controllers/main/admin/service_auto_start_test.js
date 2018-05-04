@@ -67,8 +67,9 @@ describe('App.MainAdminServiceAutoStartController', function() {
   });
 
   describe('#load', function() {
-    var mock = {
-      getConfigsByTags: sinon.stub().returns({
+
+    beforeEach(function() {
+      sinon.stub(App.router.get('configurationController'), 'getCurrentConfigsBySites').returns({
         done: function(callback) {
           callback([
             {
@@ -78,31 +79,14 @@ describe('App.MainAdminServiceAutoStartController', function() {
             }
           ]);
         }
-      })
-    };
-    beforeEach(function() {
-      sinon.stub(controller, 'loadClusterConfig').returns({
-        done: function(callback) {
-          callback({
-            Clusters: {
-              desired_configs: {
-                'cluster-env': {
-                  tag: 1
-                }
-              }
-            }
-          });
-        }
       });
-      sinon.stub(App.router, 'get').returns(mock);
       sinon.stub(controller, 'loadComponentsConfigs').returns({
         then: Em.clb
       });
       controller.load();
     });
     afterEach(function() {
-      controller.loadClusterConfig.restore();
-      App.router.get.restore();
+      App.router.get('configurationController').getCurrentConfigsBySites.restore();
       controller.loadComponentsConfigs.restore();
     });
 
@@ -122,21 +106,6 @@ describe('App.MainAdminServiceAutoStartController', function() {
 
     it('isLoaded should be true', function() {
       expect(controller.get('isLoaded')).to.be.true;
-    });
-  });
-
-  describe('#loadClusterConfig()', function() {
-
-    it('App.ajax.send should be called', function() {
-      controller.loadClusterConfig();
-      var args = testHelpers.findAjaxRequest('name', 'config.tags.site');
-      expect(args[0]).to.be.eql({
-        name: 'config.tags.site',
-        sender: controller,
-        data: {
-          site: 'cluster-env'
-        }
-      });
     });
   });
 

@@ -44,7 +44,7 @@
         {
           "core-site": {
             "hadoop.proxyuser.${yarn-env/yarn_user}.groups": "*",
-            "hadoop.proxyuser.${yarn-env/yarn_user}.hosts": "${clusterHostInfo/rm_host}"
+            "hadoop.proxyuser.${yarn-env/yarn_user}.hosts": "${clusterHostInfo/resourcemanager_hosts}"
           }
         },
         {

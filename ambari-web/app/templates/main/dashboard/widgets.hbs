@@ -18,7 +18,7 @@
 {{#if view.isDataLoaded}}
 
   <div class="btn-toolbar" role="toolbar">
-    <div id="widgets-options-menu" class="dropdown btn-group pull-left">
+    <div id="widgets-options-menu" class="widgets-options-menu dropdown btn-group pull-left">
       <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
         <span>{{t dashboard.widgets.actions.title}}</span>
         <span class="caret"></span>
@@ -60,13 +60,15 @@
               <div class="col-md-6">
                 <h5 class="widgets-group-title">{{group.title}}</h5>
                 {{#if group.subGroups.length}}
-                  <div class="btn-group">
+                  <div class="btn-group dropdown">
                     <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                      {{#if group.activeSubGroup}}
-                        {{group.activeSubGroup.title}}
-                      {{else}}
-                        {{t common.all}}
-                      {{/if}}
+                      <span class="selected-item">
+                        {{#if group.activeSubGroup}}
+                          {{group.activeSubGroup.title}}
+                        {{else}}
+                          {{t common.all}}
+                        {{/if}}
+                      </span>
                       <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
@@ -81,8 +83,8 @@
                   </div>
                 {{/if}}
               </div>
-              <div class="col-md-6">
-                <div class="dropdown btn-group pull-right">
+              <div class="widgets-options-menu col-md-6">
+                <div class="add-widgets-text dropdown btn-group pull-right">
                   <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
                     <span>{{t common.add}}</span>
                     <span class="caret"></span>

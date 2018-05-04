@@ -23,8 +23,8 @@ import {Observable} from 'rxjs/Observable';
 
 import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {Router} from "@angular/router";
-import {Subscription} from "rxjs/Subscription";
+import {Router} from '@angular/router';
+import {Subscription} from 'rxjs/Subscription';
 
 export const IS_AUTHORIZED_APP_STATE_KEY: string = 'isAuthorized';
 export const IS_LOGIN_IN_PROGRESS_APP_STATE_KEY: string = 'isLoginInProgress';
@@ -42,7 +42,7 @@ export class AuthService {
    * authorization done.
    * @type string
    */
-  redirectUrl: string;
+  redirectUrl: string | string[];
 
   constructor(
     private httpClient: HttpClientService,
@@ -56,8 +56,13 @@ export class AuthService {
 
   onAppStateIsAuthorizedChanged = (isAuthorized): void => {
     if (isAuthorized) {
-      this.router.navigate([this.redirectUrl || '/']);
+      const redirectTo = this.redirectUrl || (this.router.routerState.snapshot.url === '/login' ? '/' : null);
+      if (redirectTo) {
+        this.router.navigate(Array.isArray(redirectTo) ? redirectTo : [redirectTo]);
+      }
       this.redirectUrl = '';
+    } else if (!isAuthorized) {
+      this.router.navigate(['/login']);
     }
   }
   /**

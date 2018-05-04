@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogTruncatedRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogTruncatedQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class ServiceLogTruncatedRequestQueryConverterTest extends AbstractReques
   @Test
   public void testConvert() {
     // GIVEN
-    ServiceLogTruncatedRequest request = new ServiceLogTruncatedRequest();
+    ServiceLogTruncatedRequest request = new ServiceLogTruncatedQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setScrollType("0");
     request.setNumberRows(10);
@@ -54,7 +55,7 @@ public class ServiceLogTruncatedRequestQueryConverterTest extends AbstractReques
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    ServiceLogTruncatedRequest request = new ServiceLogTruncatedRequest();
+    ServiceLogTruncatedRequest request = new ServiceLogTruncatedQueryRequest();
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN

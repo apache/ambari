@@ -128,7 +128,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
+          <osFamily>redhat5,amazonlinux2,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>oozie_${stack_version}</name>

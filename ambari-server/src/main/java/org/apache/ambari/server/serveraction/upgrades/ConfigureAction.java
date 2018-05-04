@@ -471,9 +471,15 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
           newValues.put(replacement.key, replaced);
 
-          updateBufferWithMessage(outputBuffer,
-              MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"", configType,
-                  replacement.key, replacement.find, replacement.replaceWith));
+          // customize the replacement message if the new value is empty
+          if (StringUtils.isEmpty(replacement.replaceWith)) {
+            updateBufferWithMessage(outputBuffer, MessageFormat.format(
+                "Removed \"{0}\" from {1}/{2}", replacement.find, configType, replacement.key));
+          } else {
+            updateBufferWithMessage(outputBuffer,
+                MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"", configType,
+                    replacement.key, replacement.find, replacement.replaceWith));
+          }
         }
       } else {
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
@@ -526,7 +532,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
         newValues.put(insert.key, valueToInsertInto);
 
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
-            "Updated {0}/{1} by inserting {2}", configType, insert.key, insert.value));
+            "Updated {0}/{1} by inserting \"{2}\"", configType, insert.key, insert.value));
       } else {
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
             "Skipping insertion for {0}/{1} because it does not exist or is empty.", configType,

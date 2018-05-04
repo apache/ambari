@@ -96,8 +96,8 @@ def advanced_check(distribution):
       issue_content = fp.read()
   
     if "Amazon" in issue_content:
-      distribution[0] = "amazon"
-      search_groups = re.search('(\d+\.\d+)', issue_content)
+      distribution[0] = "amazonlinux"
+      search_groups = re.search(' release (\d+)', issue_content)
       
       if search_groups:
         distribution[1] = search_groups.group(1)

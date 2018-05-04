@@ -33,12 +33,12 @@
     <jetty.version>9.4.2.v20170220</jetty.version>
     <ldap-api.version>1.0.0</ldap-api.version>
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
-    <swagger.version>1.5.10</swagger.version>
+    <swagger.version>1.5.19</swagger.version>
     <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
     <slf4j.version>1.7.20</slf4j.version>
     <guice.version>4.1.0</guice.version>
-    <spring.version>4.3.7.RELEASE</spring.version>
-    <fasterxml.jackson.version>2.9.4</fasterxml.jackson.version>
+    <spring.version>4.3.16.RELEASE</spring.version>
+    <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
@@ -162,17 +162,17 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-core</artifactId>
-        <version>4.2.2.RELEASE</version>
+        <version>4.2.4.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-config</artifactId>
-        <version>4.2.2.RELEASE</version>
+        <version>4.2.4.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-web</artifactId>
-        <version>4.2.2.RELEASE</version>
+        <version>4.2.4.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security.kerberos</groupId>
@@ -188,12 +188,12 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-ldap</artifactId>
-        <version>4.0.4.RELEASE</version>
+        <version>4.1.1.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
-        <version>2.0.4.RELEASE</version>
+        <version>2.3.2.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -329,7 +329,7 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant-launcher</artifactId>
-        <version>1.7.1</version>
+        <version>1.10.3</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
@@ -472,6 +472,11 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-websocket</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-expression</artifactId>
         <version>${spring.version}</version>
       </dependency>
       <dependency>

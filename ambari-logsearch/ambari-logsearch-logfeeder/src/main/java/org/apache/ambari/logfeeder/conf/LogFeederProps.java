@@ -50,7 +50,7 @@ public class LogFeederProps implements LogFeederProperties {
     examples = {"cl1"},
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
-  @Value("${" + LogFeederConstants.CLUSTER_NAME_PROPERTY + "}")
+  @Value("#{'${" + LogFeederConstants.CLUSTER_NAME_PROPERTY + "}'.toLowerCase()}")
   private String clusterName;
 
   @LogSearchPropertyDescription(

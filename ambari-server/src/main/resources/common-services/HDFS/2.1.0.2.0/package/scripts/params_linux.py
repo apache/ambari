@@ -266,7 +266,7 @@ smoke_hdfs_user_mode = 0770
 hdfs_namenode_format_disabled = default("/configurations/cluster-env/hdfs_namenode_format_disabled", False)
 hdfs_namenode_formatted_mark_suffix = "/namenode-formatted/"
 hdfs_namenode_bootstrapped_mark_suffix = "/namenode-bootstrapped/"
-namenode_formatted_old_mark_dirs = ["/var/run/hadoop/hdfs/namenode-formatted", 
+namenode_formatted_old_mark_dirs = ["/var/run/hadoop/hdfs/namenode-formatted",
   format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted"),
   "/var/lib/hdfs/namenode/formatted"]
 dfs_name_dirs = dfs_name_dir.split(",")
@@ -303,9 +303,9 @@ dfs_ha_namenode_ids_all_ns = get_properties_for_all_nameservices(hdfs_site, 'dfs
 dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.automatic-failover.enabled", False)
 
 # hostname of the active HDFS HA Namenode (only used when HA is enabled)
-dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
+dfs_ha_namenode_active = default("/configurations/cluster-env/dfs_ha_initial_namenode_active", None)
 # hostname of the standby HDFS HA Namenode (only used when HA is enabled)
-dfs_ha_namenode_standby = default("/configurations/hadoop-env/dfs_ha_initial_namenode_standby", None)
+dfs_ha_namenode_standby = default("/configurations/cluster-env/dfs_ha_initial_namenode_standby", None)
 ha_zookeeper_quorum = config['configurations']['core-site']['ha.zookeeper.quorum']
 jaas_file = os.path.join(hadoop_conf_secure_dir, 'hdfs_jaas.conf')
 zk_namespace = default('/configurations/hdfs-site/ha.zookeeper.parent-znode', '/hadoop-ha')
@@ -326,13 +326,13 @@ for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.iteritems():
       dfs_ha_enabled = True
   if dfs_ha_enabled:
     for nn_id in dfs_ha_namemodes_ids_list:
-      nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
+      nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{ns}.{nn_id}')]
       if hostname.lower() in nn_host.lower() or public_hostname.lower() in nn_host.lower():
         namenode_id = nn_id
         namenode_rpc = nn_host
         found = True
     # With HA enabled namenode_address is recomputed
-    namenode_address = format('hdfs://{dfs_ha_nameservices}')
+    namenode_address = format('hdfs://{ns}')
 
     # Calculate the namenode id of the other namenode. This is needed during RU to initiate an HA failover using ZKFC.
     if namenode_id is not None and len(dfs_ha_namemodes_ids_list) == 2:
@@ -351,19 +351,19 @@ else:
 
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
-  
-  
+
+
 if security_enabled:
   dn_principal_name = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
   dn_keytab = config['configurations']['hdfs-site']['dfs.datanode.keytab.file']
   dn_principal_name = dn_principal_name.replace('_HOST',hostname.lower())
-  
+
   dn_kinit_cmd = format("{kinit_path_local} -kt {dn_keytab} {dn_principal_name};")
-  
+
   nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
   nn_keytab = config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
   nn_principal_name = nn_principal_name.replace('_HOST',hostname.lower())
-  
+
   nn_kinit_cmd = format("{kinit_path_local} -kt {nn_keytab} {nn_principal_name};")
 
   jn_principal_name = default("/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None)
@@ -399,7 +399,7 @@ HdfsResource = functools.partial(
   immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
 )
-  
+
 name_node_params = default("/commandParams/namenode", None)
 
 java_home = config['ambariLevelParams']['java_home']

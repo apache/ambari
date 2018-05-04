@@ -27,6 +27,8 @@ import {AppStateService, appState} from '@app/services/storage/app-state.service
 import {AuthService} from '@app/services/auth.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {RouterTestingModule} from '@angular/router/testing';
+import {Routes} from '@angular/router';
+import {Component} from '@angular/core';
 
 describe('AuthService', () => {
 
@@ -61,13 +63,20 @@ describe('AuthService', () => {
   };
 
   beforeEach(() => {
+    const testRoutes: Routes = [{
+      path: 'login',
+      component: Component,
+      data: {
+        breadcrumbs: 'login.title'
+      }
+    }];
     TestBed.configureTestingModule({
       imports: [
         HttpModule,
         StoreModule.provideStore({
           appState
         }),
-        RouterTestingModule
+        RouterTestingModule.withRoutes(testRoutes)
       ],
       providers: [
         AuthService,

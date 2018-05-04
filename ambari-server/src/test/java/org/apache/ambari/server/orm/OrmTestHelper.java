@@ -634,8 +634,31 @@ public class OrmTestHelper {
 
     if (repositoryVersion == null) {
       try {
+        List<RepoOsEntity> operatingSystems = new ArrayList<>();
+        RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+        repoDefinitionEntity1.setRepoID("HDP");
+        repoDefinitionEntity1.setBaseUrl("");
+        repoDefinitionEntity1.setRepoName("HDP");
+        RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+        repoDefinitionEntity2.setRepoID("HDP-UTILS");
+        repoDefinitionEntity2.setBaseUrl("");
+        repoDefinitionEntity2.setRepoName("HDP-UTILS");
+        RepoOsEntity repoOsEntityRedHat6 = new RepoOsEntity();
+        repoOsEntityRedHat6.setFamily("redhat6");
+        repoOsEntityRedHat6.setAmbariManaged(true);
+        repoOsEntityRedHat6.addRepoDefinition(repoDefinitionEntity1);
+        repoOsEntityRedHat6.addRepoDefinition(repoDefinitionEntity2);
+        RepoOsEntity repoOsEntityRedHat5 = new RepoOsEntity();
+        repoOsEntityRedHat5.setFamily("redhat5");
+        repoOsEntityRedHat5.setAmbariManaged(true);
+        repoOsEntityRedHat5.addRepoDefinition(repoDefinitionEntity1);
+        repoOsEntityRedHat5.addRepoDefinition(repoDefinitionEntity2);
+        operatingSystems.add(repoOsEntityRedHat6);
+        operatingSystems.add(repoOsEntityRedHat5);
+
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), new ArrayList<>());
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(),
+            operatingSystems);
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
         ex.printStackTrace();

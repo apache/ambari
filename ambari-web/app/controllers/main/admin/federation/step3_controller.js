@@ -23,7 +23,6 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
   selectedService: null,
   stepConfigs: [],
   serverConfigData: {},
-  federationConfig: {},
   once: false,
   isLoaded: false,
   isConfigsLoaded: false,
@@ -43,7 +42,6 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     this.set('serverConfigData', {});
     this.set('isConfigsLoaded', false);
     this.set('isLoaded', false);
-    this.set('federationConfig', $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig))
   },
 
   loadStep: function () {
@@ -85,7 +83,10 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
   onLoad: function () {
     if (this.get('isConfigsLoaded') && App.router.get('clusterController.isHDFSNameSpacesLoaded')) {
-      var federationConfig = this.get('federationConfig');
+      var federationConfig =  $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig);
+      if (App.get('hasNameNodeFederation')) {
+       federationConfig.configs = federationConfig.configs.rejectProperty('firstRun');
+      }
       federationConfig.configs = this.tweakServiceConfigs(federationConfig.configs);
       this.removeConfigs(this.get('configsToRemove'), this.get('serverConfigData'));
       this.renderServiceConfigs(federationConfig);
@@ -99,12 +100,16 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var journalNodes = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE');
     var nameNodes = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE');
     var hdfsSiteConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
-    ret.nameservice1 = App.HDFSService.find().objectAt(0).get('masterComponentGroups')[0].name;
-    ret.nameservice2 = this.get('content.nameServiceId');
+    var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
+    ret.nameServicesList = nameServices.join(',');
+    ret.nameservice1 = nameServices[0];
+    ret.newNameservice = this.get('content.nameServiceId');
     ret.namenode1 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn1'].split(':')[0];
     ret.namenode2 = hdfsSiteConfigs['dfs.namenode.rpc-address.' + ret.nameservice1 + '.nn2'].split(':')[0];
-    ret.namenode3 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[0];
-    ret.namenode4 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[1];
+    ret.newNameNode1Index = 'nn' + (nameNodes.length - 1);
+    ret.newNameNode2Index = 'nn' + nameNodes.length;
+    ret.newNameNode1 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[0];
+    ret.newNameNode2 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[1];
     ret.journalnodes = journalNodes.map(function (c) {
       return c.get('hostName') + ':8485'
     }).join(';');
@@ -121,23 +126,13 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
     ret.journalnode_edits_dir = hdfsSiteConfigs['dfs.journalnode.edits.dir'];
 
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
-      var hdfsRangerConfigs = configsFromServer.findProperty('type', 'ranger-hdfs-security').properties;
-
-      if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
-        ret.ranger_service_name_ns1 = ret.clustername + '_hadoop_' + ret.nameservice1;
-        ret.ranger_service_name_ns2 = ret.clustername + '_hadoop_' + ret.nameservice2;
-      } else {
-        ret.ranger_service_name_ns1 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice1;
-        ret.ranger_service_name_ns2 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice2;
-      }
-    }
-
     return ret;
   },
 
   tweakServiceConfigs: function (configs) {
     var dependencies = this.prepareDependencies();
+    var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
+    nameServices.push(dependencies.newNameservice);
     var result = [];
     var configsToRemove = [];
     var hdfsSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'hdfs-site').properties;
@@ -146,9 +141,23 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
       configsToRemove = configsToRemove.concat([
         'dfs.namenode.servicerpc-address.{{nameservice1}}.nn1',
         'dfs.namenode.servicerpc-address.{{nameservice1}}.nn2',
-        'dfs.namenode.servicerpc-address.{{nameservice2}}.nn3',
-        'dfs.namenode.servicerpc-address.{{nameservice2}}.nn4'
+        'dfs.namenode.servicerpc-address.{{newNameservice}}.{{newNameNode1Index}}',
+        'dfs.namenode.servicerpc-address.{{newNameservice}}.{{newNameNode2Index}}'
       ]);
+    }
+
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      var hdfsRangerConfigs = this.get('serverConfigData').items.findProperty('type', 'ranger-hdfs-security').properties;
+
+      if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
+        nameServices.forEach(function (nameService) {
+          configs.push(this.createRangerServiceProperty(nameService, dependencies.clustername + '_hadoop_' + nameService));
+        }, this);
+      } else {
+        nameServices.forEach(function (nameService) {
+          configs.push(this.createRangerServiceProperty(nameService, hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + nameService));
+        }, this);
+      }
     }
 
     configs.forEach(function (config) {
@@ -163,6 +172,20 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     }, this);
 
     return result;
+  },
+
+  createRangerServiceProperty: function(nameservice, value) {
+    var name = "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".nameservice." + nameservice + ".ranger.service";
+    return {
+        "name": name,
+        "displayName": name,
+        "isReconfigurable": false,
+        "recommendedValue": value,
+        "value": value,
+        "category": "RANGER",
+        "filename": "ranger-tagsync-site",
+        "serviceName": 'MISC'
+      };
   },
 
   replaceDependencies: function (value, dependencies) {

@@ -45,7 +45,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
@@ -361,9 +360,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private TopologyDeleteFormer topologyDeleteFormer;
 
   @Inject
-  private AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper;
-
-  @Inject
   private Provider<TopologyHolder> m_topologyHolder;
 
   private Provider<MetadataHolder> m_metadataHolder;
@@ -388,8 +384,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   final private Integer masterPort;
   final private String masterProtocol;
 
-  final private static String JDK_RESOURCE_LOCATION =
-      "/resources/";
+  final private static String JDK_RESOURCE_LOCATION = "/resources";
 
   final private static int REPO_URL_CONNECT_TIMEOUT = 3000;
   final private static int REPO_URL_READ_TIMEOUT = 2000;
@@ -411,6 +406,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
+
   @Inject
   private AmbariActionExecutionHelper actionExecutionHelper;
 
@@ -1708,6 +1704,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<ConfigurationResponse> configurationResponses =
       new LinkedList<>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
+    boolean nonServiceConfigsChanged = false;
 
     if (desiredConfigs != null && request.getServiceConfigVersionRequest() != null) {
       String msg = "Unable to set desired configs and rollback at same time, request = " + request;
@@ -1868,12 +1865,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 configChangeLog.info("(configchange)    Config type '{}' was modified with the following keys, {}", config.getType(), configOutput);
               }
             }
+          } else {
+            nonServiceConfigsChanged = true;
           }
         }
       }
     }
-    m_metadataHolder.get().updateData(getClusterMetadataOnConfigsUpdate(cluster));
-    m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
 
     StackId currentVersion = cluster.getCurrentStackVersion();
     StackId desiredVersion = cluster.getDesiredStackVersion();
@@ -2017,6 +2014,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           cluster.setSecurityType(securityType);
         }
       }
+    }
+    if (serviceConfigVersionResponse != null || nonServiceConfigsChanged) {
+      configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
 
     if (requestStageContainer != null) {
@@ -2539,7 +2539,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Map<String, String> hostParams = new TreeMap<>();
-    hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
 
     if (roleCommand.equals(RoleCommand.INSTALL)) {
@@ -5603,6 +5602,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return metadataUpdateEvent;
   }
 
+  @Override
   public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) throws AmbariException {
     TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
     StackId stackId = cl.getDesiredStackVersion();
@@ -5631,6 +5631,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceName) throws AmbariException {
+    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+
+    MetadataCluster metadataCluster = new MetadataCluster(null,
+        getMetadataServiceLevelParams(cl.getService(serviceName)),
+        new TreeMap<>());
+    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
+
+    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
+        null);
+    return metadataUpdateEvent;
+  }
+
+  public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceName) throws AmbariException {
     TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
@@ -5834,14 +5847,23 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           serviceStackId.getStackVersion(), service.getName());
       Long statusCommandTimeout = null;
       if (serviceInfo.getCommandScript() != null) {
-        statusCommandTimeout = new Long(ambariCustomCommandExecutionHelper.getStatusCommandTimeout(serviceInfo));
+        statusCommandTimeout = new Long(customCommandExecutionHelper.getStatusCommandTimeout(serviceInfo));
       }
 
       String servicePackageFolder = serviceInfo.getServicePackageFolder();
 
+      // Get the map of service config type to password properties for the service
+      Map<String, Map<String, String>> configCredentials;
+      configCredentials = configCredentialsForService.get(service.getName());
+      if (configCredentials == null) {
+        configCredentials = configHelper.getCredentialStoreEnabledProperties(serviceStackId, service);
+        configCredentialsForService.put(service.getName(), configCredentials);
+      }
+
       serviceLevelParams.put(serviceInfo.getName(),
           new MetadataServiceInfo(serviceInfo.getVersion(),
-              serviceInfo.isCredentialStoreEnabled(),
+              service.isCredentialStoreEnabled(),
+              configCredentials,
               statusCommandTimeout,
               servicePackageFolder));
     }

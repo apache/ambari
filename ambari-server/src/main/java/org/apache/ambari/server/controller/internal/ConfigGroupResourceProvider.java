@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
@@ -69,6 +70,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @StaticallyInject
 public class ConfigGroupResourceProvider extends
@@ -140,6 +142,9 @@ public class ConfigGroupResourceProvider extends
    */
   @Inject
   private static ConfigFactory configFactory;
+
+  @Inject
+  private static Provider<ConfigHelper> m_configHelper;
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -514,6 +519,8 @@ public class ConfigGroupResourceProvider extends
         cluster.getClusterName(), getManagementController().getAuthName(), configGroup.getName(), request.getId());
 
     cluster.deleteConfigGroup(request.getId());
+
+    m_configHelper.get().updateAgentConfigs(Collections.singleton(request.getClusterName()));
   }
 
   private void validateRequest(ConfigGroupRequest request) {
@@ -547,6 +554,7 @@ public class ConfigGroupResourceProvider extends
     ConfigGroupFactory configGroupFactory = getManagementController()
       .getConfigGroupFactory();
 
+    Set<String> updatedClusters = new HashSet<>();
     for (ConfigGroupRequest request : requests) {
 
       Cluster cluster;
@@ -634,7 +642,10 @@ public class ConfigGroupResourceProvider extends
         configGroup.getTag(), configGroup.getDescription(), null, null);
 
       configGroupResponses.add(response);
+      updatedClusters.add(cluster.getClusterName());
     }
+
+    m_configHelper.get().updateAgentConfigs(updatedClusters);
 
     return configGroupResponses;
   }
@@ -647,6 +658,7 @@ public class ConfigGroupResourceProvider extends
 
     Clusters clusters = getManagementController().getClusters();
 
+    Set<String> updatedClusters = new HashSet<>();
     for (ConfigGroupRequest request : requests) {
 
       Cluster cluster;
@@ -755,12 +767,14 @@ public class ConfigGroupResourceProvider extends
         versionTags.add(tagsMap);
         configGroupResponse.setVersionTags(versionTags);
         getManagementController().saveConfigGroupUpdate(request, configGroupResponse);
+        updatedClusters.add(cluster.getClusterName());
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());
       }
     }
 
+    m_configHelper.get().updateAgentConfigs(updatedClusters);
   }
 
   @SuppressWarnings("unchecked")

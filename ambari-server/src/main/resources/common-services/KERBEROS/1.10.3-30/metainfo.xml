@@ -81,7 +81,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6</osFamily>
+          <osFamily>redhat7,amazonlinux2,redhat6</osFamily>
           <packages>
             <package>
               <name>krb5-workstation</name>

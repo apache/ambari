@@ -2467,7 +2467,29 @@ var urls = {
           },
           "Requests/resource_filters": [
             {
-              "hosts_predicate": "HostRoles/stale_configs=true"
+              "hosts_predicate": "HostRoles/stale_configs=true&HostRoles/cluster_name=" + data.clusterName
+            }
+          ]
+        })
+      }
+    }
+  },
+
+  'restart.custom.filter': {
+    'real': "/clusters/{clusterName}/requests",
+    'mock': "",
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": data.context,
+            "operation_level": "host_component"
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts_predicate": data.filter
             }
           ]
         })
@@ -2985,6 +3007,11 @@ var urls = {
   'widget.layout.id.get': {
     real: '/clusters/{clusterName}/widget_layouts/{layoutId}',
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
+  },
+
+  'widget.layout.delete': {
+    real: '/clusters/{clusterName}/widget_layouts/{layoutId}',
+    type: 'DELETE'
   },
 
   'widget.layout.get': {

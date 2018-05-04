@@ -79,9 +79,11 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.topology.validators.HiveServiceValidator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -235,6 +237,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK = "servicedesiredstateservicename";
   protected static final String COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcmpnntdesiredstatecmpnntnme";
   protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
+  protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
+  protected static final String CONFIGURATION_CORE_SITE = "core-site";
+  protected static final String PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS = "hadoop.proxyuser.HTTP.hosts";
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
@@ -439,12 +444,13 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                 if (rootObject != null) {
                   JsonPrimitive osType = rootObject.getAsJsonPrimitive("OperatingSystems/os_type");
                   JsonPrimitive ambariManaged = rootObject.getAsJsonPrimitive("OperatingSystems/ambari_managed_repositories");
+                  String isAmbariManaged = ambariManaged == null ? "1" :  (ambariManaged.getAsBoolean() ? "1" : "0"); //the SQL script which creates the DB schema defaults to 1
+
                   JsonArray repositories = rootObject.getAsJsonArray("repositories");
-                  String isAmbariManaged = ambariManaged.getAsBoolean() ? "1" : "0";
 
                   dbAccessor.insertRowIfMissing(REPO_OS_TABLE,
                       new String[]{REPO_OS_ID_COLUMN, REPO_OS_REPO_VERSION_ID_COLUMN, REPO_OS_AMBARI_MANAGED_COLUMN, REPO_OS_FAMILY_COLUMN},
-                      new String[]{String.valueOf(++repoOsId), String.valueOf(repoVersionId), isAmbariManaged, String.format("'%s'", osType.getAsString())},
+                      new String[]{String.valueOf(++repoOsId), String.valueOf(repoVersionId), isAmbariManaged, getFormattedJSONPrimitiveString(osType)},
                       false);
 
                   if (repositories != null) {
@@ -461,8 +467,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                             new String[]{REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_REPO_OS_ID_COLUMN,
                                 REPO_DEFINITION_REPO_NAME_COLUMN, REPO_DEFINITION_REPO_ID_COLUMN, REPO_DEFINITION_BASE_URL_COLUMN},
                             new String[]{String.valueOf(++repoDefinitionId), String.valueOf(repoOsId),
-                                String.format("'%s'", repoName.getAsString()), String.format("'%s'", repoId.getAsString()),
-                                String.format("'%s'", baseUrl.getAsString())},
+                                getFormattedJSONPrimitiveString(repoName), getFormattedJSONPrimitiveString(repoId),
+                                getFormattedJSONPrimitiveString(baseUrl)},
                             false);
 
                         if (tags != null) {
@@ -472,7 +478,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                             if (tag != null) {
                               dbAccessor.insertRowIfMissing(REPO_TAGS_TABLE,
                                   new String[]{REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_TAGS_TAG_COLUMN},
-                                  new String[]{String.valueOf(repoDefinitionId), String.format("'%s'", tag.getAsString())},
+                                  new String[]{String.valueOf(repoDefinitionId), getFormattedJSONPrimitiveString(tag)},
                                   false);
                             }
                           }
@@ -499,6 +505,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           new String[]{"'repo_definition_id_seq'", String.valueOf(++repoDefinitionId)},
           false);
     }
+  }
+
+  private String getFormattedJSONPrimitiveString(JsonPrimitive jsonValue) {
+    return jsonValue == null ? null : String.format("'%s'", jsonValue.getAsString());
   }
 
   /**
@@ -543,19 +553,19 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.executeUpdate(
         "insert into " + temporaryTable +
           "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-          " select" +
+          " select distinct" +
           "  u." + USERS_USER_ID_COLUMN + "," +
           "  t.min_user_id," +
           "  u." + USERS_USER_TYPE_COLUMN + "," +
           "  u." + USERS_USER_PASSWORD_COLUMN + "," +
           "  u." + USERS_CREATE_TIME_COLUMN + "," +
           "  u." + USERS_CREATE_TIME_COLUMN +
-          " from " + USERS_TABLE + " as u inner join" +
+          " from " + USERS_TABLE + " u inner join" +
           "   (select" +
           "     lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
           "     min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
           "    from " + USERS_TABLE +
-          "    group by lower(" + USERS_USER_NAME_COLUMN + ")) as t" +
+          "    group by lower(" + USERS_USER_NAME_COLUMN + ")) t" +
           " on (lower(u." + USERS_USER_NAME_COLUMN + ") = lower(t." + USERS_USER_NAME_COLUMN + "))"
       );
 
@@ -571,7 +581,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.executeUpdate(
         "insert into " + USER_AUTHENTICATION_TABLE +
           "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-          " select distinct " +
+          " select " +
           USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN +
           " from " + temporaryTable
       );
@@ -699,7 +709,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    m." + MEMBERS_MEMBER_ID_COLUMN + "," +
         "    u.min_user_id," +
         "    m." + MEMBERS_GROUP_ID_COLUMN +
-        "  from " + MEMBERS_TABLE + " as m inner join" +
+        "  from " + MEMBERS_TABLE + " m inner join" +
         "    (" +
         "      select" +
         "        iu." + USERS_USER_NAME_COLUMN + "," +
@@ -712,8 +722,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "            min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
         "          from " + USERS_TABLE +
         "          group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-        "        ) as t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
-        "    ) as u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
+        "        ) t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
+        "    ) u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
 
     // Truncate existing membership records
     dbAccessor.truncateTable(MEMBERS_TABLE);
@@ -780,7 +790,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
-        "  from " + ADMINPRIVILEGE_TABLE + " as ap" +
+        "  from " + ADMINPRIVILEGE_TABLE + " ap" +
         "  where ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " not in" +
         "        (" +
         "          select " + USERS_PRINCIPAL_ID_COLUMN +
@@ -792,29 +802,29 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
         "    t.new_principal_id" +
-        "  from " + ADMINPRIVILEGE_TABLE + " as ap inner join" +
+        "  from " + ADMINPRIVILEGE_TABLE + " ap inner join" +
         "    (" +
         "      select" +
         "        u." + USERS_USER_ID_COLUMN + "," +
         "        u." + USERS_USER_NAME_COLUMN + "," +
         "        u." + USERS_PRINCIPAL_ID_COLUMN + " as new_principal_id," +
         "        t1." + USERS_PRINCIPAL_ID_COLUMN + " as orig_principal_id" +
-        "      from " + USERS_TABLE + " as u inner join" +
+        "      from " + USERS_TABLE + " u inner join" +
         "        (" +
         "          select" +
         "            u1." + USERS_USER_NAME_COLUMN + "," +
         "            u1." + USERS_PRINCIPAL_ID_COLUMN + "," +
         "            t2.min_user_id" +
-        "          from " + USERS_TABLE + " as u1 inner join" +
+        "          from " + USERS_TABLE + " u1 inner join" +
         "            (" +
         "              select" +
         "                lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
         "                min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
         "              from " + USERS_TABLE +
         "              group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-        "            ) as t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
-        "        ) as t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
-        "    ) as t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id);");
+        "            ) t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
+        "        ) t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
+        "    ) t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id)");
 
     // Truncate existing adminprivilege records
     dbAccessor.truncateTable(ADMINPRIVILEGE_TABLE);
@@ -939,6 +949,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     createRoleAuthorizations();
     addUserAuthenticationSequence();
     updateSolrConfigurations();
+    updateAmsConfigs();
   }
 
   protected void renameAmbariInfra() throws SQLException {
@@ -1011,36 +1022,62 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
   @Override
   protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
-    if (artifactEntity == null)
+    if (artifactEntity == null) {
       return;
+    }
 
     Map<String, Object> data = artifactEntity.getArtifactData();
-    if (data == null)
+    if (data == null) {
       return;
+    }
 
     final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
-    if (kerberosDescriptor == null)
+    if (kerberosDescriptor == null) {
       return;
+    }
 
     Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
     KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
-    if (ambariInfraService == null)
-      return;
+    if (ambariInfraService != null) {
+      ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
+      services.remove(AMBARI_INFRA_OLD_NAME);
+      services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
+      kerberosDescriptor.setServices(services);
 
-    ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
-    services.remove(AMBARI_INFRA_OLD_NAME);
-    services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
-    kerberosDescriptor.setServices(services);
-
-    for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
-      updateKerberosIdentities(serviceDescriptor);
-      for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
-        updateKerberosIdentities(componentDescriptor);
+      for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
+        updateKerberosIdentities(serviceDescriptor);
+        for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
+          updateKerberosIdentities(componentDescriptor);
+        }
       }
     }
 
-    artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-    artifactDAO.merge(artifactEntity);
+    final boolean updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive = updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(kerberosDescriptor);
+
+    if (ambariInfraService != null || updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive) {
+      artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+      artifactDAO.merge(artifactEntity);
+    }
+  }
+
+  private boolean updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(KerberosDescriptor kerberosDescriptor) {
+    boolean updated = false;
+    final KerberosServiceDescriptor hiveService = kerberosDescriptor.getServices().get(HiveServiceValidator.HIVE_SERVICE);
+    if (hiveService != null) {
+      final KerberosComponentDescriptor webhcatServer = hiveService.getComponent(HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER);
+      if (webhcatServer != null) {
+        final KerberosConfigurationDescriptor coreSiteConfiguration = webhcatServer.getConfiguration(CONFIGURATION_CORE_SITE);
+        if (coreSiteConfiguration != null) {
+          final String currentHadoopProxyuserHttpHosts = coreSiteConfiguration.getProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS);
+          if (StringUtils.isNotBlank(currentHadoopProxyuserHttpHosts)) {
+            LOG.info("Updating hadoop.proxyuser.HTTP.hosts...");
+            coreSiteConfiguration.putProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS, currentHadoopProxyuserHttpHosts.replace("webhcat_server_host|", "webhcat_server_hosts|"));
+            updated = true;
+          }
+        }
+      }
+    }
+    return updated;
   }
 
   protected void addUserAuthenticationSequence() throws SQLException {
@@ -1498,11 +1535,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
     for (final Cluster cluster : clusterMap.values()) {
       updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content, "7.2.1");
+        content = updateLuceneMatchVersion(content, "7.3.0");
         return updateMergeFactor(content, "logsearch_service_logs_merge_factor");
       });
       updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content,"7.2.1");
+        content = updateLuceneMatchVersion(content,"7.3.0");
         return updateMergeFactor(content, "logsearch_audit_logs_merge_factor");
       });
       updateConfig(cluster, "ranger-solr-configuration", (content) -> {
@@ -1551,4 +1588,20 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
             .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
   }
+
+  protected void updateAmsConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          updateConfigurationPropertiesForCluster(cluster, "ams-site", Collections.singletonMap("timeline.metrics.service.default.result.limit", "5760"), true, true);
+        }
+      }
+    }
+  }
+
 }

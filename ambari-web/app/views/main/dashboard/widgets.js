@@ -209,10 +209,50 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     }
     else {
       newSettings.threshold = userPreferences.threshold;
-      newSettings.groups = userPreferences.groups;
       this.get('allWidgets').forEach(widget => {
-        let key = widget.get('isVisible') ? 'visible' : 'hidden';
+        const key = widget.get('isVisible') ? 'visible' : 'hidden';
         newSettings[key].push(widget.get('id'));
+      });
+      this.get('widgetGroups').forEach(group => {
+        const groupName = group.get('name');
+        if (!newSettings.groups[groupName]) {
+          newSettings.groups[groupName] = {};
+        }
+        group.get('allWidgets').forEach(widgetsSubGroup => {
+          const subGroupName = widgetsSubGroup.get('subGroupName'),
+            widgets = widgetsSubGroup.get('widgets'),
+            subGroupSettings = {
+              visible: [],
+              hidden: [],
+              threshold: {}
+            };
+          newSettings.groups[groupName][subGroupName] = subGroupSettings;
+          widgets.forEach(widget => {
+            const key = widget.get('isVisible') ? 'visible' : 'hidden',
+              threshold = widget.get('threshold'),
+              widgetId = widget.get('id'),
+              id = parseInt(widgetId);
+            if (subGroupName === '*') {
+              const regExp = new RegExp(`\\d+\\-${groupName}\\-([\\W\\w]+)\\-\\*`),
+                regExpMatch = widgetId.match(regExp),
+                subGroup = regExpMatch && regExpMatch[1];
+              if (subGroup) {
+                subGroupSettings[key].push({
+                  id,
+                  subGroup
+                });
+                $.extend(true, subGroupSettings.threshold, {
+                  [subGroup]: {
+                    [id]: threshold
+                  }
+                });
+              }
+            } else {
+              subGroupSettings[key].push(id);
+              subGroupSettings.threshold[id] = threshold;
+            }
+          });
+        });
       });
     }
     this.set('userPreferences', newSettings);
@@ -546,6 +586,10 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
                 id,
                 subGroup
               });
+            }
+            if (!preferences.threshold[subGroup]) {
+              isChanged = true;
+              preferences.threshold[subGroup] = defaultPreferences.groups[groupName]['*'].threshold[subGroup];
             }
           });
         }
