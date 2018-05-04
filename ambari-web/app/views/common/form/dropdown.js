@@ -22,6 +22,8 @@ App.DropdownView = Em.View.extend({
 
   templateName: require('templates/common/form/dropdown'),
 
+  qaAttr: '',
+
   selection: null,
 
   value: '',
@@ -37,6 +39,10 @@ App.DropdownView = Em.View.extend({
   isUpdating: false,
 
   change: Em.K,
+
+  didInsertElement: function() {
+    this.observeEmptySelection();
+  },
 
   /**
    * value should be updated after updating selection and vise versa
@@ -70,6 +76,8 @@ App.DropdownView = Em.View.extend({
 });
 
 App.DropdownOptionView = Em.View.extend({
+
+  tagName: 'span',
 
   template: Em.Handlebars.compile('{{view.optionLabel}}'),
 

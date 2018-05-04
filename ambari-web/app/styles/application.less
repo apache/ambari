@@ -2493,6 +2493,20 @@ a.abort-icon:hover {
   }
 }
 
+.dropdown-select {
+  .btn, .btn:focus {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    .selected-item {
+      width: calc(~"100% - 20px");
+      .ellipsis-overflow;
+      margin-right: 10px;
+      float: left;
+    }
+  }
+}
+
 .clock-view {
   bottom: 10px;
   right: 4px;
