@@ -1180,8 +1180,8 @@ public class ConfigHelper {
       || !Maps.difference(oldConfigProperties, properties).areEqual()) {
       if (createConfigType(cluster, stackId, controller, configType, properties,
         propertiesAttributes, authenticatedUserName, serviceVersionNote)) {
-        m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
-        m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+
+        updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
       }
     }
   }
@@ -1192,8 +1192,8 @@ public class ConfigHelper {
 
     if (createConfigType(cluster, stackId, controller, configType, properties,
       new HashMap<>(), authenticatedUserName, serviceVersionNote)) {
-      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
-      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+
+      updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
   }
 
@@ -1498,15 +1498,99 @@ public class ConfigHelper {
   }
 
   /**
+   * Checks populated services for staled configs and updates agent configs.
+   * Method retrieves actual agent configs and compares them with just generated to identify stale configs.
+   * Then config updates are sent to agents.
+   * @param updatedClusters names of clusters with changed configs
+   * @throws AmbariException
+   */
+  public void updateAgentConfigs(Set<String> updatedClusters) throws AmbariException {
+
+    // get all used clusters in request
+    List<Cluster> clustersInUse = new ArrayList<>();
+    for (String clusterName : updatedClusters) {
+      Cluster cluster;
+      cluster = clusters.getCluster(clusterName);
+      clustersInUse.add(cluster);
+    }
+
+    // get all current and previous host configs
+    Map<Long, AgentConfigsUpdateEvent> currentConfigEvents = new HashMap<>();
+    Map<Long, AgentConfigsUpdateEvent> previousConfigEvents = new HashMap<>();
+    for (Cluster cluster : clustersInUse) {
+      for (Host host : cluster.getHosts()) {
+        Long hostId = host.getHostId();
+        if (!currentConfigEvents.containsKey(hostId)) {
+          currentConfigEvents.put(host.getHostId(), m_agentConfigsHolder.get().getCurrentData(hostId));
+        }
+        if (!previousConfigEvents.containsKey(host.getHostId())) {
+          previousConfigEvents.put(host.getHostId(), m_agentConfigsHolder.get().getData(hostId));
+        }
+      }
+    }
+
+    for (Cluster cluster : clustersInUse) {
+      Map<Long, Map<String, Collection<String>>> changedConfigs = new HashMap<>();
+      for (Host host : cluster.getHosts()) {
+        AgentConfigsUpdateEvent currentConfigData = currentConfigEvents.get(host.getHostId());
+        AgentConfigsUpdateEvent previousConfigsData = previousConfigEvents.get(host.getHostId());
+
+        SortedMap<String, SortedMap<String, String>> currentConfigs =
+            currentConfigData.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
+        SortedMap<String, SortedMap<String, String>> previousConfigs =
+            previousConfigsData.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
+
+        Map<String, Collection<String>> changedConfigsHost = new HashMap<>();
+        for (String currentConfigType : currentConfigs.keySet()) {
+          if (previousConfigs.containsKey(currentConfigType)) {
+            Set<String> changedKeys = new HashSet<>();
+            Map<String, String> currentTypedConfigs = currentConfigs.get(currentConfigType);
+            Map<String, String> previousTypedConfigs = previousConfigs.get(currentConfigType);
+
+            for (String currentKey : currentTypedConfigs.keySet()) {
+              if (!previousTypedConfigs.containsKey(currentKey)
+                  || !currentTypedConfigs.get(currentKey).equals(previousTypedConfigs.get(currentKey))) {
+                changedKeys.add(currentKey);
+              }
+            }
+            for (String previousKey : previousTypedConfigs.keySet()) {
+              if (!currentTypedConfigs.containsKey(previousKey)) {
+                changedKeys.add(previousKey);
+              }
+            }
+
+            if (!changedKeys.isEmpty()) {
+              changedConfigsHost.put(currentConfigType, changedKeys);
+            }
+          } else {
+            changedConfigsHost.put(currentConfigType, currentConfigs.get(currentConfigType).keySet());
+          }
+        }
+        for (String previousConfigType : previousConfigs.keySet()) {
+          if (!currentConfigs.containsKey(previousConfigType)) {
+            changedConfigsHost.put(previousConfigType, previousConfigs.get(previousConfigType).keySet());
+          }
+        }
+        changedConfigs.put(host.getHostId(), changedConfigsHost);
+      }
+      for (String serviceName : cluster.getServices().keySet()) {
+        checkStaleConfigsStatusOnConfigsUpdate(cluster.getClusterId(), serviceName, changedConfigs);
+      }
+
+      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+    }
+  }
+
+  /**
    * Checks configs are stale after specified config changes for service's components.
    * @param clusterId cluster with changed config
    * @param serviceName service for changed config
-   * @param hostNames hosts with changed config, can be null
    * @param changedConfigs map of config types to collections of changed properties' names.
    * @throws AmbariException
    */
-  public void checkStaleConfigsStatusOnConfigsUpdate(Long clusterId, String serviceName, Collection<String> hostNames,
-                                                     Map<String, Collection<String>> changedConfigs) throws AmbariException {
+  public void checkStaleConfigsStatusOnConfigsUpdate(Long clusterId, String serviceName,
+                                                     Map<Long, Map<String, Collection<String>>> changedConfigs) throws AmbariException {
     if (MapUtils.isEmpty(changedConfigs)) {
       return;
     }
@@ -1517,16 +1601,11 @@ public class ConfigHelper {
     Service service = clusters.getCluster(clusterId).getService(serviceName);
     for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
       String serviceComponentHostName = serviceComponent.getName();
-      Set<String> hosts;
-      if (CollectionUtils.isNotEmpty(hostNames)) {
-        hosts = new HashSet<>(hostNames);
-      } else {
-        hosts = serviceComponent.getServiceComponentsHosts();
-      }
       for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
-        if (hosts.contains(serviceComponentHost.getHostName())) {
+        if (changedConfigs.keySet().contains(serviceComponentHost.getHost().getHostId())) {
           boolean staleConfigs = checkStaleConfigsStatusForHostComponent(serviceComponentHost,
-              changedConfigs);
+              changedConfigs.get(serviceComponentHost.getHost().getHostId()));
+
           if (wasStaleConfigsStatusUpdated(clusterId, serviceComponentHost.getHost().getHostId(),
               serviceName, serviceComponentHostName, staleConfigs)) {
             serviceComponentHost.setRestartRequiredWithoutEventPublishing(staleConfigs);
