@@ -1092,9 +1092,9 @@ public class UpgradeHelperTest extends EasyMockSupport {
         configurationJson,
         new TypeToken<List<ConfigUpgradeChangeDefinition.Replace>>() {}.getType());
 
-    assertEquals("1-foo-2\n", replacements.get(0).find);
+    assertEquals("1-foo-2" + System.lineSeparator(), replacements.get(0).find);
     assertEquals("REPLACED", replacements.get(0).replaceWith);
-    assertEquals("3-foo-4\n", replacements.get(1).find);
+    assertEquals("3-foo-4" + System.lineSeparator(), replacements.get(1).find);
     assertEquals("REPLACED", replacements.get(1).replaceWith);
     assertEquals(2, replacements.size());
   }

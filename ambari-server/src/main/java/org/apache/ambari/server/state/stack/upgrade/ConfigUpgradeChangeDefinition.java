@@ -287,15 +287,8 @@ public class ConfigUpgradeChangeDefinition {
     return inserts;
   }
 
-  /**
-   * Used for configuration updates that should mask their values from being
-   * printed in plain text.
-   */
   @XmlAccessorType(XmlAccessType.FIELD)
-  public static class Masked {
-    @XmlAttribute(name = "mask")
-    public boolean mask = false;
-
+  public static class ConditionalField{
     /**
      * The key to read for the if condition.
      */
@@ -315,10 +308,35 @@ public class ConfigUpgradeChangeDefinition {
     public String ifValue;
 
     /**
+     * Reverse search value result to opposite by allowing
+     * operation to be executed when value not found
+     */
+    @XmlAttribute(name = "if-value-not-matched")
+    public boolean ifValueNotMatched = false;
+
+    /**
+     * the way how to search the value:
+     * {@code IfValueMatchType.EXACT} - full comparison
+     * {@code IfValueMatchType.PARTIAL} - search for substring in string
+     */
+    @XmlAttribute(name = "if-value-match-type")
+    public IfValueMatchType ifValueMatchType = IfValueMatchType.EXACT;
+
+    /**
      * The property key state for the if condition
      */
     @XmlAttribute(name = "if-key-state")
     public PropertyKeyState ifKeyState;
+  }
+
+  /**
+   * Used for configuration updates that should mask their values from being
+   * printed in plain text.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  public static class Masked extends ConditionalField{
+    @XmlAttribute(name = "mask")
+    public boolean mask = false;
   }
 
 
@@ -532,7 +550,7 @@ public class ConfigUpgradeChangeDefinition {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "insert")
-  public static class Insert {
+  public static class Insert extends Masked{
     /**
      * The key name
      */
@@ -592,6 +610,24 @@ public class ConfigUpgradeChangeDefinition {
      */
     @XmlEnumValue("append")
     APPEND
+  }
+
+  /**
+   * The {@link IfValueMatchType} defines value search behaviour
+   */
+  @XmlEnum
+  public enum IfValueMatchType {
+    /**
+     * Exact value match
+     */
+    @XmlEnumValue("exact")
+    EXACT,
+
+    /**
+     * partial value match
+     */
+    @XmlEnumValue("partial")
+    PARTIAL
   }
 
 }
