@@ -426,7 +426,7 @@ App.HostComponentActionMap = {
         customCommand: 'STARTDEMOLDAP',
         context: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
         label: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
-        cssClass: 'glyphicon glyphicon-play-sign',
+        cssClass: 'icon icon-play-sign',
         disabled: false
       },
       STOPDEMOLDAP: {
