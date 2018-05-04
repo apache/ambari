@@ -50,6 +50,23 @@
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
     <skipSurefireTests>false</skipSurefireTests>
   </properties>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org</url>
+  </organization>
+  <issueManagement>
+    <system>jira</system>
+    <url>https://issues.apache.org/jira/browse/AMBARI</url>
+  </issueManagement>
+
   <repositories>
     <repository>
       <id>apache-hadoop</id>
