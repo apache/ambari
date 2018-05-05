@@ -662,6 +662,7 @@
           <failOnError>false</failOnError>
           <threshold>Low</threshold>
           <findbugsXmlOutputDirectory>${project.basedir}/target/findbugs</findbugsXmlOutputDirectory>
+          <excludeFilterFile>${project.basedir}/findbugs.exclude.xml</excludeFilterFile>
         </configuration>
         <executions>
           <execution>
@@ -691,6 +692,9 @@
               <includes>
                 <include>*.xml</include>
               </includes>
+              <excludes>
+                <exclude>findbugs.exclude.xml</exclude>
+              </excludes>
               <outputDir>${project.basedir}/target/findbugs</outputDir>
               <stylesheet>fancy-hist.xsl</stylesheet>
               <fileMappers>
