@@ -47,8 +47,8 @@ public class AuditLogRequestConverterTest extends AbstractRequestConverterTest {
     SimpleQuery simpleQuery = underTest.convert(request);
     SolrQuery queryResult = new DefaultQueryParser().doConstructSolrQuery(simpleQuery);
     // THEN
-    assertEquals("?q=*%3A*&start=0&rows=25&fq=repo%3A%28logsearch_app+secure_log%29&fq=-repo%3A%28hst_agent+system_message%29" +
-        "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=cluster%3Acl1&fq=reqUser%3A%28joe+steven%29&sort=evtTime+desc%2Cseq_num+desc",
+    assertEquals("?q=*%3A*&start=0&rows=25&fq=repo%3A%28logsearch_app+OR+secure_log%29&fq=-repo%3A%28hst_agent+OR+system_message%29" +
+        "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=cluster%3Acl1&fq=reqUser%3A%28joe+OR+steven%29&sort=evtTime+desc%2Cseq_num+desc",
       queryResult.toQueryString());
   }
 

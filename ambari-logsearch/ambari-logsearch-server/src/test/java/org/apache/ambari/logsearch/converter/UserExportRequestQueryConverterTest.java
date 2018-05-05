@@ -46,8 +46,8 @@ public class UserExportRequestQueryConverterTest extends AbstractRequestConverte
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
     assertEquals("?q=*%3A*&rows=0&fq=evtTime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D" +
-      "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=repo%3A%28logsearch_app+secure_log%29" +
-      "&fq=-repo%3A%28hst_agent+system_message%29&facet=true&facet.mincount=1&facet.limit=-1&facet.pivot=reqUser%2Crepo&facet.pivot=resource%2Crepo",
+        "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=repo%3A%28logsearch_app+OR+secure_log%29" +
+        "&fq=-repo%3A%28hst_agent+OR+system_message%29&facet=true&facet.mincount=1&facet.limit=-1&facet.pivot=reqUser%2Crepo&facet.pivot=resource%2Crepo",
       query.toQueryString());
   }
 
@@ -59,7 +59,7 @@ public class UserExportRequestQueryConverterTest extends AbstractRequestConverte
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
     assertEquals("?q=*%3A*&rows=0&fq=evtTime%3A%5B*+TO+*%5D&facet=true&facet.mincount=1&facet.limit=-1" +
-      "&facet.pivot=reqUser%2Crepo&facet.pivot=resource%2Crepo",
+        "&facet.pivot=reqUser%2Crepo&facet.pivot=resource%2Crepo",
       query.toQueryString());
   }
 }
