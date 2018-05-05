@@ -325,8 +325,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   showFinalConfig: function () {
     var config = this.get('config');
-    return config.get('isFinal') || !config.get('isNotEditable') && this.get('isHover');
-  }.property('config.isFinal', 'config.isNotEditable', 'isHover'),
+    return config.get('isFinal') || !config.get('isNotEditable');
+  }.property('config.isFinal', 'config.isNotEditable'),
 
   /**
    *
