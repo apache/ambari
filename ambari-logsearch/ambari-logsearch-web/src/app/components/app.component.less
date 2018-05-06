@@ -16,7 +16,6 @@
  */
 
 @import '../modules/shared/main';
-
 :host {
   background-color: @main-background-color; // TODO implement actual color
   display: flex;
@@ -34,11 +33,14 @@
     h1 {
       align-items: center;
       align-self: stretch;
+      background: lighten(@navbar-background-color, 5%) url('/resources/assets/images/ambari-logo.png') no-repeat;
+      background-position: .5em center;
+      background-size: 25px;
       background-color: lighten(@navbar-background-color, 5%);
       display: flex;
+      font-size: 20px;
       margin: 0 2em 0 0;
       padding: 0 2em;
-      text-transform: uppercase;
       &.full-flex-width {
         flex-basis: 100%;
       }
