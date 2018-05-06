@@ -22,6 +22,7 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/skipWhile';
 import 'rxjs/add/operator/skip';
+import 'rxjs/add/operator/throttleTime';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
@@ -149,7 +150,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.push(
-      Observable.fromEvent(window, 'scroll').subscribe(() => {
+      Observable.fromEvent(window, 'scroll').throttleTime(10).subscribe(() => {
         this.setFixedPositionValue();
       })
     );
