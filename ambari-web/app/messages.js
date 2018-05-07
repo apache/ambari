@@ -1087,9 +1087,8 @@ Em.I18n.translations = {
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
-  'installer.step10.staleServicesRestartRequired':' You may also need to restart other services for the newly added ' +
-    'services to function properly (for example, HDFS and YARN/MapReduce need to be restarted after adding Oozie). After closing this ' +
-    'wizard, please restart all services that have the restart indicator <i class="glyphicon glyphicon-refresh"></i> next to the service name.',
+  'installer.step10.staleServicesRestartRequired':' After closing this wizard, please restart all services ' +
+  'that have the restart indicator <i class="glyphicon glyphicon-refresh"></i> next to the service name.',
   'installer.step10.hostsSummary':'The cluster consists of {0} hosts',
   'installer.step10.installedAndStarted':'Installed and started services successfully on {0} new ',
   'installer.step10.installed':'Installed services successfully on {0} new ',

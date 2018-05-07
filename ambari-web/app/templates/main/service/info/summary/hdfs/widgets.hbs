@@ -75,13 +75,13 @@
     </div>
     {{! indent next row}}
     <div class="row"></div>
+    <div class="summary-label col-md-12">{{t services.service.summary.blockErrors}}</div>
     {{! Block Errors corrupt }}
     <div class="row block-errors-corrupt col-md-3">
       <div class="summary-value main-info">
         <div class="main-info">{{view.dfsCorruptBlocks}}</div>
         <div class="info-desc">{{t dashboard.services.hdfs.blockErrors.corrupt}}</div>
       </div>
-      <div class="summary-label">{{t services.service.summary.blockErrors}}</div>
     </div>
     {{! Block Errors missing }}
     <div class="row block-errors-missing col-md-3">
@@ -89,7 +89,6 @@
         <div class="main-info">{{view.dfsMissingBlocks}}</div>
         <div class="info-desc">{{t dashboard.services.hdfs.blockErrors.missing}}</div>
       </div>
-      <div class="summary-label">{{t services.service.summary.blockErrors}}</div>
     </div>
     {{! Block Errors replicated }}
     <div class="row block-errors-replicated col-md-3">
@@ -97,7 +96,6 @@
         <div class="main-info">{{view.dfsUnderReplicatedBlocks}}</div>
         <div class="info-desc">{{t dashboard.services.hdfs.blockErrors.replicated}}</div>
       </div>
-      <div class="summary-label">{{t services.service.summary.blockErrors}}</div>
     </div>
     {{! indent next row}}
     <div class="row"></div>
