@@ -1191,6 +1191,18 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public List<Service> getServicesByServiceGroup(String serviceGroupName) {
+    List<Service> servicesByServiceGroup = new ArrayList<>();
+    for(Entry<Long, Service> serviceEntry: servicesById.entrySet()){
+      Service s = servicesById.get(serviceEntry.getValue());
+      if (s.getServiceGroupName().equals(serviceGroupName)){
+        servicesByServiceGroup.add(s);
+      }
+    }
+    return servicesByServiceGroup;
+  }
+
+  @Override
   public Service getServiceByComponentName(String componentName) throws AmbariException {
     for (Service service : services.values()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {

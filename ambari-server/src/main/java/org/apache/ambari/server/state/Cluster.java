@@ -933,4 +933,11 @@ public interface Cluster {
    * @return a mapping of service to component version, or an empty map.
    */
   Map<String, Map<String, String>> getComponentVersionMap();
+
+  /**
+   * Fetch all the services by their servicegroupnames
+   * @param serviceGroupName
+   * @return list of services
+   */
+  List<Service> getServicesByServiceGroup(String serviceGroupName);
 }
