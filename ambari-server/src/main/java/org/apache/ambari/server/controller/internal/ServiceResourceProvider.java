@@ -531,6 +531,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
     Clusters clusters    = getManagementController().getClusters();
     String clusterId = request.getClusterName();
+    String serviceGroupName = request.getServiceGroupName();
 
     final Cluster cluster;
     try {
@@ -560,7 +561,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       checkDesiredState = true;
     }
 
-    for (Service s : cluster.getServices().values()) {
+    for (Service s : cluster.getServicesByServiceGroup(serviceGroupName)) {
       if (checkDesiredState
           && (desiredStateToCheck != s.getDesiredState())) {
         // skip non matching state
@@ -663,7 +664,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       serviceNames.get(request.getClusterName()).add(request.getServiceName());
 
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       State oldState = s.getDesiredState();
       State newState = null;
       if (request.getDesiredState() != null) {
