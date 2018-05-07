@@ -138,6 +138,7 @@ describe('App.ConfigsSaverMixin', function() {
     it('generates config without properties', function() {
       expect(mixin.createDesiredConfig('type1')).to.eql({
         "Config": {
+          "tag": "v1",
           "type": 'type1',
           "properties": {},
           "service_config_version_note": ""
@@ -148,6 +149,7 @@ describe('App.ConfigsSaverMixin', function() {
     it('generates config with properties', function() {
       expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: true})], "note")).to.eql({
         "Config": {
+          "tag": "v1",
           "type": 'type1',
           "properties": {
             "p1": 'v1',
@@ -161,6 +163,7 @@ describe('App.ConfigsSaverMixin', function() {
     it('generates config with properties and skip isRequiredByAgent', function() {
       expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: false})], "note")).to.eql({
         "Config": {
+          "tag": "v1",
           "type": 'type1',
           "properties": {
             p1: 'v1'
@@ -173,6 +176,7 @@ describe('App.ConfigsSaverMixin', function() {
     it('generates config with properties and skip service_config_version_note', function() {
       expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true})], "note", true)).to.eql({
         "Config": {
+          "tag": "v1",
           "type": 'type1',
           "properties": {
             p1: 'v1'
@@ -192,6 +196,7 @@ describe('App.ConfigsSaverMixin', function() {
           Em.Object.create({name: 'p7', value: 'v7', isRequiredByAgent: true, propertyType: ["PASSWORD"]})
         ], "note")).to.eql({
           "Config": {
+            "tag": "v1",
             "type": 'type1',
             "properties": {
               p1: 'v1',

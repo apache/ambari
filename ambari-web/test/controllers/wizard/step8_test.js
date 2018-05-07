@@ -104,7 +104,7 @@ var services = Em.A([
     serviceName: 's4',
     isSelected: true,
     isInstalled: false,
-    displayNameOnSelectServicePage: 's03',
+    displayNameOnSelectServicePage: 's04',
     isClientOnlyService: true,
     serviceComponents: Em.A([
       Em.Object.create({
@@ -337,28 +337,14 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.set('services', Em.A([]));
       installerStep8Controller.reopen({selectedServices: selectedServices});
       installerStep8Controller.loadServices();
+      console.log(installerStep8Controller.get('services'));
     });
 
     it('should load services', function () {
       var expected = [
         {
-          "service_name": "s1",
-          "display_name": "s01",
-          "service_components": []
-        },
-        {
-          "service_name": "s2",
-          "display_name": "s02",
-          "service_components": []
-        },
-        {
-          "service_name": "s3",
-          "display_name": "s03",
-          "service_components": []
-        },
-        {
           "service_name": "s4",
-          "display_name": "s03",
+          "display_name": "s04",
           "service_components": [
             {
               "component_name": "CLIENT",
@@ -1294,7 +1280,7 @@ describe('App.WizardStep8Controller', function () {
           componentName = 'c1';
         installerStep8Controller.registerHostsToComponent(hostNames, componentName);
         var data = JSON.parse(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data);
-        expect(data.RequestInfo.query).to.equal('Hosts/host_name=h1|Hosts/host_name=h2');
+        expect(data.RequestInfo.query).to.equal('Hosts/host_name.in(h1,h2)');
         expect(data.Body.host_components[0].HostRoles.component_name).to.equal('c1');
       });
 

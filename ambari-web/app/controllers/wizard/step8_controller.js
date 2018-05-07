@@ -43,6 +43,15 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   isInstaller: Em.computed.equal('content.controllerName', 'installerController'),
 
   /**
+   * Indicates whether to show the repo info section of the summary.
+   * Don't need to show this for Add Host in 3.0 because we are not
+   * letting the user change repos when installing slave/client components.
+   * 
+   * @type {boolean}
+   */
+  showRepoInfo: Em.computed.or('isInstaller', 'isAddService'),
+
+  /**
    * List of raw data about cluster that should be displayed
    * @type {Array}
    */
@@ -96,7 +105,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     return !!App.get('router.mainAdminKerberosController.kdc_type')
   }.property('App.router.mainAdminKerberosController.kdc_type'),
 
-
   /**
    * Should Submit button be disabled
    * @type {bool}
@@ -141,7 +149,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   configGroups: [],
 
   selectedServices: function () {
-    const services = App.StackService.find().map(service => service);
+    const services = App.StackService.find().filter(service => service.get('isSelected') === true && service.get('isInstalled') === false);
     return services;
   }.property(),
 
@@ -305,7 +313,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     this.get('clusterInfo').pushObject(Em.Object.create(totalHostsObj));
 
     //repo
-    if (this.get('isAddService') || this.get('isAddHost')) {
+    if (this.get('isAddService')) {
       // For some stacks there is no info regarding stack versions to upgrade, e.g. HDP-2.1
       if (App.StackVersion.find().get('content.length')) {
         this.loadRepoInfo();
@@ -313,44 +321,46 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         this.loadDefaultRepoInfo();
       }
     } else {
-      // from install wizard
-      var downloadConfig = this.get('downloadConfig');
-      var allRepos = [];
-      var selectedMpacks = this.get('content.selectedMpacks');
-      var registeredMpacks = this.get('content.registeredMpacks');
-      if (selectedMpacks && registeredMpacks) {
-        selectedMpacks.forEach(mpack => {
-          if (mpack.operatingSystems) { //repos have been customized
-            mpack.operatingSystems.forEach(os => {
-              if (os.selected) {
-                os.repos.forEach(function (repo) {
-                  allRepos.push(Em.Object.create({
-                    base_url: repo.downloadUrl,
-                    os_type: os.type,
-                    repo_id: repo.repoId
-                  }));
-                });
-              }
-            })
-          } else { //repos have not been customized, so use default info
-            const rmp = registeredMpacks.find(rmp => rmp.MpackInfo.mpack_name === mpack.name && rmp.MpackInfo.mpack_version === mpack.version);
-            if (rmp) {
-              rmp.operating_systems.forEach(os => {
-                os.OperatingSystems.repositories.forEach(function (repo) {
-                  allRepos.push(Em.Object.create({
-                    base_url: repo.base_url,
-                    os_type: repo.os_type,
-                    repo_id: repo.repo_id
-                  }));
+      if (this.get('isInstaller')) {
+        // from install wizard
+        var downloadConfig = this.get('downloadConfig');
+        var allRepos = [];
+        var selectedMpacks = this.get('content.selectedMpacks');
+        var registeredMpacks = this.get('content.registeredMpacks');
+        if (selectedMpacks && registeredMpacks) {
+          selectedMpacks.forEach(mpack => {
+            if (mpack.operatingSystems) { //repos have been customized
+              mpack.operatingSystems.forEach(os => {
+                if (os.selected) {
+                  os.repos.forEach(function (repo) {
+                    allRepos.push(Em.Object.create({
+                      base_url: repo.downloadUrl,
+                      os_type: os.type,
+                      repo_id: repo.repoId
+                    }));
+                  });
+                }
+              })
+            } else { //repos have not been customized, so use default info
+              const rmp = registeredMpacks.find(rmp => rmp.MpackInfo.mpack_name === mpack.name && rmp.MpackInfo.mpack_version === mpack.version);
+              if (rmp) {
+                rmp.operating_systems.forEach(os => {
+                  os.OperatingSystems.repositories.forEach(function (repo) {
+                    allRepos.push(Em.Object.create({
+                      base_url: repo.base_url,
+                      os_type: repo.os_type,
+                      repo_id: repo.repo_id
+                    }));
+                  })
                 })
-              })  
+              }
             }
-          }
-        });
-      }  
-      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-      this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
-      this.get('clusterInfo').set('repoInfo', allRepos);
+          });
+        }
+        allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+        this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
+        this.get('clusterInfo').set('repoInfo', allRepos);
+      }
     }
   },
 
@@ -460,21 +470,36 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @method loadServices
    */
   loadServices: function () {
-    this.get('selectedServices').filterProperty('isHiddenOnSelectServicePage', false).forEach(function (service) {
+    let services;
+    
+    if (this.get('isAddHost')) {
+      services = this.get('installedServices');
+    } else {
+      services = this.get('selectedServices');
+    }
+
+    services.filterProperty('isHiddenOnSelectServicePage', false).forEach(function (service) {
       var serviceObj = Em.Object.create({
         service_name: service.get('serviceName'),
         display_name: service.get('displayNameOnSelectServicePage'),
         service_components: Em.A([])
       });
       service.get('serviceComponents').forEach(function (component) {
+        const isClient = component.get('isClient');
+        const isSlave = component.get('isSlave');
+        const isMaster = component.get('isMaster');
+
+        //skip master components in Add Host wizard, since that wizard only allows adding slaves/clients
+        if (isMaster && this.get('isAddHost')) return;
+
         // show clients for services that have only clients components
-        if ((component.get('isClient') || component.get('isRequiredOnAllHosts')) && !service.get('isClientOnlyService')) return;
+        if ((isClient || component.get('isRequiredOnAllHosts')) && !service.get('isClientOnlyService')) return;
         // no HA component
         if (component.get('isHAComponentOnly')) return;
         // skip if component is not allowed on single node cluster
         if (Object.keys(this.get('content.hosts')).length === 1 && component.get('isNotAllowedOnSingleNodeCluster')) return;
         var displayName;
-        if (component.get('isClient')) {
+        if (isClient) {
           displayName = Em.I18n.t('common.clients')
         } else {
           // remove service name from component display name
@@ -484,11 +509,10 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         var componentName = component.get('componentName');
         var masterComponents = this.get('content.masterComponentHosts');
         var isMasterComponentSelected = masterComponents.someProperty('component', componentName);
-        var isMaster = component.get('isMaster');
-
+        
         if (!isMaster || isMasterComponentSelected) {
           serviceObj.get('service_components').pushObject(Em.Object.create({
-            component_name: component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
+            component_name: isClient ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
             display_name: displayName,
             component_value: this.assignComponentHosts(component)
           }));
@@ -504,7 +528,9 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           }));
         }
       }
-      this.get('services').pushObject(serviceObj);
+      if (serviceObj.get('service_components').length > 0) {
+        this.get('services').pushObject(serviceObj);
+      }  
     }, this);
   },
 
@@ -1458,16 +1484,19 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   registerHostsToComponent: function (hostNames, componentName) {
     if (!hostNames.length) return;
 
-    let serviceName,
-        serviceGroupName;
-    var queryStr = '';
-    hostNames.forEach(function (hostName) {
-      queryStr += 'Hosts/host_name=' + hostName + '|';
-    });
-    //slice off last symbol '|'
-    queryStr = queryStr.slice(0, -1);
+    let serviceName;
+    let serviceGroupName;
 
-    this.get('selectedServices').forEach( function (service) {
+    const queryStr = `Hosts/host_name.in(${hostNames.join(',')})`;
+
+    let services;
+    if (this.get('isAddHost')) {
+      services = this.get('installedServices');
+    } else {
+      services = this.get('selectedServices');
+    }
+
+    services.forEach( function (service) {
       if (service.get('serviceComponents').findProperty('componentName', componentName)) {
         serviceName = service.get('serviceName');
         serviceGroupName = service.get('stackName');
