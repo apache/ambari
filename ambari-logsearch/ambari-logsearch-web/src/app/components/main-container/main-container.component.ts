@@ -22,8 +22,7 @@ import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'main-container',
-  templateUrl: './main-container.component.html',
-  styleUrls: ['./main-container.component.less']
+  templateUrl: './main-container.component.html'
 })
 export class MainContainerComponent implements OnInit, OnDestroy{
 
