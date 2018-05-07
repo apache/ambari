@@ -1371,7 +1371,7 @@ public class PhoenixHBaseAccessor {
         TimelineMetric metric = metricAggregate.getKey();
         MetricHostAggregate hostAggregate = metricAggregate.getValue();
 
-        byte[] uuid = metadataManagerInstance.getUuid(metric, false);
+        byte[] uuid = metadataManagerInstance.getUuid(metric, true);
         if (uuid == null) {
           LOG.error("Error computing UUID for metric. Cannot write aggregate metric : " + metric.toString());
           continue;
@@ -1555,7 +1555,7 @@ public class PhoenixHBaseAccessor {
             "aggregate = " + aggregate);
         }
 
-        byte[] uuid = metadataManagerInstance.getUuid(clusterMetric, false);
+        byte[] uuid = metadataManagerInstance.getUuid(clusterMetric, true);
         if (uuid == null) {
           LOG.error("Error computing UUID for metric. Cannot write metric : " + clusterMetric.toString());
           continue;

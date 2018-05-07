@@ -1603,6 +1603,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
           updateConfigurationPropertiesForCluster(cluster, "ams-site", Collections.singletonMap("timeline.metrics.service.default.result.limit", "5760"), true, true);
+          updateConfigurationPropertiesForCluster(cluster, "ams-hbase-site", Collections.singletonMap("hbase.snapshot.enabled", "true"), true, true);
         }
       }
     }
