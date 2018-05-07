@@ -19,6 +19,8 @@ limitations under the License.
 """
 
 import os
+
+from resource_management import Fail
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import InlineTemplate, StaticFile
 from resource_management.core.shell import as_user
@@ -30,13 +32,9 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or 'tracer' or 'client'
   import params
 
-  # create the conf directory
-  Directory( params.conf_dir,
-      mode=0755,
-      owner = params.accumulo_user,
-      group = params.user_group,
-      create_parents = True
-  )
+  # check if confdir is a link
+  if not os.path.exists(params.conf_dir) or not os.path.islink(params.conf_dir):
+    raise Fail("confdir {} must be a symlink".format(params.conf_dir))
 
   if name == 'client':
     dest_conf_dir = params.conf_dir
