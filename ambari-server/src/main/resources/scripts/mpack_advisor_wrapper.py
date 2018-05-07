@@ -44,7 +44,6 @@ USAGE = "Usage: <action> <hosts_file> <services_file>\nPossible actions are: {0}
 
 SCRIPT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIRECTORY = os.path.join(SCRIPT_DIRECTORY, '../stacks')
-ADVISOR_ADAPTER_PATH = os.path.join(STACKS_DIRECTORY, 'advisor_adapter.py')
 MPACK_ADVISOR_PATH = os.path.join(STACKS_DIRECTORY, 'mpack_advisor.py')
 AMBARI_CONFIGURATION_PATH = os.path.join(STACKS_DIRECTORY, 'ambari_configuration.py')
 
@@ -108,15 +107,15 @@ def main(argv=None):
     result_file = os.path.join(actionDir, "component-layout.json")
   elif action == VALIDATE_COMPONENT_LAYOUT_ACTION:
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'validateComponentLayout'}
-    result = mpackAdvisor.validateComponentLayout(services, hosts)
+    result = mpackAdvisor.validateComponentLayout()
     result_file = os.path.join(actionDir, "component-layout-validation.json")
   elif action == RECOMMEND_CONFIGURATIONS:
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurations'}
-    result = mpackAdvisor.recommendConfigurations(services, hosts)
+    result = mpackAdvisor.recommendConfigurations()
     result_file = os.path.join(actionDir, "configurations.json")
   elif action == RECOMMEND_CONFIGURATIONS_FOR_SSO:
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationsForSSO'}
-    result = mpackAdvisor.recommendConfigurationsForSSO(services, hosts)
+    result = mpackAdvisor.recommendConfigurationsForSSO()
     result_file = os.path.join(actionDir, "configurations.json")
   elif action == RECOMMEND_CONFIGURATION_DEPENDENCIES:
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationDependencies'}
@@ -124,7 +123,7 @@ def main(argv=None):
     result_file = os.path.join(actionDir, "configurations.json")
   else:  # action == VALIDATE_CONFIGURATIONS
     services[ADVISOR_CONTEXT] = {CALL_TYPE: 'validateConfigurations'}
-    result = mpackAdvisor.validateConfigurations(services, hosts)
+    result = mpackAdvisor.validateConfigurations()
     result_file = os.path.join(actionDir, "configurations-validation.json")
 
   dumpJson(result, result_file)
@@ -136,9 +135,6 @@ def instantiateMpackAdvisor():
 
   with open(AMBARI_CONFIGURATION_PATH, 'rb') as fp:
     imp.load_module('ambari_configuration', fp, AMBARI_CONFIGURATION_PATH, ('.py', 'rb', imp.PY_SOURCE))
-
-  with open(ADVISOR_ADAPTER_PATH, 'rb') as fp:
-    imp.load_module('advisor_adapter', fp, ADVISOR_ADAPTER_PATH, ('.py', 'rb', imp.PY_SOURCE))
 
   with open(MPACK_ADVISOR_PATH, 'rb') as fp:
     mpack_advisor = imp.load_module('mpack_advisor', fp, MPACK_ADVISOR_PATH, ('.py', 'rb', imp.PY_SOURCE))

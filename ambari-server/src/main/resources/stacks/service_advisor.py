@@ -46,14 +46,18 @@ convention listed above.
 For examples see: common-services/HAWQ/2.0.0/service_advisor.py
 and common-services/PXF/3.0.0/service_advisor.py
 """
-from stack_advisor import DefaultStackAdvisor
-from advisor_adapter import AdvisorAdapter
 
-class ServiceAdvisor(AdvisorAdapter):
+class ServiceAdvisor(object):
   """
   Abstract class implemented by all service advisors.
   """
 
+  """
+  Dynamically inherit DefaultStackAdvisor base class or MpackAdvisor base class
+  """
+  def __new__(cls, base_type):
+    base_class = type(base_type.__name__ + 'ServiceAdvisor', (ServiceAdvisor, base_type), {})
+    return super(ServiceAdvisor, cls).__new__(base_class, cls)
 
   def colocateService(self, hostsComponentsMap, serviceComponents):
     """

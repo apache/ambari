@@ -52,8 +52,8 @@
       "service_version" : "3.0.0.0-b129",
       "stack_name" : "HDPCORE",
       "stack_version" : "1.0.0-b301",
-      "advisor_name" : "HDPCORE100b301HDFSServiceAdvisor",
-      "advisor_path" : "/var/lib/ambari-server/resources/stacks/HDPCORE/1.0.0-b301/services/HDFS/service_advisor.py"
+      "advisor_name" : "HDFSServiceAdvisor",
+      "advisor_path" : "mpacks/mpack_advisor_data/service_advisor.py"
     },
     "components" : [ {
       "href" : "/api/v1/stacks/HDPCORE/versions/1.0.0-b301/services/HDFS/components/DATANODE",
