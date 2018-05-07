@@ -1,0 +1,20 @@
+{
+ "items": [
+  {
+   "mpack-name": "HDPCORE", 
+   "level": "ERROR", 
+   "mpack-version": "1.0.0-b301", 
+   "component-name": "HISTORYSERVER", 
+   "message": "History Server requires SLIDER to be co-hosted on following host(s): sduan-mpack-2.openstacklocal.", 
+   "type": "host-component"
+  }, 
+  {
+   "mpack-name": "HDPCORE", 
+   "level": "ERROR", 
+   "mpack-version": "1.0.0-b301", 
+   "component-name": "HISTORYSERVER", 
+   "message": "History Server requires TEZ_CLIENT to be co-hosted on following host(s): sduan-mpack-2.openstacklocal.", 
+   "type": "host-component"
+  }
+ ]
+}

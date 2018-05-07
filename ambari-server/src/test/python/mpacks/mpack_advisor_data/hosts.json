@@ -1,0 +1,245 @@
+{
+  "href" : "/api/v1/hosts?fields=Hosts/*&Hosts/host_name.in(sduan-mpack-1.openstacklocal,sduan-mpack-2.openstacklocal,sduan-mpack-3.openstacklocal)",
+  "items" : [
+    {
+      "href" : "/api/v1/hosts/sduan-mpack-1.openstacklocal",
+      "Hosts" : {
+        "cpu_count" : 2,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "22675100",
+            "device" : "/dev/vda1",
+            "used" : "3523680",
+            "percent" : "14%",
+            "size" : "26198780",
+            "type" : "xfs",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "10183208",
+            "device" : "devtmpfs",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "10183208",
+            "type" : "devtmpfs",
+            "mountpoint" : "/dev"
+          },
+          {
+            "available" : "244715816",
+            "device" : "/dev/vdb",
+            "used" : "60508",
+            "percent" : "1%",
+            "size" : "257899908",
+            "type" : "ext4",
+            "mountpoint" : "/grid/0"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "sduan-mpack-1.openstacklocal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "172.22.82.246",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1525533517032,
+            "serverTimeStampAtReporting" : 0,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "chronyd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "",
+          "firewallRunning" : false,
+          "firewallName" : "iptables",
+          "hasUnlimitedJcePolicy" : null,
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1525533528021,
+        "last_registration_time" : 1525533037342,
+        "os_arch" : "x86_64",
+        "os_family" : "redhat7",
+        "os_type" : "centos7",
+        "ph_cpu_count" : 2,
+        "public_host_name" : "sduan-mpack-1.openstacklocal",
+        "rack_info" : "/default-rack",
+        "recovery_report" : {
+          "summary" : "DISABLED",
+          "component_reports" : [ ]
+        },
+        "recovery_summary" : "DISABLED",
+        "total_mem" : 20397560
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/sduan-mpack-2.openstacklocal",
+      "Hosts" : {
+        "cpu_count" : 2,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "24758772",
+            "device" : "/dev/vda1",
+            "used" : "1440008",
+            "percent" : "6%",
+            "size" : "26198780",
+            "type" : "xfs",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "10183208",
+            "device" : "devtmpfs",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "10183208",
+            "type" : "devtmpfs",
+            "mountpoint" : "/dev"
+          },
+          {
+            "available" : "244715816",
+            "device" : "/dev/vdb",
+            "used" : "60508",
+            "percent" : "1%",
+            "size" : "257899908",
+            "type" : "ext4",
+            "mountpoint" : "/grid/0"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "sduan-mpack-2.openstacklocal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "172.22.82.247",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1525533529962,
+            "serverTimeStampAtReporting" : 0,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "chronyd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "",
+          "firewallRunning" : false,
+          "firewallName" : "iptables",
+          "hasUnlimitedJcePolicy" : null,
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1525533531456,
+        "last_registration_time" : 1525533040741,
+        "os_arch" : "x86_64",
+        "os_family" : "redhat7",
+        "os_type" : "centos7",
+        "ph_cpu_count" : 2,
+        "public_host_name" : "sduan-mpack-2.openstacklocal",
+        "rack_info" : "/default-rack",
+        "recovery_report" : {
+          "summary" : "DISABLED",
+          "component_reports" : [ ]
+        },
+        "recovery_summary" : "DISABLED",
+        "total_mem" : 20397560
+      }
+    },
+    {
+      "href" : "/api/v1/hosts/sduan-mpack-3.openstacklocal",
+      "Hosts" : {
+        "cpu_count" : 2,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "24758776",
+            "device" : "/dev/vda1",
+            "used" : "1440004",
+            "percent" : "6%",
+            "size" : "26198780",
+            "type" : "xfs",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "10183208",
+            "device" : "devtmpfs",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "10183208",
+            "type" : "devtmpfs",
+            "mountpoint" : "/dev"
+          },
+          {
+            "available" : "244715816",
+            "device" : "/dev/vdb",
+            "used" : "60508",
+            "percent" : "1%",
+            "size" : "257899908",
+            "type" : "ext4",
+            "mountpoint" : "/grid/0"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "sduan-mpack-3.openstacklocal",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "172.22.82.248",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1525533452435,
+            "serverTimeStampAtReporting" : 0,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "chronyd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "",
+          "firewallRunning" : false,
+          "firewallName" : "iptables",
+          "hasUnlimitedJcePolicy" : null,
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1525533525424,
+        "last_registration_time" : 1525533034313,
+        "os_arch" : "x86_64",
+        "os_family" : "redhat7",
+        "os_type" : "centos7",
+        "ph_cpu_count" : 2,
+        "public_host_name" : "sduan-mpack-3.openstacklocal",
+        "rack_info" : "/default-rack",
+        "recovery_report" : {
+          "summary" : "DISABLED",
+          "component_reports" : [ ]
+        },
+        "recovery_summary" : "DISABLED",
+        "total_mem" : 20397560
+      }
+    }
+  ]
+}
