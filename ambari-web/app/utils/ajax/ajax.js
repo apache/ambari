@@ -2502,6 +2502,10 @@ var urls = {
     }
   },
 
+  'components.get.staleConfigs': {
+    'real': "/clusters/{clusterName}/host_components?HostRoles/stale_configs=true"
+  },
+
   'restart.staleConfigs': {
     'real': "/clusters/{clusterName}/requests",
     'mock': "",

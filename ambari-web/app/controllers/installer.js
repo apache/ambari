@@ -1165,27 +1165,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return dfd.promise();
   },
 
-  getStepSavedState: function (stepName) {
-    const stepIndex = this.getStepIndex(stepName);
-    const stepsSaved = this.get('content.stepsSavedState');
-
-    if (!!stepIndex && stepsSaved && stepsSaved[stepIndex]) {
-      return true;
-    }
-
-    return false;
-  },
-
-  setStepUnsaved: function (stepName) {
-    const stepIndex = this.getStepIndex(stepName);
-    const oldState = this.get('content.stepsSavedState') || {};
-    const newState = Em.Object.create(oldState);
-    newState[stepIndex] = false;
-
-    this.set('content.stepsSavedState', newState);
-    this.save('stepsSavedState');
-  },
-
   /**
    * Updates the stepsSaved array based on the stepName provided.
    * If the passed step is already saved, then nothing is changed.

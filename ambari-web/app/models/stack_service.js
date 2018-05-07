@@ -106,7 +106,7 @@ App.StackService = DS.Model.extend({
   stackVersion: DS.attr('string'),
   selection: DS.attr('string'),
   isMandatory: DS.attr('boolean', {defaultValue: false}),
-  isSelected: DS.attr('boolean', {defaultValue: true}),
+  isSelected: DS.attr('boolean', {defaultValue: false}),
   isInstalled: DS.attr('boolean', {defaultValue: false}),
   isInstallable: DS.attr('boolean', {defaultValue: true}),
   isServiceWithWidgets: DS.attr('boolean', {defaultValue: false}),
