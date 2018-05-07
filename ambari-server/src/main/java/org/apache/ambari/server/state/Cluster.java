@@ -937,7 +937,7 @@ public interface Cluster {
   /**
    * Fetch all the services by their servicegroupnames
    * @param serviceGroupName
-   * @return
+   * @return list of services
    */
   List<Service> getServicesByServiceGroup(String serviceGroupName);
 }
