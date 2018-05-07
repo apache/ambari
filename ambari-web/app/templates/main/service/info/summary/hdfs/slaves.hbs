@@ -86,6 +86,7 @@
     {{/if}}
     {{! indent next row}}
     <div class="row"></div>
+    <div class="summary-label col-md-12">{{t dashboard.services.hdfs.datanodecounts}}</div>
     {{! Data Node Counts live }}
     <div class="row datanode-count-live col-md-3">
       <div class="summary-value">
@@ -101,7 +102,6 @@
           <div class="info-desc">{{t dashboard.services.hdfs.nodes.live}}</div>
         {{/if}}
       </div>
-      <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
     </div>
     {{! Data Node Counts dead }}
     <div class="row datanode-count-dead col-md-3">
@@ -118,7 +118,6 @@
           <div class="info-desc">{{t dashboard.services.hdfs.nodes.dead}}</div>
         {{/if}}
       </div>
-      <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
     </div>
     {{! Data Node Counts decommission }}
     <div class="row datanode-count-decommission col-md-3">
@@ -135,7 +134,6 @@
           <div class="info-desc">{{t dashboard.services.hdfs.nodes.decom}}</div>
         {{/if}}
       </div>
-      <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
     </div>
   </div>
 </div>
