@@ -63,15 +63,17 @@ export class ShipperGuard implements CanActivate {
             if (!canActivate) {
               const title = 'shipperConfiguration.navigation.title';
               const invalidKey: string = cluster === validCluster ? 'invalidService' : 'invalidCluster';
-              const message = this.translateService.instant(`shipperConfiguration.navigation.${invalidKey}`, {
-                cluster,
-                service
-              });
-              this.notificationService.addNotification({
-                title,
-                message,
-                type: NotificationType.ERROR
-              });
+              if (cluster || service) {
+                const message = this.translateService.instant(`shipperConfiguration.navigation.${invalidKey}`, {
+                  cluster: cluster || '',
+                  service: service || ''
+                });
+                this.notificationService.addNotification({
+                  title,
+                  message,
+                  type: NotificationType.ERROR
+                });
+              }
               this.router.navigate(['/shipper', validCluster, services[0]]);
             }
             return canActivate;

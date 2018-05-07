@@ -41,28 +41,36 @@
   <i class="fa fa-search"></i>
   <i class="fa fa-times-circle-o clear-filter" [class.hide]="!filterRegExp" (click)="clearFilter($event)"></i>
 </li>
-<li class="selection-all" *ngIf="isMultipleChoice">
-  <label *ngIf="isMultipleChoice && items && items.length" class="list-item-label" (click)="changeAllSelection($event)">
-    <input type="checkbox" #selectAll [value]="items && items.length"
-           [checked]="items && (items.length === itemsSelected.length)">
-    <label class="label-container">
-      <span>{{'dropdown.selection.all' | translate:({total: items && items.length, listName: ''})}}</span>
-    </label>
-  </label>
-</li>
-<li *ngIf="isMultipleChoice && items && items.length" class="divider"></li>
-<li class="selections" *ngIf="itemsSelected.length>0">
-  <span>{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
-  <a href="#" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>
-</li>
 
-<ng-container *ngFor="let item of itemsSelected">
-  <ng-container
-    *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+<ng-container *ngIf="isMultipleChoice">
+  <li class="selection-all">
+    <label *ngIf="items && items.length" class="list-item-label" (click)="changeAllSelection($event)">
+      <input type="checkbox" #selectAll [value]="items && items.length"
+             [checked]="items && (items.length === itemsSelected.length)">
+      <label class="label-container">
+        <span>{{'dropdown.selection.all' | translate:({total: items && items.length, listName: ''})}}</span>
+      </label>
+    </label>
+  </li>
+  <li *ngIf="items && items.length" class="divider"></li>
+  <li class="selections" *ngIf="itemsSelected.length>0">
+    <span>{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
+    <a href="#" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>
+  </li>
+  <ng-container *ngFor="let item of itemsSelected">
+    <ng-container
+      *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+  </ng-container>
+  <li *ngIf="itemsSelected.length && itemsUnSelected.length" class="divider"></li>
+  <ng-container *ngFor="let item of itemsUnSelected">
+    <ng-container
+      *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+  </ng-container>
 </ng-container>
 
-<li *ngIf="itemsSelected.length && itemsUnSelected.length" class="divider"></li>
-<ng-container *ngFor="let item of itemsUnSelected">
-  <ng-container
-    *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+<ng-container *ngIf="!isMultipleChoice">
+  <ng-container *ngFor="let item of items">
+    <ng-container
+      *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+  </ng-container>
 </ng-container>

@@ -93,9 +93,17 @@ export class DropdownButtonComponent {
       const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
       this.selection = checkedItems;
       this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
-    } else if (!this.utils.isEqual(this.selection[0], item)) {
-      this.selection = [item];
-      this.selectItem.emit(item.value);
+    } else {
+      if (item) {
+        item.isChecked = true;
+      }
+      if (!this.utils.isEqual(this.selection[0], item)) {
+        if (this.selection && this.selection.length) {
+          this.selection[0].isChecked = false;
+        }
+        this.selection = item ? [item] : [];
+        this.selectItem.emit(item ? item.value : undefined);
+      }
     }
   }
 

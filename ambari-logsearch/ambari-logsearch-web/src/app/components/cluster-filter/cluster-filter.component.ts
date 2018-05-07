@@ -102,14 +102,25 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
     let clusterSelection = this.routingUtilsService.getParamFromActivatedRouteSnapshot(routeSnapshot, 'cluster');
     if (clusterSelection) {
       clusterSelection = this.useMultiSelection.getValue() ? clusterSelection.split(/[,;]/) : clusterSelection;
+      if (Array.isArray(clusterSelection)) {
+        clusterSelection = clusterSelection.map(
+          (clusterName: string) => Object.assign(this.utilsService.getListItemFromString(clusterName), {
+            isChecked: true
+          })
+        );
+      } else {
+        clusterSelection = Object.assign(this.utilsService.getListItemFromString(clusterSelection), {
+          isChecked: true
+        });
+      }
       this.appStateService.getParameter('clustersDataState')
         .filter((state: DataAvailabilityValues) => state === DataAvailabilityValues.AVAILABLE)
         .first()
         .subscribe(() => {
-          this.filterDropdown.updateSelection(Object.assign(this.utilsService.getListItemFromString(clusterSelection), {
-            isChecked: true
-          }));
+          this.filterDropdown.updateSelection(clusterSelection);
         });
+    } else {
+      this.filterDropdown.selection = [];
     }
   }
 
@@ -124,10 +135,10 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
   }
 
   onDropDownSelectionChanged = (values): void => {
-    this.setSelection(values);
+    this.setSelectionInClusterSelectionStore(values);
   }
 
-  private setSelection = (values): void => {
+  private setSelectionInClusterSelectionStore = (values): void => {
     this.clusterSelectionStoreService.getParameter(this.clusterSelectionStoreKey.getValue()).first()
       .subscribe(currentCluster => {
         if (!this.utilsService.isEqual(currentCluster, values)) {
