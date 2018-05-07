@@ -54,13 +54,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimaps;
-
 
 /**
  * Stack module which provides all functionality related to parsing and fully
@@ -157,7 +150,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   public StackModule(StackDirectory stackDirectory, StackContext stackContext) {
     this.stackDirectory = stackDirectory;
     this.stackContext = stackContext;
-    this.stackInfo = new StackInfo();
+    stackInfo = new StackInfo();
     populateStackInfo();
   }
 
@@ -505,9 +498,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         setValid(false);
         addError("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
             + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
-      }
-      else
+      } else {
         service.resolve(parentService, allStacks, commonServices, extensions);
+      }
     }
   }
 
@@ -1181,31 +1174,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
       stackInfo.getRepositories().addAll(stackRepos);
     }
-
-    LOG.debug("Process service custom repositories");
-    Set<RepositoryInfo> serviceRepos = getUniqueServiceRepos(stackRepos);
-    stackInfo.getRepositories().addAll(serviceRepos);
-
-    if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0 && stackContext != null) {
-      registerRepoUpdateTask(rxml);
-    }
-  }
-
-  private void registerRepoUpdateTask(RepositoryXml rxml) {
-    String latest = rxml.getLatestURI();
-    if (StringUtils.isBlank(latest)) {
-      return;
-    }
-
-    URI uri = getURI(this, latest);
-
-    if (null == uri) {
-      LOG.warn("Could not determine how to load stack {}-{} latest definition for {}",
-          stackInfo.getName(), stackInfo.getVersion(), latest);
-      return;
-    }
-
-    stackContext.registerRepoUpdateTask(uri, this);
   }
 
   /**
@@ -1234,102 +1202,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   }
 
   /**
-   * Gets the service repos with duplicates filtered out. A service repo is considered duplicate if:
-   * <ul>
-   *   <li>It has the same name as a stack repo</li>
-   *   <li>It has the same id as another service repo</li>
-   * </ul>
-   * Duplicate repo url's only results in warnings in the log. Duplicates are checked per os type, so e.g. the same repo
-   * can exsist for centos5 and centos6.
-   * @param stackRepos the list of stack repositories
-   * @return the service repos with duplicates filtered out.
-   */
-  private Set<RepositoryInfo> getUniqueServiceRepos(List<RepositoryInfo> stackRepos) {
-    List<RepositoryInfo> serviceRepos = getAllServiceRepos();
-    ImmutableListMultimap<String, RepositoryInfo> serviceReposByOsType = Multimaps.index(serviceRepos, RepositoryInfo.GET_OSTYPE_FUNCTION);
-    ImmutableListMultimap<String, RepositoryInfo> stackReposByOsType = Multimaps.index(stackRepos, RepositoryInfo.GET_OSTYPE_FUNCTION);
-
-    Set<RepositoryInfo> uniqueServiceRepos = new HashSet<>();
-
-    // Uniqueness is checked for each os type
-    for (String osType: serviceReposByOsType.keySet()) {
-      List<RepositoryInfo> stackReposForOsType = stackReposByOsType.containsKey(osType) ? stackReposByOsType.get(osType) : Collections.emptyList();
-      List<RepositoryInfo> serviceReposForOsType = serviceReposByOsType.get(osType);
-      Set<String> stackRepoNames = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.GET_REPO_NAME_FUNCTION));
-      Set<String> stackRepoUrls = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.SAFE_GET_BASE_URL_FUNCTION));
-      Set<String> duplicateServiceRepoNames = findDuplicates(serviceReposForOsType, RepositoryInfo.GET_REPO_NAME_FUNCTION);
-      Set<String> duplicateServiceRepoUrls = findDuplicates(serviceReposForOsType, RepositoryInfo.SAFE_GET_BASE_URL_FUNCTION);
-
-      for (RepositoryInfo repo: serviceReposForOsType) {
-        // These cases only generate warnings
-        if (stackRepoUrls.contains(repo.getBaseUrl())) {
-          LOG.warn("Service repo has a base url that is identical to that of a stack repo: {}", repo);
-        }
-        else if (duplicateServiceRepoUrls.contains(repo.getBaseUrl())) {
-          LOG.warn("Service repo has a base url that is identical to that of another service repo: {}", repo);
-        }
-        // These cases cause the repo to be disregarded
-        if (stackRepoNames.contains(repo.getRepoName())) {
-          LOG.warn("Discarding service repository with the same name as one of the stack repos: {}", repo);
-        }
-        else if (duplicateServiceRepoNames.contains(repo.getRepoName())) {
-          LOG.warn("Discarding service repository with duplicate name and different content: {}", repo);
-        }
-        else {
-          uniqueServiceRepos.add(repo);
-        }
-      }
-    }
-    return uniqueServiceRepos;
-  }
-
-  /**
-   * Finds duplicate repository infos. Duplicateness is checked on the property specified in the keyExtractor.
-   * Items that are equal don't count as duplicate, only differing items with the same key
-   * @param input the input list
-   * @param keyExtractor a function to that returns the property to be checked
-   * @return a set containing the keys of duplicates
-   */
-  private static Set<String> findDuplicates(List<RepositoryInfo> input, Function<RepositoryInfo, String> keyExtractor) {
-    ListMultimap<String, RepositoryInfo> itemsByKey = Multimaps.index(input, keyExtractor);
-    Set<String> duplicates = new HashSet<>();
-    for (Map.Entry<String, Collection<RepositoryInfo>> entry: itemsByKey.asMap().entrySet()) {
-      if (entry.getValue().size() > 1) {
-        Set<RepositoryInfo> differingItems = new HashSet<>();
-        differingItems.addAll(entry.getValue());
-        if (differingItems.size() > 1) {
-          duplicates.add(entry.getKey());
-        }
-      }
-    }
-    return duplicates;
-  }
-
-  /**
-   * Returns all service repositories for a given stack
-   * @return a list of service repo definitions
-   */
-  private List<RepositoryInfo> getAllServiceRepos() {
-    List<RepositoryInfo> repos = new ArrayList<>();
-    for (ServiceModule sm: serviceModules.values()) {
-      ServiceDirectory sd = sm.getServiceDirectory();
-      if (sd instanceof StackServiceDirectory) {
-        StackServiceDirectory ssd = (StackServiceDirectory) sd;
-        RepositoryXml serviceRepoXml = ssd.getRepoFile();
-        if (null != serviceRepoXml) {
-          repos.addAll(serviceRepoXml.getRepositories());
-          if (null != serviceRepoXml.getLatestURI() && stackContext != null) {
-            registerRepoUpdateTask(serviceRepoXml);
-          }
-        }
-      }
-    }
-    return repos;
-  }
-
-
-
-  /**
    * Merge role command order with the parent stack
    *
    * @param parentStack parent stack
@@ -1345,8 +1217,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param service    service
    */
   private void mergeRoleCommandOrder(ServiceModule service) {
-    if (service.getModuleInfo().getRoleCommandOrder() == null)
+    if (service.getModuleInfo().getRoleCommandOrder() == null) {
       return;
+    }
 
     stackInfo.getRoleCommandOrder().merge(service.getModuleInfo().getRoleCommandOrder(), true);
     if (LOG.isDebugEnabled()) {
@@ -1409,7 +1282,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
   @Override
   public void addErrors(Collection<String> errors) {
-    this.errorSet.addAll(errors);
+    errorSet.addAll(errors);
   }
 
 }

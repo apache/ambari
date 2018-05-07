@@ -37,11 +37,13 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,16 +85,13 @@ public class ServiceComponentTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(clusterName, stackId);
     cluster = clusters.getCluster(clusterName);
 
     cluster.setDesiredStackVersion(stackId);
     Assert.assertNotNull(cluster);
-
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service s = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
@@ -143,16 +142,20 @@ public class ServiceComponentTest {
     Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
 
     StackId newStackId = new StackId("HDP-1.2.0");
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(newStackId,
-        newStackId.getStackVersion());
+    MpackEntity mpackEntity = helper.createMpack(newStackId);
+    Assert.assertNotNull(mpackEntity);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find(newStackId);
 
-    sc.setDesiredRepositoryVersion(repositoryVersion);
+    long serviceGroupId = sc.getServiceGroupId();
+    ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupId);
+    serviceGroup.setStack(stackEntity);
+
     Assert.assertEquals(newStackId.toString(), sc.getStackId().getStackId());
 
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO =
         injector.getInstance(ServiceComponentDesiredStateDAO.class);
 
-    long serviceGroupId = 1;
     long serviceId = 1;
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(

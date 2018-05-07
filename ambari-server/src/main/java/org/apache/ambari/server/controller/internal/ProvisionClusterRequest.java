@@ -113,16 +113,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
   public static final String CONFIG_RECOMMENDATION_STRATEGY = "config_recommendation_strategy";
 
   /**
-   * The repo version to use
-   */
-  public static final String REPO_VERSION_PROPERTY = "repository_version";
-
-  /**
-   * The repo version id to use
-   */
-  public static final String REPO_VERSION_ID_PROPERTY = "repository_version_id";
-
-  /**
    * The global quick link filters property
    */
   public static final String QUICKLINKS_PROFILE_FILTERS_PROPERTY = "quicklinks_profile/filters";
@@ -160,10 +150,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
    */
   private final ConfigRecommendationStrategy configRecommendationStrategy;
 
-  private String repoVersion;
-
-  private Long repoVersionId;
-
   private final String quickLinksProfileJson;
 
   private final Collection<MpackInstance> mpackInstances;
@@ -182,14 +168,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
 
     setClusterName(String.valueOf(properties.get(
       ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
-
-    if (properties.containsKey(REPO_VERSION_PROPERTY)) {
-      repoVersion = properties.get(REPO_VERSION_PROPERTY).toString();
-    }
-
-    if (properties.containsKey(REPO_VERSION_ID_PROPERTY)) {
-      repoVersionId = Long.parseLong(properties.get(REPO_VERSION_ID_PROPERTY).toString());
-    }
 
     if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
       defaultPassword = String.valueOf(properties.get(DEFAULT_PASSWORD_PROPERTY));
@@ -210,12 +188,12 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     parseHostGroupInfo(properties);
 
     this.securityConfiguration = securityConfiguration;
-    this.credentialsMap = parseCredentials(properties);
+    credentialsMap = parseCredentials(properties);
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS && getCredentialsMap().get(KDC_ADMIN_CREDENTIAL) == null) {
       throw new InvalidTopologyTemplateException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
     }
 
-    this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
+    configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
 
     setProvisionAction(parseProvisionAction(properties));
 
@@ -223,7 +201,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet()); // FIXME persist these
 
     try {
-      this.quickLinksProfileJson = processQuickLinksProfile(properties);
+      quickLinksProfileJson = processQuickLinksProfile(properties);
     } catch (QuickLinksProfileEvaluationException ex) {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
     }
@@ -500,20 +478,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     } else {
       return ProvisionAction.INSTALL_AND_START;
     }
-  }
-
-  /**
-   * @return the repository version, if any
-   */
-  public String getRepositoryVersion() {
-    return repoVersion;
-  }
-
-  /**
-   * @return the repository version id or {@code null}
-   */
-  public Long getRepositoryVersionId(){
-    return repoVersionId;
   }
 
   /**

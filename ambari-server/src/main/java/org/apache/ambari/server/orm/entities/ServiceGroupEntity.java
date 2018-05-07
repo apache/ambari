@@ -91,6 +91,10 @@ public class ServiceGroupEntity {
   @OneToMany(mappedBy="serviceGroupDependency")
   private List<ServiceGroupDependencyEntity> dependencies;
 
+  @OneToMany(mappedBy="serviceGroupEntity")
+  private List<ClusterServiceEntity> clusterServices;
+
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -137,6 +141,10 @@ public class ServiceGroupEntity {
 
   public void setServiceGroupDependencies(List<ServiceGroupDependencyEntity> serviceGroupDependencies) {
     this.serviceGroupDependencies = serviceGroupDependencies;
+  }
+
+  public List<ClusterServiceEntity> getClusterServices() {
+    return clusterServices;
   }
 
   @Override

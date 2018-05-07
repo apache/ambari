@@ -64,9 +64,9 @@
     <permissions>CLUSTER.MODIFY_CONFIGS, SERVICE.MODIFY_CONFIGS</permissions>
   </actionDefinition>
   <actionDefinition>
-    <actionName>install_packages</actionName>
+    <actionName>mpack_packages</actionName>
     <actionType>SYSTEM</actionType>
-    <inputs>base_urls, package_list</inputs>
+    <inputs>package_list</inputs>
     <targetService/>
     <targetComponent/>
     <defaultTimeout>60</defaultTimeout>

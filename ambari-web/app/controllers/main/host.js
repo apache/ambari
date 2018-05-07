@@ -148,16 +148,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       type: 'MULTIPLE'
     },
     {
-      name: 'version',
-      key: 'stack_versions/repository_versions/RepositoryVersions/display_name',
-      type: 'EQUAL'
-    },
-    {
-      name: 'versionState',
-      key: 'stack_versions/HostStackVersions/state',
-      type: 'EQUAL'
-    },
-    {
       name: 'hostStackVersion',
       key: 'stack_versions',
       type: 'EQUAL'

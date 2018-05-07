@@ -43,6 +43,15 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
   });
 
   describe("#putHostComponentsInMaintenanceMode()", function() {
+    beforeEach(function(){
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({'componentName': 'C1', 'componentId': '1'}),
+        Em.Object.create({'componentName': 'C2', 'componentId': '2'})
+      ]);
+    });
+    afterEach(function(){
+      App.HostComponent.find.restore();
+    });
     it("no host-components", function() {
       controller.set('hostComponents', []);
       controller.putHostComponentsInMaintenanceMode();
@@ -60,7 +69,7 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
       expect(args[0].data).to.be.eql({
         hostName: 'host1',
         passive_state: "ON",
-        componentName: 'C1'
+        componentId: '1'
       });
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
@@ -74,6 +83,15 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
   });
 
   describe("#deleteHostComponents()", function() {
+    beforeEach(function(){
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({'componentName': 'C1', 'componentId': '1'}),
+        Em.Object.create({'componentName': 'C2', 'componentId': '2'})
+      ]);
+    });
+    afterEach(function(){
+      App.HostComponent.find.restore();
+    });
     it("no host-components", function() {
       controller.set('hostComponents', []);
       controller.deleteHostComponents();
@@ -90,7 +108,7 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
         hostName: 'host1',
-        componentName: 'C1'
+        componentId: '1'
       });
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });

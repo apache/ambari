@@ -68,7 +68,6 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -1322,11 +1321,14 @@ public class ClusterTest {
   public void testApplyLatestConfigurations() throws Exception {
     StackId stackId = new StackId("HDP-2.0.6");
     StackId newStackId = new StackId("HDP-2.2.0");
+
+    helper.createMpack(stackId);
+    helper.createMpack(newStackId);
+
     createDefaultCluster(Sets.newHashSet("host-1"), stackId);
 
     Cluster cluster = clusters.getCluster("c1");
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
@@ -1380,7 +1382,7 @@ public class ClusterTest {
     ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(cluster.getClusterId(),
         serviceGroup.getServiceGroupName());
 
-    serviceGroupEntity.setStack(repoVersion220.getStack());
+    serviceGroupEntity.setStack(newStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
     cluster.createServiceConfigVersion(1L, "", "version-2", null);
 
@@ -1419,11 +1421,14 @@ public class ClusterTest {
   public void testApplyLatestConfigurationsToPreviousStack() throws Exception {
     StackId stackId = new StackId("HDP-2.0.6");
     StackId newStackId = new StackId("HDP-2.2.0");
+
+    helper.createMpack(stackId);
+    helper.createMpack(newStackId);
+
     createDefaultCluster(Sets.newHashSet("host-1"), stackId);
 
     Cluster cluster = clusters.getCluster("c1");
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
@@ -1432,7 +1437,6 @@ public class ClusterTest {
 
     // add a service
     String serviceName = "ZOOKEEPER";
-    helper.getOrCreateRepositoryVersion(c1);
     ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
@@ -1491,7 +1495,7 @@ public class ClusterTest {
     ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(cluster.getClusterId(),
         serviceGroup.getServiceGroupName());
 
-    serviceGroupEntity.setStack(repoVersion220.getStack());
+    serviceGroupEntity.setStack(newStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
 
     cluster.createServiceConfigVersion(1L, "", "version-2", null);
@@ -1520,11 +1524,16 @@ public class ClusterTest {
   public void testDesiredConfigurationsAfterApplyingLatestForStack() throws Exception {
     StackId stackId = new StackId("HDP-2.0.6");
     StackId newStackId = new StackId("HDP-2.2.0");
+
+    helper.createMpack(stackId);
+    helper.createMpack(newStackId);
+
+    StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+    StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
+
     createDefaultCluster(Sets.newHashSet("host-1"), stackId);
 
     Cluster cluster = clusters.getCluster("c1");
-    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
-
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
 
     // make sure the stacks are different
@@ -1532,7 +1541,6 @@ public class ClusterTest {
 
     // add a service
     String serviceName = "ZOOKEEPER";
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
     ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
@@ -1551,7 +1559,7 @@ public class ClusterTest {
     ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(cluster.getClusterId(),
         serviceGroup.getServiceGroupName());
 
-    serviceGroupEntity.setStack(repoVersion220.getStack());
+    serviceGroupEntity.setStack(newStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
 
     // save v2
@@ -1581,7 +1589,7 @@ public class ClusterTest {
     serviceGroupEntity = serviceGroupDAO.find(cluster.getClusterId(),
         serviceGroup.getServiceGroupName());
 
-    serviceGroupEntity.setStack(repositoryVersion.getStack());
+    serviceGroupEntity.setStack(currentStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
 
     // apply the configs for the old stack
@@ -1605,11 +1613,14 @@ public class ClusterTest {
   public void testRemoveConfigurations() throws Exception {
     StackId stackId = new StackId("HDP-2.0.6");
     StackId newStackId = new StackId("HDP-2.2.0");
+
+    helper.createMpack(stackId);
+    helper.createMpack(newStackId);
+
     createDefaultCluster(Sets.newHashSet("host-1"), stackId);
 
     Cluster cluster = clusters.getCluster("c1");
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
@@ -1618,7 +1629,6 @@ public class ClusterTest {
 
     // add a service
     String serviceName = "ZOOKEEPER";
-    helper.getOrCreateRepositoryVersion(c1);
     ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
@@ -1669,7 +1679,7 @@ public class ClusterTest {
     ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(cluster.getClusterId(),
         serviceGroup.getServiceGroupName());
 
-    serviceGroupEntity.setStack(repoVersion220.getStack());
+    serviceGroupEntity.setStack(newStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
 
     cluster.createServiceConfigVersion(1L, "", "version-2", null);

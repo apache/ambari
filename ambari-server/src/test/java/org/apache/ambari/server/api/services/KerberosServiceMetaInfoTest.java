@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.services;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -42,7 +41,6 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
-import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -217,24 +215,9 @@ public class KerberosServiceMetaInfoTest {
         LOG.info("Error in initializing ", e);
         throw e;
       }
-      waitForAllReposToBeResolved(metaInfo);
     }
 
     return metaInfo;
-  }
-
-  private void waitForAllReposToBeResolved(AmbariMetaInfo metaInfo) throws Exception {
-    int maxWait = 45000;
-    int waitTime = 0;
-    StackManager sm = metaInfo.getStackManager();
-    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
-      Thread.sleep(5);
-      waitTime += 5;
-    }
-
-    if (waitTime >= maxWait) {
-      fail("Latest Repo tasks did not complete");
-    }
   }
 
   private static class TestAmbariMetaInfo extends AmbariMetaInfo {

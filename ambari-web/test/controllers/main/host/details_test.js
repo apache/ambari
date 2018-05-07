@@ -133,13 +133,16 @@ describe('App.MainHostDetailsController', function () {
 
   describe("#pullNnCheckPointTime()", function() {
     it("valid request is sent", function() {
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'NAMENODE', 'componentId': '1'})]);
       controller.pullNnCheckPointTime('host1');
       var args = testHelpers.findAjaxRequest('name', 'common.host_component.getNnCheckPointTime');
       expect(args[0]).to.exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        host: 'host1'
+        host: 'host1',
+        nameNodeId: '1'
       });
+      App.HostComponent.find.restore();
     });
   });
 
@@ -151,7 +154,7 @@ describe('App.MainHostDetailsController', function () {
         controller.set('content.hostName', 'host1');
         component = Em.Object.create({
           service: {serviceName: 'S1'},
-          componentName: 'COMP1'
+          componentId: 'COMP1'
         });
 
         controller.sendComponentCommand(component, {}, 'state');
@@ -172,7 +175,7 @@ describe('App.MainHostDetailsController', function () {
           "HostRoles": {
             "state": "state"
           },
-          "componentName": "COMP1",
+          "componentId": "COMP1",
           "serviceName": "S1"
         });
       });
@@ -185,11 +188,11 @@ describe('App.MainHostDetailsController', function () {
         component = [
           Em.Object.create({
             service: {serviceName: 'S1'},
-            componentName: 'COMP1'
+            componentId: 'COMP1'
           }),
           Em.Object.create({
             service: {serviceName: 'S1'},
-            componentName: 'COMP2'
+            componentId: 'COMP2'
           })
         ];
         controller.sendComponentCommand(component, {}, 'state');
@@ -210,7 +213,7 @@ describe('App.MainHostDetailsController', function () {
           "HostRoles": {
             "state": "state"
           },
-          "query": "HostRoles/component_name.in(COMP1,COMP2)"
+          "query": "HostRoles/id.in(COMP1,COMP2)"
         });
       });
     });
@@ -2696,24 +2699,35 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#_doDeleteHostComponent()', function () {
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App.HostComponent, 'find');
+    });
+
+    afterEach(function () {
+      this.mock.restore();
+    });
+
     it('single component', function () {
+      this.mock.returns([Em.Object.create({'componentName': 'COMP', 'componentId': '1'})]);
       controller.set('content.hostName', 'host1');
       var componentName = 'COMP';
       controller._doDeleteHostComponent(componentName);
       var args = testHelpers.findAjaxRequest('name', 'common.delete.host_component');
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
-        componentName: 'COMP',
+        componentId: '1',
         hostName: 'host1'
       });
     });
     it('all components', function () {
+      this.mock.returns([]);
       controller.set('content.hostName', 'host1');
       controller._doDeleteHostComponent(null);
       var args = testHelpers.findAjaxRequest('name', 'common.delete.host');
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
-        componentName: '',
+        componentId: '',
         hostName: 'host1'
       });
     });
@@ -2828,14 +2842,14 @@ describe('App.MainHostDetailsController', function () {
     it('popup should be displayed', function () {
       controller.set('content.hostName', 'host1');
       var component = Em.Object.create({
-        componentName: 'COMP1'
+        componentId: '1'
       });
       controller.updateComponentPassiveState(component, 'state', 'message');
       var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
         "hostName": "host1",
-        "componentName": "COMP1",
+        "componentId": "1",
         "component": component,
         "passive_state": "state",
         "context": "message"

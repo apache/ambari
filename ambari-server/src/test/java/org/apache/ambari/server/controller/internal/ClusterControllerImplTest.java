@@ -941,10 +941,6 @@ public class ClusterControllerImplTest {
       providers.put(Resource.Type.Host, new TestHostResourceProvider());
       providers.put(Resource.Type.Stack, new TestStackResourceProvider());
       providers.put(Resource.Type.StackVersion, new TestStackVersionResourceProvider());
-      providers.put(Resource.Type.OperatingSystemReadOnly, new TestOperatingSystemResourceProvider());
-      providers.put(Resource.Type.Repository, new TestRepositoryResourceProvider());
-      providers.put(Resource.Type.RepositoryVersion, new TestRepositoryVersionResourceProvider());
-      providers.put(Resource.Type.CompatibleRepositoryVersion, new TestCompatibleRepositoryVersionResourceProvider());
       providers.put(Type.StackArtifact, new TestStackArtifactResourceProvider());
       providers.put(Type.Mpack, new TestMpackResourceProvider());
     }
@@ -1172,78 +1168,9 @@ public class ClusterControllerImplTest {
     }
   }
 
-  private static class TestOperatingSystemResourceProvider extends TestResourceProvider {
-    private TestOperatingSystemResourceProvider() {
-      super(OperatingSystemReadOnlyResourceProvider.propertyIds, OperatingSystemReadOnlyResourceProvider.keyPropertyIds);
-    }
-
-    @Override
-    public Set<Resource> getResources(Request request, Predicate predicate)
-        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-      Set<String> keyPropertyValues = new LinkedHashSet<>();
-
-      keyPropertyValues.add("centos5");
-      keyPropertyValues.add("centos6");
-      keyPropertyValues.add("oraclelinux5");
-
-      return getResources(Resource.Type.OperatingSystemReadOnly, predicate, "OperatingSystems/os_type", keyPropertyValues);
-    }
-  }
-
-  private static class TestRepositoryResourceProvider extends TestResourceProvider {
-    private TestRepositoryResourceProvider() {
-      super(RepositoryResourceProvider.propertyIds, RepositoryResourceProvider.keyPropertyIds);
-    }
-
-    @Override
-    public Set<Resource> getResources(Request request, Predicate predicate)
-        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-      Set<String> keyPropertyValues = new LinkedHashSet<>();
-
-      keyPropertyValues.add("repo1");
-      keyPropertyValues.add("repo2");
-
-      return getResources(Resource.Type.Repository, predicate, "Repositories/repo_id", keyPropertyValues);
-    }
-  }
-
   private static class TestMpackResourceProvider extends TestResourceProvider {
     private TestMpackResourceProvider() {
       super(MpackResourceProvider.PROPERTY_IDS, MpackResourceProvider.KEY_PROPERTY_IDS);
-    }
-  }
-
-  private static class TestRepositoryVersionResourceProvider extends TestResourceProvider {
-    private TestRepositoryVersionResourceProvider() {
-      super(RepositoryVersionResourceProvider.propertyIds, RepositoryVersionResourceProvider.keyPropertyIds);
-    }
-
-    @Override
-    public Set<Resource> getResources(Request request, Predicate predicate)
-        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-      Set<String> keyPropertyValues = new LinkedHashSet<>();
-
-      keyPropertyValues.add("1");
-      keyPropertyValues.add("2");
-
-      return getResources(Resource.Type.RepositoryVersion, predicate, "RepositoriVersions/id", keyPropertyValues);
-    }
-  }
-
-  private static class TestCompatibleRepositoryVersionResourceProvider extends TestResourceProvider {
-    private TestCompatibleRepositoryVersionResourceProvider() {
-      super(CompatibleRepositoryVersionResourceProvider.propertyIds, CompatibleRepositoryVersionResourceProvider.keyPropertyIds);
-    }
-
-    @Override
-    public Set<Resource> getResources(Request request, Predicate predicate)
-        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-      Set<String> keyPropertyValues = new LinkedHashSet<>();
-
-      keyPropertyValues.add("1");
-      keyPropertyValues.add("2");
-
-      return getResources(Resource.Type.CompatibleRepositoryVersion, predicate, "CompatibleRepositoriVersions/id", keyPropertyValues);
     }
   }
 

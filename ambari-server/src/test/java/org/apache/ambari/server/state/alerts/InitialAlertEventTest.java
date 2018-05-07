@@ -78,7 +78,6 @@ public class InitialAlertEventTest {
   private OrmTestHelper m_helper;
 
   private static final String STACK_VERSION = "2.0.6";
-  private static final String REPO_VERSION = "2.0.6-1234";
   private static final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
 
   @Before
@@ -105,7 +104,7 @@ public class InitialAlertEventTest {
     m_alertsDao = m_injector.getInstance(AlertsDAO.class);
     m_helper = m_injector.getInstance(OrmTestHelper.class);
 
-    m_helper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
+    m_helper.createMpack(STACK_ID);
 
     m_clusterName = "c1";
     m_clusters.addCluster(m_clusterName, STACK_ID);

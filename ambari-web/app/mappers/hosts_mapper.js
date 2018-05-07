@@ -59,9 +59,11 @@ App.hostsMapper = App.QuickDataMapper.create({
     index: 'index'
   },
   hostComponentConfig: {
+    component_id: 'HostRoles.id',
     component_name: 'HostRoles.component_name',
     display_name: 'HostRoles.display_name',
     service_id: 'HostRoles.service_name',
+    service_group_name: 'HostRoles.service_group_name',
     passive_state: 'HostRoles.maintenance_state',
     work_status: 'HostRoles.state',
     stale_configs: 'HostRoles.stale_configs',
@@ -167,6 +169,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
         }
 
+        item.stack_versions = [];
         var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
         var currentVersionNumber = currentVersion && currentVersion.repository_versions
           ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';

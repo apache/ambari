@@ -522,10 +522,10 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
 
         serviceGroups = this.get('content.serviceGroups');
         promises = serviceGroups.map(sg => {
-          data.serviceGroup = sg;
+          data.serviceGroupName = sg;
 
           return App.ajax.send({
-            name: 'common.services.update',
+            name: 'common.services.update', //TODO: This should change to use common.services.update.all when that is implemented on the back end.
             sender: this,
             data: data,
             success: 'launchStartServicesSuccessCallback',
@@ -544,10 +544,10 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
 
         serviceGroups = this.get('content.serviceGroups');
         promises = serviceGroups.map(sg => {
-          data.serviceGroup = sg;
+          data.serviceGroupName = sg;
 
           return App.ajax.send({
-            name: 'common.services.update',
+            name: 'common.services.update', //TODO: This should change to use common.services.update.all when that is implemented on the back end.
             sender: this,
             data: data,
             success: 'launchStartServicesSuccessCallback',

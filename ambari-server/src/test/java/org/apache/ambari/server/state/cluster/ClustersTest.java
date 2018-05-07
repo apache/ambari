@@ -144,7 +144,7 @@ public class ClustersTest {
   public void testAddAndGetCluster() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     String c1 = "foo";
     String c2 = "foo";
@@ -198,7 +198,7 @@ public class ClustersTest {
   public void testAddAndGetClusterWithSecurityType() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     String c1 = "foo";
     SecurityType securityType = SecurityType.KERBEROS;
@@ -265,7 +265,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -276,7 +276,6 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c2));
 
     cluster1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     try {
       clusters.mapHostToCluster(h1, c1);
@@ -351,7 +350,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -360,7 +359,6 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c1));
     Assert.assertNotNull(clusters.getCluster(c2));
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     clusters.addHost(h1);
     clusters.addHost(h2);
@@ -384,7 +382,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(c1, stackId);
 
@@ -625,7 +623,7 @@ public class ClustersTest {
   private Cluster createCluster(String clusterName) throws AmbariException {
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(clusterName, stackId);
 

@@ -366,20 +366,6 @@ public class HostService extends BaseService {
   }
 
   /**
-   * Gets the host stack versions service.
-   *
-   * @param request the request
-   * @param hostName the host name
-   * @return the host stack versions service
-   */
-  @Path("{hostName}/stack_versions")
-  public HostStackVersionService getHostStackVersionService(@Context javax.ws.rs.core.Request request,
-      @PathParam("hostName") String hostName) {
-
-    return new HostStackVersionService(hostName, m_clusterName);
-  }
-
-  /**
    * Create a service resource instance.
    *
    * @param clusterName  cluster

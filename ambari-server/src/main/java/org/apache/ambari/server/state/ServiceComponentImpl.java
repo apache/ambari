@@ -46,7 +46,6 @@ import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.slf4j.Logger;
@@ -310,11 +309,13 @@ public class ServiceComponentImpl implements ServiceComponent {
       }
 
       if (hostComponents.containsKey(hostComponent.getHostName())) {
-        throw new AmbariException("Cannot add duplicate ServiceComponentHost" + ", clusterName="
-            + service.getCluster().getClusterName() + ", clusterId="
-            + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-            + ", serviceComponentName=" + getName() + ", hostname=" + hostComponent.getHostName()
-            + ", recoveryEnabled=" + isRecoveryEnabled());
+        if (hostComponents.get(hostComponent.getHostName()).getServiceGroupName().equals(hostComponent.getServiceGroupName())) {
+          throw new AmbariException("Cannot add duplicate ServiceComponentHost" + ", clusterName="
+                  + service.getCluster().getClusterName() + ", clusterId="
+                  + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
+                  + ", serviceComponentName=" + getName() + ", hostname=" + hostComponent.getHostName()
+                  + ", recoveryEnabled=" + isRecoveryEnabled());
+        }
       }
       // FIXME need a better approach of caching components by host
       ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
@@ -402,7 +403,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
+  public void setDesiredRepositoryVersion() {
   }
 
 

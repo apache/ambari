@@ -69,7 +69,6 @@ import com.google.inject.persist.Transactional;
 
 public class ServiceImpl implements Service {
   private final Lock lock = new ReentrantLock();
-  private ServiceDesiredStateEntity serviceDesiredStateEntity;
   private ClusterServiceEntity serviceEntity;
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceImpl.class);
@@ -221,8 +220,6 @@ public class ServiceImpl implements Service {
     serviceType = serviceEntity.getServiceType();
     this.ambariMetaInfo = ambariMetaInfo;
     serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
-
-    ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
 
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
       for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity

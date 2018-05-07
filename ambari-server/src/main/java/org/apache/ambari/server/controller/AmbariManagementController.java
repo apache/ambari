@@ -414,26 +414,6 @@ public interface AmbariManagementController {
   Set<StackVersionResponse> getStackVersions(Set<StackVersionRequest> requests) throws AmbariException;
 
   /**
-   * Get repositories by stack name, version and operating system.
-   *
-   * @param requests the repositories
-   *
-   * @return a set of repositories
-   *
-   * @throws  AmbariException if the resources cannot be read
-   */
-  Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests) throws AmbariException;
-
-  /**
-   * Verifies repositories' base urls.
-   *
-   * @param requests the repositories
-   *
-   * @throws AmbariException if verification of any of urls fails
-   */
-  void verifyRepositories(Set<RepositoryRequest> requests) throws AmbariException;
-
-  /**
    * Get repositories by stack name, version.
    *
    * @param requests the services
@@ -467,17 +447,6 @@ public interface AmbariManagementController {
    * @throws  AmbariException if the resources cannot be read
    */
   Set<StackServiceComponentResponse> getStackComponents(Set<StackServiceComponentRequest> requests) throws AmbariException;
-
-  /**
-   * Get operating systems by stack name, version.
-   *
-   * @param requests the operating systems
-   *
-   * @return a set of operating systems
-   *
-   * @throws  AmbariException if the resources cannot be read
-   */
-  Set<OperatingSystemResponse> getOperatingSystems(Set<OperatingSystemRequest> requests) throws AmbariException;
 
   /**
    * Get all top-level services of Ambari, not related to certain cluster.

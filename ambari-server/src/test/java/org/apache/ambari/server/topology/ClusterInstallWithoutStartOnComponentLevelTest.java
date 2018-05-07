@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -312,7 +311,6 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
     expect(request.getProvisionAction()).andReturn(INSTALL_AND_START).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
-    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
 
@@ -365,7 +363,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE), eq("1"), anyLong());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
@@ -385,7 +383,6 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
       anyString(), eq(AmbariContext.TaskType.START), anyBoolean())).andReturn(hostRoleCommand).times(1);
     expect(hostRoleCommand.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommand.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
-    expect(hostRoleCommand.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
     expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));

@@ -27,11 +27,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
@@ -79,11 +77,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private String stackHooksFolder;
   private String upgradesFolder = null;
   private volatile Map<String, PropertyInfo> requiredProperties;
-  private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
   private Set<String> errorSet = new HashSet<>();
   private RepositoryXml repoXml = null;
-
-  private VersionDefinitionXml latestVersion = null;
 
   /**
    * List of services removed from current stack
@@ -112,8 +107,17 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     return stackOsSpecificsMap;
   }
 
+  /**
+   * Exposes  map of os-specific details.
+   * @return  map of OS specific details keyed by family
+   */
+  public Map<String, OsSpecific> getOsSpecificsSafe() {
+    return (null != stackOsSpecificsMap) ? stackOsSpecificsMap : new HashMap<>();
+  }
+
+
   public void setOsSpecifics(Map<String, OsSpecific> serviceOsSpecificsMap) {
-    this.stackOsSpecificsMap = serviceOsSpecificsMap;
+    stackOsSpecificsMap = serviceOsSpecificsMap;
   }
 
   public String getMinJdk() {
@@ -162,7 +166,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   @Override
   public void addErrors(Collection<String> errors) {
-    this.errorSet.addAll(errors);
+    errorSet.addAll(errors);
   }
 
   public String getName() {
@@ -182,7 +186,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public List<RepositoryInfo> getRepositories() {
-    if( repositories == null ) repositories = new ArrayList<>();
+    if( repositories == null ) {
+      repositories = new ArrayList<>();
+    }
     return repositories;
   }
 
@@ -194,7 +200,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public synchronized Collection<ServiceInfo> getServices() {
-    if (services == null) services = new ArrayList<>();
+    if (services == null) {
+      services = new ArrayList<>();
+    }
     return services;
   }
 
@@ -214,7 +222,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public synchronized Collection<ExtensionInfo> getExtensions() {
-    if (extensions == null) extensions = new ArrayList<>();
+    if (extensions == null) {
+      extensions = new ArrayList<>();
+    }
     return extensions;
   }
 
@@ -234,8 +244,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     for (ExtensionInfo extension : extensions) {
       Collection<ServiceInfo> services = extension.getServices();
       for (ServiceInfo service : services) {
-        if (service.getName().equals(serviceName))
+        if (service.getName().equals(serviceName)) {
           return extension;
+        }
       }
     }
     //todo: exception?
@@ -261,7 +272,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public List<PropertyInfo> getProperties() {
-    if (properties == null) properties = new ArrayList<>();
+    if (properties == null) {
+      properties = new ArrayList<>();
+    }
     return properties;
   }
 
@@ -294,7 +307,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    * @param typeAttributes  attributes associated with the type
    */
   public synchronized void setConfigTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
-    if (this.configTypes == null) {
+    if (configTypes == null) {
       configTypes = new HashMap<>();
     }
     // todo: no exclusion mechanism for stack config types
@@ -320,7 +333,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    * @param typeAttributes  attributes associated with the type
    */
   public synchronized void setStackSettingsConfigTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
-    if (this.stackSettingsConfigTypes == null) {
+    if (stackSettingsConfigTypes == null) {
       stackSettingsConfigTypes = new HashMap<>();
     }
     // todo: no exclusion mechanism for stack config types
@@ -555,8 +568,9 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
           if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
             Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
             for (PropertyInfo.PropertyType propertyType : types) {
-              if (!propertiesTypes.containsKey(propertyType))
+              if (!propertiesTypes.containsKey(propertyType)) {
                 propertiesTypes.put(propertyType, new HashSet<>());
+              }
               propertiesTypes.get(propertyType).add(propertyInfo.getName());
             }
           }
@@ -605,21 +619,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   /**
-   * @param key the version that the xml represents
-   * @param xml the version definition object
-   */
-  public void addVersionDefinition(String key, VersionDefinitionXml xml) {
-    versionDefinitions.put(key, xml);
-  }
-
-  /**
-   * @return the list of available definitions on this stack
-   */
-  public Collection<VersionDefinitionXml> getVersionDefinitions() {
-    return versionDefinitions.values();
-  }
-
-  /**
    * @param rxml  the repository xml object
    */
   public void setRepositoryXml(RepositoryXml rxml) {
@@ -647,21 +646,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   public void setServicesWithNoConfigs(List<String> servicesWithNoConfigs) {
     this.servicesWithNoConfigs = servicesWithNoConfigs;
-  }
-
-  /**
-   * @param xml the version definition parsed from {@link LatestRepoCallable}
-   */
-  public void setLatestVersionDefinition(VersionDefinitionXml xml) {
-    latestVersion = xml;
-  }
-
-  /**
-   *
-   * @return
-   */
-  public VersionDefinitionXml getLatestVersionDefinition() {
-    return latestVersion;
   }
 
   public RefreshCommandConfiguration getRefreshCommandConfiguration() {

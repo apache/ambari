@@ -80,7 +80,6 @@ public class AlertEventPublisherTest {
   private AggregateDefinitionMapping aggregateMapping;
 
   private static final String STACK_VERSION = "2.0.6";
-  private static final String REPO_VERSION = "2.0.6-1234";
 
   @Before
   public void setup() throws Exception {
@@ -99,7 +98,7 @@ public class AlertEventPublisherTest {
 
     clusterName = "foo";
     StackId stackId = new StackId("HDP", STACK_VERSION);
-    ormHelper.createStack(stackId);
+    ormHelper.createMpack(stackId);
 
     clusters.addCluster(clusterName, stackId);
     cluster = clusters.getCluster(clusterName);

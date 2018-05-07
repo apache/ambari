@@ -1,0 +1,227 @@
+{
+    "commandParams": {
+        "ambari_java_version": "8", 
+        "script": "mpack_packages.py", 
+        "ambari_jdk_name": "jdk-8u60-linux-x64.tar.gz", 
+        "ambari_java_home": "/usr/jdk64/jdk1.8.0_60", 
+        "command_timeout": "1800", 
+        "ambari_jce_name": "jce_policy-8.zip", 
+        "script_type": "PYTHON"
+    }, 
+    "localComponents": [
+        "ZOOKEEPER_CLIENT", 
+        "ZOOKEEPER_SERVER"
+    ], 
+    "clusterId": "2", 
+    "mpackId": 1, 
+    "agentLevelParams": {
+        "public_hostname": null, 
+        "hostname": "c7401.ambari.apache.org", 
+        "agentConfigParams": {
+            "agent": {
+                "parallel_execution": 0, 
+                "use_system_proxy_settings": true
+            }
+        }, 
+        "agentCacheDir": "/var/lib/ambari-agent/cache"
+    }, 
+    "commandId": "15-1", 
+    "repositoryFile": {
+        "repositories": [
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.21", 
+                "repoName": "HDP-UTILS", 
+                "components": null, 
+                "distribution": null, 
+                "repoId": "HDP-UTILS-1.1.0.21-repo-hdpcore"
+            }, 
+            {
+                "mirrorsList": null, 
+                "ambariManaged": true, 
+                "baseUrl": "http://repos.ambari.apache.org/hdp/HDPCORE-1.0.0-b251", 
+                "repoName": "HDPCORE", 
+                "components": null, 
+                "distribution": null, 
+                "repoId": "HDPCORE-1.0.0-b251-repo-hdpcore"
+            }
+        ], 
+        "feature": {
+            "preInstalled": false, 
+            "scoped": true
+        }, 
+        "mpackId": 2, 
+        "mpackVersion": "1.0.0-b251", 
+        "repoFileName": "ambari-hdpcore-2", 
+        "mpackName": "HDPCORE"
+    }, 
+    "clusterLevelParams": {
+        "not_managed_hdfs_path_list": "[]", 
+        "hooks_folder": "stack-hooks", 
+        "stack_name": "HDPCORE", 
+        "group_list": "[\"hadoop\"]", 
+        "user_groups": "{\"zookeeper\":[\"hadoop\"],\"ambari-qa\":[\"hadoop\"]}", 
+        "stack_version": "1.0.0-b250", 
+        "user_list": "[\"zookeeper\",\"ambari-qa\"]"
+    }, 
+    "serviceName": "null", 
+    "role": "mpack_packages", 
+    "requestId": 15, 
+    "clusterHostInfo": {
+        "zookeeper_server_hosts": [
+            "c7401.ambari.apache.org", 
+            "c7402.ambari.apache.org", 
+            "c7403.ambari.apache.org"
+        ], 
+        "zookeeper_client_hosts": [
+            "c7401.ambari.apache.org", 
+            "c7402.ambari.apache.org", 
+            "c7403.ambari.apache.org"
+        ]
+    }, 
+    "clusterSettings": {
+        "security_enabled": "false", 
+        "hide_yarn_memory_widget": "false", 
+        "enable_external_ranger": "false", 
+        "override_uid": "true", 
+        "fetch_nonlocal_groups": "true", 
+        "one_dir_per_partition": "false", 
+        "recovery_max_count": "6", 
+        "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}", 
+        "ignore_groupsusers_create": "false", 
+        "alerts_repeat_tolerance": "1", 
+        "namenode_rolling_restart_timeout": "4200", 
+        "kerberos_domain": "EXAMPLE.COM", 
+        "manage_dirs_on_root": "true", 
+        "recovery_lifetime_max_count": "1024", 
+        "recovery_type": "AUTO_START", 
+        "smokeuser": "ambari-qa", 
+        "ignore_bad_mounts": "false", 
+        "recovery_window_in_minutes": "60", 
+        "sysprep_skip_setup_jce": "false", 
+        "user_group": "hadoop", 
+        "namenode_rolling_restart_safemode_exit_timeout": "3600", 
+        "recovery_retry_interval": "5", 
+        "sysprep_skip_copy_oozie_share_lib_to_hdfs": "false", 
+        "sysprep_skip_copy_tarballs_hdfs": "false", 
+        "manage_hive_fsroot": "true", 
+        "service_check_type": "full", 
+        "agent_mounts_ignore_list": "", 
+        "sysprep_skip_create_users_and_groups": "false", 
+        "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0\n", 
+        "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
+        "managed_hdfs_resource_property_names": "", 
+        "recovery_enabled": "true", 
+        "sysprep_skip_copy_fast_jar_hdfs": "false"
+    }, 
+    "clusterName": "c1", 
+    "commandType": "EXECUTION_COMMAND", 
+    "taskId": 105, 
+    "requiredConfigTimestamp": 1524850781664, 
+    "ambariLevelParams": {
+        "jdk_location": "http://hw10553.home:8080/resources/", 
+        "agent_stack_retry_count": "5", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agent_stack_retry_on_unavailability": "false", 
+        "jce_name": "jce_policy-8.zip", 
+        "java_version": "8", 
+        "oracle_jdbc_url": "http://hw10553.home:8080/resources//ojdbc6.jar", 
+        "ambari_server_host": "hw10553.home", 
+        "ambari_server_port": "8080", 
+        "host_sys_prepped": "false", 
+        "db_name": "ambari", 
+        "ambari_server_use_ssl": "false", 
+        "gpl_license_accepted": "true", 
+        "jdk_name": "jdk-8u60-linux-x64.tar.gz", 
+        "java_home": "/usr/jdk64/jdk1.8.0_60", 
+        "mysql_jdbc_url": "http://hw10553.home:8080/resources//mysql-connector-java.jar"
+    }, 
+    "roleCommand": "ACTIONEXECUTE", 
+    "configurationAttributes": {
+        "zoo.cfg": {}, 
+        "zookeeper-env": {}, 
+        "zookeeper-log4j": {}, 
+        "cluster-env": {}
+    }, 
+    "serviceGroupName": "HDPCORE", 
+    "hostLevelParams": {
+        "recoveryConfig": {
+            "retryGap": "5", 
+            "windowInMinutes": "60", 
+            "maxLifetimeCount": "12", 
+            "components": null, 
+            "maxCount": "6", 
+            "type": "AUTO_START"
+        }, 
+        "hostRepositories": {
+            "componentRepos": {
+                "ZOOKEEPER_SERVER": "HDP-UTILS", 
+                "ZOOKEEPER_CLIENT": "HDP-UTILS"
+            }, 
+            "commandRepos": {
+                "HDP-UTILS": {
+                    "repositories": [
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.21", 
+                            "repoName": "HDP-UTILS", 
+                            "components": null, 
+                            "distribution": null, 
+                            "repoId": "HDP-UTILS-1.1.0.21-repo-hdpcore"
+                        }, 
+                        {
+                            "mirrorsList": null, 
+                            "ambariManaged": true, 
+                            "baseUrl": "http://repos.ambari.apache.org/hdp/HDPCORE-1.0.0-b250", 
+                            "repoName": "HDPCORE", 
+                            "components": null, 
+                            "distribution": null, 
+                            "repoId": "HDPCORE-1.0.0-b250-repo-hdpcore"
+                        }
+                    ], 
+                    "feature": {
+                        "preInstalled": false, 
+                        "scoped": true
+                    }, 
+                    "mpackId": 1, 
+                    "mpackVersion": "1.0.0-b250", 
+                    "repoFileName": "ambari-hdpcore-1", 
+                    "mpackName": "HDPCORE"
+                }
+            }
+        }
+    }, 
+    "roleParams": {
+        "package_list": "[{\"name\":\"hdpcore_1_0_0_b251\",\"condition\":\"\",\"skipUpgrade\":false}]"
+    }, 
+    "configurations": {
+        "zoo.cfg": {
+            "clientPort": "2181", 
+            "autopurge.purgeInterval": "24", 
+            "syncLimit": "5", 
+            "dataDir": "/hadoop/zookeeper", 
+            "initLimit": "10", 
+            "tickTime": "3000", 
+            "autopurge.snapRetainCount": "30"
+        }, 
+        "zookeeper-env": {
+            "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOOKEEPER_HOME={{zk_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}", 
+            "zk_log_dir": "/var/log/zookeeper", 
+            "zk_server_heapsize": "1024m", 
+            "zk_pid_dir": "/var/run/zookeeper", 
+            "zk_user": "zookeeper"
+        }, 
+        "zookeeper-log4j": {
+            "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\n\n#\n# ZooKeeper Logging Configuration\n#\n\n# DEFAULT: console appender only\nlog4j.rootLogger=INFO, CONSOLE, ROLLINGFILE\n\n# Example with rolling log file\n#log4j.rootLogger=DEBUG, CONSOLE, ROLLINGFILE\n\n# Example with rolling log file and tracing\n#log4j.rootLogger=TRACE, CONSOLE, ROLLINGFILE, TRACEFILE\n\n#\n# Log INFO level and above messages to the console\n#\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\nlog4j.appender.CONSOLE.Threshold=INFO\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n\n\n#\n# Add ROLLINGFILE to rootLogger to get log file output\n#    Log DEBUG level and above messages to a log file\nlog4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender\nlog4j.appender.ROLLINGFILE.Threshold=DEBUG\nlog4j.appender.ROLLINGFILE.File={{zk_log_dir}}/zookeeper.log\n\n# Max log file size of 10MB\nlog4j.appender.ROLLINGFILE.MaxFileSize={{zookeeper_log_max_backup_size}}MB\n# uncomment the next line to limit number of backup files\n#log4j.appender.ROLLINGFILE.MaxBackupIndex={{zookeeper_log_number_of_backup_files}}\n\nlog4j.appender.ROLLINGFILE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.ROLLINGFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n\n\n\n#\n# Add TRACEFILE to rootLogger to get log file output\n#    Log DEBUG level and above messages to a log file\nlog4j.appender.TRACEFILE=org.apache.log4j.FileAppender\nlog4j.appender.TRACEFILE.Threshold=TRACE\nlog4j.appender.TRACEFILE.File=zookeeper_trace.log\n\nlog4j.appender.TRACEFILE.layout=org.apache.log4j.PatternLayout\n### Notice we are including log4j's NDC here (%x)\nlog4j.appender.TRACEFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L][%x] - %m%n", 
+            "zookeeper_log_max_backup_size": "10", 
+            "zookeeper_log_number_of_backup_files": "10"
+        }, 
+        "cluster-env": {
+            "commands_to_retry": "INSTALL,START", 
+            "command_retry_max_time_in_sec": "600", 
+            "command_retry_enabled": "true"
+        }
+    }
+}

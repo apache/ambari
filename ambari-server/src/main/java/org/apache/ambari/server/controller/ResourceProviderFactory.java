@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
-import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -69,9 +68,6 @@ public interface ResourceProviderFactory {
   @Named("credential")
   ResourceProvider getCredentialResourceProvider(AmbariManagementController managementController);
 
-  @Named("repositoryVersion")
-  ResourceProvider getRepositoryVersionResourceProvider();
-
   @Named("kerberosDescriptor")
   ResourceProvider getKerberosDescriptorResourceProvider(AmbariManagementController managementController);
 
@@ -80,9 +76,6 @@ public interface ResourceProviderFactory {
 
   @Named("rootServiceHostComponentConfiguration")
   ResourceProvider getRootServiceHostComponentConfigurationResourceProvider();
-
-  @Named("clusterStackVersion")
-  ClusterStackVersionResourceProvider getClusterStackVersionResourceProvider(AmbariManagementController managementController);
 
   @Named("alertTarget")
   AlertTargetResourceProvider getAlertTargetResourceProvider();

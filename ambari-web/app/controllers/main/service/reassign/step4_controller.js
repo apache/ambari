@@ -265,17 +265,20 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var hostName = this.get('content.reassignHosts.source');
     this.set('multiTaskCounter', hostComponents.length);
     for (var i = 0; i < hostComponents.length; i++) {
-      App.ajax.send({
-        name: 'common.host.host_component.passive',
-        sender: this,
-        data: {
-          hostName: hostName,
-          passive_state: "ON",
-          componentName: hostComponents[i]
-        },
-        success: 'onComponentsTasksSuccess',
-        error: 'onTaskError'
-      });
+      var hostComponent = App.HostComponent.find().findProperty('componentName', hostComponents[i]);
+      if(hostComponent) {
+        App.ajax.send({
+          name: 'common.host.host_component.passive',
+          sender: this,
+          data: {
+            hostName: hostName,
+            passive_state: "ON",
+            componentId: hostComponent.get('componentId')
+          },
+          success: 'onComponentsTasksSuccess',
+          error: 'onTaskError'
+        });
+      }
     }
   },
 
@@ -457,7 +460,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         sender: this,
         data: {
           hostName: hostName,
-          componentName: hostComponents[i]
+          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('componentId')
         },
         success: 'onComponentsTasksSuccess',
         error: 'onDeleteHostComponentsError'
@@ -534,7 +537,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         context: "Start MySQL Server",
         hostName: App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('hostName'),
         serviceName: "HIVE",
-        componentName: "MYSQL_SERVER",
+        componentId: App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('componentId'),
         HostRoles: {
           state: "STARTED"
         }
@@ -546,31 +549,35 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   restartMySqlServer: function() {
     var context = "Restart MySql Server";
+    const component = App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER');
 
-    var resource_filters = {
-      component_name: "MYSQL_SERVER",
-      hosts: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName'),
-      service_name: "HIVE"
-    };
+    if (component) {
+      var resource_filters = {
+        component_name: "MYSQL_SERVER",
+        hosts: component.get('firstObject.hostName'),
+        service_group_name: component.get('firstObject.serviceGroupName'),
+        service_name: "HIVE"
+      };
 
-    var operation_level = {
-      level: "HOST_COMPONENT",
-      cluster_name: this.get('content.cluster.name'),
-      service_name: "HIVE",
-      hostcomponent_name: "MYSQL_SERVER"
-    };
+      var operation_level = {
+        level: "HOST_COMPONENT",
+        cluster_name: this.get('content.cluster.name'),
+        service_name: "HIVE",
+        hostcomponent_name: "MYSQL_SERVER"
+      };
 
-    App.ajax.send({
-      name: 'restart.hostComponents',
-      sender: this,
-      data: {
-        context: context,
-        resource_filters: [resource_filters],
-        operation_level: operation_level
-      },
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+      App.ajax.send({
+        name: 'restart.hostComponents',
+        sender: this,
+        data: {
+          context: context,
+          resource_filters: [resource_filters],
+          operation_level: operation_level
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      });
+    }  
   },
 
   startNewMySqlServer: function() {
@@ -581,7 +588,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         context: "Start MySQL Server",
         hostName: this.get('content.reassignHosts.target'),
         serviceName: "HIVE",
-        componentName: "MYSQL_SERVER",
+        componentId: App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('componentId'),
         HostRoles: {
           state: "STARTED"
         }

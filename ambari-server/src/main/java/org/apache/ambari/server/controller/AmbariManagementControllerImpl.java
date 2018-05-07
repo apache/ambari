@@ -51,7 +51,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST
 import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -120,7 +119,6 @@ import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider;
 import org.apache.ambari.server.controller.internal.WidgetResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
@@ -142,7 +140,6 @@ import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -154,9 +151,6 @@ import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
-import org.apache.ambari.server.orm.entities.RepoOsEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -182,7 +176,6 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stack.ExtensionHelper;
-import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -200,12 +193,10 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
-import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -226,10 +217,8 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -246,7 +235,6 @@ import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -257,7 +245,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -347,8 +334,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ExecutionScheduleManager executionScheduleManager;
   @Inject
   private AmbariLdapDataPopulator ldapDataPopulator;
-  @Inject
-  private RepositoryVersionDAO repositoryVersionDAO;
   @Inject
   private WidgetDAO widgetDAO;
   @Inject
@@ -678,7 +663,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     // do all validation checks
-    Map<String, Map<String, Map<String, Set<String>>>> hostComponentNames = new HashMap<>();
+    Map<String, Map<String, Map<String, Map<String, Set<String>>>>> hostComponentNames =
+            new HashMap<>();
     Set<String> duplicates = new HashSet<>();
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
@@ -723,18 +709,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         hostComponentNames.put(request.getClusterName(), new HashMap<>());
       }
       if (!hostComponentNames.get(request.getClusterName())
-          .containsKey(request.getServiceName())) {
+          .containsKey(request.getServiceGroupName())) {
         hostComponentNames.get(request.getClusterName()).put(
+            request.getServiceGroupName(), new HashMap<>());
+      }
+      if (!hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
+          .containsKey(request.getServiceName())) {
+        hostComponentNames.get(request.getClusterName()).get(request.getServiceGroupName()).put(
             request.getServiceName(), new HashMap<String, Set<String>>());
       }
       if (!hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
           .get(request.getServiceName())
           .containsKey(request.getComponentName())) {
         hostComponentNames.get(request.getClusterName())
+            .get(request.getServiceGroupName())
             .get(request.getServiceName()).put(request.getComponentName(),
                 new HashSet<String>());
       }
       if (hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
           .get(request.getServiceName())
           .get(request.getComponentName())
           .contains(request.getHostname())) {
@@ -743,6 +738,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         continue;
       }
       hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceGroupName())
           .get(request.getServiceName()).get(request.getComponentName())
           .add(request.getHostname());
 
@@ -867,7 +863,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
 
@@ -4502,207 +4498,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests)
-      throws AmbariException {
-    Set<RepositoryResponse> response = new HashSet<>();
-    for (RepositoryRequest request : requests) {
-      try {
-        String stackName    = request.getStackName();
-        String stackVersion = request.getStackVersion();
-
-        Set<RepositoryResponse> repositories = getRepositories(request);
-
-        for (RepositoryResponse repositoryResponse : repositories) {
-          if (repositoryResponse.getStackName() == null) {
-            repositoryResponse.setStackName(stackName);
-          }
-          if (repositoryResponse.getStackVersion() == null) {
-            repositoryResponse.setStackVersion(stackVersion);
-          }
-
-          repositoryResponse.setClusterVersionId(request.getClusterVersionId());
-        }
-        response.addAll(repositories);
-      } catch (StackAccessException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          throw e;
-        }
-      }
-    }
-    return response;
-  }
-
-  private Set<RepositoryResponse> getRepositories(RepositoryRequest request) throws AmbariException {
-
-    String stackName = request.getStackName();
-    String stackVersion = request.getStackVersion();
-    String osType = request.getOsType();
-    String repoId = request.getRepoId();
-    Long repositoryVersionId = request.getRepositoryVersionId();
-    String versionDefinitionId = request.getVersionDefinitionId();
-
-    // !!! when asking for Repository responses for a versionDefinition, it is either for
-    // an established repo version (a Long) OR from the in-memory generated ones (a String)
-    if (null == repositoryVersionId && null != versionDefinitionId) {
-
-      if (NumberUtils.isDigits(versionDefinitionId)) {
-        repositoryVersionId = Long.valueOf(versionDefinitionId);
-      }
-    }
-
-    Set<RepositoryResponse> responses = new HashSet<>();
-
-    if (repositoryVersionId != null) {
-      final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
-      if (repositoryVersion != null) {
-        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
-          if (operatingSystem.getFamily().equals(osType)) {
-            for (RepoDefinitionEntity repository : operatingSystem.getRepoDefinitionEntities()) {
-
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepoID(),
-                  repository.getRepoName(), repository.getDistribution(), repository.getComponents(), "", "",
-                      repository.getTags());
-              if (null != versionDefinitionId) {
-                response.setVersionDefinitionId(versionDefinitionId);
-              } else {
-                response.setRepositoryVersionId(repositoryVersionId);
-              }
-              response.setStackName(repositoryVersion.getStackName());
-              response.setStackVersion(repositoryVersion.getStackVersion());
-
-              responses.add(response);
-            }
-            break;
-          }
-        }
-      }
-    } else if (null != versionDefinitionId) {
-      VersionDefinitionXml xml = ambariMetaInfo.getVersionDefinition(versionDefinitionId);
-
-      if (null == xml) {
-        throw new AmbariException(String.format("Version identified by %s does not exist",
-            versionDefinitionId));
-      }
-      StackId stackId = new StackId(xml.release.stackId);
-
-      ListMultimap<String, RepositoryInfo> stackRepositoriesByOs = ambariMetaInfo.getStackManager().getStack(stackName, stackVersion).getRepositoriesByOs();
-      for (RepositoryXml.Os os : xml.repositoryInfo.getOses()) {
-
-        for (RepositoryXml.Repo repo : os.getRepos()) {
-          RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
-              repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl(), repo.getTags());
-
-          resp.setVersionDefinitionId(versionDefinitionId);
-          resp.setStackName(stackId.getStackName());
-          resp.setStackVersion(stackId.getStackVersion());
-
-          responses.add(resp);
-        }
-      }
-
-      // Add service repos to the response. (These are not contained by the VDF but are present in the stack model)
-      List<RepositoryInfo> serviceRepos =
-          RepoUtil.getServiceRepos(xml.repositoryInfo.getRepositories(), stackRepositoriesByOs);
-      responses.addAll(RepoUtil.asResponses(serviceRepos, versionDefinitionId, stackName, stackVersion));
-
-    } else {
-      if (repoId == null) {
-        List<RepositoryInfo> repositories = ambariMetaInfo.getRepositories(stackName, stackVersion, osType);
-
-        for (RepositoryInfo repository: repositories) {
-          responses.add(repository.convertToResponse());
-        }
-
-      } else {
-        RepositoryInfo repository = ambariMetaInfo.getRepository(stackName, stackVersion, osType, repoId);
-        responses = Collections.singleton(repository.convertToResponse());
-      }
-    }
-
-    return responses;
-  }
-
-  @Override
-  public void verifyRepositories(Set<RepositoryRequest> requests) throws AmbariException {
-    for (RepositoryRequest request: requests) {
-      if (request.getBaseUrl() == null) {
-        throw new AmbariException("Base url is missing for request " + request);
-      }
-      verifyRepository(request);
-    }
-  }
-
-  /**
-   * Verifies single repository, see {{@link #verifyRepositories(Set)}.
-   *
-   * @param request request
-   * @throws AmbariException if verification fails
-   */
-  private void verifyRepository(RepositoryRequest request) throws AmbariException {
-    URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
-    usp.setSetupTruststoreForHttps(false);
-
-    String repoName = request.getRepoName();
-    if (StringUtils.isEmpty(repoName)) {
-      throw new IllegalArgumentException("repo_name is required to verify repository");
-    }
-
-    String errorMessage = null;
-    Exception e = null;
-
-    String[] suffixes = configs.getRepoValidationSuffixes(request.getOsType());
-    for (String suffix : suffixes) {
-      String formatted_suffix = String.format(suffix, repoName);
-      String spec = request.getBaseUrl().trim();
-
-      // This logic is to identify if the end of baseurl has a slash ('/') and/or the beginning of suffix String (e.g. "/repodata/repomd.xml")
-      // has a slash and they can form a good url.
-      // e.g. "http://baseurl.com/" + "/repodata/repomd.xml" becomes "http://baseurl.com/repodata/repomd.xml" but not "http://baseurl.com//repodata/repomd.xml"
-      if (spec.charAt(spec.length() - 1) != '/' && formatted_suffix.charAt(0) != '/') {
-        spec = spec + "/" + formatted_suffix;
-      } else if (spec.charAt(spec.length() - 1) == '/' && formatted_suffix.charAt(0) == '/') {
-        spec = spec + formatted_suffix.substring(1);
-      } else {
-        spec = spec + formatted_suffix;
-      }
-
-      // if spec contains "file://" then check local file system.
-      final String FILE_SCHEME = "file://";
-      if(spec.toLowerCase().startsWith(FILE_SCHEME)){
-        String filePath = spec.substring(FILE_SCHEME.length());
-        File f = new File(filePath);
-        if(!f.exists()){
-          errorMessage = "Could not access base url . " + spec + " . ";
-          e = new FileNotFoundException(errorMessage);
-          break;
-        }
-
-      }else{
-        try {
-          IOUtils.readLines(usp.readFrom(spec));
-        } catch (IOException ioe) {
-          e = ioe;
-          errorMessage = "Could not access base url . " + request.getBaseUrl() + " . ";
-          if (LOG.isDebugEnabled()) {
-            errorMessage += ioe;
-          } else {
-            errorMessage += ioe.getMessage();
-          }
-          break;
-        }
-      }
-    }
-
-    if (e != null) {
-      LOG.error(errorMessage);
-      throw new IllegalArgumentException(errorMessage, e);
-    }
-  }
-
-  @Override
   public Set<StackVersionResponse> getStackVersions(
       Set<StackVersionRequest> requests) throws AmbariException {
     Set<StackVersionResponse> response = new HashSet<>();
@@ -5027,105 +4822,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
     return response;
-  }
-
-  @Override
-  public Set<OperatingSystemResponse> getOperatingSystems(
-      Set<OperatingSystemRequest> requests) throws AmbariException {
-    Set<OperatingSystemResponse> response = new HashSet<>();
-    for (OperatingSystemRequest request : requests) {
-      try {
-        String stackName    = request.getStackName();
-        String stackVersion = request.getStackVersion();
-
-        Set<OperatingSystemResponse> stackOperatingSystems = getOperatingSystems(request);
-
-        for (OperatingSystemResponse operatingSystemResponse : stackOperatingSystems) {
-          if (operatingSystemResponse.getStackName() == null) {
-            operatingSystemResponse.setStackName(stackName);
-          }
-          if (operatingSystemResponse.getStackVersion() == null) {
-            operatingSystemResponse.setStackVersion(stackVersion);
-          }
-        }
-        response.addAll(stackOperatingSystems);
-      } catch (StackAccessException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          throw e;
-        }
-      }
-    }
-    return response;
-  }
-
-  private Set<OperatingSystemResponse> getOperatingSystems(
-      OperatingSystemRequest request) throws AmbariException {
-
-    Set<OperatingSystemResponse> responses = new HashSet<>();
-
-    String stackName = request.getStackName();
-    String stackVersion = request.getStackVersion();
-    String osType = request.getOsType();
-    Long repositoryVersionId = request.getRepositoryVersionId();
-    String versionDefinitionId = request.getVersionDefinitionId();
-
-    // !!! when asking for OperatingSystem responses for a versionDefinition, it is either for
-    // an established repo version (a Long) OR from the in-memory generated ones (a String)
-    if (null == repositoryVersionId && null != versionDefinitionId) {
-      if (NumberUtils.isDigits(versionDefinitionId)) {
-        repositoryVersionId = Long.valueOf(versionDefinitionId);
-      }
-    }
-
-    if (repositoryVersionId != null) {
-      final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
-      if (repositoryVersion != null) {
-        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
-          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getFamily());
-          if (null != versionDefinitionId) {
-            response.setVersionDefinitionId(repositoryVersionId.toString());
-          } else {
-            response.setRepositoryVersionId(repositoryVersionId);
-          }
-          response.setStackName(repositoryVersion.getStackName());
-          response.setStackVersion(repositoryVersion.getStackVersion());
-          response.setAmbariManagedRepos(operatingSystem.isAmbariManaged());
-          responses.add(response);
-        }
-      }
-    } else if (null != versionDefinitionId) {
-      VersionDefinitionXml xml = ambariMetaInfo.getVersionDefinition(versionDefinitionId);
-
-      if (null == xml) {
-        throw new AmbariException(String.format("Version identified by %s does not exist",
-            versionDefinitionId));
-      }
-      StackId stackId = new StackId(xml.release.stackId);
-
-      for (RepositoryXml.Os os : xml.repositoryInfo.getOses()) {
-        OperatingSystemResponse resp = new OperatingSystemResponse(os.getFamily());
-        resp.setVersionDefinitionId(versionDefinitionId);
-        resp.setStackName(stackId.getStackName());
-        resp.setStackVersion(stackId.getStackVersion());
-
-        responses.add(resp);
-      }
-
-    } else {
-      if (osType != null) {
-        OperatingSystemInfo operatingSystem = ambariMetaInfo.getOperatingSystem(stackName, stackVersion, osType);
-        responses = Collections.singleton(operatingSystem.convertToResponse());
-      } else {
-        Set<OperatingSystemInfo> operatingSystems = ambariMetaInfo.getOperatingSystems(stackName, stackVersion);
-        for (OperatingSystemInfo operatingSystem : operatingSystems) {
-          responses.add(operatingSystem.convertToResponse());
-        }
-      }
-    }
-
-    return responses;
   }
 
   @Override
@@ -6014,6 +5710,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
       }
+
+      m_metadataHolder.get().updateData(getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
 
       if (request.getVersion() != null) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {

@@ -23,7 +23,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -77,14 +76,6 @@ public class UpgradeHistoryEntity {
   @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
   private String componentName;
 
-  @ManyToOne
-  @JoinColumn(name = "from_repo_version_id", unique = false, nullable = false, insertable = true, updatable = true)
-  private RepositoryVersionEntity fromRepositoryVersion = null;
-
-  @ManyToOne
-  @JoinColumn(name = "target_repo_version_id", unique = false, nullable = false, insertable = true, updatable = true)
-  private RepositoryVersionEntity targetRepositoryVersion = null;
-
   /**
    * @return the id
    */
@@ -135,7 +126,7 @@ public class UpgradeHistoryEntity {
    * @return the repository that the upgrade is coming from (not {@code null}).
    */
   public RepositoryVersionEntity getFromReposistoryVersion() {
-    return fromRepositoryVersion;
+    return null;
   }
 
   /**
@@ -145,7 +136,6 @@ public class UpgradeHistoryEntity {
    *          the repository entity (not {@code null}).
    */
   public void setFromRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
-    fromRepositoryVersion = repositoryVersionEntity;
   }
 
   /**
@@ -155,7 +145,7 @@ public class UpgradeHistoryEntity {
    *         {@code null}).
    */
   public RepositoryVersionEntity getTargetRepositoryVersion() {
-    return targetRepositoryVersion;
+    return null;
   }
 
   /**
@@ -165,7 +155,7 @@ public class UpgradeHistoryEntity {
    * @see #getTargetRepositoryVersion()
    */
   public String getTargetVersion() {
-    return targetRepositoryVersion.getVersion();
+    return null;
   }
 
   /**
@@ -175,7 +165,6 @@ public class UpgradeHistoryEntity {
    *          the target repository (not {@code null}).
    */
   public void setTargetRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
-    targetRepositoryVersion = repositoryVersionEntity;
   }
 
   /**
@@ -226,8 +215,6 @@ public class UpgradeHistoryEntity {
         .add("id", id)
         .add("upgradeId", upgradeId)
         .add("serviceName", serviceName)
-        .add("componentName", componentName)
-        .add("from", fromRepositoryVersion)
-        .add("to", targetRepositoryVersion).toString();
+        .add("componentName", componentName).toString();
   }
 }

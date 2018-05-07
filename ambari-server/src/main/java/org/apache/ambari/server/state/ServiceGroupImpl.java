@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.ServiceGroupKey;
@@ -50,11 +52,11 @@ public class ServiceGroupImpl implements ServiceGroup {
   private final Cluster cluster;
 
   private final ClusterDAO clusterDAO;
-  private final StackDAO stackDAO;
   private final ServiceGroupDAO serviceGroupDAO;
+  private final ServiceFactory serviceFactory;
   private final AmbariEventPublisher eventPublisher;
-  private final Clusters clusters;
 
+  private Long mpackId;
   private Long serviceGroupId;
   private String serviceGroupName;
   private StackId stackId;
@@ -68,14 +70,14 @@ public class ServiceGroupImpl implements ServiceGroup {
                           ClusterDAO clusterDAO,
                           StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
+                          ServiceFactory serviceFactory,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
 
     this.cluster = cluster;
-    this.clusters = clusters;
     this.clusterDAO = clusterDAO;
-    this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
+    this.serviceFactory = serviceFactory;
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupName = serviceGroupName;
@@ -85,7 +87,11 @@ public class ServiceGroupImpl implements ServiceGroup {
     serviceGroupEntity.setClusterId(cluster.getClusterId());
     serviceGroupEntity.setServiceGroupId(serviceGroupId);
     serviceGroupEntity.setServiceGroupName(serviceGroupName);
-    serviceGroupEntity.setStack(stackDAO.find(stackId));
+
+    StackEntity stackEntity = stackDAO.find(stackId);
+
+    mpackId = stackEntity.getMpackId();
+    serviceGroupEntity.setStack(stackEntity);
     if (serviceGroupDependencies == null) {
       this.serviceGroupDependencies = new HashSet<>();
     } else {
@@ -101,18 +107,19 @@ public class ServiceGroupImpl implements ServiceGroup {
                           ClusterDAO clusterDAO,
                           StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
+                          ServiceFactory serviceFactory,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
     this.cluster = cluster;
-    this.clusters = clusters;
     this.clusterDAO = clusterDAO;
-    this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
+    this.serviceFactory = serviceFactory;
     this.eventPublisher = eventPublisher;
 
     serviceGroupId = serviceGroupEntity.getServiceGroupId();
     serviceGroupName = serviceGroupEntity.getServiceGroupName();
     StackEntity stack = serviceGroupEntity.getStack();
+    mpackId = stack.getMpackId();
     stackId = new StackId(stack.getStackName(), stack.getStackVersion());
     serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
@@ -168,7 +175,8 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   public ServiceGroupResponse convertToResponse() {
     ServiceGroupResponse r = new ServiceGroupResponse(cluster.getClusterId(),
-      cluster.getClusterName(), getServiceGroupId(), getServiceGroupName(), stackId.getStackId());
+        cluster.getClusterName(), mpackId, stackId, getServiceGroupId(), getServiceGroupName());
+
     return r;
   }
 
@@ -317,16 +325,6 @@ public class ServiceGroupImpl implements ServiceGroup {
     serviceGroupDAO.createServiceGroupDependency(serviceGroupDependencyEntity);
   }
 
-
-  private Long getServiceGroupClusterId(Long serviceGroupId) throws AmbariException {
-    for (Cluster cl : clusters.getClusters().values()) {
-      if (cl.getServiceGroupsById().containsKey(serviceGroupId)) {
-        return cl.getClusterId();
-      }
-    }
-    throw new AmbariException("Service group with id=" + serviceGroupId + " is not available.");
-  }
-
   @Override
   public ServiceGroupEntity deleteServiceGroupDependency(Long dependencyServiceGroupId) throws AmbariException {
     ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(getServiceGroupId());
@@ -370,4 +368,17 @@ public class ServiceGroupImpl implements ServiceGroup {
     serviceGroupEntity.setStack(stackEntity);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
   }
+
+  @Override
+  public Collection<Service> getServices() throws AmbariException {
+
+    Cluster cluster = getCluster();
+    ServiceGroupEntity serviceGroup = getServiceGroupEntity();
+
+    // !!! not sure how performant this is going to be.  possible optimization point.
+    return serviceGroup.getClusterServices().stream().map(entity -> {
+      return serviceFactory.createExisting(cluster, this, entity);
+    }).collect(Collectors.toList());
+  }
+
 }

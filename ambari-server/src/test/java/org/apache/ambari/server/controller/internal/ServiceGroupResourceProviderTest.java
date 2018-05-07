@@ -111,7 +111,7 @@ public class ServiceGroupResourceProviderTest {
     ClusterController clusterController = createNiceMock(ClusterController.class);
     ServiceGroup coreServiceGroup = createNiceMock(ServiceGroup.class);
     ServiceGroup edmServiceGroup = createNiceMock(ServiceGroup.class);
-    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1l, "CORE", STACK_ID);
+    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1L, new StackId(STACK_ID), 1l, "CORE");
     expect(ambariManagementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(ambariManagementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();

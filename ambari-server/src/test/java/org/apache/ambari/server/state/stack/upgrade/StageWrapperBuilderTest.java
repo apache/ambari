@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.Cluster;
@@ -33,11 +33,14 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests the {@link StageWrapperBuilder}.
  */
+@Ignore
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 public class StageWrapperBuilderTest extends EasyMockSupport {
 
   private static final StackId HDP_21 = new StackId("HDP-2.1.1");
@@ -52,18 +55,10 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
   public void testBuildOrder() throws Exception {
     Cluster cluster = createNiceMock(Cluster.class);
 
-    RepositoryVersionEntity repoVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    EasyMock.expect(repoVersionEntity.getStackId()).andReturn(HDP_21).anyTimes();
-
-    RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    EasyMock.expect(repoVersionDAO.findByStackNameAndVersion(EasyMock.anyString(),
-        EasyMock.anyString())).andReturn(repoVersionEntity).anyTimes();
-
     UpgradeContext upgradeContext = EasyMock.createNiceMock(UpgradeContext.class);
     EasyMock.expect(upgradeContext.getCluster()).andReturn(cluster).anyTimes();
     EasyMock.expect(upgradeContext.getType()).andReturn(UpgradeType.ROLLING).anyTimes();
     EasyMock.expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
-    EasyMock.expect(upgradeContext.getRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
     EasyMock.expect(upgradeContext.isComponentFailureAutoSkipped()).andReturn(false).anyTimes();
     EasyMock.expect(upgradeContext.isServiceCheckFailureAutoSkipped()).andReturn(false).anyTimes();
 
@@ -93,18 +88,10 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
   public void testAutoSkipCheckInserted() throws Exception {
     Cluster cluster = createNiceMock(Cluster.class);
 
-    RepositoryVersionEntity repoVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    EasyMock.expect(repoVersionEntity.getStackId()).andReturn(HDP_21).anyTimes();
-
-    RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    EasyMock.expect(repoVersionDAO.findByStackNameAndVersion(EasyMock.anyString(),
-        EasyMock.anyString())).andReturn(repoVersionEntity).anyTimes();
-
     UpgradeContext upgradeContext = createNiceMock(UpgradeContext.class);
     EasyMock.expect(upgradeContext.getCluster()).andReturn(cluster).anyTimes();
     EasyMock.expect(upgradeContext.getType()).andReturn(UpgradeType.ROLLING).anyTimes();
     EasyMock.expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
-    EasyMock.expect(upgradeContext.getRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
     EasyMock.expect(upgradeContext.isComponentFailureAutoSkipped()).andReturn(true).anyTimes();
     EasyMock.expect(upgradeContext.isServiceCheckFailureAutoSkipped()).andReturn(true).anyTimes();
 

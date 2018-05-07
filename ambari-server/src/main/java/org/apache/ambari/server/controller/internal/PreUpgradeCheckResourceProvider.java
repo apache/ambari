@@ -41,7 +41,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -92,9 +91,6 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
   @Inject
   private static Provider<Clusters> clustersProvider;
-
-  @Inject
-  private static RepositoryVersionDAO repositoryVersionDAO;
 
   @Inject
   private static UpgradeCheckRegistry upgradeCheckRegistry;
@@ -185,8 +181,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       StackId sourceStackId = cluster.getCurrentStackVersion();
       upgradeCheckRequest.setSourceStackId(cluster.getCurrentStackVersion());
 
-      RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(
-          Long.valueOf(repositoryVersionId));
+      RepositoryVersionEntity repositoryVersion = null;
 
       upgradeCheckRequest.setTargetRepositoryVersion(repositoryVersion);
 

@@ -38,7 +38,6 @@ import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.state.State;
 
 import org.apache.http.HttpStatus;
@@ -163,23 +162,6 @@ public class DeleteServiceTest extends ServerTestBase {
 
         WebResponse webResponse = new GetServiceWebRequest(params, clusterName, serviceName).getResponse();
         assertEquals(webResponse.getStatusCode(), HttpStatus.SC_NOT_FOUND);
-
-        /**
-         * ClusterServiceDAO - the service entry should have been removed.
-         */
-        //TODO : Requires logic change
-        clusterServiceEntity = clusterServiceDAO.findById(1L,1L,1L);
-        assertTrue(clusterServiceEntity == null);
-
-        /**
-         * ServiceDesiredStateDAO - the service entry should have been removed.
-         */
-        ServiceDesiredStateEntityPK serviceDesiredStateEntityPK = injector.getInstance(ServiceDesiredStateEntityPK.class);
-        serviceDesiredStateEntityPK.setClusterId(clusterId);
-        //TODO : Requires logic change
-        serviceDesiredStateEntityPK.setServiceId(1L);
-        serviceDesiredStateEntity =  serviceDesiredStateDAO.findByPK(serviceDesiredStateEntityPK);
-        assertTrue(serviceDesiredStateEntity == null);
 
         /**
          * ServiceComponentDesiredStateDAO

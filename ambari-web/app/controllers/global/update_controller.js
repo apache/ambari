@@ -228,9 +228,7 @@ App.UpdateController = Em.Controller.extend({
             (App.Service.find().someProperty('serviceName', 'HDFS') ? 'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,' : '') +
             '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
         hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
-        stackVersionInfo = ',stack_versions/HostStackVersions,' +
-            'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
-            'stack_versions/repository_versions/RepositoryVersions/display_name',
+        stackVersionInfo = '',
         mainHostController = App.router.get('mainHostController'),
         sortProperties = mainHostController.getSortProps(),
         loggingResource = ',host_components/logging',
@@ -485,6 +483,7 @@ App.UpdateController = Em.Controller.extend({
         'host_components/HostRoles/display_name,' +
         'host_components/HostRoles/host_name,' +
         'host_components/HostRoles/public_host_name,' +
+        'host_components/HostRoles/component_name,' +
         'host_components/HostRoles/state,' +
         'host_components/HostRoles/maintenance_state,' +
         'host_components/HostRoles/stale_configs,' +
@@ -546,7 +545,7 @@ App.UpdateController = Em.Controller.extend({
 
   updateServices: function (callback) {
     var testUrl = '/data/services/HDP2/services.json';
-    var componentConfigUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,components/ServiceComponentInfo/component_name&minimal_response=true');
+    var componentConfigUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,components');
     App.HttpClient.get(componentConfigUrl, App.serviceMapper, {
       complete: callback
     });

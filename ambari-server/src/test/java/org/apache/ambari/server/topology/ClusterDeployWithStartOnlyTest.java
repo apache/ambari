@@ -314,7 +314,6 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
     expect(request.getProvisionAction()).andReturn(ProvisionAction.START_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
-    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
 
@@ -361,7 +360,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE), eq("1"), anyLong());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
@@ -384,12 +383,10 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
     expect(hostRoleCommandInstallComponent3.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
-    expect(hostRoleCommandInstallComponent3.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     expect(hostRoleCommandInstallComponent4.getTaskId()).andReturn(2L).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
-    expect(hostRoleCommandInstallComponent4.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component1"),

@@ -52,7 +52,6 @@ public class HostResourceDefinitionTest {
     assertEquals(4, subResources.size());
     assertTrue(includesType(subResources, Resource.Type.HostComponent));
     assertTrue(includesType(subResources, Resource.Type.Alert));
-    assertTrue(includesType(subResources, Resource.Type.HostStackVersion));
     assertTrue(includesType(subResources, Resource.Type.HostKerberosIdentity));
   }
 

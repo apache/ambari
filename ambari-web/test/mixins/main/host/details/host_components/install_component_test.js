@@ -74,7 +74,7 @@ describe('App.InstallComponent', function () {
     var params = {
       hostName: 'host1',
       component: Em.Object.create({
-        componentName: 'C1',
+        componentId: '1',
         serviceName: 'S1',
         displayName: 'c1'
       })
@@ -86,7 +86,7 @@ describe('App.InstallComponent', function () {
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
         hostName: 'host1',
-        componentName: 'C1',
+        componentId: '1',
         serviceName: 'S1',
         component: params.component,
         "context": Em.I18n.t('requestInfo.installNewHostComponent') + ' c1',

@@ -109,12 +109,11 @@ public class ClustersDeadlockTest {
     injector.injectMembers(this);
 
     StackId stackId = new StackId("HDP-0.1");
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(CLUSTER_NAME, stackId);
 
     cluster = clusters.getCluster(CLUSTER_NAME);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     // install HDFS
     serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());

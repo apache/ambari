@@ -791,7 +791,6 @@ public class ClusterResourceProviderTest {
 
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     Map<String, Object> properties = requestProperties.iterator().next();
-    properties.put(ProvisionClusterRequest.REPO_VERSION_PROPERTY, "2.1.1");
 
     Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");

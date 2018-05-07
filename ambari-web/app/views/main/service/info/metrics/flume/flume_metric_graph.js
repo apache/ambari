@@ -43,7 +43,7 @@ App.ChartServiceFlumeMetricGraph = App.ChartLinearTimeView.extend({
 
   getDataForAjaxRequest: function() {
     var data = this._super();
-
+    var flumeId = App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER').get('componentId');
     var urlFields = '';
     this.get('metricItems').forEach(function (metricItem, index) {
       urlFields += index === 0 ? '' : ',';
@@ -51,7 +51,7 @@ App.ChartServiceFlumeMetricGraph = App.ChartLinearTimeView.extend({
           '[' + data.fromSeconds + ',' + data.toSeconds + ',' + data.stepSeconds + ']'
     }, this);
 
-    data.url = App.get('apiPrefix') + '/clusters/' + App.get('clusterName') + '/hosts/' + this.get('hostName') + '/host_components/FLUME_HANDLER?fields=' + urlFields;
+    data.url = App.get('apiPrefix') + '/clusters/' + App.get('clusterName') + '/hosts/' + this.get('hostName') + '/host_components/' + flumeId + '?fields=' + urlFields;
     return data;
   },
 

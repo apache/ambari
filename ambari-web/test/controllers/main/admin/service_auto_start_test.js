@@ -81,16 +81,10 @@ describe('App.MainAdminServiceAutoStartController', function() {
       })
     };
     beforeEach(function() {
-      sinon.stub(controller, 'loadClusterConfig').returns({
+      sinon.stub(controller, 'loadClusterSettings').returns({
         done: function(callback) {
           callback({
-            Clusters: {
-              desired_configs: {
-                'cluster-env': {
-                  tag: 1
-                }
-              }
-            }
+            recovery_enabled: 'true'
           });
         }
       });
@@ -101,7 +95,7 @@ describe('App.MainAdminServiceAutoStartController', function() {
       controller.load();
     });
     afterEach(function() {
-      controller.loadClusterConfig.restore();
+      controller.loadClusterSettings.restore();
       App.router.get.restore();
       controller.loadComponentsConfigs.restore();
     });
