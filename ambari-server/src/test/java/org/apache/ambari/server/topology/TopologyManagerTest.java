@@ -56,7 +56,9 @@ import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
+import org.apache.ambari.server.controller.internal.SettingResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -86,14 +88,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * TopologyManager unit tests
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({TopologyManager.class})
 public class TopologyManagerTest {
 
   private static final String CLUSTER_NAME = "test-cluster";
@@ -318,6 +325,7 @@ public class TopologyManagerTest {
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(request.getAllMpacks()).andReturn(ImmutableSet.of()).anyTimes();
 
     expect(componentResolver.resolveComponents(anyObject())).andReturn(ImmutableMap.of()).anyTimes();
 
@@ -367,6 +375,7 @@ public class TopologyManagerTest {
     expectLastCall().anyTimes();
 
     expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
+    expect(resourceProvider.createResources((anyObject()))).andReturn(new RequestStatusImpl(null, null, null)).anyTimes(); // persist raw request
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
 
     expect(configureClusterTaskFactory.createConfigureClusterTask(anyObject(), anyObject(), anyObject())).andReturn(configureClusterTask);
@@ -399,15 +408,17 @@ public class TopologyManagerTest {
 
   @After
   public void tearDown() {
-    PowerMock.verify(System.class);
+//    PowerMock.verify(System.class);
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO,
+        resourceProvider, mpackResourceProvider);
 
     PowerMock.reset(System.class);
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO,
+        resourceProvider, mpackResourceProvider);
   }
 
   @Test
@@ -564,8 +575,8 @@ public class TopologyManagerTest {
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
-            clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO,
-            configureClusterTaskFactory, configureClusterTask);
+            clusterController, resourceProvider, mpackResourceProvider, mockFuture, requestStatusResponse,
+            logicalRequest, settingDAO, configureClusterTaskFactory, configureClusterTask);
   }
 
   @Test(expected = InvalidTopologyException.class)
@@ -605,8 +616,10 @@ public class TopologyManagerTest {
     PowerMock.replay(System.class);
     final SettingEntity quickLinksProfile = createQuickLinksSettingEntity(SAMPLE_QUICKLINKS_PROFILE_1, timeStamp);
     settingDAO.create(eq(quickLinksProfile));
+    expectLastCall();
 
     replayAll();
+    PowerMock.replayAll();
 
     topologyManager.provisionCluster(request, "{}");
   }
@@ -632,6 +645,7 @@ public class TopologyManagerTest {
     expect(settingDAO.merge(newProfile)).andReturn(newProfile);
 
     replayAll();
+    PowerMock.replayAll();
 
     topologyManager.provisionCluster(request, "{}");
   }

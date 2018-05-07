@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Collection;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariServer;
