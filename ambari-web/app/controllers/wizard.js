@@ -343,6 +343,27 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return name;
   },
 
+  getStepSavedState: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const stepsSaved = this.get('content.stepsSavedState');
+
+    if (!!stepIndex && stepsSaved && stepsSaved[stepIndex]) {
+      return true;
+    }
+
+    return false;
+  },
+
+  setStepUnsaved: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const oldState = this.get('content.stepsSavedState') || {};
+    const newState = Em.Object.create(oldState);
+    newState[stepIndex] = false;
+
+    this.set('content.stepsSavedState', newState);
+    this.save('stepsSavedState');
+  },
+  
   /**
    * Move user to the selected step
    *
@@ -352,6 +373,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    */
   gotoStep: function (stepName, disableNaviWarning) {
     const step = this.getStepIndex(stepName);
+
+    //in case stepName is a legacy number convert it to the
+    //legacy naming convention, a string starting with "step"
+    if (typeof stepName !== "string") {
+      stepName = "step" + stepName.toString();
+    }
 
     if (step === -1 || this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
       return false;

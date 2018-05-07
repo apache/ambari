@@ -82,7 +82,6 @@ App.WizardStep6View = App.TableView.extend({
     var checkbox = e.context;
     Em.set(checkbox, 'checked', !checkbox.checked);
     this.get('controller').checkCallback(checkbox.component);
-    this.get('controller').callValidation();
     this.get('controller').hostsChanged();
   },
 

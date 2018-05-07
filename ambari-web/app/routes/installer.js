@@ -653,27 +653,25 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
       if (!wizardStep6Controller.get('submitDisabled')) {
-        wizardStep6Controller.showValidationIssuesAcceptBox(function () {
-          if (!router.get('btnClickInProgress')) {
-            App.set('router.nextBtnClickInProgress', true);
-            controller.saveSlaveComponentHosts(wizardStep6Controller);
-            controller.get('content').set('serviceConfigProperties', null);
-            controller.get('content').set('componentsFromConfigs', []);
-            // Clear subsequent steps if user made changes
-            if (!wizardStep6Controller.get('isSaved')) {
-              controller.setDBProperties({
-                serviceConfigGroups: null,
-                recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
-                recommendationsConfigs: null,
-                componentsFromConfigs: []
-              });
-              controller.clearServiceConfigProperties();
-            }
-            controller.setStepSaved('step6');
-            router.transitionTo('step7');
-            console.timeEnd('step6 next');
+        if (!router.get('btnClickInProgress')) {
+          App.set('router.nextBtnClickInProgress', true);
+          controller.saveSlaveComponentHosts(wizardStep6Controller);
+          controller.get('content').set('serviceConfigProperties', null);
+          controller.get('content').set('componentsFromConfigs', []);
+          // Clear subsequent steps if user made changes
+          if (!wizardStep6Controller.get('isSaved')) {
+            controller.setDBProperties({
+              serviceConfigGroups: null,
+              recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+              recommendationsConfigs: null,
+              componentsFromConfigs: []
+            });
+            controller.clearServiceConfigProperties();
           }
-        });
+          controller.setStepSaved('step6');
+          router.transitionTo('step7');
+          console.timeEnd('step6 next');
+        }
       }
     }
   }),

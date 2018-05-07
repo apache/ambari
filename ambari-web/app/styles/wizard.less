@@ -356,6 +356,13 @@
           border-top-color: #eee;
           border-bottom: 1px solid #eee;
         }
+        th.freeze {
+          //Added this because due to its absolute positioning, 
+          //the frozen column header was overlapping and blocking
+          //the next column header from being clicked, and that one
+          //contains the "all | none" links for checkbox selections.
+          pointer-events: none;
+        }
         td.freeze {
           padding-bottom: 11px;
         }
