@@ -35,7 +35,10 @@ from urlparse import urlparse
 from ambari_configuration import AmbariConfiguration
 from resource_management.libraries.functions.data_structure_utils import get_from_dict
 from resource_management.core.exceptions import Fail
+<<<<<<< HEAD
 from advisor_adapter import AdvisorAdapter
+=======
+>>>>>>> 1513dc57189abf87934ec21ecdf0fe10a4549b31
 
 class MpackAdvisor(object):
   """
@@ -518,7 +521,10 @@ class MpackAdvisorImpl(MpackAdvisor):
           serviceAdvisor = self.instantiateServiceAdvisor(stackService)
           if serviceAdvisor:
             serviceInstance.setServiceAdvisor(serviceAdvisor)
+<<<<<<< HEAD
             serviceAdvisor.registerMpackAdvisor(self)
+=======
+>>>>>>> 1513dc57189abf87934ec21ecdf0fe10a4549b31
 
   def getServiceAdvisor(self, serviceInstance):
     return serviceInstance.getServiceAdvisor()
