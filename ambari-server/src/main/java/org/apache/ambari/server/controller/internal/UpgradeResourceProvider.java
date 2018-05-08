@@ -107,7 +107,6 @@ import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -916,11 +915,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     requestStages.setRequestContext(String.format("%s %s %s", direction.getVerb(true),
         direction.getPreposition(), repositoryVersion.getVersion()));
-
-    Cluster cluster = upgradeContext.getCluster();
-    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
-    String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-    requestStages.setClusterHostInfo(clusterHostInfoJson);
 
     return requestStages;
   }

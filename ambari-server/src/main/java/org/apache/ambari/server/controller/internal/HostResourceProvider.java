@@ -696,7 +696,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
   }
 
-  public RequestStatusResponse install(final String cluster, final String hostname, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, final boolean skipFailure)
+  public RequestStatusResponse install(final String cluster, final String hostname,
+                                       Collection<String> skipInstallForComponents,
+                                       Collection<String> dontSkipInstallForComponents, final boolean skipFailure,
+                                       boolean useClusterHostInfo)
       throws ResourceAlreadyExistsException,
       SystemException,
       NoSuchParentResourceException,
@@ -704,7 +707,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
 
     return ((HostComponentResourceProvider) getResourceProvider(Resource.Type.HostComponent)).
-        install(cluster, hostname, skipInstallForComponents, dontSkipInstallForComponents, skipFailure);
+        install(cluster, hostname, skipInstallForComponents, dontSkipInstallForComponents, skipFailure, useClusterHostInfo);
   }
 
   public RequestStatusResponse start(final String cluster, final String hostname)

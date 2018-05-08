@@ -3394,7 +3394,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3418,7 +3417,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3442,7 +3440,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3466,7 +3463,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3490,7 +3486,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3514,7 +3509,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3538,7 +3532,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3571,7 +3564,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3604,7 +3596,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3625,7 +3616,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3676,7 +3666,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3720,7 +3709,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3744,7 +3732,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3778,7 +3765,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3802,7 +3788,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 

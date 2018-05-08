@@ -563,15 +563,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
     String hostParamsJson = StageUtils.getGson().toJson(hostLevelParams);
 
-    // Generate cluster host info
-    String clusterHostInfoJson;
-    try {
-      clusterHostInfoJson = StageUtils.getGson().toJson(
-        StageUtils.getClusterHostInfo(cluster));
-    } catch (AmbariException e) {
-      throw new SystemException("Could not build cluster topology", e);
-    }
-
     int maxTasks = configuration.getAgentPackageParallelCommandsLimit();
     int hostCount = hosts.size();
     int batchCount = (int) (Math.ceil((double)hostCount / maxTasks));
@@ -653,7 +644,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
               repoVersionEnt.getDisplayName()));
     }
 
-    req.setClusterHostInfo(clusterHostInfoJson);
     req.addStages(stages);
     req.persist();
 

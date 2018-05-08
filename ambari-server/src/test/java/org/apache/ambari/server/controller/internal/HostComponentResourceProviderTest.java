@@ -373,7 +373,7 @@ public class HostComponentResourceProviderTest {
     changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
 
     expect(managementController.addStages(null, cluster, mapRequestProps, null, null, null, changedHosts,
-        Collections.emptyList(), false, false, false)).andReturn(stageContainer).once();
+        Collections.emptyList(), false, false, false, false)).andReturn(stageContainer).once();
 
     stageContainer.persist();
     expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
@@ -616,7 +616,8 @@ public class HostComponentResourceProviderTest {
     provider.setFieldValue("maintenanceStateHelper", injector.getInstance(MaintenanceStateHelper.class));
     provider.setFieldValue("hostVersionDAO", injector.getInstance(HostVersionDAO.class));
 
-    RequestStageContainer requestStages = provider.updateHostComponents(null, requests, requestProperties, runSmokeTest, false);
+    RequestStageContainer requestStages = provider.updateHostComponents(null, requests, requestProperties,
+        runSmokeTest, false, false);
     requestStages.persist();
     return requestStages.getRequestStatusResponse();
   }

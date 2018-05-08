@@ -1148,7 +1148,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private Stage createNewStage(long id, Cluster cluster, long requestId,
-                               String requestContext, String clusterHostInfo,
+                               String requestContext,
                                String commandParamsStage, String hostParamsStage) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
     Stage stage =
@@ -2710,7 +2710,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
       Map<String, String> requestParameters,
       Map<String, String> requestProperties,
-      boolean runSmokeTest, boolean reconfigureClients, boolean useLatestConfigs)
+      boolean runSmokeTest, boolean reconfigureClients, boolean useLatestConfigs, boolean useClusterHostInfo)
       throws AmbariException {
 
 
@@ -2760,7 +2760,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
           requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-          clusterHostInfoJson, "{}", null);
+          "{}", null);
       boolean skipFailure = false;
       if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
         skipFailure = true;
@@ -3142,7 +3142,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
       }
       rg.build(stage);
-      requestStages.setClusterHostInfo(clusterHostInfoJson);
+      if (useClusterHostInfo) {
+        requestStages.setClusterHostInfo(clusterHostInfoJson);
+      }
+
       requestStages.addStages(rg.getStages());
 
       if (!componentsToEnableKerberos.isEmpty()) {
@@ -3232,7 +3235,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
         cluster, scHost.getServiceComponent().getDesiredStackId());
 
-    Stage stage = createNewStage(0, cluster, 1, "", clusterHostInfoJson, "{}", "");
+    Stage stage = createNewStage(0, cluster, 1, "", "{}", "");
 
     Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
     Map<String, Map<String, String>> configurations = configHelper.getEffectiveConfigProperties(cluster, configTags);
@@ -3260,9 +3263,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // createHostAction does not take a hostLevelParams but creates one
     hostParamsCmd.putAll(ec.getHostLevelParams());
     ec.getHostLevelParams().putAll(hostParamsCmd);
-
-    ec.setClusterHostInfo(
-        StageUtils.getClusterHostInfo(cluster));
 
     if (null != cluster) {
       // Generate localComponents
@@ -3463,13 +3463,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                  Collection<ServiceComponentHost> ignoredHosts, boolean runSmokeTest,
                                  boolean reconfigureClients, boolean useGeneratedConfigs) throws AmbariException {
 
+    return addStages(requestStages, cluster, requestProperties, requestParameters, changedServices, changedComponents,
+        changedHosts, ignoredHosts, runSmokeTest, reconfigureClients, useGeneratedConfigs, false);
+  }
+
+  @Override
+  public RequestStageContainer addStages(RequestStageContainer requestStages, Cluster cluster, Map<String, String> requestProperties,
+                                 Map<String, String> requestParameters, Map<State, List<Service>> changedServices,
+                                 Map<State, List<ServiceComponent>> changedComponents,
+                                 Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                                 Collection<ServiceComponentHost> ignoredHosts, boolean runSmokeTest,
+                                 boolean reconfigureClients, boolean useGeneratedConfigs, boolean useClusterHostInfo) throws AmbariException {
+
     if (requestStages == null) {
       requestStages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
     }
 
     requestStages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
         changedHosts, requestParameters, requestProperties,
-        runSmokeTest, reconfigureClients, useGeneratedConfigs);
+        runSmokeTest, reconfigureClients, useGeneratedConfigs, useClusterHostInfo);
 
     updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
 
@@ -4098,7 +4110,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     commandParamsForStage = gson.toJson(commandParamsStage);
 
     Stage stage = createNewStage(requestStageContainer.getLastStageId(), cluster, requestId, requestContext,
-        jsons.getClusterHostInfo(), commandParamsForStage, jsons.getHostParamsForStage());
+        commandParamsForStage, jsons.getHostParamsForStage());
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
@@ -4119,7 +4131,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = rg.getStages();
 
     if (stages != null && !stages.isEmpty()) {
-      requestStageContainer.setClusterHostInfo(jsons.getClusterHostInfo());
       requestStageContainer.addStages(stages);
     }
 
