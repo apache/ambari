@@ -2280,7 +2280,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return sorted(mounts)
 
-  def getMountPathVariations(self, initial_value, component_name, services, hosts, banned_mounts=[]):
+  def getMountPathVariations(self, initial_value, component_name, services, hosts):
     """
     Recommends best fitted mount by prefixing path with it.
 
@@ -2291,7 +2291,6 @@ class DefaultStackAdvisor(StackAdvisor):
     :type component_name str
     :type services dict
     :type hosts dict
-    :type banned_mounts list
     :rtype list
     """
     available_mounts = []
@@ -2300,8 +2299,6 @@ class DefaultStackAdvisor(StackAdvisor):
       return available_mounts
 
     mounts = self.__getSameHostMounts(hosts)
-    for banned in banned_mounts:
-      mounts.remove(banned)
     sep = "/"
 
     if not mounts:
@@ -2315,7 +2312,7 @@ class DefaultStackAdvisor(StackAdvisor):
     # no list transformations after filling the list, because this will cause item order change
     return available_mounts
 
-  def getMountPathVariation(self, initial_value, component_name, services, hosts, banned_mounts=[]):
+  def getMountPathVariation(self, initial_value, component_name, services, hosts):
     """
     Recommends best fitted mount by prefixing path with it.
 
@@ -2326,15 +2323,14 @@ class DefaultStackAdvisor(StackAdvisor):
         :type component_name str
     :type services dict
     :type hosts dict
-    :type banned_mounts list
     :rtype str
     """
     try:
-      return [self.getMountPathVariations(initial_value, component_name, services, hosts, banned_mounts)[0]]
+      return [self.getMountPathVariations(initial_value, component_name, services, hosts)[0]]
     except IndexError:
       return []
 
-  def updateMountProperties(self, siteConfig, propertyDefinitions, configurations,  services, hosts, banned_mounts=[]):
+  def updateMountProperties(self, siteConfig, propertyDefinitions, configurations,  services, hosts):
     """
     Update properties according to recommendations for available mount-points
 
@@ -2353,7 +2349,6 @@ class DefaultStackAdvisor(StackAdvisor):
     :type configurations dict
     :type services dict
     :type hosts dict
-    :type banned_mounts list
     """
 
     props = self.getServicesSiteProperties(services, siteConfig)
@@ -2365,14 +2360,14 @@ class DefaultStackAdvisor(StackAdvisor):
 
       if props is None or name not in props:
         if rc_type == "multi":
-          recommendation = self.getMountPathVariations(default_value, component, services, hosts, banned_mounts)
+          recommendation = self.getMountPathVariations(default_value, component, services, hosts)
         else:
-          recommendation = self.getMountPathVariation(default_value, component, services, hosts, banned_mounts)
+          recommendation = self.getMountPathVariation(default_value, component, services, hosts)
       elif props and name in props and props[name] == default_value:
         if rc_type == "multi":
-          recommendation = self.getMountPathVariations(default_value, component, services, hosts, banned_mounts)
+          recommendation = self.getMountPathVariations(default_value, component, services, hosts)
         else:
-          recommendation = self.getMountPathVariation(default_value, component, services, hosts, banned_mounts)
+          recommendation = self.getMountPathVariation(default_value, component, services, hosts)
 
       if recommendation:
         put_f(name, ",".join(recommendation))
