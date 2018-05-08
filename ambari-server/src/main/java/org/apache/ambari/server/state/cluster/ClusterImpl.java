@@ -1282,7 +1282,7 @@ public class ClusterImpl implements Cluster {
         deleteService(service, deleteMetaData);
         topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
       }
-      topologyDeleteFormer.processDeleteCluster(Long.toString(getClusterId()));
+      topologyDeleteFormer.processDeleteCluster(getClusterId());
       services.clear();
     } finally {
       clusterGlobalLock.writeLock().unlock();

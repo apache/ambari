@@ -2025,10 +2025,17 @@ public class ConfigHelper {
    * @throws AmbariException
    */
   public AgentConfigsUpdateEvent getHostActualConfigs(Long hostId) throws AmbariException {
+    return getHostActualConfigsExcludeCluster(hostId, null);
+  }
+
+  public AgentConfigsUpdateEvent getHostActualConfigsExcludeCluster(Long hostId, Long clusterId) throws AmbariException {
     TreeMap<String, ClusterConfigs> clustersConfigs = new TreeMap<>();
 
     Host host = clusters.getHostById(hostId);
     for (Cluster cl : clusters.getClusters().values()) {
+      if (clusterId != null && cl.getClusterId() == clusterId) {
+        continue;
+      }
       Map<String, Map<String, String>> configurations = new HashMap<>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new HashMap<>();
       if (LOG.isInfoEnabled()) {

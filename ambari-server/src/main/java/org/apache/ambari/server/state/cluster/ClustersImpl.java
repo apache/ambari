@@ -47,6 +47,7 @@ import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
@@ -380,7 +381,7 @@ public class ClustersImpl implements Clusters {
     TopologyCluster addedCluster = new TopologyCluster();
     addedClusters.put(Long.toString(cluster.getClusterId()), addedCluster);
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedClusters,
-        TopologyUpdateEvent.EventType.UPDATE);
+        UpdateEventType.UPDATE);
     m_topologyHolder.get().updateData(topologyUpdateEvent);
     m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadata(cluster));
   }

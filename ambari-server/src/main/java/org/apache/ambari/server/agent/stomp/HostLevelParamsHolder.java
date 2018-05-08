@@ -55,9 +55,16 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   @Override
   public HostLevelParamsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
+    return getCurrentDataExcludeCluster(hostId, null);
+  }
+
+  public HostLevelParamsUpdateEvent getCurrentDataExcludeCluster(Long hostId, Long clusterId) throws AmbariException {
     TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
     Host host = clusters.getHostById(hostId);
     for (Cluster cl : clusters.getClustersForHost(host.getHostName())) {
+      if (clusterId != null && cl.getClusterId() == clusterId) {
+        continue;
+      }
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
           m_ambariManagementController.get().retrieveHostRepositories(cl, host),
           recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()));

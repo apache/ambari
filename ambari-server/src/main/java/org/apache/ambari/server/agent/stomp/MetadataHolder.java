@@ -18,8 +18,10 @@
 package org.apache.ambari.server.agent.stomp;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.AmbariPropertiesChangedEvent;
@@ -28,6 +30,7 @@ import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.ServiceCredentialStoreUpdateEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -57,23 +60,52 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
     return ambariManagementController.getClustersMetadata();
   }
 
+  public MetadataUpdateEvent getDeleteMetadata(Long clusterId) throws AmbariException {
+    TreeMap<String, MetadataCluster> clusterToRemove = new TreeMap<>();
+    if (clusterId != null) {
+      clusterToRemove.put(Long.toString(clusterId), MetadataCluster.emptyMetadataCluster());
+    }
+    MetadataUpdateEvent deleteEvent = new MetadataUpdateEvent(clusterToRemove, null ,
+        UpdateEventType.DELETE);
+    return deleteEvent;
+  }
+
   @Override
   protected boolean handleUpdate(MetadataUpdateEvent update) throws AmbariException {
     boolean changed = false;
+    UpdateEventType eventType = update.getEventType();
     if (MapUtils.isNotEmpty(update.getMetadataClusters())) {
       for (Map.Entry<String, MetadataCluster> metadataClusterEntry : update.getMetadataClusters().entrySet()) {
         MetadataCluster updatedCluster = metadataClusterEntry.getValue();
         String clusterId = metadataClusterEntry.getKey();
         Map<String, MetadataCluster> clusters = getData().getMetadataClusters();
         if (clusters.containsKey(clusterId)) {
-          MetadataCluster cluster = clusters.get(clusterId);
-          cluster.getClusterLevelParams().putAll(updatedCluster.getClusterLevelParams());
-          cluster.getServiceLevelParams().putAll(updatedCluster.getServiceLevelParams());
-          cluster.getStatusCommandsToRun().addAll(updatedCluster.getStatusCommandsToRun());
+          if (eventType.equals(UpdateEventType.DELETE)) {
+            getData().getMetadataClusters().remove(clusterId);
+            changed = true;
+          } else {
+            MetadataCluster cluster = clusters.get(clusterId);
+            if (!cluster.getClusterLevelParams().equals(updatedCluster.getClusterLevelParams())) {
+              cluster.getClusterLevelParams().putAll(updatedCluster.getClusterLevelParams());
+              changed = true;
+            }
+            if (!cluster.getServiceLevelParams().equals(updatedCluster.getServiceLevelParams())) {
+              cluster.getServiceLevelParams().putAll(updatedCluster.getServiceLevelParams());
+              changed = true;
+            }
+            if (!cluster.getStatusCommandsToRun().equals(updatedCluster.getStatusCommandsToRun())) {
+              cluster.getStatusCommandsToRun().addAll(updatedCluster.getStatusCommandsToRun());
+              changed = true;
+            }
+          }
         } else {
-          clusters.put(clusterId, updatedCluster);
+          if (eventType.equals(UpdateEventType.UPDATE)) {
+            clusters.put(clusterId, updatedCluster);
+            changed = true;
+          } else {
+            throw new ClusterNotFoundException(Long.parseLong(clusterId));
+          }
         }
-        changed = true;
       }
     }
     return changed;

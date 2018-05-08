@@ -50,6 +50,10 @@ public class MetadataCluster {
     this.agentConfigs = agentConfigs;
   }
 
+  public static MetadataCluster emptyMetadataCluster() {
+    return new MetadataCluster(null, null, null);
+  }
+
   public Set<String> getStatusCommandsToRun() {
     return statusCommandsToRun;
   }

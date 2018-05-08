@@ -19,14 +19,21 @@ package org.apache.ambari.server.topology;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
+import org.apache.ambari.server.state.Clusters;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -38,34 +45,62 @@ public class TopologyDeleteFormer {
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
 
+  @Inject
+  private Provider<AgentConfigsHolder> agentConfigsHolder;
+
+  @Inject
+  private Provider<MetadataHolder> metadataHolder;
+
+  @Inject
+  private Provider<HostLevelParamsHolder> hostLevelParamsHolder;
+
+  @Inject
+  private Clusters clusters;
+
   public void processDeleteMetaDataException(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
     if (metaData.getAmbariException() != null) {
-
-      TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(
-          createUpdateFromDeleteMetaData(metaData),
-          TopologyUpdateEvent.EventType.DELETE
-      );
-      m_topologyHolder.get().updateData(topologyUpdateEvent);
-
+      processDeleteMetaData(metaData);
       throw metaData.getAmbariException();
     }
   }
   public void processDeleteMetaData(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(
         createUpdateFromDeleteMetaData(metaData),
-        TopologyUpdateEvent.EventType.DELETE
+        UpdateEventType.DELETE
     );
     m_topologyHolder.get().updateData(topologyUpdateEvent);
+
+    // on components remove we should remove appropriate metadata/configs/hostlevelparams on agents
+    renew(metaData);
   }
 
-  public void processDeleteCluster(String clusterId) throws AmbariException {
+  public void processDeleteCluster(Long clusterId) throws AmbariException {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
-    topologyUpdates.put(clusterId, new TopologyCluster());
+    topologyUpdates.put(Long.toString(clusterId), new TopologyCluster(null, null));
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(
         topologyUpdates,
-        TopologyUpdateEvent.EventType.DELETE
+        UpdateEventType.DELETE
     );
     m_topologyHolder.get().updateData(topologyUpdateEvent);
+
+    // on cluster remove we should remove appropriate metadata/configs/hostlevelparams on agents
+    renew(clusters.getCluster(clusterId).getHosts().stream().map(h -> h.getHostId()).collect(Collectors.toSet()),
+        clusterId);
+  }
+
+  private void renew(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
+    Set<Long> changedHosts =
+        metaData.getRemovedHostComponents().stream().map(hc -> hc.getHostId()).collect(Collectors.toSet());
+    renew(changedHosts, null);
+  }
+
+  private void renew(Set<Long> changedHosts, Long clusterId) throws AmbariException {
+
+    for (Long hostId : changedHosts) {
+      agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
+      hostLevelParamsHolder.get().updateData(hostLevelParamsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
+    }
+    metadataHolder.get().updateData(metadataHolder.get().getDeleteMetadata(clusterId));
   }
 
   public TreeMap<String, TopologyCluster> createUpdateFromDeleteMetaData(DeleteHostComponentStatusMetaData metaData) {

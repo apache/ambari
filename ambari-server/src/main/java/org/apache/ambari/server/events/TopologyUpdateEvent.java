@@ -50,13 +50,13 @@ public class TopologyUpdateEvent extends STOMPEvent implements Hashable {
    * Type of update, is used to differ full current topology (CREATE), adding new or update existing topology
    * elements (UPDATE) and removing existing topology elements (DELETE).
    */
-  private final EventType eventType;
+  private final UpdateEventType eventType;
 
-  public TopologyUpdateEvent(SortedMap<String, TopologyCluster> clusters, EventType eventType) {
+  public TopologyUpdateEvent(SortedMap<String, TopologyCluster> clusters, UpdateEventType eventType) {
     this(Type.UI_TOPOLOGY, clusters, null, eventType);
   }
 
-  public TopologyUpdateEvent(Type type, SortedMap<String, TopologyCluster> clusters, String hash, EventType eventType) {
+  public TopologyUpdateEvent(Type type, SortedMap<String, TopologyCluster> clusters, String hash, UpdateEventType eventType) {
     super(type);
     this.clusters = clusters;
     this.hash = hash;
@@ -77,7 +77,7 @@ public class TopologyUpdateEvent extends STOMPEvent implements Hashable {
     return copiedEvent;
   }
 
-  public EventType getEventType() {
+  public UpdateEventType getEventType() {
     return eventType;
   }
 
@@ -91,12 +91,6 @@ public class TopologyUpdateEvent extends STOMPEvent implements Hashable {
 
   public static TopologyUpdateEvent emptyUpdate() {
     return new TopologyUpdateEvent(null, null);
-  }
-
-  public enum EventType {
-    CREATE,
-    DELETE,
-    UPDATE
   }
 
   @Override
