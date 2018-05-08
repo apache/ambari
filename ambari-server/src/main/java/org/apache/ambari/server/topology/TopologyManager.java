@@ -284,7 +284,8 @@ public class TopologyManager {
 
     MpackResourceProvider mpackResourceProvider = (MpackResourceProvider)
       AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Mpack);
-    new DownloadMpacksTask(mpackResourceProvider).downloadMissingMpacks(request.getAllMpacks());
+    new DownloadMpacksTask(mpackResourceProvider, AmbariServer.getController().getAmbariMetaInfo()).
+      downloadMissingMpacks(request.getAllMpacks());
 
     BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
     Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);

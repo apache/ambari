@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -45,14 +44,16 @@ public class DownloadMpacksTask {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMpacksTask.class);
 
   private MpackResourceProvider mpackResourceProvider;
+  private AmbariMetaInfo ambariMetaInfo;
 
-  public DownloadMpacksTask(MpackResourceProvider mpackResourceProvider) {
+  public DownloadMpacksTask(MpackResourceProvider mpackResourceProvider, AmbariMetaInfo ambariMetaInfo) {
     this.mpackResourceProvider = mpackResourceProvider;
+    this.ambariMetaInfo = ambariMetaInfo;
   }
 
   /**
    * Registers/downloads all required management packs
-   * @param mpackInstances management pack instances decleared in the blueprint and/or the cluster creation template
+   * @param mpackInstances management pack instances declared in the blueprint and/or the cluster creation template
    */
   public void downloadMissingMpacks(Collection<MpackInstance> mpackInstances) {
     List<MpackInstance> missingMpacks = mpackInstances.stream().
@@ -97,9 +98,8 @@ public class DownloadMpacksTask {
    * @return {@code true} if the mpack is not registered, {@code false} if already registered.
    */
   boolean isStackMissing(MpackInstance mpackInstance) {
-    AmbariMetaInfo metaInfo = AmbariServer.getController().getAmbariMetaInfo();
     try {
-      metaInfo.getStack(mpackInstance.getStackId());
+      ambariMetaInfo.getStack(mpackInstance.getStackId());
       return false;
     }
     catch (StackAccessException ex) {

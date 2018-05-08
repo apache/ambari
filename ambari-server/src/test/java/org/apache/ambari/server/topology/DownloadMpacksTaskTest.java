@@ -31,15 +31,12 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.spi.Request;
@@ -48,15 +45,9 @@ import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.ImmutableList;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(AmbariServer.class)
 public class DownloadMpacksTaskTest {
 
   private static final List<MpackInstance> INSTALLED_MPACKS = ImmutableList.of(
@@ -67,7 +58,6 @@ public class DownloadMpacksTaskTest {
     mpack("EDW", "1.0.0"),
     mpack("HDP", "2.6.0"));
 
-  private AmbariManagementController controller;
   private AmbariMetaInfo metaInfo;
   private MpackResourceProvider resourceProvider;
   private DownloadMpacksTask downloadMpacksTask;
@@ -82,20 +72,13 @@ public class DownloadMpacksTaskTest {
     expect(metaInfo.getStack(anyObject(StackId.class))).
       andThrow(new StackAccessException("The specified stack is not found.")).anyTimes();
 
-    controller = mock(AmbariManagementController.class);
-    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
-
     resourceProvider = mock(MpackResourceProvider.class);
     downloadRequests = newCapture(CaptureType.ALL);
     expect(resourceProvider.createResources(capture(downloadRequests))).
       andReturn(new RequestStatusImpl(null, null, null)).anyTimes();
-    downloadMpacksTask = new DownloadMpacksTask(resourceProvider);
+    downloadMpacksTask = new DownloadMpacksTask(resourceProvider, metaInfo);
 
-    replay(metaInfo, controller, resourceProvider);
-
-    mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
-    PowerMock.replay(AmbariServer.class);
+    replay(metaInfo, resourceProvider);
   }
 
   @Test
