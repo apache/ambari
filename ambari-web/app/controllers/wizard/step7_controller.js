@@ -1852,7 +1852,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   selectService: function (event) {
     this.set('selectedService', event.context);
-    this.get('tabs').findProperty('isActive', true).set('selectedServiceName', event.context.serviceName);
+    var activeTabs = this.get('tabs').findProperty('isActive', true);
+    if (activeTabs) {
+      activeTabs.set('selectedServiceName', event.context.serviceName);
+    }
   },
 
   /**
