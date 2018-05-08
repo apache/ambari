@@ -22,7 +22,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'startInfraSolr', 'startRanger', 'startNameNodes', 'startZKFCs', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'startInfraSolr', 'startRangerAdmin', 'startRangerUsersync', 'startNameNodes', 'startZKFCs', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
 
@@ -34,7 +34,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
   removeUnneededTasks: function () {
     var installedServices = App.Service.find().mapProperty('serviceName');
     if (!installedServices.contains('RANGER')) {
-      this.removeTasks(['startInfraSolr', 'startRanger']);
+      this.removeTasks(['startInfraSolr', 'startRangerAdmin', 'startRangerUsersync']);
     }
     if (!installedServices.contains('AMBARI_INFRA_SOLR')) {
       this.removeTasks(['startInfraSolr']);
@@ -138,8 +138,14 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.startServices(false, ['AMBARI_INFRA_SOLR'], true);
   },
 
-  startRanger: function () {
-    this.startServices(false, ['RANGER'], true);
+  startRangerAdmin: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'RANGER_ADMIN').mapProperty('hostName');
+    this.updateComponent('RANGER_ADMIN', hostNames, "RANGER", "Start");
+  },
+
+  startRangerUsersync: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'RANGER_USERSYNC').mapProperty('hostName');
+    this.updateComponent('RANGER_USERSYNC', hostNames, "RANGER", "Start");
   },
 
   startNameNode: function () {
@@ -171,7 +177,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
       name: 'restart.custom.filter',
       sender: this,
       data: {
-        filter: "HostRoles/component_name!=NAMENODE&HostRoles/cluster_name=" + App.get('clusterName'),
+        filter: "HostRoles/component_name!=NAMENODE&HostRoles/component_name!=RANGER_ADMIN&HostRoles/component_name!=RANGER_USERSYNC&HostRoles/cluster_name=" + App.get('clusterName'),
         context: "Restart Required Services"
       },
       success: 'startPolling',
