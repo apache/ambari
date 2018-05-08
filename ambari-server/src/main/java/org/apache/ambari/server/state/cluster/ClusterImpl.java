@@ -1193,9 +1193,8 @@ public class ClusterImpl implements Cluster {
   @Override
   public List<Service> getServicesByServiceGroup(String serviceGroupName) {
     List<Service> servicesByServiceGroup = new ArrayList<>();
-    for(Entry<Long, Service> serviceEntry: servicesById.entrySet()){
-      Service s = servicesById.get(serviceEntry.getValue());
-      if (s.getServiceGroupName().equals(serviceGroupName)){
+    for (Service s : servicesById.values()) {
+      if (s.getServiceGroupName().equals(serviceGroupName)) {
         servicesByServiceGroup.add(s);
       }
     }
