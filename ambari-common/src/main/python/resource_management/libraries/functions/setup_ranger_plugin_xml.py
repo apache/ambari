@@ -79,21 +79,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
   if plugin_enabled:
 
-    service_name_exist = False
-    policycache_path = os.path.join('/etc', 'ranger', repo_name, 'policycache')
-    try:
-      for cache_service in cache_service_list:
-        policycache_json_file = format('{policycache_path}/{cache_service}_{repo_name}.json')
-        if os.path.isfile(policycache_json_file) and os.path.getsize(policycache_json_file) > 0:
-          with open(policycache_json_file) as json_file:
-            json_data = json.load(json_file)
-            if 'serviceName' in json_data and json_data['serviceName'] == repo_name:
-              service_name_exist = True
-              Logger.info("Skipping Ranger API calls, as policy cache file exists for {0}".format(service_name))
-              Logger.warning("If service name for {0} is not created on Ranger Admin UI, then to re-create it delete policy cache file: {1}".format(service_name, policycache_json_file))
-              break
-    except Exception, err:
-      Logger.error("Error occurred while fetching service name from policy cache file.\nError: {0}".format(err))
+    service_name_exist = get_policycache_service_name(service_name, repo_name, cache_service_list)
 
     if not service_name_exist:
       if api_version is not None and api_version == 'v2':
@@ -183,9 +169,6 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         owner = component_user,
         group = component_group,
         mode=0744)
-
-    # creating symblink should be done by rpm package
-    # setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,
@@ -299,3 +282,22 @@ def generate_ranger_service_config(ranger_plugin_properties):
       custom_service_config_dict[modify_key_name] = value
 
   return custom_service_config_dict
+
+def get_policycache_service_name(service_name, repo_name, cache_service_list):
+  service_name_exist_flag = False
+  policycache_path = os.path.join('/etc', 'ranger', repo_name, 'policycache')
+  try:
+    for cache_service in cache_service_list:
+      policycache_json_file = format('{policycache_path}/{cache_service}_{repo_name}.json')
+      if os.path.isfile(policycache_json_file) and os.path.getsize(policycache_json_file) > 0:
+        with open(policycache_json_file) as json_file:
+          json_data = json.load(json_file)
+          if 'serviceName' in json_data and json_data['serviceName'] == repo_name:
+            Logger.info("Skipping Ranger API calls, as policy cache file exists for {0}".format(service_name))
+            Logger.warning("If service name for {0} is not created on Ranger Admin, then to re-create it delete policy cache file: {1}".format(service_name, policycache_json_file))
+            service_name_exist_flag = True
+            break
+  except Exception, err:
+    Logger.error("Error occurred while fetching service name from policy cache file.\nError: {0}".format(err))
+
+  return service_name_exist_flag
