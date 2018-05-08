@@ -192,20 +192,16 @@ module.exports = App.WizardRoute.extend({
       var addHostController = router.get('addHostController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
-      wizardStep6Controller.callValidation(function () {
-        wizardStep6Controller.showValidationIssuesAcceptBox(function () {
-          addHostController.saveSlaveComponentHosts(wizardStep6Controller);
-          if (wizardStep6Controller.isAllCheckboxesEmpty()) {
-            App.set('router.nextBtnClickInProgress', false);
-            router.transitionTo('step5');
-            addHostController.set('content.configGroups', []);
-            addHostController.saveServiceConfigGroups();
-          } else {
-            App.set('router.nextBtnClickInProgress', false);
-            router.transitionTo('step4');
-          }
-        });
-      });
+      addHostController.saveSlaveComponentHosts(wizardStep6Controller);
+      if (wizardStep6Controller.isAllCheckboxesEmpty()) {
+        App.set('router.nextBtnClickInProgress', false);
+        router.transitionTo('step5');
+        addHostController.set('content.configGroups', []);
+        addHostController.saveServiceConfigGroups();
+      } else {
+        App.set('router.nextBtnClickInProgress', false);
+        router.transitionTo('step4');
+      }
     }
   }),
 

@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
@@ -34,7 +32,6 @@ import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -91,11 +88,9 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
@@ -713,36 +708,8 @@ public class AmbariContext {
     Set<Stack> stacks = stackIds.stream()
       .map(this::createStack)
       .collect(toSet());
-    StackDefinition composite = StackDefinition.of(stacks);
 
-    // temporary check
-    verifyStackDefinitionsAreDisjoint(composite.getServices().stream(), "Service", composite::getStacksForService);
-    verifyStackDefinitionsAreDisjoint(composite.getComponents().stream(), "Component", composite::getStacksForComponent);
-
-    return composite;
-  }
-
-  /**
-   * Verify that each item in <code>items</code> is defined by only one stack.
-   *
-   * @param items the items to check
-   * @param type string description of the type of items (eg. "Service", or "Component")
-   * @param lookup a function to find the set of stacks that an item belongs to
-   * @throws IllegalArgumentException if some items are defined in multiple stacks
-   */
-  static void verifyStackDefinitionsAreDisjoint(Stream<String> items, String type, Function<String, Set<StackId>> lookup) {
-    Set<Pair<String, Set<StackId>>> definedInMultipleStacks = items
-      .map(s -> Pair.of(s, lookup.apply(s)))
-      .filter(p -> p.getRight().size() > 1)
-      .collect(toCollection(TreeSet::new));
-
-    if (!definedInMultipleStacks.isEmpty()) {
-      String msg = definedInMultipleStacks.stream()
-        .map(p -> String.format("%s %s is defined in multiple stacks: %s", type, p.getLeft(), Joiner.on(", ").join(p.getRight())))
-        .collect(joining("\n"));
-      LOG.error(msg);
-      throw new IllegalArgumentException(msg);
-    }
+    return StackDefinition.of(stacks);
   }
 
   protected Stack createStack(StackId stackId) {
