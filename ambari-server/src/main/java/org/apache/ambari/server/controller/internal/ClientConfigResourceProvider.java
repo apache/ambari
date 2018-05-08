@@ -413,7 +413,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
         Map<String, Object> jsonContent = new TreeMap<>();
         jsonContent.put("configurations", configurations);
-        jsonContent.put("configuration_attributes", configurationAttributes);
+        jsonContent.put("configurationAttributes", configurationAttributes);
         jsonContent.put("commandParams", commandParams);
         jsonContent.put("clusterHostInfo", clusterHostInfo);
         jsonContent.put("ambariLevelParams", ambariLevelParams);

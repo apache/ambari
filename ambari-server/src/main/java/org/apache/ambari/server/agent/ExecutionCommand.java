@@ -104,7 +104,7 @@ public class ExecutionCommand extends AgentCommand {
   @JsonIgnore
   private Map<String, Map<String, String>> configurations;
 
-  @SerializedName("configuration_attributes")
+  @SerializedName("configurationAttributes")
   @JsonIgnore
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
