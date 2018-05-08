@@ -66,7 +66,7 @@ class NetUtil:
     try:
       parsedurl = urlparse(url)
 
-      if sys.version_info >= (2,7,9) and not ssl_verify_cert:
+      if sys.version_info >= (2,7,5) and not ssl_verify_cert:
           import ssl
           ca_connection = httplib.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
       else:
