@@ -48,6 +48,7 @@ import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
@@ -101,7 +102,6 @@ public class TopologyManager {
   public static final String INITIAL_CONFIG_TAG = "INITIAL";
   public static final String TOPOLOGY_RESOLVED_TAG = "TOPOLOGY_RESOLVED";
   public static final String KDC_ADMIN_CREDENTIAL = "kdc.admin.credential";
-  public static final String RAW_REQUEST_BODY_ARTIFACT_NAME = "raw_provision_cluster_template";
 
   private PersistedState persistedState;
 
@@ -281,6 +281,11 @@ public class TopologyManager {
   public RequestStatusResponse provisionCluster(final ProvisionClusterRequest request,
                                                String rawRequestBody) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
+
+    MpackResourceProvider mpackResourceProvider = (MpackResourceProvider)
+      AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Mpack);
+    new DownloadMpacksTask(mpackResourceProvider, AmbariServer.getController().getAmbariMetaInfo()).
+      downloadMissingMpacks(request.getAllMpacks());
 
     BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
     Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
@@ -896,6 +901,8 @@ public class TopologyManager {
       }
     }
   }
+
+
 
   @Transactional
   protected LogicalRequest createLogicalRequest(final PersistedTopologyRequest request, ClusterTopology topology, Long requestId)
