@@ -107,7 +107,12 @@ function($scope, View, $modal, Alert, ConfirmationModal, $translate, Settings, P
       $t('common.deleteConfirmation', {
         instanceType: $t('views.viewInstance'),
         instanceName: instance.label
-      })
+      }),
+      null,
+      null,
+      {
+        primaryClass: 'btn-danger'
+      }
     ).then(function () {
       View.deleteInstance(instance.view_name, instance.version, instance.instance_name)
         .then(function () {

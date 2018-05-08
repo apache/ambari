@@ -729,14 +729,6 @@ accordion .panel-group .panel{
   word-break: break-all;
 }
 
-#stack-versions .table .col-small {
-  width: 15%
-}
-
-#stack-versions .table .col-medium {
-  width: 30%
-}
-
 .table-bar {
   padding-top: 4px;
   border: 1px solid #E4E4E4;
@@ -810,21 +802,6 @@ accordion .panel-group .panel{
 .advanced-radio-buttons span.disabled {
   opacity: 0.7;
   cursor: default;
-}
-
-.repo-table-title #name-label-adjust {
-  width: 20.7%;
-  padding-left:0px;
-  right:5px;
-}
-
-.repo-table-title #repo-base-url-label {
-  padding-left:0px;
-  right:3px;
-}
-
-.verison-label-row .label {
-  font-size: 100%;
 }
 
 .panel-body .sub-group {
@@ -1154,21 +1131,6 @@ thead.view-permission-header > tr > th {
   margin: 0px 5px;
 }
 
-#stack-versions .no-version-alert {
-  text-align: center;
-}
-#stack-versions table {
-  table-layout: fixed;
-}
-#stack-versions table .text-search-container {
-  font-weight: normal;
-  position: relative;
-}
-#stack-versions table .text-search-container .close {
-  position: absolute;
-  right: 15px;
-  top: 40px;
-}
 .pull-up {
   margin-top: -2px;
 }
@@ -1336,12 +1298,13 @@ body {
   color: inherit;
   font-size: 16px;
   cursor: pointer;
-  padding: 0 5px;
+  padding: 0 3px;
 }
 
 td.entity-actions,
 th.entity-actions {
   width: 10%;
+  min-width: 80px;
 }
 
 .entity-actions a:hover,
