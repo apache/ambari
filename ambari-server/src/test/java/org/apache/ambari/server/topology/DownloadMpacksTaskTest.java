@@ -53,19 +53,19 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
 public class DownloadMpacksTaskTest {
 
-  private static final Set<StackId> INSTALLED_STACKS = ImmutableSet.of(
-    new StackId("HDPCORE", "1.0.0.0"),
-    new StackId("HDF", "3.1.1.0"));
+  private static final List<MpackInstance> INSTALLED_MPACKS = ImmutableList.of(
+    mpack("HDPCORE", "1.0.0.0"),
+    mpack("HDF", "3.1.1.0"));
 
-  private static final Set<StackId> MISSING_STACKS = ImmutableSet.of(
-    new StackId("EDW", "1.0.0"),
-    new StackId("HDP", "2.6.0"));
+  private static final List<MpackInstance> MISSING_MPACKS = ImmutableList.of(
+    mpack("EDW", "1.0.0"),
+    mpack("HDP", "2.6.0"));
 
   private AmbariManagementController controller;
   private AmbariMetaInfo metaInfo;
@@ -76,8 +76,8 @@ public class DownloadMpacksTaskTest {
   @Before
   public void setup() throws Exception {
     metaInfo = mock(AmbariMetaInfo.class);
-    for (StackId stackId: INSTALLED_STACKS) {
-      expect(metaInfo.getStack(stackId)).andReturn(null).anyTimes();
+    for (MpackInstance mpackInstance: INSTALLED_MPACKS) {
+      expect(metaInfo.getStack(mpackInstance.getStackId())).andReturn(null).anyTimes();
     }
     expect(metaInfo.getStack(anyObject(StackId.class))).
       andThrow(new StackAccessException("The specified stack is not found.")).anyTimes();
@@ -100,23 +100,21 @@ public class DownloadMpacksTaskTest {
 
   @Test
   public void testIsStackMissing() {
-    INSTALLED_STACKS.forEach( stackId -> assertFalse(downloadMpacksTask.isStackMissing(stackId)) );
-    MISSING_STACKS.forEach( stackId -> assertTrue(downloadMpacksTask.isStackMissing(stackId)) );
+    INSTALLED_MPACKS.forEach(stackId -> assertFalse(downloadMpacksTask.isStackMissing(stackId)) );
+    MISSING_MPACKS.forEach(stackId -> assertTrue(downloadMpacksTask.isStackMissing(stackId)) );
   }
 
   @Test
   public void testDownloadMissingMpacks() {
     // given
-    List<MpackInstance> mpacks = concat(INSTALLED_STACKS.stream(), MISSING_STACKS.stream()).
-      map(this::mpack).
-      collect(toList());
+    List<MpackInstance> mpacks = concat(INSTALLED_MPACKS.stream(), MISSING_MPACKS.stream()).collect(toList());
 
     // when
     downloadMpacksTask.downloadMissingMpacks(mpacks);
 
     // then
-    Set<String> missingMpackUris = MISSING_STACKS.stream().
-      map(this::createUri).
+    Set<String> missingMpackUris = MISSING_MPACKS.stream().
+      map(MpackInstance::getUrl).
       collect(toSet());
 
     Set<String> dowloadedMpackUris = downloadRequests.getValues().stream().
@@ -127,20 +125,31 @@ public class DownloadMpacksTaskTest {
 
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testDownloadMissingMpacks_undefinedUri() {
+    // given
+    MpackInstance brokenMpack = mpack("HDP", "2.6");
+    brokenMpack.setUrl(null);
+
+    // when
+    downloadMpacksTask.downloadMissingMpacks(ImmutableList.of(brokenMpack));
+  }
+
+
   private String getUriFromRequest(Request request) {
     return (String)request.getProperties().iterator().next().get(MpackResourceProvider.MPACK_URI);
   }
 
-  private MpackInstance mpack(StackId stackId) {
+  private static MpackInstance mpack(String stackName, String stackVersion) {
     MpackInstance mpack = new MpackInstance();
-    mpack.setMpackName(stackId.getStackName());
-    mpack.setMpackVersion(stackId.getStackVersion());
-    mpack.setUrl(createUri(stackId));
+    mpack.setMpackName(stackName);
+    mpack.setMpackVersion(stackVersion);
+    mpack.setUrl(createUri(stackName, stackVersion));
     return mpack;
   }
 
-  private String createUri(StackId stackId) {
-    return "http://mpacks.org/" + stackId.getStackName() + "." + stackId.getStackVersion();
+  private static String createUri(String stackName, String stackVersion) {
+    return "http://mpacks.org/" + stackName + "." + stackVersion;
   }
 
 }

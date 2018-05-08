@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -30,10 +30,10 @@ import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -55,26 +55,25 @@ public class DownloadMpacksTask {
    * @param mpackInstances management pack instances decleared in the blueprint and/or the cluster creation template
    */
   public void downloadMissingMpacks(Collection<MpackInstance> mpackInstances) {
-    Set<StackId> missingMpacks = mpackInstances.stream().
-      map(MpackInstance::getStackId).
+    List<MpackInstance> missingMpacks = mpackInstances.stream().
       filter(this::isStackMissing).
-      collect(toSet());
+      collect(toList());
 
-    for (MpackInstance mpack: mpackInstances) {
-      if (missingMpacks.contains(mpack.getStackId())) {
-        LOG.info("Registering mpack {}", mpack.getStackId());
-        Request mpackRequest = createRequest(mpack.getUrl());
-        try {
-          RequestStatus.Status status = mpackResourceProvider.createResources(mpackRequest).getStatus();
-          if (!RequestStatus.Status.Complete.equals(status)) {
-            throw new RuntimeException("An error occured while registering mpack. Request status: " + status);
-          }
+    for (MpackInstance mpack: missingMpacks) {
+      Preconditions.checkArgument(null != mpack.getUrl(), "Cannot register missing mpack with undefined uri: %s",
+        mpack.getStackId());
+      LOG.info("Registering mpack {}", mpack.getStackId());
+      Request mpackRequest = createRequest(mpack.getUrl());
+      try {
+        RequestStatus.Status status = mpackResourceProvider.createResources(mpackRequest).getStatus();
+        if (!RequestStatus.Status.Complete.equals(status)) {
+          throw new RuntimeException("An error occured while registering mpack. Request status: " + status);
         }
-        catch (Exception ex) {
-          throw ex instanceof RuntimeException ?
-            (RuntimeException)ex :
-            new RuntimeException("Error occured while registering mpack: " + mpack.getStackId(), ex);
-        }
+      }
+      catch (Exception ex) {
+        throw ex instanceof RuntimeException ?
+          (RuntimeException)ex :
+          new RuntimeException("Error occured while registering mpack: " + mpack.getStackId(), ex);
       }
     }
   }
@@ -94,17 +93,17 @@ public class DownloadMpacksTask {
 
   /**
    *
-   * @param stackId the mpack (stack) to check
-   * @return {@code true} if the mpack (stack) is not registered, {@code false} if already registered.
+   * @param mpackInstance the mpack to check
+   * @return {@code true} if the mpack is not registered, {@code false} if already registered.
    */
-  boolean isStackMissing(StackId stackId) {
+  boolean isStackMissing(MpackInstance mpackInstance) {
     AmbariMetaInfo metaInfo = AmbariServer.getController().getAmbariMetaInfo();
     try {
-      metaInfo.getStack(stackId);
+      metaInfo.getStack(mpackInstance.getStackId());
       return false;
     }
     catch (StackAccessException ex) {
-      LOG.debug("Stack {} is not available.", stackId);
+      LOG.debug("Stack {} is not available.", mpackInstance.getStackId());
       return true;
     }
   }
