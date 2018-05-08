@@ -225,8 +225,12 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return resourceProviderFactory.getBlueprintResourceProvider(managementController);
       case KerberosDescriptor:
         return resourceProviderFactory.getKerberosDescriptorResourceProvider(managementController);
+      case MpackRecommendation:
+        return new MpackRecommendationResourceProvider(managementController);
       case Recommendation:
         return new RecommendationResourceProvider(managementController);
+      case MpackValidation:
+        return new MpackValidationResourceProvider(managementController);
       case Validation:
         return new ValidationResourceProvider(managementController);
       case ClientConfig:

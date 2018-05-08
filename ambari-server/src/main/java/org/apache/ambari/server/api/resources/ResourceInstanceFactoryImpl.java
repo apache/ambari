@@ -340,8 +340,16 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new BlueprintResourceDefinition();
         break;
 
+      case MpackRecommendation:
+        resourceDefinition = new MpackRecommendationResourceDefinition();
+        break;
+
       case Recommendation:
         resourceDefinition = new RecommendationResourceDefinition();
+        break;
+
+      case MpackValidation:
+        resourceDefinition = new MpackValidationResourceDefinition();
         break;
 
       case Validation:
