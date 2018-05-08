@@ -158,6 +158,7 @@ public class AuditLogsResource {
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_TOP_AUDIT_RESOURCES_OD)
   public BarGraphDataListResponse getResourcesPost(TopFieldAuditLogBodyRequest request, @PathParam(LogSearchConstants.REQUEST_PARAM_TOP) Integer top) {
+    request.setTop(top); // TODO: set this in the request
     return auditLogsManager.topResources(request);
   }
 

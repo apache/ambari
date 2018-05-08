@@ -19,18 +19,11 @@
 package org.apache.ambari.logsearch.model.request.impl.body;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
-
-import javax.ws.rs.PathParam;
 
 public class TopFieldAuditLogBodyRequest extends FieldAuditLogBodyRequest implements TopFieldAuditLogRequest {
   @JsonIgnore
   private Integer top;
-
-  @JsonProperty(LogSearchConstants.REQUEST_PARAM_USERS)
-  private String userList;
 
   @Override
   public Integer getTop() {
@@ -40,15 +33,5 @@ public class TopFieldAuditLogBodyRequest extends FieldAuditLogBodyRequest implem
   @Override
   public void setTop(Integer top) {
     this.top = top;
-  }
-
-  @Override
-  public String getUserList() {
-    return userList;
-  }
-
-  @Override
-  public void setUserList(String userList) {
-    this.userList = userList;
   }
 }
