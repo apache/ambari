@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import json
-import subprocess
+from ambari_commons import subprocess32
 import socket
 import time
 import urllib2
@@ -146,9 +146,9 @@ def execute(configurations={}, parameters={}, host_name=None):
         Execute(kinit_command)
 
       # make a single curl call to get just the http code
-      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-s', '-w', '--location-trusted',
+      curl = subprocess32.Popen(['curl', '--negotiate', '-u', ':', '-s', '-w', '--location-trusted',
         '%{http_code}', '--connect-timeout', curl_connection_timeout,
-        '-o', '/dev/null', query_url], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
+        '-o', '/dev/null', query_url], stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, env=kerberos_env)
 
       stdout, stderr = curl.communicate()
 
@@ -170,9 +170,9 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       # now that we have the http status and it was 200, get the content
       start_time = time.time()
-      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-s', '--location-trusted',
+      curl = subprocess32.Popen(['curl', '--negotiate', '-u', ':', '-s', '--location-trusted',
         '--connect-timeout', curl_connection_timeout, query_url, ],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
+        stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, env=kerberos_env)
 
       stdout, stderr = curl.communicate()
       total_time = time.time() - start_time

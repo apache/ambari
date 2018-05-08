@@ -22,7 +22,7 @@ from resource_management.libraries.functions.validate import call_and_match_outp
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import sudo
-import subprocess
+from ambari_commons import subprocess32
 
 class ServiceCheck(Script):
   def service_check(self, env):
@@ -38,7 +38,7 @@ class ServiceCheck(Script):
     create_topic_cmd_exists_output = "Topic \"ambari_kafka_service_check\" already exists."
     source_cmd = format("source {conf_dir}/kafka-env.sh")
     topic_exists_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --topic {topic} --list")
-    topic_exists_cmd_p = subprocess.Popen(topic_exists_cmd.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    topic_exists_cmd_p = subprocess32.Popen(topic_exists_cmd.split(" "), stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
     topic_exists_cmd_out, topic_exists_cmd_err = topic_exists_cmd_p.communicate()
     # run create topic command only if the topic doesn't exists
     if topic not in topic_exists_cmd_out:

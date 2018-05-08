@@ -21,7 +21,6 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.libraries.functions.validate import call_and_match_output
-import subprocess
 import time
 
 class SolrServiceCheck(Script):

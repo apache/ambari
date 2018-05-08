@@ -21,7 +21,7 @@ limitations under the License.
 import re
 import sys
 import logging
-import subprocess
+from ambari_commons import subprocess32
 from threading import Thread
 import threading
 from ambari_commons import OSCheck, OSConst
@@ -45,7 +45,7 @@ TIMEOUT_SECONDS = 40
 
 def _launch_subprocess(command):
   isShell = not isinstance(command, (list, tuple))
-  return subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=isShell, close_fds=True)
+  return subprocess32.Popen(command, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, shell=isShell, close_fds=True)
 
 
 def subprocessWithTimeout(command):

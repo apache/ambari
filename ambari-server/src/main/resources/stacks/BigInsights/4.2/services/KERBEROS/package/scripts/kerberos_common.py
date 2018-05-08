@@ -20,7 +20,7 @@ limitations under the License.
 import base64
 import os
 import string
-import subprocess
+from ambari_commons import subprocess32
 import sys
 import tempfile
 from tempfile import gettempdir
@@ -351,7 +351,7 @@ class KerberosScript(Script):
 
       # If no keytab data is available and a password was supplied, simply use it.
       elif password is not None:
-        process = subprocess.Popen([kinit_path_local, principal], stdin=subprocess.PIPE)
+        process = subprocess32.Popen([kinit_path_local, principal], stdin=subprocess32.PIPE)
         stdout, stderr = process.communicate(password)
         if process.returncode:
           err_msg = Logger.filter_text("Execution of kinit returned %d. %s" % (process.returncode, stderr))

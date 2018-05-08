@@ -27,6 +27,7 @@ import sys
 import multiprocessing
 from ambari_agent.RecoveryManager import RecoveryManager
 from ambari_agent.StatusCommandsExecutor import SingleProcessStatusCommandsExecutor
+from ambari_commons import subprocess32
 
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
@@ -77,7 +78,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals((len(result) is 7) or (len(result) is 8), True)
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(ActionQueue, "result")
   @patch.object(HostInfoLinux, "register")
@@ -203,7 +204,7 @@ class TestHeartbeat(TestCase):
     self.assertEqual.__self__.maxDiff = None
     self.assertEquals(hb, expected)
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock, Popen_mock):
@@ -232,7 +233,7 @@ class TestHeartbeat(TestCase):
     self.assertFalse(args[2])
     self.assertFalse(args[1])
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_status_commands_does_not_stack_up(self, register_mock, Popen_mock):
@@ -272,7 +273,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(len(dummy_controller.statusCommandsExecutor.statusCommandQueue.queue), 2)
 
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_host_check_no_cmd(self, register_mock, Popen_mock):
