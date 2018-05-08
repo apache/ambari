@@ -83,9 +83,9 @@ CONFIG_FILE_PATH = configDefaults.get_config_file_path()
 METRIC_FILE_PATH = configDefaults.get_metric_file_path()
 CA_CERTS_FILE_PATH = configDefaults.get_ca_certs_file_path()
 
-OUT_DIR = os.path.join(os.sep, "var", "log", "ambari-metrics-host-monitoring")
-SERVER_OUT_FILE = OUT_DIR + os.sep + "ambari-metrics-host-monitoring.out"
-SERVER_LOG_FILE = OUT_DIR + os.sep + "ambari-metrics-host-monitoring.log"
+OUT_DIR = os.path.join(os.sep, "var", "log", "ambari-metrics-monitor")
+SERVER_OUT_FILE = OUT_DIR + os.sep + "ambari-metrics-monitor.out"
+SERVER_LOG_FILE = OUT_DIR + os.sep + "ambari-metrics-monitor.log"
 
 PID_DIR = os.path.join(os.sep, "var", "run", "ambari-metrics-host-monitoring")
 PID_OUT_FILE = PID_DIR + os.sep + "ambari-metrics-host-monitoring.pid"

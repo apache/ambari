@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import logging
+import logging.handlers
 import os
 import sys
 import signal
@@ -97,9 +98,9 @@ def _init_logging(config):
     level = _levels.get(config.get_log_level())
   logger.setLevel(level)
   formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d - %(message)s")
-  stream_handler = logging.StreamHandler()
-  stream_handler.setFormatter(formatter)
-  logger.addHandler(stream_handler)
+  rotateLog = logging.handlers.RotatingFileHandler(SERVER_LOG_FILE, "a", 10000000, 25)
+  rotateLog.setFormatter(formatter)
+  logger.addHandler(rotateLog)
   
 
 if __name__ == '__main__':
