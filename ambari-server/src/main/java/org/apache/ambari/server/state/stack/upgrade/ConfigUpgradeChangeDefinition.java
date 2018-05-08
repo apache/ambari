@@ -78,6 +78,9 @@ import com.google.common.base.MoreObjects;
  * }
  * </pre>
  *
+ *
+ *
+ * WARNING! After adding/updating classes below, please don't forget to update 'upgrade-config.xsd' respectively
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)

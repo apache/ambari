@@ -38,6 +38,13 @@
     </xs:restriction>
   </xs:simpleType>
   
+  <xs:simpleType name="if-value-match-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="partial"/>
+      <xs:enumeration value="exact" />
+    </xs:restriction>
+  </xs:simpleType>
+  
   <xs:simpleType name="transfer-operation-coerce-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="yaml-array"/>
@@ -72,6 +79,8 @@
             <xs:attribute name="if-type" use="optional" type="xs:string"/>
             <xs:attribute name="if-value" use="optional" type="xs:string"/>
             <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
+            <xs:attribute name="if-value-match-type" use="optional" type="if-value-match-type"/>
+            <xs:attribute name="if-value-not-matched" use="optional" type="xs:boolean"/>
             <xs:attribute name="mask" use="optional" type="xs:boolean"/>          
           </xs:complexType>
         </xs:element>
@@ -83,6 +92,8 @@
             <xs:attribute name="if-type" use="optional" type="xs:string"/>
             <xs:attribute name="if-value" use="optional" type="xs:string"/>
             <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
+            <xs:attribute name="if-value-match-type" use="optional" type="if-value-match-type"/>
+            <xs:attribute name="if-value-not-matched" use="optional" type="xs:boolean"/>
             <xs:attribute name="mask" use="optional" type="xs:boolean"/>
           </xs:complexType>
         </xs:element>
@@ -95,6 +106,8 @@
             <xs:attribute name="if-type" use="optional" type="xs:string"/>
             <xs:attribute name="if-value" use="optional" type="xs:string"/>
             <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
+            <xs:attribute name="if-value-match-type" use="optional" type="if-value-match-type"/>
+            <xs:attribute name="if-value-not-matched" use="optional" type="xs:boolean"/>
             <xs:attribute name="mask" use="optional" type="xs:boolean"/>
           </xs:complexType>
         </xs:element>
@@ -108,6 +121,8 @@
             <xs:attribute name="if-type" use="optional" type="xs:string"/>
             <xs:attribute name="if-value" use="optional" type="xs:string"/>
             <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
+            <xs:attribute name="if-value-match-type" use="optional" type="if-value-match-type"/>
+            <xs:attribute name="if-value-not-matched" use="optional" type="xs:boolean"/>
             <xs:attribute name="mask" use="optional" type="xs:boolean"/>
           </xs:complexType>
         </xs:element>
@@ -117,7 +132,13 @@
             <xs:attribute name="value" use="required" type="xs:string"/>
             <xs:attribute name="insert-type" use="required" type="insertion-type"/>
             <xs:attribute name="newline-before" use="optional" type="xs:boolean"/>
-            <xs:attribute name="newline-after" use="optional" type="xs:boolean"/>            
+            <xs:attribute name="newline-after" use="optional" type="xs:boolean"/>
+            <xs:attribute name="if-key" use="optional" type="xs:string"/>
+            <xs:attribute name="if-type" use="optional" type="xs:string"/>
+            <xs:attribute name="if-value" use="optional" type="xs:string"/>
+            <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
+            <xs:attribute name="if-value-match-type" use="optional" type="if-value-match-type"/>
+            <xs:attribute name="if-value-not-matched" use="optional" type="xs:boolean"/>
           </xs:complexType>
         </xs:element>
       </xs:choice>
