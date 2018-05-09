@@ -104,6 +104,17 @@ export class HttpClientService extends Http {
     super(backend, defaultOptions);
   }
 
+  /**
+   * The goal here is to check if the given real api url should be always POST or not.\
+   * See https://issues.apache.org/jira/browse/AMBARI-23779
+   * @param {string} url The full url for the api end point.
+   * @returns {boolean}
+   */
+  private shouldTurnGetToPost(url: string): boolean {
+    const subUrl = url.replace(this.apiPrefix, '');
+    return /^(audit|service)/.test(subUrl);
+  }
+
   private generateUrlString(url: string, urlVariables?: HomogeneousObject<string>): string {
     const preset = this.endPoints[url];
     let generatedUrl: string;
@@ -153,23 +164,50 @@ export class HttpClientService extends Http {
 
   request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
     const handleResponseError = (error) => {
-      let handled: boolean = false;
+      let handled = false;
       if (this.unauthorizedStatuses.indexOf(error.status) > -1) {
         this.appState.setParameter('isAuthorized', false);
         handled = true;
       }
       return handled;
     };
-    const req: Observable<Response> = super.request(this.generateUrl(url), options).first()
+    return super.request(this.generateUrl(url), options).first()
       .map(response => response)
       .catch((error: any) => {
         return handleResponseError(error) ? Observable.of(error) : Observable.throw(error);
       });
-    return req;
   }
 
   get(url: string, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {
-    return super.get(this.generateUrlString(url, urlVariables), this.generateOptions(url, params));
+    const generatedUrl: string = this.generateUrlString(url, urlVariables);
+    let response$: Observable<Response>;
+    const options = this.generateOptions(url, params);
+    if (this.shouldTurnGetToPost(generatedUrl)) {
+      let body = (options && options.params) || params || {};
+      if (body instanceof URLSearchParams) {
+        const paramsMap = Array.from(body.paramsMap);
+        body = paramsMap.reduce((current, param) => {
+          const [key, value] = param;
+          return {
+            ...current,
+            [key]: Array.isArray(value) && value.length === 1 ? value[0] : value
+          };
+        }, {});
+      } else if (typeof body === 'string') {
+        body = body.split('&').reduce((current, param): {[key: string]: any} => {
+          const pair = param.split('=');
+          return {
+            ...current,
+            [pair[0]]: decodeURIComponent(pair[1])
+          };
+        }, {});
+      }
+      options.params = {};
+      response$ = super.post(generatedUrl, body, options);
+    } else {
+      response$ = super.get(this.generateUrlString(url, urlVariables), this.generateOptions(url, params));
+    }
+    return response$;
   }
 
   put(url: string, body: any, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {
