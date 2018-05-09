@@ -487,8 +487,8 @@ App.QuickLinksView = Em.View.extend({
             var configPropertiesObject = configProperties.findProperty('type', 'hdfs-site');
             if (configPropertiesObject && configPropertiesObject.properties) {
               var properties = configPropertiesObject.properties;
-              var nameServiceId = properties['dfs.nameservices'];
-              var nnProperties = ['dfs.namenode.{0}-address.{1}.nn1', 'dfs.namenode.{0}-address.{1}.nn2'].invoke('format', protocol, nameServiceId);
+              var nnKeyRegex = new RegExp('^dfs\.namenode\.' + protocol + '-address\.');
+              var nnProperties = Object.keys(properties).filter(key => nnKeyRegex.test(key));
               var nnPropertiesLength = nnProperties.length;
               for (var i = nnPropertiesLength; i--;) {
                 var propertyName = nnProperties[i];
