@@ -331,7 +331,7 @@ class TestHostCleanup(TestCase):
     sys.stdout = sys.__stdout__
 
   @patch.object(HostCleanup.HostCleanup, 'do_erase_dir_silent')
-  @patch("os.stat")
+  @patch("os.lstat")
   @patch("os.path.join")
   @patch("os.listdir")
   def test_do_delete_by_owner(self, listdir_mock, join_mock, stat_mock, do_erase_dir_silent_method):
