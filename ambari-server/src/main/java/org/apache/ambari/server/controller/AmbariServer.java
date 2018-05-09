@@ -79,6 +79,8 @@ import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvid
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
+import org.apache.ambari.server.controller.utilities.NodeRefresher;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -945,6 +947,11 @@ public class AmbariServer {
 
     KerberosIdentityCleaner identityCleaner = injector.getInstance(KerberosIdentityCleaner.class);
     identityCleaner.register();
+
+    NodeRefresher nodeRefresher = injector.getInstance(NodeRefresher.class);
+    if (configs.refreshNameNodeAfterDataNodeHostDelete()) {
+      nodeRefresher.register(injector.getInstance(AmbariEventPublisher.class));
+    }
   }
 
   /**

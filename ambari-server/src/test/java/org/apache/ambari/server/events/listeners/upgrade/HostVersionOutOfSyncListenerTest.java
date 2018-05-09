@@ -432,7 +432,7 @@ public class HostVersionOutOfSyncListenerTest {
     // event handle it
     injector.getInstance(UnitOfWork.class).begin();
     clusters.deleteHost("h2");
-    clusters.publishHostsDeletion(Collections.singleton(c1), Collections.singleton("h2"));
+    clusters.publishHostsDeletion(Collections.singleton(c1), Collections.singleton("h2"), Collections.emptyMap());
     injector.getInstance(UnitOfWork.class).end();
     assertRepoVersionState("2.2.0", RepositoryVersionState.CURRENT);
     assertRepoVersionState("2.2.9-9999", RepositoryVersionState.INSTALLED);

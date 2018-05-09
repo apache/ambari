@@ -17,9 +17,14 @@
  */
 package org.apache.ambari.server.events;
 
+import static java.util.stream.Collectors.toSet;
+
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.state.Cluster;
 
 /**
@@ -38,15 +43,19 @@ public class HostsRemovedEvent extends AmbariEvent {
    */
   private final Set<String> m_hosts;
 
+  private final Map<String, Set<String>> componentsPerHost;
+
   /**
    * Constructor.
    * @param hosts
    * @param clusters
+   * @param componentsPerHost
    */
-  public HostsRemovedEvent(Set<String> hosts, Set<Cluster> clusters) {
+  public HostsRemovedEvent(Set<String> hosts, Set<Cluster> clusters, Map<String, Set<String>> componentsPerHost) {
     super(AmbariEventType.HOST_REMOVED);
     m_clusters = clusters;
     m_hosts = hosts;
+    this.componentsPerHost = componentsPerHost;
   }
 
   /**
@@ -84,5 +93,16 @@ public class HostsRemovedEvent extends AmbariEvent {
     sb.append(", m_hosts=").append(m_hosts);
     sb.append('}');
     return sb.toString();
+  }
+
+  /**
+   * @return true if any of the deleted host had the given component
+   */
+  public boolean hasComponent(Role component) {
+    return flatten(componentsPerHost.values()).contains(component.name());
+  }
+
+  private static Set<String> flatten(Collection<Set<String>> values) {
+    return values.stream().flatMap(Collection::stream).collect(toSet());
   }
 }
