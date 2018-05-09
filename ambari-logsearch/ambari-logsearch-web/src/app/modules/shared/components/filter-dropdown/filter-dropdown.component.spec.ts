@@ -44,6 +44,8 @@ import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {RouterTestingModule} from '@angular/router/testing';
+import {NotificationService} from '@modules/shared/services/notification.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 
 describe('FilterDropdownComponent', () => {
   let component: FilterDropdownComponent;
@@ -120,7 +122,9 @@ describe('FilterDropdownComponent', () => {
         ClusterSelectionService,
         RoutingUtilsService,
         LogsFilteringUtilsService,
-        LogsStateService
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
