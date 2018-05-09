@@ -47,8 +47,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "downloadMpacks",
     "customProductRepos",
     "verifyProducts",
-    //"step1",
-    //"step4",
     "step5",
     "step6",
     "step7",
@@ -182,11 +180,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return jQuery.extend({}, this.get('clusterStatusTemplate'));
   },
 
-  getHosts: function () {
-    return [];
-  },
-
-  /**
+   /**
    * Remove host from model. Used at <code>Confirm hosts(step2)</code> step
    * @param hosts Array of hosts, which we want to delete
    */
@@ -197,29 +191,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       delete dbHosts[host];
     });
     this.setDBProperty('hosts', dbHosts);
-  },
-
-  /**
-   * Load services data. Will be used at <code>Select services(step4)</code> step
-   */
-  loadServices: function () {
-    var dfd = $.Deferred();
-    var self = this;
-    var stackServices = App.StackService.find().mapProperty('serviceName');
-    if (!(stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') === App.get('currentStackVersionNumber'))) {
-      this.loadServiceComponents().complete(function () {
-        self.set('content.services', App.StackService.find().forEach(function (item) {
-          // user the service version from VersionDefinition
-          var serviceInStack = App.Stack.find().findProperty('isSelected').get('stackServices').findProperty('name', item.get('serviceName'));
-          var serviceVersionDisplay = serviceInStack ? serviceInStack.get('latestVersion') : item.get('serviceVersion');
-          item.set('serviceVersionDisplay', serviceVersionDisplay);
-        }));
-        dfd.resolve();
-      });
-    } else {
-      dfd.resolve();
-    }
-    return dfd.promise();
   },
 
   /**
@@ -250,11 +221,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     const message = Em.I18n.t('installer.error.mpackServiceInfo');
 
     this.addError(message);
-    // App.showAlertPopup(
-    //   Em.I18n.t('common.error'), //header
-    //   message //body
-    // );
-
     return message;
     
     console.log(`${message} ${status} - ${error}`);
@@ -318,32 +284,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   stacks: [],
 
-  mergeChanges: function (repos, oses, stacks) {
-    var _repos = repos || [];
-    var _oses = oses || [];
-    var _stacks = stacks || [];
-    _repos.forEach(function (repo) {
-      App.Repository.find().findProperty('id', repo.id).set('baseUrl', repo.base_url);
-    });
-    _oses.forEach(function (os) {
-      if (App.OperatingSystem.find().findProperty('id', os.id)) {
-        App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
-      }
-    });
-    //should delete the record on going to step 2, on going back to step 1, still need the record
-    if (App.router.get('currentState.name') != "step1") {
-      App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
-        App.stackMapper.deleteRecord(os);
-      });
-    }
-    _stacks.forEach(function (_stack) {
-      var stack = App.Stack.find().findProperty('id', _stack.id);
-      if (stack) {
-        stack.set('useRedhatSatellite', _stack.use_redhat_satellite);
-      }
-    });
-  },
-
   setSelected: function (isStacksExistInDb) {
     if (!isStacksExistInDb) {
       var stacks = App.Stack.find();
@@ -352,50 +292,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     }
     this.set('content.stacks', App.Stack.find());
     App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
-  },
-
-  /**
-   * Get the the repo version (to install) info, this data will be POST
-   * @method startDeploy
-   */
-  getSelectedRepoVersionData: function () {
-    var vdfData = App.db.getLocalRepoVDFData();
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
-    var isXMLdata = false;
-    var data = {};
-    if (selectedStack && selectedStack.get('showAvailable')) {
-      //meaning user selected a public repo
-      data = {
-        "VersionDefinition": {
-          "available": selectedStack.get('id')
-        }
-      };
-      isXMLdata = false;
-    } else if (vdfData && validator.isValidURL(vdfData)) {
-      // meaning user uploaded a VDF via entering URL
-      data = {
-        "VersionDefinition": {
-          "version_url": vdfData
-        }
-      };
-      isXMLdata = false;
-    } else if (vdfData) {
-      // meaning user uploaded a local VDF.xml file
-      isXMLdata = true;
-      data = vdfData;
-    } else {
-      return null;
-    }
-    return {
-      isXMLdata: isXMLdata,
-      data: data
-    };
-  },
-
-  /**
-   * onError callback for loading stacks data
-   */
-  loadStacksVersionsErrorCallback: function () {
   },
 
   /**
@@ -433,38 +329,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.set('isManagedMySQLForHiveEnabled', App.config.isManagedMySQLForHiveAllowed(data.RootServiceComponents.properties['server.os_family']));
   },
   getServerVersionErrorCallback: function () {
-  },
-
-  /**
-   * set stacks from server to content and local DB
-   */
-  setStacks: function () {
-    App.db.setStacks(App.Stack.find().slice());
-    this.set('content.stacks', App.Stack.find());
-    App.db.setOses(App.OperatingSystem.find().slice());
-    App.db.setRepos(App.Repository.find().slice());
-  },
-
-  /**
-   * Save data to model
-   * @param stepController App.WizardStep4Controller
-   */
-  saveServices: function (stepController) {
-    var selectedServiceNames = [];
-    var installedServiceNames = [];
-    stepController.filterProperty('isSelected').forEach(function (item) {
-      selectedServiceNames.push(item.get('serviceName'));
-    });
-    stepController.filterProperty('isInstalled').forEach(function (item) {
-      installedServiceNames.push(item.get('serviceName'));
-    });
-    this.set('content.services', App.StackService.find());
-    this.set('content.selectedServiceNames', selectedServiceNames);
-    this.set('content.installedServiceNames', installedServiceNames);
-    this.setDBProperties({
-      selectedServiceNames: selectedServiceNames,
-      installedServiceNames: installedServiceNames
-    });
   },
 
   /**
@@ -910,20 +774,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.gotoStep('step0');
   },
 
-  gotoStep1: function () {
-    this.gotoStep('step1');
-  },
-
   gotoStep2: function () {
     this.gotoStep('step2');
   },
 
   gotoStep3: function () {
     this.gotoStep('step3');
-  },
-
-  gotoStep4: function () {
-    this.gotoStep('step4');
   },
 
   gotoStep5: function () {
@@ -978,20 +834,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return this.get('currentStep') == this.getStepIndex('step0');
   }.property('currentStep'),
 
-  isStep1: function () {
-    return this.get('currentStep') == this.getStepIndex('step1');
-  }.property('currentStep'),
-
   isStep2: function () {
     return this.get('currentStep') == this.getStepIndex('step2');
   }.property('currentStep'),
 
   isStep3: function () {
     return this.get('currentStep') == this.getStepIndex('step3');
-  }.property('currentStep'),
-
-  isStep4: function () {
-    return this.get('currentStep') == this.getStepIndex('step4');
   }.property('currentStep'),
 
   isStep5: function () {
@@ -1094,47 +942,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       const stepIndex = this.getStepIndex(steps[i]);
       this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepDisabled);
     }
-  },
-
-  /**
-   * Compare jdk versions used for ambari and selected stack.
-   * Validation check will fire only for non-custom jdk configuration.
-   *
-   * @param {Function} successCallback
-   * @param {Function} failCallback
-   */
-  validateJDKVersion: function (successCallback, failCallback) {
-    var selectedStack = App.Stack.find().findProperty('isSelected', true),
-        currentJDKVersion = App.router.get('clusterController.ambariProperties')['java.version'],
-        // use min as max, or max as min version, in case when some of them missed
-        minJDKVersion = selectedStack.get('minJdkVersion') || selectedStack.get('maxJdkVersion'),
-        maxJDKVersion = selectedStack.get('maxJdkVersion') || selectedStack.get('minJdkVersion'),
-        t = Em.I18n.t,
-        fCallback = failCallback || function() {},
-        sCallback = successCallback || function() {};
-
-    // Skip jdk check if min and max required version not set in stack definition.
-    if (!minJDKVersion && !maxJDKVersion) {
-      sCallback();
-      return;
-    }
-
-    if (currentJDKVersion) {
-      if (stringUtils.compareVersions(currentJDKVersion, minJDKVersion) < 0 ||
-          stringUtils.compareVersions(maxJDKVersion, currentJDKVersion) < 0) {
-        // checks and process only minor part for now
-        var versionDistance = parseInt(maxJDKVersion.split('.')[1], 10) - parseInt(minJDKVersion.split('.')[1], 10);
-        var versionsList = [minJDKVersion];
-        for (var i = 1; i < versionDistance + 1; i++) {
-          versionsList.push("" + minJDKVersion.split('.')[0] + '.' + (+minJDKVersion.split('.')[1] + i));
-        }
-        var versionsString = stringUtils.getFormattedStringFromArray(versionsList, t('or'));
-        var popupBody = t('popup.jdkValidation.body').format(selectedStack.get('stackName') + ' ' + selectedStack.get('stackVersion'), versionsString, currentJDKVersion);
-        App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), 'danger');
-        return;
-      }
-    }
-    sCallback();
   },
 
   clearStackServices: function (deleteAll) {
