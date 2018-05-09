@@ -50,7 +50,8 @@
       "dataDir": "/hadoop/zookeeper",
       "initLimit": "10",
       "tickTime": "3000",
-      "autopurge.snapRetainCount": "30"
+      "autopurge.snapRetainCount": "30",
+      "version": null
     },
     "ranger-hdfs-security": {
       "ranger.plugin.hdfs.policy.source.impl": "org.apache.ranger.admin.client.RangerAdminRESTClient",
@@ -96,5 +97,6 @@
   "clusterHostInfo": {
     "ganglia_server_hosts": "host1",
     "oozie_server": "host2"
-  }
+  },
+  "Versions": null
 }

@@ -65,7 +65,10 @@ class ModuleConfigs(object):
     if config_type not in self.__module_configs or property_name not in self.__module_configs[config_type]:
       return default
     try:
-      return self.__module_configs[config_type][property_name]
+      value = self.__module_configs[config_type][property_name]
+      if value == None:
+        value = default
+      return value
     except:
       return default
 
