@@ -22,8 +22,8 @@ import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
 import 'rxjs/add/operator/delay';
 import * as moment from 'moment';
-import {mockDataGet} from "@mockdata/mock-data-get";
-import {mockDataPost} from "@mockdata/mock-data-post";
+import {mockDataGet} from '@mockdata/mock-data-get';
+import {mockDataPost} from '@mockdata/mock-data-post';
 
 export class MockBackendService extends InMemoryBackendService {
   getLocation(url: string): any {
@@ -134,6 +134,16 @@ export class MockApiDataService implements InMemoryDbService {
     return mockDataObj[matchedPath];
   }
 
+  /**
+   * The goal here is to check if the given real api url should be always POST or not.\
+   * See https://issues.apache.org/jira/browse/AMBARI-23779
+   * @param {string} url The full url for the api end point.
+   * @returns {boolean}
+   */
+  private shouldTurnGetToPost(url: string): boolean {
+    return /(audit|service)/.test(url);
+  }
+
   get(interceptorArgs: any): Observable<Response> {
     const query = interceptorArgs.requestInfo.query;
     const path = interceptorArgs.requestInfo.base + interceptorArgs.requestInfo.collectionName;
@@ -145,7 +155,15 @@ export class MockApiDataService implements InMemoryDbService {
         allData = this.findDataByUrlPatter(path, mockDataGet);
       }
       if (typeof allData === 'function') {
-        allData = allData(query, interceptorArgs.requestInfo.req);
+        try {
+          allData = allData(query, interceptorArgs.requestInfo.req);
+        } catch (error) {
+          return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
+            new Response(createErrorResponse(
+              interceptorArgs.requestInfo.req, 500, error
+            )))
+          );
+        }
       }
       const is404 = !allData;
 
@@ -229,7 +247,15 @@ export class MockApiDataService implements InMemoryDbService {
       responseBody = this.findDataByUrlPatter(path, mockDataPost);
     }
     if (typeof responseBody === 'function') {
-      responseBody = responseBody(query, interceptorArgs.requestInfo.req);
+      try {
+        responseBody = responseBody(query, interceptorArgs.requestInfo.req);
+      } catch (error) {
+        return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
+          new Response(createErrorResponse(
+            interceptorArgs.requestInfo.req, 500, error
+          )))
+        );
+      }
     }
     const is404 = !responseBody;
 

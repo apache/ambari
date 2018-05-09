@@ -17,7 +17,7 @@
  */
 
 import * as moment from 'moment';
-import {Moment} from "moment";
+import {Moment} from 'moment';
 
 import {
   clusters,
@@ -25,54 +25,30 @@ import {
   services,
   users,
   components,
-  levels,
   ucFirst,
   getRandomInt,
   getRandomElement,
-  generatePath,
   generateServiceLog,
-  generateAuditLog
+  generateAuditLog,
+  generateGraphData
 } from './mock-data-common';
 import Base = moment.unitOfTime.Base;
 
 const currentTime: Moment = moment();
-
-function generateDataCount(from, to, unit, gap) {
-  let current = moment(from);
-  const end = moment(to);
-  const data = [];
-  while (current.isBefore(end)) {
-    data.push({
-      name: current.toISOString(),
-      value: getRandomInt(9000)
-    });
-    current = current.add(gap, unit);
-  }
-  return data;
-}
-
-function generateGraphData(from, to, unit, gap) {
-  return levels.map((level) => {
-    return {
-      dataCount: generateDataCount(from, to, unit, gap),
-      name: level
-    };
-  });
-}
 
 export const mockDataGet = {
   'login': {},
   'logout': {},
 
   'api/v1/audit/logs': function (query) {
-    let list = [];
-    let params = query.rawParams.split('&').reduce((currentObj, param) => {
+    const list = [];
+    const params = query.rawParams.split('&').reduce((currentObj, param) => {
       let [key, value] = param.split('=');
       switch (key) {
         case 'page':
         case 'pageSize':
         case 'startIndex':
-          value = parseInt(value);
+          value = parseInt(value, 0);
           break;
         case 'from':
         case 'to':
@@ -90,7 +66,7 @@ export const mockDataGet = {
     const intervalSteps = params.to.diff(params.from) / pageSize;
     const startTime = params.from.valueOf();
     for (let i = 0; i < pageSize; i += 1) {
-      let defaults: {[key:string]: any} = {logtime: startTime + (i * intervalSteps)};
+      const defaults: {[key: string]: any} = {logtime: startTime + (i * intervalSteps)};
       list.push(generateAuditLog(defaults));
     }
     return {
@@ -154,24 +130,24 @@ export const mockDataGet = {
         name: comp,
         label: comp.split('_').map(ucFirst).join(' '),
         group: null
-      }
+      };
     })
   },
   'api/v1/audit/logs/resources/\\d': function (query) {
-    let graphData = users.map((user:string) => {
+    const graphData = users.map((user: string) => {
       return {
         name: user,
-        dataCount: services.map((service:string) => {
+        dataCount: services.map((service: string) => {
           return {
             name: service,
             value: getRandomInt(1000)
-          }
+          };
         })
       };
     });
     return {
       graphData: graphData
-    }
+    };
   },
   'api/v1/audit/logs/schema/fields': {
     'defaults': [
@@ -1251,14 +1227,14 @@ export const mockDataGet = {
   'api/v1/public/config': {},
 
   'api/v1/service/logs': function (query) {
-    let list = [];
-    let params = query.rawParams.split('&').reduce((currentObj, param) => {
+    const list = [];
+    const params = query.rawParams.split('&').reduce((currentObj, param) => {
       let [key, value] = param.split('=');
       switch (key) {
         case 'page':
         case 'pageSize':
         case 'startIndex':
-          value = parseInt(value);
+          value = parseInt(value, 0);
           break;
         case 'from':
         case 'to':
@@ -1279,7 +1255,7 @@ export const mockDataGet = {
     const startTime = params.from.valueOf();
 
     for (let i = 0; i < pageSize; i += 1) {
-      let defaults: {[key:string]: any} = {logtime: startTime + (i * intervalSteps)};
+      const defaults: {[key: string]: any} = {logtime: startTime + (i * intervalSteps)};
       if (params.mustBe) {
         defaults.type = getRandomElement(params.mustBe);
       }
@@ -1303,14 +1279,14 @@ export const mockDataGet = {
     };
   },
   'api/v1/service/logs/logList': (query) => {
-    let list = [];
-    let params = query.rawParams.split('&').reduce((currentObj, param) => {
+    const list = [];
+    const params = query.rawParams.split('&').reduce((currentObj, param) => {
       let [key, value] = param.split('=');
       switch (key) {
         case 'page':
         case 'pageSize':
         case 'startIndex':
-          value = parseInt(value);
+          value = parseInt(value, 0);
           break;
         case 'from':
         case 'to':
@@ -1331,7 +1307,7 @@ export const mockDataGet = {
     const startTime = params.from.valueOf();
 
     for (let i = 0; i < pageSize; i += 1) {
-      let defaults: {[key:string]: any} = {
+      const defaults: {[key: string]: any} = {
         logtime: startTime + (i * intervalSteps),
         event_dur_ms: getRandomInt(1000)
       };
@@ -1391,7 +1367,7 @@ export const mockDataGet = {
         name: comp,
         label: comp.split('_').map(ucFirst).join(' '),
         group: null
-      }
+      };
     })
   },
   'api/v1/service/logs/components/levels/counts': {
@@ -1456,7 +1432,7 @@ export const mockDataGet = {
           },
           {
             name: 'WARN',
-            value: '500'
+              value: '500'
           }
         ],
         isParent: false,
