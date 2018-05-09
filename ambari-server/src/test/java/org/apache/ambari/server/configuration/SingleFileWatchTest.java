@@ -44,6 +44,7 @@ public class SingleFileWatchTest {
 
   @Before
   public void setUp() throws Exception {
+    tmp.create();
     fileToWatch = tmp.newFile();
     watchDog = new SingleFileWatch(fileToWatch, file -> numberOfEventsReceived++);
     watchDog.start();
