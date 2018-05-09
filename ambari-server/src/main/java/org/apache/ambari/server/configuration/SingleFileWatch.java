@@ -117,7 +117,7 @@ public class SingleFileWatch implements Runnable {
   }
 
   private void notifyListener(Path path) {
-    LOG.info(path + " changed. Sending notification.");
+    LOG.info("{} changed. Sending notification.", path);
     try {
       changeListener.accept(file);
     } catch (Exception e) {

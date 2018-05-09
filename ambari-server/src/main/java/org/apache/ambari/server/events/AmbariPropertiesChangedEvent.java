@@ -20,6 +20,9 @@
 
 package org.apache.ambari.server.events;
 
+/**
+ * This event is fired when ambari.properties file changes
+ */
 public class AmbariPropertiesChangedEvent extends AmbariEvent {
 
   public AmbariPropertiesChangedEvent() {
