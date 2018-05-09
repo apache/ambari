@@ -488,7 +488,7 @@ App.QuickLinksView = Em.View.extend({
             if (configPropertiesObject && configPropertiesObject.properties) {
               var properties = configPropertiesObject.properties;
               var nnKeyRegex = new RegExp('^dfs\.namenode\.' + protocol + '-address\.');
-              var nnProperties = Object.keys(properties).filter(key => nnKeyRegex.test(key))
+              var nnProperties = Object.keys(properties).filter(key => nnKeyRegex.test(key));
               var nnPropertiesLength = nnProperties.length;
               for (var i = nnPropertiesLength; i--;) {
                 var propertyName = nnProperties[i];
