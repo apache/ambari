@@ -365,7 +365,7 @@
 }
 
 .service-block .summary-box-header {
-  .alerts-crit-count, .alerts-warn-count, .no-alerts-label {
+  .alerts-crit-count, .alerts-warn-count, .no-alerts-label, .alerts-none-count {
     padding: 3px 5px;
     font-size: 10px;
     border-radius: 50%;
@@ -410,6 +410,9 @@
 }
 .label.alerts-warn-count {
   background: @health-status-orange;
+}
+.label.alerts-none-count {
+  background: @top-nav-ops-count-bg-color;
 }
 .label.no-alerts-label {
   background: @health-status-green;
