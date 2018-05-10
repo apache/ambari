@@ -173,7 +173,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
   protected setChartTimeGap(startDate: Date, endDate: Date): void {
     const gap: ChartTimeGap = this.getTimeGap(startDate, endDate);
     if (gap.value > 0) {
-      this.chartTimeGap = this.getTimeGap(startDate, endDate);
+      this.chartTimeGap = gap;
     }
   }
 
