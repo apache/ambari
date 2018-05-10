@@ -20,27 +20,21 @@
 
 package org.apache.ambari.server.configuration;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.function.Consumer;
 
+import org.apache.log4j.helpers.FileWatchdog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Watchdog that notifies a listener on a file content change.
  */
-public class SingleFileWatch implements Runnable {
+public class SingleFileWatch {
   private static final Logger LOG = LoggerFactory.getLogger(SingleFileWatch.class);
   private final File file;
+  private final FileWatchdog watchdog;
   private final Consumer<File> changeListener;
-  private final Thread thread;
   private volatile boolean started = false;
 
   /**
@@ -50,7 +44,31 @@ public class SingleFileWatch implements Runnable {
   public SingleFileWatch(File file, Consumer<File> changeListener) {
     this.file = file;
     this.changeListener = changeListener;
-    this.thread = new Thread(this, toString());
+    this.watchdog = createWatchDog();
+  }
+
+  private FileWatchdog createWatchDog() {
+    FileWatchdog fileWatch = new FileWatchdog(file.getAbsolutePath()) {
+      @Override
+      protected void doOnChange() {
+        if (started) {
+          notifyListener();
+        }
+      }
+    };
+    fileWatch.setDelay(1000);
+    fileWatch.setDaemon(true);
+    fileWatch.setName("FileWatchdog:" + file.getName());
+    return fileWatch;
+  }
+
+  private void notifyListener() {
+    LOG.info("{} changed. Sending notification.", file);
+    try {
+      changeListener.accept(file);
+    } catch (Exception e) {
+      LOG.warn("Error while notifying " + this + " listener", e);
+    }
   }
 
   /**
@@ -58,8 +76,8 @@ public class SingleFileWatch implements Runnable {
    */
   public void start() {
     LOG.info("Starting " + this);
-    thread.setDaemon(true);
-    thread.start();
+    started = true;
+    watchdog.start();
   }
 
   /**
@@ -68,65 +86,7 @@ public class SingleFileWatch implements Runnable {
   public void stop() {
     LOG.info("Stopping " + this);
     started = false;
-    thread.interrupt();
-  }
-
-  /**
-   * @return true if the WatchService is started in the background and registered on the given directory
-   */
-  public boolean isStarted() {
-    return started;
-  }
-
-  public void run() {
-    try {
-      checkForFileModifications();
-    } catch (IOException e) {
-      LOG.error(this + " error", e);
-      started = false;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      LOG.info(this + " interrupted");
-      started = false;
-    }
-  }
-
-  /**
-   * WatchService can only watch directories not individual files, we're watching the parent directory and filter events by filename
-   */
-  private void checkForFileModifications() throws IOException, InterruptedException {
-    try (WatchService watch = FileSystems.getDefault().newWatchService()) {
-      register(watch);
-      while (started) {
-        WatchKey key = watch.take();
-        key.pollEvents().stream()
-          .map(event -> (Path) event.context())
-          .filter(path -> file.toPath().getFileName().equals(path.getFileName()))
-          .findAny()
-          .ifPresent(this::notifyListener);
-        key.reset();
-      }
-    }
-  }
-
-  private void register(WatchService watch) throws IOException {
-    Path parent = parentDirectory();
-    LOG.info("Registering on {}", parent);
-    parent.register(watch, ENTRY_MODIFY);
-    started = true;
-  }
-
-  private void notifyListener(Path path) {
-    LOG.info("{} changed. Sending notification.", path);
-    try {
-      changeListener.accept(file);
-    } catch (Exception e) {
-      LOG.warn("Error while notifying " + this + " listener", e);
-    }
-  }
-
-  private Path parentDirectory() {
-    return file.getParentFile().toPath();
+    watchdog.interrupt();
   }
 
   public String toString() {

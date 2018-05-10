@@ -23,12 +23,11 @@ package org.apache.ambari.server.configuration;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.commons.lang.SystemUtils;
+import org.awaitility.core.ConditionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,7 +47,6 @@ public class SingleFileWatchTest {
     fileToWatch = tmp.newFile();
     watchDog = new SingleFileWatch(fileToWatch, file -> numberOfEventsReceived++);
     watchDog.start();
-    await().atMost(3, SECONDS).until(watchDog::isStarted);
   }
 
   @After
@@ -58,14 +56,26 @@ public class SingleFileWatchTest {
 
   @Test
   public void testTriggersEventsOnMultipleFileChange() throws Exception {
-    assumeTrue(SystemUtils.IS_OS_LINUX); // the OSX implementation of WatchService is really slow
     changeFile("change1");
-    await().atMost(15, SECONDS).until(() -> numberOfEventsReceived == 1);
+    hasReceivedChangeEvents(1);
     changeFile("change2");
-    await().atMost(15, SECONDS).until(() -> numberOfEventsReceived == 2);
+    hasReceivedChangeEvents(2);
+    changeFile("change3");
+    hasReceivedChangeEvents(3);
   }
 
-  private void changeFile(String content) throws IOException {
-    writeStringToFile(fileToWatch, content, "UTF-8");
+  private void hasReceivedChangeEvents(int expectedNumberOfEvents) {
+    try {
+      await().atMost(8, SECONDS).until(() -> numberOfEventsReceived == expectedNumberOfEvents);
+    } catch (ConditionTimeoutException e) {
+      fail("Expected number of file change events: " + expectedNumberOfEvents + " but received: " + numberOfEventsReceived);
+    }
+  }
+
+  private void changeFile(String content) throws Exception {
+    long lastModified = fileToWatch.lastModified();
+    while (lastModified == fileToWatch.lastModified()) {
+      writeStringToFile(fileToWatch, content, "UTF-8");
+    }
   }
 }
