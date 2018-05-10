@@ -18,19 +18,17 @@
 
 import {
   Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
-  QueryList, ChangeDetectorRef, ElementRef, ViewChild
+  QueryList, ChangeDetectorRef, ElementRef, ViewChild, OnInit
 } from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
-import {TranslateService} from '@ngx-translate/core';
-import {Observable} from 'rxjs/Observable';
 
 @Component({
   selector: 'ul[data-component="dropdown-list"]',
   templateUrl: './dropdown-list.component.html',
   styleUrls: ['./dropdown-list.component.less']
 })
-export class DropdownListComponent implements OnChanges, AfterViewChecked {
+export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecked {
 
   private shouldRenderAdditionalComponents: boolean = false;
 
@@ -51,7 +49,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   actionArguments: any[] = [];
 
   @Output()
-  selectedItemChange: EventEmitter<ListItem> = new EventEmitter();
+  selectedItemChange: EventEmitter<ListItem | ListItem[]> = new EventEmitter();
 
   @ViewChildren('additionalComponent', {
     read: ViewContainerRef
@@ -78,6 +76,10 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     private changeDetector: ChangeDetectorRef
   ) {}
 
+  ngOnInit() {
+    this.separateSelections();
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.hasOwnProperty('items')) {
       this.separateSelections();
@@ -96,7 +98,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   }
 
   private clearSelection() {
-    this.items.forEach((item: ListItem) => item.isChecked = false);
+    this.unSelectAll();
     this.separateSelections();
   }
 
@@ -117,11 +119,23 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   }
 
   selectAll() {
-    this.items.forEach((item: ListItem) => item.isChecked = true);
+    this.items.forEach((item: ListItem) => {
+      item.isChecked = true;
+      if (item.onSelect) {
+        item.onSelect(...this.actionArguments);
+      }
+    });
+    this.selectedItemChange.emit(this.items);
   }
 
   unSelectAll() {
-    this.items.forEach((item: ListItem) => item.isChecked = false);
+    this.items.forEach((item: ListItem) => {
+      item.isChecked = false;
+      if (item.onSelect) {
+        item.onSelect(...this.actionArguments);
+      }
+    });
+    this.selectedItemChange.emit(this.items);
   }
 
   private onFilterInputKeyUp(event) {
@@ -154,16 +168,20 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     }
   }
 
-  changeSelectedItem(options: ListItem, event?: MouseEvent): void {
-    if (options.onSelect) {
-      options.onSelect(...this.actionArguments);
+  changeSelectedItem(item: ListItem, event?: MouseEvent): void {
+    if (item.onSelect) {
+      item.onSelect(...this.actionArguments);
     }
     this.separateSelections();
-    this.selectedItemChange.emit(options);
+    this.selectedItemChange.emit(item);
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
+  }
+
+  doItemsCheck() {
+    this.separateSelections();
   }
 
 }
