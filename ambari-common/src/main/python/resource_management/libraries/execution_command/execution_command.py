@@ -57,6 +57,8 @@ class ExecutionCommand(object):
         if not sub_key in value:
           return default_value
         value = value[sub_key]
+        if value == None:
+          value = default_value
       return value
     except:
       return default_value

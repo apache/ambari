@@ -86,3 +86,14 @@ class TestExecutionCommand(TestCase):
     self.assertTrue(is_zoo_cfg_there)
     zoo_cfg = module_configs.get_all_properties("zookeeper", "zoo.cfg")
     self.assertTrue(isinstance(zoo_cfg, dict))
+
+  def test_null_value(self):
+    versions = self.__execution_command.get_value("Versions")
+    self.assertEqual(versions, None)
+    versions = self.__execution_command.get_value("Versions", "1.1.1.a")
+    self.assertEqual(versions, "1.1.1.a")
+    module_configs = self.__execution_command.get_module_configs()
+    version = module_configs.get_property_value("zookeeper", "zoo.cfg", "version")
+    self.assertEqual(version, None)
+    version = module_configs.get_property_value("zookeeper", "zoo.cfg", "version", "3.0.b")
+    self.assertEqual(version, "3.0.b")
