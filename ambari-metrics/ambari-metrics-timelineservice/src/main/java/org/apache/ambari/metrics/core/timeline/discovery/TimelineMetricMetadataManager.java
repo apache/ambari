@@ -397,18 +397,6 @@ public class TimelineMetricMetadataManager {
       }
     }
 
-    if (!HOSTED_APPS_MAP.isEmpty()) {
-      Map.Entry<String, TimelineMetricHostMetadata> entry = HOSTED_APPS_MAP.entrySet().iterator().next();
-      TimelineMetricHostMetadata timelineMetricHostMetadata = entry.getValue();
-      if (timelineMetricHostMetadata.getUuid() != null  && timelineMetricHostMetadata.getUuid().length == 16) {
-        HOSTNAME_UUID_LENGTH = 16;
-        uuidGenStrategy = new MD5UuidGenStrategy();
-      } else {
-        HOSTNAME_UUID_LENGTH = 4;
-        uuidGenStrategy = new Murmur3HashUuidGenStrategy();
-      }
-    }
-
     for (String host : HOSTED_APPS_MAP.keySet()) {
       TimelineMetricHostMetadata timelineMetricHostMetadata = HOSTED_APPS_MAP.get(host);
       if (timelineMetricHostMetadata != null && timelineMetricHostMetadata.getUuid() != null) {
@@ -423,13 +411,7 @@ public class TimelineMetricMetadataManager {
    * @return the UUID generator of type org.apache.ambari.metrics.core.timeline.uuid.MetricUuidGenStrategy
    */
   private MetricUuidGenStrategy getUuidStrategy(Configuration configuration) {
-    String strategy = configuration.get(TIMELINE_METRICS_UUID_GEN_STRATEGY, "");
-    if ("md5".equalsIgnoreCase(strategy)){
-      return new MD5UuidGenStrategy();
-    } else {
-      //Default
-      return new Murmur3HashUuidGenStrategy();
-    }
+    return new Murmur3HashUuidGenStrategy();
   }
 
   /**

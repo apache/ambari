@@ -51,7 +51,7 @@ public class TimelineMetricSplitPointComputerTest {
     expect(metricsConfMock.getDouble("hbase_total_heapsize", 1024*1024*1024)).andReturn(1024 * 1024 * 1024.0).once();
 
     Configuration hbaseConfMock = EasyMock.createMock(Configuration.class);
-    expect(hbaseConfMock.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.5)).andReturn(0.5).once();
+    expect(hbaseConfMock.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.3)).andReturn(0.3).once();
     expect(hbaseConfMock.getDouble("hbase.hregion.memstore.flush.size", 134217728)).andReturn(134217728.0).once();
 
     TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createNiceMock(TimelineMetricMetadataManager.class);
@@ -62,6 +62,7 @@ public class TimelineMetricSplitPointComputerTest {
     TimelineMetricSplitPointComputer timelineMetricSplitPointComputer = new TimelineMetricSplitPointComputer(metricsConfMock,
       hbaseConfMock,
       metricMetadataManagerMock);
+    timelineMetricSplitPointComputer.computeSplitPoints();
 
     Assert.assertEquals(timelineMetricSplitPointComputer.getPrecisionSplitPoints().size(), 3);
     Assert.assertEquals(timelineMetricSplitPointComputer.getClusterAggregateSplitPoints().size(), 1);
@@ -85,7 +86,7 @@ public class TimelineMetricSplitPointComputerTest {
     expect(metricsConfMock.getDouble("hbase_total_heapsize", 1024*1024*1024)).andReturn(8589934592.0).once();
 
     Configuration hbaseConfMock = EasyMock.createMock(Configuration.class);
-    expect(hbaseConfMock.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.5)).andReturn(0.5).once();
+    expect(hbaseConfMock.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.3)).andReturn(0.3).once();
     expect(hbaseConfMock.getDouble("hbase.hregion.memstore.flush.size", 134217728)).andReturn(134217728.0).once();
 
     TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createNiceMock(TimelineMetricMetadataManager.class);
@@ -96,10 +97,11 @@ public class TimelineMetricSplitPointComputerTest {
     TimelineMetricSplitPointComputer timelineMetricSplitPointComputer = new TimelineMetricSplitPointComputer(metricsConfMock,
       hbaseConfMock,
       metricMetadataManagerMock);
+    timelineMetricSplitPointComputer.computeSplitPoints();
 
-    Assert.assertEquals(timelineMetricSplitPointComputer.getPrecisionSplitPoints().size(), 16);
-    Assert.assertEquals(timelineMetricSplitPointComputer.getClusterAggregateSplitPoints().size(), 3);
-    Assert.assertEquals(timelineMetricSplitPointComputer.getHostAggregateSplitPoints().size(), 3);
+    Assert.assertEquals(timelineMetricSplitPointComputer.getPrecisionSplitPoints().size(), 6);
+    Assert.assertEquals(timelineMetricSplitPointComputer.getClusterAggregateSplitPoints().size(), 1);
+    Assert.assertEquals(timelineMetricSplitPointComputer.getHostAggregateSplitPoints().size(), 1);
   }
 
   @Test
@@ -119,7 +121,7 @@ public class TimelineMetricSplitPointComputerTest {
     expect(metricsConfMock.getDouble("hbase_total_heapsize", 1024*1024*1024)).andReturn(24 * 1024 * 1024 * 1024.0).once();
 
     Configuration hbaseConfMock = EasyMock.createMock(Configuration.class);
-    expect(hbaseConfMock.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.5)).andReturn(0.5).once();
+    expect(hbaseConfMock.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.3)).andReturn(0.3).once();
     expect(hbaseConfMock.getDouble("hbase.hregion.memstore.flush.size", 134217728)).andReturn(2 * 134217728.0).once();
 
     TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createNiceMock(TimelineMetricMetadataManager.class);
@@ -130,9 +132,10 @@ public class TimelineMetricSplitPointComputerTest {
     TimelineMetricSplitPointComputer timelineMetricSplitPointComputer = new TimelineMetricSplitPointComputer(metricsConfMock,
       hbaseConfMock,
       metricMetadataManagerMock);
+    timelineMetricSplitPointComputer.computeSplitPoints();
 
-    Assert.assertEquals(timelineMetricSplitPointComputer.getPrecisionSplitPoints().size(), 28);
-    Assert.assertEquals(timelineMetricSplitPointComputer.getClusterAggregateSplitPoints().size(), 6);
-    Assert.assertEquals(timelineMetricSplitPointComputer.getHostAggregateSplitPoints().size(), 6);
+    Assert.assertEquals(timelineMetricSplitPointComputer.getPrecisionSplitPoints().size(), 14);
+    Assert.assertEquals(timelineMetricSplitPointComputer.getClusterAggregateSplitPoints().size(), 3);
+    Assert.assertEquals(timelineMetricSplitPointComputer.getHostAggregateSplitPoints().size(), 3);
   }
 }

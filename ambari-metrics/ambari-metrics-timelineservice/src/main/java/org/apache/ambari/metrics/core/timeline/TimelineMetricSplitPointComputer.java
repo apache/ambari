@@ -49,6 +49,11 @@ public class TimelineMetricSplitPointComputer {
   private static final int SLAVE_EQUIDISTANT_POINTS = 50;
   private static final int MASTER_EQUIDISTANT_POINTS = 5;
 
+  private double hbaseTotalHeapsize;
+  private double hbaseMemstoreUpperLimit;
+  private double hbaseMemstoreFlushSize;
+  private TimelineMetricMetadataManager timelineMetricMetadataManager = null;
+
   private List<byte[]> precisionSplitPoints = new ArrayList<>();
   private List<byte[]> aggregateSplitPoints = new ArrayList<>();
 
@@ -66,18 +71,14 @@ public class TimelineMetricSplitPointComputer {
       slaveComponents.addAll(Arrays.asList(componentsString.split(",")));
     }
 
-    double hbaseTotalHeapsize = metricsConf.getDouble("hbase_total_heapsize", 1024*1024*1024);
-    double hbaseMemstoreUpperLimit = hbaseConf.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.5);
-    double hbaseMemstoreFlushSize = hbaseConf.getDouble("hbase.hregion.memstore.flush.size", 134217728);
-
-    computeSplitPoints(hbaseTotalHeapsize, hbaseMemstoreUpperLimit, hbaseMemstoreFlushSize, timelineMetricMetadataManager);
+    this.timelineMetricMetadataManager = timelineMetricMetadataManager;
+    hbaseTotalHeapsize = metricsConf.getDouble("hbase_total_heapsize", 1024*1024*1024);
+    hbaseMemstoreUpperLimit = hbaseConf.getDouble("hbase.regionserver.global.memstore.upperLimit", 0.3);
+    hbaseMemstoreFlushSize = hbaseConf.getDouble("hbase.hregion.memstore.flush.size", 134217728);
   }
 
 
-  private void computeSplitPoints(double hbaseTotalHeapsize,
-                                  double hbaseMemstoreUpperLimit,
-                                  double hbaseMemstoreFlushSize,
-                                  TimelineMetricMetadataManager timelineMetricMetadataManager) {
+  protected void computeSplitPoints() {
 
     double memstoreMaxMemory = hbaseMemstoreUpperLimit * hbaseTotalHeapsize;
     int maxInMemoryRegions = (int) ((memstoreMaxMemory / hbaseMemstoreFlushSize) - OTHER_TABLE_STATIC_REGIONS);
