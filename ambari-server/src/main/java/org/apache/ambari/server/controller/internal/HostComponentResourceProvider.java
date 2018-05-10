@@ -317,7 +317,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       throw new IllegalArgumentException("Received an update request with no properties");
     }
 
-    RequestStageContainer requestStages = doUpdateResources(null, request, predicate, false, false);
+    RequestStageContainer requestStages = doUpdateResources(null, request, predicate, false, false, false);
 
     RequestStatusResponse response = null;
     if (requestStages != null) {
@@ -372,7 +372,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return unsupportedProperties;
   }
 
-  public RequestStatusResponse install(String cluster, String hostname, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, boolean skipFailure) throws  SystemException,
+  public RequestStatusResponse install(String cluster, String hostname, Collection<String> skipInstallForComponents,
+                                       Collection<String> dontSkipInstallForComponents,
+                                       boolean skipFailure, boolean useClusterHostInfo) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     RequestStageContainer requestStages;
@@ -403,7 +405,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       LOG.info("Installing all components on host: " + hostname);
 
       // we need send special parameters to send install/start commands with configs
-      requestStages = doUpdateResources(null, installRequest, installPredicate, true, true);
+      requestStages = doUpdateResources(null, installRequest, installPredicate, true,
+          true, useClusterHostInfo);
       notifyUpdate(Resource.Type.HostComponent, installRequest, installPredicate);
       try {
         requestStages.persist();
@@ -424,10 +427,11 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public RequestStatusResponse start(String cluster, String hostName) throws  SystemException,
     UnsupportedPropertyException, NoSuchParentResourceException {
 
-    return this.start(cluster, hostName, Collections.emptySet(), false);
+    return this.start(cluster, hostName, Collections.emptySet(), false, false);
   }
 
-  public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents, boolean skipFailure) throws  SystemException,
+  public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents,
+                                     boolean skipFailure, boolean useClusterHostInfo) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     Map<String, String> requestInfo = new HashMap<>();
@@ -480,7 +484,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
 
-      requestStages = doUpdateResources(null, startRequest, startPredicate, true, true);
+      requestStages = doUpdateResources(null, startRequest, startPredicate, true,
+          true, useClusterHostInfo);
       notifyUpdate(Resource.Type.HostComponent, startRequest, startPredicate);
       try {
         requestStages.persist();
@@ -516,7 +521,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   protected RequestStageContainer updateHostComponents(RequestStageContainer stages,
                                                                     Set<ServiceComponentHostRequest> requests,
                                                                     Map<String, String> requestProperties,
-                                                                    boolean runSmokeTest, boolean useGeneratedConfigs) throws AmbariException, AuthorizationException {
+                                                                    boolean runSmokeTest, boolean useGeneratedConfigs,
+                                                                    boolean useClusterHostInfo) throws AmbariException, AuthorizationException {
 
     Clusters clusters = getManagementController().getClusters();
 
@@ -696,7 +702,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     return getManagementController().addStages(
         stages, cluster, requestProperties, null, null, null,
-        changedScHosts, ignoredScHosts, runSmokeTest, false, useGeneratedConfigs);
+        changedScHosts, ignoredScHosts, runSmokeTest, false, useGeneratedConfigs, useClusterHostInfo);
   }
 
   @Override
@@ -785,6 +791,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @param request                 request
    * @param predicate               request predicate
    * @param performQueryEvaluation  should query be evaluated for matching resource set
+   * @param useGeneratedConfigs     should update request contains actual configs
+   * @param useClusterHostInfo      should update request contain cluster topology info
    * @return
    * @throws UnsupportedPropertyException   an unsupported property was specified in the request
    * @throws SystemException                an unknown exception occurred
@@ -792,7 +800,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @throws NoSuchParentResourceException  a specified parent resource doesn't exist
    */
   private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
-                                                  Predicate predicate, boolean performQueryEvaluation, boolean useGeneratedConfigs)
+                                                  Predicate predicate, boolean performQueryEvaluation,
+                                                  boolean useGeneratedConfigs, boolean useClusterHostInfo)
                                                   throws UnsupportedPropertyException,
                                                          SystemException,
                                                          NoSuchResourceException,
@@ -842,7 +851,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         RequestStageContainer stageContainer = null;
         try {
           stageContainer = updateHostComponents(stages, requests, request.getRequestInfoProperties(),
-              runSmokeTest, useGeneratedConfigs);
+              runSmokeTest, useGeneratedConfigs, useClusterHostInfo);
         } catch (Exception e) {
           LOG.info("Caught an exception while updating host components, will not try again: {}", e.getMessage(), e);
           // !!! IllegalArgumentException results in a 400 response, RuntimeException results in 500.

@@ -612,6 +612,34 @@ public interface AmbariManagementController {
                              boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs) throws AmbariException;
 
   /**
+   * Add stages to the request.
+   *
+   * @param requestStages       Stages currently associated with request
+   * @param cluster             cluster being acted on
+   * @param requestProperties   the request properties
+   * @param requestParameters   the request parameters; may be null
+   * @param changedServices     the services being changed; may be null
+   * @param changedComponents   the components being changed
+   * @param changedHosts        the hosts being changed
+   * @param ignoredHosts        the hosts to be ignored
+   * @param runSmokeTest        indicates whether or not the smoke tests should be run
+   * @param reconfigureClients  indicates whether or not the clients should be reconfigured
+   * @param useGeneratedConfigs indicates whether or not the actual configs should be a part of the stage
+   * @param useClusterHostInfo  indicates whether or not the cluster topology info  should be a part of the stage
+   *
+   * @return request stages
+   *
+   * @throws AmbariException if stages can't be created
+   */
+  RequestStageContainer addStages(RequestStageContainer requestStages, Cluster cluster, Map<String, String> requestProperties,
+                             Map<String, String> requestParameters,
+                             Map<State, List<Service>> changedServices,
+                             Map<State, List<ServiceComponent>> changedComponents,
+                             Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                             Collection<ServiceComponentHost> ignoredHosts,
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs, boolean useClusterHostInfo) throws AmbariException;
+
+  /**
    * Getter for the url of JDK, stored at server resources folder
    */
   String getJdkResourceUrl();

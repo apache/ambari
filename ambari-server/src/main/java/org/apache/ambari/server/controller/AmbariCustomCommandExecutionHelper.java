@@ -733,10 +733,6 @@ public class AmbariCustomCommandExecutionHelper {
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
 
-    // Generate cluster host info
-    execCmd.setClusterHostInfo(
-        StageUtils.getClusterHostInfo(cluster));
-
     // Generate localComponents
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
       execCmd.getLocalComponents().add(sch.getServiceComponentName());
