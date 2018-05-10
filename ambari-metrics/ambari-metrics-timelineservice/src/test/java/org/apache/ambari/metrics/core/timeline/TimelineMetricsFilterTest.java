@@ -26,6 +26,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
@@ -64,9 +65,7 @@ public class TimelineMetricsFilterTest {
     expect(configuration.isWhitelistingEnabled()).andReturn(true).anyTimes();
     replay(configuration);
 
-    URL fileUrl = ClassLoader.getSystemResource("test_data/metric_whitelist.dat");
-
-    metricsConf.set("timeline.metrics.whitelist.file", fileUrl.getPath());
+    metricsConf.set("timeline.metrics.whitelist.file", getTestWhitelistFilePath());
     TimelineMetricsFilter.initializeMetricFilter(configuration);
 
     TimelineMetric timelineMetric = new TimelineMetric();
@@ -93,8 +92,7 @@ public class TimelineMetricsFilterTest {
     expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
     replay(configuration);
 
-    URL fileUrl = ClassLoader.getSystemResource("test_data/metric_whitelist.dat");
-    metricsConf.set("timeline.metrics.whitelist.file", fileUrl.getPath());
+    metricsConf.set("timeline.metrics.whitelist.file", getTestWhitelistFilePath());
 
     TimelineMetricsFilter.initializeMetricFilter(configuration);
 
@@ -161,11 +159,10 @@ public class TimelineMetricsFilterTest {
     Configuration metricsConf = new Configuration();
     metricsConf.set("timeline.metrics.apps.whitelist", "namenode,nimbus");
     metricsConf.set("timeline.metrics.apps.blacklist", "datanode,kafka_broker");
-    URL fileUrl = ClassLoader.getSystemResource("test_data/metric_whitelist.dat");
-    metricsConf.set("timeline.metrics.whitelist.file", fileUrl.getPath());
+    metricsConf.set("timeline.metrics.whitelist.file", getTestWhitelistFilePath());
     expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
 
-    Set<String> whitelist = new HashSet();
+    Set<String> whitelist = new HashSet<>();
     whitelist.add("regionserver.Server.Delete_99th_percentile");
     whitelist.add("regionserver.Server.Delete_max");
     whitelist.add("regionserver.Server.Delete_mean");
@@ -219,5 +216,9 @@ public class TimelineMetricsFilterTest {
     timelineMetric.setMetricName("regionserver.WAL.metric.not.needed");
     timelineMetric.setAppId("hbase");
     Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+  }
+
+  private static String getTestWhitelistFilePath() throws URISyntaxException {
+    return ClassLoader.getSystemResource("test_data/metric_whitelist.dat").toURI().getPath();
   }
 }
