@@ -1075,7 +1075,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           final String currentHadoopProxyuserHttpHosts = coreSiteConfiguration.getProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS);
           if (StringUtils.isNotBlank(currentHadoopProxyuserHttpHosts)) {
             LOG.info("Updating hadoop.proxyuser.HTTP.hosts...");
-            coreSiteConfiguration.putProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS, currentHadoopProxyuserHttpHosts.replace("webhcat_server_host|", "webhcat_server_hosts|"));
+            String newValue = currentHadoopProxyuserHttpHosts.replace("webhcat_server_host|", "webhcat_server_hosts|"); // replacing webhcat_server_host to webhcat_server_hosts
+            newValue = newValue.replace("\\\\,", "\\,"); // Replacing the concatDelimiter in 'append' variable replacement function
+            coreSiteConfiguration.putProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS, newValue);
             updated = true;
           }
         }
