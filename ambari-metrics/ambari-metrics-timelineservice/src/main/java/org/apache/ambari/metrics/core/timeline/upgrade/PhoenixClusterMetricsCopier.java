@@ -15,27 +15,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.metrics.core.timeline;
+package org.apache.ambari.metrics.core.timeline.upgrade;
 
+import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class PhoenixClusterMetricsCopier extends AbstractPhoenixMetricsCopier {
+  private static final Log LOG = LogFactory.getLog(PhoenixClusterMetricsCopier.class);
   private Map<TimelineClusterMetric, MetricHostAggregate> aggregateMap = new HashMap<>();
 
-  PhoenixClusterMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames) {
-    super(inputTableName, outputTableName, hBaseAccessor, metricNames);
+  PhoenixClusterMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames, Long startTime, FileWriter processedMetricsFileWriter) {
+    super(inputTableName, outputTableName, hBaseAccessor, metricNames, startTime, processedMetricsFileWriter);
   }
 
   @Override
-  protected void saveResults() throws SQLException {
-    System.out.println(String.format("Saving %s results", aggregateMap.size()));
+  protected void saveMetricsProgressUsingResultNames() {
+    Set<String> savedMetricNames = new HashSet<>();
+    for (TimelineClusterMetric timelineClusterMetric : aggregateMap.keySet()) {
+      savedMetricNames.add(timelineClusterMetric.getMetricName());
+    }
+    for (String metricName: savedMetricNames) {
+      try {
+        processedMetricsFile.append(inputTable+":"+metricName+System.lineSeparator());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  @Override
+  protected void saveMetrics() throws SQLException {
+    LOG.info(String.format("Saving %s results read from %s into %s", aggregateMap.size(), inputTable, outputTable));
     hBaseAccessor.saveClusterAggregateRecordsSecond(aggregateMap, outputTable);
   }
 
