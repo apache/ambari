@@ -147,6 +147,9 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           staticConfigInfo.description = App.config.getDescription(staticConfigInfo.description, staticConfigInfo.displayType);
           staticConfigInfo.name = JSON.parse('"' + staticConfigInfo.name + '"');
           staticConfigInfo.isUserProperty = false;
+          if (Em.isNone(staticConfigInfo.index)) {
+            staticConfigInfo.index = Infinity;
+          }
           App.configsCollection.add(staticConfigInfo);
 
         }, this);
