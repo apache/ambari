@@ -24,7 +24,12 @@ import org.apache.commons.lang.StringUtils;
 
 public class Murmur3HashUuidGenStrategy implements MetricUuidGenStrategy{
 
-  @Override
+  /**
+   * Compute Murmur3Hash 16 byte UUID for a Metric-App-Instance.
+   * @param timelineClusterMetric input metric
+   * @param maxLength Max length of returned UUID. (Will always be 16 for this technique)
+   * @return 16 byte UUID.
+   */  @Override
   public byte[] computeUuid(TimelineClusterMetric timelineClusterMetric, int maxLength) {
 
     String metricString = timelineClusterMetric.getMetricName() + timelineClusterMetric.getAppId();
@@ -35,6 +40,12 @@ public class Murmur3HashUuidGenStrategy implements MetricUuidGenStrategy{
     return Hashing.murmur3_128().hashBytes(metricBytes).asBytes();
   }
 
+  /**
+   * Compute Murmur3Hash 4 byte UUID for a String.
+   * @param value String input
+   * @param maxLength Max length of returned UUID. (Will always be 4 for this technique)
+   * @return 4 byte UUID.
+   */
   @Override
   public byte[] computeUuid(String value, int maxLength) {
     byte[] valueBytes = value.getBytes();
