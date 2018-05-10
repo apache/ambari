@@ -1078,7 +1078,8 @@
             "timeline.metrics.cluster.aggregator.minute.interval": "120",
             "timeline.metrics.host.aggregator.hourly.interval": "3600",
             "timeline.metrics.initial.configured.master.components": "drpc_server,hive_server,resourcemanager,all,webhcat_server,snamenode,storm_ui_server,falcon_server,namenode,ganglia_server,logviewer_server,hive_metastore,nimbus,zookeeper_server,historyserver,hbase_master,oozie_server,metrics_collector,supervisor,ganglia_monitor,hive_mysql,ambari_server",
-            "timeline.metrics.initial.configured.slave.components": "hbase_regionserver,datanode,nodemanager"
+            "timeline.metrics.initial.configured.slave.components": "hbase_regionserver,datanode,nodemanager",
+            "hbase_total_heapsize": 536870912
         },
         "ams-grafana-env": {
             "metrics_grafana_log_dir": "/var/log/ambari-metrics-grafana",
