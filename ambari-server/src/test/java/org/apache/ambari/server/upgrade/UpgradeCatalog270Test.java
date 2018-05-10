@@ -1232,8 +1232,10 @@ public class UpgradeCatalog270Test {
 
   @Test
   public void testupdateKerberosDescriptorArtifact() throws Exception {
-    //there is HIVE -> WEBHCAT_SERVER -> configurations -> core-site -> hadoop.proxyuser.HTTP.hosts
     String kerberosDescriptorJson = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("org/apache/ambari/server/upgrade/kerberos_descriptor.json"), "UTF-8");
+
+    //there is HIVE -> WEBHCAT_SERVER -> configurations -> core-site -> hadoop.proxyuser.HTTP.hosts
+    assertTrue(kerberosDescriptorJson.contains("${clusterHostInfo/webhcat_server_host|append(core-site/hadoop.proxyuser.HTTP.hosts, \\\\\\\\,, true)}"));
 
     ArtifactEntity artifactEntity = new ArtifactEntity();
     artifactEntity.setArtifactName("kerberos_descriptor");
@@ -1253,7 +1255,7 @@ public class UpgradeCatalog270Test {
     int newCount = substringCount(newKerberosDescriptorJson, AMBARI_INFRA_NEW_NAME);
     assertThat(newCount, is(oldCount));
 
-    assertTrue(newKerberosDescriptorJson.contains("webhcat_server_hosts|"));
+    assertTrue(newKerberosDescriptorJson.contains("${clusterHostInfo/webhcat_server_hosts|append(core-site/hadoop.proxyuser.HTTP.hosts, \\\\,, true)}"));
 
     verify(upgradeCatalog270);
   }
