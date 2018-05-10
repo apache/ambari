@@ -54,11 +54,11 @@ public class MetadataUpdateEvent extends STOMPEvent implements Hashable {
     metadataClusters = null;
   }
 
-  public MetadataUpdateEvent(SortedMap<String, MetadataCluster> metadataClusters, SortedMap<String, String> ambariLevelParams) {
+  public MetadataUpdateEvent(SortedMap<String, MetadataCluster> metadataClusters, SortedMap<String, String> ambariLevelParams, SortedMap<String, SortedMap<String, String>> metadataAgentConfigs) {
     super(Type.METADATA);
     this.metadataClusters = metadataClusters;
     if (ambariLevelParams != null) {
-      this.metadataClusters.put(AMBARI_LEVEL_CLUSTER_ID, new MetadataCluster(null, new TreeMap<>(), ambariLevelParams));
+      this.metadataClusters.put(AMBARI_LEVEL_CLUSTER_ID, new MetadataCluster(null, new TreeMap<>(), ambariLevelParams, metadataAgentConfigs));
     }
   }
 
