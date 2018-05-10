@@ -154,6 +154,8 @@ public class Configuration {
    */
   private static final String HTML_BREAK_TAG = "<br/>";
 
+  private static final String AGENT_CONFIGS_DEFAULT_SECTION = "agentConfig";
+
   /**
    * Used to determine which repository validation strings should be used
    * depending on the OS.
@@ -2554,7 +2556,7 @@ public class Configuration {
   private String ambariUpgradeConfigUpdatesFilePath;
   private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
-  private Map<String, String> agentConfigsMap;
+  private Map<String, Map<String,String>> agentConfigsMap;
   private Properties customDbProperties = null;
   private Properties customPersistenceProperties = null;
   private Long configLastModifiedDateForCustomJDBC = 0L;
@@ -2707,13 +2709,16 @@ public class Configuration {
     this.properties = properties;
 
     agentConfigsMap = new HashMap<>();
-    agentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
-    agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
-    agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
-    agentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
+    agentConfigsMap.put(AGENT_CONFIGS_DEFAULT_SECTION, new HashMap<String, String>());
+
+    Map<String,String> defaultAgentConfigsMap = agentConfigsMap.get(AGENT_CONFIGS_DEFAULT_SECTION);
+    defaultAgentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
+    defaultAgentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
+    defaultAgentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
+    defaultAgentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
 
     configsMap = new HashMap<>();
-    configsMap.putAll(agentConfigsMap);
+    configsMap.putAll(defaultAgentConfigsMap);
     configsMap.put(AMBARI_PYTHON_WRAP.getKey(), getProperty(AMBARI_PYTHON_WRAP));
     configsMap.put(SRVR_AGENT_HOSTNAME_VALIDATE.getKey(), getProperty(SRVR_AGENT_HOSTNAME_VALIDATE));
     configsMap.put(SRVR_TWO_WAY_SSL.getKey(), getProperty(SRVR_TWO_WAY_SSL));
@@ -3394,7 +3399,7 @@ public class Configuration {
    * Keys - public constants of this class
    * @return the map with server config parameters related to agent configuration
    */
-  public Map<String, String> getAgentConfigsMap() {
+  public Map<String, Map<String,String>> getAgentConfigsMap() {
     return agentConfigsMap;
   }
 

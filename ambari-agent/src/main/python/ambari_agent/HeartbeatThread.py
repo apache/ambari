@@ -60,7 +60,7 @@ class HeartbeatThread(threading.Thread):
     # listeners
     self.server_responses_listener = initializer_module.server_responses_listener
     self.commands_events_listener = CommandsEventListener(initializer_module.action_queue)
-    self.metadata_events_listener = MetadataEventListener(initializer_module.metadata_cache)
+    self.metadata_events_listener = MetadataEventListener(initializer_module.metadata_cache, initializer_module.config)
     self.topology_events_listener = TopologyEventListener(initializer_module.topology_cache)
     self.configuration_events_listener = ConfigurationEventListener(initializer_module.configurations_cache)
     self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module.host_level_params_cache, initializer_module.recovery_manager)

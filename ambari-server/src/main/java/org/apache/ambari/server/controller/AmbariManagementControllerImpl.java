@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -5588,12 +5589,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       MetadataCluster metadataCluster = new MetadataCluster(securityType,
           getMetadataServiceLevelParams(cl),
-          getMetadataClusterLevelParams(cl, stackId));
+          getMetadataClusterLevelParams(cl, stackId),
+          null);
       metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
     }
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        getMetadataAmbariLevelParams());
+        getMetadataAmbariLevelParams(), getMetadataAgentConfigs());
     return metadataUpdateEvent;
   }
 
@@ -5605,11 +5607,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     MetadataCluster metadataCluster = new MetadataCluster(securityType,
         getMetadataServiceLevelParams(cl),
-        getMetadataClusterLevelParams(cl, stackId));
+        getMetadataClusterLevelParams(cl, stackId),
+        null);
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null);
+        null, getMetadataAgentConfigs());
     return metadataUpdateEvent;
   }
 
@@ -5620,11 +5623,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
         new TreeMap<>(),
-        getMetadataClusterLevelConfigsParams(cl, stackId));
+        getMetadataClusterLevelConfigsParams(cl, stackId),
+        null);
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null);
+        null, getMetadataAgentConfigs());
     return metadataUpdateEvent;
   }
 
@@ -5633,11 +5637,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
         getMetadataServiceLevelParams(cl),
-        new TreeMap<>());
+        new TreeMap<>(),
+        null);
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null);
+        null, getMetadataAgentConfigs());
     return metadataUpdateEvent;
   }
 
@@ -5646,11 +5651,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
         getMetadataServiceLevelParams(cl.getService(serviceName)),
-        new TreeMap<>());
+        new TreeMap<>(),
+        null);
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null);
+        null, getMetadataAgentConfigs());
     return metadataUpdateEvent;
   }
 
@@ -5659,11 +5665,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
         getMetadataServiceLevelParams(cl.getService(serviceName)),
-        new TreeMap<>());
+        new TreeMap<>(),
+        null);
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null);
+        null, getMetadataAgentConfigs());
     return metadataUpdateEvent;
   }
 
@@ -5912,6 +5919,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
 
     return clusterLevelParams;
+  }
+
+  public SortedMap<String, SortedMap<String,String>> getMetadataAgentConfigs() {
+    SortedMap<String, SortedMap<String,String>> agentConfigs = new TreeMap<>();
+    Map<String, Map<String,String>> agentConfigsMap = configs.getAgentConfigsMap();
+
+    for (String key : agentConfigsMap.keySet()) {
+      agentConfigs.put(key, new TreeMap<String, String>(agentConfigsMap.get(key)));
+    }
+
+    return agentConfigs;
   }
 
   @Override
