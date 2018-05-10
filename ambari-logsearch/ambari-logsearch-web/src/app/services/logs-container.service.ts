@@ -64,6 +64,7 @@ import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.serv
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {LogLevelComponent} from '@app/components/log-level/log-level.component';
+import {NotificationService, NotificationType} from '@modules/shared/services/notification.service';
 
 @Injectable()
 export class LogsContainerService {
@@ -117,7 +118,7 @@ export class LogsContainerService {
       defaultSelection: [],
       fieldName: 'cluster'
     },
-    timeRange: { // @ToDo remove duplication, this options are in the LogFilteringUtilsService too
+    timeRange: { // @ToDo remove duplication, this options are in the LogsFilteringUtilsService too
       label: 'logs.duration',
       options: [
         [
@@ -619,7 +620,8 @@ export class LogsContainerService {
     private activatedRoute: ActivatedRoute,
     private routingUtils: RoutingUtilsService,
     private logsFilteringUtilsService: LogsFilteringUtilsService,
-    private logsStateService: LogsStateService
+    private logsStateService: LogsStateService,
+    private notificationService: NotificationService
   ) {
     const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
       const formControl = new FormControl();
@@ -1066,14 +1068,25 @@ export class LogsContainerService {
   }
 
   setCustomTimeRange(startTime: number, endTime: number): void {
-    this.filtersForm.controls.timeRange.setValue({
-      label: this.customTimeRangeKey,
-      value: {
-        type: 'CUSTOM',
-        start: moment(startTime),
-        end: moment(endTime)
-      }
-    });
+    const startTimeMoment = moment(startTime);
+    const endTimeMoment = moment(endTime);
+    const diff = endTimeMoment.diff(startTimeMoment);
+    if (diff > 0) {
+      this.filtersForm.controls.timeRange.setValue({
+        label: this.customTimeRangeKey,
+        value: {
+          type: 'CUSTOM',
+          start: moment(startTime),
+          end: moment(endTime)
+        }
+      });
+    } else {
+      this.notificationService.addNotification({
+        title: 'filter.timeRange',
+        message: 'filter.timeRange.error.tooShort',
+        type: NotificationType.ALERT
+      });
+    }
   }
 
   getFiltersData(listType: string): object {

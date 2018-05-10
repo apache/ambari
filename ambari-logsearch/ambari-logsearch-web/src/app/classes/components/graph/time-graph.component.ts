@@ -32,6 +32,13 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
   @Input()
   historyStartEndTimeFormat: string = 'dddd, MMMM DD, YYYY';
 
+  @Input()
+  defaultChartTimeGap: ChartTimeGap = {
+    value: 1,
+    unit: 'h',
+    label: 'filter.timeRange.1hr'
+  };
+
   @Output()
   selectArea: EventEmitter<number[]> = new EventEmitter();
 
@@ -155,7 +162,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
    * Simply reset the time gap property to null.
    */
   protected resetChartTimeGap(): void {
-    this.chartTimeGap = null;
+    this.chartTimeGap = this.defaultChartTimeGap;
   }
 
   /**
@@ -164,7 +171,10 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
    * @param {Date} endDate
    */
   protected setChartTimeGap(startDate: Date, endDate: Date): void {
-    this.chartTimeGap = this.getTimeGap(startDate, endDate);
+    const gap: ChartTimeGap = this.getTimeGap(startDate, endDate);
+    if (gap.value > 0) {
+      this.chartTimeGap = gap;
+    }
   }
 
   protected getTimeRangeByXRanges(startX: number, endX: number): [number, number] {
@@ -234,10 +244,12 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
         const dragAreaDetails = this.dragArea.node().getBBox();
         const startX = Math.max(0, dragAreaDetails.x);
         const endX = Math.min(this.width, dragAreaDetails.x + dragAreaDetails.width);
-        const dateRange: [number, number] = this.getTimeRangeByXRanges(startX, endX);
-        this.selectArea.emit(dateRange);
-        this.dragArea.remove();
-        this.setChartTimeGap(new Date(dateRange[0]), new Date(dateRange[1]));
+        if (endX !== startX) {
+          const dateRange: [number, number] = this.getTimeRangeByXRanges(startX, endX);
+          this.selectArea.emit(dateRange);
+          this.dragArea.remove();
+          this.setChartTimeGap(new Date(dateRange[0]), new Date(dateRange[1]));
+        }
       })
     );
     d3.selectAll(`svg#${this.svgId} .value, svg#${this.svgId} .axis`).call(d3.drag().on('start', (): void => {

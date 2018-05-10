@@ -49,6 +49,8 @@ import {RouterTestingModule} from '@angular/router/testing';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 
 describe('AuditLogsTableComponent', () => {
   let component: AuditLogsTableComponent;
@@ -104,7 +106,9 @@ describe('AuditLogsTableComponent', () => {
         ClusterSelectionService,
         RoutingUtilsService,
         LogsFilteringUtilsService,
-        LogsStateService
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

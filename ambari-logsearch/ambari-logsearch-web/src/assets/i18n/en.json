@@ -82,6 +82,8 @@
   "filter.toggleTo.exclude": "Toggle to exclude",
   "filter.toggleTo.include": "Toggle to include",
 
+  "filter.timeRange.error.tooShort": "The selected time range is too short.",
+
   "levels.fatal": "Fatal",
   "levels.error": "Error",
   "levels.warn": "Warn",

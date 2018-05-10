@@ -44,8 +44,10 @@ import {RouterTestingModule} from '@angular/router/testing';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
 
-describe('HistoryService', () => {
+describe('HistoryManagerService', () => {
   beforeEach(() => {
 
     TestBed.configureTestingModule({
@@ -89,7 +91,9 @@ describe('HistoryService', () => {
         ClusterSelectionService,
         RoutingUtilsService,
         LogsFilteringUtilsService,
-        LogsStateService
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ]
     });
   });

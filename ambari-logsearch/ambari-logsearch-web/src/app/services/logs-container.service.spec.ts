@@ -42,6 +42,8 @@ import {RouterTestingModule} from '@angular/router/testing';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 
 describe('LogsContainerService', () => {
   beforeEach(() => {
@@ -85,7 +87,9 @@ describe('LogsContainerService', () => {
         ClusterSelectionService,
         RoutingUtilsService,
         LogsFilteringUtilsService,
-        LogsStateService
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ]
     });
   });
