@@ -500,6 +500,7 @@ class TestRangerKMS(RMFTestCase):
   @patch("resource_management.libraries.functions.ranger_functions_v2.RangeradminV2.get_repository_by_name_curl", new=MagicMock(return_value=({'name': 'c1_kms'})))
   @patch("resource_management.libraries.functions.ranger_functions_v2.RangeradminV2.create_repository_curl", new=MagicMock(return_value=({'name': 'c1_kms'})))
   @patch("os.path.isfile")
+  @patch("kms.datetime", new=DTMOCK())
   def test_start_secured(self, isfile_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kms_server.py",
@@ -513,7 +514,7 @@ class TestRangerKMS(RMFTestCase):
 
     # TODO repo call in secure
 
-    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_datetime = self.current_date.strftime("%Y-%m-%d %H:%M:%S")
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-security.xml',
       owner = 'kms',
