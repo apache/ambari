@@ -18,6 +18,7 @@
 
 import {Component, Input, Output, ViewChild, ElementRef, EventEmitter} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 @Component({
   selector: 'menu-button',
@@ -28,6 +29,9 @@ export class MenuButtonComponent {
 
   @ViewChild('dropdown')
   dropdown: ElementRef;
+
+  @ViewChild('dropdownList')
+  dropdownList: DropdownListComponent;
 
   @Input()
   label?: string;
@@ -88,7 +92,7 @@ export class MenuButtonComponent {
   buttonClick: EventEmitter<void> = new EventEmitter();
 
   @Output()
-  selectItem: EventEmitter<ListItem> = new EventEmitter();
+  selectItem: EventEmitter<ListItem | ListItem[]> = new EventEmitter();
 
   /**
    * This is a private property to indicate the mousedown timestamp, so that we can check it when teh click event
@@ -211,17 +215,20 @@ export class MenuButtonComponent {
   /**
    * The main goal if this function is tho handle the item change event on the child dropdown list.
    * Should update the value and close the dropdown if it is not multiple choice type.
-   * @param {ListItem} options The selected item(s) from the dropdown list.
+   * @param {ListItem} item The selected item(s) from the dropdown list.
    */
-  onDropdownItemChange(options: ListItem) {
-    this.updateSelection(options);
+  onDropdownItemChange(item: ListItem | ListItem[]) {
+    this.updateSelection(item);
     if (!this.isMultipleChoice) {
       this.closeDropdown();
     }
   }
 
-  updateSelection(options: ListItem) {
-    this.selectItem.emit(options);
+  updateSelection(item: ListItem | ListItem[]) {
+    this.selectItem.emit(item);
+    if (this.dropdownList) {
+      this.dropdownList.doItemsCheck();
+    }
   }
 
 }

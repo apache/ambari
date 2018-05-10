@@ -55,28 +55,43 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
     }
   }
 
-  updateSelection(item: ListItem): void {
-    if (this.isMultipleChoice) {
-      const itemIndex = this.subItems.findIndex((option: ListItem): boolean => {
-        return this.utils.isEqual(option.value, item.value);
-      });
-      if (itemIndex > -1) {
-        this.subItems[itemIndex].isChecked = item.isChecked;
-        this.selection = this.subItems.filter((option: ListItem): boolean => option.isChecked);
+  updateSelection(updatedItem: ListItem | ListItem[]): void {
+    if (updatedItem) {
+      const items: ListItem[] = Array.isArray(updatedItem) ? updatedItem : [updatedItem];
+      if (this.isMultipleChoice) {
+        items.forEach((item: ListItem) => {
+          if (this.subItems && this.subItems.length) {
+            const itemToUpdate: ListItem = this.subItems.find((option: ListItem) => this.utils.isEqual(option.value, item.value));
+            if (itemToUpdate) {
+              itemToUpdate.isChecked = item.isChecked;
+            }
+          }
+        });
+      } else {
+        const selectedItem: ListItem = items.find((item: ListItem) => item.isChecked);
+        this.subItems.forEach((item: ListItem) => {
+          item.isChecked = !!selectedItem && this.utils.isEqual(item.value, selectedItem.value);
+        });
       }
-    } else if (!this.utils.isEqual(this.selection[0], item)) {
-      this.selection = [item];
+    } else {
+      this.subItems.forEach((item: ListItem) => item.isChecked = false);
+      this.selection = [];
     }
+    const checkedItems = this.subItems.filter((option: ListItem): boolean => option.isChecked);
+    this.selection = checkedItems;
+    this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
+    this.dropdownList.doItemsCheck();
   }
 
   writeValue(items: ListItem[]) {
     if (items && items.length) {
-      items.forEach((item) => {
-        this.updateSelection({
+      const listItems: ListItem[] = items.map((item: ListItem) => {
+        return {
           ...item,
-          isChecked: true
-        });
+            isChecked: true
+        };
       });
+      this.updateSelection(listItems);
     }
   }
 
