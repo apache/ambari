@@ -83,10 +83,6 @@ CONFIG_FILE_PATH = configDefaults.get_config_file_path()
 METRIC_FILE_PATH = configDefaults.get_metric_file_path()
 CA_CERTS_FILE_PATH = configDefaults.get_ca_certs_file_path()
 
-OUT_DIR = os.path.join(os.sep, "var", "log", "ambari-metrics-host-monitoring")
-SERVER_OUT_FILE = OUT_DIR + os.sep + "ambari-metrics-host-monitoring.out"
-SERVER_LOG_FILE = OUT_DIR + os.sep + "ambari-metrics-host-monitoring.log"
-
 PID_DIR = os.path.join(os.sep, "var", "run", "ambari-metrics-host-monitoring")
 PID_OUT_FILE = PID_DIR + os.sep + "ambari-metrics-host-monitoring.pid"
 EXITCODE_OUT_FILE = PID_DIR + os.sep + "ambari-metrics-host-monitoring.exitcode"
@@ -280,6 +276,18 @@ class Configuration:
   def ams_monitor_log_dir(self):
     hosts = self.get("aggregation", "ams_monitor_log_dir", "/var/log/ambari-metrics-monitor")
     return hosts
+
+  def ams_monitor_log_file(self):
+    """
+    :returns the log file
+    """
+    return self.ams_monitor_log_dir() + os.sep + "ambari-metrics-monitor.log"
+
+  def ams_monitor_out_file(self):
+    """
+    :returns the out file
+    """
+    return self.ams_monitor_log_dir() + os.sep + "ambari-metrics-monitor.out"
 
   def is_set_instanceid(self):
     return "true" == str(self.get("default", "set.instanceId", 'false')).lower()
