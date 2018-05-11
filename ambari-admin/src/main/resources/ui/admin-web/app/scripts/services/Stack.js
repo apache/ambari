@@ -148,6 +148,7 @@ angular.module('ambariAdminConsole')
             versionObj.osList.forEach(function (os) {
               os.repositories.forEach(function(repo) {
                 repo.Repositories.initial_base_url = repo.Repositories.base_url;
+                repo.Repositories.initial_repo_id = repo.Repositories.repo_id;
               });
             });
             versions.push(versionObj);

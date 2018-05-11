@@ -23,7 +23,7 @@ App.WizardStep1View = Em.View.extend({
 
   templateName: require('templates/wizard/step1'),
 
-  initView: function () {
+  didInsertElement: function () {
     if (this.get('controller.isLoadingComplete') && this.get('state') === 'inDOM') {
       Em.run.next(() => {
         $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
@@ -78,6 +78,44 @@ App.WizardStep1View = Em.View.extend({
     $('.action .icon').tooltip('destroy');
     return this.get('controller').removeOS(...arguments);
   },
+
+  editableRepoView: Em.View.extend({
+    templateName: require('templates/wizard/step1/editable_repo'),
+    classNames: ['editable-repo'],
+    /**
+     * @type {boolean}
+     */
+    isEditing: false,
+
+    /**
+     * @type {?App.Repository}
+     */
+    repository: null,
+
+    /**
+     * @type {boolean}
+     */
+    showEditIcon: Em.computed.and('controller.selectedStack.useRedhatSatellite', '!isEditing'),
+
+    /**
+     * @type {boolean}
+     */
+    showRevertIcon: function() {
+      return this.get('isEditing') && (this.get('repository.repoId') !== this.get('repository.originalRepoId'));
+    }.property('isEditing', 'repository.repoId'),
+
+    didInsertElement: function() {
+      this.set('isEditing', false);
+    }.observes('controller.selectedStack.useRedhatSatellite'),
+
+    revertToOriginal: function() {
+      this.set('repository.repoId', this.get('repository.originalRepoId'))
+    },
+
+    editRepoId: function() {
+      this.set('isEditing', true);
+    }
+  }),
 
   /**
    * Disable submit button flag
@@ -243,14 +281,15 @@ App.WizardStep1View = Em.View.extend({
     disabledBinding: 'controller.selectedStack.usePublicRepo',
     click: function () {
       if (!this.get('disabled')) {
-        this.toggleProperty('controller.selectedStack.useRedhatSatellite');
         if (this.get('controller.selectedStack.useRedhatSatellite')) {
-          App.ModalPopup.show({
-            header: Em.I18n.t('common.important'),
-            encodeBody: false,
-            secondary: false,
-            body: Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning')
-          });
+          this.toggleProperty('controller.selectedStack.useRedhatSatellite');
+        } else {
+          App.showConfirmationPopup(
+            () => this.toggleProperty('controller.selectedStack.useRedhatSatellite'),
+            Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning'),
+            Em.K,
+            Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.message')
+          );
         }
       }
       return false;
@@ -260,11 +299,7 @@ App.WizardStep1View = Em.View.extend({
   repositoryTextField: Ember.TextField.extend({
     repository: null,
     placeholderBinding: "repository.placeholder",
-    valueBinding: "repository.baseUrl",
-    disabled: function() {
-      var isRedhat = this.get('parentView').isRedhat(this.get('repository'));
-      return this.get('controller.selectedStack.useRedhatSatellite') && !isRedhat;
-    }.property('controller.selectedStack.useRedhatSatellite')
+    valueBinding: "repository.baseUrl"
   }),
 
   /**

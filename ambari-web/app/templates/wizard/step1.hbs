@@ -154,13 +154,15 @@
                             {{#each repository in operatingSystem.repositories}}
                               {{#if repository.showRepo}}
                                 <tr {{QAAttr "{repository.repoName}"}}>
-                                  <td class="col-sm-3">{{repository.repoId}}</td>
+                                  <td class="col-sm-3">
+                                    {{view view.editableRepoView repositoryBinding="repository"}}
+                                  </td>
                                   <td class="col-sm-1">
                                     {{view view.popoverView repositoryBinding="repository" data-qaBinding="repository.validation"}}
                                   </td>
                                   <td class="col-sm-8">
                                     <div {{bindAttr class=":repo-url repository.invalidFormatError:has-error repository.invalidError:has-error"}}>
-                                      {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control" data-qa="repo-url-input"}}
+                                      {{view view.repositoryTextField repositoryBinding="repository" disabledBinding="controller.selectedStack.useRedhatSatellite"}}
                                       {{#if controller.selectedStack.usePublicRepo}}
                                         <i {{bindAttr class="repository.undo::invisible :icon-undo"}}
                                           {{action "doRestoreDefaultValue" repository target="controller"}}
@@ -183,7 +185,7 @@
                           </table>
                         </td>
                         <td class="col-sm-1">
-                          <a class="action remove-icon"
+                          <a {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled :action :remove-icon"}}
                              href="#" {{action "removeOS" operatingSystem target="view"}} {{QAAttr "remove-icon"}}>
                             <span class="icon icon-minus"></span>
                             {{t common.remove}}
@@ -214,13 +216,12 @@
                 {{! Skip Repository Base URL validation END }}
 
                 {{! Use RedHat Satellite/Spacewalk }}
-                <div id="use-redhat" class="checkbox">
+                <div id="use-redhat">
                   {{#view view.redhatCheckBoxView
                   classNames="use-redhat-checkbox"
+                  labelTranslate="installer.step1.advancedRepo.useRedhatSatellite.message"
+                  labelClassNamesBinding="controller.selectedStack.usePublicRepo:disabled"
                   }}
-                    <label {{bindAttr for="view.checkboxId" class=":redhat-label :display-inline-block controller.selectedStack.usePublicRepo:disabled" data-original-title="view.parentView.redhatDisabledTooltip"}}>
-                      {{t installer.step1.advancedRepo.useRedhatSatellite.message}}
-                    </label>
                     <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
                        data-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
                     </i>

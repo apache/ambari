@@ -81,6 +81,7 @@ App.stackMapper = App.QuickDataMapper.create({
     latest_base_url: 'latest_base_url',
     mirrors_list: 'mirrors_list',
     os_type: 'os_type',
+    original_repo_id: 'repo_id',
     repo_id: 'repo_id',
     repo_name: 'repo_name',
     stack_name: 'stack_name',

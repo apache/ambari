@@ -66,3 +66,9 @@
 .verison-label-row.button-padding {
   padding: 4px;
 }
+
+.repo-name-label input {
+  width: calc(100% - 30px);
+  margin-right: 2px;
+  display: inline-block;
+}
