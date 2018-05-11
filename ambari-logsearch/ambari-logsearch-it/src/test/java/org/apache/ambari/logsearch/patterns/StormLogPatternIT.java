@@ -20,27 +20,18 @@ package org.apache.ambari.logsearch.patterns;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Map;
 
-import org.junit.Before;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 
 public class StormLogPatternIT extends PatternITBase {
-
-  @Override
-  @Before
-  public void setUp() throws Exception {
-    super.setUp();
-    assumeTrue(HDP_SERVICES_FOLDER.exists());
-  }
 
   @Test
   public void testStormClusterLogLayout() {
@@ -94,7 +85,6 @@ public class StormLogPatternIT extends PatternITBase {
     assertThat(result.get("log_message"), is("Loaded executor tasks count:[5 5]"));
     Date logTime = (Date) result.get("logtime");
     LocalDateTime localDateTime = LocalDateTime.ofInstant(logTime.toInstant(), ZoneId.systemDefault());
-    assertThat(localDateTime.toLocalDate(), is(LocalDate.now()));
-    
+    MatcherAssert.assertThat(localDateTime, is(LocalDateTime.of(2018, 5, 4, 5, 10, 0, 120000000)));
   }
 }

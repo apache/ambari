@@ -20,27 +20,17 @@ package org.apache.ambari.logsearch.patterns;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class YarnLogPatternIT extends PatternITBase {
-
-  @Override
-  @Before
-  public void setUp() throws Exception {
-    super.setUp();
-    assumeTrue(HDP_SERVICES_FOLDER.exists());
-  }
 
   @Test
   public void testYarnJobSummaryLogLayout() {
@@ -164,6 +154,6 @@ public class YarnLogPatternIT extends PatternITBase {
     assertThat(result.get("method"), is("render"));
     Date logTime = (Date) result.get("logtime");
     LocalDateTime localDateTime = LocalDateTime.ofInstant(logTime.toInstant(), ZoneId.systemDefault());
-    assertThat(localDateTime, is(LocalDateTime.of(2018, 5, 2, 10, 02, 54, 215000000)));
+    assertThat(localDateTime, is(LocalDateTime.of(2018, 5, 2, 10, 2, 54, 215000000)));
   }
 }
