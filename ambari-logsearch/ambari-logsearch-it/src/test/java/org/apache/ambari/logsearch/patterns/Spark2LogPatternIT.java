@@ -20,22 +20,13 @@ package org.apache.ambari.logsearch.patterns;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.nio.file.Paths;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class Spark2LogPatternIT extends PatternITBase {
-
-  @Override
-  @Before
-  public void setUp() throws Exception {
-    super.setUp();
-    assumeTrue(HDP_SERVICES_FOLDER.exists());
-  }
 
   @Test
   public void testSpark2LogLayout() {

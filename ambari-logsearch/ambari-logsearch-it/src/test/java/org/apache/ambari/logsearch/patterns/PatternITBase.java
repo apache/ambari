@@ -18,7 +18,7 @@
  */
 package org.apache.ambari.logsearch.patterns;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assume.assumeTrue;
@@ -51,12 +51,10 @@ import com.hubspot.jinjava.lib.fn.ELFunctionDefinition;
 public class PatternITBase {
   protected final static Logger LOG = Logger.getLogger(PatternITBase.class);
 
-  public static final String HDP_AMBARI_DEFINITIONS_PATH = "/Users/kkasa/project/hdp_ambari_definitions/";
-  public static final File HDP_AMBARI_DEFINITIONS = new File(
-          isBlank(System.getProperty("hdp.ambari.definitions.path")) ? HDP_AMBARI_DEFINITIONS_PATH : System.getProperty("hdp.ambari.definitions.path"));
+  public static File HDP_AMBARI_DEFINITIONS;
   public static File AMBARI_STACK_DEFINITIONS;
   public static File AMBARI_FOLDER;
-  public static final File HDP_SERVICES_FOLDER = new File(HDP_AMBARI_DEFINITIONS, Paths.get( "src", "main", "resources", "stacks", "HDP", "3.0", "services").toString());
+  public static File HDP_SERVICES_FOLDER;
   public static final String CLUSTER = "cl1";
   public static final String GLOBAL_CONFIG = "[\n" +
           "    {\n" +
@@ -75,6 +73,14 @@ public class PatternITBase {
 
   @BeforeClass
   public static void setupGlobal() throws Exception {
+    String hdpAmbariDefinitionsPath = System.getProperty("hdp.ambari.definitions.path");
+    if (isNotBlank(hdpAmbariDefinitionsPath)) {
+      HDP_AMBARI_DEFINITIONS = new File(hdpAmbariDefinitionsPath);
+      HDP_SERVICES_FOLDER = new File(HDP_AMBARI_DEFINITIONS, Paths.get( "src", "main", "resources", "stacks", "HDP", "3.0", "services").toString());
+    }
+
+    assumeTrue(HDP_SERVICES_FOLDER != null && HDP_SERVICES_FOLDER.exists());
+
     URL location = PatternITBase.class.getProtectionDomain().getCodeSource().getLocation();
 
     AMBARI_FOLDER = new File(new File(location.toURI()).getParentFile().getParentFile().getParentFile().getParent());

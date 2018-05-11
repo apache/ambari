@@ -18,28 +18,99 @@
  */
 package org.apache.ambari.logsearch.patterns;
 
-import java.io.File;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Map;
+
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 
 public class HiveLogPatterntIT extends PatternITBase {
-// TODO: use hdp_ambari_definitions
+
   @Test
-  public void testHiveLogLayout() {
-    String layout = Log4jProperties.unwrapFrom(new File(AMBARI_STACK_DEFINITIONS, "HIVE/0.12.0.2.0/configuration/hive-log4j.xml")).getLayout("DRFA");
-    assertThatDateIsISO8601(layout);
+  public void testHiveServer2LogEntry() throws Exception {
+    String logEntry = "2018-05-11T07:46:01,087 WARN  [main]: metastore.HiveMetaStoreClient (:()) - Failed to connect to the MetaStore Server...";
+    Map<String, Object> result = testLogEntry(logEntry,"hive_hiveserver2", inputConfigTemplate(
+            new File(HDP_SERVICES_FOLDER, "HIVE/package/templates/input.config-hive.json.j2")));
+
+    assertThat(result.isEmpty(), is(false));
+    assertThat(result.get("cluster"), is(CLUSTER));
+    assertThat(result.get("level"), is("WARN"));
+    assertThat(result.get("event_count"), is(1));
+    assertThat(result.get("type"), is("hive_hiveserver2"));
+    assertThat(result.containsKey("seq_num"), is(true));
+    assertThat(result.containsKey("id"), is(true));
+    assertThat(result.containsKey("message_md5"), is(true));
+    assertThat(result.containsKey("event_md5"), is(true));
+    assertThat(result.containsKey("ip"), is(true));
+    assertThat(result.containsKey("host"), is(true));
+    assertThat(result.get("log_message"), is("Failed to connect to the MetaStore Server..."));
+    assertThat(result.get("logger_name"), is("metastore.HiveMetaStoreClient "));
+    assertThat(result.get("host"), is("HW13201.local"));
+    Date logTime = (Date) result.get("logtime");
+    LocalDateTime localDateTime = LocalDateTime.ofInstant(logTime.toInstant(), ZoneId.systemDefault());
+    MatcherAssert.assertThat(localDateTime, is(LocalDateTime.of(2018, 5, 11, 7, 46, 1, 87000000)));
   }
 
   @Test
-  public void testHiveServer2() throws Exception {
-    String layout = Log4jProperties.unwrapFrom(new File(AMBARI_STACK_DEFINITIONS, "HIVE/0.12.0.2.0/configuration/hive-log4j.xml")).getLayout("DRFA");
-    testServiceLog("hive_hiveserver2", layout, inputConfigTemplate(new File(AMBARI_STACK_DEFINITIONS, "HIVE/0.12.0.2.0/package/templates/input.config-hive.json.j2")));
+  public void testHiveServer2InteractiveLogEntry() throws Exception {
+    String logEntry = "2018-05-11T08:48:02,973 WARN  [main]: conf.HiveConf (HiveConf.java:initialize(5193)) - HiveConf of name hive.hook.proto.base-directory does not exist";
+    Map<String, Object> result = testLogEntry(logEntry,"hive_hiveserver2", inputConfigTemplate(
+            new File(HDP_SERVICES_FOLDER, "HIVE/package/templates/input.config-hive.json.j2")));
+
+    assertThat(result.isEmpty(), is(false));
+    assertThat(result.get("cluster"), is(CLUSTER));
+    assertThat(result.get("level"), is("WARN"));
+    assertThat(result.get("event_count"), is(1));
+    assertThat(result.get("type"), is("hive_hiveserver2"));
+    assertThat(result.containsKey("seq_num"), is(true));
+    assertThat(result.containsKey("id"), is(true));
+    assertThat(result.containsKey("message_md5"), is(true));
+    assertThat(result.containsKey("event_md5"), is(true));
+    assertThat(result.containsKey("ip"), is(true));
+    assertThat(result.containsKey("host"), is(true));
+    assertThat(result.get("log_message"), is("HiveConf of name hive.hook.proto.base-directory does not exist"));
+    assertThat(result.get("logger_name"), is("conf.HiveConf "));
+    assertThat(result.get("host"), is("HW13201.local"));
+    assertThat(result.get("file"), is("HiveConf.java"));
+    assertThat(result.get("method"), is("initialize"));
+    assertThat(result.get("line_number"), is("5193"));
+    Date logTime = (Date) result.get("logtime");
+    LocalDateTime localDateTime = LocalDateTime.ofInstant(logTime.toInstant(), ZoneId.systemDefault());
+    MatcherAssert.assertThat(localDateTime, is(LocalDateTime.of(2018, 5, 11, 8, 48, 2, 973000000)));
   }
 
   @Test
-  public void testHiveMetastore() throws Exception {
-    String layout = Log4jProperties.unwrapFrom(new File(AMBARI_STACK_DEFINITIONS, "HIVE/0.12.0.2.0/configuration/hive-log4j.xml")).getLayout("DRFA");
-    testServiceLog("hive_metastore", layout, inputConfigTemplate(new File(AMBARI_STACK_DEFINITIONS, "HIVE/0.12.0.2.0/package/templates/input.config-hive.json.j2")));
+  public void testHiveMetastoreLogEntry() throws Exception {
+    String logEntry = "2018-05-11T09:13:14,706 INFO  [pool-7-thread-6]: txn.TxnHandler (TxnHandler.java:performWriteSetGC(1588)) - Deleted 0 obsolete rows from WRTIE_SET";
+    Map<String, Object> result = testLogEntry(logEntry,"hive_metastore", inputConfigTemplate(
+            new File(HDP_SERVICES_FOLDER, "HIVE/package/templates/input.config-hive.json.j2")));
+
+    assertThat(result.isEmpty(), is(false));
+    assertThat(result.get("cluster"), is(CLUSTER));
+    assertThat(result.get("level"), is("INFO"));
+    assertThat(result.get("event_count"), is(1));
+    assertThat(result.get("type"), is("hive_metastore"));
+    assertThat(result.containsKey("seq_num"), is(true));
+    assertThat(result.containsKey("id"), is(true));
+    assertThat(result.containsKey("message_md5"), is(true));
+    assertThat(result.containsKey("event_md5"), is(true));
+    assertThat(result.containsKey("ip"), is(true));
+    assertThat(result.containsKey("host"), is(true));
+    assertThat(result.get("log_message"), is("Deleted 0 obsolete rows from WRTIE_SET"));
+    assertThat(result.get("logger_name"), is("txn.TxnHandler "));
+    assertThat(result.get("host"), is("HW13201.local"));
+    assertThat(result.get("line_number"), is("1588"));
+    assertThat(result.get("file"), is("TxnHandler.java"));
+    assertThat(result.get("method"), is("performWriteSetGC"));
+    Date logTime = (Date) result.get("logtime");
+    LocalDateTime localDateTime = LocalDateTime.ofInstant(logTime.toInstant(), ZoneId.systemDefault());
+    MatcherAssert.assertThat(localDateTime, is(LocalDateTime.of(2018, 5, 11, 9, 13, 14, 706000000)));
   }
 }
 
