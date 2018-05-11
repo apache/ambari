@@ -3009,6 +3009,11 @@ var urls = {
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
   },
 
+  'widget.layout.name.get': {
+    real: '/clusters/{clusterName}/widget_layouts?WidgetLayoutInfo/layout_name={name}',
+    mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
+  },
+
   'widget.layout.delete': {
     real: '/clusters/{clusterName}/widget_layouts/{layoutId}',
     type: 'DELETE'

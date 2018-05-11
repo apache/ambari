@@ -399,7 +399,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
             "name": element.name,
             "service_name": element.serviceName,
             "component_name": element.componentName,
-            "metric_path": element.metricPath
+            "metric_path": element.metricPath,
+            "tag": element.tag
           };
           if (element.hostComponentCriteria) {
             metricObj.host_component_criteria = element.hostComponentCriteria;
