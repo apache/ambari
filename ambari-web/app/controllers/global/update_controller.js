@@ -216,6 +216,7 @@ App.UpdateController = Em.Controller.extend({
     App.StompClient.subscribe('/events/alert_definitions', App.alertDefinitionsMapperAdapter.map.bind(App.alertDefinitionsMapperAdapter));
     App.StompClient.subscribe('/events/alert_group', App.alertGroupsMapperAdapter.map.bind(App.alertGroupsMapperAdapter));
     App.StompClient.subscribe('/events/upgrade', App.upgradeStateMapper.map.bind(App.upgradeStateMapper));
+    App.router.get('backgroundOperationsController').subscribeToUpdates();
   },
 
   /**

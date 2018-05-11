@@ -70,11 +70,16 @@ describe('App.UpdateController', function () {
   });
 
   describe('#startSubscriptions()', function () {
+    var mock = {
+      subscribeToUpdates: sinon.spy()
+    };
     beforeEach(function() {
       sinon.stub(App.StompClient, 'subscribe');
+      sinon.stub(App.router, 'get').returns(mock);
     });
     afterEach(function() {
       App.StompClient.subscribe.restore();
+      App.router.get.restore();
     });
 
     it('should subscribe to all topics', function () {
@@ -89,6 +94,12 @@ describe('App.UpdateController', function () {
       expect(App.StompClient.subscribe.calledWith('/events/alert_group')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/upgrade')).to.be.true;
     });
+
+    it('subscribeToUpdates should be called', function () {
+      controller.startSubscriptions();
+      expect(mock.subscribeToUpdates.called).to.be.true;
+    });
+
   });
 
   describe('#getConditionalFields()', function () {

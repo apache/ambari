@@ -113,15 +113,11 @@ describe('App.MainController', function () {
     var mock,
         updateController = Em.Object.create({
           isWorking: false
-        }),
-        backgroundOperationsController = Em.Object.create({
-          isWorking: false
         });
     beforeEach(function() {
       mock = sinon.stub(App.router, 'get');
       mock.withArgs('applicationController.isExistingClusterDataLoaded').returns(true);
       mock.withArgs('updateController').returns(updateController);
-      mock.withArgs('backgroundOperationsController').returns(backgroundOperationsController);
       mainController.startPolling();
     });
     afterEach(function() {
@@ -132,9 +128,6 @@ describe('App.MainController', function () {
       expect(updateController.get('isWorking')).to.be.true;
     });
 
-    it('backgroundOperationsController should be working', function() {
-      expect(backgroundOperationsController.get('isWorking')).to.be.true;
-    });
   });
 
 });
