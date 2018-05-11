@@ -675,9 +675,9 @@ Em.I18n.translations = {
   'installer.step1.advancedRepo.useRedhatSatellite.disabled.tooltip':'Use of RedHat Satellite/Spacewalk is not available when is using Public Repositories',
   'installer.step1.advancedRepo.skipValidation.message':'Skip Repository Base URL validation (Advanced)',
   'installer.step1.advancedRepo.useRedhatSatellite.message': 'Use RedHat Satellite/Spacewalk',
-  'installer.step1.advancedRepo.useRedhatSatellite.warning': 'By selecting to <b>“Use RedHat Satellite/Spacewalk”</b> for the software repositories, ' +
-    'you are responsible for configuring the repository channel in Satellite/Spacewalk and confirming the repositories for the selected <b>stack version</b> are available on the hosts in the cluster. ' +
-    'Refer to the Ambari documentation for more information.',
+  'installer.step1.advancedRepo.useRedhatSatellite.warning': "In order for Ambari to install packages from the right" +
+  " repositories, it is recommended that you edit the names of the repo's for each operating system so they match " +
+  "the channel names in your RedHat Satellite/Spacewalk instance.",
   'installer.step1.addOs.disabled.tooltip':'All Operating Systems have been added',
   'installer.step1.attentionNeeded':'<b>Attention:</b> Repository Base URLs of at least one OS are REQUIRED before you can proceed. Please make sure they are in correct format with its protocol.',
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',

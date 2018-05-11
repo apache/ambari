@@ -215,6 +215,7 @@ angular.module('ambariAdminConsole')
             stackOs.selected = false;
             stackOs.repositories.forEach(function(repo) {
               repo.Repositories.initial_base_url = repo.Repositories.default_base_url;
+              repo.Repositories.initial_repo_id = repo.Repositories.repo_id;
             });
             $scope.osList.push(stackOs);
           }
@@ -292,7 +293,7 @@ angular.module('ambariAdminConsole')
         enabled = true
       }
     });
-    return !(enabled && $scope.validBaseUrlsExist());
+    return !($scope.useRedhatSatellite || (enabled && $scope.validBaseUrlsExist()));
   };
 
   $scope.defaulfOSRepos = {};
@@ -399,15 +400,28 @@ angular.module('ambariAdminConsole')
         }
       });
     }
+  };
+
+  $scope.useRedHatCheckbox = function() {
     if ($scope.useRedhatSatellite) {
       ConfirmationModal.show(
-          $t('common.important'),
-          {
-            "url": 'views/modals/BodyForUseRedhatSatellite.html'
-          }
+        $t('versions.useRedhatSatellite.title'),
+        {
+          "url": 'views/modals/BodyForUseRedhatSatellite.html'
+        }
       ).catch(function () {
         $scope.useRedhatSatellite = !$scope.useRedhatSatellite;
       });
+    } else {
+      if ($scope.osList) {
+        $scope.osList.forEach(function(os) {
+          if (os.repositories) {
+            os.repositories.forEach(function(repo) {
+              repo.isEditing = false;
+            })
+          }
+        });
+      }
     }
   };
 

@@ -405,9 +405,9 @@ angular.module('ambariAdminConsole')
     'versions.repository.add': 'Add Repository',
 
     'versions.useRedhatSatellite.title': 'Use RedHat Satellite/Spacewalk',
-    'versions.useRedhatSatellite.warning': 'By selecting to <b>"Use RedHat Satellite/Spacewalk"</b> for the software repositories, ' +
-      'you are responsible for configuring the repository channel in Satellite/Spacewalk and confirming the repositories for the selected <b>stack version</b> are available on the hosts in the cluster. ' +
-      'Refer to the Ambari documentation for more information.',
+    'versions.useRedhatSatellite.warning': "In order for Ambari to install packages from the right repositories, " +
+    "it is recommended that you edit the names of the repo's for each operating system so they match the channel " +
+    "names in your RedHat Satellite/Spacewalk instance.",
     'versions.useRedhatSatellite.disabledMsg': 'Use of RedHat Satellite/Spacewalk is not available when using Public Repositories',
 
     'versions.changeBaseURLConfirmation.title': 'Confirm Base URL Change',
@@ -415,7 +415,7 @@ angular.module('ambariAdminConsole')
 
     'versions.alerts.baseURLs': 'Provide Base URLs for the Operating Systems you are configuring.',
     'versions.alerts.validationFailed': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
-    'versions.alerts.skipValidationWarning': '<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
+    'versions.alerts.skipValidationWarning': 'Warning: This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
     'versions.alerts.useRedhatSatelliteWarning': 'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
     'versions.alerts.filterListError': 'Fetch stack version filter list error',
     'versions.alerts.versionCreated': 'Created version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',
