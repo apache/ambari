@@ -56,7 +56,8 @@ var serviceConfig,
         'hiddenBySubSection': false,
         'isRequiredByAgent': true,
         'isValid': false,
-        'isValidOverride': true
+        'isValidOverride': true,
+        'isNotInitialValue': true
       }),
       App.ServiceConfigProperty.create({
         'name': 'p5',
@@ -65,7 +66,8 @@ var serviceConfig,
         'hiddenBySubSection': false,
         'isRequiredByAgent': true,
         'isValid': true,
-        'isValidOverride': false
+        'isValidOverride': false,
+        'isNotInitialValue': true
       }),
       App.ServiceConfigProperty.create({
         'name': 'p6',
@@ -75,7 +77,8 @@ var serviceConfig,
         'isRequiredByAgent': false,
         'isRequired': false,
         'isValid': true,
-        'isValidOverride': false
+        'isValidOverride': false,
+        'isNotInitialValue': true
       }),
       App.ServiceConfigProperty.create({
         'name': 'p7',
@@ -120,7 +123,7 @@ describe('App.ServiceConfig', function () {
     it('returns collection of properties with errors', function() {
       serviceConfig.set('activeProperties', configs);
       serviceConfig.setConfigsWithErrorsOnce();
-      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5', 'p6', 'p7']);
+      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5', 'p6']);
     });
   });
 
