@@ -237,6 +237,12 @@ public class TimelineMetricConfiguration {
   public static final String WATCHER_MAX_FAILURES =
     "timeline.metrics.service.watcher.max.failures";
 
+  public static final String PRECISION_TABLE_SPLIT_POINTS =
+    "timeline.metrics.host.aggregate.splitpoints";
+
+  public static final String AGGREGATE_TABLE_SPLIT_POINTS =
+    "timeline.metrics.cluster.aggregate.splitpoints";
+
   public static final String AGGREGATORS_SKIP_BLOCK_CACHE =
     "timeline.metrics.aggregators.skip.blockcache.enabled";
 
@@ -254,6 +260,12 @@ public class TimelineMetricConfiguration {
 
   public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD =
     "timeline.metrics.sink.collection.period";
+
+  public static final String TIMELINE_METRICS_PRECISION_TABLE_DURABILITY =
+    "timeline.metrics.precision.table.durability";
+
+  public static final String TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY =
+      "timeline.metrics.aggregate.tables.durability";
 
   public static final String TIMELINE_METRICS_WHITELIST_ENABLED =
     "timeline.metrics.whitelisting.enabled";
@@ -273,8 +285,32 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_APPS_WHITELIST =
     "timeline.metrics.apps.whitelist";
 
+  public static final String HBASE_BLOCKING_STORE_FILES =
+    "hbase.hstore.blockingStoreFiles";
+
+  public static final String DEFAULT_TOPN_HOSTS_LIMIT =
+    "timeline.metrics.default.topn.hosts.limit";
+
   public static final String TIMELINE_METRIC_AGGREGATION_SQL_FILTERS =
     "timeline.metrics.cluster.aggregation.sql.filters";
+
+  public static final String TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY =
+    "timeline.metrics.hbase.aggregate.table.compaction.policy.key";
+
+  public static final String TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_CLASS =
+    "timeline.metrics.hbase.aggregate.table.compaction.policy.class";
+
+  public static final String TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES =
+    "timeline.metrics.aggregate.table.hbase.hstore.blockingStoreFiles";
+
+  public static final String TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY =
+    "timeline.metrics.hbase.precision.table.compaction.policy.key";
+
+  public static final String TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS =
+    "timeline.metrics.hbase.precision.table.compaction.policy.class";
+
+  public static final String TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES =
+    "timeline.metrics.precision.table.hbase.hstore.blockingStoreFiles";
 
   public static final String TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS =
     "timeline.metrics.support.multiple.clusters";
@@ -310,9 +346,6 @@ public class TimelineMetricConfiguration {
 
   public static final String TRANSIENT_METRIC_PATTERNS = "timeline.metrics.transient.metric.patterns";
 
-  public static final String TIMELINE_METRIC_INITIAL_CONFIGURED_MASTER_COMPONENTS = "timeline.metrics.initial.configured.master.components";
-  public static final String TIMELINE_METRIC_INITIAL_CONFIGURED_SLAVE_COMPONENTS = "timeline.metrics.initial.configured.slave.components";
-
   public static final String KAFKA_SERVERS = "timeline.metrics.external.sink.kafka.bootstrap.servers";
   public static final String KAFKA_ACKS = "timeline.metrics.external.sink.kafka.acks";
   public static final String KAFKA_RETRIES = "timeline.metrics.external.sink.kafka.bootstrap.retries";
@@ -320,13 +353,7 @@ public class TimelineMetricConfiguration {
   public static final String KAFKA_LINGER_MS = "timeline.metrics.external.sink.kafka.linger.ms";
   public static final String KAFKA_BUFFER_MEM = "timeline.metrics.external.sink.kafka.buffer.memory";
   public static final String KAFKA_SINK_TIMEOUT_SECONDS = "timeline.metrics.external.sink.kafka.timeout.seconds";
-
-  public static final String HSTORE_COMPACTION_CLASS_KEY = "hbase.hstore.defaultengine.compactionpolicy.class";
-  public static final String HSTORE_ENGINE_CLASS = "hbase.hstore.engine.class";
-  public static final String FIFO_COMPACTION_POLICY_CLASS = "org.apache.hadoop.hbase.regionserver.compactions.FIFOCompactionPolicy";
-  public static final String DATE_TIERED_COMPACTION_POLICY = "org.apache.hadoop.hbase.regionserver.DateTieredStoreEngine";
-  public static final String BLOCKING_STORE_FILES_KEY = "hbase.hstore.blockingStoreFiles";
-
+  
   private Configuration hbaseConf;
   private Configuration metricsConf;
   private Configuration metricsSslConf;

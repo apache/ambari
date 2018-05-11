@@ -45,13 +45,13 @@ public class TimelineMetricStoreWatcher implements Runnable {
   private static int failures = 0;
   private final TimelineMetricConfiguration configuration;
 
-  private HBaseTimelineMetricsService timelineMetricStore;
+  private TimelineMetricStore timelineMetricStore;
 
   //used to call timelineMetricStore blocking methods with timeout
   private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 
-  public TimelineMetricStoreWatcher(HBaseTimelineMetricsService timelineMetricStore,
+  public TimelineMetricStoreWatcher(TimelineMetricStore timelineMetricStore,
                                     TimelineMetricConfiguration configuration) {
     this.timelineMetricStore = timelineMetricStore;
     this.configuration = configuration;
@@ -100,7 +100,7 @@ public class TimelineMetricStoreWatcher implements Runnable {
 
     Callable<TimelineMetric> task = new Callable<TimelineMetric>() {
       public TimelineMetric call() throws Exception {
-        timelineMetricStore.putMetricsSkipCache(metrics);
+        timelineMetricStore.putMetrics(metrics);
         TimelineMetrics timelineMetrics = timelineMetricStore.getTimelineMetrics(
           Collections.singletonList(FAKE_METRIC_NAME), Collections.singletonList(FAKE_HOSTNAME),
           FAKE_APP_ID, null, startTime - delay * 2 * 1000,

@@ -1601,25 +1601,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
 
+      ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Map<String, String> newProperties = new HashMap<>();
-          newProperties.put("timeline.metrics.service.default.result.limit", "5760");
-
-          Config config = cluster.getDesiredConfigByType("ams-site");
-          if (config != null) {
-            Map<String, String> oldAmsSite = config.getProperties();
-            if (MapUtils.isNotEmpty(oldAmsSite)) {
-              int oldTtl = Integer.parseInt(oldAmsSite.get("timeline.container-metrics.ttl"));
-              if (oldTtl > 14 * 86400) {
-                newProperties.put("timeline.container-metrics.ttl", "1209600");
-              }
-            }
-          }
-          Set<String> removeProperties = Sets.newHashSet("timeline.metrics.host.aggregate.splitpoints",
-            "timeline.metrics.cluster.aggregate.splitpoints");
-          updateConfigurationPropertiesForCluster(cluster, "ams-site", newProperties, removeProperties, true, true);
-
+          updateConfigurationPropertiesForCluster(cluster, "ams-site", Collections.singletonMap("timeline.metrics.service.default.result.limit", "5760"), true, true);
         }
       }
     }

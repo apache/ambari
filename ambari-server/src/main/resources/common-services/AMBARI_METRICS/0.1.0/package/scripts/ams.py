@@ -226,35 +226,9 @@ def ams(name=None, action=None):
               recursive_ownership = True
     )
 
-    new_ams_site = {}
-    new_ams_site.update(params.config['configurations']['ams-site'])
-    if params.clusterHostInfoDict:
-      master_components = []
-      slave_components = []
-      components = dict(params.clusterHostInfoDict).keys()
-      known_slave_components = ["nodemanager", "metrics_monitor", "datanode", "hbase_regionserver"]
-      for component in components:
-        if component and component.endswith("_hosts"):
-          component_name = component[:-6]
-        elif component and component.endswith("_host"):
-          component_name = component[:-5]
-        else:
-          continue
-        if component_name in known_slave_components:
-          slave_components.append(component_name)
-        else:
-          master_components.append(component_name)
-
-      if slave_components:
-        new_ams_site['timeline.metrics.initial.configured.slave.components'] = ",".join(slave_components)
-      if master_components:
-        if 'ambari_server' not in master_components:
-          master_components.append('ambari_server')
-        new_ams_site['timeline.metrics.initial.configured.master.components'] = ",".join(master_components)
-
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
-              configurations=new_ams_site,
+              configurations=params.config['configurations']['ams-site'],
               configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group

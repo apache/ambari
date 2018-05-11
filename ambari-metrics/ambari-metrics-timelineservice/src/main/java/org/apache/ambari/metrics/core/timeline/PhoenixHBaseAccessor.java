@@ -20,7 +20,6 @@ package org.apache.ambari.metrics.core.timeline;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.ambari.metrics.core.timeline.FunctionUtils.findMetricFunctions;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.AGGREGATORS_SKIP_BLOCK_CACHE;
-import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.BLOCKING_STORE_FILES_KEY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_MINUTE_SLEEP_INTERVAL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
@@ -28,32 +27,41 @@ import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguratio
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_MINUTE_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_SECOND_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CONTAINER_METRICS_TTL;
-import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.DATE_TIERED_COMPACTION_POLICY;
-import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.FIFO_COMPACTION_POLICY_CLASS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.GLOBAL_MAX_RETRIES;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.GLOBAL_RESULT_LIMIT;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.GLOBAL_RETRY_INTERVAL;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HBASE_BLOCKING_STORE_FILES;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HBASE_ENCODING_SCHEME;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_AGGREGATOR_MINUTE_SLEEP_INTERVAL;
-import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HSTORE_COMPACTION_CLASS_KEY;
-import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HSTORE_ENGINE_CLASS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TRANSIENT_METRIC_PATTERNS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_DAILY_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_HOUR_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_MINUTE_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.METRICS_TRANSIENT_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.PRECISION_TABLE_TTL;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_ENABLED;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_SIZE;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_CLASS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_PRECISION_TABLE_DURABILITY;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATOR_SINK_CLASS;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.ALTER_METRICS_METADATA_TABLE;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_TRANSIENT_METRICS_TABLE_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_INSTANCE_HOST_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_METRICS_METADATA_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_METRICS_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.DEFAULT_ENCODING;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.DEFAULT_TABLE_COMPRESSION;
@@ -124,7 +132,6 @@ import org.apache.ambari.metrics.core.timeline.sink.ExternalSinkProvider;
 import org.apache.ambari.metrics.core.timeline.source.InternalMetricsSource;
 import org.apache.ambari.metrics.core.timeline.source.InternalSourceProvider;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -194,7 +201,20 @@ public class PhoenixHBaseAccessor {
   private TimelineMetricsAggregatorSink aggregatorSink;
   private final int cacheCommitInterval;
   private final boolean skipBlockCacheForAggregatorsEnabled;
+  private final String timelineMetricsTablesDurability;
+  private final String timelineMetricsPrecisionTableDurability;
   private TimelineMetricMetadataManager metadataManagerInstance;
+
+  static final String HSTORE_COMPACTION_CLASS_KEY =
+    "hbase.hstore.defaultengine.compactionpolicy.class";
+  static final String HSTORE_ENGINE_CLASS =
+    "hbase.hstore.engine.class";
+  static final String FIFO_COMPACTION_POLICY_CLASS =
+    "org.apache.hadoop.hbase.regionserver.compactions.FIFOCompactionPolicy";
+  static final String DATE_TIERED_COMPACTION_POLICY =
+    "org.apache.hadoop.hbase.regionserver.DateTieredStoreEngine";
+  static final String BLOCKING_STORE_FILES_KEY =
+    "hbase.hstore.blockingStoreFiles";
 
   private Map<String, Integer> tableTTL = new HashMap<>();
 
@@ -239,9 +259,11 @@ public class PhoenixHBaseAccessor {
     this.cacheCommitInterval = Integer.valueOf(metricsConf.get(TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, "3"));
     this.insertCache = new ArrayBlockingQueue<TimelineMetrics>(cacheSize);
     this.skipBlockCacheForAggregatorsEnabled = metricsConf.getBoolean(AGGREGATORS_SKIP_BLOCK_CACHE, false);
+    this.timelineMetricsTablesDurability = metricsConf.get(TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY, "");
+    this.timelineMetricsPrecisionTableDurability = metricsConf.get(TIMELINE_METRICS_PRECISION_TABLE_DURABILITY, "");
 
     tableTTL.put(METRICS_RECORD_TABLE_NAME, metricsConf.getInt(PRECISION_TABLE_TTL, 1 * 86400));  // 1 day
-    tableTTL.put(CONTAINER_METRICS_TABLE_NAME, metricsConf.getInt(CONTAINER_METRICS_TTL, 14 * 86400));  // 30 days
+    tableTTL.put(CONTAINER_METRICS_TABLE_NAME, metricsConf.getInt(CONTAINER_METRICS_TTL, 30 * 86400));  // 30 days
     tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.getInt(HOST_MINUTE_TABLE_TTL, 7 * 86400)); //7 days
     tableTTL.put(METRICS_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.getInt(HOST_HOUR_TABLE_TTL, 30 * 86400)); //30 days
     tableTTL.put(METRICS_AGGREGATE_DAILY_TABLE_NAME, metricsConf.getInt(HOST_DAILY_TABLE_TTL, 365 * 86400)); //1 year
@@ -448,7 +470,7 @@ public class PhoenixHBaseAccessor {
     return mapper.readValue(json, metricValuesTypeRef);
   }
 
-  public Connection getConnectionRetryingOnException() throws SQLException, InterruptedException {
+  private Connection getConnectionRetryingOnException() throws SQLException, InterruptedException {
     RetryCounter retryCounter = retryCounterFactory.create();
     while (true) {
       try{
@@ -489,9 +511,6 @@ public class PhoenixHBaseAccessor {
   protected void initMetricSchema() {
     Connection conn = null;
     Statement stmt = null;
-    PreparedStatement pStmt = null;
-    TimelineMetricSplitPointComputer splitPointComputer = new TimelineMetricSplitPointComputer(
-      metricsConf, hbaseConf, metadataManagerInstance);
 
     String encoding = metricsConf.get(HBASE_ENCODING_SCHEME, DEFAULT_ENCODING);
     String compression = metricsConf.get(HBASE_COMPRESSION_SCHEME, DEFAULT_TABLE_COMPRESSION);
@@ -502,6 +521,21 @@ public class PhoenixHBaseAccessor {
       conn = getConnectionRetryingOnException();
       stmt = conn.createStatement();
 
+      // Metadata
+      String metadataSql = String.format(CREATE_METRICS_METADATA_TABLE_SQL,
+        encoding, compression);
+      stmt.executeUpdate(metadataSql);
+      stmt.executeUpdate(ALTER_METRICS_METADATA_TABLE);
+
+      String hostedAppSql = String.format(CREATE_HOSTED_APPS_METADATA_TABLE_SQL,
+        encoding, compression);
+      stmt.executeUpdate(hostedAppSql);
+
+      //Host Instances table
+      String hostedInstancesSql = String.format(CREATE_INSTANCE_HOST_TABLE_SQL,
+        encoding, compression);
+      stmt.executeUpdate(hostedInstancesSql);
+
       // Container Metrics
       stmt.executeUpdate( String.format(CREATE_CONTAINER_METRICS_TABLE_SQL,
         encoding, tableTTL.get(CONTAINER_METRICS_TABLE_NAME), compression));
@@ -509,15 +543,13 @@ public class PhoenixHBaseAccessor {
       // Host level
       String precisionSql = String.format(CREATE_METRICS_TABLE_SQL,
         encoding, tableTTL.get(METRICS_RECORD_TABLE_NAME), compression);
-      pStmt = prepareCreateMetricsTableStatement(conn, precisionSql, splitPointComputer.getPrecisionSplitPoints());
-      pStmt.executeUpdate();
+      stmt.executeUpdate(precisionSql);
 
       String hostMinuteAggregrateSql = String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
         METRICS_AGGREGATE_MINUTE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_AGGREGATE_MINUTE_TABLE_NAME),
         compression);
-      pStmt = prepareCreateMetricsTableStatement(conn, hostMinuteAggregrateSql, splitPointComputer.getHostAggregateSplitPoints());
-      pStmt.executeUpdate();
+      stmt.executeUpdate(hostMinuteAggregrateSql);
 
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
         METRICS_AGGREGATE_HOURLY_TABLE_NAME, encoding,
@@ -533,9 +565,8 @@ public class PhoenixHBaseAccessor {
         METRICS_CLUSTER_AGGREGATE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_TABLE_NAME),
         compression);
-      pStmt = prepareCreateMetricsTableStatement(conn, aggregateSql, splitPointComputer.getClusterAggregateSplitPoints());
-      pStmt.executeUpdate();
 
+      stmt.executeUpdate(aggregateSql);
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
         METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME),
@@ -572,13 +603,6 @@ public class PhoenixHBaseAccessor {
           // Ignore
         }
       }
-      if (pStmt != null) {
-        try {
-          pStmt.close();
-        } catch (Exception e) {
-          // Ignore
-        }
-      }
       if (conn != null) {
         try {
           conn.close();
@@ -589,7 +613,7 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  void initPoliciesAndTTL() {
+  protected void initPoliciesAndTTL() {
     Admin hBaseAdmin = null;
     try {
       hBaseAdmin = dataSource.getHBaseAdmin();
@@ -598,13 +622,9 @@ public class PhoenixHBaseAccessor {
     }
 
     TableName[] tableNames = null;
-    TableName[] containerMetricsTableName = null;
-
     if (hBaseAdmin != null) {
       try {
         tableNames = hBaseAdmin.listTableNames(PHOENIX_TABLES_REGEX_PATTERN, false);
-        containerMetricsTableName = hBaseAdmin.listTableNames(CONTAINER_METRICS_TABLE_NAME, false);
-        tableNames = (TableName[]) ArrayUtils.addAll(tableNames, containerMetricsTableName);
       } catch (IOException e) {
         LOG.warn("Unable to get table names from HBaseAdmin for setting policies.", e);
         return;
@@ -688,44 +708,72 @@ public class PhoenixHBaseAccessor {
   }
 
   private boolean setDurabilityForTable(String tableName, TableDescriptorBuilder tableDescriptor) {
-    String tableDurability = metricsConf.get("timeline.metrics." + tableName + ".durability", "");
-    if (StringUtils.isNotEmpty(tableDurability)) {
-      LOG.info("Setting WAL option " + tableDurability + " for table : " + tableName);
-      boolean validDurability = true;
-      if ("SKIP_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.SKIP_WAL);
-      } else if ("SYNC_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.SYNC_WAL);
-      } else if ("ASYNC_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.ASYNC_WAL);
-      } else if ("FSYNC_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.FSYNC_WAL);
-      } else {
-        LOG.info("Unknown value for durability : " + tableDurability);
-        validDurability = false;
-      }
-      return validDurability;
-    }
-    return false;
-  }
 
+    boolean modifyTable = false;
+
+    if (METRIC_TRANSIENT_TABLE_NAME.equalsIgnoreCase(tableName)) {
+      tableDescriptor.setDurability(Durability.SKIP_WAL);
+      modifyTable = true;
+    } else if (METRICS_RECORD_TABLE_NAME.equals(tableName)) {
+      if (!timelineMetricsPrecisionTableDurability.isEmpty()) {
+        LOG.info("Setting WAL option " + timelineMetricsPrecisionTableDurability + " for table : " + tableName);
+        boolean validDurability = true;
+        if ("SKIP_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.SKIP_WAL);
+        } else if ("SYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.SYNC_WAL);
+        } else if ("ASYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.ASYNC_WAL);
+        } else if ("FSYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.FSYNC_WAL);
+        } else {
+          LOG.info("Unknown value for " + TIMELINE_METRICS_PRECISION_TABLE_DURABILITY + " : " + timelineMetricsPrecisionTableDurability);
+          validDurability = false;
+        }
+        if (validDurability) {
+          modifyTable = true;
+        }
+      }
+    } else {
+      if (!timelineMetricsTablesDurability.isEmpty()) {
+        LOG.info("Setting WAL option " + timelineMetricsTablesDurability + " for table : " + tableName);
+        boolean validDurability = true;
+        if ("SKIP_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.SKIP_WAL);
+        } else if ("SYNC_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.SYNC_WAL);
+        } else if ("ASYNC_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.ASYNC_WAL);
+        } else if ("FSYNC_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.FSYNC_WAL);
+        } else {
+          LOG.info("Unknown value for " + TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY + " : " + timelineMetricsTablesDurability);
+          validDurability = false;
+        }
+        if (validDurability) {
+          modifyTable = true;
+        }
+      }
+    }
+    return modifyTable;
+  }
 
   private boolean setCompactionPolicyForTable(String tableName, TableDescriptorBuilder tableDescriptorBuilder) {
 
     boolean modifyTable = false;
 
-    String keyConfig = "timeline.metrics." + tableName + ".compaction.policy.key";
-    String policyConfig = "timeline.metrics." + tableName + ".compaction.policy";
-    String storeFilesConfig = "timeline.metrics." + tableName + ".blocking.store.files";
+    String compactionPolicyKey = metricsConf.get(TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY,
+      HSTORE_ENGINE_CLASS);
+    String compactionPolicyClass = metricsConf.get(TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_CLASS,
+      DATE_TIERED_COMPACTION_POLICY);
+    int blockingStoreFiles = hbaseConf.getInt(TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES, 60);
 
-    String compactionPolicyKey = metricsConf.get(keyConfig, HSTORE_ENGINE_CLASS);
-    String compactionPolicyClass = metricsConf.get(policyConfig, DATE_TIERED_COMPACTION_POLICY);
-    int blockingStoreFiles = hbaseConf.getInt(storeFilesConfig, 60);
-
-    if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
-      compactionPolicyKey = metricsConf.get(keyConfig, HSTORE_COMPACTION_CLASS_KEY);
-      compactionPolicyClass = metricsConf.get(policyConfig, FIFO_COMPACTION_POLICY_CLASS);
-      blockingStoreFiles = hbaseConf.getInt(storeFilesConfig, 1000);
+    if (tableName.equals(METRICS_RECORD_TABLE_NAME) || tableName.equalsIgnoreCase(METRIC_TRANSIENT_TABLE_NAME)) {
+      compactionPolicyKey = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY,
+        HSTORE_COMPACTION_CLASS_KEY);
+      compactionPolicyClass = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS,
+        FIFO_COMPACTION_POLICY_CLASS);
+      blockingStoreFiles = hbaseConf.getInt(TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES, 1000);
     }
 
     if (StringUtils.isEmpty(compactionPolicyKey) || StringUtils.isEmpty(compactionPolicyClass)) {
@@ -733,54 +781,46 @@ public class PhoenixHBaseAccessor {
       modifyTable = setHbaseBlockingStoreFiles(tableDescriptorBuilder, tableName, 300);
     } else {
       tableDescriptorBuilder.setValue(compactionPolicyKey, compactionPolicyClass);
+      tableDescriptorBuilder.removeValue(HSTORE_ENGINE_CLASS.getBytes());
+      tableDescriptorBuilder.removeValue(HSTORE_COMPACTION_CLASS_KEY.getBytes());
       setHbaseBlockingStoreFiles(tableDescriptorBuilder, tableName, blockingStoreFiles);
       modifyTable = true;
-    }
-
-    if (!compactionPolicyKey.equals(HSTORE_ENGINE_CLASS)) {
-      tableDescriptorBuilder.removeValue(HSTORE_ENGINE_CLASS.getBytes());
-    }
-    if (!compactionPolicyKey.equals(HSTORE_COMPACTION_CLASS_KEY)) {
-      tableDescriptorBuilder.removeValue(HSTORE_COMPACTION_CLASS_KEY.getBytes());
     }
 
     return modifyTable;
   }
 
   private boolean setHbaseBlockingStoreFiles(TableDescriptorBuilder tableDescriptor, String tableName, int value) {
-    tableDescriptor.setValue(BLOCKING_STORE_FILES_KEY, String.valueOf(value));
-    LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
-      " = " + value + " for " + tableName);
-    return true;
-  }
-
-
-  private PreparedStatement prepareCreateMetricsTableStatement(Connection connection,
-                                                               String sql,
-                                                               List<byte[]> splitPoints) throws SQLException {
-
-    String createTableWithSplitPointsSql = sql + getSplitPointsStr(splitPoints.size());
-    LOG.info(createTableWithSplitPointsSql);
-    PreparedStatement statement = connection.prepareStatement(createTableWithSplitPointsSql);
-    for (int i = 1; i <= splitPoints.size(); i++) {
-      statement.setBytes(i, splitPoints.get(i - 1));
+    int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, value);
+    if (blockingStoreFiles != value) {
+      blockingStoreFiles = value;
+      tableDescriptor.setValue(BLOCKING_STORE_FILES_KEY, String.valueOf(value));
+      LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
+        " = " + blockingStoreFiles + " for " + tableName);
+      return true;
     }
-    return statement;
+    return false;
   }
 
-  private String getSplitPointsStr(int numSplits) {
-    if (numSplits <= 0) {
+  protected String getSplitPointsStr(String splitPoints) {
+    if (StringUtils.isEmpty(splitPoints.trim())) {
       return "";
     }
-    StringBuilder sb = new StringBuilder(" SPLIT ON ");
-    sb.append("(");
-    for (int i = 0; i < numSplits; i++) {
-      sb.append("?");
-      sb.append(",");
+    String[] points = splitPoints.split(",");
+    if (points.length > 0) {
+      StringBuilder sb = new StringBuilder(" SPLIT ON ");
+      sb.append("(");
+      for (String point : points) {
+        sb.append("'");
+        sb.append(point.trim());
+        sb.append("'");
+        sb.append(",");
+      }
+      sb.deleteCharAt(sb.length() - 1);
+      sb.append(")");
+      return sb.toString();
     }
-    sb.deleteCharAt(sb.length() - 1);
-    sb.append(")");
-    return sb.toString();
+    return "";
   }
 
   /**

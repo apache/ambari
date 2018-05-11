@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.metrics.core.timeline;
 
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 import static org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
@@ -34,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -109,18 +111,15 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   private synchronized void initializeSubsystem() {
     if (!isInitialized) {
       hBaseAccessor = new PhoenixHBaseAccessor(null);
-
-      // Initialize metadata
+      // Initialize schema
+      hBaseAccessor.initMetricSchema();
+      // Initialize metadata from store
       try {
         metricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor);
       } catch (MalformedURLException | URISyntaxException e) {
         throw new ExceptionInInitializerError("Unable to initialize metadata manager");
       }
       metricMetadataManager.initializeMetadata();
-
-      // Initialize metric schema
-      hBaseAccessor.initMetricSchema();
-
       // Initialize policies before TTL update
       hBaseAccessor.initPoliciesAndTTL();
       // Start HA service
@@ -394,10 +393,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     }
 
     return metricsFunctions;
-  }
-
-  public void putMetricsSkipCache(TimelineMetrics metrics) throws SQLException, IOException {
-    hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics, true);
   }
 
   @Override

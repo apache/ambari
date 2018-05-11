@@ -144,8 +144,8 @@ public class TimelineWebServices {
       // TODO: Check ACLs for MetricEntity using the TimelineACLManager.
       // TODO: Save owner of the MetricEntity.
 
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Storing metrics: " +
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Storing metrics: " +
           TimelineUtils.dumpTimelineRecordtoJSON(metrics, true));
       }
 
@@ -175,8 +175,8 @@ public class TimelineWebServices {
     }
 
     try {
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Storing aggregated metrics: " +
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Storing aggregated metrics: " +
                 TimelineUtils.dumpTimelineRecordtoJSON(metrics, true));
       }
 
@@ -200,8 +200,8 @@ public class TimelineWebServices {
     }
 
     try {
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Storing container metrics: " + TimelineUtils
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Storing container metrics: " + TimelineUtils
             .dumpTimelineRecordtoJSON(metrics, true));
       }
 
@@ -250,8 +250,8 @@ public class TimelineWebServices {
   ) {
     init(res);
     try {
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Request for metrics => metricNames: " + metricNames + ", " +
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Request for metrics => metricNames: " + metricNames + ", " +
           "appId: " + appId + ", instanceId: " + instanceId + ", " +
           "hostname: " + hostname + ", startTime: " + startTime + ", " +
           "endTime: " + endTime + ", " +

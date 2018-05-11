@@ -18,7 +18,6 @@
 package org.apache.ambari.metrics.core.timeline;
 
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
 import static org.apache.phoenix.end2end.ParallelStatsDisabledIT.tearDownMiniCluster;
@@ -101,12 +100,8 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
     // inits connection, starts mini cluster
     conn = getConnection(getUrl());
 
-    Configuration metricsConf = new Configuration();
-    metricsConf.set(TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME, "NONE");
-
-    metadataManager = new TimelineMetricMetadataManager(metricsConf, hdb);
-    metadataManager.initializeMetadata();
     hdb.initMetricSchema();
+    metadataManager = new TimelineMetricMetadataManager(new Configuration(), hdb);
     hdb.setMetadataInstance(metadataManager);
   }
 
@@ -211,8 +206,6 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
     metricsConf.set("timeline.metrics.transient.metric.patterns", "topology%");
     // Unit tests insert values into the future
     metricsConf.setLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE, 600000);
-    metricsConf.set("timeline.metrics." + METRICS_RECORD_TABLE_NAME + ".durability", "SKIP_WAL");
-    metricsConf.set("timeline.metrics." + METRICS_CLUSTER_AGGREGATE_TABLE_NAME + ".durability", "ASYNC_WAL");
 
     return
       new PhoenixHBaseAccessor(new TimelineMetricConfiguration(new Configuration(), metricsConf),
