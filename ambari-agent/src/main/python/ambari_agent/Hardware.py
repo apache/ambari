@@ -40,7 +40,7 @@ class Hardware:
   CHECK_REMOTE_MOUNTS_KEY = 'agent.check.remote.mounts'
   CHECK_REMOTE_MOUNTS_TIMEOUT_KEY = 'agent.check.mounts.timeout'
   CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT = '10'
-  IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys", "boot"]
+  IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys", "boot", "home"]
   IGNORE_DEVICES = ["proc", "tmpfs", "cgroup", "mqueue", "shm"]
   LINUX_PATH_SEP = "/"
 
@@ -174,7 +174,7 @@ class Hardware:
        - mount path or a part of mount path is not in the blacklist
       """
       if mount["device"] not in self.IGNORE_DEVICES and\
-         mount["mountpoint"].split("/")[0] not in self.IGNORE_ROOT_MOUNTS and\
+         mount["mountpoint"].strip()[1:].split("/")[0] not in self.IGNORE_ROOT_MOUNTS and\
          self._chk_writable_mount(mount['mountpoint']) and\
          not path_isfile(mount["mountpoint"]) and\
          not self._is_mount_blacklisted(blacklisted_mount_points, mount["mountpoint"]):
