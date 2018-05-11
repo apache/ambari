@@ -561,7 +561,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       checkDesiredState = true;
     }
 
-    for (Service s : cluster.getServicesByServiceGroup(serviceGroupName)) {
+    Collection<Service> clusterServices;
+    if(request.getServiceGroupName() != null){
+     clusterServices = cluster.getServicesByServiceGroup(serviceGroupName);
+    }else{
+      clusterServices = cluster.getServicesById().values();
+    }
+    for (Service s : clusterServices) {
       if (checkDesiredState
           && (desiredStateToCheck != s.getDesiredState())) {
         // skip non matching state

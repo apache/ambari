@@ -1418,11 +1418,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    Set<Service> services = new HashSet<>();
+    request.setServiceGroupName(cluster.getServiceByComponentId(request.getComponentId()).getServiceGroupName());
+    List<Service> services = new ArrayList<>();
     if (request.getServiceName() != null && !request.getServiceName().isEmpty()) {
       services.add(cluster.getService(request.getServiceName()));
     } else {
-      services.addAll(cluster.getServices().values());
+      services.addAll(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
     }
 
     Set<ServiceComponentHostResponse> response =
