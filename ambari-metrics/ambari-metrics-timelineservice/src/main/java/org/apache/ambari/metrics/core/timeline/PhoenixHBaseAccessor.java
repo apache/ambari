@@ -492,7 +492,6 @@ public class PhoenixHBaseAccessor {
     PreparedStatement pStmt = null;
     TimelineMetricSplitPointComputer splitPointComputer = new TimelineMetricSplitPointComputer(
       metricsConf, hbaseConf, metadataManagerInstance);
-    splitPointComputer.computeSplitPoints();
 
     String encoding = metricsConf.get(HBASE_ENCODING_SCHEME, DEFAULT_ENCODING);
     String compression = metricsConf.get(HBASE_COMPRESSION_SCHEME, DEFAULT_TABLE_COMPRESSION);
