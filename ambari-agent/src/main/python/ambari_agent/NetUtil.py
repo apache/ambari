@@ -17,7 +17,7 @@
 from urlparse import urlparse
 import logging
 import httplib
-import sys
+import ssl
 from ssl import SSLError
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_commons.inet_utils import ensure_ssl_using_protocol
@@ -66,8 +66,8 @@ class NetUtil:
     try:
       parsedurl = urlparse(url)
 
-      if sys.version_info >= (2,7,5) and not ssl_verify_cert:
-          import ssl
+      # hasattr being true means that current python version has default cert verification enabled.
+      if hasattr(ssl, '_create_unverified_context') and not ssl_verify_cert:
           ca_connection = httplib.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
       else:
           ca_connection = httplib.HTTPSConnection(parsedurl[1])
