@@ -144,7 +144,7 @@ import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteFormer;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -278,7 +278,7 @@ public class ClusterImpl implements Cluster {
   private TopologyRequestDAO topologyRequestDAO;
 
   @Inject
-  private TopologyDeleteFormer topologyDeleteFormer;
+  private STOMPComponentsDeleteFormer STOMPComponentsDeleteFormer;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -1280,9 +1280,9 @@ public class ClusterImpl implements Cluster {
       DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
       for (Service service : services.values()) {
         deleteService(service, deleteMetaData);
-        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
+        STOMPComponentsDeleteFormer.processDeleteByMetaDataException(deleteMetaData);
       }
-      topologyDeleteFormer.processDeleteCluster(getClusterId());
+      STOMPComponentsDeleteFormer.processDeleteCluster(getClusterId());
       services.clear();
     } finally {
       clusterGlobalLock.writeLock().unlock();

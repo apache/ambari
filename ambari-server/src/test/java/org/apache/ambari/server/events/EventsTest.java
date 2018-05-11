@@ -126,6 +126,7 @@ public class EventsTest {
     m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
+    m_clusters.updateHostMappings(host);
   }
 
   /**

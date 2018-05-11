@@ -61,7 +61,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteFormer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
@@ -171,7 +171,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   private MaintenanceStateHelper maintenanceStateHelper;
 
   @Inject
-  private TopologyDeleteFormer topologyDeleteFormer;
+  private STOMPComponentsDeleteFormer STOMPComponentsDeleteFormer;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -797,13 +797,13 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       if (sc != null) {
         deleteHostComponentsForServiceComponent(sc, request, deleteMetaData);
-        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
+        STOMPComponentsDeleteFormer.processDeleteByMetaDataException(deleteMetaData);
         sc.setDesiredState(State.DISABLED);
         s.deleteServiceComponent(request.getComponentName(), deleteMetaData);
-        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
+        STOMPComponentsDeleteFormer.processDeleteByMetaDataException(deleteMetaData);
       }
     }
-    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
+    STOMPComponentsDeleteFormer.processDeleteByMetaData(deleteMetaData);
     return null;
   }
 

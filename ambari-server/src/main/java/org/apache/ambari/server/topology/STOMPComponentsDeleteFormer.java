@@ -40,7 +40,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
-public class TopologyDeleteFormer {
+public class STOMPComponentsDeleteFormer {
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
@@ -57,21 +57,22 @@ public class TopologyDeleteFormer {
   @Inject
   private Clusters clusters;
 
-  public void processDeleteMetaDataException(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
+  public void processDeleteByMetaDataException(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
     if (metaData.getAmbariException() != null) {
-      processDeleteMetaData(metaData);
+      processDeleteByMetaData(metaData);
       throw metaData.getAmbariException();
     }
   }
-  public void processDeleteMetaData(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
+  public void processDeleteByMetaData(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(
-        createUpdateFromDeleteMetaData(metaData),
+        createUpdateFromDeleteByMetaData(metaData),
         UpdateEventType.DELETE
     );
     m_topologyHolder.get().updateData(topologyUpdateEvent);
 
     // on components remove we should remove appropriate metadata/configs/hostlevelparams on agents
-    renew(metaData);
+    updateNonTopologyAgentInfo(metaData.getRemovedHostComponents().stream().map(hc -> hc.getHostId()).collect(Collectors.toSet()),
+        null);
   }
 
   public void processDeleteCluster(Long clusterId) throws AmbariException {
@@ -84,17 +85,11 @@ public class TopologyDeleteFormer {
     m_topologyHolder.get().updateData(topologyUpdateEvent);
 
     // on cluster remove we should remove appropriate metadata/configs/hostlevelparams on agents
-    renew(clusters.getCluster(clusterId).getHosts().stream().map(h -> h.getHostId()).collect(Collectors.toSet()),
+    updateNonTopologyAgentInfo(clusters.getCluster(clusterId).getHosts().stream().map(h -> h.getHostId()).collect(Collectors.toSet()),
         clusterId);
   }
 
-  private void renew(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
-    Set<Long> changedHosts =
-        metaData.getRemovedHostComponents().stream().map(hc -> hc.getHostId()).collect(Collectors.toSet());
-    renew(changedHosts, null);
-  }
-
-  private void renew(Set<Long> changedHosts, Long clusterId) throws AmbariException {
+  private void updateNonTopologyAgentInfo(Set<Long> changedHosts, Long clusterId) throws AmbariException {
 
     for (Long hostId : changedHosts) {
       agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
@@ -103,7 +98,7 @@ public class TopologyDeleteFormer {
     metadataHolder.get().updateData(metadataHolder.get().getDeleteMetadata(clusterId));
   }
 
-  public TreeMap<String, TopologyCluster> createUpdateFromDeleteMetaData(DeleteHostComponentStatusMetaData metaData) {
+  public TreeMap<String, TopologyCluster> createUpdateFromDeleteByMetaData(DeleteHostComponentStatusMetaData metaData) {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
 
     for (DeleteHostComponentStatusMetaData.HostComponent hostComponent : metaData.getRemovedHostComponents()) {

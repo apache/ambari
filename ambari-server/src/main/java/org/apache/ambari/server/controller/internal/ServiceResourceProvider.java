@@ -75,7 +75,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteFormer;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -186,7 +186,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private KerberosHelper kerberosHelper;
 
   @Inject
-  private TopologyDeleteFormer topologyDeleteFormer;
+  private STOMPComponentsDeleteFormer STOMPComponentsDeleteFormer;
 
   /**
    * Used to lookup the repository when creating services.
@@ -967,9 +967,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
     for (Service service : removable) {
       service.getCluster().deleteService(service.getName(), deleteMetaData);
-      topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
+      STOMPComponentsDeleteFormer.processDeleteByMetaDataException(deleteMetaData);
     }
-    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
+    STOMPComponentsDeleteFormer.processDeleteByMetaData(deleteMetaData);
 
     return null;
   }
