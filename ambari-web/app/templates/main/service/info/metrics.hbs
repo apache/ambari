@@ -118,7 +118,7 @@
             <div id="ns_widget_layout" class="thumbnails">
               {{#each widget in controller.selectedNSWidgetLayout.widgets}}
                 <div class="widget span2p4" {{bindAttr id="widget.id"}}>
-                  {{view widget.viewClass contentBinding="widget" idBinding="widget.id"}}
+                  {{view widget.viewClass nsLayoutBinding="controller.selectedNSWidgetLayout" contentBinding="widget" idBinding="widget.id"}}
                 </div>
               {{/each}}
             </div>

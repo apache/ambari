@@ -191,11 +191,6 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
         description: this.get('widgetDescription') || "",
         scope: this.get('widgetScope').toUpperCase(),
         author: this.get('widgetAuthor'),
-        metrics: this.get('widgetMetrics').map(function (metric) {
-          delete metric.data;
-          delete metric.tag;
-          return metric;
-        }),
         values: this.get('widgetValues').map(function (value) {
           delete value.computedValue;
           return value;
@@ -205,7 +200,13 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     };
 
     this.get('widgetMetrics').forEach(function (metric) {
-      if (metric.tag) widgetData.tag = metric.tag;
+      if (metric.tag) widgetData.WidgetInfo.tag = metric.tag;
+    });
+
+    widgetData.WidgetInfo.metrics = this.get('widgetMetrics').map(function (metric) {
+      delete metric.data;
+      delete metric.tag;
+      return metric;
     });
 
     return widgetData;

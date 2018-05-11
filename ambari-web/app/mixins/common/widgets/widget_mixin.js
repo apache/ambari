@@ -564,7 +564,8 @@ App.WidgetMixin = Ember.Mixin.create({
     this.get('controller').hideWidget(
       {
         context: Em.Object.create({
-          id: event.context
+          id: event.contexts[0],
+          nsLayout: event.contexts[1]
         })
       }
     );
@@ -591,7 +592,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @returns {{WidgetInfo: {widget_name: *, widget_type: *, description: *, scope: *, metrics: *, values: *, properties: *}}}
    */
   collectWidgetData: function () {
-    return {
+    var widgetData = {
       WidgetInfo: {
         widget_name: this.get('content.widgetName'),
         widget_type: this.get('content.widgetType'),
@@ -610,6 +611,12 @@ App.WidgetMixin = Ember.Mixin.create({
         properties: this.get('content.properties')
       }
     };
+
+    this.get('content.metrics').forEach(function (metric) {
+      if (metric.tag) widgetData.WidgetInfo.tag = metric.tag;
+    });
+
+    return widgetData;
   },
 
   /**
@@ -640,9 +647,9 @@ App.WidgetMixin = Ember.Mixin.create({
     widgets.pushObject(Em.Object.create({
       id: data.resources[0].WidgetInfo.id
     }));
-    var mainServiceInfoSummaryController =  App.router.get('mainServiceInfoSummaryController');
-    mainServiceInfoSummaryController.saveWidgetLayout(widgets).done(function(){
-      mainServiceInfoSummaryController.updateActiveLayout();
+    var mainServiceInfoMetricsController =  App.router.get('mainServiceInfoMetricsController');
+    mainServiceInfoMetricsController.saveWidgetLayout(widgets).done(function(){
+      mainServiceInfoMetricsController.updateActiveLayout();
     });
   },
 
@@ -656,9 +663,9 @@ App.WidgetMixin = Ember.Mixin.create({
     widgets.pushObject(Em.Object.create({
       id: id
     }));
-    var mainServiceInfoSummaryController =  App.router.get('mainServiceInfoSummaryController');
-    mainServiceInfoSummaryController.saveWidgetLayout(widgets).done(function() {
-      mainServiceInfoSummaryController.getActiveWidgetLayout().done(function() {
+    var mainServiceInfoMetricsController =  App.router.get('mainServiceInfoMetricsController');
+    mainServiceInfoMetricsController.saveWidgetLayout(widgets).done(function() {
+      mainServiceInfoMetricsController.getActiveWidgetLayout().done(function() {
         var newWidget = App.Widget.find().findProperty('id', id);
         controller.editWidget(newWidget);
       });
