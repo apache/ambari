@@ -728,7 +728,7 @@ class MpackAdvisorImpl(MpackAdvisor):
 
     layoutRecommendations = self.createComponentLayoutRecommendations()
 
-    serviceInstanceNames = [map(lambda si: si.getName(), self.serviceInstancesSet)]
+    serviceInstanceNames = map(lambda si: si.getName(), self.serviceInstancesSet)
     self.logger.info("Create recommendComponentLayout for {0}".format(serviceInstanceNames))
     hostsList = self.getActiveHosts([host["Hosts"] for host in self.hostsList["items"]])
 
