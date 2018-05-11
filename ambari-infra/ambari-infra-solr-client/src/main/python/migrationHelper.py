@@ -144,7 +144,10 @@ def fill_parameters(options):
     params['solr_check_hosts'] = False
   if options.core_filter:
     params['solr_core_filter'] = options.core_filter
-
+  if options.core_filter:
+    params['solr_skip_cores'] = options.skip_cores
+  if options.solr_shards:
+    params['solr_shards'] = options.solr_shards
   return params
 
 def validte_common_options(options, parser):
@@ -230,7 +233,8 @@ if __name__=="__main__":
   parser.add_option("--solr-hosts", dest="solr_hosts", type="string", help="comma separated list of solr hosts")
   parser.add_option("--disable-solr-host-check", dest="disable_solr_host_check", action="store_true", default=False, help="Disable to check solr hosts are good for the collection backups")
   parser.add_option("--core-filter", dest="core_filter", default=None, type="string", help="core filter for replica folders")
-
+  parser.add_option("--skip-cores", dest="skip_cores", default=None, type="string", help="specific cores to skip (comma separated)")
+  parser.add_option("--shards", dest="solr_shards", type="int", default=0, help="number of shards (required to set properly for restore)")
   (options, args) = parser.parse_args()
 
   protocol = 'https' if options.ssl else 'http'

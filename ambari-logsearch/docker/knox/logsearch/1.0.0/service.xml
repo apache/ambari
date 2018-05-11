@@ -16,13 +16,6 @@
   limitations under the License.
 -->
 <service role="LOGSEARCH" name="logsearch" version="1.0.0">
-
-  <policies>
-    <policy role="webappsec"/>
-    <policy role="authentication" name="Anonymous"/>
-    <policy role="rewrite"/>
-    <policy role="authorization"/>
-  </policies>
   <routes>
 
     <route path="/logsearch">
