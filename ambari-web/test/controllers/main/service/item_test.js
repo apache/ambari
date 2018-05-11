@@ -53,6 +53,10 @@ var stackServiceModel = {
 
 describe('App.MainServiceItemController', function () {
 
+  App.TestAliases.testAsComputedOr(App.MainServiceItemController.create({
+    content: Em.Object.create({serviceName: 'S1'})
+  }), 'isStartDisabled', ['isPending', 'content.isStarted']);
+
   describe('#setStartStopState', function () {
     var tests = [
       {
@@ -886,71 +890,12 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
-  describe("#isStartDisabled", function () {
-    var tests = [
-      {
-        nonClientServiceComponents: [
-          Em.Object.create({
-            installedAndMaintenanceOffCount: 0,
-            installedCount: 0,
-            componentName: 'C1',
-          })
-        ],
-        isPending: true,
-        disabled: true,
-        m: "disabled because of pending"
-      },
-      {
-        nonClientServiceComponents: [
-          Em.Object.create({
-            installedAndMaintenanceOffCount: 0,
-            installedCount: 0,
-            componentName: 'C2',
-          })
-        ],
-        isPending: false,
-        disabled: true,
-        m: "disabled because no components stopped"
-      },
-      {
-        nonClientServiceComponents: [
-          Em.Object.create({
-            installedAndMaintenanceOffCount: 0,
-            installedCount: 1,
-            componentName: 'C3',
-          })
-        ],
-        isPending: false,
-        disabled: true,
-        m: "disabled because although component stopped but in maintenance mode"
-      },
-      {
-        nonClientServiceComponents: [
-          Em.Object.create({
-            installedAndMaintenanceOffCount: 2,
-            installedCount: 3,
-            componentName: 'C4',
-          })
-        ],
-        isPending: false,
-        disabled: false,
-        m: "enabled because some components stopped which are not in maintenance mode"
-      }
-    ];
-
-    tests.forEach(function (test) {
-      it(test.m, function () {
-        var mainServiceItemController = App.MainServiceItemController.create({nonClientServiceComponents: test.nonClientServiceComponents, isPending: test.isPending});
-        expect(mainServiceItemController.get('isStartDisabled')).to.equal(test.disabled);
-      });
-    });
-  });
 
   describe("#isStopDisabled", function () {
     var tests = [
       {
         content: {
-          healthStatus: 'red'
+          isStarted: false
         },
         isPending: true,
         disabled: true,
@@ -958,7 +903,7 @@ describe('App.MainServiceItemController', function () {
       },
       {
         content: {
-          healthStatus: 'green'
+          isStarted: true
         },
         isPending: false,
         disabled: false,
@@ -966,7 +911,7 @@ describe('App.MainServiceItemController', function () {
       },
       {
         content: {
-          healthStatus: 'red'
+          isStarted: false
         },
         isPending: false,
         disabled: true,
