@@ -62,7 +62,8 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
   onLoadConfigsTags: function (data) {
     var urlParams = '(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')';
     if (App.Service.find().someProperty('serviceName', 'RANGER')) {
-      urlParams += '|(type=ranger-tagsync-site&tag=' + data.Clusters.desired_configs['ranger-tagsync-site'].tag + ')' +
+      urlParams += '|(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')' +
+      '|(type=ranger-tagsync-site&tag=' + data.Clusters.desired_configs['ranger-tagsync-site'].tag + ')' +
           '|(type=ranger-hdfs-security&tag=' + data.Clusters.desired_configs['ranger-hdfs-security'].tag + ')'
     }
     App.ajax.send({
@@ -136,6 +137,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var result = [];
     var configsToRemove = [];
     var hdfsSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'hdfs-site').properties;
+    var coreSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'core-site').properties;
 
     if (!hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn1'] && !hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn2']) {
       configsToRemove = configsToRemove.concat([
@@ -148,17 +150,14 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
     if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       var hdfsRangerConfigs = this.get('serverConfigData').items.findProperty('type', 'ranger-hdfs-security').properties;
+      var reponamePrefix = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}' ? dependencies.clustername + '_hadoop_' : hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_';
+      var defaultFSNS = coreSiteConfigs['fs.defaultFS'].split('hdfs://')[1];
 
-      if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
-        nameServices.forEach(function (nameService) {
-          configs.push(this.createRangerServiceProperty(nameService, dependencies.clustername + '_hadoop_' + nameService));
-        }, this);
-      } else {
-        nameServices.forEach(function (nameService) {
-          configs.push(this.createRangerServiceProperty(nameService, hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + nameService));
-        }, this);
-      }
+      nameServices.forEach(function (nameService) {
+        configs.push(this.createRangerServiceProperty(nameService, reponamePrefix, "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".nameservice." + nameService + ".ranger.service"));
+      }, this);
     }
+    configs.push(this.createRangerServiceProperty(defaultFSNS, reponamePrefix, "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".ranger.service"));
 
     configs.forEach(function (config) {
       if (!configsToRemove.contains(config.name)) {
@@ -174,18 +173,17 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     return result;
   },
 
-  createRangerServiceProperty: function(nameservice, value) {
-    var name = "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".nameservice." + nameservice + ".ranger.service";
+  createRangerServiceProperty: function (nameservice, reponamePrefix, propertyName) {
     return {
-        "name": name,
-        "displayName": name,
-        "isReconfigurable": false,
-        "recommendedValue": value,
-        "value": value,
-        "category": "RANGER",
-        "filename": "ranger-tagsync-site",
-        "serviceName": 'MISC'
-      };
+      "name": propertyName,
+      "displayName": propertyName,
+      "isReconfigurable": false,
+      "recommendedValue": reponamePrefix + nameservice,
+      "value": reponamePrefix + nameservice,
+      "category": "RANGER",
+      "filename": "ranger-tagsync-site",
+      "serviceName": 'MISC'
+    };
   },
 
   replaceDependencies: function (value, dependencies) {
