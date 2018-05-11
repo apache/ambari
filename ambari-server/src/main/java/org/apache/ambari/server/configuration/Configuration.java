@@ -2936,7 +2936,7 @@ public class Configuration {
   private void writeConfigFile(Properties propertiesToStore, boolean append) throws AmbariException {
     File configFile = null;
     try {
-      configFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
+      configFile = getConfigFile();
       propertiesToStore.store(new OutputStreamWriter(new FileOutputStream(configFile, append), Charsets.UTF_8), null);
     } catch (Exception e) {
       LOG.error("Cannot write properties [" + propertiesToStore + "] into configuration file [" + configFile + ", " + append + "] ");
@@ -3096,7 +3096,7 @@ public class Configuration {
   }
 
   public Map<String, String> getDatabaseConnectorNames() {
-    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
     Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBC.longValue()) {
@@ -3120,8 +3120,12 @@ public class Configuration {
     return databaseConnectorNames;
   }
 
+  public File getConfigFile() {
+    return new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+  }
+
   public Map<String, String> getPreviousDatabaseConnectorNames() {
-    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
     Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBCToRemove.longValue()) {
