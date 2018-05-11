@@ -1340,15 +1340,11 @@ public class UpgradeCatalog270Test {
     Map<String, String> oldProperties = new HashMap<String, String>() {
       {
         put("timeline.metrics.service.default.result.limit", "15840");
-        put("timeline.container-metrics.ttl", "2592000");
-        put("timeline.metrics.cluster.aggregate.splitpoints", "cpu_user,mem_free");
-        put("timeline.metrics.host.aggregate.splitpoints", "kafka.metric,nimbus.metric");
       }
     };
     Map<String, String> newProperties = new HashMap<String, String>() {
       {
         put("timeline.metrics.service.default.result.limit", "5760");
-        put("timeline.container-metrics.ttl", "1209600");
       }
     };
 

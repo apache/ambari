@@ -20,7 +20,6 @@ package org.apache.ambari.metrics.core.timeline.uuid;
 
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -38,30 +37,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MetricUuidGenStrategyTest {
+public class TimelineMetricUuidManagerTest {
 
 
-  private static List<String> apps = Arrays.asList("namenode",
-    "datanode", "hbase_master", "hbase_regionserver", "kafka_broker", "nimbus", "ams-hbase",
+  private List<String> apps = Arrays.asList("namenode",
+    "datanode", "master_hbase", "slave_hbase", "kafka_broker", "nimbus", "ams-hbase",
     "accumulo", "nodemanager", "resourcemanager", "ambari_server", "HOST", "timeline_metric_store_watcher",
-    "jobhistoryserver", "hiveserver2", "hivemetastore", "applicationhistoryserver", "amssmoketestfake", "llapdaemon");
+    "jobhistoryserver", "hiveserver2", "hivemetastore", "applicationhistoryserver", "amssmoketestfake");
 
-  private static Map<String, Set<String>> metricSet  = new HashMap<>();
+  private Map<String, Set<String>> metricSet  = new HashMap<>(populateMetricWhitelistFromFile());
 
-  @BeforeClass
-  public static void init() {
-    metricSet  = new HashMap<>(populateMetricWhitelistFromFile());
+  @Test
+  @Ignore("Collisions possible")
+  public void testHashBasedUuidForMetricName() throws SQLException {
+
+    MetricUuidGenStrategy strategy = new HashBasedUuidGenStrategy();
+    Map<String, TimelineClusterMetric> uuids = new HashMap<>();
+    for (String app : metricSet.keySet()) {
+      Set<String> metrics = metricSet.get(app);
+      for (String metric : metrics) {
+        TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric(metric, app, null, -1l);
+        byte[] uuid = strategy.computeUuid(timelineClusterMetric, 16);
+        Assert.assertNotNull(uuid);
+        Assert.assertTrue(uuid.length == 16);
+        String uuidStr = new String(uuid);
+        Assert.assertFalse(uuids.containsKey(uuidStr) && !uuids.containsValue(timelineClusterMetric));
+        uuids.put(uuidStr, timelineClusterMetric);
+      }
+    }
   }
 
   @Test
-  @Ignore
-  public void testHashBasedUuid() throws SQLException {
-    testMetricCollisionsForUuidGenStrategy(new HashBasedUuidGenStrategy(), 16);
-  }
+  public void testHaseBasedUuidForAppIds() throws SQLException {
 
-  @Test
-  @Ignore
-  public void testHashBasedUuidForAppIds() throws SQLException {
     MetricUuidGenStrategy strategy = new HashBasedUuidGenStrategy();
     Map<String, TimelineClusterMetric> uuids = new HashMap<>();
     for (String app : metricSet.keySet()) {
@@ -74,64 +82,10 @@ public class MetricUuidGenStrategyTest {
   }
 
   @Test
-  @Ignore
   public void testHashBasedUuidForHostnames() throws SQLException {
-    testHostCollisionsForUuidGenStrategy(new HashBasedUuidGenStrategy(), 16);
-  }
 
-
-  @Test
-  public void testMD5BasedUuid() throws SQLException {
-    testMetricCollisionsForUuidGenStrategy(new MD5UuidGenStrategy(), 16);
-
-  }
-
-  @Test
-  public void testMD5BasedUuidForHostnames() throws SQLException {
-    testHostCollisionsForUuidGenStrategy(new MD5UuidGenStrategy(), 16);
-  }
-
-
-  @Test
-  public void testMD5ConsistentHashing() throws SQLException, InterruptedException {
-    testConsistencyForUuidGenStrategy(new MD5UuidGenStrategy(), 16);
-  }
-
-
-  @Test
-  public void testMurmur3HashUuid() throws SQLException {
-    testMetricCollisionsForUuidGenStrategy(new Murmur3HashUuidGenStrategy(), 16);
-  }
-
-  @Test
-  public void testMurmur3HashingBasedUuidForHostnames() throws SQLException {
-    testHostCollisionsForUuidGenStrategy(new Murmur3HashUuidGenStrategy(), 4);
-  }
-
-  @Test
-  public void testMurmur3ConsistentHashing() throws SQLException, InterruptedException {
-    testConsistencyForUuidGenStrategy(new Murmur3HashUuidGenStrategy(), 4);
-  }
-
-  private void testMetricCollisionsForUuidGenStrategy(MetricUuidGenStrategy strategy, int uuidLength) {
-    Map<TimelineMetricUuid, TimelineClusterMetric> uuids = new HashMap<>();
-    for (String app : metricSet.keySet()) {
-      Set<String> metrics = metricSet.get(app);
-      for (String m : metrics) {
-        TimelineClusterMetric metric = new TimelineClusterMetric(m, app, null, -1l);
-        byte[] uuid = strategy.computeUuid(metric, uuidLength);
-        Assert.assertNotNull(uuid);
-        Assert.assertTrue(uuid.length == uuidLength);
-        TimelineMetricUuid uuidStr = new TimelineMetricUuid(uuid);
-        Assert.assertFalse(uuids.containsKey(uuidStr) && !uuids.containsValue(metric));
-        uuids.put(uuidStr, metric);
-      }
-    }
-  }
-
-
-  private void testHostCollisionsForUuidGenStrategy(MetricUuidGenStrategy strategy, int uuidLength) {
-    Map<TimelineMetricUuid, String> uuids = new HashMap<>();
+    MetricUuidGenStrategy strategy = new HashBasedUuidGenStrategy();
+    Map<String, String> uuids = new HashMap<>();
 
     List<String> hosts = new ArrayList<>();
     String hostPrefix = "TestHost.";
@@ -142,32 +96,82 @@ public class MetricUuidGenStrategyTest {
     }
 
     for (String host : hosts) {
-      byte[] uuid = strategy.computeUuid(host, uuidLength);
+      byte[] uuid = strategy.computeUuid(host, 16);
       Assert.assertNotNull(uuid);
-      Assert.assertTrue(uuid.length == uuidLength);
-      TimelineMetricUuid uuidStr = new TimelineMetricUuid(uuid);
+      Assert.assertTrue(uuid.length == 16);
+      String uuidStr = new String(uuid);
       Assert.assertFalse(uuids.containsKey(uuidStr));
       uuids.put(uuidStr, host);
     }
   }
 
-  private void testConsistencyForUuidGenStrategy(MetricUuidGenStrategy strategy, int length) throws InterruptedException {
+
+  @Test
+  public void testRandomUuidForWhitelistedMetrics() throws SQLException {
+
+    MetricUuidGenStrategy strategy = new MD5UuidGenStrategy();
+    Map<String, String> uuids = new HashMap<>();
+    for (String app : metricSet.keySet()) {
+      Set<String> metrics = metricSet.get(app);
+      for (String metric : metrics) {
+        byte[] uuid = strategy.computeUuid(new TimelineClusterMetric(metric, app, null, -1l), 16);
+        Assert.assertNotNull(uuid);
+        Assert.assertTrue(uuid.length == 16);
+        String uuidStr = new String(uuid);
+        Assert.assertFalse(uuids.containsKey(uuidStr) && !uuids.containsValue(metric));
+        uuids.put(uuidStr, metric);
+      }
+    }
+  }
+
+  @Test
+  public void testRandomUuidForHostnames() throws SQLException {
+
+    MetricUuidGenStrategy strategy = new MD5UuidGenStrategy();
+    Map<String, String> uuids = new HashMap<>();
+
+    List<String> hosts = new ArrayList<>();
+    String hostPrefix = "TestHost.";
+    String hostSuffix = ".ambari.apache.org";
+
+    for (int i=0; i<=2000; i++) {
+      hosts.add(hostPrefix + i + hostSuffix);
+    }
+
+    int numC = 0;
+    for (String host : hosts) {
+      byte[] uuid = strategy.computeUuid(host, 16);
+      Assert.assertNotNull(uuid);
+      Assert.assertTrue(uuid.length == 16);
+      String uuidStr = new String(uuid);
+      Assert.assertFalse(uuids.containsKey(uuidStr));
+      uuids.put(uuidStr, host);
+    }
+  }
+
+
+  @Test
+  public void testConsistentHashing() throws SQLException, InterruptedException {
+
+    MetricUuidGenStrategy strategy = new MD5UuidGenStrategy();
     String key = "TestString";
 
-    byte[] uuid = strategy.computeUuid(key, length);
+    byte[] uuid = strategy.computeUuid(key, 16);
     Assert.assertNotNull(uuid);
-    Assert.assertTrue(uuid.length == length);
+    Assert.assertTrue(uuid.length == 16);
 
     for (int i = 0; i<100; i++) {
-      byte[] uuid2 = strategy.computeUuid(key, length);
+      byte[] uuid2 = strategy.computeUuid(key, 16);
       Assert.assertNotNull(uuid2);
-      Assert.assertTrue(uuid2.length == length);
+      Assert.assertTrue(uuid2.length == 16);
       Assert.assertArrayEquals(uuid, uuid2);
       Thread.sleep(10);
     }
   }
 
-  private static Map<String, Set<String>> populateMetricWhitelistFromFile() {
+
+  public Map<String, Set<String>> populateMetricWhitelistFromFile() {
+
 
     Map<String, Set<String>> metricSet = new HashMap<String, Set<String>>();
     FileInputStream fstream = null;
@@ -203,7 +207,7 @@ public class MetricUuidGenStrategyTest {
         }
       }
       metricsForApp.add("live_hosts");
-      if (appId.startsWith("hbase")) {
+      if (appId.equals("master_hbase") || appId.equals("slave_hbase")) {
         hbaseMetrics.addAll(metricsForApp);
       } else {
         metricSet.put(appId, metricsForApp);

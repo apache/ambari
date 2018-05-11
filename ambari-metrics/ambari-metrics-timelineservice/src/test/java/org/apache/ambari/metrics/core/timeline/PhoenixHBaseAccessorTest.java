@@ -109,7 +109,7 @@ public class PhoenixHBaseAccessorTest {
 
     mockStatic(PhoenixTransactSQL.class);
     PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
-    Condition condition = new DefaultCondition(Collections.singletonList(new byte[20]), metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
+    Condition condition = new DefaultCondition(Collections.singletonList(new byte[32]), metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
     expect(PhoenixTransactSQL.prepareGetMetricsSqlStmt(null, condition)).andReturn(preparedStatementMock).once();
     ResultSet rsMock = EasyMock.createNiceMock(ResultSet.class);
     expect(preparedStatementMock.executeQuery()).andReturn(rsMock);
@@ -138,7 +138,7 @@ public class PhoenixHBaseAccessorTest {
 
     mockStatic(PhoenixTransactSQL.class);
     PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
-    Condition condition = new DefaultCondition(Collections.singletonList(new byte[20]), metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
+    Condition condition = new DefaultCondition(Collections.singletonList(new byte[32]), metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
     expect(PhoenixTransactSQL.prepareGetMetricsSqlStmt(null, condition)).andReturn(preparedStatementMock).once();
     ResultSet rsMock = EasyMock.createNiceMock(ResultSet.class);
     RuntimeException runtimeException = EasyMock.createNiceMock(RuntimeException.class);
