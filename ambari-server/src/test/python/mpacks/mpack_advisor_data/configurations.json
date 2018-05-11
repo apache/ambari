@@ -1,0 +1,107 @@
+{
+ "recommendations": {
+  "blueprint": {
+   "mpack_instances": [
+    {
+     "version": "1.0.0-b273", 
+     "hosts": [], 
+     "name": "HDPCORE", 
+     "configurations": {
+      "capacity-scheduler": {
+       "properties": {
+        "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator"
+       }
+      }, 
+      "core-site": {
+       "properties": {
+        "hadoop.proxyuser.root.hosts": "hw13472.local", 
+        "hadoop.proxyuser.root.groups": "*"
+       }, 
+       "property_attributes": {
+        "hadoop.security.key.provider.path": {
+         "delete": "true"
+        }
+       }
+      }, 
+      "container-executor": {
+       "properties": {
+        "docker_allowed_devices": ""
+       }
+      }, 
+      "yarn-env": {
+       "properties": {
+        "min_user_id": "1000", 
+        "service_check.queue.name": "default", 
+        "apptimelineserver_heapsize": "8072"
+       }
+      }, 
+      "zoo.cfg": {
+       "properties": {
+        "dataDir": "/hadoop/zookeeper"
+       }
+      }, 
+      "hdfs-site": {
+       "properties": {
+        "dfs.namenode.checkpoint.dir": "/hadoop/hdfs/namesecondary", 
+        "dfs.datanode.data.dir": "/hadoop/hdfs/data,/grid/0/hadoop/hdfs/data", 
+        "dfs.namenode.name.dir": "/hadoop/hdfs/namenode,/grid/0/hadoop/hdfs/namenode", 
+        "dfs.datanode.du.reserved": "33011188224"
+       }, 
+       "property_attributes": {
+        "dfs.namenode.inode.attributes.provider.class": {
+         "delete": "true"
+        }, 
+        "dfs.encryption.key.provider.uri": {
+         "delete": "true"
+        }
+       }
+      }, 
+      "hadoop-env": {
+       "properties": {
+        "namenode_heapsize": "7680", 
+        "namenode_opt_maxnewsize": "1920", 
+        "namenode_opt_newsize": "1920"
+       }
+      }, 
+      "resource-types": {
+       "properties": {}
+      }, 
+      "yarn-site": {
+       "properties": {
+        "yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round": "0.2", 
+        "yarn.nodemanager.linux-container-executor.cgroups.mount": "false", 
+        "yarn.nodemanager.local-dirs": "/hadoop/yarn/local,/grid/0/hadoop/yarn/local", 
+        "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline", 
+        "yarn.scheduler.minimum-allocation-vcores": "1", 
+        "yarn.scheduler.maximum-allocation-vcores": "2", 
+        "yarn.nodemanager.linux-container-executor.group": "hadoop", 
+        "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline", 
+        "yarn.scheduler.minimum-allocation-mb": "1024", 
+        "yarn.nodemanager.resource.cpu-vcores": "2", 
+        "yarn.scheduler.maximum-allocation-mb": "12288", 
+        "yarn.nodemanager.resource.memory-mb": "12288", 
+        "yarn.timeline-service.entity-group-fs-store.app-cache-size": "10", 
+        "yarn.nodemanager.log-dirs": "/hadoop/yarn/log,/grid/0/hadoop/yarn/log"
+       }, 
+       "property_attributes": {
+        "yarn.authorization-provider": {
+         "delete": "true"
+        }
+       }
+      }
+     }, 
+     "service_instances": [
+      "HADOOP_CLIENTS", 
+      "HDFS", 
+      "YARN", 
+      "ZOOKEEPER", 
+      "ZOOKEEPER_CLIENTS"
+     ]
+    }
+   ]
+  }, 
+  "blueprint_cluster_binding": {
+   "host_groups": []
+  }
+ }
+}

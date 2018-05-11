@@ -41,3 +41,15 @@ class TestMpackAdvisor(TestCase):
     main(argv)
     resultJson = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/component-layout-validation.json')
     self.assertTrue(os.path.isfile(resultJson))
+
+  def test_get_configurations(self):
+    argv = ['dummy', 'recommend-configurations', self.testHostsJson, self.testServicesJson]
+    main(argv)
+    resultJson = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/configurations.json')
+    self.assertTrue(os.path.isfile(resultJson))
+
+  def test_validate_configurations(self):
+    argv = ['dummy', 'validate-configurations', self.testHostsJson, self.testServicesJson]
+    main(argv)
+    resultJson = os.path.join(self.testDirectory, 'mpacks/mpack_advisor_data/configurations-validation.json')
+    self.assertTrue(os.path.isfile(resultJson))

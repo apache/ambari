@@ -413,10 +413,10 @@ class ServiceInstance(object):
   def getVersion(self):
     return self.version
 
-  def getMapckName(self):
+  def getMpackName(self):
     return self.mpackName
 
-  def getMapckVersion(self):
+  def getMpackVersion(self):
     return self.mpackVersion
 
   def getComponents(self):
@@ -442,9 +442,9 @@ class MpackAdvisorImpl(MpackAdvisor):
   """
 
   def __init__(self):
+    super(MpackAdvisorImpl, self).__init__()
     self.services = None
     self.hostsList = None
-    self.clusterSummary = None
 
     self.initialize_logger('MpackAdvisor')
 
@@ -686,22 +686,23 @@ class MpackAdvisorImpl(MpackAdvisor):
                    if not host.get('maintenance_state') or host.get('maintenance_state') == "OFF"]
     return hostsList
 
-  def instantiateServiceAdvisor(self, serviceInstance):
+  def instantiateServiceAdvisor(self, stackService):
     """
     Load the Service Advisor for the given service name by finding the best class in the given file.
     :param serviceInstance: ServiceInstance object that contains a path to the advisor being requested.
     :return: The class name for the Service Advisor requested, or None if one could not be found.
     """
-    serviceName = serviceInstance.get("type")
-    className = serviceInstance.get("advisor_name")
-    path = serviceInstance.get("advisor_path")
-
+    os.environ["mpack"] = "true"
+    serviceName = stackService.get("service_name")
+    className = stackService.get("advisor_name")
+    path = stackService.get("advisor_path")
     classNamePattern = re.compile("%s.*?ServiceAdvisor" % serviceName, re.IGNORECASE)
 
     if path and os.path.exists(path) and className:
       try:
         with open(path, 'rb') as fp:
           serviceAdvisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
+
           # Find the class name by reading from all of the available attributes of the python file.
           attributes = dir(serviceAdvisor)
           bestClassName = className
@@ -714,7 +715,8 @@ class MpackAdvisorImpl(MpackAdvisor):
 
           if hasattr(serviceAdvisor, bestClassName):
             self.logger.info("ServiceAdvisor implementation for service {0} was loaded".format(serviceName))
-            return getattr(serviceAdvisor, bestClassName)(MpackAdvisorImpl)
+            sa = getattr(serviceAdvisor, bestClassName)
+            return sa()
           else:
             self.logger.error("Failed to load or create ServiceAdvisor implementation for service {0}: " \
                   "Expecting class name {1} but it was not found.".format(serviceName, bestClassName))
@@ -902,7 +904,7 @@ class MpackAdvisorImpl(MpackAdvisor):
         for hostName in hostsForComponent:
           if hostName in hostsSet:
             hostsComponentsMap[hostName].append({"name": componentName, "service_instance": serviceInstance.getName(),
-                                                 "mpack_instance": serviceInstance.getMapckName()})
+                                                 "mpack_instance": serviceInstance.getMpackName()})
 
     #extend 'hostsComponentsMap' with Slave and Client Components
     componentsListList = [serviceInstance.getComponents() for serviceInstance in self.serviceInstancesSet]
@@ -929,7 +931,7 @@ class MpackAdvisorImpl(MpackAdvisor):
             hostsComponentsMap[hostName] = []
           if hostName in hostsSet:
             hostsComponentsMap[hostName].append({"name": componentName, "service_instance": serviceInstance.getName(),
-                                                 "mpack_instance": serviceInstance.getMapckName()})
+                                                 "mpack_instance": serviceInstance.getMpackName()})
 
     #colocate custom services
     for serviceInstance in sortedServiceInstances:
@@ -1199,7 +1201,7 @@ class MpackAdvisorImpl(MpackAdvisor):
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
 
     # calculate memory properties and get cluster data dictionary with whole information
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(hosts, services)
 
     # executing code from stack advisor HDP 206
     nodemanagerMinRam = 1048576 # 1TB in mb
@@ -1259,7 +1261,7 @@ class MpackAdvisorImpl(MpackAdvisor):
 
     if len(hosts.get("items")) > 0:
       # nodeManagerHosts=[(host, componentCount),...]
-      nodeManagerHosts = self.getHostsWithComponent("YARN", "NODEMANAGER", serviceInstances, hosts)
+      nodeManagerHosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
       # NodeManager host with least memory is generally used in calculations as it will work in larger hosts.
       if nodeManagerHosts:
         nodeManagerHost = nodeManagerHosts[0];
@@ -1471,8 +1473,8 @@ class MpackAdvisorImpl(MpackAdvisor):
     """
     result = []
     for validationProblem in validationProblems:
-      validationItem = validationProblem.get("item", None)
-      if validationItem is not None:
+      validationItem = validationProblem.get("item")
+      if validationItem:
         problem = {"type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
                    "config-type": siteName, "config-name": validationProblem["config-name"] }
         result.append(problem)
@@ -1522,17 +1524,21 @@ class MpackAdvisorImpl(MpackAdvisor):
   def getConfigurationsValidationItems(self):
     """Returns array of Validation objects about issues with configuration values provided in services"""
     items = []
+    configurations = self.services["configurations"]
 
     recommendations = self.recommendConfigurations()
-    recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
-    configurations = services["configurations"]
-
-    for service in services["services"]:
-      items.extend(self.getConfigurationsValidationItemsForService(configurations, recommendedDefaults, service, services, hosts))
-
+    mpackInstances = recommendations["recommendations"]["blueprint"]["mpack_instances"]
+    for mpackInstance in mpackInstances:
+      recommendedDefaults = mpackInstance["configurations"]
+      mpackName = mpackInstance["name"]
+      mpackInstanceConfigurations = {}
+      mpackItems = []
+      for serviceInstance in self.mpackServiceInstancesDict.get(mpackName):
+        mpackItems.extend(self.getConfigurationsValidationItemsForService(configurations, recommendedDefaults, serviceInstance, self.services, self.hostsList))
+      self.validateMinMax(mpackItems, recommendedDefaults, configurations)
+      items.append({mpackName: mpackItems})
     clusterWideItems = self.validateClusterConfigurations()
-    items.extend(clusterWideItems)
-    self.validateMinMax(items, recommendedDefaults, configurations)
+    items.append({"cluster": clusterWideItems})
     return items
 
   def validateListOfConfigUsingMethod(self, configurations, recommendedDefaults, services, hosts, validators):
@@ -1570,16 +1576,16 @@ class MpackAdvisorImpl(MpackAdvisor):
         return method(siteProperties, siteRecommendations, configurations, services, hosts)
     return []
 
-  def getConfigurationsValidationItemsForService(self, configurations, recommendedDefaults, service, services, hosts):
+  def getConfigurationsValidationItemsForService(self, configurations, recommendedDefaults, serviceInstance, services, hosts):
     items = []
-    serviceName = service["StackServices"]["service_name"]
+    serviceName = serviceInstance.getType()
     validator = self.validateServiceConfigurations(serviceName)
     if validator is not None:
       for siteName, method in validator.items():
         resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
         items.extend(resultItems)
 
-    serviceAdvisor = self.getServiceAdvisor(serviceName)
+    serviceAdvisor = serviceInstance.getServiceAdvisor()
     if serviceAdvisor is not None:
       items.extend(serviceAdvisor.getServiceConfigurationsValidationItems(configurations, recommendedDefaults, services, hosts))
 
@@ -1600,7 +1606,7 @@ class MpackAdvisorImpl(MpackAdvisor):
           configGroup["configurations"][configName]
 
       # Override hosts with the config group hosts
-      cgHosts = {"items": [host for host in self.hosts["items"] if
+      cgHosts = {"items": [host for host in self.hostsList["items"] if
                            host["Hosts"]["host_name"] in configGroup["hosts"]]}
 
       # Override clusterSummary
@@ -1670,16 +1676,16 @@ class MpackAdvisorImpl(MpackAdvisor):
     if "config-groups" in self.services:
       self.recommendConfigGroupsConfigurations(recommendations)
     else:
-      clusterSummary = self.getConfigurationClusterSummary(self.hosts, self.services)
-      mpackInstances = recommendations.get("mpack_instances")
-      for mpackInstanceName, serviceInstances in enumerate(self.mpackServiceInstancesDict):
+      clusterSummary = self.getConfigurationClusterSummary(self.hostsList, self.services)
+      mpackInstances = recommendations["recommendations"]["blueprint"]["mpack_instances"]
+      for mpackInstanceName, serviceInstances in self.mpackServiceInstancesDict.items():
         mpackInstance = {}
-        mpackInstances.append(mpackInstance)
         mpackInstance["name"] = mpackInstanceName
         mpackInstance["version"] = serviceInstances[0].getMpackVersion()
         mpackInstance["service_instances"] = [serviceInstance.getName() for serviceInstance in serviceInstances]
         mpackInstance["configurations"] = {}
         mpackInstance["hosts"] = []
+        mpackInstances.append(mpackInstance)
         configurations = mpackInstance["configurations"]
         # there can be dependencies between service recommendations which require special ordering
         # for now, make sure custom services (that have service advisors) run after standard ones
@@ -1690,23 +1696,23 @@ class MpackAdvisorImpl(MpackAdvisor):
                         else self.getServiceConfigurationRecommender(serviceName)
           if calculation:
             # ???????
-            calculation(configurations, clusterSummary, self.services, self.hosts)
+            calculation(configurations, clusterSummary, self.services, self.hostsList)
           else:
             serviceAdvisor = serviceInstance.getServiceAdvisor()
             if serviceAdvisor:
               serviceAdvisors.append(serviceAdvisor)
         for serviceAdvisor in serviceAdvisors:
           if isSSO:
-            serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, self.services, self.hosts)
+            serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, self.services, self.hostsList)
           else:
-            serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, self.services, self.hosts)
+            serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, self.services, self.hostsList)
 
 
     return recommendations
 
   def recommendConfigurations(self):
 
-    return getRecommendConfigurations()
+    return self.getRecommendConfigurations()
 
   def recommendConfigurationsForSSO(self):
 
@@ -2017,16 +2023,16 @@ class MpackAdvisorImpl(MpackAdvisor):
       return None
     return siteConfig.get("properties")
 
-  def getServicesSiteProperties(self, siteName):
-    if not self.services:
-      return None
+  def getServicesSiteProperties(self, services, siteName):
+    if not services:
+      return {}
 
-    configurations = self.services.get("configurations")
+    configurations = services.get("configurations")
     if not configurations:
-      return None
+      return {}
     siteConfig = configurations.get(siteName)
     if siteConfig is None:
-      return None
+      return {}
     return siteConfig.get("properties")
 
   def putProperty(self, config, configType, services=None):
@@ -2179,7 +2185,7 @@ class MpackAdvisorImpl(MpackAdvisor):
     :param services: the services structure containing the current configurations
     :return: the stack root as specified in the config or /usr/hdp
     """
-    cluster_settings = self.getServicesSiteProperties("cluster-settings")
+    cluster_settings = self.getServicesSiteProperties(self.services, "cluster-settings")
     stack_root = "/usr/hdp"
     if cluster_settings and "stack_root" in cluster_settings:
       stack_root_as_str = cluster_settings["stack_root"]
@@ -2277,7 +2283,7 @@ class MpackAdvisorImpl(MpackAdvisor):
     banned_filesystems = ["devtmpfs", "tmpfs", "vboxsf", "cdfs"]
     banned_mount_points = ["/etc/resolv.conf", "/etc/hostname", "/boot", "/mnt", "/tmp", "/run/secrets"]
 
-    cluster_settings = self.getServicesSiteProperties("cluster-settings")
+    cluster_settings = self.getServicesSiteProperties(self.services, "cluster-settings")
     ignore_list = []
 
     if cluster_settings and "agent_mounts_ignore_list" in cluster_settings and cluster_settings["agent_mounts_ignore_list"].strip():
@@ -2422,9 +2428,9 @@ class MpackAdvisorImpl(MpackAdvisor):
         return componentHostnames
     return []
 
-  def getHostsWithComponent(self, serviceName, componentName, serviceInstances, hosts):
+  def getHostsWithComponent(self, serviceName, componentName, services, hosts):
     """
-    This method is to get for a service with multiple instances, how many hosts are installed this component
+    This method should get for a service with multiple instances, how many hosts have this component installed
     and how many same components running on a host
     :param serviceName:
     :param componentName:
@@ -2432,24 +2438,14 @@ class MpackAdvisorImpl(MpackAdvisor):
     :param hosts:
     :return:
     """
-    componentHosts = {}
-    for serviceInstance in self.serviceInstances:
-      if serviceInstance.getType() != serviceName:
-        continue
-      components = serviceInstance.getComponents()
-      for component in componets:
-        if "StackServiceComponents" in component and "component_name" in component.get("StackServiceComponents") and \
-          component["StackServiceComponents"]["component_name"] == componentName:
-          componentHostnames = component["StackServiceComponents"]["hostnames"]
-          for host in hosts["items"]:
-            if host.get("Hosts") and host.get("Hosts").get("host_name") in componentHostnames:
-              hostName = host.get("Hosts").get("host_name")
-              if not componentHostnames.get(hostName):
-                componentHosts[hostName] = (host, 1)
-              else:
-                (host, count) = componentHostnames.get(hostName)
-                componentHosts[hostName] = (host, count+1)
-    return componentHostnames.values()
+    if services is not None and hosts is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
+      service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
+      components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
+      if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
+        componentHostnames = components[0]["StackServiceComponents"]["hostnames"]
+        componentHosts = [host for host in hosts["items"] if host["Hosts"]["host_name"] in componentHostnames]
+        return componentHosts
+    return []
 
   def getHostWithComponent(self, serviceName, componentName, services, hosts):
     componentHosts = self.getHostsWithComponent(serviceName, componentName, services, hosts)
@@ -2594,7 +2590,7 @@ class MpackAdvisorImpl(MpackAdvisor):
       "OOZIE":  [("oozie-env", "oozie_user", {HOSTS_PROPERTY: ["OOZIE_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
       "HIVE":   [("hive-env", "hive_user", {HOSTS_PROPERTY: ["HIVE_SERVER", "HIVE_SERVER_INTERACTIVE"], GROUPS_PROPERTY: ALL_WILDCARD}),
                  ("hive-env", "webhcat_user", {HOSTS_PROPERTY: ["WEBHCAT_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
-      "YARN":   [("yarn-env", "yarn_user", {HOSTS_PROPERTY: ["RESOURCEMANAGER"]}, lambda services, hosts: len(self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)) > 1)],
+      "YARN":   [("yarn-env", "yarn_user", {HOSTS_PROPERTY: ["RESOURCEMANAGER"]}, lambda services, hosts: len(self.getHostsWithComponent("YARN", "RESOURCEMANAGER", self.services, self.hostsList)) > 1)],
       "FALCON": [("falcon-env", "falcon_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
       "SPARK":  [("livy-env", "livy_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})]
     }
@@ -2628,7 +2624,7 @@ class MpackAdvisorImpl(MpackAdvisor):
               componentHosts = self.getHostsWithComponent(serviceName, component, services, hosts)
               if componentHosts is not None:
                 for componentHost in componentHosts:
-                  componentHostName =  componentHost["Hosts"]["host_name"]
+                  componentHostName = componentHost["Hosts"]["host_name"]
                   componentHostNames.add(componentHostName)
 
             componentHostNamesString = ",".join(sorted(componentHostNames))

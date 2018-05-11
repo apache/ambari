@@ -28,7 +28,7 @@ from resource_management.libraries.functions.mounted_dirs_helper import get_moun
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../main/resources/stacks/')
+STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../main/resources/stacks/')
 PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
 
 try:
@@ -44,6 +44,7 @@ except Exception as e:
 class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
 
   def __init__(self, *args, **kwargs):
+    x = HDFSServiceAdvisor.__bases__
     self.as_super = super(HDFSServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
 

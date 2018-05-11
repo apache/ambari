@@ -1,0 +1,246 @@
+{
+ "services": [
+  "HADOOP_CLIENTS", 
+  "ZOOKEEPER", 
+  "YARN", 
+  "ZOOKEEPER_CLIENTS", 
+  "HDFS"
+ ], 
+ "hosts": [
+  "sduan-mpack-05-07-1.openstacklocal", 
+  "sduan-mpack-05-07-2.openstacklocal", 
+  "sduan-mpack-05-07-3.openstacklocal", 
+  "sduan-mpack-05-07-4.openstacklocal", 
+  "sduan-mpack-05-07-5.openstacklocal"
+ ], 
+ "recommendations": {
+  "blueprint": {
+   "host_groups": [
+    {
+     "name": "host-group-1", 
+     "components": [
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "NODEMANAGER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "DATANODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "JOURNALNODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZKFC", 
+       "service_instance": "HDFS"
+      }
+     ]
+    }, 
+    {
+     "name": "host-group-2", 
+     "components": [
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "NODEMANAGER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "DATANODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "JOURNALNODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZKFC", 
+       "service_instance": "HDFS"
+      }
+     ]
+    }, 
+    {
+     "name": "host-group-3", 
+     "components": [
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZOOKEEPER_SERVER", 
+       "service_instance": "ZOOKEEPER"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "NODEMANAGER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "DATANODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "JOURNALNODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZKFC", 
+       "service_instance": "HDFS"
+      }
+     ]
+    }, 
+    {
+     "name": "host-group-4", 
+     "components": [
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZOOKEEPER_SERVER", 
+       "service_instance": "ZOOKEEPER"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "APP_TIMELINE_SERVER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "SECONDARY_NAMENODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "NODEMANAGER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "DATANODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "JOURNALNODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZKFC", 
+       "service_instance": "HDFS"
+      }
+     ]
+    }, 
+    {
+     "name": "host-group-5", 
+     "components": [
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZOOKEEPER_SERVER", 
+       "service_instance": "ZOOKEEPER"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "RESOURCEMANAGER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "TIMELINE_READER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "YARN_REGISTRY_DNS", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "NAMENODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "HADOOP_CLIENT", 
+       "service_instance": "HADOOP_CLIENTS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "NODEMANAGER", 
+       "service_instance": "YARN"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZOOKEEPER_CLIENT", 
+       "service_instance": "ZOOKEEPER_CLIENTS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "DATANODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "JOURNALNODE", 
+       "service_instance": "HDFS"
+      }, 
+      {
+       "mpack_instance": "HDPCORE", 
+       "name": "ZKFC", 
+       "service_instance": "HDFS"
+      }
+     ]
+    }
+   ]
+  }, 
+  "blueprint_cluster_binding": {
+   "host_groups": [
+    {
+     "hosts": [
+      {
+       "fqdn": "sduan-mpack-05-07-5.openstacklocal"
+      }
+     ], 
+     "name": "host-group-1"
+    }, 
+    {
+     "hosts": [
+      {
+       "fqdn": "sduan-mpack-05-07-4.openstacklocal"
+      }
+     ], 
+     "name": "host-group-2"
+    }, 
+    {
+     "hosts": [
+      {
+       "fqdn": "sduan-mpack-05-07-3.openstacklocal"
+      }
+     ], 
+     "name": "host-group-3"
+    }, 
+    {
+     "hosts": [
+      {
+       "fqdn": "sduan-mpack-05-07-2.openstacklocal"
+      }
+     ], 
+     "name": "host-group-4"
+    }, 
+    {
+     "hosts": [
+      {
+       "fqdn": "sduan-mpack-05-07-1.openstacklocal"
+      }
+     ], 
+     "name": "host-group-5"
+    }
+   ]
+  }
+ }
+}
