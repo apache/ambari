@@ -33,6 +33,9 @@ export default DS.Model.extend({
   modificationTime                  : DS.attr('iso-date'),
   blockSize                         : DS.attr('number'),
   replication                       : DS.attr('number'),
+  isEncrypted                       : DS.attr('boolean'),
+  isErasureCoded                    : DS.attr('boolean'),
+  erasureCodingPolicyName           : DS.attr('string'),
   size                              : Ember.computed.alias('len'),
 
   path: function() {
