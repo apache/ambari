@@ -20,10 +20,10 @@ import fnmatch
 import json
 import os
 import params
+import socket
 import time
 import traceback
 
-from resource_management.core.exceptions import ExecutionFailed
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
@@ -51,6 +51,9 @@ debug = default("/commandParams/solr_migrate_debug", True)
 # used for filtering folders in backup location (like: if the filter is ranger, that will include snapshot.ranger folder but won't include snapshot.hadoop_logs)
 core_filter = default("/commandParams/solr_core_filter", None)
 
+# used to filer out comma separated cores - can be useful if backup/resotre failed in some point
+skip_cores = default("/commandParams/solr_skip_cores", "").split(",")
+
 # delete write.lock file at the start of lucene index migration process
 delete_lock_on_start = default("/commandParams/solr_delete_lock_on_start", True)
 # if it used, then core filter will be used with snapshot.* folder pattern
@@ -70,13 +73,27 @@ check_hosts_default = True if params.security_enabled else False
 check_hosts = default("/commandParams/solr_check_hosts", check_hosts_default)
 
 solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
+solr_port = format("{params.infra_solr_port}")
 solr_base_url = format("{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr")
+solr_datadir = params.infra_solr_datadir
+
+solr_keep_backup=default("/commandParams/solr_keep_backup", False)
+
+solr_num_shards = int(default("/commandParams/solr_shards", "0"))
+
+if solr_num_shards == 0:
+  raise Exeption(format("The 'solr_shards' command parameter is required to set."))
 
 if params.security_enabled:
   keytab = params.infra_solr_kerberos_keytab
   principal = params.infra_solr_kerberos_principal
 
 hostname_suffix = params.hostname.replace(".", "_")
+
+HOST_CORES='host-cores'
+CORE_HOST='core-host'
+HOST_SHARDS='host-shards'
+CORE_DATA='core-data'
 
 if shared_fs:
   index_location = format("{index_location}_{hostname_suffix}")
@@ -92,8 +109,8 @@ def get_files_by_pattern(directory, pattern):
       if matched:
         yield os.path.join(root, basename)
 
-def create_solr_api_request_command(request_path, output=None):
-  solr_url = format("{solr_base_url}/{request_path}")
+def create_solr_api_request_command(request_path, output=None, override_solr_base_url=None):
+  solr_url = format("{solr_base_url}/{request_path}") if override_solr_base_url is None else format("{override_solr_base_url}/{request_path}")
   grep_cmd = " | grep 'solr_rs_status: 200'"
   api_cmd = format("kinit -kt {keytab} {principal} && curl -w'solr_rs_status: %{{http_code}}' -k --negotiate -u : '{solr_url}'") \
     if params.security_enabled else format("curl -w'solr_rs_status: %{{http_code}}' -k '{solr_url}'")
@@ -126,51 +143,62 @@ def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, 
         json_data = json.load(json_file)
         if backup:
           details = json_data['details']
-          backup_list = details['backup']
-          if log_output:
-            Logger.info(str(backup_list))
+          if 'backup' in details:
+            backup_list = details['backup']
+            if log_output:
+              Logger.info(str(backup_list))
 
-          if type(backup_list) == type(list()): # support map and list format as well
-            backup_data = dict(backup_list[i:i+2] for i in range(0, len(backup_list), 2))
+            if type(backup_list) == type(list()): # support map and list format as well
+              backup_data = dict(backup_list[i:i+2] for i in range(0, len(backup_list), 2))
+            else:
+              backup_data = backup_list
+
+            if (not 'snapshotName' in backup_data) or backup_data['snapshotName'] != snapshot_name:
+              snapshot = backup_data['snapshotName']
+              Logger.info(format("Snapshot name: {snapshot}, wait until {snapshot_name} will be available."))
+              time.sleep(time_interval)
+              continue
+
+            if backup_data['status'] == 'success':
+              Logger.info("Backup command status: success.")
+              failed = False
+            elif backup_data['status'] == 'failed':
+              Logger.info("Backup command status: failed.")
+            else:
+              Logger.info(format("Backup command is in progress... Sleep for {time_interval} seconds."))
+              time.sleep(time_interval)
+              continue
           else:
-            backup_data = backup_list
-
-          if (not 'snapshotName' in backup_data) or backup_data['snapshotName'] != snapshot_name:
-            snapshot = backup_data['snapshotName']
-            Logger.info(format("Snapshot name: {snapshot}, wait until {snapshot_name} will be available."))
-            time.sleep(time_interval)
-            continue
-
-          if backup_data['status'] == 'success':
-            Logger.info("Backup command status: success.")
-            failed = False
-          elif backup_data['status'] == 'failed':
-            Logger.info("Backup command status: failed.")
-          else:
-            Logger.info(format("Backup command is in progress... Sleep for {time_interval} seconds."))
+            Logger.info("Backup data is not found yet in details JSON response...")
             time.sleep(time_interval)
             continue
 
         else:
-          restorestatus_data = json_data['restorestatus']
-          if log_output:
-            Logger.info(str(restorestatus_data))
+          if 'restorestatus' in json_data:
+            restorestatus_data = json_data['restorestatus']
+            if log_output:
+              Logger.info(str(restorestatus_data))
 
-          if (not 'snapshotName' in restorestatus_data) or restorestatus_data['snapshotName'] != format("snapshot.{snapshot_name}"):
-            snapshot = restorestatus_data['snapshotName']
-            Logger.info(format("Snapshot name: {snapshot}, wait until snapshot.{snapshot_name} will be available."))
-            time.sleep(time_interval)
-            continue
+            if (not 'snapshotName' in restorestatus_data) or restorestatus_data['snapshotName'] != format("snapshot.{snapshot_name}"):
+              snapshot = restorestatus_data['snapshotName']
+              Logger.info(format("Snapshot name: {snapshot}, wait until snapshot.{snapshot_name} will be available."))
+              time.sleep(time_interval)
+              continue
 
-          if restorestatus_data['status'] == 'success':
-            Logger.info("Restore command successfully finished.")
-            failed = False
-          elif restorestatus_data['status'] == 'failed':
-            Logger.info("Restore command failed.")
+            if restorestatus_data['status'] == 'success':
+              Logger.info("Restore command successfully finished.")
+              failed = False
+            elif restorestatus_data['status'] == 'failed':
+              Logger.info("Restore command failed.")
+            else:
+              Logger.info(format("Restore command is in progress... Sleep for {time_interval} seconds."))
+              time.sleep(time_interval)
+              continue
           else:
-            Logger.info(format("Restore command is in progress... Sleep for {time_interval} seconds."))
+            Logger.info("Restore status data is not found yet in details JSON response...")
             time.sleep(time_interval)
             continue
+
 
     except Exception:
       traceback.print_exc()
@@ -189,9 +217,16 @@ def __get_domain_name(url):
   dm = spltAr[i].split('/')[0].split(':')[0].lower()
   return dm
 
-def __read_hosts_from_clusterstate_json(json_path):
-  hosts = set()
-  with open(json_path) as json_file:
+def __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores_path):
+  """
+  Fill (and write to file) a JSON object with core data from state.json (znode).
+  """
+  json_content={}
+  hosts_core_map={}
+  hosts_shard_map={}
+  core_host_map={}
+  core_data_map={}
+  with open(json_zk_state_path) as json_file:
     json_data = json.load(json_file)
     znode = json_data['znode']
     data = json.loads(znode['data'])
@@ -205,21 +240,98 @@ def __read_hosts_from_clusterstate_json(json_path):
         core_data = replicas[replica]
         core = core_data['core']
         base_url = core_data['base_url']
+        state = core_data['state']
+        leader = core_data['leader'] if 'leader' in core_data else 'false'
         domain = __get_domain_name(base_url)
-        hosts.add(domain)
-        Logger.info(format("Found replica: {replica} (core '{core}') in {shard} on {domain}"))
-    return hosts
+        if state == 'active' and leader == 'true':
+          if domain not in hosts_core_map:
+            hosts_core_map[domain]=[]
+          if domain not in hosts_shard_map:
+            hosts_shard_map[domain]=[]
+          if core not in core_data_map:
+            core_data_map[core]={}
+          hosts_core_map[domain].append(core)
+          hosts_shard_map[domain].append(shard)
+          core_host_map[core]=domain
+          core_data_map[core]['host']=domain
+          core_data_map[core]['node']=replica
+          core_data_map[core]['type']=core_data['type']
+          core_data_map[core]['shard']=shard
+          Logger.info(format("Found leader/active replica: {replica} (core '{core}') in {shard} on {domain}"))
+        else:
+          Logger.info(format("Found non-leader/active replica: {replica} (core '{core}') in {shard} on {domain}"))
+  json_content[HOST_CORES]=hosts_core_map
+  json_content[CORE_HOST]=core_host_map
+  json_content[HOST_SHARDS]=hosts_shard_map
+  json_content[CORE_DATA]=core_data_map
+  with open(json_host_cores_path, 'w') as outfile:
+    json.dump(json_content, outfile)
+  return json_content
 
-def __get_hosts_for_collection():
+def get_host_cores_for_collection(backup=True):
+  """
+  Get core details to an object and write them to a file as well. Backup data will be used during restore.
+  :param backup: if enabled, save file into backup_host_cores.json, otherwise use restore_host_cores.json
+  :return: detailed json about the cores
+  """
   request_path = 'admin/zookeeper?wt=json&detail=true&path=%2Fclusterstate.json&view=graph'
-  json_path = format("{index_location}/zk_state.json")
-  api_request = create_solr_api_request_command(request_path, output=json_path)
-  Execute(api_request, user=params.infra_solr_user)
-  return __read_hosts_from_clusterstate_json(json_path)
-
-def is_collection_available_on_host():
-  if check_hosts:
-    hosts_set = __get_hosts_for_collection()
-    return params.hostname in hosts_set
+  json_folder = format("{index_location}")
+  json_zk_state_path = format("{json_folder}/zk_state.json")
+  if backup:
+    json_host_cores_path = format("{json_folder}/backup_host_cores.json")
   else:
+    json_host_cores_path = format("{json_folder}/restore_host_cores.json")
+  api_request = create_solr_api_request_command(request_path, output=json_zk_state_path)
+  Execute(api_request, user=params.infra_solr_user)
+  return __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores_path)
+
+def read_backup_json():
+  with open(format("{index_location}/backup_host_cores.json")) as json_file:
+    json_data = json.load(json_file)
+    return json_data
+
+def create_core_pairs(original_cores, new_cores):
+  """
+  Create core pairss from the original and new cores (backups -> restored ones), use alphabetic order
+  """
+  core_pairs_data=[]
+  if len(new_cores) < len(original_cores):
+    raise Exception("Old collection core size is: " + str(len(new_cores)) +
+                    ". You will need at least: " + str(len(original_cores)))
+  else:
+    for index, core_data in enumerate(original_cores):
+      value={}
+      value['src_core']=core_data[0]
+      value['src_host']=core_data[1]
+      value['target_core']=new_cores[index][0]
+      value['target_host']=new_cores[index][1]
+      core_pairs_data.append(value)
+    with open(format("{index_location}/restore_core_pairs.json"), 'w') as outfile:
+      json.dump(core_pairs_data, outfile)
+    return core_pairs_data
+
+def sort_core_host_pairs(host_core_map):
+  """
+  Sort host core map by key
+  """
+  core_host_pairs=[]
+  for key in sorted(host_core_map):
+    core_host_pairs.append((key, host_core_map[key]))
+  return core_host_pairs
+
+def is_ip(addr):
+  try:
+    socket.inet_aton(addr)
     return True
+  except socket.error:
+    return False
+
+def resolve_ip_to_hostname(ip):
+  try:
+    host_name = socket.gethostbyaddr(ip)[0].lower()
+    Logger.info(format("Resolved {ip} to {host_name}"))
+    fqdn_name = socket.getaddrinfo(host_name, 0, 0, 0, 0, socket.AI_CANONNAME)[0][3].lower()
+    return host_name if host_name == fqdn_name else fqdn_name
+  except socket.error:
+    pass
+  return ip
