@@ -24,11 +24,9 @@ import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,23 +39,21 @@ public class PhoenixHostMetricsCopier extends AbstractPhoenixMetricsCopier {
   }
 
   @Override
-  protected void saveMetricsProgressUsingResultNames() {
-    Set<String> savedMetricNames = new HashSet<>();
-    for (TimelineMetric timelineMetric : aggregateMap.keySet()) {
-      savedMetricNames.add(timelineMetric.getMetricName());
-    }
-    for (String metricName: savedMetricNames) {
-      try {
-        processedMetricsFile.append(inputTable+":"+metricName+System.lineSeparator());
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
+  protected String getColumnsClause() {
+    return "METRIC_NAME, " +
+      "HOSTNAME, " +
+      "APP_ID, " +
+      "INSTANCE_ID, " +
+      "SERVER_TIME, " +
+      "METRIC_SUM, " +
+      "METRIC_COUNT, " +
+      "METRIC_MAX, " +
+      "METRIC_MIN";
   }
 
   @Override
   protected void saveMetrics() throws SQLException {
-    LOG.info(String.format("Saving %s results read from %s into %s", aggregateMap.size(), inputTable, outputTable));
+    LOG.debug(String.format("Saving %s results read from %s into %s", aggregateMap.size(), inputTable, outputTable));
     hBaseAccessor.saveHostAggregateRecords(aggregateMap, outputTable);
   }
 
@@ -65,16 +61,16 @@ public class PhoenixHostMetricsCopier extends AbstractPhoenixMetricsCopier {
   protected void addToResults(ResultSet rs) throws SQLException {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(rs.getString("METRIC_NAME"));
+    timelineMetric.setHostName(rs.getString("HOSTNAME"));
     timelineMetric.setAppId(rs.getString("APP_ID"));
     timelineMetric.setInstanceId(rs.getString("INSTANCE_ID"));
-    timelineMetric.setHostName(rs.getString("HOSTNAME"));
     timelineMetric.setStartTime(rs.getLong("SERVER_TIME"));
 
     MetricHostAggregate metricHostAggregate = new MetricHostAggregate();
-    metricHostAggregate.setMin(rs.getDouble("METRIC_MIN"));
-    metricHostAggregate.setMax(rs.getDouble("METRIC_MAX"));
     metricHostAggregate.setSum(rs.getDouble("METRIC_SUM"));
     metricHostAggregate.setNumberOfSamples(rs.getLong("METRIC_COUNT"));
+    metricHostAggregate.setMax(rs.getDouble("METRIC_MAX"));
+    metricHostAggregate.setMin(rs.getDouble("METRIC_MIN"));
 
     aggregateMap.put(timelineMetric, metricHostAggregate);
   }

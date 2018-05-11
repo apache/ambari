@@ -31,6 +31,7 @@ import java.util.Set;
 
 public abstract class AbstractPhoenixMetricsCopier implements Runnable {
   private static final Log LOG = LogFactory.getLog(AbstractPhoenixMetricsCopier.class);
+  private static final Long DEFAULT_NATIVE_TIME_RANGE_DELAY = 120000L;
   private final Long startTime;
   protected final FileWriter processedMetricsFile;
   protected String inputTable;
@@ -49,28 +50,46 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
   }
 
   public void run(){
+    LOG.info(String.format("Copying %s metrics from %s to %s", metricNames, inputTable, outputTable));
     long startTimer = System.currentTimeMillis();
-    if (metricNames == null || metricNames.isEmpty()) {
-      String query = String.format("SELECT * FROM %s WHERE SERVER_TIME > %s ORDER BY METRIC_NAME, SERVER_TIME", inputTable, startTime);
-      runPhoenixQueryAndAddToResults(query);
-    } else {
-      for (String metricName : metricNames) {
-//      TODO do batch selects
-        String query = String.format("SELECT * FROM %s WHERE METRIC_NAME LIKE '%s' AND SERVER_TIME > %s ORDER BY METRIC_NAME, SERVER_TIME", inputTable, metricName, startTime);
-        runPhoenixQueryAndAddToResults(query);
-      }
-    }
+    String query = String.format("SELECT %s %s FROM %s WHERE %s AND SERVER_TIME > %s ORDER BY METRIC_NAME, SERVER_TIME",
+      getQueryHint(startTime), getColumnsClause(), inputTable, getMetricNamesLikeClause(), startTime);
+
+    runPhoenixQueryAndAddToResults(query);
 
     try {
       saveMetrics();
     } catch (SQLException e) {
-      e.printStackTrace();
+      LOG.error(e);
     }
     long estimatedTime = System.currentTimeMillis() - startTimer;
-    LOG.info(String.format("Copying took %s seconds from table %s to table %s", estimatedTime/ 1000.0, inputTable, outputTable));
+    LOG.debug(String.format("Copying took %s seconds from table %s to table %s for metric names %s", estimatedTime/ 1000.0, inputTable, outputTable, metricNames));
 
     saveMetricsProgress();
   }
+
+  private String getMetricNamesLikeClause() {
+    StringBuilder sb = new StringBuilder();
+    sb.append('(');
+    int i = 0;
+    for (String metricName : metricNames) {
+      sb.append("METRIC_NAME");
+      sb.append(" LIKE ");
+      sb.append("'");
+      sb.append(metricName);
+      sb.append("'");
+
+      if (i < metricNames.size() - 1) {
+          sb.append(" OR ");
+        }
+      i++;
+    }
+
+    sb.append(')');
+    return sb.toString();
+  }
+
+  protected abstract String getColumnsClause();
 
   private void runPhoenixQueryAndAddToResults(String query) {
     LOG.debug(String.format("Running query: %s", query));
@@ -84,7 +103,7 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
         addToResults(rs);
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      LOG.error(String.format("Exception during running phoenix query %s", query), e);
     } finally {
       if (stmt != null) {
         try {
@@ -105,30 +124,30 @@ public abstract class AbstractPhoenixMetricsCopier implements Runnable {
 
   /**
    * Saves processed metric names info provided file in format TABLE_NAME:METRIC_NAME
-   * If metric names are not defined calls saveMetricsProgressUsingResultNames()
    */
   private void saveMetricsProgress() {
     if (processedMetricsFile == null) {
       LOG.info("Skipping metrics progress save as the file is null");
       return;
     }
-    if (metricNames == null || metricNames.isEmpty()) {
-      saveMetricsProgressUsingResultNames();
-    } else {
-      for (String metricName : metricNames) {
-        try {
-          processedMetricsFile.append(inputTable + ":" + metricName + System.lineSeparator());
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+    for (String metricName : metricNames) {
+      try {
+        processedMetricsFile.append(inputTable + ":" + metricName + System.lineSeparator());
+      } catch (IOException e) {
+        LOG.error(e);
       }
     }
   }
 
-  /**
-   * When metric names are not defined use this method to define metric names from the result set
-   */
-  protected abstract void saveMetricsProgressUsingResultNames();
+  protected String getQueryHint(Long startTime) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("/*+ ");
+    sb.append("NATIVE_TIME_RANGE(");
+    sb.append(startTime - DEFAULT_NATIVE_TIME_RANGE_DELAY);
+    sb.append(") ");
+    sb.append("*/");
+    return sb.toString();
+  }
 
   /**
    * Saves aggregated metrics to the Hbase

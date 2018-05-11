@@ -24,11 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,23 +39,20 @@ public class PhoenixClusterMetricsCopier extends AbstractPhoenixMetricsCopier {
   }
 
   @Override
-  protected void saveMetricsProgressUsingResultNames() {
-    Set<String> savedMetricNames = new HashSet<>();
-    for (TimelineClusterMetric timelineClusterMetric : aggregateMap.keySet()) {
-      savedMetricNames.add(timelineClusterMetric.getMetricName());
-    }
-    for (String metricName: savedMetricNames) {
-      try {
-        processedMetricsFile.append(inputTable+":"+metricName+System.lineSeparator());
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
+  protected String getColumnsClause() {
+    return "METRIC_NAME, " +
+      "APP_ID, " +
+      "INSTANCE_ID, " +
+      "SERVER_TIME, " +
+      "METRIC_SUM, " +
+      "METRIC_COUNT, " +
+      "METRIC_MAX, " +
+      "METRIC_MIN";
   }
 
   @Override
   protected void saveMetrics() throws SQLException {
-    LOG.info(String.format("Saving %s results read from %s into %s", aggregateMap.size(), inputTable, outputTable));
+    LOG.debug(String.format("Saving %s results read from %s into %s", aggregateMap.size(), inputTable, outputTable));
     hBaseAccessor.saveClusterAggregateRecordsSecond(aggregateMap, outputTable);
   }
 
@@ -68,10 +63,10 @@ public class PhoenixClusterMetricsCopier extends AbstractPhoenixMetricsCopier {
             rs.getString("INSTANCE_ID"), rs.getLong("SERVER_TIME"));
 
     MetricHostAggregate metricHostAggregate = new MetricHostAggregate();
-    metricHostAggregate.setMin(rs.getDouble("METRIC_MIN"));
-    metricHostAggregate.setMax(rs.getDouble("METRIC_MAX"));
     metricHostAggregate.setSum(rs.getDouble("METRIC_SUM"));
     metricHostAggregate.setNumberOfSamples(rs.getLong("METRIC_COUNT"));
+    metricHostAggregate.setMax(rs.getDouble("METRIC_MAX"));
+    metricHostAggregate.setMin(rs.getDouble("METRIC_MIN"));
 
     aggregateMap.put(timelineMetric, metricHostAggregate);
 
