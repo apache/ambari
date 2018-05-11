@@ -252,10 +252,6 @@ def ams(name=None, action=None):
           master_components.append('ambari_server')
         new_ams_site['timeline.metrics.initial.configured.master.components'] = ",".join(master_components)
 
-    hbase_total_heapsize_with_trailing_m = params.hbase_heapsize
-    hbase_total_heapsize = int(hbase_total_heapsize_with_trailing_m[:-1]) * 1024 * 1024
-    new_ams_site['hbase_total_heapsize'] = hbase_total_heapsize
-
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
               configurations=new_ams_site,
