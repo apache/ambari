@@ -71,7 +71,7 @@ public class RowIterator implements Iterator<Row> {
   /**
    * @return : ordered collection of string of headers
    */
-  public LinkedList<String> extractHeaders() {
+  public LinkedList<String> getHeaders() {
     return headers;
   }
 
