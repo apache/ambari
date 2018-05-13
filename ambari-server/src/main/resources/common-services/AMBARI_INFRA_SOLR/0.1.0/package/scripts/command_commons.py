@@ -24,10 +24,12 @@ import socket
 import time
 import traceback
 
+from resource_management.core.shell import call
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 index_helper_script = '/usr/lib/ambari-infra-solr-client/solrIndexHelper.sh'
 
@@ -81,8 +83,54 @@ solr_keep_backup=default("/commandParams/solr_keep_backup", False)
 
 solr_num_shards = int(default("/commandParams/solr_shards", "0"))
 
+solr_hdfs_path=default("/commandParams/solr_hdfs_path", None)
+
 if solr_num_shards == 0:
-  raise Exeption(format("The 'solr_shards' command parameter is required to set."))
+  raise Exception(format("The 'solr_shards' command parameter is required to set."))
+
+if solr_hdfs_path:
+
+  import functools
+  from resource_management.libraries.functions import conf_select
+  from resource_management.libraries.functions import stack_select
+  from resource_management.libraries.functions import get_klist_path
+  from resource_management.libraries.functions import get_kinit_path
+  from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+
+  klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
+  kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+
+  # hadoop default parameters
+  hdfs_user = params.config['configurations']['hadoop-env']['hdfs_user']
+  hadoop_bin = stack_select.get_hadoop_dir("sbin")
+  hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+  hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
+  hadoop_lib_home = stack_select.get_hadoop_dir("lib")
+  hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
+  hdfs_user_keytab = params.config['configurations']['hadoop-env']['hdfs_user_keytab']
+
+  dfs_type = default("/commandParams/dfs_type", "")
+
+  hdfs_site = params.config['configurations']['hdfs-site']
+  default_fs = params.config['configurations']['core-site']['fs.defaultFS']
+  #create partial functions with common arguments for every HdfsResource call
+  #to create/delete/copyfromlocal hdfs directories/files we need to call params.HdfsResource in code
+  HdfsResource = functools.partial(
+    HdfsResource,
+    user=params.infra_solr_user,
+    hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
+    security_enabled = params.security_enabled,
+    keytab = hdfs_user_keytab,
+    kinit_path_local = kinit_path_local,
+    hadoop_bin_dir = hadoop_bin_dir,
+    hadoop_conf_dir = hadoop_conf_dir,
+    principal_name = hdfs_principal_name,
+    hdfs_site = hdfs_site,
+    default_fs = default_fs,
+    immutable_paths = get_not_managed_resources(),
+    dfs_type = dfs_type
+  )
 
 if params.security_enabled:
   keytab = params.infra_solr_kerberos_keytab
@@ -255,7 +303,10 @@ def __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores
           core_host_map[core]=domain
           core_data_map[core]['host']=domain
           core_data_map[core]['node']=replica
-          core_data_map[core]['type']=core_data['type']
+          if 'type' in core_data:
+            core_data_map[core]['type']=core_data['type']
+          else:
+            core_data_map[core]['type']='NRT'
           core_data_map[core]['shard']=shard
           Logger.info(format("Found leader/active replica: {replica} (core '{core}') in {shard} on {domain}"))
         else:
@@ -335,3 +386,42 @@ def resolve_ip_to_hostname(ip):
   except socket.error:
     pass
   return ip
+
+def create_command(command):
+  """
+  Create hdfs command. Append kinit to the command if required.
+  """
+  kinit_cmd = "{0} -kt {1} {2};".format(kinit_path_local, params.infra_solr_kerberos_keytab, params.infra_solr_kerberos_principal) if params.security_enabled else ""
+  return kinit_cmd + command
+
+def execute_commad(command):
+  """
+  Run hdfs command by infra-solr user
+  """
+  return call(command, user=params.infra_solr_user, timeout=300)
+
+def move_hdfs_folder(source_dir, target_dir):
+  cmd=create_command(format("hdfs dfs -mv {source_dir} {target_dir}"))
+  returncode, stdout = execute_commad(cmd)
+  if returncode:
+    raise Fail("Unable to move HDFS dir '{0}' to '{1}' (return code: {2})".format(source_dir, target_dir, str(returncode)))
+  return stdout.strip()
+
+def check_hdfs_folder_exists(hdfs_dir):
+  """
+  Check that hdfs folder exists or not
+  """
+  cmd=create_command(format("hdfs dfs -ls {hdfs_dir}"))
+  returncode, stdout = execute_commad(cmd)
+  if returncode:
+    return False
+  return True
+
+def check_folder_exists(dir):
+  """
+  Check that folder exists or not
+  """
+  returncode, stdout = call(format("test -d {dir}"), user=params.infra_solr_user, timeout=300)
+  if returncode:
+    return False
+  return True
