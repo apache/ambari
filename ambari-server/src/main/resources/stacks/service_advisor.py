@@ -59,7 +59,7 @@ import mpack_advisor
 """
 Dynamically inherit DefaultStackAdvisor base class or MpackAdvisor base class
 """
-class ServiceAdvisor(mpack_advisor.MpackAdvisorImpl if os.environ["mpack"] == "true" else stack_advisor.DefaultStackAdvisor):
+class ServiceAdvisor(mpack_advisor.MpackAdvisorImpl if os.environ["advisor"] == "mpack"  else stack_advisor.DefaultStackAdvisor):
   """
   Abstract class implemented by all service advisors.
   """

@@ -692,7 +692,7 @@ class MpackAdvisorImpl(MpackAdvisor):
     :param serviceInstance: ServiceInstance object that contains a path to the advisor being requested.
     :return: The class name for the Service Advisor requested, or None if one could not be found.
     """
-    os.environ["mpack"] = "true"
+    os.environ["advisor"] = "mpack"
     serviceName = stackService.get("service_name")
     className = stackService.get("advisor_name")
     path = stackService.get("advisor_path")
@@ -1524,19 +1524,26 @@ class MpackAdvisorImpl(MpackAdvisor):
   def getConfigurationsValidationItems(self):
     """Returns array of Validation objects about issues with configuration values provided in services"""
     items = []
+    """
+    This section of configuration is recommended configuration which is used for validation
+    """
     configurations = self.services["configurations"]
-
     recommendations = self.recommendConfigurations()
     mpackInstances = recommendations["recommendations"]["blueprint"]["mpack_instances"]
+    mpackInstancesDict = {"mpack_instances": []}
+    items.append(mpackInstancesDict)
+    mpackInstancesList = mpackInstancesDict.get("mpack_instances")
     for mpackInstance in mpackInstances:
       recommendedDefaults = mpackInstance["configurations"]
       mpackName = mpackInstance["name"]
+      mpackVersion = mpackInstance["version"]
       mpackInstanceConfigurations = {}
       mpackItems = []
+      mpackInstanceItem = {"name": mpackName, "version": mpackVersion, "items": mpackItems}
+      mpackInstancesList.append(mpackInstanceItem)
       for serviceInstance in self.mpackServiceInstancesDict.get(mpackName):
         mpackItems.extend(self.getConfigurationsValidationItemsForService(configurations, recommendedDefaults, serviceInstance, self.services, self.hostsList))
       self.validateMinMax(mpackItems, recommendedDefaults, configurations)
-      items.append({mpackName: mpackItems})
     clusterWideItems = self.validateClusterConfigurations()
     items.append({"cluster": clusterWideItems})
     return items

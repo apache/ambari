@@ -624,6 +624,7 @@ class DefaultStackAdvisor(StackAdvisor):
     :param service: Service object that contains a path to the advisor being requested.
     :return: The class name for the Service Advisor requested, or None if one could not be found.
     """
+    os.environ["advisor"] = "default"
     service_name = service["StackServices"]["service_name"]
     class_name = service["StackServices"]["advisor_name"] if "advisor_name" in service["StackServices"] else None
     path = service["StackServices"]["advisor_path"] if "advisor_path" in service["StackServices"] else None
