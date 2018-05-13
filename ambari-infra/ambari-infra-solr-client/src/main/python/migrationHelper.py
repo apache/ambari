@@ -148,6 +148,10 @@ def fill_parameters(options):
     params['solr_skip_cores'] = options.skip_cores
   if options.solr_shards:
     params['solr_shards'] = options.solr_shards
+  if options.solr_hdfs_path:
+    params['solr_hdfs_path'] = options.solr_hdfs_path
+  if options.solr_keep_backup:
+    params['solr_keep_backup'] = True
   return params
 
 def validte_common_options(options, parser):
@@ -235,6 +239,9 @@ if __name__=="__main__":
   parser.add_option("--core-filter", dest="core_filter", default=None, type="string", help="core filter for replica folders")
   parser.add_option("--skip-cores", dest="skip_cores", default=None, type="string", help="specific cores to skip (comma separated)")
   parser.add_option("--shards", dest="solr_shards", type="int", default=0, help="number of shards (required to set properly for restore)")
+  parser.add_option("--solr-hdfs-path", dest="solr_hdfs_path", type="string", default=None, help="Base path of Solr (where collections are located) if HDFS is used (like /user/infra-solr)")
+  parser.add_option("--solr-keep-backup", dest="solr_keep_backup", default=False, action="store_true", help="If it is turned on, Snapshot Solr data will not be deleted from the filesystem during restore.")
+
   (options, args) = parser.parse_args()
 
   protocol = 'https' if options.ssl else 'http'
