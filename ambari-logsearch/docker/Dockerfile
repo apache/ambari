@@ -61,7 +61,7 @@ RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 # Install Knox
 WORKDIR /
 RUN adduser knox
-ENV KNOX_VERSION 0.14.0
+ENV KNOX_VERSION 1.0.0
 RUN wget -q -O /knox-${KNOX_VERSION}.zip http://download.nextag.com/apache/knox/${KNOX_VERSION}/knox-${KNOX_VERSION}.zip && unzip /knox-${KNOX_VERSION}.zip && rm knox-${KNOX_VERSION}.zip && ln -nsf knox-${KNOX_VERSION} knox && chmod +x /knox/bin/*.sh && chown -R knox /knox/
 
 ADD knox/keystores /knox-secrets

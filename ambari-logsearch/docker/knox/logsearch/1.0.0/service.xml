@@ -16,6 +16,7 @@
   limitations under the License.
 -->
 <service role="LOGSEARCH" name="logsearch" version="1.0.0">
+  
   <routes>
 
     <route path="/logsearch">
@@ -35,6 +36,6 @@
 
   </routes>
 
-  <dispatch classname="org.apache.hadoop.gateway.dispatch.PassAllHeadersDispatch"/>
+  <dispatch classname="org.apache.knox.gateway.dispatch.PassAllHeadersDispatch"/>
 
 </service>
