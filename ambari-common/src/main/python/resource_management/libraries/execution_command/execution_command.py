@@ -258,7 +258,7 @@ class ExecutionCommand(object):
     Retrieve mpack name from command.json, i.e "stack_name": "HDPCORE"
     :return: mpack name string
     """
-    return self.__get_value("clusterLevelParams/stack_name")
+    return self.__get_value("stackSettings/stack_name")
 
   def get_mpack_version(self):
     """

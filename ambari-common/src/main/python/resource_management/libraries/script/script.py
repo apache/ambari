@@ -652,11 +652,11 @@ class Script(object):
   @staticmethod
   def get_stack_name():
     """
-    Gets the name of the stack from clusterLevelParams/stack_name.
+    Gets the name of the stack from stackSettings/stack_name.
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = default("/clusterLevelParams/stack_name", None)
+    stack_name = default("/stackSettings/stack_name", None)
     if stack_name is None:
       stack_name = default("/configurations/cluster-env/stack_name", "HDP")
 
