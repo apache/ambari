@@ -248,6 +248,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
             putSupersetProperty("SUPERSET_DATABASE_PORT", "3306")
         elif superset_database_type == "postgresql":
             putSupersetProperty("SUPERSET_DATABASE_PORT", "5432")
+        elif superset_database_type == "sqlite":
+            putSupersetProperty("SUPERSET_DATABASE_PORT", "")
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)

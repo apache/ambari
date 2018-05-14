@@ -1192,15 +1192,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.MasterComponent.find().toArray().concat(App.SlaveComponent.find().toArray()).filterProperty('service.serviceName', this.get('content.serviceName'));
   }.property('content.serviceName'),
 
-  isStartDisabled: function () {
-    if(this.get('isPending')) return true;
-
-    var isDisabled = true;
-    this.get('nonClientServiceComponents').forEach(function(component) {
-      isDisabled = isDisabled ? !(component.get('installedAndMaintenanceOffCount') > 0) : false;
-    });
-    return isDisabled;
-  }.property('isPending', 'nonClientServiceComponents'),
+  isStartDisabled: Em.computed.or('isPending', 'content.isStarted'),
 
   isStopDisabled: function () {
     if(this.get('isPending')) return true;
@@ -1213,8 +1205,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (this.get('content.serviceName') == 'PXF' && App.HostComponent.find().filterProperty('componentName', 'PXF').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
-    return (this.get('content.healthStatus') != 'green');
-  }.property('content.healthStatus','isPending', 'App.isHaEnabled'),
+    return !this.get('content.isStarted');
+  }.property('content.isStarted','isPending', 'App.isHaEnabled'),
 
   isSmokeTestDisabled: function () {
     if (this.get('isClientsOnlyService')) return false;
