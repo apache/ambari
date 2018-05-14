@@ -18,7 +18,7 @@
 
 package org.apache.ambari.view.hive20.resources.uploads.parsers;
 
-import org.apache.directory.api.util.Strings;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +121,7 @@ public class ParseUtils {
       return true;
 
     String str = object.toString();
-    if (Strings.isNotEmpty(str)) {
+    if (!Strings.isNullOrEmpty(str)) {
       str = str.trim();
       if (str.matches(HIVE_DATE_FORMAT_REGEX)) {
         try {
