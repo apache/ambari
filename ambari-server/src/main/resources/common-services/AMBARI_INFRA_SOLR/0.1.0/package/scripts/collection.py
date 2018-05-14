@@ -87,6 +87,9 @@ def restore_collection(env):
   import params, command_commons
   env.set_params(command_commons)
 
+  if command_commons.solr_num_shards == 0:
+    raise Exception(format("The 'solr_shards' command parameter is required to set."))
+
   host_cores_backup_map = command_commons.read_backup_json()
   host_cores_map = command_commons.get_host_cores_for_collection(backup=False)
 

@@ -85,9 +85,6 @@ solr_num_shards = int(default("/commandParams/solr_shards", "0"))
 
 solr_hdfs_path=default("/commandParams/solr_hdfs_path", None)
 
-if solr_num_shards == 0:
-  raise Exception(format("The 'solr_shards' command parameter is required to set."))
-
 if solr_hdfs_path:
 
   import functools
