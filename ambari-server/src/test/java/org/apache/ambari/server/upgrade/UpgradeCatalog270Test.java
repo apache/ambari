@@ -115,6 +115,7 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.WIDGET_TABLE;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.contains;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -1391,9 +1392,9 @@ public class UpgradeCatalog270Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), "ams-site", capture(propertiesCaptureAmsSite), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), contains("ams-site"), capture(propertiesCaptureAmsSite), anyString(),
       anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), "ams-hbase-site", capture(propertiesCaptureAmsHbaseSite), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), contains("ams-hbase-site"), capture(propertiesCaptureAmsHbaseSite), anyString(),
       anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
