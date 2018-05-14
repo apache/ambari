@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.metrics.core.timeline.upgrade;
+package org.apache.ambari.metrics.core.timeline.upgrade.core;
 
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.apache.commons.logging.Log;

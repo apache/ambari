@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.metrics.core.timeline.upgrade;
+package org.apache.ambari.metrics.core.timeline.upgrade.core;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -58,8 +58,8 @@ import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.M
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_V1_TABLE_NAME;
 
-public class MetricsSchemaUpgrade {
-  private static final Log LOG = LogFactory.getLog(MetricsSchemaUpgrade.class);
+public class MetricsDataMigrationLauncher {
+  private static final Log LOG = LogFactory.getLog(MetricsDataMigrationLauncher.class);
   private static final Long DEFAULT_TIMEOUT_MINUTES = 60*24L;
   private static String patternPrefix = "._p_";
   private static final int DEFAULT_BATCH_SIZE = 5;
@@ -91,7 +91,7 @@ public class MetricsSchemaUpgrade {
   private PhoenixHBaseAccessor hBaseAccessor;
   private Map<String, Set<String>> processedMetrics;
 
-  public MetricsSchemaUpgrade(String whitelistedFilePath, String processedMetricsFilePath, Long startTime, Integer numberOfThreads, Integer batchSize) throws Exception {
+  public MetricsDataMigrationLauncher(String whitelistedFilePath, String processedMetricsFilePath, Long startTime, Integer numberOfThreads, Integer batchSize) throws Exception {
     this.startTime = startTime == null? DEFAULT_START_TIME : startTime;
     this.numberOfThreads = numberOfThreads == null? DEFAULT_NUMBER_OF_THREADS : numberOfThreads;
     this.batchSize = batchSize == null? DEFAULT_BATCH_SIZE : batchSize;
@@ -146,7 +146,7 @@ public class MetricsSchemaUpgrade {
     this.processedMetrics = result;
   }
 
-  public void runUpgrade(Long timeoutInMinutes) throws IOException {
+  public void runMigration(Long timeoutInMinutes) throws IOException {
 
     FileWriter processedMetricsFileWriter = new FileWriter(processedMetricsFilePath, true);
     LOG.info("Setting up copiers...");
@@ -287,19 +287,19 @@ public class MetricsSchemaUpgrade {
       timeoutInMinutes = Long.valueOf(args[5]);
     }
 
-    MetricsSchemaUpgrade schemaUpgrade = null;
+    MetricsDataMigrationLauncher dataMigrationLauncher = null;
     try {
       LOG.info("Initializing system...");
-      schemaUpgrade = new MetricsSchemaUpgrade(whitelistedFilePath, processedMetricsFilePath, startTime, numberOfThreads, batchSize);
+      dataMigrationLauncher = new MetricsDataMigrationLauncher(whitelistedFilePath, processedMetricsFilePath, startTime, numberOfThreads, batchSize);
     } catch (Exception e) {
       LOG.error("Exception during system setup, exiting...", e);
       System.exit(1);
     }
 
     try {
-      schemaUpgrade.runUpgrade(timeoutInMinutes);
+      dataMigrationLauncher.runMigration(timeoutInMinutes);
     } catch (IOException e) {
-      LOG.error("Exception during upgrade, exiting...", e);
+      LOG.error("Exception during data migration, exiting...", e);
       System.exit(1);
     }
 
