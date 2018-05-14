@@ -520,52 +520,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }
   }),
 
-  step4: App.StepRoute.extend({
-    route: '/step4',
-    breadcrumbs: { label: Em.I18n.translations['installer.step4.header'] },
-    connectOutlets: function (router, context) {
-      console.time('step4 connectOutlets');
-      var self = this;
-      var controller = router.get('installerController');
-      var wizardStep4Controller = router.get('wizardStep4Controller');
-      wizardStep4Controller.set('wizardController', controller);
-      var newStepIndex = controller.getStepIndex('step4');
-      router.setNavigationFlow(newStepIndex);
-      controller.setCurrentStep('step4');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardStep4', App.StackService.find().filterProperty('isInstallable', true));
-        self.scrollTop();
-        console.timeEnd('step4 connectOutlets');
-      });
-    },
-
-    backTransition: function(router) {
-      var controller = router.get('installerController');
-      controller.clearErrors();
-      router.transitionTo('step1');
-    },
-
-    next: function (router) {
-      console.time('step4 next');
-      if (!router.get('btnClickInProgress')) {
-        App.set('router.nextBtnClickInProgress', true);
-        var controller = router.get('installerController');
-        var wizardStep4Controller = router.get('wizardStep4Controller');
-        controller.saveServices(wizardStep4Controller);
-        controller.saveClients(wizardStep4Controller);
-        router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation between steps 4 and 5
-        controller.setDBProperties({
-          recommendations: undefined,
-          masterComponentHosts: undefined
-        });
-        controller.clearEnhancedConfigs();
-        router.transitionTo('step5');
-      }
-      console.timeEnd('step4 next');
-    }
-  }),
-
   step5: App.StepRoute.extend({
     route: '/step5',
     breadcrumbs: { label: Em.I18n.translations['installer.step5.header'] },
@@ -905,13 +859,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   gotoStep0: Em.Router.transitionTo('step0'),
 
-  gotoStep1: Em.Router.transitionTo('step1'),
-
   gotoStep2: Em.Router.transitionTo('step2'),
 
   gotoStep3: Em.Router.transitionTo('step3'),
-
-  gotoStep4: Em.Router.transitionTo('step4'),
 
   gotoStep5: Em.Router.transitionTo('step5'),
 

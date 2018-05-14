@@ -122,7 +122,7 @@ module.exports = App.WizardRoute.extend({
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
-          var wizardStep4Controller = router.get('wizardStep4Controller');
+          //var wizardStep4Controller = router.get('wizardStep4Controller');
           wizardStep4Controller.set('wizardController', controller);
           controller.loadServiceVersionFromVersionDefinitions().complete(function () {
             controller.set('content.services', App.StackService.find().forEach(function (item) {
@@ -138,7 +138,7 @@ module.exports = App.WizardRoute.extend({
     },
     nextTransition: function (router) {
       var addServiceController = router.get('addServiceController');
-      var wizardStep4Controller = router.get('wizardStep4Controller');
+      //var wizardStep4Controller = router.get('wizardStep4Controller');
       addServiceController.saveServices(wizardStep4Controller);
       addServiceController.saveClients(wizardStep4Controller);
       addServiceController.setDBProperty('masterComponentHosts', undefined);

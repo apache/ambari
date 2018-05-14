@@ -385,7 +385,6 @@ require('views/main/views_view');
 
 require('views/installer');
 require('views/wizard/step0_view');
-require('views/wizard/step1_view');
 require('views/wizard/step2_view');
 require('views/wizard/step3_view');
 require('views/wizard/step3/hostLogPopupBody_view');
@@ -397,7 +396,6 @@ require('views/wizard/customMpackRepos_view');
 require('views/wizard/downloadMpacks_view');
 require('views/wizard/customProductRepos_view');
 require('views/wizard/verifyProducts_view');
-require('views/wizard/step4_view');
 require('views/wizard/step5_view');
 require('views/wizard/step6_view');
 require('views/wizard/step7_view');

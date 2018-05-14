@@ -46,9 +46,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               } else {
                 if (router.get('clusterInstallCompleted')) {
                   if (!App.get('isOnlyViewUser')) {
-                    clusterController.checkDetailedRepoVersion().done(function () {
-                      router.get('mainController').initialize();
-                    });
+                    router.get('mainController').initialize();
                   } else {
                     // Don't transit to Views when user already on View page
                     if (App.router.currentState.name !== 'viewDetails') {

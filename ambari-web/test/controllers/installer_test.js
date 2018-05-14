@@ -54,39 +54,6 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#getHosts', function() {
-    it ('Should return empty array', function() {
-      expect(installerController.getHosts()).to.eql([]);
-    });
-  });
-
-  describe('#loadServices', function() {
-    it ('Should resolve nothing', function() {
-      var res = installerController.loadServices();
-      res.then(function(data){
-        expect(data).to.be.undefined;
-      });
-    });
-  });
-
-  describe('#cancelInstall', function() {
-    var mock = {
-      goToAdminView: sinon.spy()
-    };
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns(mock);
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-
-    it('goToAdminView should be called', function() {
-      var popup = installerController.cancelInstall();
-      popup.onPrimary();
-      expect(mock.goToAdminView.calledOnce).to.be.true;
-    });
-  });
-
   describe('#checkRepoURL', function() {
     var stacks = Em.A([
       Em.Object.create({
@@ -809,31 +776,6 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#saveServices', function() {
-    it ('Should return correct names', function() {
-      var stepController = Em.A([
-        Em.Object.create({
-          isInstalled: true,
-          isSelected: true,
-          serviceName: 'i1'
-        }),
-        Em.Object.create({
-          isInstalled: false,
-          isSelected: true,
-          serviceName: 'i2'
-        }),
-        Em.Object.create({
-          isInstalled: true,
-          isSelected: false,
-          serviceName: 'i3'
-        })
-      ]);
-      installerController.saveServices(stepController);
-      expect(installerController.get('content.selectedServiceNames')).to.eql(['i1','i2']);
-      expect(installerController.get('content.installedServiceNames')).to.eql(['i1','i3']);
-    });
-  });
-
   describe('#saveClients', function() {
     var stepController;
 
@@ -1081,181 +1023,6 @@ describe('App.InstallerController', function () {
 
   });
 
-  describe('#validateJDKVersion', function() {
-    var tests = [
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.8'
-        },
-        successCallbackCalled: false,
-        popupCalled: true,
-        stacks: [Em.Object.create({
-          minJdkVersion: '1.6',
-          maxJdkVersion: '1.7',
-          isSelected: true
-        })],
-        m: 'JDK 1.8, stack supports 1.6-1.7 popup should be displayed'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.8'
-        },
-        successCallbackCalled: true,
-        popupCalled: false,
-        stacks: [Em.Object.create({
-          minJdkVersion: '1.6',
-          maxJdkVersion: '1.8',
-          isSelected: true
-        })],
-        m: 'JDK 1.8, stack supports 1.7-1.8 procceed installation without warning'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.5'
-        },
-        successCallbackCalled: false,
-        popupCalled: true,
-        stacks: [Em.Object.create({
-          minJdkVersion: '1.6',
-          maxJdkVersion: '1.8',
-          isSelected: true
-        })],
-        m: 'JDK 1.5, stack supports 1.6-1.8, popup should be displayed'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.5'
-        },
-        successCallbackCalled: true,
-        popupCalled: false,
-        stacks: [Em.Object.create({
-          minJdkVersion: null,
-          maxJdkVersion: null,
-          isSelected: true
-        })],
-        m: 'JDK 1.5, stack supports max and min are null, procceed installation without warning'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.5'
-        },
-        successCallbackCalled: true,
-        popupCalled: false,
-        stacks: [Em.Object.create({
-          minJdkVersion: '1.5',
-          maxJdkVersion: null,
-          isSelected: true
-        })],
-        m: 'JDK 1.5, stack supports max is missed and min is 1.5, procceed installation without warning'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.6'
-        },
-        successCallbackCalled: false,
-        popupCalled: true,
-        stacks: [Em.Object.create({
-          minJdkVersion: '1.5',
-          maxJdkVersion: null,
-          isSelected: true
-        })],
-        m: 'JDK 1.6, stack supports max is missed and min is 1.5, popup should be displayed'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.5'
-        },
-        successCallbackCalled: true,
-        popupCalled: false,
-        stacks: [Em.Object.create({
-          minJdkVersion: null,
-          maxJdkVersion: '1.5',
-          isSelected: true
-        })],
-        m: 'JDK 1.5, stack supports max 1.5 and min is missed, procceed installation without warning'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.5'
-        },
-        successCallbackCalled: false,
-        popupCalled: true,
-        stacks: [Em.Object.create({
-          minJdkVersion: null,
-          maxJdkVersion: '1.8',
-          isSelected: true
-        })],
-        m: 'JDK 1.5, stack supports max 1.8 and min is missed, popup should be displayed'
-      },
-      {
-        isCustomJDK: false,
-        ambariProperties: {
-          'java.version': '1.8'
-        },
-        successCallbackCalled: true,
-        popupCalled: false,
-        stacks: [Em.Object.create({
-          isSelected: true
-        })],
-        m: 'JDK 1.8, min, max jdk missed in stack definition, procceed installation without warning'
-      },
-      {
-        isCustomJDK: true,
-        ambariProperties: {
-          'java.version': '1.8'
-        },
-        successCallbackCalled: true,
-        popupCalled: false,
-        stacks: [Em.Object.create({
-          minJdkVersion: '1.6',
-          maxJdkVersion: '1.8',
-          isSelected: true
-        })],
-        m: 'JDK 1.8, custom jdk location used, procceed installation without warning'
-      }
-    ];
-
-    tests.forEach(function(test) {
-
-      describe(test.m, function() {
-
-        var successCallback;
-
-        beforeEach(function () {
-          sinon.stub(App.Stack, 'find').returns(test.stacks);
-          sinon.stub(App.router, 'get').withArgs('clusterController.isCustomJDK').returns(test.isCustomJDK)
-            .withArgs('clusterController.ambariProperties').returns(test.ambariProperties);
-          sinon.stub(App, 'showConfirmationPopup', Em.K);
-          successCallback = sinon.spy();
-          installerController.validateJDKVersion(successCallback);
-        });
-
-        afterEach(function () {
-          App.router.get.restore();
-          App.Stack.find.restore();
-          App.showConfirmationPopup.restore();
-        });
-
-        it('successCallback is ' + (test.successCallbackCalled ? '' : 'not') + ' called', function () {
-          expect(successCallback.called).to.be.equal(test.successCallbackCalled);
-        });
-
-        it('App.showConfirmationPopup. is ' + (test.popupCalled ? '' : 'not') + ' called', function () {
-          expect(App.showConfirmationPopup.called).to.be.equal(test.popupCalled);
-        });
-
-      });
-    });
-  });
-
   describe('#postVersionDefinitionFileErrorCallback', function () {
 
     beforeEach(function () {
@@ -1399,7 +1166,6 @@ describe('App.InstallerController', function () {
 
   describe('#getStepController', function () {
     var wizardStep0Controller = {};
-    var wizardStep1Controller = {};
     var wizardStep2Controller = {};
 
     before(function () {
@@ -1410,7 +1176,6 @@ describe('App.InstallerController', function () {
       ]);
 
       App.router.set('wizardStep0Controller', wizardStep0Controller);
-      App.router.set('wizardStep1Controller', wizardStep1Controller);
       App.router.set('wizardStep2Controller', wizardStep2Controller);
     });
 
@@ -1420,8 +1185,8 @@ describe('App.InstallerController', function () {
     });
 
     it('Should return controller for the step name provided.', function () {
-      var stepController = installerController.getStepController("step1");
-      expect(stepController).to.equal(wizardStep1Controller);
+      var stepController = installerController.getStepController("step0");
+      expect(stepController).to.equal(wizardStep0Controller);
     });
   });
 

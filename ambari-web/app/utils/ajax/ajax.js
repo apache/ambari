@@ -1431,10 +1431,6 @@ var urls = {
     'real': '/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/RepositoryVersions/display_name&repository_versions/RepositoryVersions/repository_version={repositoryVersion}',
     'mock': ''
   },
-  'cluster.load_detailed_repo_version': {
-    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/repository_version,ClusterStackVersions/stack,ClusterStackVersions/version&minimal_response=true',
-    'mock': '/data/stack_versions/stack_version_all.json'
-  },
   'cluster.load_current_repo_stack_services': {
     'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/stack_services,ClusterStackVersions/stack,ClusterStackVersions/version',
     'mock': '/data/stack_versions/stack_version_all.json'
@@ -1849,10 +1845,6 @@ var urls = {
       };
     }
   },
-  'admin.stack_versions.all': {
-    'real': '/clusters/{clusterName}/stack_versions?fields=ClusterStackVersions/*,repository_versions/RepositoryVersions/*&minimal_response=true',
-    'mock': '/data/stack_versions/stack_version_all.json'
-  },
   'admin.stack_version.install.repo_version': {
     'real': '/clusters/{clusterName}/stack_versions',
     'format': function (data) {
@@ -2031,28 +2023,7 @@ var urls = {
       }
     }
   },
-  'wizard.step1.get_repo_version_by_id': {
-    'real': '/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*' +
-    ',repository_versions/RepositoryVersions/*' +
-    '&repository_versions/RepositoryVersions/id={repoId}&Versions/stack_version={stackVersion}',
-    'mock': ''
-  },
 
-  'wizard.step1.get_supported_os_types': {
-    'real': '/stacks/{stackName}/versions/{stackVersion}?fields=operating_systems/repositories/Repositories',
-    'mock': ''
-  },
-
-  'wizard.advanced_repositories.valid_url': {
-    'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify(data.data)
-      }
-    }
-  },
   'wizard.get_version_definitions': {
     'real': '/version_definitions'
   },
@@ -2170,17 +2141,6 @@ var urls = {
     }
   },
 
-  'wizard.step8.set_local_repos': {
-    'real': '{stackVersionURL}/operating_systems/{osType}/repositories/{repoId}',
-    'mock': '',
-    'format': function (data) {
-      return {
-        type: 'PUT',
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
   'wizard.step3.jdk_check': {
     'real': '/requests',
     'mock': '',
