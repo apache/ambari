@@ -48,10 +48,10 @@ public class TimelineMetricStoreWatcherTest {
 
   @Test
   public void testRunPositive() throws Exception {
-    TimelineMetricStore metricStore = createNiceMock(TimelineMetricStore.class);
+    HBaseTimelineMetricsService metricStore = createNiceMock(HBaseTimelineMetricsService.class);
 
-    expect(metricStore.putMetrics(anyObject(TimelineMetrics.class)))
-      .andReturn(new TimelinePutResponse());
+    metricStore.putMetricsSkipCache(anyObject(TimelineMetrics.class));
+    expectLastCall().once();
 
     // metric found
     expect(metricStore.getTimelineMetrics(EasyMock.<List<String>>anyObject(),
@@ -75,7 +75,7 @@ public class TimelineMetricStoreWatcherTest {
 
   @Test
   public void testRunNegative() throws Exception {
-    TimelineMetricStore metricStore = createNiceMock(TimelineMetricStore.class);
+    HBaseTimelineMetricsService metricStore = createNiceMock(HBaseTimelineMetricsService.class);
 
     expect(metricStore.putMetrics(anyObject(TimelineMetrics.class)))
       .andReturn(new TimelinePutResponse());
