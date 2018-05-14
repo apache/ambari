@@ -1,0 +1,47 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<td>
+  <div class="{{if property.keyError 'has-error'}}">
+    {{input type="text" class="form-control" value=property.key disabled=(not property.editing)}}
+    {{#if property.keyError}}
+      <span class="help-block">{{property.keyError.error}}</span>
+    {{/if}}
+  </div>
+
+</td>
+
+<td>
+  <div class="{{if property.valueError 'has-error'}}">
+    {{input type="text" class="form-control" value=property.value disabled=(not property.editing)}}
+    {{#if property.valueError}}
+      <span class="help-block">{{property.valueError.error}}</span>
+    {{/if}}
+  </div>
+</td>
+
+<td>
+  <div class="text-center">
+    {{#if (or property.newProperty (not editMode)) }}
+      {{#unless property.editing}}
+        <button class="btn btn-success" {{action "edit"}}>{{fa-icon "check"}} Edit</button>
+      {{/unless}}
+      <button class="btn btn-danger" {{action "delete"}}>{{fa-icon "times"}} Delete</button>
+    {{/if}}
+  </div>
+</td>

@@ -1,0 +1,81 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+$font-family-sans-serif: 'Roboto', "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+$body-bg: #FFF;
+$base-bg: #e1e1e0;
+$border-radius-base:        3px;
+$border-radius-large:       4px;
+$border-radius-small:       2px;
+
+
+// nav-tabs
+$nav-link-padding:                          10px 20px !default;
+$nav-tabs-border-color:                     darken($base-bg, 15%);
+$nav-tabs-link-hover-border-color:          darken($base-bg, 15%);
+$nav-tabs-active-link-hover-bg:             #fff;
+$nav-tabs-active-link-hover-border-color:   darken($base-bg, 15%);
+
+@import 'bootstrap';
+
+.nav-tabs {
+  &.inverse {
+    li {
+       a {
+         &.active {
+           background-color: $gray-dark;
+           color: #fff;
+           border: 1px solid darken($base-bg, 15%);
+           border-bottom: none;
+           &.ember-transitioning-out {
+             background-color: $base-bg;
+             color: darken($base-bg, 50%);
+             border: none;
+           }
+         }
+         &.ember-transitioning-in {
+           background-color: $gray-dark;
+           color: #fff;
+           border: 1px solid darken($base-bg, 15%);
+           border-bottom: none;
+         }
+       }
+    }
+  }
+  li {
+    a {
+      font-weight: bold;
+      color: darken($base-bg, 50%);
+      &.active {
+        background-color: #fff;
+        border: 1px solid darken($base-bg, 15%);
+        border-bottom: none;
+        &.ember-transitioning-out {
+          background-color: $base-bg;
+          border: none;
+        }
+      }
+      &.ember-transitioning-in {
+        background-color: #fff;
+        border: 1px solid darken($base-bg, 15%);
+        border-bottom: none;
+      }
+    }
+  }
+}

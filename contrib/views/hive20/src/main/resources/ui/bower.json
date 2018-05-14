@@ -1,0 +1,15 @@
+{
+  "name": "ui",
+  "dependencies": {
+    "d3": "~3.5.17",
+    "webcola": "~3.3.2",
+    "ember": "~2.7.0",
+    "ember-cli-shims": "~0.1.1",
+    "ember-qunit-notifications": "0.1.0",
+    "font-awesome": "~4.5.0",
+    "jquery-ui": "~1.12.1",
+    "codemirror": "~5.15.0",
+    "bootstrap-treeview": "~1.2.0",
+    "blob": "*"
+  }
+}

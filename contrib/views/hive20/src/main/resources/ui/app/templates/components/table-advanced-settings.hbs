@@ -1,0 +1,221 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="panel panel-info">
+  <div class="panel-heading">
+    <div class="panel-title">
+      {{fa-icon "cog" size="lg"}}
+      &nbsp;&nbsp;&nbsp;Settings
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="col-md-2 control-label">Transactional</label>
+        <div class="col-md-4">
+          <label>
+            {{input type="checkbox" checked=settings.transactional  disabled=disableTransactionInput}}
+          </label>
+        </div>
+      </div>
+
+      {{#if shouldAddBuckets}}
+        <div class="form-group">
+          <label class="col-md-2 control-label">Number of buckets</label>
+          <div class="col-md-6">
+            <div class="{{if hasNumBucketError 'has-error'}}">
+              {{input type="number" min="0" class="form-control" value=settings.numBuckets disabled=disableNumBucketsInput}}
+              {{#if hasNumBucketError}}
+                <span class="help-block">{{numBucketErrorText}}</span>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+      {{/if}}
+    </div>
+  </div>
+
+</div>
+
+{{#if (not editMode)}}
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <div class="panel-title">
+        <button class="btn btn-primary {{if showLocationInput 'active'}}" {{action "toggleLocation"}}>
+          {{fa-icon (if showLocationInput "minus" "plus")}}
+        </button>
+        &nbsp;&nbsp;&nbsp;Add Location
+      </div>
+    </div>
+    {{#if showLocationInput}}
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-6">
+            {{input type="text" class="form-control" value=settings.location}}
+          </div>
+        </div>
+      </div>
+    {{/if}}
+  </div>
+
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <div class="panel-title">
+        <button class="btn btn-primary {{if showFileFormatInput 'active'}}" {{action "toggleFileFormat"}}>
+          {{fa-icon (if showFileFormatInput "minus" "plus")}}
+        </button>
+        &nbsp;&nbsp;&nbsp;Add File Format
+      </div>
+    </div>
+    {{#if showFileFormatInput}}
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-6">
+            {{#power-select
+              selected=selectedFileFormat
+              options=fileFormats
+              searchField="name"
+              searchPlaceholder="Enter data type"
+              onchange=(action "fileFormatSelected") as |parameter|}}
+              {{parameter.name}}
+            {{/power-select}}
+          </div>
+        </div>
+        {{#if customFileFormat}}
+          <div class="row fileformat-custom-row">
+            <div class="col-md-6 form-horizontal">
+              <div class="form-group">
+                <label class="col-md-3 control-label">Input Format</label>
+                <div class="col-md-9">
+                  {{input type="text" class="form-control" value=settings.fileFormat.inputFormat
+                          placeholder="Input format class"}}
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-md-3 control-label">Output Format</label>
+                <div class="col-md-9">
+                  {{input type="text" class="form-control" value=settings.fileFormat.outputFormat
+                          placeholder="Output format class"}}
+                </div>
+              </div>
+            </div>
+          </div>
+        {{/if}}
+
+      </div>
+    {{/if}}
+  </div>
+
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <div class="panel-title">
+        <button class="btn btn-primary {{if showRowFormatInput 'active'}}" {{action "toggleRowFormat"}}>
+          {{fa-icon (if showRowFormatInput "minus" "plus")}}
+        </button>
+        &nbsp;&nbsp;&nbsp;Add Row Format
+      </div>
+    </div>
+    {{#if showRowFormatInput}}
+      <div class="panel-body rowformat-custom-row">
+        <div class="row">
+          <div class="col-md-6 form-horizontal">
+            <div class="form-group">
+              <label class="col-md-4 control-label">Fields Terminated By</label>
+              <div class="col-md-7">
+                {{#power-select
+                  selected=selectedFieldTerminator
+                  options=terminationChars
+                  searchField="name"
+                  searchPlaceholder="Enter terminator character"
+                  onchange=(action "fieldTerminatorSelected") as |parameter|}}
+                  {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+                {{/power-select}}
+              </div>
+              <div class="col-md-1">
+                <a class="text-danger" {{action "clearFieldTerminator"}}>{{fa-icon "times" size="lg"}}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-horizontal">
+            <div class="form-group">
+              <label class="col-md-4 control-label">Lines Terminated By</label>
+              <div class="col-md-7">
+                {{#power-select
+                  selected=selectedLinesTerminator
+                  options=terminationChars
+                  searchField="name"
+                  searchPlaceholder="Enter terminator character"
+                  onchange=(action "linesTerminatorSelected") as |parameter|}}
+                  {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+                {{/power-select}}
+              </div>
+              <div class="col-md-1">
+                <a class="text-danger" {{action "clearLinesTerminator"}}>{{fa-icon "times" size="lg"}}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-horizontal">
+            <div class="form-group">
+              <label class="col-md-4 control-label">Null Defined As</label>
+              <div class="col-md-7">
+                {{#power-select
+                  selected=selectedNullDefinition
+                  options=terminationChars
+                  searchField="name"
+                  searchPlaceholder="Enter terminator character"
+                  onchange=(action "nullDefinedAsSelected") as |parameter|}}
+                  {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+                {{/power-select}}
+              </div>
+              <div class="col-md-1">
+                <a class="text-danger" {{action "clearNullDefinition"}}>{{fa-icon "times" size="lg"}}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-horizontal">
+            <div class="form-group">
+              <label class="col-md-4 control-label">Escape Defined As</label>
+              <div class="col-md-7">
+                {{#power-select
+                  selected=selectedEscapeDefinition
+                  options=terminationChars
+                  searchField="name"
+                  searchPlaceholder="Enter terminator chanracter"
+                  onchange=(action "escapeDefinedAsSelected") as |parameter|}}
+                  {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+                {{/power-select}}
+              </div>
+              <div class="col-md-1">
+                <a class="text-danger" {{action "clearEscapeDefinition"}}>{{fa-icon "times" size="lg"}}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+  </div>
+{{/if}}
+
+
+

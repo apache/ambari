@@ -1,0 +1,102 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="row jobs-status">
+  <div class="col-md-12 ">
+    <div class="col-md-7">
+      <div class="strip">
+        <ul class="nav nav-pills">
+          <li class="{{if (not statusFilter) "active"}}"><a href="#" {{action "selectJobForStatus" "all"}}>{{titleFilteredJobs.length}} <span class="text-uppercase">All</span></a></li>
+          {{#each-in statusCounts as |status count|}}
+            <li class="{{if (eq statusFilter status) "active"}}"><a href="#" {{action "selectJobForStatus" status}}>{{count}} <span class="text-uppercase">{{status}}</span></a></li>
+          {{/each-in}}
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="row strip input-group">
+        {{input type="text" value=titleFilter placeholder="Search title" class="form-control"}}
+        <span class="input-group-btn">
+          <button class="btn btn-default" {{action "clearTitleFilter"}}>{{fa-icon "times"}} </button>
+        </span>
+      </div>
+    </div>
+    <div class="col-md-3">
+      {{date-range-picker
+        start=startTime
+        end=endTime
+        opens="left"
+        autoApply=true
+        applyAction=(action "setDateRange")
+      }}
+    </div>
+  </div>
+
+</div>
+
+<div class="row jobs-table">
+  <div class="col-md-12">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th width="10%">Job ID
+          <span class="sort-icon">
+            {{#if jobId.noSort}}<i class="fa fa-chevron-right" {{action "sort" "id" "jobId" "desc"}}></i>{{/if}}
+            {{#if jobId.desc}}<i class="fa fa-chevron-down" {{action "sort" "id:desc" "jobId" "asc"}}></i>{{/if}}
+            {{#if jobId.asc}}<i class="fa fa-chevron-up" {{action "sort" "''" "jobId" "noSort"}}></i>{{/if}}
+          </span>
+          </th>
+          <th width="30%">Title
+          <span class="sort-icon">
+            {{#if title.noSort}}<i class="fa fa-chevron-right" {{action "sort" "title" "title" "desc"}}></i>{{/if}}
+            {{#if title.desc}}<i class="fa fa-chevron-down" {{action "sort" "title:desc" "title" "asc"}}></i>{{/if}}
+            {{#if title.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "title" "noSort"}}></i>{{/if}}
+          </span>
+          </th>
+          <th width="10%">Status
+          <span class="sort-icon">
+            {{#if status.noSort}}<i class="fa fa-chevron-right" {{action "sort" "status" "status" "desc"}}></i>{{/if}}
+            {{#if status.desc}}<i class="fa fa-chevron-down" {{action "sort" "status:desc" "status" "asc"}}></i>{{/if}}
+            {{#if status.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "status" "noSort"}}></i>{{/if}}
+          </span>
+          </th>
+          <th width="25%">Start time
+          <span class="sort-icon">
+            {{#if dateSubmitted.noSort}}<i class="fa fa-chevron-right" {{action "sort" "dateSubmitted" "dateSubmitted" "desc"}}></i>{{/if}}
+            {{#if dateSubmitted.desc}}<i class="fa fa-chevron-down" {{action "sort" "dateSubmitted:desc" "dateSubmitted" "asc"}}></i>{{/if}}
+            {{#if dateSubmitted.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "dateSubmitted" "noSort"}}></i>{{/if}}
+          </span>
+          </th>
+          <th width="20%" >Duration(in seconds)
+          <span class="sort-icon">
+            {{#if duration.noSort}}<i class="fa fa-chevron-right" {{action "sort" "duration" "duration" "desc"}}></i>{{/if}}
+            {{#if duration.desc}}<i class="fa fa-chevron-down" {{action "sort" "duration:desc" "duration" "asc"}}></i>{{/if}}
+            {{#if duration.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "duration" "noSort"}}></i>{{/if}}
+          </span>
+          </th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each filteredJobsSorted as |job| }}
+          {{job-item model=jobs job=job openWorksheet="openWorksheet"}}
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

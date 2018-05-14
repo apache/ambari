@@ -1,0 +1,100 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="row jobs-table">
+  <div class="col-md-12">
+
+    {{#if sortedSavedQueries.length}}
+
+    <table class="table table-striped">
+      <thead>
+      <tr>
+        <th width="30%">Preview
+          <span class="sort-icon">
+            {{#if preview.noSort}}<i class="fa fa-chevron-right" {{action "sort" "shortQuery:asc" "preview" "desc"}}></i>{{/if}}
+            {{#if preview.desc}}<i class="fa fa-chevron-down" {{action "sort" "shortQuery:desc" "preview" "asc"}}></i>{{/if}}
+            {{#if preview.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "preview" "noSort"}}></i>{{/if}}
+          </span>
+        </th>
+        <th width="20%">Title
+          <span class="sort-icon">
+            {{#if title.noSort}}<i class="fa fa-chevron-right" {{action "sort" "title" "title" "desc"}}></i>{{/if}}
+            {{#if title.desc}}<i class="fa fa-chevron-down" {{action "sort" "title:desc" "title" "asc"}}></i>{{/if}}
+            {{#if title.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "title" "noSort"}}></i>{{/if}}
+          </span>
+        </th>
+        <th width="20%">Database
+          <span class="sort-icon">
+            {{#if dataBase.noSort}}<i class="fa fa-chevron-right" {{action "sort" "dataBase" "dataBase" "desc"}}></i>{{/if}}
+            {{#if dataBase.desc}}<i class="fa fa-chevron-down" {{action "sort" "dataBase:desc" "dataBase" "asc"}}></i>{{/if}}
+            {{#if dataBase.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "dataBase" "noSort"}}></i>{{/if}}
+          </span>
+        </th>
+        <th width="20%">Owner
+          <span class="sort-icon">
+            {{#if owner.noSort}}<i class="fa fa-chevron-right" {{action "sort" "owner" "owner" "desc"}}></i>{{/if}}
+            {{#if owner.desc}}<i class="fa fa-chevron-down" {{action "sort" "owner:desc" "owner" "asc"}}></i>{{/if}}
+            {{#if owner.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "owner" "noSort"}}></i>{{/if}}
+          </span>
+        </th>
+        <th width="10%">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each sortedSavedQueries as |savedQuery| }}
+          <tr>
+            <td><a href="#" {{action "openAsWorksheet" savedQuery }} >{{savedQuery.shortQuery}}</a></td>
+            <td class="break-word">{{savedQuery.title}}</td>
+            <td>{{savedQuery.dataBase}}</td>
+            <td>{{savedQuery.owner}}</td>
+            <td>
+              <a href="#" {{action "openDeleteSavedQueryModal" savedQuery.id}} class="text-uppercase">{{fa-icon "remove"}}</a>
+            </td>
+          </tr>
+        {{/each}}
+        </tbody>
+      </table>
+    {{/if}}
+
+    {{#unless sortedSavedQueries.length}}
+      <div class="no-results">
+        <div>There is no saved query.</div>
+      </div>
+    {{/unless}}
+
+
+  </div>
+</div>
+
+{{#if showDeleteSaveQueryModal}}
+  {{confirm-dialog
+  title="Confirm"
+  label="Do you want to delete the saved query?"
+  titleIcon="minus"
+  labelIcon="save"
+  rejectIcon="times"
+  confirmIcon="check"
+  closable=false
+  confirmClass="success"
+  confirm="deleteSavedQuery"
+  reject="deleteSavedQueryDeclined"
+  }}
+{{/if}}
+
+
+{{outlet}}

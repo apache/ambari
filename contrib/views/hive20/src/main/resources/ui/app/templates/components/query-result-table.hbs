@@ -1,0 +1,109 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#unless isQueryRunning}}
+    {{#if currentJobData}}
+      <div class="clearfix">
+        <div class="col-md-2">
+          <div class="row input-group">
+            {{input type="text" value=columnFilterText placeholder="Filter columns" class="form-control"}}
+            <span class="input-group-btn">
+              <button class="btn btn-default" {{action "clearColumnsFilter"}}>{{fa-icon "times"}} </button>
+            </span>
+          </div>
+        </div>
+        <div class="pull-right">
+          <span class="dropdown">
+          <button class="btn btn-default dropdown-toggle" title="Actions" data-toggle="dropdown">{{fa-icon "bars"}} </button>
+          <ul class="dropdown-menu dropdown-menu-right">
+            <li><a href="#" {{action "openSaveHdfsModal" }} class="text-uppercase">{{fa-icon "save"}} Save To HDFS</a></li>
+            <li><a href="#" {{action "openDownloadCsvModal" }} class="text-uppercase">{{fa-icon "download"}} Download As CSV</a></li>
+          </ul>
+        </span>&nbsp;
+
+          <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" payloadTitle }} disabled={{not hasPrevious}} >{{fa-icon "arrow-left"}} </button>
+          <button class="btn btn-default" title="Next Page" {{action "goNextPage" payloadTitle}} disabled={{not hasNext}} >{{fa-icon "arrow-right"}} </button> &nbsp;
+          <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
+        </div>
+      </div>
+
+      <div class="col-md-12">
+        <div class="row">
+          <div class="query-result">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  {{#each filteredColumns as |column|}}
+                    <th>{{column.label}}</th>
+                  {{/each}}
+                </tr>
+              </thead>
+              <tbody>
+              {{#each rows as |row|}}
+                <tr>
+                  {{#each filteredColumns as |column|}}
+                    <td>{{extract-value row column.valuePath}}</td>
+                  {{/each}}
+                </tr>
+              {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+{{/unless}}
+
+{{#if showSaveHdfsModal}}
+  {{export-result
+  confirmText="OK"
+  rejectText="CLOSE"
+  label="Please enter save path and name."
+  jobId=jobId
+  labelIcon="save"
+  rejectIcon="times"
+  confirmIcon="check"
+  closable=false
+  confirmClass="success"
+  confirm="saveToHDFS"
+  reject="closeSaveHdfsModal"
+  isExportResultSuccessMessege=isExportResultSuccessMessege
+  isExportResultFailureMessege=isExportResultFailureMessege
+  }}
+{{/if}}
+
+{{#if showDownloadCsvModal}}
+  {{export-result
+  confirmText="OK"
+  rejectText="CLOSE"
+  label="Download results as CSV"
+  jobId=jobId
+  labelIcon="download"
+  rejectIcon="times"
+  confirmIcon="check"
+  closable=false
+  confirmClass="success"
+  confirm="downloadAsCsv"
+  reject="closeDownloadCsvModal"
+  isExportResultSuccessMessege=isExportResultSuccessMessege
+  isExportResultFailureMessege=isExportResultFailureMessege
+  }}
+{{/if}}
+
+{{yield}}
+
