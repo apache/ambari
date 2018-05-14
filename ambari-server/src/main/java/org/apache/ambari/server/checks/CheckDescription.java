@@ -374,8 +374,8 @@ public class CheckDescription {
   public static CheckDescription ATLAS_MIGRATION_PROPERTY_CHECK = new CheckDescription("ATLAS_MIGRATION_PROPERTY_CHECK",
     PrereqCheckType.SERVICE, "Check for Atlas Migration Property before upgrade.",
       new ImmutableMap.Builder<String,String>().put(AbstractCheckDescriptor.DEFAULT,
-        "The property atlas.migration.data.filename is missing from application-properties.Do not use /etc/atlas/conf as the value." +
-        "After upgrading Atlas will no longer support TitanDB, Instead it will support JanusGraph." +
+        "The property atlas.migration.data.filename is missing from application-properties. Do not use atlas conf path ie /etc/atlas/conf as the value." +
+        "After upgrading Atlas will no longer support TitanDB, instead it will support JanusGraph." +
         "Hence need to migrate existing data to newer formats post upgrade. " +
         "To migrate existing data, Kindly refer and follow Apache Atlas documentation for 1.0 release.").build());
 

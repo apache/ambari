@@ -58,18 +58,16 @@ public class AtlasMigrationPropertyCheck extends AbstractCheckDescriptor {
     @Override
     public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
       String atlasMigrationProperty = getProperty(request,"application-properties","atlas.migration.data.filename");
-      if(null == atlasMigrationProperty || StringUtils.isEmpty(atlasMigrationProperty.trim())) {
+      if(null == atlasMigrationProperty || StringUtils.isBlank(atlasMigrationProperty.trim())) {
         LOG.info("The property atlas.migration.data.filename is not found in application-properties, need to add the property before upgrade.");
         prerequisiteCheck.getFailedOn().add(serviceName);
         prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
         prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
       } else if (atlasMigrationProperty.contains("/etc/atlas/conf")) {
-          LOG.info("The property atlas.migration.data.filename is found in application-properties, but it contains with /etc/atlas/conf.");
+          LOG.info("The property atlas.migration.data.filename is found in application-properties, but it contains atlas conf path ie /etc/atlas/conf. Avoid using conf path for this property.");
           prerequisiteCheck.getFailedOn().add(serviceName);
           prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
           prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
-      } else {
-        LOG.info("The property atlas.migration.data.filename is found, proceeding with upgrade.");
       }
     }
 }
