@@ -65,7 +65,7 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
     if (clusterId != null) {
       clusterToRemove.put(Long.toString(clusterId), MetadataCluster.emptyMetadataCluster());
     }
-    MetadataUpdateEvent deleteEvent = new MetadataUpdateEvent(clusterToRemove, null ,
+    MetadataUpdateEvent deleteEvent = new MetadataUpdateEvent(clusterToRemove, null , null,
         UpdateEventType.DELETE);
     return deleteEvent;
   }

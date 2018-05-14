@@ -51,7 +51,7 @@ public class MetadataCluster {
   }
 
   public static MetadataCluster emptyMetadataCluster() {
-    return new MetadataCluster(null, null, null);
+    return new MetadataCluster(null, null, null, null);
   }
 
   public Set<String> getStatusCommandsToRun() {
