@@ -130,6 +130,7 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -1340,6 +1341,88 @@ public class UpgradeCatalog270Test {
     Map<String, String> oldProperties = new HashMap<String, String>() {
       {
         put("timeline.metrics.service.default.result.limit", "15840");
+        put("timeline.container-metrics.ttl", "2592000");
+        put("timeline.metrics.cluster.aggregate.splitpoints", "cpu_user,mem_free");
+        put("timeline.metrics.host.aggregate.splitpoints", "kafka.metric,nimbus.metric");
+      }
+    };
+    Map<String, String> newProperties = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.default.result.limit", "5760");
+        put("timeline.container-metrics.ttl", "1209600");
+      }
+    };
+
+    Map<String, String> oldAmsHBaseSiteProperties = new HashMap<String, String>() {
+      {
+        put("hbase.snapshot.enabled", "false");
+      }
+    };
+
+    Map<String, String> newAmsHBaseSiteProperties = new HashMap<String, String>() {
+      {
+        put("hbase.snapshot.enabled", "true");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
+    expect(mockAmsSite.getProperties()).andReturn(oldProperties).anyTimes();
+
+    Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("ams-hbase-site")).andReturn(mockAmsHbaseSite).atLeastOnce();
+    expect(mockAmsHbaseSite.getProperties()).andReturn(oldAmsHBaseSiteProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+
+    replay(injector, clusters, mockAmsSite, mockAmsHbaseSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture(CaptureType.ALL);
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).times(2);
+
+    replay(controller, injector2);
+    new UpgradeCatalog270(injector2).updateAmsConfigs();
+    easyMockSupport.verifyAll();
+
+    assertEquals(propertiesCapture.getValues().size(), 2);
+
+    Map<String, String> updatedProperties = propertiesCapture.getValues().get(0);
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+
+    updatedProperties = propertiesCapture.getValues().get(1);
+    assertTrue(Maps.difference(newAmsHBaseSiteProperties, updatedProperties).areEqual());
+
+  }
+
+  @Test
+  public void testUpdateAmsConfigsWithNoContainerMetrics() throws Exception {
+
+    Map<String, String> oldProperties = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.default.result.limit", "15840");
+        put("timeline.metrics.host.aggregate.splitpoints", "kafka.metric,nimbus.metric");
       }
     };
     Map<String, String> newProperties = new HashMap<String, String>() {

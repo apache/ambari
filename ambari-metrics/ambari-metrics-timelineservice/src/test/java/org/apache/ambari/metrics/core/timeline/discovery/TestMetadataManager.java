@@ -160,7 +160,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
 
     byte[] uuid = metadataManager.getUuid(timelineMetric, true);
     Assert.assertNotNull(uuid);
-    Assert.assertEquals(uuid.length, 32);
+    Assert.assertEquals(uuid.length, 20);
 
     byte[] uuidWithoutHost = metadataManager.getUuid(new TimelineClusterMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(), timelineMetric.getInstanceId(), -1), true);
     Assert.assertNotNull(uuidWithoutHost);

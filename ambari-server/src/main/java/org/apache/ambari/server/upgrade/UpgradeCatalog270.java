@@ -964,16 +964,15 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
       dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
       dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-    }
-    finally {
+    } finally {
       dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
       dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
       dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
       dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
     }
 
 
@@ -1601,10 +1600,55 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
 
-      ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          updateConfigurationPropertiesForCluster(cluster, "ams-site", Collections.singletonMap("timeline.metrics.service.default.result.limit", "5760"), true, true);
+          Map<String, String> newProperties = new HashMap<>();
+          LOG.info("Updating ams-site:timeline.metrics.service.default.result.limit to 5760");
+          newProperties.put("timeline.metrics.service.default.result.limit", "5760");
+
+          Config config = cluster.getDesiredConfigByType("ams-site");
+          if (config != null) {
+            Map<String, String> oldAmsSite = config.getProperties();
+            if (MapUtils.isNotEmpty(oldAmsSite)) {
+              if (oldAmsSite.containsKey("timeline.container-metrics.ttl")) {
+                try {
+                  int oldTtl = Integer.parseInt(oldAmsSite.get("timeline.container-metrics.ttl"));
+                  if (oldTtl > 14 * 86400) {
+                    LOG.info("Updating ams-site:timeline.container-metrics.ttl to 1209600");
+                    newProperties.put("timeline.container-metrics.ttl", "1209600");
+                  }
+                } catch (Exception e) {
+                  LOG.warn("Error updating Container metrics TTL for ams-site (AMBARI_METRICS)");
+                }
+              }
+            }
+          }
+          LOG.info("Removing ams-site host and aggregate cluster split points.");
+          Set<String> removeProperties = Sets.newHashSet("timeline.metrics.host.aggregate.splitpoints",
+            "timeline.metrics.cluster.aggregate.splitpoints");
+          updateConfigurationPropertiesForCluster(cluster, "ams-site", newProperties, removeProperties, true, true);
+
+
+          Map<String, String> newAmsHbaseSiteProperties = new HashMap<>();
+          Config amsHBasiteSiteConfig = cluster.getDesiredConfigByType("ams-hbase-site");
+          if (amsHBasiteSiteConfig != null) {
+            Map<String, String> oldAmsHBaseSite = amsHBasiteSiteConfig.getProperties();
+            if (MapUtils.isNotEmpty(oldAmsHBaseSite)) {
+              if (oldAmsHBaseSite.containsKey("hbase.snapshot.enabled")) {
+                try {
+                  Boolean hbaseSnapshotEnabled = Boolean.valueOf(oldAmsHBaseSite.get("hbase.snapshot.enabled"));
+                  if (!hbaseSnapshotEnabled) {
+                    LOG.info("Updating ams-hbase-site:hbase.snapshot.enabled to true");
+                    newAmsHbaseSiteProperties.put("hbase.snapshot.enabled", "true");
+                  }
+                } catch (Exception e) {
+                  LOG.warn("Error updating ams-hbase-site:hbase.snapshot.enabled (AMBARI_METRICS)");
+                }
+              }
+            }
+            updateConfigurationPropertiesForCluster(cluster, "ams-hbase-site", newAmsHbaseSiteProperties, true, true);
+          }
+
         }
       }
     }
