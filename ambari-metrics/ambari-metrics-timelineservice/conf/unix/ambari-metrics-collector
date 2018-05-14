@@ -317,11 +317,11 @@ function start_upgrade()
 {
   hadoop_java_setup
 
-	CLASS='org.apache.ambari.metrics.core.timeline.upgrade.MetricsSchemaUpgrade'
+	CLASS='org.apache.ambari.metrics.core.timeline.upgrade.core.MetricsDataMigrationLauncher'
 
   daemon_status "${UPGRADE_PIDFILE}"
   if [[ $? == 0  ]]; then
-    echo "Upgrade is already running as process $(cat "${UPGRADE_PIDFILE}"). Exiting"
+    echo "Metrics data migration is already running as process $(cat "${UPGRADE_PIDFILE}"). Exiting"
     exit 0
   else
     # stale pid file, so just remove it and continue on
@@ -335,13 +335,13 @@ function start_upgrade()
   write_pidfile "${UPGRADE_PIDFILE}"
   sleep 1
 
-  echo "Verifying ams upgrade process status..."
-  if [ -z "`ps ax | grep -w ${PID} | grep MetricsSchemaUpgrade`" ]; then
-    echo "ERROR: ams upgrade start failed. For more details, see ${AMS_COLLECTOR_LOG_DIR}/${UPGRADE_LOGFILE}:"
+  echo "Verifying metrics data migration process status..."
+  if [ -z "`ps ax | grep -w ${PID} | grep MetricsDataMigrationLauncher`" ]; then
+    echo "ERROR: metrics data migration start failed. For more details, see ${AMS_COLLECTOR_LOG_DIR}/${UPGRADE_LOGFILE}:"
     exit -1
   fi
 
-  echo "$(date) AMS upgrade successfully started."
+  echo "$(date) Metrics data migration successfully started."
   }
 
 function stop_upgrade()
@@ -355,7 +355,7 @@ function stop_upgrade()
     sleep "${STOP_TIMEOUT}"
 
     if kill -0 "${pid}" > /dev/null 2>&1; then
-      echo "WARNING: ams upgrade did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
+      echo "WARNING: Metrics data migration did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
       kill -9 "${pid}" >/dev/null 2>&1
     fi
 
