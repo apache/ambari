@@ -185,8 +185,7 @@ public class RepositoryVersionHelper {
         throw new SystemException(String.format("Cannot obtain stack information for %s-%s", stackId.getStackName(), stackId.getStackVersion()), e);
       }
 
-      List<OsSpecific.Package> packagesForStackService = amc.getPackagesForStackServiceHost(stackInfo, serviceInfo,
-        new HashMap<>(), osFamily);
+      List<OsSpecific.Package> packagesForStackService = amc.getPackagesForStackServiceHost(stackInfo, serviceInfo, osFamily);
 
       List<String> blacklistedPackagePrefixes = configuration.get().getRollingUpgradeSkipPackagesPrefixes();
       for (OsSpecific.Package aPackage : packagesForStackService) {

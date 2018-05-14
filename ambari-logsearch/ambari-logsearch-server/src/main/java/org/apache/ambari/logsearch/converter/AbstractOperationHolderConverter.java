@@ -99,7 +99,8 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
 
   public Query addInFilterQuery(Query query, String field, List<String> values, boolean negate) {
     if (CollectionUtils.isNotEmpty(values)) {
-      addFilterQuery(query, new Criteria(field).is(values), negate);
+      String orQueryStr = StringUtils.join(values, " OR ");
+      addFilterQuery(query, new Criteria(field).in(orQueryStr.split(" ")), negate);
     }
     return query;
   }

@@ -273,10 +273,7 @@ public class ClusterConfigurationRequest {
       String componentName = component.componentName();
       Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(componentName);
       // retrieve corresponding clusterInfoKey for component using StageUtils
-      String clusterInfoKey = StageUtils.getComponentToClusterInfoKeyMap().get(componentName);
-      if (clusterInfoKey == null) {
-        clusterInfoKey = componentName.toLowerCase() + "_hosts";
-      }
+      String clusterInfoKey = StageUtils.getClusterHostInfoKey(componentName);
       componentHostsMap.put(clusterInfoKey, StringUtils.join(componentHost, ","));
     }
     return componentHostsMap;

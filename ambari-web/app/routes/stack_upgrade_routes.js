@@ -36,6 +36,7 @@ module.exports = App.WizardRoute.extend({
           }
 
           App.router.get('updateController').set('isWorking', false);
+          App.router.get('wizardWatcherController').setUser(router.get('mainAdminStackAndUpgradeController').get('name'));
 
           return App.ModalPopup.show({
             classNames: ['upgrade-wizard-modal'],

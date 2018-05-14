@@ -177,10 +177,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     App.router.get('userSettingsController').getAllUserSettings();
     App.router.get('errorsHandlerController').loadErrorLogs();
 
-    var hostsController = App.router.get('mainHostController');
-    hostsController.set('isCountersUpdating', true);
-    hostsController.updateStatusCounters();
-
     this.loadClusterInfo();
     this.restoreUpgradeState();
     App.router.get('wizardWatcherController').getUser();
@@ -189,10 +185,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
     //force clear filters  for hosts page to load all data
     App.db.setFilterConditions('mainHostController', null);
-
-    //load cluster-env, used by alert check tolerance
-    // TODO services auto-start
-    App.router.get('updateController').updateClusterEnv();
   },
 
   loadClusterInfo: function() {
@@ -285,9 +277,13 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   loadConfigProperties: function() {
     var self = this;
 
-    App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
-      App.config.loadClusterConfigsFromStack().complete(function () {
-        self.set('isConfigsPropertiesLoaded', true);
+    App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).always(function () {
+      App.config.loadClusterConfigsFromStack().always(function () {
+        App.router.get('configurationController').updateConfigTags().always(() => {
+          App.router.get('updateController').updateClusterEnv().always(() => {
+            self.set('isConfigsPropertiesLoaded', true);
+          });
+        });
       });
     });
   },

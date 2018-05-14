@@ -52,6 +52,10 @@ public abstract class ServerSideActionTask extends Task {
     return implClass;
   }
 
+  public void setImplClass(String implClass) {
+    this.implClass = implClass;
+  }
+
   @XmlElement(name="message")
   public List<String> messages = new ArrayList<>();
 

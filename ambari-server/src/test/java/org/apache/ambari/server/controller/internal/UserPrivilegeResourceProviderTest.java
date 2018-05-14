@@ -157,7 +157,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -211,8 +211,8 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.CLUSTER_NAME));
+    Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -271,10 +271,10 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
-    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
-    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.INSTANCE_NAME));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.VIEW_NAME));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.VERSION));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -333,10 +333,10 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
-    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
-    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.INSTANCE_NAME));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.VIEW_NAME));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.VERSION));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -432,9 +432,9 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     replayAll();
 
     final Set<String> propertyIds = new HashSet<>();
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
+    propertyIds.add(UserPrivilegeResourceProvider.USER_NAME);
     final Predicate predicate = new PredicateBuilder()
-        .property(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID)
+        .property(UserPrivilegeResourceProvider.USER_NAME)
         .equals("jdoe")
         .toPredicate();
     TestAuthenticationFactory.createClusterAdministrator("jdoe", 2L);
@@ -446,7 +446,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {
-      String userName = (String) resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
+      String userName = (String) resource.getPropertyValue(UserPrivilegeResourceProvider.USER_NAME);
       Assert.assertEquals("jdoe", userName);
     }
 
@@ -509,10 +509,10 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
 
     final Set<String> propertyIds = new HashSet<>();
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
+    propertyIds.add(UserPrivilegeResourceProvider.USER_NAME);
 
     final Predicate predicate = new PredicateBuilder()
-        .property(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID)
+        .property(UserPrivilegeResourceProvider.USER_NAME)
         .equals(requestedUsername)
         .toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
@@ -524,7 +524,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {
-      String userName = (String) resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
+      String userName = (String) resource.getPropertyValue(UserPrivilegeResourceProvider.USER_NAME);
       Assert.assertEquals(requestedUsername, userName);
     }
 

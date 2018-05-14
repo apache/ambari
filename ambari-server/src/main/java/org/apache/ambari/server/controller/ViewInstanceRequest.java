@@ -24,6 +24,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewInstanceService;
+import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.view.ClusterType;
 
 
@@ -46,7 +47,7 @@ public class ViewInstanceRequest implements ApiModel{
    * Returns wrapper class for view instance information
    * @return {@link #viewInstanceRequestInfo}
    */
-  @ApiModelProperty(name = "ViewInstanceInfo")
+  @ApiModelProperty(name = ViewInstanceResourceProvider.VIEW_INSTANCE_INFO)
   public ViewInstanceRequestInfo getViewInstanceInfo() {
     return viewInstanceRequestInfo;
   }
@@ -104,7 +105,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns view name
      * @return view name
      */
-    @ApiModelProperty(name = "view_name", hidden = true)
+    @ApiModelProperty(name = ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, hidden = true)
     public String getViewName() {
       return viewName;
     }
@@ -113,7 +114,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns view version
      * @return view version
      */
-    @ApiModelProperty(hidden = true)
+    @ApiModelProperty(name = ViewInstanceResourceProvider.VERSION_PROPERTY_ID, hidden = true)
     public String getVersion() {
       return version;
     }
@@ -122,7 +123,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns instance name
      * @return instance name
      */
-    @ApiModelProperty(name = "instance_name", hidden = true)
+    @ApiModelProperty(name = ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, hidden = true)
     public String getInstanceName() {
       return instanceName;
     }
@@ -131,6 +132,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns view label
      * @return view label
      */
+    @ApiModelProperty(name = ViewInstanceResourceProvider.LABEL_PROPERTY_ID)
     public String getLabel() {
       return label;
     }
@@ -139,6 +141,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns view description
      * @return view description
      */
+    @ApiModelProperty(name = ViewInstanceResourceProvider.DESCRIPTION_PROPERTY_ID)
     public String getDescription() {
       return description;
     }
@@ -147,6 +150,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns visibility for view
      * @return visibility for view
      */
+    @ApiModelProperty(name = ViewInstanceResourceProvider.VISIBLE_PROPERTY_ID)
     public boolean isVisible() {
       return visible;
     }
@@ -155,7 +159,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns icon path
      * @return icon path
      */
-    @ApiModelProperty(name = "icon_path")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.ICON_PATH_PROPERTY_ID)
     public String getIconPath() {
       return iconPath;
     }
@@ -164,7 +168,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns icon64 patch
      * @return icon64 path
      */
-    @ApiModelProperty(name = "icon64_path")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.ICON64_PATH_PROPERTY_ID)
     public String getIcon64Path() {
       return icon64Path;
     }
@@ -173,6 +177,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns all view properties
      * @return view properties
      */
+    @ApiModelProperty(name = ViewInstanceResourceProvider.PROPERTIES_PROPERTY_ID)
     public Map<String, String> getProperties() {
       return properties;
     }
@@ -181,7 +186,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns instance data
      * @return instance data
      */
-    @ApiModelProperty(name = "instance_data")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.INSTANCE_DATA_PROPERTY_ID)
     public Map<String, String> getInstanceData() {
       return instanceData;
     }
@@ -190,7 +195,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns cluster handle
      * @return cluster handle
      */
-    @ApiModelProperty(name = "cluster_handle")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.CLUSTER_HANDLE_PROPERTY_ID)
     public Integer getClusterHandle() {
       return clusterHandle;
     }
@@ -199,7 +204,7 @@ public class ViewInstanceRequest implements ApiModel{
      * Returns cluster type {@link ClusterType}
      * @return cluster type
      */
-    @ApiModelProperty(name = "cluster_type")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.CLUSTER_TYPE_PROPERTY_ID)
     public ClusterType getClusterType() {
       return clusterType;
     }

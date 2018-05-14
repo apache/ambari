@@ -19,7 +19,16 @@
 <div class="editable-list-container well" ng-class="{'edit-mode' : editMode, 'disabled' : !editable}" ng-click="enableEditMode($event)">
   <div class="items-box">
     <ul class="items-list">
-      <li class="item" ng-repeat="item in items | orderBy:identity"><span><a href>{{item}}</a><button ng-click="removeFromItems(item)" type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button></span></li><li class="item add-item-input" ng-show="editMode">
+      <li class="item" ng-repeat="item in items | orderBy:identity">
+        <span>
+          <a href>{{item}}</a>
+          <button ng-click="removeFromItems(item)" type="button" class="close">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">{{'common.controls.close' | translate}}</span>
+          </button>
+        </span>
+      </li>
+      <li class="item add-item-input" ng-class="{'has-error': invalidInput}" ng-show="editMode">
         <span contenteditable></span>
         <div class="typeahead-box" ng-show="typeahead.length != 0">
           <ul>

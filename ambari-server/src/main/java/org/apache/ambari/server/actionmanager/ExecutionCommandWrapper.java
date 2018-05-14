@@ -288,8 +288,6 @@ public class ExecutionCommandWrapper {
 
       if (null != stackEntity) {
         StackId stackId = new StackId(stackEntity);
-        ambariMetaInfo.getStack(stackId.getStackName(),
-          stackId.getStackVersion());
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
           commandParams.put(HOOKS_FOLDER,configuration.getProperty(Configuration.HOOKS_FOLDER));

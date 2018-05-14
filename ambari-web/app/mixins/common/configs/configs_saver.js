@@ -18,6 +18,7 @@
 
 var App = require('app');
 var lazyLoading = require('utils/lazy_loading');
+var stringUtils = require('utils/string_utils');
 
 /**
  * Mixin for saving configs
@@ -469,16 +470,17 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       properties.forEach(function(property) {
 
         if (Em.get(property, 'isRequiredByAgent') !== false) {
-          desired_config.properties[Em.get(property, 'name')] = this.formatValueBeforeSave(property);
+          const name = stringUtils.unicodeEscape(Em.get(property, 'name'), /[\/]/g);
+          desired_config.properties[name] = this.formatValueBeforeSave(property);
           /**
            * add is final value
            */
           if (Em.get(property, 'isFinal')) {
-            attributes.final[Em.get(property, 'name')] = "true";
+            attributes.final[name] = "true";
           }
           if (Em.get(property,'propertyType') != null) {
             Em.get(property,'propertyType').map(function(propType) {
-              attributes[propType.toLowerCase()][Em.get(property,'name')] = "true";
+              attributes[propType.toLowerCase()][name] = "true";
             });
           }
         }

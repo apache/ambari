@@ -24,11 +24,13 @@ import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Configuration
+@Lazy
 public class MetricsCollectorConfig {
 
   @LogSearchPropertyDescription(

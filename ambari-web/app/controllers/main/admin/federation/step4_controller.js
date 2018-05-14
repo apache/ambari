@@ -22,23 +22,54 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['stopAllServices', 'reconfigureHDFS', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'startZKFC2', 'startNameNode2', 'startAllServices'],
+  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'startInfraSolr', 'startRangerAdmin', 'startRangerUsersync', 'startNameNodes', 'startZKFCs', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
+
+  initializeTasks: function () {
+    this._super();
+    this.removeUnneededTasks();
+  },
+
+  removeUnneededTasks: function () {
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    if (!installedServices.contains('RANGER')) {
+      this.removeTasks(['startInfraSolr', 'startRangerAdmin', 'startRangerUsersync']);
+    }
+    if (!installedServices.contains('AMBARI_INFRA_SOLR')) {
+      this.removeTasks(['startInfraSolr']);
+    }
+  },
 
   newNameNodeHosts: function () {
     return this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', false).mapProperty('hostName');
   }.property('content.masterComponentHosts.@each.hostName'),
 
-  reconfigureHDFS: function () {
+  stopRequiredServices: function () {
+    this.stopServices(["ZOOKEEPER"]);
+  },
+
+  reconfigureServices: function () {
+    var configs = [];
     var data = this.get('content.serviceConfigProperties');
     var note = Em.I18n.t('admin.nameNodeFederation.wizard,step4.save.configuration.note');
-    var configData = this.reconfigureSites(['hdfs-site'], data, note);
+    configs.push({
+      Clusters: {
+        desired_config: this.reconfigureSites(['hdfs-site'], data, note)
+      }
+    });
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      configs.push({
+        Clusters: {
+          desired_config: this.reconfigureSites(['ranger-tagsync-site'], data, note)
+        }
+      });
+    }
     return App.ajax.send({
-      name: 'common.service.configurations',
+      name: 'common.service.multiConfigurations',
       sender: this,
       data: {
-        desired_config: configData
+        configs: configs
       },
       error: 'onTaskError',
       success: 'installHDFSClients'
@@ -52,16 +83,27 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.createInstallComponentTask('HDFS_CLIENT', hostNames, 'HDFS');
   },
 
-  stopAllServices: function () {
-    this.stopServices([], true, true);
-  },
-
   installNameNode: function () {
     this.createInstallComponentTask('NAMENODE', this.get('newNameNodeHosts'), "HDFS");
   },
 
   installZKFC: function () {
     this.createInstallComponentTask('ZKFC', this.get('newNameNodeHosts'), "HDFS");
+  },
+
+  startJournalNodes: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
+    this.updateComponent('JOURNALNODE', hostNames, "HDFS", "Start");
+  },
+
+  startNameNodes: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled').mapProperty('hostName');
+    this.updateComponent('NAMENODE', hostNames, "HDFS", "Start");
+  },
+
+  startZKFCs: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled').mapProperty('hostName');
+    this.updateComponent('ZKFC', hostNames, "HDFS", "Start");
   },
 
   formatNameNode: function () {
@@ -92,6 +134,20 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.updateComponent('ZKFC', this.get('newNameNodeHosts')[0], "HDFS", "Start");
   },
 
+  startInfraSolr: function () {
+    this.startServices(false, ['AMBARI_INFRA_SOLR'], true);
+  },
+
+  startRangerAdmin: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'RANGER_ADMIN').mapProperty('hostName');
+    this.updateComponent('RANGER_ADMIN', hostNames, "RANGER", "Start");
+  },
+
+  startRangerUsersync: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'RANGER_USERSYNC').mapProperty('hostName');
+    this.updateComponent('RANGER_USERSYNC', hostNames, "RANGER", "Start");
+  },
+
   startNameNode: function () {
     this.updateComponent('NAMENODE', this.get('newNameNodeHosts')[0], "HDFS", "Start");
   },
@@ -116,8 +172,16 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.updateComponent('NAMENODE', this.get('newNameNodeHosts')[1], "HDFS", "Start");
   },
 
-  startAllServices: function () {
-    this.startServices(false);
+  restartAllServices: function () {
+    App.ajax.send({
+      name: 'restart.custom.filter',
+      sender: this,
+      data: {
+        filter: "HostRoles/component_name!=NAMENODE&HostRoles/component_name!=RANGER_ADMIN&HostRoles/component_name!=RANGER_USERSYNC&HostRoles/cluster_name=" + App.get('clusterName'),
+        context: "Restart Required Services"
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   }
-
 });

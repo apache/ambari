@@ -39,13 +39,13 @@ SERVER_START_CMD = \
   "-cp {0} {1} " + \
   "-Djava.net.preferIPv4Stack=true " \
   "-Dproc_timelineserver " + \
-  "org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer"
+  "org.apache.ambari.metrics.AMSApplicationServer"
 SERVER_START_CMD_DEBUG = \
   "-cp {0} {1} " + \
   "-Djava.net.preferIPv4Stack=true " \
   "-Dproc_timelineserver " + \
   " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend={2} " + \
-  "org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer"
+  "org.apache.ambari.metrics.AMSApplicationServer"
 
 AMC_DIE_MSG = "Ambari Metrics Collector java process died with exitcode {0}. Check {1} for more information."
 

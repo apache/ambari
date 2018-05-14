@@ -23,6 +23,7 @@ import {SearchBoxParameter, SearchBoxParameterProcessed, SearchBoxParameterTrigg
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {UtilsService} from '@app/services/utils.service';
+import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'search-box',
@@ -37,23 +38,6 @@ import {UtilsService} from '@app/services/utils.service';
   ]
 })
 export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccessor {
-
-  constructor(private utils: UtilsService) {
-  }
-
-  ngOnInit(): void {
-    this.parameterInput = this.parameterInputRef.nativeElement;
-    this.valueInput = this.valueInputRef.nativeElement;
-    this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
-    this.parameterAddSubject.subscribe(this.onParameterAdd);
-    this.updateValueSubject.subscribe(this.updateValue);
-  }
-
-  ngOnDestroy(): void {
-    this.parameterNameChangeSubject.unsubscribe();
-    this.parameterAddSubject.unsubscribe();
-    this.updateValueSubject.unsubscribe();
-  }
 
   private currentId: number = 0;
 
@@ -137,6 +121,31 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
    */
   parameters: SearchBoxParameterProcessed[] = [];
 
+  private subscriptions: Subscription[] = [];
+
+  constructor(private utils: UtilsService) {}
+
+  ngOnInit(): void {
+    this.parameterInput = this.parameterInputRef.nativeElement;
+    this.valueInput = this.valueInputRef.nativeElement;
+    this.subscriptions.push(
+      this.parameterNameChangeSubject.subscribe(this.onParameterNameChange)
+    );
+    this.subscriptions.push(
+      this.parameterAddSubject.subscribe(this.onParameterAdd)
+    );
+    this.subscriptions.push(
+      this.updateValueSubject.subscribe(this.updateValue)
+    );
+  }
+
+  ngOnDestroy(): void {
+    // this.parameterNameChangeSubject.unsubscribe();
+    // this.parameterAddSubject.unsubscribe();
+    // this.updateValueSubject.unsubscribe();
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
   /**
    * Available options for value of currently active search query parameter
    * @returns {ListItem[]}
@@ -176,7 +185,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.isActive = true;
     this.isValueInput = false;
     setTimeout(() => this.parameterInput.focus(), 0);
-  };
+  }
 
   private getItemByValue(name: string): ListItem {
     return this.items.find((field: ListItem): boolean => field.value === name);
@@ -190,6 +199,14 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.valueInput.value = '';
   }
 
+  onClearButtonClick = (event: MouseEvent): void => {
+    this.clear();
+    this.parameters = [];
+    this.updateValueSubject.next();
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
   changeParameterName(options: SearchBoxParameterTriggered): void {
     this.parameterNameChangeSubject.next(options);
   }
@@ -201,7 +218,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.isValueInput = true;
     this.currentValue = '';
     this.valueInput.focus();
-  };
+  }
 
   onParameterValueKeyDown(event: KeyboardEvent): void {
     if (this.utils.isBackSpacePressed(event) && !this.currentValue) {
@@ -246,7 +263,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
       this.updateValueSubject.next();
     }
     this.switchToParameterInput();
-  };
+  }
 
   onParameterKeyUp(event: KeyboardEvent): void {
     if (this.utils.isEnterPressed(event)) {
@@ -260,6 +277,24 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
         });
       }
     }
+  }
+
+  /**
+   * Toggle the parameter isExclude property value
+   * @param event {MouseEvent} - event that triggered this action
+   * @param id {number} - id of parameter
+   */
+  toggleParameter(event: MouseEvent, id: number): void {
+    this.parameters = this.parameters.map((parameter: SearchBoxParameterProcessed): SearchBoxParameterProcessed => {
+      if (parameter.id === id) {
+        parameter.isExclude = !parameter.isExclude;
+      }
+      return parameter;
+    });
+    if (this.updateValueImmediately) {
+      this.updateValueSubject.next();
+    }
+    event.stopPropagation();
   }
 
   /**
@@ -280,7 +315,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     if (this.onChange) {
       this.onChange(this.parameters.slice());
     }
-  };
+  }
 
   /**
    * Update flag that indicates presence of autocomplete matches in preset options for search query parameter name

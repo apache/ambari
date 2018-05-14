@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>2.6.1</version>
+    <version>2.6.2</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
@@ -588,6 +588,18 @@
             </organization>
         </developer>
         <developer>
+            <id>jgolieb</id>
+            <name>Jason Golieb</name>
+            <email>jgolieb@apache.org</email>
+            <timezone>-5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>jitendra</id>
             <name>Jitendra Pandey</name>
             <email>jitendra@apache.org</email>
@@ -1025,6 +1037,18 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>smolnar</id>
+            <name>Sandor Molnar</name>
+            <email>smolnar@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks

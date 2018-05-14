@@ -53,3 +53,9 @@ write_bps
 write_bytes
 write_count
 write_time
+sdisk_dm-12_write_count
+sdisk_dm-21_write_count
+sdisk_dm-40_write_bytes
+sdisk_dm-22_write_bytes
+sdisk_dm-26_write_time
+sdisk_dm-17_write_time

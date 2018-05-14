@@ -31,9 +31,6 @@ import {ServiceLogContextEntry} from '@app/classes/service-log-context-entry';
 })
 export class LogContextComponent {
 
-  constructor(private element: ElementRef, private logsContainer: LogsContainerService, private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appState: AppStateService) {
-  }
-
   @Input()
   id: string;
 
@@ -49,22 +46,29 @@ export class LogContextComponent {
 
   lastEntryId: string;
 
-  logs: Observable<ServiceLogContextEntry[]> = this.serviceLogsTruncatedStorage.getAll().map((logs: ServiceLog[]): ServiceLogContextEntry[] => {
-    if (logs.length) {
-      this.firstEntryId = logs[0].id;
-      this.lastEntryId = logs[logs.length - 1].id;
-    }
-    return logs.map((log: ServiceLog): ServiceLogContextEntry => {
-      return {
-        id: log.id,
-        time: log.logtime,
-        level: log.level,
-        message: log.log_message,
-        fileName: log.file,
-        lineNumber: log.line_number
-      };
+  logs: Observable<ServiceLogContextEntry[]> = this.serviceLogsTruncatedStorage.getAll()
+    .map((logs: ServiceLog[]): ServiceLogContextEntry[] => {
+      if (logs.length) {
+        this.firstEntryId = logs[0].id;
+        this.lastEntryId = logs[logs.length - 1].id;
+      }
+      return logs.map((log: ServiceLog): ServiceLogContextEntry => {
+        return {
+          id: log.id,
+          time: log.logtime,
+          level: log.level,
+          message: log.log_message,
+          fileName: log.file,
+          lineNumber: log.line_number
+        };
+      });
     });
-  });
+
+  constructor(
+    private element: ElementRef,
+    private logsContainer: LogsContainerService,
+    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService,
+    private appState: AppStateService) {}
 
   closeLogContext(): void {
     this.appState.setParameters({

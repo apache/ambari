@@ -53,22 +53,23 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 public class ServiceConfigVersionResourceProvider extends
     AbstractControllerResourceProvider {
 
-  public static final String SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "cluster_name");
-  public static final String SERVICE_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version");
-  public static final String SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_group_name");
-  public static final String SERVICE_CONFIG_VERSION_SERVICE_GROUP_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_group_id");
-  public static final String SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_name");
-  public static final String SERVICE_CONFIG_VERSION_SERVICE_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_id");
-  public static final String SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "createtime");
-  public static final String SERVICE_CONFIG_VERSION_USER_PROPERTY_ID = PropertyHelper.getPropertyId(null, "user");
-  public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceConfigVersion", "service_config_version_note");
-  public static final String SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_id");
-  public static final String SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_name");
-  public static final String SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceConfigVersion", "stack_id");
-  public static final String SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "is_current");
-  public static final String SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "is_cluster_compatible");
-  public static final String SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "hosts");
-  public static final String SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "configurations");
+  public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
+  public static final String SERVICE_CONFIG_VERSION_PROPERTY_ID = "service_config_version";
+  public static final String SERVICE_GROUP_NAME_PROPERTY_ID = "service_group_name";
+  public static final String SERVICE_GROUP_ID_PROPERTY_ID = "service_group_id";
+  public static final String SERVICE_NAME_PROPERTY_ID = "service_name";
+  public static final String SERVICE_ID_PROPERTY_ID = "service_id";
+  public static final String CREATE_TIME_PROPERTY_ID = "createtime";
+  public static final String USER_PROPERTY_ID = "user";
+  public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = "service_config_version_note";
+  public static final String GROUP_ID_PROPERTY_ID = "group_id";
+  public static final String GROUP_NAME_PROPERTY_ID = "group_name";
+  public static final String STACK_ID_PROPERTY_ID = "stack_id";
+  public static final String IS_CURRENT_PROPERTY_ID = "is_current";
+  public static final String IS_COMPATIBLE_PROPERTY_ID = "is_cluster_compatible";
+  public static final String HOSTS_PROPERTY_ID = "hosts";
+  public static final String CONFIGURATIONS_PROPERTY_ID = "configurations";
+  public static final String APPLIED_TIME_PROPERTY_ID = "appliedtime";
 
   /**
    * The property ids for a service configuration resource.
@@ -82,26 +83,26 @@ public class ServiceConfigVersionResourceProvider extends
 
   static {
     // properties
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(GROUP_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(GROUP_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(IS_CURRENT_PROPERTY_ID);
+    PROPERTY_IDS.add(HOSTS_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATIONS_PROPERTY_ID);
+    PROPERTY_IDS.add(IS_COMPATIBLE_PROPERTY_ID);
+    PROPERTY_IDS.add(CLUSTER_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_USER_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(CREATE_TIME_PROPERTY_ID);
+    PROPERTY_IDS.add(USER_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_GROUP_NAME_PROPERTY_ID);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.ServiceConfigVersion, SERVICE_CONFIG_VERSION_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceConfigVersion,SERVICE_CONFIG_VERSION_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_GROUP_NAME_PROPERTY_ID);
   }
 
 
@@ -110,8 +111,9 @@ public class ServiceConfigVersionResourceProvider extends
    */
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
-      SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID,
-      SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID, SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID}));
+      CLUSTER_NAME_PROPERTY_ID,
+      SERVICE_NAME_PROPERTY_ID,
+      SERVICE_GROUP_NAME_PROPERTY_ID}));
 
 
   // ----- Constructors ------------------------------------------------------
@@ -154,25 +156,25 @@ public class ServiceConfigVersionResourceProvider extends
     Set<Resource> associatedResources = new HashSet<>();
     for (ServiceConfigVersionResponse serviceConfigVersionResponse : responses) {
       Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
-      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID,
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_GROUP_NAME_PROPERTY_ID,
               serviceConfigVersionResponse.getServiceGroupName());
-      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_ID_PROPERTY_ID,
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_GROUP_ID_PROPERTY_ID,
               serviceConfigVersionResponse.getServiceGroupId());
-      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_NAME_PROPERTY_ID,
               serviceConfigVersionResponse.getServiceName());
-      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_ID_PROPERTY_ID,
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_ID_PROPERTY_ID,
               serviceConfigVersionResponse.getServiceId());
       resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
               serviceConfigVersionResponse.getVersion());
       resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
               serviceConfigVersionResponse.getNote());
-      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID,
+      resource.setProperty(ServiceConfigVersionResourceProvider.GROUP_ID_PROPERTY_ID,
               serviceConfigVersionResponse.getGroupId());
-      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID,
+      resource.setProperty(ServiceConfigVersionResourceProvider.GROUP_NAME_PROPERTY_ID,
               serviceConfigVersionResponse.getGroupName());
       if (serviceConfigVersionResponse.getConfigurations() != null) {
         resource.setProperty(
-                ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
+                ServiceConfigVersionResourceProvider.CONFIGURATIONS_PROPERTY_ID,
                 serviceConfigVersionResponse.getConfigurations());
       }
       associatedResources.add(resource);
@@ -218,20 +220,20 @@ public class ServiceConfigVersionResourceProvider extends
       List<Map<String,Object>> configVersionConfigurations = convertToSubResources(clusterName, configurationResponses);
 
       Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
-      resource.setProperty(SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName);
-      resource.setProperty(SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
-      resource.setProperty(SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
-      resource.setProperty(SERVICE_CONFIG_VERSION_USER_PROPERTY_ID, response.getUserName());
+      resource.setProperty(CLUSTER_NAME_PROPERTY_ID, clusterName);
+      resource.setProperty(SERVICE_NAME_PROPERTY_ID, response.getServiceName());
+      resource.setProperty(SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
+      resource.setProperty(USER_PROPERTY_ID, response.getUserName());
       resource.setProperty(SERVICE_CONFIG_VERSION_PROPERTY_ID, response.getVersion());
-      resource.setProperty(SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID, response.getCreateTime());
-      resource.setProperty(SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID, configVersionConfigurations);
+      resource.setProperty(CREATE_TIME_PROPERTY_ID, response.getCreateTime());
+      resource.setProperty(CONFIGURATIONS_PROPERTY_ID, configVersionConfigurations);
       resource.setProperty(SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID, response.getNote());
-      resource.setProperty(SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID, response.getGroupId());
-      resource.setProperty(SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID, response.getGroupName());
-      resource.setProperty(SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID, response.getHosts());
-      resource.setProperty(SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID, response.getStackId());
-      resource.setProperty(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID, response.getIsCurrent());
-      resource.setProperty(SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID, response.isCompatibleWithCurrentStack());
+      resource.setProperty(GROUP_ID_PROPERTY_ID, response.getGroupId());
+      resource.setProperty(GROUP_NAME_PROPERTY_ID, response.getGroupName());
+      resource.setProperty(HOSTS_PROPERTY_ID, response.getHosts());
+      resource.setProperty(STACK_ID_PROPERTY_ID, response.getStackId());
+      resource.setProperty(IS_CURRENT_PROPERTY_ID, response.getIsCurrent());
+      resource.setProperty(IS_COMPATIBLE_PROPERTY_ID, response.isCompatibleWithCurrentStack());
 
       resources.add(resource);
     }
@@ -249,15 +251,15 @@ public class ServiceConfigVersionResourceProvider extends
   }
 
   private ServiceConfigVersionRequest createRequest(Map<String, Object> properties) {
-    String clusterName = (String) properties.get(SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
-    String serviceGroupName = (String) properties.get(SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID);
-    String serviceName = (String) properties.get(SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
-    String user = (String) properties.get(SERVICE_CONFIG_VERSION_USER_PROPERTY_ID);
-    Boolean isCurrent = Boolean.valueOf((String) properties.get(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID));
+    String clusterName = (String) properties.get(CLUSTER_NAME_PROPERTY_ID);
+    String serviceGroupName = (String) properties.get(SERVICE_GROUP_NAME_PROPERTY_ID);
+    String serviceName = (String) properties.get(SERVICE_NAME_PROPERTY_ID);
+    String user = (String) properties.get(USER_PROPERTY_ID);
+    Boolean isCurrent = Boolean.valueOf((String) properties.get(IS_CURRENT_PROPERTY_ID));
     Object versionObject = properties.get(SERVICE_CONFIG_VERSION_PROPERTY_ID);
     Long version = versionObject == null ? null : Long.valueOf(versionObject.toString());
     String note = (String) properties.get(SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID);
-    String stackId = (String) properties.get(SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID);
+    String stackId = (String) properties.get(STACK_ID_PROPERTY_ID);
     ServiceConfigVersionRequest scvr = new ServiceConfigVersionRequest(clusterName, serviceGroupName, serviceName, version, null, null, user, isCurrent, note, stackId);
     if(version == null && properties.containsKey("configurations")) {
       List<ConfigurationRequest> configRequests = getConfigurationRequests((Set<Map<String, Object>>) properties.get("configurations"));

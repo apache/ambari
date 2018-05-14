@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.apache.hadoop.conf.Configuration;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -116,7 +117,7 @@ public class AggregatedMetricsPublisherTest {
 
     @Test
     public void testGetMetricsFromCache() throws InterruptedException {
-        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4);
+        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4, Collections.EMPTY_LIST);
         timelineMetricsHolder.extractMetricsForAggregationPublishing();
         timelineMetricsHolder.extractMetricsForRawPublishing();
 

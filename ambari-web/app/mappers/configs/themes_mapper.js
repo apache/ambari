@@ -68,6 +68,14 @@ App.themesMapper = App.QuickDataMapper.create({
     "sub_section_id": "sub_section_id"
   },
 
+  resetModels: function() {
+    this.get('tabModel').find().clear();
+    this.get('sectionModel').find().clear();
+    this.get('subSectionModel').find().clear();
+    this.get('subSectionTabModel').find().clear();
+    this.get('themeConditionModel').find().clear();
+  },
+
   /**
    * Mapper function for tabs
    *
@@ -233,7 +241,7 @@ App.themesMapper = App.QuickDataMapper.create({
             showLabel: false,
             isOverridable: false,
             recommendedValue: true,
-            name: configName,
+            name: JSON.parse('"' + configName + '"'),
             isUserProperty: false,
             filename: fileName,
             fileName: fileName,
@@ -354,8 +362,10 @@ App.themesMapper = App.QuickDataMapper.create({
    */
   getConfigId: function(json) {
     if (json && json.config && typeof json.config === "string") {
-      var split = json.config.split("/");
-      return App.config.configId(split[1], split[0]);
+      // symbols until first slash is file-name and the rest is config-name
+      const fileName = json.config.substr(0, json.config.indexOf('/'));
+      const configName = json.config.substr(json.config.indexOf('/') + 1);
+      return App.config.configId(configName, fileName);
     } else {
       return null;
     }

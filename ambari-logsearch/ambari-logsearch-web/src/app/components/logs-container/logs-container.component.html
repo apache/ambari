@@ -19,7 +19,8 @@
   <div class="row">
     <div class="col-md-12 tabs-menu-container">
       <tabs class="pull-left" [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
-            (tabClosed)="onCloseTab($event[0], $event[1])"></tabs>
+        (tabClosed)="onCloseTab($event[0], $event[1])"
+        [switchMode]="'ROUTE_SEGMENT'" [basePathForRoutingMode]="routerPath" queryParamsHandling=""></tabs>
       <action-menu class="pull-right"></action-menu>
     </div>
   </div>
@@ -42,7 +43,7 @@
   </div>
   <ng-container [ngSwitch]="logsType">
     <ng-container *ngSwitchCase="'serviceLogs'">
-      <collapsible-panel openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
+      <collapsible-panel [class.hide]="isServiceLogsFileView$ | async" openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
         <time-histogram (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="serviceLogsHistogramData"
                         [colors]="serviceLogsHistogramColors" [allowFractionalYTicks]="false"
                         svgId="service-logs-histogram"></time-histogram>

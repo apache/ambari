@@ -35,8 +35,10 @@ public class MetadataCluster {
   private SortedMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
   private SortedMap<String, String> clusterLevelParams = new TreeMap<>();
 
+  private SortedMap<String, SortedMap<String,String>> agentConfigs = new TreeMap<>();
+
   public MetadataCluster(SecurityType securityType, SortedMap<String,MetadataServiceInfo> serviceLevelParams,
-                         SortedMap<String, String> clusterLevelParams) {
+                         SortedMap<String, String> clusterLevelParams, SortedMap<String, SortedMap<String,String>> agentConfigs) {
     if (securityType != null) {
       this.statusCommandsToRun.add("STATUS");
       if (SecurityType.KERBEROS.equals(securityType)) {
@@ -45,6 +47,7 @@ public class MetadataCluster {
     }
     this.serviceLevelParams = serviceLevelParams;
     this.clusterLevelParams = clusterLevelParams;
+    this.agentConfigs = agentConfigs;
   }
 
   public Set<String> getStatusCommandsToRun() {
@@ -61,6 +64,14 @@ public class MetadataCluster {
 
   public void setClusterLevelParams(SortedMap<String, String> clusterLevelParams) {
     this.clusterLevelParams = clusterLevelParams;
+  }
+
+  public SortedMap<String, SortedMap<String, String>> getAgentConfigs() {
+    return agentConfigs;
+  }
+
+  public void setAgentConfigs(SortedMap<String, SortedMap<String, String>> agentConfigs) {
+    this.agentConfigs = agentConfigs;
   }
 
   @Override

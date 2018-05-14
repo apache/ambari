@@ -23,6 +23,7 @@ var validator = require('utils/validator');
 App.Repository = DS.Model.extend({
   id:  DS.attr('string'), // This is ${osType}-${repoId}.
   repoId: DS.attr('string'),
+  originalRepoId: DS.attr('string'),
   osType: DS.attr('string'),
   baseUrl: DS.attr('string'),
   baseUrlInit: DS.attr('string'),

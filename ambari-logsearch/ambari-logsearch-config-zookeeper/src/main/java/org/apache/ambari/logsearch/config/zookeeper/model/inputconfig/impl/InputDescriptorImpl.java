@@ -188,6 +188,18 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   @SerializedName("is_enabled")
   private Boolean isEnabled;
 
+
+  @ShipperConfigElementDescription(
+    path = "/input/[]/init_default_fields",
+    type = "boolean",
+    description = "Init default fields (ip, path etc.) before applying the filter.",
+    examples = {"true", "false"},
+    defaultValue = "false"
+  )
+  @Expose
+  @SerializedName("init_default_fields")
+  private Boolean initDefaultFields;
+
   public String getType() {
     return type;
   }
@@ -307,5 +319,14 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
 
   public void setGroup(String group) {
     this.group = group;
+  }
+
+  @Override
+  public Boolean isInitDefaultFields() {
+    return this.initDefaultFields;
+  }
+
+  public void setInitDefaultFields(Boolean initDefaultFields) {
+    this.initDefaultFields = initDefaultFields;
   }
 }

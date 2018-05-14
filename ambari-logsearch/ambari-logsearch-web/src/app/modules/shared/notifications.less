@@ -1,0 +1,66 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import "variables";
+
+/deep/ simple-notification .simple-notification.app-notification {
+  color: @notification-color;
+  border-radius: 2px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.5);
+  &.success {
+    border-left: 3px solid @form-success-color;
+    .fa {
+      color: @form-success-color;
+    }
+  }
+  &.info {
+    border-left: 3px solid @form-info-color;
+    .fa {
+      color: @form-info-color;
+    }
+  }
+  &.error {
+    border-left: 3px solid @form-error-color;
+    .fa {
+      color: @form-error-color;
+    }
+  }
+  .fa {
+    font-size: 16px;
+    position: absolute;
+    right: .25em;
+    top: .25em;
+  }
+  &.error, &.success, &.alert, &.info {
+    background: @notification-background-color;
+  }
+  .sn-title {
+    font-size: @notification-title-font-size;
+    padding: 0;
+  }
+  .sn-content {
+    font-size: @notification-content-font-size;
+    padding: 0;
+  }
+  .sn-progress-loader {
+    height: 2px;
+    span {
+      background: @unknown-color;
+    }
+  }
+}

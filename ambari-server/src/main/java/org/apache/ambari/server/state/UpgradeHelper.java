@@ -1024,6 +1024,9 @@ public class UpgradeHelper {
           String configurationType = currentServiceConfig.getType();
 
           Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
+          if (currentClusterConfigForService == null) {
+            throw new AmbariException(String.format("configuration type %s did not have a selected version", configurationType));
+          }
           existingServiceConfigs.add(currentClusterConfigForService);
           foundConfigTypes.add(configurationType);
         }
@@ -1166,8 +1169,7 @@ public class UpgradeHelper {
       }
     }
     if (configsChanged) {
-      m_metadataHolder.get().updateData(m_controllerProvider.get().getClusterMetadataOnConfigsUpdate(cluster));
-      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+      m_configHelperProvider.get().updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
   }
 

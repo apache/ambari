@@ -85,18 +85,31 @@ export class DropdownButtonComponent {
 
   constructor(protected utils: UtilsService) {}
 
-  updateSelection(item: ListItem): void {
-    if (this.isMultipleChoice) {
-      this.options.find((option: ListItem): boolean => {
-        return this.utils.isEqual(option.value, item.value);
-      }).isChecked = item.isChecked;
-      const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
-      this.selection = checkedItems;
-      this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
-    } else if (!this.utils.isEqual(this.selection[0], item)) {
-      this.selection = [item];
-      this.selectItem.emit(item.value);
+  updateSelection(updatedItem: ListItem | ListItem[]): void {
+    if (updatedItem) {
+      const items: ListItem[] = Array.isArray(updatedItem) ? updatedItem : [updatedItem];
+      if (this.isMultipleChoice) {
+        items.forEach((item: ListItem) => {
+          if (this.options && this.options.length) {
+            const itemToUpdate: ListItem = this.options.find((option: ListItem) => this.utils.isEqual(option.value, item.value));
+            if (itemToUpdate) {
+              itemToUpdate.isChecked = item.isChecked;
+            }
+          }
+        });
+      } else {
+        const selectedItem: ListItem = items.find((item: ListItem) => item.isChecked);
+        this.options.forEach((item: ListItem) => {
+          item.isChecked = !!selectedItem && this.utils.isEqual(item.value, selectedItem.value);
+        });
+      }
+    } else {
+      this.options.forEach((item: ListItem) => item.isChecked = false);
+      this.selection = [];
     }
+    const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
+    this.selection = checkedItems;
+    this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
   }
 
 }

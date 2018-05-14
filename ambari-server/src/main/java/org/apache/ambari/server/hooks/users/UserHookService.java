@@ -148,7 +148,6 @@ public class UserHookService implements HookService {
       stage.addServerActionCommand(PostUserCreationHookServerAction.class.getName(), "ambari", Role.AMBARI_SERVER_ACTION,
           RoleCommand.EXECUTE, clsData.getClusterName(), serverActionEvent, commandParams, stageContextText, null, null, false, false);
 
-      requestStageContainer.setClusterHostInfo("{}");
       requestStageContainer.addStages(Collections.singletonList(stage));
       requestStageContainer.persist();
 

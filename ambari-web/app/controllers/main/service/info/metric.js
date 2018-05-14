@@ -103,6 +103,8 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
           return Em.Object.create({
             id: widgetId,
             widgetName: widgetName,
+            tag: widget.WidgetInfo.tag,
+            metrics: widget.WidgetInfo.metrics,
             description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
@@ -152,6 +154,8 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
           return Em.Object.create({
             id: widget.WidgetInfo.id,
             widgetName: widgetName,
+            tag: widget.WidgetInfo.tag,
+            metrics: widget.WidgetInfo.metrics,
             description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
@@ -209,7 +213,8 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
    */
   hideWidget: function (event) {
     var widgetToHide = event.context;
-    var activeLayout = this.get('activeWidgetLayout');
+    var widgetLayout = event.context.nsLayout;
+    var activeLayout = widgetLayout || this.get('activeWidgetLayout');
     var widgetIds = activeLayout.get('widgets').map(function (widget) {
       return {
         "id": widget.get("id")
@@ -403,11 +408,11 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
         activeStatus: '',
 
         content: function () {
+          var content = [];
           if (this.get('parentView.isShowMineOnly')) {
-            return this.get('controller.mineWidgets');
+            content = this.get('controller.mineWidgets');
           } else {
             // merge my widgets and all shared widgets, no duplicated is allowed
-            var content = [];
             var widgetMap = {};
             var allWidgets = this.get('controller.allSharedWidgets').concat(this.get('controller.mineWidgets'));
             allWidgets.forEach(function(widget) {
@@ -416,8 +421,21 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
                 widgetMap[widget.get("id")] = true;
               }
             });
-            return content;
           }
+
+          //remove NameNode widgets with no tag if federation is enabled
+          if (App.get('hasNameNodeFederation')) {
+            content = content.filter(function (w) {
+              var parsedMetric;
+              try {
+                parsedMetric = JSON.parse(w.metrics);
+              } catch (e) {
+              }
+              return w.tag || !(parsedMetric && parsedMetric.someProperty('component_name', 'NAMENODE'));
+            });
+          }
+
+          return content;
         }.property('controller.allSharedWidgets.length', 'controller.isAllSharedWidgetsLoaded',
           'controller.mineWidgets.length', 'controller.isMineWidgetsLoaded', 'parentView.isShowMineOnly'),
 

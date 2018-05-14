@@ -509,10 +509,8 @@ public class ConfigGroupImpl implements ConfigGroup {
 
     for (Config config : m_configurations.values()) {
       Map<String, Object> configMap = new HashMap<>();
-      configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
-          config.getType());
-      configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID,
-          config.getTag());
+      configMap.put(ConfigurationResourceProvider.TYPE, config.getType());
+      configMap.put(ConfigurationResourceProvider.TAG, config.getTag());
       configObjMap.add(configMap);
     }
 

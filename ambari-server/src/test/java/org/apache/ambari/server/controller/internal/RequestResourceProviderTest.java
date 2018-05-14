@@ -19,7 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.STALE_CONFIGS;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -61,6 +62,7 @@ import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -1158,12 +1160,24 @@ public class RequestResourceProviderTest {
     ClusterControllerImpl controller = createNiceMock(ClusterControllerImpl.class);
     HostComponentProcessResourceProvider hostComponentProcessResourceProvider = createNiceMock(HostComponentProcessResourceProvider.class);
     PowerMock.mockStatic(ClusterControllerHelper.class);
+
     Resource resource = createNiceMock(Resource.class);
+    Collection<Resource> resources = Collections.singleton(resource);
+    Iterable<Resource> resourceIterable = new Iterable<Resource>() {
+      @Override
+      public Iterator<Resource> iterator() {
+        return resources.iterator();
+      }
+    };
 
     expect(ClusterControllerHelper.getClusterController()).andReturn(controller);
     expect(controller.ensureResourceProvider(Resource.Type.HostComponent)).andReturn(hostComponentProcessResourceProvider);
-    expect(hostComponentProcessResourceProvider.getResources(
-      capture(requestCapture), capture(predicateCapture))).andReturn(Collections.singleton(resource));
+    QueryResponse queryResponse = createNiceMock(QueryResponse.class);
+    expect(controller.getResources(eq(Resource.Type.HostComponent), capture(requestCapture),
+      capture(predicateCapture))).andReturn(queryResponse);
+    expect(controller.getIterable(eq(Resource.Type.HostComponent), eq(queryResponse),
+      (Request) anyObject(), (Predicate) anyObject(), eq(null), eq(null)))
+      .andReturn(resourceIterable);
 
     // replay
     replayAll();
@@ -1179,13 +1193,12 @@ public class RequestResourceProviderTest {
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
 
     Set<Map<String, Object>> filterSet = new HashSet<>();
-    String predicateProperty = HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID + "=true";
+    String predicateProperty = STALE_CONFIGS + "=true";
     Map<String, Object> filterMap = new HashMap<>();
     filterMap.put(RequestResourceProvider.HOSTS_PREDICATE, predicateProperty);
     filterSet.add(filterMap);
 
     properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterSet);
-
     propertySet.add(properties);
 
     Map<String, String> requestInfoProperties = new HashMap<>();
@@ -1207,7 +1220,7 @@ public class RequestResourceProviderTest {
     String propertyIdToAssert = null;
     Object propertyValueToAssert = null;
     for (Map.Entry<String, Object> predicateEntry : predicateProperties.entrySet()) {
-      if (predicateEntry.getKey().equals(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID)) {
+      if (predicateEntry.getKey().equals(STALE_CONFIGS)) {
         propertyIdToAssert = predicateEntry.getKey();
         propertyValueToAssert = predicateEntry.getValue();
       }

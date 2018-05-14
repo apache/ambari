@@ -19,8 +19,8 @@
 <div id="config-versions-control">
   {{#if view.isCompareMode}}
     <div class="compare-bar">
-      <i class="glyphicon glyphicon-duplicate" aria-hidden="true"></i>
-      <span>{{t services.service.config.configHistory.comparing}}:</span>
+      <i class="icon-exchange" aria-hidden="true"></i>
+      <span class="compare-label">{{t services.service.config.configHistory.comparing}}:</span>
       {{view App.ConfigVersionsDropdownView
              serviceVersionsBinding="view.primaryServiceVersionsInCompare"
              isCompareMode="true"}}
@@ -29,12 +29,12 @@
              serviceVersionsBinding="view.secondaryServiceVersionsInCompare"
              isSecondary="true"
              isCompareMode="true"}}
-      <a {{action removeCompareVersionBar target="view"}} class="pull-right close">&times;</a>
+      <a {{action removeCompareVersionBar target="view"}} class="pull-right close form-text">&times;</a>
     </div>
   {{else}}
     {{view App.ConfigVersionsDropdownView serviceVersionsBinding="view.serviceVersions"}}
     {{#unless view.displayedServiceVersion.isCurrent}}
-      <button class="btn btn-default make-current" {{action makeCurrent view.displayedServiceVersion target="view"}}>
+      <button class="btn btn-secondary make-current" {{action makeCurrent view.displayedServiceVersion target="view"}}>
         {{t dashboard.configHistory.info-bar.revert.button}}
       </button>
     {{/unless}}

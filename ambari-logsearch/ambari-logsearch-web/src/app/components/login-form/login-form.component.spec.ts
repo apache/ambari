@@ -31,7 +31,7 @@ describe('LoginFormComponent', () => {
   let component: LoginFormComponent;
   let fixture: ComponentFixture<LoginFormComponent>;
 
-  let authMock = {
+  const authMock = {
     isError: false
   };
   const httpClient = {
@@ -41,7 +41,7 @@ describe('LoginFormComponent', () => {
         subscribe: (success: () => void, error: () => void) => {
           authMock.isError ? error() : success();
         }
-      }
+      };
     }
   };
 

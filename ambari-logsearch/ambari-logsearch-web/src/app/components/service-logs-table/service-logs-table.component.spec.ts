@@ -49,6 +49,12 @@ import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dr
 import {ServiceLogsTableComponent, ListLayout} from './service-logs-table.component';
 import {ComponentLabelPipe} from "@app/pipes/component-label";
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
 
 describe('ServiceLogsTableComponent', () => {
   let component: ServiceLogsTableComponent;
@@ -63,6 +69,7 @@ describe('ServiceLogsTableComponent', () => {
         ComponentLabelPipe
       ],
       imports: [
+        RouterTestingModule,
         FormsModule,
         ReactiveFormsModule,
         MomentModule,
@@ -104,7 +111,12 @@ describe('ServiceLogsTableComponent', () => {
         HostsService,
         ComponentGeneratorService,
         AuthService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

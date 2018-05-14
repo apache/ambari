@@ -37,7 +37,6 @@
     <module>phone-list-upgrade-view</module>
     <module>calculator-view</module>
     <module>cluster-view</module>
-    <module>weather-view</module>
     <module>restricted-view</module>
     <module>simple-view</module>
     <module>property-view</module>

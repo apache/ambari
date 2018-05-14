@@ -60,6 +60,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ServiceGroupKey;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
@@ -67,16 +68,18 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.ClusterEvent;
+import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.ConfigsUpdateEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.jpa.JPAEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -285,6 +288,9 @@ public class ClusterImpl implements Cluster {
   private AmbariMetaInfo ambariMetaInfo;
 
   @Inject
+  private AmbariManagementController controller;
+
+  @Inject
   private ServiceConfigDAO serviceConfigDAO;
 
   @Inject
@@ -349,7 +355,7 @@ public class ClusterImpl implements Cluster {
   private UpgradeContextFactory upgradeContextFactory;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
@@ -2133,9 +2139,8 @@ public class ClusterImpl implements Cluster {
         serviceConfigEntity.setHostIds(new ArrayList<>(configGroup.getHosts().keySet()));
         serviceConfigEntity = serviceConfigDAO.merge(serviceConfigEntity);
       }
-      stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntity,
+      STOMPUpdatePublisher.publish(new ConfigsUpdateEvent(serviceConfigEntity,
           configGroup == null ? null : configGroup.getName(), groupHostNames, changedConfigs.keySet()));
-      configHelper.checkStaleConfigsStatusOnConfigsUpdate(clusterEntity.getClusterId(), serviceConfigEntity.getServiceName(), groupHostNames, changedConfigs);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -2473,11 +2478,10 @@ public class ClusterImpl implements Cluster {
     }
 
     serviceConfigDAO.create(serviceConfigEntityClone);
-    stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntityClone,
+    STOMPUpdatePublisher.publish(new ConfigsUpdateEvent(serviceConfigEntityClone,
         configGroupName,
         groupHostNames,
         changedConfigs.keySet()));
-    configHelper.checkStaleConfigsStatusOnConfigsUpdate(clusterEntity.getClusterId(), serviceConfigEntity.getServiceName(), groupHostNames, changedConfigs);
 
     return convertToServiceConfigVersionResponse(serviceConfigEntityClone);
   }
@@ -2486,8 +2490,8 @@ public class ClusterImpl implements Cluster {
   @Transactional
   ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException{
 
-List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
-Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getType).collect(toList()));
+    List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
+    Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getType).collect(toList()));
     Long resultingServiceId = null;
     for (Config config : configs) {
       for (Long serviceId : serviceConfigTypes.keySet()) {
@@ -2534,7 +2538,7 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
         configTypes.add(config.getType());
       }
 
-      stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(this, appliedConfigs));
+      STOMPUpdatePublisher.publish(new ConfigsUpdateEvent(this, appliedConfigs));
       LOG.error("No service found for config types '{}', service config version not created", configTypes);
       return null;
     } else {
@@ -3344,6 +3348,24 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
     }
 
     m_clusterPropertyCache.clear();
+  }
+
+  @Subscribe
+  public void onClusterProvisioned(ClusterProvisionedEvent event) {
+    if (event.getClusterId() == getClusterId()) {
+      LOG.info("Removing temporary configurations after successful deployment of cluster id={} name={}", getClusterId(), getClusterName());
+      for (Map.Entry<String, Set<String>> e : BlueprintConfigurationProcessor.TEMPORARY_PROPERTIES_FOR_CLUSTER_DEPLOYMENT.entrySet()) {
+        try {
+          configHelper.updateConfigType(this, getCurrentStackVersion(), controller,
+            e.getKey(), Collections.emptyMap(), e.getValue(),
+            "internal", "Removing temporary configurations after successful deployment"
+          );
+          LOG.info("Removed temporary configurations: {} / {}", e.getKey(), e.getValue());
+        } catch (AmbariException ex) {
+          LOG.warn("Failed to remove temporary configurations: {} / {}", e.getKey(), e.getValue(), ex);
+        }
+      }
+    }
   }
 
   /**

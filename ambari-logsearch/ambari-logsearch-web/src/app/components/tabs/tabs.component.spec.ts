@@ -20,6 +20,10 @@ import {Tab} from '@app/classes/models/tab';
 import {TranslationModules} from '@app/test-config.spec';
 
 import {TabsComponent} from './tabs.component';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('TabsComponent', () => {
   let component: TabsComponent;
@@ -28,7 +32,15 @@ describe('TabsComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [TabsComponent],
-      imports: TranslationModules
+      imports: [
+        RouterTestingModule,
+        TranslationModules
+      ],
+      providers: [
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
+      ]
     })
     .compileComponents();
   }));

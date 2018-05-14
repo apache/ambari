@@ -181,7 +181,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
   public CountDataListResponse getFieldCount(String field, String clusters) {
     SimpleFacetQuery facetQuery = conversionService.convert(field, SimpleFacetQuery.class);
-    if (StringUtils.isEmpty(clusters)) {
+    if (StringUtils.isNotEmpty(clusters)) {
       List<String> clusterFilterList = Splitter.on(",").splitToList(clusters);
       facetQuery.addFilterQuery(new SimpleFilterQuery(new Criteria(CLUSTER).in(clusterFilterList)));
     }

@@ -18,7 +18,7 @@
 
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {BrowserModule} from '@angular/platform-browser';
+import {BrowserModule, Title} from '@angular/platform-browser';
 import {FormsModule} from '@angular/forms';
 import {Http} from '@angular/http';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -59,6 +59,7 @@ import {ModalComponent} from './components/modal/modal.component';
     ModalComponent
   ],
   providers: [
+    Title,
     NotificationService,
     CanDeactivateGuardService,
     Angular2NotificationsService

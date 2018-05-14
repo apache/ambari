@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +48,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -54,6 +56,7 @@ import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
@@ -171,6 +174,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   private final BlueprintValidator validator;
 
   /**
+   * Topology request dao
+   */
+  private final TopologyRequestDAO topologyRequestDAO;
+
+  /**
    * Used to get stack metainfo.
    */
   private final AmbariMetaInfo ambariMetaInfo;
@@ -187,7 +195,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   BlueprintResourceProvider(
     BlueprintValidator validator,
     BlueprintFactory factory,
-    BlueprintDAO dao,
+    BlueprintDAO bpDao,
+    TopologyRequestDAO trDao,
     SecurityConfigurationFactory securityFactory,
     AmbariMetaInfo metaInfo,
     @Assisted AmbariManagementController controller
@@ -195,9 +204,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     super(Resource.Type.Blueprint, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
     this.validator = validator;
     blueprintFactory = factory;
-    blueprintDAO = dao;
+    blueprintDAO = bpDao;
     securityConfigurationFactory = securityFactory;
     ambariMetaInfo = metaInfo;
+    topologyRequestDAO = trDao;
   }
 
   // ----- ResourceProvider ------------------------------------------------
@@ -287,18 +297,20 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     Set<Resource> setResources = getResources(
         new RequestImpl(null, null, null, null), predicate);
 
+    List<TopologyRequestEntity> provisionRequests = topologyRequestDAO.findAllProvisionRequests();
+    // Blueprints for which a provision request was submitted. This blueprints (should be zero or one) are read only.
+    Set<String> provisionedBlueprints =
+      provisionRequests.stream().map(TopologyRequestEntity::getBlueprintName).collect(toSet());
+
     for (final Resource resource : setResources) {
       final String blueprintName =
         (String) resource.getPropertyValue(BLUEPRINT_NAME_PROPERTY_ID);
-
+      Preconditions.checkArgument(!provisionedBlueprints.contains(blueprintName),
+        "Blueprint %s cannot be deleted as cluster provisioning was initiated on it.", blueprintName);
       LOG.info("Deleting Blueprint, name = " + blueprintName);
-
-      modifyResources(new Command<Void>() {
-        @Override
-        public Void invoke() throws AmbariException {
-          blueprintDAO.removeByName(blueprintName);
-          return null;
-        }
+      modifyResources(() -> {
+        blueprintDAO.removeByName(blueprintName);
+        return null;
       });
     }
 

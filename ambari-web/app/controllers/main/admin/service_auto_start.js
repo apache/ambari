@@ -94,6 +94,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   }.property('componentsConfigsGrouped.@each.recoveryEnabled', 'componentsConfigsCachedMap'),
 
   parseComponentConfigs: function(componentsConfigsCached) {
+    componentsConfigsCached.sortPropertyLight('ServiceComponentInfo.service_name');
     const componentsConfigsGrouped = [];
     const servicesMap = componentsConfigsCached
       .mapProperty('ServiceComponentInfo.service_name').uniq().toWickMap();
@@ -132,7 +133,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
       sender: this
     }).then(data => {
       const settings = {};
-      
+
       if (data && data.items) {
         data.items.forEach(item => {
           const key = item.ClusterSettingInfo.cluster_setting_name;
@@ -140,10 +141,10 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
           settings[key] = value;
         });
       }
-      
+
       dfd.resolve(settings);
     }, dfd.reject);
-    
+
     return dfd.promise();
   },
 

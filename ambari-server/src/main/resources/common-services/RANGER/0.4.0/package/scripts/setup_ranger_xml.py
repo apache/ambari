@@ -71,7 +71,7 @@ def setup_ranger_admin(upgrade_type=None):
   copy_jdbc_connector(ranger_home)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
-    content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+    content = DownloadSource(format("{jdk_location}/{check_db_connection_jar_name}")),
     mode = 0644,
   )
 

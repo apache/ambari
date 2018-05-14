@@ -33,8 +33,10 @@ describe('App.alertSummaryMapper', function () {
     it('App.alertDefinitionSummaryMapper.map should be called', function() {
       const event = {
         summaries: {
-          d1: {
-            definition_name: 'd1'
+          "1": {
+            d1: {
+              definition_name: 'd1'
+            }
           }
         }
       };

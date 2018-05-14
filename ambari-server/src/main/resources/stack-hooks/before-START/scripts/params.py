@@ -79,7 +79,7 @@ hadoop_bin = stack_select.get_hadoop_dir("sbin")
 mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 hadoop_home = stack_select.get_hadoop_dir("home")
 create_lib_snappy_symlinks = False
-  
+
 current_service = module_name
 
 #security params
@@ -167,6 +167,12 @@ metrics_collection_period = module_configs.get_property_value(module_name, 'ams-
 
 host_in_memory_aggregation = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation', True)
 host_in_memory_aggregation_port = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation.port', 61888)
+is_aggregation_https_enabled = False
+if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = None
@@ -244,7 +250,7 @@ refresh_topology = execution_command.need_refresh_topology()
 ambari_java_home = execution_command.get_ambari_java_home()
 ambari_jdk_name = execution_command.get_ambari_jdk_name()
 ambari_jce_name = execution_command.get_ambari_jce_name()
-  
+
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 is_webhdfs_enabled = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.webhdfs.enabled')
 default_fs = module_configs.get_property_value(module_name, 'core-site', 'fs.defaultFS')
@@ -261,7 +267,7 @@ net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
 net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)
 
-#Added logic to create /tmp and /user directory for HCFS stack.  
+#Added logic to create /tmp and /user directory for HCFS stack.
 has_core_site = bool(module_configs.get_all_properties(module_name, "core-site"))
 hdfs_user_keytab = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user_keytab')
 kinit_path_local = get_kinit_path()

@@ -71,6 +71,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     mirrors_list : 'Repositories.mirrors_list',
     os_type : 'Repositories.os_type',
     repo_id : 'Repositories.repo_id',
+    original_repo_id : 'Repositories.repo_id',
     repo_name : 'Repositories.repo_name',
     stack_name : 'Repositories.stack_name',
     stack_version : 'Repositories.stack_version',

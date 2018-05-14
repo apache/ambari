@@ -1,0 +1,5 @@
+2017-10-23 13:41:43.481 o.a.s.d.executor Thread-11-__acker-executor[5 5] [INFO] Preparing bolt __acker:(4)
+2017-10-23 13:41:43.483 o.a.s.d.executor Thread-11-__acker-executor[5 5] [WARN] Prepared bolt __acker:(5)
+2017-10-23 13:41:48.834 c.h.s.s.n.EmailNotifier Thread-5-3-NOTIFICATION-executor[3 3] [ERROR] Got exception while initializing transport
+2017-10-23 13:41:58.242 o.a.s.d.executor main [INFO] Loading executor 3-NOTIFICATION:[3 1]
+2017-10-23 13:41:59.242 o.a.s.d.executor Thread-11-__acker-executor[5 5] [WARN] Prepared bolt __acker:(6)

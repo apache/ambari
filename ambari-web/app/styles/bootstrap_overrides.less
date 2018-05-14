@@ -31,6 +31,7 @@ select.form-control {
 }
 
 .popover {
+  word-wrap: break-word;  
   small {
     font-size: 1.3rem;
   }
@@ -577,6 +578,12 @@ select.form-control {
   line-height: 1.3em;
 }
 
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.sub-menu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.sub-menu {
+  padding: 5px 0;
+  background-color: #323544;
+}
+
 input[type="checkbox"]:checked + label:after {
   line-height: 2em;
 }
@@ -585,14 +592,10 @@ input[type="checkbox"]:checked + label:after {
   border-color: #999;
 }
 
-.form-horizontal .radio,
-.form-horizontal .checkbox,
-.form-horizontal .radio-inline,
-.form-horizontal .checkbox-inline {
-  padding-top: 0;
-}
-
 .radio, .checkbox {
   margin-bottom: 0;
   margin-top: 0;
+  label {
+    vertical-align: middle;
+  }
 }

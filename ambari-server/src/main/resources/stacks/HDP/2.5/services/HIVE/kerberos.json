@@ -144,7 +144,7 @@
           "configurations": [
             {
               "core-site": {
-                "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/webhcat_server_host|append(core-site/hadoop.proxyuser.HTTP.hosts, \\\\,, true)}"
+                "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/webhcat_server_hosts|append(core-site/hadoop.proxyuser.HTTP.hosts, \\,, true)}"
               }
             },
             {

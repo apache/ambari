@@ -48,7 +48,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
@@ -287,11 +286,8 @@ public class StackAdvisorCommandTest {
 
   @Test
   public void testPopulateLdapConfig() throws Exception {
-    Map<String, RootServiceComponentConfiguration> storedConfig = new HashMap<String, RootServiceComponentConfiguration>() {{
-      put("ldap-configuration", new RootServiceComponentConfiguration(new HashMap<String, String>() {{
-        put("authentication.ldap.secondaryUrl", "localhost:333");
-      }}, null));
-    }};
+    Map<String, Map<String, String>> storedConfig = Collections.singletonMap("ldap-configuration",
+        Collections.singletonMap("authentication.ldap.secondaryUrl", "localhost:333"));
     TestStackAdvisorCommand command = new TestStackAdvisorCommand(
       temp.newFolder("recommendationDir"),
       "1w",
@@ -299,7 +295,7 @@ public class StackAdvisorCommandTest {
       0,
       mock(StackAdvisorRunner.class),
       mock(AmbariMetaInfo.class));
-    when(ambariServerConfigurationHandler.getConfigurations(null)).thenReturn(storedConfig);
+    when(ambariServerConfigurationHandler.getConfigurations()).thenReturn(storedConfig);
     JsonNode servicesRootNode = json("{}");
     command.populateAmbariConfiguration((ObjectNode)servicesRootNode);
     JsonNode expectedLdapConfig = json("{\"ambari-server-configuration\":{\"ldap-configuration\":{\"authentication.ldap.secondaryUrl\":\"localhost:333\"}}}");
@@ -315,7 +311,7 @@ public class StackAdvisorCommandTest {
       0,
       mock(StackAdvisorRunner.class),
       mock(AmbariMetaInfo.class));
-    when(ambariServerConfigurationHandler.getConfigurations(null)).thenReturn(emptyMap());
+    when(ambariServerConfigurationHandler.getConfigurations()).thenReturn(emptyMap());
     JsonNode servicesRootNode = json("{}");
     command.populateAmbariConfiguration((ObjectNode)servicesRootNode);
     JsonNode expectedLdapConfig = json("{\"ambari-server-configuration\":{}}");

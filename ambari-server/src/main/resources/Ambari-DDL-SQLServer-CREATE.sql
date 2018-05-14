@@ -209,6 +209,13 @@ CREATE TABLE servicedependencies (
   CONSTRAINT FK_svcdep_svc_grp_clstr_id FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT FK_svcdep_dep_scv_grp_clstr_id FOREIGN KEY (dependent_service_id) REFERENCES clusterservices (id));
 
+CREATE TABLE ambari_configuration (
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(2048),
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name)
+);
+
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
@@ -868,6 +875,7 @@ CREATE TABLE widget (
   widget_values VARCHAR(4000),
   properties VARCHAR(4000),
   cluster_id BIGINT NOT NULL,
+  tag VARCHAR(255),
   CONSTRAINT PK_widget PRIMARY KEY CLUSTERED (id)
 );
 

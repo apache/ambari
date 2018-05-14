@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.util.List;
 
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.internal.databaseaccess.Platform;
@@ -454,16 +455,7 @@ public class GenericDbmsHelper implements DbmsHelper {
    *          the value to escape
    * @return the escaped value
    */
-  protected String escapeParameter(Object value) {
-    // Only String and number supported.
-    // Taken from:
-    // org.eclipse.persistence.internal.databaseaccess.appendParameterInternal
-    Object dbValue = databasePlatform.convertToDatabaseType(value);
-    String valueString = value.toString();
-    if (dbValue instanceof String || dbValue instanceof Enum) {
-      valueString = "'" + value + "'";
-    }
-
-    return valueString;
+  private String escapeParameter(Object value) {
+    return DBAccessorImpl.escapeParameter(value, databasePlatform);
   }
 }

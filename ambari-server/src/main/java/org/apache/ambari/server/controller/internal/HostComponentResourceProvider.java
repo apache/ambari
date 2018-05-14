@@ -87,32 +87,64 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
   // ----- Property ID constants ---------------------------------------------
 
-  // Host Components
-  public static final String HOST_COMPONENT_CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_id";
-  public static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
-  public static final String HOST_COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
-  public static final String HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
-  public static final String HOST_COMPONENT_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
-  public static final String HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
-  public static final String HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
-  public static final String HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
-  public static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
-  public static final String HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_type";
-  public static final String HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "display_name";
-  public static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "host_name";
-  public static final String HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "public_host_name";
-  public static final String HOST_COMPONENT_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
-  public static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_state";
-  public static final String HOST_COMPONENT_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "version";
-  public static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack_id";
-  public static final String HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "actual_configs";
-  public static final String HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stale_configs";
-  public static final String HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "reload_configs");
-  public static final String HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_admin_state";
-  public static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "maintenance_state";
-  public static final String HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "upgrade_state";
-  public static final String HOST_COMPONENT_ROLE_ID
-      = PropertyHelper.getPropertyId("HostRoles", "role_id");
+  public static final String HOST_ROLES = "HostRoles";
+  public static final String HOST = "host";
+  public static final String SERVICE_COMPONENT_INFO = "ServiceComponentInfo";
+
+  public static final String ROLE_ID_PROPERTY_ID = "role_id";
+  public static final String CLUSTER_ID_PROPERTY_ID = "cluster_id";
+  public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
+  public static final String SERVICE_GROUP_ID_PROPERTY_ID = "service_group_id";
+  public static final String SERVICE_GROUP_NAME_PROPERTY_ID = "service_group_name";
+  public static final String SERVICE_ID_PROPERTY_ID = "service_id";
+  public static final String SERVICE_NAME_PROPERTY_ID = "service_name";
+  public static final String SERVICE_TYPE_PROPERTY_ID = "service_type";
+  public static final String ID_PROPERTY_ID = "id";
+  public static final String COMPONENT_NAME_PROPERTY_ID = "component_name";
+  public static final String COMPONENT_TYPE_PROPERTY_ID = "component_type";
+  public static final String DISPLAY_NAME_PROPERTY_ID = "display_name";
+  public static final String HOST_NAME_PROPERTY_ID = "host_name";
+  public static final String PUBLIC_HOST_NAME_PROPERTY_ID = "public_host_name";
+  public static final String STATE_PROPERTY_ID = "state";
+  public static final String DESIRED_STATE_PROPERTY_ID = "desired_state";
+  public static final String VERSION_PROPERTY_ID = "version";
+  public static final String DESIRED_STACK_ID_PROPERTY_ID = "desired_stack_id";
+  public static final String ACTUAL_CONFIGS_PROPERTY_ID = "actual_configs";
+  public static final String STALE_CONFIGS_PROPERTY_ID = "stale_configs";
+  public static final String RELOAD_CONFIGS_PROPERTY_ID = "reload_configs";
+  public static final String DESIRED_ADMIN_STATE_PROPERTY_ID = "desired_admin_state";
+  public static final String MAINTENANCE_STATE_PROPERTY_ID = "maintenance_state";
+  public static final String UPGRADE_STATE_PROPERTY_ID = "upgrade_state";
+  public static final String HOST_PROPERTY_ID = "host";
+  public static final String HREF_PROPERTY_ID = "href";
+  public static final String COMPONENT_PROPERTY_ID = "component";
+  public static final String METRICS_PROPERTY_ID = "metrics";
+  public static final String PROCESSES_PROPERTY_ID = "processes";
+
+  public static final String ROLE_ID = PropertyHelper.getPropertyId(HOST_ROLES, ROLE_ID_PROPERTY_ID);
+  public static final String CLUSTER_ID = PropertyHelper.getPropertyId(RESPONSE_KEY, CLUSTER_ID_PROPERTY_ID);
+  public static final String CLUSTER_NAME = PropertyHelper.getPropertyId(HOST_ROLES, CLUSTER_NAME_PROPERTY_ID);
+  public static final String SERVICE_GROUP_ID = PropertyHelper.getPropertyId(RESPONSE_KEY, SERVICE_GROUP_ID_PROPERTY_ID);
+  public static final String SERVICE_GROUP_NAME = PropertyHelper.getPropertyId(RESPONSE_KEY, SERVICE_GROUP_NAME_PROPERTY_ID);
+  public static final String SERVICE_ID = PropertyHelper.getPropertyId(RESPONSE_KEY, SERVICE_ID_PROPERTY_ID);
+  public static final String SERVICE_NAME = PropertyHelper.getPropertyId(HOST_ROLES, SERVICE_NAME_PROPERTY_ID);
+  public static final String SERVICE_TYPE = PropertyHelper.getPropertyId(RESPONSE_KEY, SERVICE_TYPE_PROPERTY_ID);
+  public static final String ID = PropertyHelper.getPropertyId(RESPONSE_KEY, ID_PROPERTY_ID);
+  public static final String COMPONENT_NAME = PropertyHelper.getPropertyId(HOST_ROLES, COMPONENT_NAME_PROPERTY_ID);
+  public static final String COMPONENT_TYPE = PropertyHelper.getPropertyId(RESPONSE_KEY, COMPONENT_TYPE_PROPERTY_ID);
+  public static final String DISPLAY_NAME = PropertyHelper.getPropertyId(HOST_ROLES, DISPLAY_NAME_PROPERTY_ID);
+  public static final String HOST_NAME = PropertyHelper.getPropertyId(HOST_ROLES, HOST_NAME_PROPERTY_ID);
+  public static final String PUBLIC_HOST_NAME = PropertyHelper.getPropertyId(HOST_ROLES, PUBLIC_HOST_NAME_PROPERTY_ID);
+  public static final String STATE = PropertyHelper.getPropertyId(HOST_ROLES, STATE_PROPERTY_ID);
+  public static final String DESIRED_STATE = PropertyHelper.getPropertyId(HOST_ROLES, DESIRED_STATE_PROPERTY_ID);
+  public static final String VERSION = PropertyHelper.getPropertyId(HOST_ROLES, VERSION_PROPERTY_ID);
+  public static final String DESIRED_STACK_ID = PropertyHelper.getPropertyId(HOST_ROLES, DESIRED_STACK_ID_PROPERTY_ID);
+  public static final String ACTUAL_CONFIGS = PropertyHelper.getPropertyId(HOST_ROLES, ACTUAL_CONFIGS_PROPERTY_ID);
+  public static final String STALE_CONFIGS = PropertyHelper.getPropertyId(HOST_ROLES, STALE_CONFIGS_PROPERTY_ID);
+  public static final String RELOAD_CONFIGS = PropertyHelper.getPropertyId(HOST_ROLES, RELOAD_CONFIGS_PROPERTY_ID);
+  public static final String DESIRED_ADMIN_STATE = PropertyHelper.getPropertyId(HOST_ROLES, DESIRED_ADMIN_STATE_PROPERTY_ID);
+  public static final String MAINTENANCE_STATE = PropertyHelper.getPropertyId(HOST_ROLES, MAINTENANCE_STATE_PROPERTY_ID);
+  public static final String UPGRADE_STATE = PropertyHelper.getPropertyId(HOST_ROLES, UPGRADE_STATE_PROPERTY_ID);
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
@@ -121,38 +153,38 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * The key property ids for a HostComponent resource.
    */
   public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.Cluster, HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID)
-      .put(Resource.Type.Host, HOST_COMPONENT_HOST_NAME_PROPERTY_ID)
-      .put(Resource.Type.HostComponent, HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID)
-      .put(Resource.Type.Component, HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-      .put(Resource.Type.Service, HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID)
-      .put(Resource.Type.ServiceGroup, HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID)
+      .put(Resource.Type.Cluster, CLUSTER_NAME)
+      .put(Resource.Type.Host, HOST_NAME)
+      .put(Resource.Type.HostComponent, ID)
+      .put(Resource.Type.Component, COMPONENT_NAME)
+      .put(Resource.Type.Service, SERVICE_NAME)
+      .put(Resource.Type.ServiceGroup, SERVICE_GROUP_NAME)
       .build();
 
   /**
    * The property ids for a HostComponent resource.
    */
   protected static Set<String> propertyIds = Sets.newHashSet(
-      HOST_COMPONENT_ROLE_ID,
-      HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID,
-      HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID,
-      HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID,
-      HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID,
-      HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-      HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID,
-      HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID,
-      HOST_COMPONENT_HOST_NAME_PROPERTY_ID,
-      HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID,
-      HOST_COMPONENT_STATE_PROPERTY_ID,
-      HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID,
-      HOST_COMPONENT_VERSION_PROPERTY_ID,
-      HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID,
-      HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID,
-      HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
-      HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID,
-      HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
-      HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID,
-      HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID,
+      ROLE_ID,
+      CLUSTER_NAME,
+      SERVICE_GROUP_NAME,
+      SERVICE_NAME,
+      ID,
+      COMPONENT_NAME,
+      COMPONENT_TYPE,
+      DISPLAY_NAME,
+      HOST_NAME,
+      PUBLIC_HOST_NAME,
+      STATE,
+      DESIRED_STATE,
+      VERSION,
+      DESIRED_STACK_ID,
+      ACTUAL_CONFIGS,
+      STALE_CONFIGS,
+      RELOAD_CONFIGS,
+      DESIRED_ADMIN_STATE,
+      MAINTENANCE_STATE,
+      UPGRADE_STATE,
       QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
 
   /**
@@ -206,27 +238,27 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         ServiceComponentHostResponse response = itr.next();
         notifyCreate(Resource.Type.HostComponent, request);
         Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-        resource.setProperty(HOST_COMPONENT_CLUSTER_ID_PROPERTY_ID, response.getClusterId());
-        resource.setProperty(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
-        resource.setProperty(HOST_COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId());
-        resource.setProperty(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
-        resource.setProperty(HOST_COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId());
-        resource.setProperty(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
-        resource.setProperty(HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType());
-        resource.setProperty(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID, response.getHostComponentId());
-        resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName());
-        resource.setProperty(HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID, response.getComponentType());
-        resource.setProperty(HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName());
-        resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, response.getHostname());
-        resource.setProperty(HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID, response.getPublicHostname());
-        resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, response.getLiveState());
-        resource.setProperty(HOST_COMPONENT_VERSION_PROPERTY_ID, response.getVersion());
-        resource.setProperty(HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, response.getDesiredStackVersion());
-        resource.setProperty(HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID, response.getActualConfigs());
-        resource.setProperty(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID, response.isStaleConfig());
-        resource.setProperty(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID, response.getAdminState());
-        resource.setProperty(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID, response.getMaintenanceState());
-        resource.setProperty(HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, response.getUpgradeState());
+        resource.setProperty(CLUSTER_ID, response.getClusterId());
+        resource.setProperty(CLUSTER_NAME, response.getClusterName());
+        resource.setProperty(SERVICE_GROUP_ID, response.getServiceGroupId());
+        resource.setProperty(SERVICE_GROUP_NAME, response.getServiceGroupName());
+        resource.setProperty(SERVICE_ID, response.getServiceId());
+        resource.setProperty(SERVICE_NAME, response.getServiceName());
+        resource.setProperty(SERVICE_TYPE, response.getServiceType());
+        resource.setProperty(ID, response.getHostComponentId());
+        resource.setProperty(COMPONENT_NAME, response.getComponentName());
+        resource.setProperty(COMPONENT_TYPE, response.getComponentType());
+        resource.setProperty(DISPLAY_NAME, response.getDisplayName());
+        resource.setProperty(HOST_NAME, response.getHostname());
+        resource.setProperty(PUBLIC_HOST_NAME, response.getPublicHostname());
+        resource.setProperty(STATE, response.getLiveState());
+        resource.setProperty(VERSION, response.getVersion());
+        resource.setProperty(DESIRED_STACK_ID, response.getDesiredStackVersion());
+        resource.setProperty(ACTUAL_CONFIGS, response.getActualConfigs());
+        resource.setProperty(STALE_CONFIGS, response.isStaleConfig());
+        resource.setProperty(DESIRED_ADMIN_STATE, response.getAdminState());
+        resource.setProperty(MAINTENANCE_STATE, response.getMaintenanceState());
+        resource.setProperty(UPGRADE_STATE, response.getUpgradeState());
 
         associatedResources.add(resource);
       }
@@ -254,7 +286,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Set<Resource> resources = new HashSet<>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     // We always need host_name for sch
-    requestedIds.add(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+    requestedIds.add(HOST_NAME);
 
     Set<ServiceComponentHostResponse> responses = getResources(new Command<Set<ServiceComponentHostResponse>>() {
       @Override
@@ -265,35 +297,36 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     for (ServiceComponentHostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-      setResourceProperty(resource, HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID, response.getHostComponentId(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID, response.getComponentType(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_HOST_NAME_PROPERTY_ID, response.getHostname(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID, response.getPublicHostname(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_STATE_PROPERTY_ID, response.getLiveState(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_VERSION_PROPERTY_ID, response.getVersion(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, response.getDesiredStackVersion(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID, response.getActualConfigs(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID, response.isStaleConfig(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID, response.isReloadConfig(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, response.getUpgradeState(), requestedIds);
+
+      setResourceProperty(resource, CLUSTER_NAME, response.getClusterName(), requestedIds);
+      setResourceProperty(resource, CLUSTER_ID, response.getClusterId(), requestedIds);
+      setResourceProperty(resource, SERVICE_GROUP_ID, response.getServiceGroupId(), requestedIds);
+      setResourceProperty(resource, SERVICE_GROUP_NAME, response.getServiceGroupName(), requestedIds);
+      setResourceProperty(resource, SERVICE_ID, response.getServiceId(), requestedIds);
+      setResourceProperty(resource, SERVICE_NAME, response.getServiceName(), requestedIds);
+      setResourceProperty(resource, SERVICE_TYPE, response.getServiceType(), requestedIds);
+      setResourceProperty(resource, ID, response.getHostComponentId(), requestedIds);
+      setResourceProperty(resource, COMPONENT_NAME, response.getComponentName(), requestedIds);
+      setResourceProperty(resource, COMPONENT_TYPE, response.getComponentType(), requestedIds);
+      setResourceProperty(resource, DISPLAY_NAME, response.getDisplayName(), requestedIds);
+      setResourceProperty(resource, HOST_NAME, response.getHostname(), requestedIds);
+      setResourceProperty(resource, PUBLIC_HOST_NAME, response.getPublicHostname(), requestedIds);
+      setResourceProperty(resource, STATE, response.getLiveState(), requestedIds);
+      setResourceProperty(resource, DESIRED_STATE, response.getDesiredState(), requestedIds);
+      setResourceProperty(resource, VERSION, response.getVersion(), requestedIds);
+      setResourceProperty(resource, DESIRED_STACK_ID, response.getDesiredStackVersion(), requestedIds);
+      setResourceProperty(resource, ACTUAL_CONFIGS, response.getActualConfigs(), requestedIds);
+      setResourceProperty(resource, STALE_CONFIGS, response.isStaleConfig(), requestedIds);
+      setResourceProperty(resource, RELOAD_CONFIGS, response.isReloadConfig(), requestedIds);
+      setResourceProperty(resource, UPGRADE_STATE, response.getUpgradeState(), requestedIds);
 
       if (response.getAdminState() != null) {
-        setResourceProperty(resource, HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
+        setResourceProperty(resource, DESIRED_ADMIN_STATE,
                 response.getAdminState(), requestedIds);
       }
 
       if (null != response.getMaintenanceState()) {
-        setResourceProperty(resource, HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID,
+        setResourceProperty(resource, MAINTENANCE_STATE,
                 response.getMaintenanceState(), requestedIds);
       }
 
@@ -310,7 +343,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       throw new IllegalArgumentException("Received an update request with no properties");
     }
 
-    RequestStageContainer requestStages = doUpdateResources(null, request, predicate, false);
+    RequestStageContainer requestStages = doUpdateResources(null, request, predicate, false, false, false);
 
     RequestStatusResponse response = null;
     if (requestStages != null) {
@@ -369,7 +402,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return unsupportedProperties;
   }
 
-  public RequestStatusResponse install(String cluster, String hostname, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, boolean skipFailure) throws  SystemException,
+  public RequestStatusResponse install(String cluster, String hostname, Collection<String> skipInstallForComponents,
+                                       Collection<String> dontSkipInstallForComponents,
+                                       boolean skipFailure, boolean useClusterHostInfo) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     RequestStageContainer requestStages;
@@ -377,7 +412,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     Map<String, Object> installProperties = new HashMap<>();
 
-    installProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
+    installProperties.put(DESIRED_STATE, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
     requestInfo.put("phase", "INITIAL_INSTALL");
@@ -388,17 +423,20 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
-    Predicate statePredicate = new EqualsPredicate<>(HOST_COMPONENT_STATE_PROPERTY_ID, "INIT");
-    Predicate clusterPredicate = new EqualsPredicate<>(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, cluster);
+    Predicate statePredicate = new EqualsPredicate<>(STATE, "INIT");
+    Predicate clusterPredicate = new EqualsPredicate<>(CLUSTER_NAME, cluster);
     // single host
-    Predicate hostPredicate = new EqualsPredicate<>(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostname);
+    Predicate hostPredicate = new EqualsPredicate<>(HOST_NAME, hostname);
     //Predicate hostPredicate = new OrPredicate(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
     Predicate hostAndStatePredicate = new AndPredicate(statePredicate, hostPredicate);
     Predicate installPredicate = new AndPredicate(hostAndStatePredicate, clusterPredicate);
 
     try {
       LOG.info("Installing all components on host: " + hostname);
-      requestStages = doUpdateResources(null, installRequest, installPredicate, true);
+
+      // we need send special parameters to send install/start commands with configs
+      requestStages = doUpdateResources(null, installRequest, installPredicate, true,
+          true, useClusterHostInfo);
       notifyUpdate(Resource.Type.HostComponent, installRequest, installPredicate);
       try {
         requestStages.persist();
@@ -419,10 +457,11 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public RequestStatusResponse start(String cluster, String hostName) throws  SystemException,
     UnsupportedPropertyException, NoSuchParentResourceException {
 
-    return this.start(cluster, hostName, Collections.emptySet(), false);
+    return this.start(cluster, hostName, Collections.emptySet(), false, false);
   }
 
-  public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents, boolean skipFailure) throws  SystemException,
+  public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents,
+                                     boolean skipFailure, boolean useClusterHostInfo) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     Map<String, String> requestInfo = new HashMap<>();
@@ -430,20 +469,20 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     requestInfo.put("phase", "INITIAL_START");
     requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
 
-    Predicate clusterPredicate = new EqualsPredicate<>(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, cluster);
-    Predicate hostPredicate = new EqualsPredicate<>(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostName);
+    Predicate clusterPredicate = new EqualsPredicate<>(CLUSTER_NAME, cluster);
+    Predicate hostPredicate = new EqualsPredicate<>(HOST_NAME, hostName);
     //Predicate hostPredicate = new OrPredicate(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
 
     RequestStageContainer requestStages;
     try {
       Map<String, Object> startProperties = new HashMap<>();
-      startProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "STARTED");
+      startProperties.put(DESIRED_STATE, "STARTED");
       Request startRequest = PropertyHelper.getUpdateRequest(startProperties, requestInfo);
       // Important to query against desired_state as this has been updated when install stage was created
       // If I query against state, then the getRequest compares predicate prop against desired_state and then when the predicate
       // is later applied explicitly, it gets compared to live_state. Since live_state == INSTALLED == INIT at this point and
       // desired_state == INSTALLED, we will always get 0 matches since both comparisons can't be true :(
-      Predicate installedStatePredicate = new EqualsPredicate<>(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
+      Predicate installedStatePredicate = new EqualsPredicate<>(DESIRED_STATE, "INSTALLED");
       Predicate notClientPredicate = new NotPredicate(new ClientComponentPredicate());
       Predicate clusterAndClientPredicate = new AndPredicate(clusterPredicate, notClientPredicate);
       Predicate hostAndStatePredicate = new AndPredicate(installedStatePredicate, hostPredicate);
@@ -459,7 +498,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           new ArrayList<>();
 
         for (String installOnlyComponent : installOnlyComponents) {
-          Predicate componentNameEquals = new EqualsPredicate<>(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, installOnlyComponent);
+          Predicate componentNameEquals = new EqualsPredicate<>(COMPONENT_NAME, installOnlyComponent);
           // create predicate to filter out the install only component
           listOfComponentPredicates.add(new NotPredicate(componentNameEquals));
         }
@@ -475,7 +514,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
 
-      requestStages = doUpdateResources(null, startRequest, startPredicate, true);
+      requestStages = doUpdateResources(null, startRequest, startPredicate, true,
+          true, useClusterHostInfo);
       notifyUpdate(Resource.Type.HostComponent, startRequest, startPredicate);
       try {
         requestStages.persist();
@@ -511,7 +551,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   protected RequestStageContainer updateHostComponents(RequestStageContainer stages,
                                                                     Set<ServiceComponentHostRequest> requests,
                                                                     Map<String, String> requestProperties,
-                                                                    boolean runSmokeTest) throws AmbariException, AuthorizationException {
+                                                                    boolean runSmokeTest, boolean useGeneratedConfigs,
+                                                                    boolean useClusterHostInfo) throws AmbariException, AuthorizationException {
 
     Clusters clusters = getManagementController().getClusters();
 
@@ -692,7 +733,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     return getManagementController().addStages(
         stages, cluster, requestProperties, null, null, null,
-        changedScHosts, ignoredScHosts, runSmokeTest, false);
+        changedScHosts, ignoredScHosts, runSmokeTest, false, useGeneratedConfigs, useClusterHostInfo);
   }
 
   @Override
@@ -711,38 +752,38 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    */
   private ServiceComponentHostRequest getRequest(Map<String, Object> properties) {
     Long hostComponentId = null;
-    if (properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID) != null) {
-      hostComponentId = properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID) instanceof String ?
-              Long.parseLong((String) properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID)) :
-              (Long) properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID);
+    if (properties.get(ID) != null) {
+      hostComponentId = properties.get(ID) instanceof String ?
+              Long.parseLong((String) properties.get(ID)) :
+              (Long) properties.get(ID);
     }
     ServiceComponentHostRequest  serviceComponentHostRequest = new ServiceComponentHostRequest(
-              (String) properties.get(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID),
-              (String) properties.get(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
-              (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
+              (String) properties.get(CLUSTER_NAME),
+              (String) properties.get(SERVICE_GROUP_NAME),
+              (String) properties.get(SERVICE_NAME),
               hostComponentId,
-              (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
-              (String) properties.get(HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID),
-              (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
-              (String) properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
+              (String) properties.get(COMPONENT_NAME),
+              (String) properties.get(COMPONENT_TYPE),
+              (String) properties.get(HOST_NAME),
+              (String) properties.get(DESIRED_STATE));
 
-    serviceComponentHostRequest.setState((String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
-    if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
+    serviceComponentHostRequest.setState((String) properties.get(STATE));
+    if (properties.get(STALE_CONFIGS) != null) {
       serviceComponentHostRequest.setStaleConfig(
-          properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
+          properties.get(STALE_CONFIGS).toString().toLowerCase());
     }
 
-    if (properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID) != null) {
+    if (properties.get(DESIRED_ADMIN_STATE) != null) {
       serviceComponentHostRequest.setAdminState(
-          properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
+          properties.get(DESIRED_ADMIN_STATE).toString());
     }
-    if (properties.get(HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID) != null) {
+    if (properties.get(PUBLIC_HOST_NAME) != null) {
       serviceComponentHostRequest.setPublicHostname(
-          properties.get(HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID).toString());
+          properties.get(PUBLIC_HOST_NAME).toString());
     }
 
 
-    Object o = properties.get(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID);
+    Object o = properties.get(MAINTENANCE_STATE);
     if (null != o) {
       serviceComponentHostRequest.setMaintenanceState (o.toString());
     }
@@ -758,36 +799,36 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    */
   private ServiceComponentHostRequest changeRequest(Map<String, Object> properties) {
     Long hostComponentId = null;
-    if (properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID) != null) {
-      hostComponentId = properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID) instanceof String ?
-              Long.parseLong((String) properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID)) :
-              (Long) properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID);
+    if (properties.get(ID) != null) {
+      hostComponentId = properties.get(ID) instanceof String ?
+              Long.parseLong((String) properties.get(ID)) :
+              (Long) properties.get(ID);
 
     }
     ServiceComponentHostRequest serviceComponentHostRequest = new ServiceComponentHostRequest(
-            (String) properties.get(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID),
-            (String) properties.get(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
-            (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
+            (String) properties.get(CLUSTER_NAME),
+            (String) properties.get(SERVICE_GROUP_NAME),
+            (String) properties.get(SERVICE_NAME),
             hostComponentId,
-            (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
-            (String) properties.get(HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID),
-            (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
-            (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
+            (String) properties.get(COMPONENT_NAME),
+            (String) properties.get(COMPONENT_TYPE),
+            (String) properties.get(HOST_NAME),
+            (String) properties.get(STATE));
 
-    if (properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID) != null) {
-      serviceComponentHostRequest.setDesiredState((String)properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
+    if (properties.get(DESIRED_STATE) != null) {
+      serviceComponentHostRequest.setDesiredState((String)properties.get(DESIRED_STATE));
     }
-    if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
+    if (properties.get(STALE_CONFIGS) != null) {
       serviceComponentHostRequest.setStaleConfig(
-              properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
+              properties.get(STALE_CONFIGS).toString().toLowerCase());
     }
 
-    if (properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID) != null) {
+    if (properties.get(DESIRED_ADMIN_STATE) != null) {
       serviceComponentHostRequest.setAdminState(
-              properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
+              properties.get(DESIRED_ADMIN_STATE).toString());
     }
 
-    Object o = properties.get(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID);
+    Object o = properties.get(MAINTENANCE_STATE);
     if (null != o) {
       serviceComponentHostRequest.setMaintenanceState (o.toString());
     }
@@ -802,6 +843,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @param request                 request
    * @param predicate               request predicate
    * @param performQueryEvaluation  should query be evaluated for matching resource set
+   * @param useGeneratedConfigs     should update request contains actual configs
+   * @param useClusterHostInfo      should update request contain cluster topology info
    * @return
    * @throws UnsupportedPropertyException   an unsupported property was specified in the request
    * @throws SystemException                an unknown exception occurred
@@ -809,7 +852,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @throws NoSuchParentResourceException  a specified parent resource doesn't exist
    */
   private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
-                                                  Predicate predicate, boolean performQueryEvaluation)
+                                                  Predicate predicate, boolean performQueryEvaluation,
+                                                  boolean useGeneratedConfigs, boolean useClusterHostInfo)
                                                   throws UnsupportedPropertyException,
                                                          SystemException,
                                                          NoSuchResourceException,
@@ -859,7 +903,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         RequestStageContainer stageContainer = null;
         try {
           stageContainer = updateHostComponents(stages, requests, request.getRequestInfoProperties(),
-              runSmokeTest);
+              runSmokeTest, useGeneratedConfigs, useClusterHostInfo);
         } catch (Exception e) {
           LOG.info("Caught an exception while updating host components, will not try again: {}", e.getMessage(), e);
           // !!! IllegalArgumentException results in a 400 response, RuntimeException results in 500.
@@ -1068,21 +1112,20 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     public boolean evaluate(Resource resource) {
       boolean isClient = false;
 
-      String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+      String componentName = (String) resource.getPropertyValue(COMPONENT_NAME);
       try {
         if (componentName != null && !componentName.isEmpty()) {
           AmbariManagementController managementController = getManagementController();
-          String clusterName = (String) resource.getPropertyValue(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-          String serviceName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-          String serviceGroupName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
+          String clusterName = (String) resource.getPropertyValue(CLUSTER_NAME);
+          String serviceName = (String) resource.getPropertyValue(SERVICE_NAME);
+          String serviceGroupName = (String) resource.getPropertyValue(SERVICE_GROUP_NAME);
           if (StringUtils.isEmpty(serviceName)) {
             Cluster cluster = managementController.getClusters().getCluster(clusterName);
             serviceName = managementController.findServiceName(cluster, componentName);
             //TODO : What if SG name is empty.
           }
 
-          ServiceComponent sc = getServiceComponent((String) resource.getPropertyValue(
-              HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID), serviceGroupName, serviceName, componentName);
+          ServiceComponent sc = getServiceComponent((String) resource.getPropertyValue(CLUSTER_NAME), serviceGroupName, serviceName, componentName);
           isClient = sc.isClientComponent();
         }
       } catch (AmbariException e) {

@@ -306,7 +306,7 @@ class AmbariConfig:
   def get_multiprocess_status_commands_executor_enabled(self):
     return bool(int(self.get('agent', 'multiprocess_status_commands_executor_enabled', 1)))
 
-  def update_configuration_from_registration(self, reg_resp):
+  def update_configuration_from_metadata(self, reg_resp):
     if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:
       if not self.has_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY):
         self.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
@@ -319,9 +319,9 @@ class AmbariConfig:
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1 by default
+    :return: protocol name, PROTOCOL_TLSv1_2 by default
     """
-    return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1")
+    return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1_2")
 
   def get_force_https_protocol_value(self):
     """

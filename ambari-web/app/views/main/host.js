@@ -17,9 +17,7 @@
  */
 
 var App = require('app');
-var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
-var date = require('utils/date/date');
 
 App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   templateName:require('templates/main/host'),
@@ -86,6 +84,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.set('filteringComplete', false);
     var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
     this.get('updater')[updaterMethodName](this.updaterSuccessCb.bind(this), this.updaterErrorCb.bind(this), true);
+    this.clearSelection();
     return true;
   },
 
@@ -184,6 +183,9 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       var didClearStartIndex = this.clearStartIndex();
       this.set('controller.filterChangeHappened', didClearedFilters || didClearStartIndex);
     }
+    if (!this.get('controller.saveSelection')) {
+      this.refresh();
+    }
     this._super();
     this.set('startIndex', this.get('controller.startIndex'));
     this.set('displayLength', this.get('controller.paginationProps').findProperty('name', 'displayLength').value);
@@ -207,13 +209,11 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.addObserver('filteredCount', this, this.updatePaging);
     // should show overlay even when filtering has begun before observer was added
     this.overlayObserver();
-    this.set('controller.isCountersUpdating', true);
-    this.get('controller').updateStatusCounters();
+    this.combineSelectedFilter();
   },
 
   willDestroyElement: function () {
     $('.tooltip').remove();
-    this.set('controller.isCountersUpdating', false);
   },
 
   onInitialLoad: function () {

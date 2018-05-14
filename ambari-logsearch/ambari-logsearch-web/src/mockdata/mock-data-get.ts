@@ -17,7 +17,7 @@
  */
 
 import * as moment from 'moment';
-import {Moment} from "moment";
+import {Moment} from 'moment';
 
 import {
   clusters,
@@ -25,31 +25,30 @@ import {
   services,
   users,
   components,
-  levels,
   ucFirst,
   getRandomInt,
   getRandomElement,
-  generatePath,
   generateServiceLog,
-  generateAuditLog
+  generateAuditLog,
+  generateGraphData
 } from './mock-data-common';
+import Base = moment.unitOfTime.Base;
 
 const currentTime: Moment = moment();
-
 
 export const mockDataGet = {
   'login': {},
   'logout': {},
 
   'api/v1/audit/logs': function (query) {
-    let list = [];
-    let params = query.rawParams.split('&').reduce((currentObj, param) => {
+    const list = [];
+    const params = query.rawParams.split('&').reduce((currentObj, param) => {
       let [key, value] = param.split('=');
       switch (key) {
         case 'page':
         case 'pageSize':
         case 'startIndex':
-          value = parseInt(value);
+          value = parseInt(value, 0);
           break;
         case 'from':
         case 'to':
@@ -63,12 +62,11 @@ export const mockDataGet = {
       currentObj[key] = value;
       return currentObj;
     }, {});
-    console.info(params);
     const pageSize = params.pageSize || 50;
     const intervalSteps = params.to.diff(params.from) / pageSize;
     const startTime = params.from.valueOf();
     for (let i = 0; i < pageSize; i += 1) {
-      let defaults: {[key:string]: any} = {logtime: startTime + (i * intervalSteps)};
+      const defaults: {[key: string]: any} = {logtime: startTime + (i * intervalSteps)};
       list.push(generateAuditLog(defaults));
     }
     return {
@@ -132,24 +130,24 @@ export const mockDataGet = {
         name: comp,
         label: comp.split('_').map(ucFirst).join(' '),
         group: null
-      }
+      };
     })
   },
   'api/v1/audit/logs/resources/\\d': function (query) {
-    let graphData = users.map((user:string) => {
+    const graphData = users.map((user: string) => {
       return {
         name: user,
-        dataCount: services.map((service:string) => {
+        dataCount: services.map((service: string) => {
           return {
             name: service,
             value: getRandomInt(1000)
-          }
+          };
         })
       };
     });
     return {
       graphData: graphData
-    }
+    };
   },
   'api/v1/audit/logs/schema/fields': {
     'defaults': [
@@ -1229,14 +1227,14 @@ export const mockDataGet = {
   'api/v1/public/config': {},
 
   'api/v1/service/logs': function (query) {
-    let list = [];
-    let params = query.rawParams.split('&').reduce((currentObj, param) => {
+    const list = [];
+    const params = query.rawParams.split('&').reduce((currentObj, param) => {
       let [key, value] = param.split('=');
       switch (key) {
         case 'page':
         case 'pageSize':
         case 'startIndex':
-          value = parseInt(value);
+          value = parseInt(value, 0);
           break;
         case 'from':
         case 'to':
@@ -1257,7 +1255,7 @@ export const mockDataGet = {
     const startTime = params.from.valueOf();
 
     for (let i = 0; i < pageSize; i += 1) {
-      let defaults: {[key:string]: any} = {logtime: startTime + (i * intervalSteps)};
+      const defaults: {[key: string]: any} = {logtime: startTime + (i * intervalSteps)};
       if (params.mustBe) {
         defaults.type = getRandomElement(params.mustBe);
       }
@@ -1281,14 +1279,14 @@ export const mockDataGet = {
     };
   },
   'api/v1/service/logs/logList': (query) => {
-    let list = [];
-    let params = query.rawParams.split('&').reduce((currentObj, param) => {
+    const list = [];
+    const params = query.rawParams.split('&').reduce((currentObj, param) => {
       let [key, value] = param.split('=');
       switch (key) {
         case 'page':
         case 'pageSize':
         case 'startIndex':
-          value = parseInt(value);
+          value = parseInt(value, 0);
           break;
         case 'from':
         case 'to':
@@ -1309,7 +1307,7 @@ export const mockDataGet = {
     const startTime = params.from.valueOf();
 
     for (let i = 0; i < pageSize; i += 1) {
-      let defaults: {[key:string]: any} = {
+      const defaults: {[key: string]: any} = {
         logtime: startTime + (i * intervalSteps),
         event_dur_ms: getRandomInt(1000)
       };
@@ -1369,7 +1367,7 @@ export const mockDataGet = {
         name: comp,
         label: comp.split('_').map(ucFirst).join(' '),
         group: null
-      }
+      };
     })
   },
   'api/v1/service/logs/components/levels/counts': {
@@ -1434,7 +1432,7 @@ export const mockDataGet = {
           },
           {
             name: 'WARN',
-            value: '500'
+              value: '500'
           }
         ],
         isParent: false,
@@ -1448,35 +1446,15 @@ export const mockDataGet = {
       services: services
     }
   },
-  'api/v1/service/logs/histogram': {
-    graphData: [
-      {
-        dataCount: [
-          {
-            name: currentTime.toISOString(),
-            value: '1000'
-          },
-          {
-            name: currentTime.clone().subtract(1, 'h').toISOString(),
-            value: '2000'
-          }
-        ],
-        name: 'ERROR'
-      },
-      {
-        dataCount: [
-          {
-            name: currentTime.toISOString(),
-            value: '700'
-          },
-          {
-            name: currentTime.clone().subtract(1, 'h').toISOString(),
-            value: '900'
-          }
-        ],
-        name: 'WARN'
-      }
-    ]
+  'api/v1/service/logs/histogram': (query: URLSearchParams) => {
+    const unitParam: string[] = decodeURIComponent(query.get('unit')).match(/(\d{1,})([a-zA-Z]{1,})/);
+    const unit: Base = <Base>unitParam[2];
+    const amount: number = parseInt(unitParam[1], 0);
+    const from = moment(decodeURIComponent(query.get('from')));
+    const to = moment(decodeURIComponent(query.get('to')));
+    return {
+      graphData: generateGraphData(from, to, unit, amount)
+    };
   },
   'api/v1/service/logs/hosts': {
     groupList: hosts.map(host => Object.assign({}, {host}))
@@ -1767,7 +1745,7 @@ export const mockDataGet = {
       configurationUploaded: true
     }
   },
-  'api/v1/shipper/filters/\[a-zA-Z0-9\]/level': {
+  'api/v1/shipper/filters/\[a-zA-Z0-9\]{1,}/level': {
     'filter': {
       'ambari_agent': {
         'label': 'ambari_agent',

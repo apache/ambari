@@ -177,11 +177,10 @@ public class ComponentResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
-    properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ComponentResourceProvider.COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "CORE");
-    properties.put(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(ComponentResourceProvider.COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "CORE");
-    properties.put(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
+    properties.put(ComponentResourceProvider.CLUSTER_NAME, "Cluster100");
+    properties.put(ComponentResourceProvider.SERVICE_GROUP_NAME, "CORE");
+    properties.put(ComponentResourceProvider.SERVICE_NAME, "Service100");
+    properties.put(ComponentResourceProvider.COMPONENT_NAME, "Component100");
 
     propertySet.add(properties);
 
@@ -284,24 +283,24 @@ public class ComponentResourceProviderTest {
 
     Set<String> propertyIds = new HashSet<>();
 
-    propertyIds.add(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_INIT_COUNT_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_DESIRED_VERSION);
+    propertyIds.add(ComponentResourceProvider.CLUSTER_NAME);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_NAME);
+    propertyIds.add(ComponentResourceProvider.CATEGORY);
+    propertyIds.add(ComponentResourceProvider.TOTAL_COUNT);
+    propertyIds.add(ComponentResourceProvider.STARTED_COUNT);
+    propertyIds.add(ComponentResourceProvider.INSTALLED_COUNT);
+    propertyIds.add(ComponentResourceProvider.INSTALLED_AND_MAINTENANCE_OFF_COUNT);
+    propertyIds.add(ComponentResourceProvider.INSTALL_FAILED_COUNT);
+    propertyIds.add(ComponentResourceProvider.INIT_COUNT);
+    propertyIds.add(ComponentResourceProvider.UNKNOWN_COUNT);
+    propertyIds.add(ComponentResourceProvider.RECOVERY_ENABLED);
+    propertyIds.add(ComponentResourceProvider.DESIRED_VERSION);
 
     Predicate predicate = new PredicateBuilder()
-      .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+      .property(ComponentResourceProvider.CLUSTER_NAME)
       .equals("Cluster100")
       .and()
-      .property(ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID)
+      .property(ComponentResourceProvider.CATEGORY)
       .equals("MASTER").toPredicate();
 
     Request request = PropertyHelper.getReadRequest(propertyIds);
@@ -310,33 +309,33 @@ public class ComponentResourceProviderTest {
     Assert.assertEquals(2, resources.size());
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(
-          ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+          ComponentResourceProvider.CLUSTER_NAME);
       Assert.assertEquals("Cluster100", clusterName);
       Assert.assertEquals("MASTER", resource.getPropertyValue(
-          ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID));
+          ComponentResourceProvider.CATEGORY));
       Assert.assertEquals(2, resource.getPropertyValue(
-        ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID));
+        ComponentResourceProvider.TOTAL_COUNT));
       Assert.assertEquals(1, resource.getPropertyValue(
-        ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID));
+        ComponentResourceProvider.STARTED_COUNT));
       Assert.assertEquals(0, resource.getPropertyValue(
-        ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID));
+        ComponentResourceProvider.INSTALLED_COUNT));
       Assert.assertEquals(0, resource.getPropertyValue(
-        ComponentResourceProvider.COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID));
+        ComponentResourceProvider.INSTALLED_AND_MAINTENANCE_OFF_COUNT));
       Assert.assertEquals(0, resource.getPropertyValue(
-          ComponentResourceProvider.COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID));
+          ComponentResourceProvider.INSTALL_FAILED_COUNT));
       Assert.assertEquals(0, resource.getPropertyValue(
-          ComponentResourceProvider.COMPONENT_INIT_COUNT_PROPERTY_ID));
+          ComponentResourceProvider.INIT_COUNT));
       Assert.assertEquals(1, resource.getPropertyValue(
-          ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID));
+          ComponentResourceProvider.UNKNOWN_COUNT));
       Assert.assertEquals(String.valueOf(true), resource.getPropertyValue(
-        ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID));
+        ComponentResourceProvider.RECOVERY_ENABLED));
 
       if (resource.getPropertyValue(
-          ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component102")) {
-        Assert.assertNotNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
-        Assert.assertEquals("1.1", resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
+          ComponentResourceProvider.COMPONENT_NAME).equals("Component102")) {
+        Assert.assertNotNull(resource.getPropertyValue(ComponentResourceProvider.DESIRED_VERSION));
+        Assert.assertEquals("1.1", resource.getPropertyValue(ComponentResourceProvider.DESIRED_VERSION));
       } else {
-        Assert.assertNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
+        Assert.assertNull(resource.getPropertyValue(ComponentResourceProvider.DESIRED_VERSION));
       }
     }
 
@@ -476,15 +475,15 @@ public class ComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(true) /* recovery enabled */);
-    properties.put(ComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID, "STARTED");
-    properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ComponentResourceProvider.RECOVERY_ENABLED, String.valueOf(true) /* recovery enabled */);
+    properties.put(ComponentResourceProvider.STATE, "STARTED");
+    properties.put(ComponentResourceProvider.CLUSTER_NAME, "Cluster100");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     // update the cluster named Cluster100
-    Predicate predicate = new PredicateBuilder().property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).
+    Predicate predicate = new PredicateBuilder().property(ComponentResourceProvider.CLUSTER_NAME).
         equals("Cluster100").toPredicate();
     provider.updateResources(request, predicate);
 
@@ -563,13 +562,13 @@ public class ComponentResourceProviderTest {
 
 
     Predicate predicate = new PredicateBuilder()
-                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+                .property(ComponentResourceProvider.CLUSTER_NAME)
                 .equals("Cluster100")
                 .and()
-                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .property(ComponentResourceProvider.SERVICE_NAME)
                 .equals("Service100")
                 .and()
-                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
+                .property(ComponentResourceProvider.COMPONENT_NAME)
                 .equals("Component100").toPredicate();
 
     provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
@@ -639,10 +638,10 @@ public class ComponentResourceProviderTest {
     ((ObservableResourceProvider)provider).addObserver(observer);
 
     Predicate predicate1 = new PredicateBuilder()
-                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .property(ComponentResourceProvider.SERVICE_NAME)
                 .equals("Service100")
                 .and()
-                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
+                .property(ComponentResourceProvider.COMPONENT_NAME)
                 .equals("Component100").toPredicate();
 
     try {
@@ -653,10 +652,10 @@ public class ComponentResourceProviderTest {
     }
 
     Predicate predicate2 = new PredicateBuilder()
-                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+                .property(ComponentResourceProvider.CLUSTER_NAME)
                 .equals("Cluster100")
                 .and()
-                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
+                .property(ComponentResourceProvider.SERVICE_NAME)
                 .equals("Service100")
                 .and().toPredicate();
 
@@ -791,13 +790,13 @@ public class ComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(true) /* recovery enabled */);
+    properties.put(ComponentResourceProvider.RECOVERY_ENABLED, String.valueOf(true) /* recovery enabled */);
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     // update the cluster named Cluster100
-    Predicate predicate = new PredicateBuilder().property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).
+    Predicate predicate = new PredicateBuilder().property(ComponentResourceProvider.CLUSTER_NAME).
         equals("Cluster100").toPredicate();
     provider.updateResources(request, predicate);
 

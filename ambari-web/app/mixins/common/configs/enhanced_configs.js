@@ -250,7 +250,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   loadAdditionalSites: function(sites, stepConfigs, recommendations, dataToSend, onComplete) {
     var self = this;
-    App.config.getConfigsByTypes(sites).done(function (configs) {
+    App.router.get('configurationController').getCurrentConfigsBySites(sites).done(function (configs) {
       stepConfigs = stepConfigs.concat(configs);
 
       self.addRecommendationRequestParams(recommendations, dataToSend, stepConfigs);

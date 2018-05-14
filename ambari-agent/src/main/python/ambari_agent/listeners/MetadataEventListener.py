@@ -32,8 +32,9 @@ class MetadataEventListener(EventListener):
   """
   Listener of Constants.METADATA_TOPIC events from server.
   """
-  def __init__(self, metadata_cache):
+  def __init__(self, metadata_cache, config):
     self.metadata_cache = metadata_cache
+    self.config = config
 
   def on_event(self, headers, message):
     """
@@ -47,6 +48,11 @@ class MetadataEventListener(EventListener):
       return
 
     self.metadata_cache.cache_update(message['clusters'], message['hash'])
+
+    try:
+      self.config.update_configuration_from_metadata(message['clusters']['-1']['agentConfigs'])
+    except KeyError:
+      pass
 
   def get_handled_path(self):
     return Constants.METADATA_TOPIC
