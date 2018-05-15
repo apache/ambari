@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.AlertDefinitionsHolder;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
@@ -53,6 +54,9 @@ public class STOMPComponentsDeleteFormer {
 
   @Inject
   private Provider<HostLevelParamsHolder> hostLevelParamsHolder;
+
+  @Inject
+  private Provider<AlertDefinitionsHolder> alertDefinitionsHolder;
 
   @Inject
   private Clusters clusters;
@@ -94,6 +98,9 @@ public class STOMPComponentsDeleteFormer {
     for (Long hostId : changedHosts) {
       agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
       hostLevelParamsHolder.get().updateData(hostLevelParamsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
+      if (clusterId != null) {
+        alertDefinitionsHolder.get().updateData(alertDefinitionsHolder.get().getDeleteCluster(clusterId, hostId));
+      }
     }
     metadataHolder.get().updateData(metadataHolder.get().getDeleteMetadata(clusterId));
   }
