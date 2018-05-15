@@ -33,9 +33,15 @@
   margin-top: -35px;
 }
 
-#group-edit .roles-label,
-#user-edit .roles-label {
-  line-height: 30px;
+#user-edit label,
+#group-edit label {
+  max-width: 150px;
+  line-height: 34px;
+}
+
+#user-edit .one-row-value,
+#group-edit .one-row-value {
+  line-height: 20px;
 }
 
 #create-user-form .roles-label i,

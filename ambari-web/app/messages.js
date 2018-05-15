@@ -3219,6 +3219,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.view.button.disabled': 'You are currently viewing this version.',
   'dashboard.configHistory.info-bar.compare.button.disabled': 'You cannot compare against the same version.',
   'dashboard.configHistory.info-bar.revert.button.disabled': 'This is the current version.',
+  'dashboard.configHistory.info-bar.compare.tooltip': 'Compare this version with current',
 
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',
