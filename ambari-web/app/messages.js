@@ -901,13 +901,22 @@ Em.I18n.translations = {
   'installer.step4.serviceCheck.popup.body.multiOptions':'You did not select {0}, but it is needed by other services you selected. Select a compatible service from the following list: {1}',
   'installer.step4.hcfs.displayName':'a Hadoop Compatible File System',
   'installer.step4.limitedFunctionality.popup.header':'Limited Functionality Warning',
+  'installer.step4.ambariMetricsCheck.popup.header': 'Ambari Metrics',
   'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
+  'installer.step4.ambariInfraCheck.popup.header': 'Ambari Infra',
   'installer.step4.ambariInfraCheck.popup.body':'Since Ambari Infra is not selected, you must supply your own Solr to make Atlas work. Are you sure you want to proceed?',
+  'installer.step4.ambariLogsearchCheck.popup.header': 'Ambari Logsearch',
   'installer.step4.ambariLogsearchCheck.popup.body':'Since Ambari Infra is not selected, you must supply your own Solr to make Log Search work. Are you sure you want to proceed?',
+  'installer.step4.smartSenseCheck.popup.header': 'Apache SmartSense',
   'installer.step4.smartSenseCheck.popup.body':'SmartSense securely collects cluster diagnostics in order to send you recommendations and automate analysis for ' +
   'troubleshooting support cases. If you choose not to install SmartSense, you will not receive any recommendations, and you ' +
   'will need to collect configuration and logs manually for troubleshooting support cases. ' +
   'Are you sure you want to proceed without SmartSense?',
+  'installer.step4.rangerCheck.popup.header': 'Apache Ranger',
+  'installer.step4.rangerCheck.popup.body':'Apache Ranger provides fine grained authorization and audit of access attempts for many Hadoop ecosystem services. If you do not install the Apache Ranger Service, the security of your cluster will be diminished. Are you sure you want to proceed without it? ',
+  'installer.step4.atlasCheck.popup.header': 'Apache Atlas',
+  'installer.step4.atlasCheck.popup.body':'Apache Atlas provides strong data governance, lineage and metadata management for many hadoop ecosystem services. If you do not install Apache Atlas service, the data governance capabilities of you cluster will be diminished. Are you sure you want to proceed without it? ',
+
   'installer.step4.rangerRequirements.popup.header': 'Ranger Requirements',
   'installer.step4.rangerRequirements.popup.body.requirements': '<ol><li>You must have an <strong>MySQL/Oracle/Postgres/MSSQL/SQL Anywhere Server</strong> database instance running to be used by Ranger.</li>' +
     '<li>In Assign Masters step of this wizard, you will be prompted to specify which host for the Ranger Admin. On that host, you <strong>must have DB Client installed</strong> for Ranger to access to the database. (Note: This is applicable for only Ranger 0.4.0)</li>' +
