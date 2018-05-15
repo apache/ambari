@@ -22,7 +22,6 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.BasePigTest;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
-import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.UserLocal;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
@@ -77,7 +76,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
     replay(handler, context);
     scriptService = getService(ScriptService.class, handler, context);
 
-    thrown.expect(ServiceFormattedException.class);
+    thrown.expect(HdfsApiException.class);
     doCreateScript("Test", null);
   }
 }
