@@ -961,6 +961,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       localdb: App.db.data
     });
     this.load();
+    App.router.get('wizardWatcherController').setUser(App.router.get('mainAdminStackAndUpgradeController').get('name'));
     this.openUpgradeDialog();
   },
 
