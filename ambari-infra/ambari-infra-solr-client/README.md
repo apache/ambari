@@ -40,7 +40,7 @@ Ambari Infra Solr uses Solr 7 from Ambari 2.7.0, therefore it is required migrat
         - [7. Delete Log Search collections](#ii/7.-delete-log-search-collections)
         - [8. Delete Log Search Solr configs](#ii/8.-delete-log-search-solr-configs)
 - [III. Upgrade Ambari Infra Solr package](#iii.-upgrade-infra-solr-packages)
-- [IV. Re-create Solr Collections](#iv.-re-create-ranger-collection)
+- [IV. Re-create Solr Collections](#iv.-re-create-collections)
 - [V. Migrate Solr Collections](#v.-migrate-solr-collections)
     - a.) If you have Ranger Ambari service with Solr audits:
         - [1. Migrate Ranger Solr collection](#v/1.-migrate-ranger-collections)
@@ -55,16 +55,16 @@ Ambari Infra Solr uses Solr 7 from Ambari 2.7.0, therefore it is required migrat
         - [4. Restore old Atlas collections](#vi/4.-restore-old-atlas-collections)
         - [5. Reload restored Atlas collections](#vi/5.-reload-restored-atlas-collections)
         - [6. Transport old data to Atlas collections](#vi/6.-transport-old-data-to-atlas-collections)
-#### I. Upgrade Ambari Infra Solr Client
+#### <a id="i.-upgrade-ambari-infra-solr-client">I. Upgrade Ambari Infra Solr Client</a>
 
 First make sure `ambari-infra-solr-client` is the latest. (If its before 2.7.x) It will contain the migrationHelper.py script at `/usr/lib/ambari-infra-solr-client` location. 
 Also make sure you won't upgrade `ambari-infra-solr` until the migration has not done. (all of this should happen after `ambari-server` upgrade, also make sure to not restart `INFRA_SOLR` instances)
 
-### II. Backup collections (Ambari 2.6.x to Ambari 2.7.x)
+### <a id="ii.-backup-collections-(ambari-2.6.x-to-ambari-2.7.x)">II. Backup collections (Ambari 2.6.x to Ambari 2.7.x)</a>
 
 Before you start to upgrade process, check how many shards you have for Ranger collection, in order to know later how many shards you need to create for the collection where you will store the migrated index. Also make sure you have stable shards (at least one core is up and running) and will have enough space on the disks to store Solr backup data.
 
-#### II/1. Backup Ranger collection
+#### <a id="ii/1.-backup-ranger-collection">II/1. Backup Ranger collection</a>
 
 Use [migrationHelper.py](#solr-migration-helper-script) script to backup the ranger collection.
 
@@ -109,7 +109,7 @@ curl --negotiate -k -u : "$SOLR_URL/$BACKUP_CORE/replication?command=BACKUP&loca
 
 (help: [get core names](#get-core-/-shard-names-with-hosts))
 
-#### II/2. Backup Ranger configs on Solr ZNode
+#### <a id="ii/2.-backup-ranger-configs-on-solr-znode">II/2. Backup Ranger configs on Solr ZNode</a>
 
 Next you can copy `ranger_audits` configs to a different znode, in order to keep the old schema.
 
@@ -121,7 +121,7 @@ export ZK_CONN_STR=... # without znode, e.g.: myhost1:2181,myhost2:2181,myhost3:
 infra-solr-cloud-cli --transfer-znode -z $ZK_CONN_STR --jaas-file /etc/ambari-infra-solr/conf/infra_solr_jaas.conf --copy-src /infra-solr/configs/ranger_audits --copy-dest /infra-solr/configs/old_ranger_audits
 ```
 
-#### II/3. Delete Ranger collection
+#### <a id="ii/3.-delete-ranger-collection">II/3. Delete Ranger collection</a>
 
 At this point you can delete the actual Ranger collection with this command:
 
@@ -136,7 +136,7 @@ kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hos
 curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
 ```
 
-#### II/4. Upgrade Ranger Solr schema
+#### <a id="ii/4.-upgrade-ranger-solr-schema">II/4. Upgrade Ranger Solr schema</a>
 
 Before creating the new Ranger collection, it is required to upgrade `managed-schema` configs.
 
@@ -163,7 +163,7 @@ wget -O managed-schema https://raw.githubusercontent.com/apache/ranger/master/se
 /usr/lib/ambari-infra-solr/server/scripts/cloud-scripts/zkcli.sh --zkhost "${ZK_HOST}" -cmd putfile /configs/ranger_audits/managed-schema managed-schema
 ```
 
-#### II/5. Backup Atlas collections
+#### <a id="ii/5.-backup-atlas-collections">II/5. Backup Atlas collections</a>
 
 Atlas has 3 collections: fulltext_index, edge_index, vertex_index.
 You will need to do similar steps that you did for Ranger, but you it is required to do for all 3 collection. (steps below is for fulltext_index)
@@ -206,7 +206,7 @@ curl --negotiate -k -u : "$SOLR_URL/$BACKUP_CORE/replication?command=BACKUP&loca
 ```
 (help: [get core names](#get-core-/-shard-names-with-hosts))
 
-#### II/6. Delete Atlas collections
+#### <a id="ii/6.-delete-atlas-collections">II/6. Delete Atlas collections</a>
 
 Next step for Atlas is to delete all 3 old collections.
 
@@ -225,7 +225,7 @@ COLLECTION_NAME=vertex_index
 curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
 ```
 
-#### II/7. Delete Log Search collections
+#### <a id="ii/7.-delete-log-search-collections">II/7. Delete Log Search collections</a>
 
 For Log Search, it is a must to delete the old collections.
 
@@ -244,7 +244,7 @@ COLLECTION_NAME=history
 curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
 ```
 
-#### II/8. Delete Log Search Solr configs
+#### <a id="ii/8.-delete-log-search-solr-configs">II/8. Delete Log Search Solr configs</a>
 
 Log Search configs are changed a lot between Ambari 2.6.x and Ambari 2.7.x, so it is required to delete those as well. (configs will be regenerated during Log Search startup)
 
@@ -260,7 +260,7 @@ zookeeper-client -server $ZK_CONN_STR rmr /infra-solr/configs/audit_logs
 zookeeper-client -server $ZK_CONN_STR rmr /infra-solr/configs/history
 ```
 
-### III. Upgrade Infra Solr packages
+### <a id="iii.-upgrade-infra-solr-packages">III. Upgrade Infra Solr packages</a>
 
 At this step, you will need to upgrade `ambari-infra-solr` packages. (also make sure ambari-logsearch* packages are upgraded as well)
 
@@ -269,16 +269,16 @@ Example (for CentOS):
 yum upgrade -y ambari-infra-solr
 ```
 
-### IV. Re-create collections
+### <a id="iv.-re-create-collections">IV. Re-create collections</a>
 
 Restart Ranger Admin / Atlas / Log Search Ambari service, as the collections were deleted before, during startup, new collections will be created (as a Solr 7 collection).
 At this point you can stop, and do the migration / restore later (until you will have the backup), and go ahead with e.g. HDP upgrade. (migration part can take long - 1GB/min.)
 
-### V. Migrate Solr Collections
+### <a id="v.-migrate-solr-collections">V. Migrate Solr Collections</a>
 
 From this point, you can migrate your old index in the background. On every hosts, where there is a backup located, you can run luce index migration tool (packaged with ambari-infra-solr-client).. For lucene index migration, [migrationHelper.py](#solr-migration-helper-script) can be used, or `/usr/lib/ambari-infra-solr-client/solrIndexHelper.sh` directly. That script uses [IndexMigrationTool](#https://lucene.apache.org/solr/guide/7_3/indexupgrader-tool.html)
 
-#### V/1. Migrate Ranger collections
+#### <a id="v/1.-migrate-ranger-collections">V/1. Migrate Ranger collections</a>
 
 Migration for `ranger_audits` collection (cores):
 
@@ -310,7 +310,7 @@ infra-lucene-index-tool upgrade-index -d /tmp/ranger-backup -f -b -g
 
 By default, the tool will migrate from lucene version 5 to lucene version 6.6.0. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.3.0` option. 
 
-#### V/2. Migrate Atlas collections
+#### <a id="v/2.-migrate-atlas-collections">V/2. Migrate Atlas collections</a>
 
 As Atlas has 3 collections, you will need similar steps that is required for Ranger, just for all 3 collections.
 (fulltext_index, edge_index, vertex_index)
@@ -345,9 +345,11 @@ infra-lucene-index-tool upgrade-index -d /tmp/fulltext_index_backup -f -b -g
 
 By default, the tool will migrate from lucene version 5 to lucene version 6.6.0. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.3.0` option. 
 
-### VI. Restore Collections
+### <a id="vi.-restore-collections">VI. Restore Collections</a>
 
-#### VI/1. Restore Old Ranger collection
+For restoring the old collections, first you will need to create them. As those collections could be not listed in the security.json of Infra Solr, you can get 403 errors if you will try to access those collections later, for that time until you are doing the restoring + transport solr data to another collections, you can [trun off](#turn-off-infra-solr-authorization) the Solr authorization plugin.
+
+#### <a id="vi/1.-restore-old-ranger-collection">VI/1. Restore Old Ranger collection</a>
 
 After lucene data migration is finished, you can restore your replicas on every hosts where you have the backups. But we need to restore the old data to a new collection, so first you will need to create that: (on a host where you have an installed Infra Solr component). For Ranger, use old_ranger_audits config set that you backup up during Solr schema config upgrade step. (set this as CONFIG_NAME), to make that collection to work with Solr 7, you need to copy your solrconfig.xml as well.
 
@@ -409,7 +411,7 @@ curl --negotiate -k -u : "$SOLR_URL/$OLD_BACKUP_COLLECTION_CORE/replication?comm
 
 Or use simple `cp` or `hdfs dfs -put` commands to copy the migrated cores to the right places.
 
-#### VI/2. Reload restored collection
+#### <a id="vi/2.-reload-restored-collection">VI/2. Reload restored collection</a>
 
 After the cores are restored you will need to reload the old_ranger_audits collection:
 
@@ -423,7 +425,7 @@ kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hos
 curl --negotiate -k -u : "$SOLR_URL/admin/collecions?action=RELOAD&name=$OLD_RANGER_COLLECTION"
 ```
 
-#### VI/3. Transport old data to Ranger collection
+#### <a id="vi/3.-transport-old-data-to-ranger-collection">VI/3. Transport old data to Ranger collection</a>
 
 In the end, you end up with 2 collections (ranger_audits and old_ranger_audits), in order to drop the restored one, you will need to transfer your old data to the new collection. To achieve this, you can use [solrDataManager.py](#solr-data-manager-script), which is located next to the `migrationHelper.py` script
 
@@ -446,7 +448,7 @@ infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r
 nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 -f $DATE_FIELD -e $END_DATE --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS > /tmp/solr-data-mgr.log 2>&1>& echo $! > /tmp/solr-data-mgr.pid
 ```
 
-#### VI/4. Restore Old Atlas collections
+#### <a id="vi/4.-restore-old-atlas-collections">VI/4. Restore Old Atlas collections</a>
 
 For Atlas, use `old_` prefix for all 3 collections that you need to create  and use `atlas_configs` config set.
 
@@ -506,7 +508,7 @@ curl --negotiate -k -u : "$SOLR_URL/$OLD_BACKUP_COLLECTION_CORE/replication?comm
 
 Or use simple `cp` or `hdfs dfs -put` commands to copy the migrated cores to the right places.
 
-#### VI/5. Reload restored Atlas collections
+#### <a id="vi/5.-reload-restored-atlas-collections">VI/5. Reload restored Atlas collections</a>
 
 After the cores are restored you will need to reload the all 3 Atlas collections:
 
@@ -525,7 +527,7 @@ OLD_BACKUP_COLLECTION=old_vertex_index
 curl --negotiate -k -u : "$SOLR_URL/admin/collecions?action=RELOAD&name=$OLD_BACKUP_COLLECTION"
 ```
 
-#### VI/6. Transport old data to Atlas collections
+#### <a id="vi/6.-transport-old-data-to-atlas-collections">VI/6. Transport old data to Atlas collections</a>
 
 In the end, you end up with 6 Atlas collections (vertex_index, old_vertex_index, edge_index, old_edge_index, fulltext_index, old_fulltext_index), in order to drop the restored one, you will need to transfer your old data to the new collection. To achieve this, you can use [solrDataManager.py](#solr-data-manager-script), which is located next to the `migrationHelper.py` script
 
@@ -551,11 +553,25 @@ nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z n
 
 ### APPENDIX
 
-#### Get core / shard names with hosts
+#### <a id="get-core-/-shard-names-with-hosts">Get core / shard names with hosts</a>
 
 To get which hosts are related for your collections, you can check the Solr UI (using SPNEGO), or checkout get state.json details using a zookeeper-client or Solr zookeeper api to get state.json details of the collection (`/solr/admin/zookeeper?detail=true&path=/collections/<collection_name>/state.json`)
 
-#### Solr Migration Helper Script
+#### <a id="turn-off-infra-solr-authorization">Turn off Infra Solr Authorization</a>
+
+You can turn off Solr authorization plugin with setting `infra-solr-security-json/content` Ambari configuration to `{"authentication": {"class": "org.apache.solr.security.KerberosPlugin"}}` (with that authentication will be still enabled). Then you will need to restart Solr, as that config is uploaded to the `/infra-solr/security.json` znode during startup. Other option is to use zkcli.sh of an Infra Solr to upload the security.json to the right place:
+```bash
+# Setup env for zkcli.sh
+source /etc/ambari-infra-solr/conf/infra-solr-env.sh
+# Run that command only if kerberos is enabled.
+export SOLR_ZK_CREDS_AND_ACLS="${SOLR_AUTHENTICATION_OPTS}"
+ZK_CONN_STRING=... # connection string -> zookeeper server addresses with the znode, e.g.: c7401.ambari.apache.org:2181/infra-solr
+
+/usr/lib/ambari-infra-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost $ZK_CONN_STRING -cmd put /security.json
+  '{"authentication": {"class": "org.apache.solr.security.KerberosPlugin"}}'
+```
+
+#### <a id="">Solr Migration Helper Script</a>
 
 `/usr/lib/ambari-infra-solr-client/migrationHelper.py --help`
 
@@ -611,7 +627,7 @@ Options:
                         deleted from the filesystem during restore.
 ```
 
-#### Solr Data Manager Script
+#### <a id="">Solr Data Manager Script</a>
 
 `/usr/lib/ambari-infra-solr-client/solrDataManager.py --help`
 
