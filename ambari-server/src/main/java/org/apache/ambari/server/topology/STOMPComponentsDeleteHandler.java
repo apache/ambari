@@ -41,7 +41,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
-public class STOMPComponentsDeleteFormer {
+public class STOMPComponentsDeleteHandler {
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;

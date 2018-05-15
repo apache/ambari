@@ -80,7 +80,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.STOMPComponentsDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -588,24 +588,24 @@ public class ComponentResourceProviderTest {
     ComponentResourceProvider provider = new ComponentResourceProvider(managementController,
         maintenanceStateHelper);
 
-    Field STOMPComponentsDeleteFormerField = ComponentResourceProvider.class.getDeclaredField("STOMPComponentsDeleteFormer");
-    STOMPComponentsDeleteFormerField.setAccessible(true);
-    STOMPComponentsDeleteFormer STOMPComponentsDeleteFormer = new STOMPComponentsDeleteFormer();
-    STOMPComponentsDeleteFormerField.set(provider, STOMPComponentsDeleteFormer);
+    Field STOMPComponentsDeleteHandlerField = ComponentResourceProvider.class.getDeclaredField("STOMPComponentsDeleteHandler");
+    STOMPComponentsDeleteHandlerField.setAccessible(true);
+    STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler = new STOMPComponentsDeleteHandler();
+    STOMPComponentsDeleteHandlerField.set(provider, STOMPComponentsDeleteHandler);
 
-    Field topologyHolderProviderField = STOMPComponentsDeleteFormer.class.getDeclaredField("m_topologyHolder");
+    Field topologyHolderProviderField = STOMPComponentsDeleteHandler.class.getDeclaredField("m_topologyHolder");
     topologyHolderProviderField.setAccessible(true);
     Provider<TopologyHolder> m_topologyHolder = createMock(Provider.class);
-    topologyHolderProviderField.set(STOMPComponentsDeleteFormer, m_topologyHolder);
+    topologyHolderProviderField.set(STOMPComponentsDeleteHandler, m_topologyHolder);
 
     TopologyHolder topologyHolder = createNiceMock(TopologyHolder.class);
 
     expect(m_topologyHolder.get()).andReturn(topologyHolder).anyTimes();
 
-    Field metadataHolderProviderField = STOMPComponentsDeleteFormer.class.getDeclaredField("metadataHolder");
+    Field metadataHolderProviderField = STOMPComponentsDeleteHandler.class.getDeclaredField("metadataHolder");
     metadataHolderProviderField.setAccessible(true);
     Provider<MetadataHolder> m_metadataHolder = createMock(Provider.class);
-    metadataHolderProviderField.set(STOMPComponentsDeleteFormer, m_metadataHolder);
+    metadataHolderProviderField.set(STOMPComponentsDeleteHandler, m_metadataHolder);
 
     MetadataHolder metadataHolder = createNiceMock(MetadataHolder.class);
 

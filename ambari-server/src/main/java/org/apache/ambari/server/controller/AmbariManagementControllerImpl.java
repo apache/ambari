@@ -230,7 +230,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceede
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
-import org.apache.ambari.server.topology.STOMPComponentsDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
@@ -359,7 +359,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   protected OsFamily osFamily;
 
   @Inject
-  private STOMPComponentsDeleteFormer STOMPComponentsDeleteFormer;
+  private STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler;
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
@@ -3666,7 +3666,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     //Response for these requests will have empty body with appropriate error code.
     if (deleteMetaData.getDeletedKeys().size() + deleteMetaData.getExceptionForKeys().size() == 1) {
       if (deleteMetaData.getDeletedKeys().size() == 1) {
-        STOMPComponentsDeleteFormer.processDeleteByMetaData(deleteMetaData);
+        STOMPComponentsDeleteHandler.processDeleteByMetaData(deleteMetaData);
         return null;
       }
       Exception ex = deleteMetaData.getExceptionForKeys().values().iterator().next();
@@ -3681,7 +3681,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (!safeToRemoveSCHs.isEmpty()) {
       setMonitoringServicesRestartRequired(requests);
     }
-    STOMPComponentsDeleteFormer.processDeleteByMetaData(deleteMetaData);
+    STOMPComponentsDeleteHandler.processDeleteByMetaData(deleteMetaData);
     return deleteMetaData;
   }
 
