@@ -115,7 +115,6 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.WIDGET_TABLE;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.contains;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -1347,37 +1346,23 @@ public class UpgradeCatalog270Test {
       }
     };
 
-    Map<String, String> oldPropertiesHbaseSite = new HashMap<String, String>() {
-      {
-        put("hbase.snapshot.enabled", "false");
-      }
-    };
-    Map<String, String> newPropertiesHbaseSite = new HashMap<String, String>() {
-      {
-        put("hbase.snapshot.enabled", "true");
-      }
-    };
-
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
     Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
     final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
     Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
-    Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
 
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
     }}).once();
     expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
     expect(mockAmsSite.getProperties()).andReturn(oldProperties).anyTimes();
-    expect(cluster.getDesiredConfigByType("ams-hbase-site")).andReturn(mockAmsHbaseSite).atLeastOnce();
-    expect(mockAmsHbaseSite.getProperties()).andReturn(oldPropertiesHbaseSite).anyTimes();
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
 
-    replay(injector, clusters, mockAmsSite, mockAmsHbaseSite, cluster);
+    replay(injector, clusters, mockAmsSite, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
@@ -1387,22 +1372,19 @@ public class UpgradeCatalog270Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCaptureAmsSite = EasyMock.newCapture();
-    Capture<Map> propertiesCaptureAmsHbaseSite = EasyMock.newCapture();
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), contains("ams-site"), capture(propertiesCaptureAmsSite), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), contains("ams-hbase-site"), capture(propertiesCaptureAmsHbaseSite), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
       anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog270(injector2).updateAmsConfigs();
     easyMockSupport.verifyAll();
 
-    assertTrue(Maps.difference(newProperties, propertiesCaptureAmsSite.getValue()).areEqual());
-    assertTrue(Maps.difference(newPropertiesHbaseSite, propertiesCaptureAmsHbaseSite.getValue()).areEqual());
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
 
 }
