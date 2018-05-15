@@ -87,7 +87,6 @@ describe('App.UpdateController', function () {
       expect(App.StompClient.subscribe.calledWith('/events/hosts')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alert_definitions')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alert_group')).to.be.true;
-      expect(App.StompClient.subscribe.calledWith('/events/upgrade')).to.be.true;
     });
   });
 

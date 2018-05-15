@@ -152,13 +152,6 @@ App.MainHostStackVersionsView = App.TableView.extend({
     }
   }),
 
-  /**
-   * show progress of installation of version on host
-   */
-  showInstallProgress: function (event) {
-    App.router.get('mainAdminStackAndUpgradeController').showProgressPopup(event.context);
-  },
-
   outOfSyncInfo: Em.View.extend({
     tagName: 'i',
     classNames: ['glyphicon glyphicon-question-sign'],

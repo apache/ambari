@@ -70,10 +70,6 @@ module.exports = [
     route: 'main.services.rollbackHighAvailability'
   },
   {
-    wizardControllerName: App.router.get('mainAdminStackAndUpgradeController.name'),
-    route: App.db.get('MainAdminStackAndUpgrade', 'upgradeState') === 'NOT_REQUIRED' ? 'main.admin.stackAndUpgrade.index' : 'main.admin.stackAndUpgrade.versions'
-  },
-  {
     wizardControllerName: App.router.get('widgetWizardController.name'),
     route: 'main.createWidget'
   },

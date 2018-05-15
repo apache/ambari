@@ -1867,47 +1867,6 @@ var urls = {
     'mock': ''
   },
 
-  'admin.stack_versions.edit.repo': {
-    'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{repoVersionId}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify(data.repoVersion)
-      }
-    }
-  },
-  'admin.stack_versions.validate.repo': {
-    'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}?validate_only=true',
-    'mock': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          "Repositories": {
-            "base_url": data.baseUrl,
-            "repo_name": data.repoName
-          }
-        })
-      }
-    }
-  },
-
-  'admin.stack_versions.discard': {
-    'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          "RepositoryVersions":{
-            "hidden": "true"
-          }
-        })
-      }
-    }
-  },
-
   'admin.upgrade.pre_upgrade_check': {
     'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id={id}&UpgradeChecks/upgrade_type={type}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'

@@ -43,13 +43,9 @@
           {{#if version.isCurrent}}
             <span class="label label-success">{{t common.current}}</span>
           {{else}}
-            {{#if version.isInstalling}}
-              <a href="#" {{action showInstallProgress version target="view"}}><i class="glyphicon glyphicon-cog in_progress"></i>&nbsp;{{version.displayStatus}}</a>
-            {{else}}
-              {{version.displayStatus}}
-              {{#if version.isOutOfSync}}
-                {{view view.outOfSyncInfo}}
-              {{/if}}
+            {{version.displayStatus}}
+            {{#if version.isOutOfSync}}
+              {{view view.outOfSyncInfo}}
             {{/if}}
           {{/if}}
         </td>

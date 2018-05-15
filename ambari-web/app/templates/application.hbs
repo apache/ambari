@@ -202,32 +202,6 @@
 
   <div class="container main-container">
     <div id="content">
-      {{#if App.wizardIsNotFinished}}
-        <div class="ru-badge row">
-          {{#if isExistingClusterDataLoaded}}
-            <p class="col-md-4 col-md-offset-4">
-              {{#if App.router.wizardWatcherController.isNonWizardUser}}
-                <span class="label upgrade-in-progress">
-                  <i class="glyphicon glyphicon-cog"></i>&nbsp;{{App.router.wizardWatcherController.wizardDisplayName}}
-                </span>
-              {{/if}}
-              {{#if showUpgradeLabel}}
-                <a href="#" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                  <span {{bindAttr class="upgradeMap.cls :label"}}>
-                    <i {{bindAttr class="upgradeMap.icon :glyphicon"}}></i>&nbsp;
-                    {{upgradeMap.msg}}
-                  </span>
-                </a>
-              {{/if}}
-            </p>
-          {{/if}}
-        </div>
-        <div class="row">
-          {{#if App.router.mainAdminStackAndUpgradeController.isFinalizeItem}}
-          <p class="col-md-10 col-md-offset-1 alert alert-danger">{{t admin.stackVersions.version.upgrade.notFinalized.warning}}</p>
-          {{/if}}
-        </div>
-      {{/if}}
       {{outlet}}
     </div>
   </div>
