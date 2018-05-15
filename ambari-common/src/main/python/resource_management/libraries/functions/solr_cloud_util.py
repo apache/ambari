@@ -24,6 +24,7 @@ from ambari_jinja2 import Environment as JinjaEnvironment
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import StaticFile
 from resource_management.core.shell import as_sudo
@@ -101,6 +102,8 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   router_name = "implicit", router_field = "_router_field_"
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, java_opts)
+  localsolrconfig = Script.get_config()['configurations']['infra-solr-env']
+
 
   if max_shards == 1: # if max shards is not specified use this strategy
     max_shards = int(replication_factor) * int(shards)
@@ -117,6 +120,10 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   appendableDict["--key-store-location"] = key_store_location
   appendableDict["--key-store-password"] = None if key_store_password is None else '{key_store_password_param!p}'
   appendableDict["--key-store-type"] = key_store_type
+  if default('configurations/infra-solr-env/infra_solr_ssl_enabled', False):
+      trust_store_location = localsolrconfig['infra_solr_truststore_location']
+      trust_store_password = localsolrconfig['infra_solr_truststore_password']
+      trust_store_type = localsolrconfig['infra_solr_truststore_type']
   appendableDict["--trust-store-location"] = trust_store_location
   appendableDict["--trust-store-password"] = None if trust_store_password is None else '{trust_store_password_param!p}'
   appendableDict["--trust-store-type"] = trust_store_type
