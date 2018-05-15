@@ -242,9 +242,11 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -1396,6 +1398,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    if (request.getComponentId() != null) {
+      Service service = cluster.getServiceByComponentId(request.getComponentId());
+      if (Strings.isNullOrEmpty(request.getServiceGroupName())) {
+        request.setServiceGroupName(service.getServiceGroupName());
+      }
+      if (Strings.isNullOrEmpty(request.getServiceName())) {
+        request.setServiceName(service.getName());
+      }
+    }
+
     if (request.getComponentName() != null) {
       if (StringUtils.isBlank(request.getServiceName())) {
 
@@ -1418,12 +1430,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    request.setServiceGroupName(cluster.getServiceByComponentId(request.getComponentId()).getServiceGroupName());
-    List<Service> services = new ArrayList<>();
-    if (request.getServiceName() != null && !request.getServiceName().isEmpty()) {
-      services.add(cluster.getService(request.getServiceName()));
+    List<Service> services;
+    if (!Strings.isNullOrEmpty(request.getServiceName())) {
+      services = ImmutableList.of(cluster.getService(request.getServiceName()));
+    } else if (!Strings.isNullOrEmpty(request.getServiceGroupName())) {
+      services = ImmutableList.copyOf(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
     } else {
-      services.addAll(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
+      services = ImmutableList.copyOf(cluster.getServices().values());
     }
 
     Set<ServiceComponentHostResponse> response =
