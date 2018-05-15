@@ -36,7 +36,6 @@ module.exports = App.WizardRoute.extend({
           }
 
           App.router.get('updateController').set('isWorking', false);
-          App.router.get('wizardWatcherController').setUser(router.get('mainAdminStackAndUpgradeController').get('name'));
 
           return App.ModalPopup.show({
             classNames: ['upgrade-wizard-modal'],
@@ -82,6 +81,7 @@ module.exports = App.WizardRoute.extend({
               this.hide();
               if (['NOT_REQUIRED', 'COMPLETED'].contains(App.get('upgradeState'))) {
                 location.reload();
+                App.router.get('wizardWatcherController').resetUser();
               }
             }
           });
