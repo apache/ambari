@@ -1,0 +1,722 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import 'vars';
+@import 'dropdown-submenu';
+@import 'mixins';
+@import 'notifications';
+@import 'query-tabs';
+
+a {
+  word-wrap: break-word;
+}
+
+@keyframes flash {
+  0% {
+    background-color: transparent;
+  }
+
+  25% {
+    background-color: #428bca;
+    color: #fff;
+  }
+
+  50% {
+    background-color: transparent;
+    color: #333;
+  }
+
+  75% {
+    background-color: #428bca;
+    color: #fff;
+  }
+
+  100% {
+    background-color: transparent;
+    color: #333;
+  }
+}
+
+.flash {
+  animation: flash 1s;
+}
+
+@-webkit-keyframes fadeIn {
+  0% {opacity: 0;}
+  100% {opacity: 1;}
+}
+
+@keyframes fadeIn {
+  0% {opacity: 0;}
+  100% {opacity: 1;}
+}
+
+.fadeIn {
+  -webkit-animation-name: fadeIn;
+          animation-name: fadeIn;
+}
+
+@-webkit-keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+@keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+.fadeOut {
+  -webkit-animation-name: fadeOut;
+          animation-name: fadeOut;
+}
+
+.empty-list {
+  text-align: center;
+}
+
+#content {
+  padding: 20px 0;
+}
+
+#index-content {
+  display: flex;
+}
+
+#visual-explain {
+  white-space: nowrap;
+
+  .panel-body {
+    overflow: hidden;
+  }
+}
+
+.index-overlay {
+  position: absolute;
+  left: 0;
+  width: 0;
+  z-index: 99;
+  background: white;
+}
+
+aside  {
+  hr {
+    margin: 10px 0;
+  }
+
+  &.no-width {
+    width: 0;
+    overflow: hidden;
+
+    @include animate-width(0.25s);
+  }
+
+  &.col-md-3 {
+    @include animate-width(0.25s);
+  }
+}
+
+.halfed {
+  width: 50%;
+}
+
+.no-padding {
+  padding: 0;
+}
+
+.no-margin {
+  margin: 0;
+}
+
+.toolbox {
+  margin: 15px 15px 0 0;
+
+  .insert-udfs {
+    display: inline-block;
+  }
+}
+
+.history-date-range {
+  white-space: nowrap;
+}
+.history-date-range .fromDate,
+.history-date-range .toDate {
+  width: 48%;
+}
+
+.form-control::-moz-placeholder {
+  color: $placeholder-color;
+}
+
+.form-control:-ms-input-placeholder {
+  color: $placeholder-color;
+}
+
+.form-control::-webkit-input-placeholder {
+  color: $placeholder-color;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.secondary-row {
+  background: $panel-background;
+}
+
+.btn-group {
+  .dropdown-menu {
+    right: 0;
+    left: auto;
+  }
+}
+
+.CodeMirror {
+  border: 0 1px solid $border-color;
+}
+
+.grip {
+  height: 20px;
+  border: 0 1px 1px solid $border-color;
+  background-color: $panel-background;
+  color: #bbb;
+  text-align: center;
+  font-size: inherit;
+}
+
+.slider {
+  min-width: 200px;
+  margin-right: 8px;
+}
+
+.slider-labels {
+  font-size: 10px;
+}
+
+.modal-backdrop {
+  background-color: white;
+}
+
+.gray {
+  background-color: gray;
+}
+
+.green {
+  background-color: #99CC00;
+}
+
+.red {
+  background-color: #ff3300;
+}
+
+.orange {
+  background-color: #FF9933;
+}
+
+.yellow {
+  background-color: #CCCC00;
+}
+
+.blue {
+  background-color: blue;
+}
+
+.UNKNOWN {
+  color: gray;
+}
+
+.RUNNING, .PENDING, .INITIALIZED, .fa-edit {
+  color: orange;
+}
+
+.SUCCEEDED {
+  color: green;
+}
+
+.CANCELED, .ERROR, .FAILED, .KILLED {
+  color: red;
+}
+
+dropdown .fa-remove {
+  color: red;
+}
+
+.CLOSED {
+  color: blue;
+}
+
+.query-container {
+  position: relative;
+  padding-right: 0;
+  -moz-box-sizing: border-box;
+
+  &.col-md-9 {
+    @include animate-width(0.25s);
+  }
+
+  &.col-md-12 {
+    @include animate-width(0.25s);
+  }
+}
+
+.main-content {
+  width: 98%;
+}
+
+.queries-icon {
+  font-size: 20px;
+
+  &.active {
+    color: white;
+  }
+
+  &.text-icon {
+    font-size: 12px;
+    font-weight: 800;
+  }
+}
+
+.query-context-tab {
+  background: #f1f1f1;
+  border-left: 2px solid #428bca;
+
+  &.active {
+    color: #428bca;
+    border-left: 2px solid white;
+  }
+}
+
+.alert {
+  margin-bottom: 5px;
+  padding-bottom: 10px;
+  padding-top: 10px;
+
+  strong {
+    text-decoration: underline;
+  }
+
+  .alert-message {
+    max-height: 250px;
+    overflow-y: auto;
+  }
+}
+
+body {
+  a, i {
+    cursor: pointer;  }
+
+  dropdown {
+    .btn-group, .dropdown-toggle, .dropdown-menu {
+      width: 100%;
+    }
+  }
+
+  tabs {
+    ul li{
+      background: $panel-background;
+    }
+  }
+
+  table {
+    tbody tr {
+      border: 1px solid #ccc;
+    }
+
+    td *{
+      white-space: nowrap;
+    }
+  }
+
+  column-filter {
+    display: -webkit-inline-flex; /* Safari */
+    display: inline-flex;
+
+    .slider {
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 0;
+      border: 0;
+    }
+
+    .form-control {
+      width: auto;
+    }
+
+    .fa {
+      padding: 10px 0;
+    }
+  }
+}
+
+.CodeMirror-hints {
+  min-width: 200px;
+  z-index: 100;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  background: url("/img/spinner.gif");
+  background-repeat: no-repeat;
+  margin: 0 auto;
+
+  &.small {
+    background-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &.inline-spinner {
+    vertical-align: middle;
+    display: inline-block;
+  }
+}
+
+.ellipsis{
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display:inline-block;
+}
+
+.databases {
+  max-height: 500px;
+  overflow-y: auto;
+
+  .tables {
+    padding-left: 10px;
+
+    .columns {
+      padding-left: 10px;
+      .column-name{
+        width: 10em;
+        font-weight: bold;
+        @extend .ellipsis;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width : 992px) {
+  .databases {
+    .tables {
+      .columns {
+        .column-name{
+          width: 5em;
+        }
+      }
+    }
+  }
+}
+
+.collapsible-row {
+  width: 13em;
+  @extend .ellipsis;
+}
+
+.selectize-control.plugin-remove_button [data-value] {
+  padding-right: 0 !important;
+}
+
+.query-editor-panel .panel-body {
+  position: relative;
+  padding-right: 0;
+}
+
+.settings-containers-toggle {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  cursor: pointer;
+}
+
+.settings-container .close-settings {
+  float: right;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 24px;
+}
+
+.settings-controls {
+  margin: 10px 0;
+}
+
+.setting {
+  float: left;
+  padding: 10px 0 0 0;
+
+  .input-group {
+    width: 100%;
+  }
+  .input-group-addon {
+    text-align: justify;
+    width: 50%;
+    vertical-align: top;
+  }
+}
+
+.setting .remove {
+  line-height: 30px;
+  font-size: 18px;
+  cursor: pointer;
+  position: absolute;
+}
+
+.setting .setting-input-value {
+  width: calc(100% - 30px);
+  display: inline-block;
+  input {
+    height: 33px;
+  }
+}
+.setting .global-setting-value {
+  width: calc(100% - 25px);
+}
+
+.settings-set .settings-set-selector {
+  display: inline-block;
+  width: 300px;
+}
+
+tree-view ul li {
+  padding-left: 10px;
+}
+
+#tez-ui iframe {
+  width: 100%;
+  height: 822px;
+  border: none;
+}
+
+.edge {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+
+  .edge-path {
+    margin-top: -55px;
+    height: 2px;
+    background-color: #dedede;
+    position: absolute;
+  }
+
+  .edge-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 10px solid black;
+  }
+}
+
+.nodes {
+  width: 100%;
+  position: relative;
+
+  .node-container {
+    text-align: center;
+
+    .node {
+      border: 1px solid #bbb;
+      background: #fefefe;
+      font-size: 12px;
+      box-sizing: border-box;
+      text-align: left;
+      max-width: 200px;
+      margin: 0 25px 100px 0;
+      display: inline-block;
+      vertical-align: top;
+
+      @include box-shadow(1px, 1px, 15px, #888888);
+
+      &.table-node, &.output-node {
+        background-color: ghostwhite;
+        color: gray;
+        padding: 5px;
+        text-align: center;
+        min-width: 100px;
+        line-height: 8px;
+        vertical-align: bottom;
+        margin-bottom: 50px;
+      }
+
+      .node-heading {
+        padding: 5px;
+        text-align: center;
+        background-color: lightslategrey;
+        color: white;
+      }
+
+      .node-content {
+        max-height: 300px;
+        white-space: normal;
+        padding: 5px;
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        .fa {
+          color: green;
+        }
+      }
+
+      .progress {
+        border-radius: 0;
+        margin: 0 10px 10px 10px;
+      }
+    }
+  }
+}
+
+.progress-bar {
+  min-width: 2em;
+}
+
+.messages-controls {
+  margin: 0 0 10px;
+}
+
+#query-results, #upload-table{
+  .table {
+    display: inline-block;
+    overflow: auto;
+  }
+
+  .query-results-tools {
+    margin-top: 10px;
+  }
+
+  input, .selectize-input {
+    width: 300px;
+  }
+}
+
+#upload-controls {
+  .table {
+    display: inline-block;
+    overflow: auto;
+  }
+
+  input, .selectize-input {
+    width: 94px;
+    font-size : smaller;
+  }
+
+  .hidden {
+    visibility:hidden;
+  }
+
+  .visible {
+    visibility:visible;
+  }
+
+  td {
+    padding-right : 5px;
+  }
+}
+
+
+.data-upload-form tr td {
+    padding-right : 5px;
+}
+
+td.data-upload-form-label {
+    width: 150px;
+    padding-left: 50px;
+}
+td.data-upload-form-field {
+    width: 350px;
+}
+
+.hdfsPath {
+  width: 80%;
+  display: inline;
+}
+
+#visualization{
+    .max-rows {
+      float: right;
+    }
+}
+
+#visualization{
+    .max-rows {
+      float: right;
+    }
+}
+
+.mozBoxSizeFix {
+  -moz-box-sizing: border-box;
+}
+.show-data {
+    display : block;
+}
+.hide-data {
+    display : none;
+}
+.no-shadow {
+  box-shadow: none;
+  width: inherit;
+}
+
+.widget-controls {
+  padding-right: 10px;
+}
+
+.accordion-body {
+   word-break: break-all;
+   overflow-y: scroll;
+}
+
+table.no-border, table.no-border tr, table.no-border tr td {
+  border: none;
+}
+
+.red-border {
+  border-color :red;
+}
+
+ul.explainlist li{
+  background: none;
+  word-break: break-all;
+  padding: 0;
+}
+
+pre.explainprint{
+ line-height: 0.5;
+ padding: 12px 15px;
+}
+.settings-gear {
+  padding:5px;
+  cursor: pointer;
+}
+
+.settings-gear-disabled {
+  @extend .settings-gear;
+
+  color:#ddd;
+  cursor: default;
+}
+
+#splash {
+  .table i {
+    cursor: default;
+  }
+}

@@ -1,0 +1,138 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="panel panel-info">
+  <div class="panel-heading">
+    <div class="panel-title">
+      <button class="btn btn-primary {{if showCSVFormatInput 'active'}}" {{action
+      "toggleCSVFormat"}}>
+      {{fa-icon (if showCSVFormatInput "minus" "plus")}}
+      </button>
+      &nbsp;&nbsp;&nbsp;Select File Format
+    </div>
+  </div>
+  {{#if showCSVFormatInput}}
+  <div class="panel-body rowformat-custom-row">
+    <div class="row">
+      <div class="col-md-6 form-horizontal">
+        <div class="form-group">
+          <label class="col-md-4 control-label">{{t 'hive.ui.fileSource.fileType'}}</label>
+          <div class="col-md-7">
+            {{#power-select
+            selected=fileFormatInfo.inputFileType
+            options=inputFileTypes
+            searchField="name"
+            searchPlaceholder=(t 'hive.ui.fileSource.selectFileType')
+            onchange=(action "inputFileTypeSelected") as |parameter|}}
+            {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+            {{/power-select}}
+          </div>
+          <div class="col-md-1">
+            <a class="text-danger" {{action "clearInputFileType"}}>{{fa-icon "times" size="lg"}}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{#if inputFileTypeCSV}}
+
+    <div class="row">
+      <div class="col-md-6 form-horizontal">
+        <div class="form-group">
+          <label class="col-md-4 control-label">{{t 'hive.ui.csvFormatParams.columnDelimterField'}}</label>
+          <div class="col-md-7">
+            {{#power-select
+            selected=fileFormatInfo.csvParams.csvDelimiter
+            options=terminationChars
+            searchField="name"
+            searchPlaceholder=(t 'hive.ui.csvFormatParams.columnDelimiterTooltip')
+            onchange=(action "csvDelimiterSelected") as |parameter|}}
+            {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+            {{/power-select}}
+          </div>
+          <div class="col-md-1">
+            <a class="text-danger" {{action "clearColumnDelimter"}}>{{fa-icon "times" size="lg"}}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 form-horizontal">
+        <div class="form-group">
+          <label class="col-md-4 control-label">{{t 'hive.ui.csvFormatParams.escapeCharacterField'}}</label>
+          <div class="col-md-7">
+            {{#power-select
+            selected=fileFormatInfo.csvParams.csvEscape
+            options=terminationChars
+            searchField="name"
+            searchPlaceholder=(t 'hive.ui.csvFormatParams.escapeCharacterTooltip')
+            onchange=(action "csvEscapeSelected") as |parameter|}}
+            {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+            {{/power-select}}
+          </div>
+          <div class="col-md-1">
+            <a class="text-danger" {{action "clearEscapeCharacter"}}>{{fa-icon "times" size="lg"}}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 form-horizontal">
+        <div class="form-group">
+          <label class="col-md-4 control-label">{{t 'hive.ui.csvFormatParams.quoteCharacterField'}}</label>
+          <div class="col-md-7">
+            {{#power-select
+            selected=fileFormatInfo.csvParams.csvQuote
+            options=terminationChars
+            searchField="name"
+            searchPlaceholder=(t 'hive.ui.csvFormatParams.quoteCharacterTooltip')
+            onchange=(action "csvQuoteSelected") as |parameter|}}
+            {{parameter.name}}{{#if parameter.description}} - {{parameter.description}}{{/if}}
+            {{/power-select}}
+          </div>
+          <div class="col-md-1">
+            <a class="text-danger" {{action "clearCsvQuote"}}>{{fa-icon "times" size="lg"}}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 form-horizontal">
+        <div class="form-group">
+          <label class="col-md-4 control-label">{{t 'hive.ui.csvFormatParams.isFirstRowHeader'}}</label>
+          <div class="col-md-8">
+            {{input type="checkbox" checked=fileFormatInfo.csvParams.isFirstRowHeader}}
+          </div>
+        </div>
+      </div>
+    </div>
+    {{/if}}
+    <div class="row">
+      <div class="col-md-6 form-horizontal">
+        <div class="form-group">
+          <label class="col-md-4 control-label">{{t 'hive.ui.csvFormatParams.containsEndlines'}}</label>
+          <div class="col-md-8">
+            {{input type="checkbox" checked=fileFormatInfo.containsEndlines}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+</div>
+
+{{yield}}

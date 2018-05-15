@@ -1,0 +1,67 @@
+{
+  "name": "ui",
+  "version": "0.0.0",
+  "description": "Hive View UI",
+  "private": true,
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "ember build",
+    "start": "ember server",
+    "test": "ember test",
+    "preinstall": "",
+    "postinstall": "node node_modules/.bin/bower --allow-root install"
+  },
+  "repository": "",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "bootstrap-daterangepicker": "2.1.24",
+    "bower": "^1.7.9",
+    "broccoli-asset-rev": "^2.4.2",
+    "babel-plugin-transform-es2015-block-scoping": "^6.24.1",
+    "ember-ajax": "^2.0.1",
+    "ember-cli": "2.7.0",
+    "ember-cli-app-version": "^1.0.0",
+    "ember-cli-babel": "^5.1.6",
+    "ember-cli-daterangepicker": "0.3.0",
+    "ember-cli-dependency-checker": "^1.2.0",
+    "ember-cli-file-picker": "0.0.10",
+    "ember-cli-flash": "1.4.0",
+    "ember-cli-htmlbars": "^1.0.3",
+    "ember-cli-htmlbars-inline-precompile": "^0.3.1",
+    "ember-cli-inject-live-reload": "^1.4.0",
+    "ember-cli-jshint": "^1.0.0",
+    "ember-cli-moment-shim": "3.0.1",
+    "ember-cli-qunit": "^2.0.0",
+    "ember-cli-release": "^0.2.9",
+    "ember-cli-sass": "5.6.0",
+    "ember-cli-sri": "^2.1.0",
+    "ember-cli-test-loader": "^1.1.0",
+    "ember-cli-uglify": "^1.2.0",
+    "ember-composable-helpers": "1.1.2",
+    "ember-data": "^2.7.0",
+    "ember-export-application-global": "^1.0.5",
+    "ember-font-awesome": "2.2.0",
+    "ember-i18n": "4.5.0",
+    "ember-load-initializers": "^0.5.1",
+    "ember-modal-dialog": "0.9.0",
+    "ember-moment": "7.2.0",
+    "ember-power-select": "1.0.0-beta.31",
+    "ember-resolver": "^2.0.3",
+    "ember-responsive": "2.0.0",
+    "ember-sass-bootstrap": "0.1.2",
+    "ember-uploader": "1.2.3",
+    "loader.js": "^4.0.1"
+  },
+  "ember-addon": {
+    "paths": [
+      "ext/hdfs-directory-viewer"
+    ]
+  }
+}

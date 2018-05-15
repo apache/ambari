@@ -1,0 +1,73 @@
+/**
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+.query-menu {
+  margin-top: 58px;
+  padding-right:10px;
+
+  span, popover {
+    cursor: pointer;
+    display: block;
+    border-bottom: 1px solid $border-color;
+    padding: 10px;
+  }
+}
+
+.fa.panel-action-icon {
+  line-height: 22px;
+  font-size: 16px;
+}
+.query-content {
+  min-height: 365px;
+}
+.editor-overlay {
+  width: 100%;
+  overflow-y: scroll;
+  overflow-x: scroll ;
+  height: 320px;
+  top: 57px;
+  left: 0;
+  background-color: #fff;
+  position: absolute;
+  padding: 10px 15px;
+  z-index: 1000;
+
+  border: 1px solid $border-color;
+  -webkit-animation-duration: .5s;
+          animation-duration: .5s;
+  -webkit-animation-fill-mode: both;
+          animation-fill-mode: both;
+}
+
+.message-body {
+  margin-top: 10px;
+}
+
+.query-menu-tab {
+  position: relative;
+}
+.query-menu-tab .badge {
+  position: absolute;
+  top: -4px;
+  right: 0px;
+  background-color: red;
+  color: #fff;
+  padding: 2px 4px;
+  font-weight: bold;
+  z-index: 9999;
+}

@@ -1,0 +1,296 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div style="width : 90%">
+  <div class="main-content">
+    {{#if showErrors}}
+      {{render 'messages'}}
+    {{/if}}
+  </div>
+</div>
+
+<div id="uploadProgressModal" class="modal fade" role="dialog" data-backdrop="static">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">{{t "hive.ui.uploadProgress"}}</h4>
+      </div>
+      <div class="modal-body">
+        <p>
+        <ul>
+          {{uploadProgressInfo}}
+        </ul>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CSV Input Modal -->
+<div class="modal fade" id="inputParamsModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="table data-upload-form">
+          <tr>
+            <td><label>{{t 'hive.ui.columnDelimterField'}}:</label></td>
+            <td class="data-upload-form-field" title={{t 'hive.ui.columnDelimiterTooltip'}}>
+              {{typeahead-widget
+              content=asciiList
+              optionValuePath="id"
+              optionLabelPath="name"
+              selection=csvDelimiter
+              optionFunction=asciiFormatter
+              }}
+            </td>
+          </tr>
+          <tr>
+            <td><label>{{t 'hive.ui.escapeCharacterField'}}:</label></td>
+            <td class="data-upload-form-field" title={{t 'hive.ui.escapeCharacterTooltip'}}>
+              {{typeahead-widget
+              content=asciiList
+              optionValuePath="id"
+              optionLabelPath="name"
+              selection=csvEscape
+              optionFunction=asciiFormatter
+              }}
+            </td>
+          </tr>
+          <tr>
+            <td><label>{{t 'hive.ui.quoteCharacterField'}}:</label></td>
+            <td class="data-upload-form-field" title={{t 'hive.ui.quoteCharacterTooltip'}}>
+              {{typeahead-widget
+              content=asciiList
+              optionValuePath="id"
+              optionLabelPath="name"
+              selection=csvQuote
+              optionFunction=asciiFormatter
+              }}
+            </td>
+          </tr>
+          <tr>
+            <td><label>{{t "hive.ui.isFirstRowHeader"}}</label></td>
+            <td class="data-upload-form-field"  title={{t 'hive.ui.isFirstRowHeaderTooltip'}}>
+              {{input id="isFirstRowHeader" type="checkbox" checked=isFirstRowHeader }}
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-default btn-default pull-right" data-dismiss="modal"> Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row Format Modal -->
+<div class="modal fade" id="rowFormatModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="table data-upload-form">
+          <tr>
+            <td><label>{{t 'hive.ui.fieldsTerminatedByField'}}:</label></td>
+            <td class="data-upload-form-field" title={{t 'hive.ui.fieldsTerminatedByTooltip'}}>
+              {{typeahead-widget
+              content=asciiList
+              optionValuePath="id"
+              optionLabelPath="name"
+              selection=fieldsTerminatedBy
+              optionFunction=asciiFormatter
+              }}
+            </td>
+          </tr>
+          <tr>
+            <td><label>{{t 'hive.ui.escapedByField'}}:</label></td>
+            <td class="data-upload-form-field" title={{t 'hive.ui.escapedByTooltip'}}>
+              {{typeahead-widget
+              content=asciiList
+              optionValuePath="id"
+              optionLabelPath="name"
+              selection=escapedBy
+              optionFunction=asciiFormatter
+              }}
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-default btn-default pull-right" data-dismiss="modal"> Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pull-right">
+  <i class="query-menu-tab fa queries-icon fa-envelope" {{ action 'toggleErrors'}} ></i>
+</div>
+<div {{bind-attr class="showErrors:hide-data:show-data"}}>
+  <div>
+    <table class="table data-upload-form pull-left">
+      <tr>
+        <td class="data-upload-form-label"><label>{{t "hive.ui.uploadFromLocal"}}</label></td>
+        <td  class="data-upload-form-field"> {{radio-button value='local' checked=uploadSource}}</td>
+
+        <td class="data-upload-form-label"><label>{{t "hive.ui.uploadFromHdfs"}}</label></td>
+        <td  class="data-upload-form-field">{{radio-button value='hdfs' checked=uploadSource}}</td>
+      </tr>
+      <tr>
+        <td class="data-upload-form-label"><label>{{t "hive.ui.fileType"}}</label></td>
+        <td class="data-upload-form-field">
+          <div class="col-md-11" style="padding:0">
+            {{typeahead-widget
+            content=inputFileTypes
+            optionValuePath="id"
+            optionLabelPath="name"
+            selection=inputFileType
+            placeholder="Select File Type"}}
+          </div>
+          <div class="col-md-1" style="padding: 0">
+            <span {{bind-attr class=":queries-icon :fa :fa-gear inputFileTypeCSV:settings-gear:settings-gear-disabled"}}
+                  title="Settings" {{action "showInputParamModal"}}>
+            </span>
+          </div>
+        </td>
+        {{#if isLocalUpload }}
+          <td class="data-upload-form-label"><label>{{t "hive.ui.selectFromLocal"}}</label></td>
+          <td class="data-upload-form-field">{{file-upload  filesUploaded="filesUploaded"  uploadFiles=files}}</td>
+        {{else}}
+          <td class="data-upload-form-label"><label>{{t "hive.ui.hdfsPath"}}</label></td>
+          <td class="data-upload-form-field" id="hdfs-param">
+            {{#validated-text-field inputValue=hdfsPath allowEmpty=false tagClassName="hdfsPath"
+            tooltip=(t "hive.ui.hdfsFieldTooltip") placeholder=(t "hive.ui.hdfsFieldPlaceholder")
+            invalidClass='form-control hdfsPath red-border' validClass='form-control hdfsPath' regex=HDFS_PATH_REGEX
+            errorMessage=(t "hive.ui.hdfsFieldErrorMessage")  }}
+            {{/validated-text-field}}
+            <button style="margin-left: 5px; padding-top: 6px;padding-bottom: 6px; padding-right: 10px; padding-left: 10px;" type="button" {{action "previewFromHdfs"}}
+            {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.showPreview"}}</button></td>
+        {{/if}}
+      </tr>
+      {{#if showPreview}}
+      <tr>
+        <td class="data-upload-form-label"><label>{{t "hive.words.database"}}</label></td>
+        <td class="data-upload-form-field">
+          {{typeahead-widget
+          content=databases
+          optionValuePath="id"
+          optionLabelPath="name"
+          selection=selectedDatabase
+          placeholder=(t "hive.ui.selectDatabase")
+          }}
+        </td>
+
+        <td class="data-upload-form-label"><label>{{t "hive.ui.tableName"}}</label></td>
+        <td class="data-upload-form-field">
+          {{#validated-text-field inputValue=tableName allowEmpty=false
+          tooltip=(t "hive.ui.tableNameTooltip")
+          invalidClass='form-control red-border' validClass='form-control' regex=TABLE_NAME_REGEX
+          errorMessage=(t "hive.ui.tableNameErrorMessage") }}
+          {{/validated-text-field}}
+        </td>
+      </tr>
+      <tr>
+        <td class="data-upload-form-label"><label>{{t "hive.ui.storedAs"}}</label></td>
+        <td class="data-upload-form-field">
+          <div class="col-md-11" style="padding: 0">
+              {{typeahead-widget
+              content=fileTypes
+              selection=selectedFileType}}
+          </div>
+            <div class="col-md-1" style="padding: 0">
+              <span {{bind-attr class=":queries-icon :fa :fa-gear storedAsTextFile:settings-gear:settings-gear-disabled"}}
+                    title="Settings" {{action "showRowFormatModal"}}>
+              </span>
+            </div>
+        </td>
+        {{#if storedAsNotTextFile}}
+          <td class="data-upload-form-label"><label>{{t "hive.ui.containsEndlines"}}</label></td>
+          <td class="data-upload-form-field">
+            {{input type="checkbox" checked=containsEndlines }}
+          </td>
+        {{/if}}
+      </tr>
+      {{/if}}
+    </table>
+
+    {{#if showPreview}}
+    <table class="pull-right">
+      <tr>
+        <td>
+            <button type="button" {{action "uploadTable"}}
+              {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.uploadTable"}}</button>
+        </td>
+      </tr>
+    </table>
+    {{/if}}
+  </div>
+
+  <div>
+    {{#if showPreview}}
+      <div id="upload-table">
+        <table class="table table-expandable no-border">
+          <thead>
+          <tr>
+            {{#each column in header}}
+              <th>
+                {{#validated-text-field inputValue=column.name allowEmpty=false
+                tooltip=(t "hive.ui.columnNameTooltip")
+                invalidClass='form-control red-border' validClass='form-control' regex=COLUMN_NAME_REGEX
+                errorMessage=(t "hive.ui.columnNameErrorMessage")}}
+                {{/validated-text-field}}
+              </th>
+            {{/each}}
+          </tr>
+          <tr id="upload-controls">
+            {{#each column in header}}
+              <th>
+                <table>
+                  <tbody>
+                  <tr>
+                    <td>{{typeahead-widget content=dataTypes selection=column.type }}</td>
+                    {{input-header column=column dataTypes=dataTypes}}
+                  </tr>
+                  </tbody>
+                </table>
+              </th>
+            {{/each}}
+          </tr>
+          </thead>
+          <tbody>
+          {{#each row in rows}}
+            <tr>
+              {{#each item in row.row}}
+                <td>{{item}}</td>
+              {{/each}}
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+      </div>
+    {{/if}}
+  </div>
+</div>

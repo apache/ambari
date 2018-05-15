@@ -1,0 +1,76 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="col-md-12 table-info">
+  <div class="table-header row">
+    <p class="text-uppercase">table<strong>&nbsp;&nbsp;>&nbsp;&nbsp;{{model.table}}</strong></p>
+    <div class="hv-dropdown tables-dropdown">
+      <div class="dropdown">
+        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+          {{fa-icon "navicon"}}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right">
+          <li>{{#link-to "databases.database.tables.table.edit" class="text-uppercase"}}{{fa-icon "edit"}} Edit{{/link-to}}</li>
+          <li>{{#link-to "databases.database.tables.table.rename" class="text-uppercase"}}{{fa-icon "edit"}} Rename{{/link-to}}</li>
+          <li><a href="#" class="text-uppercase" {{action "deleteTableWarning" }}>{{fa-icon "trash"}} Delete</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  {{#if showDeleteTableModal}}
+    {{#modal-dialog
+      translucentOverlay=true
+      container-class="modal-dialog modal-sm"}}
+      <div class="modal-content">
+        <div class="modal-header text-danger">
+          <p class="modal-title">{{fa-icon "minus"}}&nbsp;&nbsp;&nbsp; Delete table</p>
+        </div>
+        <div class="modal-body text-center text-primary">
+          <p>{{deleteTableMessage}}</p>
+        </div>
+      </div><!-- /.modal-content -->
+    {{/modal-dialog}}
+  {{/if}}
+
+  {{#if showDeleteTableWarningModal}}
+    {{confirm-dialog
+    title="Confirm"
+    label="Do You want to delete the Table?"
+    titleIcon="minus"
+    labelIcon="save"
+    rejectIcon="times"
+    confirmIcon="check"
+    closable=false
+    confirmClass="success"
+    confirm="deleteTable"
+    reject="cancelDeleteTableWarning"
+    }}
+  {{/if}}
+
+
+  <div class="table-body">
+    {{#tabs-pane tabs=tabs inverse= true as |tab|}}
+      {{tabs-item tab=tab tabs=tabs}}
+    {{/tabs-pane}}
+    {{outlet}}
+  </div>
+
+
+
+
+</div>

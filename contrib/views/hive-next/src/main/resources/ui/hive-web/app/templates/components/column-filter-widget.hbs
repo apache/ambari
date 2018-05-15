@@ -1,0 +1,42 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#if column.dateRange}}
+    {{date-range-widget class="pull-left history-date-range"
+                        rangeChanged="sendFilter"
+                        dateRange=column.dateRange}}
+{{else}}
+  {{#if column.numberRange}}
+    {{number-range-widget class="pull-left"
+                          numberRange=column.numberRange
+                          rangeChanged="sendFilter"}}
+  {{else}}
+    {{extended-input type="text"
+                     class="pull-left form-control input-sm"
+                     placeholderTranslation=column.caption
+                     value=filterValue
+                     valueChanged="sendFilter"}}
+  {{/if}}
+{{/if}}
+<span {{action "sendSort"}}>
+  {{#if isSorted}}
+    <a {{bind-attr class=":pull-right :fa sortAscending:fa-sort-asc:fa-sort-desc"}}></a>
+  {{else}}
+    <i class="pull-right fa fa-unsorted"></i>
+  {{/if}}
+</span>
