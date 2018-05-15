@@ -314,12 +314,15 @@ def add_solr_roles(config, roles = [], new_service_principals = [], tries = 30, 
   solr_port = default_config(config, 'configurations/infra-solr-env/infra_solr_port', '8886')
   kinit_path_local = get_kinit_path(default_config(config, '/configurations/kerberos-env/executable_search_paths', None))
   infra_solr_custom_security_json_content = None
-
+  infra_solr_security_manually_managed = False
   if 'infra-solr-security-json' in config['configurations']:
     infra_solr_custom_security_json_content = config['configurations']['infra-solr-security-json']['content']
+    infra_solr_security_manually_managed = config['configurations']['infra-solr-security-json']['infra_solr_security_manually_managed']
 
   Logger.info(format("Adding {roles} roles to {new_service_principals} if infra-solr is installed."))
-  if infra_solr_custom_security_json_content and str(infra_solr_custom_security_json_content).strip():
+  if infra_solr_security_manually_managed:
+    Logger.info("security.json file is manually managed, skip adding roles...")
+  elif infra_solr_custom_security_json_content and str(infra_solr_custom_security_json_content).strip():
     Logger.info("Custom security.json is not empty for infra-solr, skip adding roles...")
   elif security_enabled \
     and "infra-solr-env" in config['configurations'] \
