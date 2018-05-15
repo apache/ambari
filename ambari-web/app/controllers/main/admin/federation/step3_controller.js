@@ -84,7 +84,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
   onLoad: function () {
     if (this.get('isConfigsLoaded') && App.router.get('clusterController.isHDFSNameSpacesLoaded')) {
-      var federationConfig =  $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig);
+      var federationConfig = $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig);
       if (App.get('hasNameNodeFederation')) {
        federationConfig.configs = federationConfig.configs.rejectProperty('firstRun');
       }
@@ -137,7 +137,6 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var result = [];
     var configsToRemove = [];
     var hdfsSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'hdfs-site').properties;
-    var coreSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'core-site').properties;
 
     if (!hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn1'] && !hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn2']) {
       configsToRemove = configsToRemove.concat([
@@ -151,13 +150,14 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       var hdfsRangerConfigs = this.get('serverConfigData').items.findProperty('type', 'ranger-hdfs-security').properties;
       var reponamePrefix = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}' ? dependencies.clustername + '_hadoop_' : hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_';
+      var coreSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'core-site').properties;
       var defaultFSNS = coreSiteConfigs['fs.defaultFS'].split('hdfs://')[1];
 
       nameServices.forEach(function (nameService) {
         configs.push(this.createRangerServiceProperty(nameService, reponamePrefix, "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".nameservice." + nameService + ".ranger.service"));
+        configs.push(this.createRangerServiceProperty(defaultFSNS, reponamePrefix, "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".ranger.service"));
       }, this);
     }
-    configs.push(this.createRangerServiceProperty(defaultFSNS, reponamePrefix, "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".ranger.service"));
 
     configs.forEach(function (config) {
       if (!configsToRemove.contains(config.name)) {
