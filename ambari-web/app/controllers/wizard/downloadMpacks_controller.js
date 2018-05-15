@@ -94,13 +94,18 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
   },
 
   loadMpackInfo: function (data) {
-    App.ajax.send({
-      name: 'mpack.get_registered_mpack',
-      sender: this,
-      data: {
-        id: data.resources[0].MpackInfo.id
-      }
-    }).then(mpackInfo => this.get('content.registeredMpacks').push(mpackInfo));
+    const id = data.resources[0].MpackInfo.id;
+    const registeredMpacks = this.get('content.registeredMpacks');
+    
+    if (!registeredMpacks.find(mpack => mpack.MpackInfo.id === id)) {
+      App.ajax.send({
+        name: 'mpack.get_registered_mpack',
+        sender: this,
+        data: {
+          id: id
+        }
+      }).then(mpackInfo => registeredMpacks.push(mpackInfo));
+    }  
   },
 
   retryDownload: function (event) {
