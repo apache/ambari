@@ -58,8 +58,11 @@
           </div>
         </div>
         {{#unless view.isCompareMode}}
-          <button {{bindAttr class="item.isDisplayed:hide :compare-button :btn :btn-default"}}
-            {{action compare item target="view.parentView"}}>
+          <button data-toggle="tooltip" data-placement="right"
+            {{bindAttr class="item.isDisplayed:hide :compare-button :btn :btn-default"}}
+            {{action compare item target="view.parentView"}}
+            {{translateAttr title="dashboard.configHistory.info-bar.compare.tooltip"
+                            data-original-title="dashboard.configHistory.info-bar.compare.tooltip"}}>
             <i class="icon-exchange" aria-hidden="true"></i>
           </button>
         {{/unless}}

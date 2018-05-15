@@ -23,22 +23,22 @@
       <li class="active">{{group.group_name}}</li>
     </ol>
   </div>
-
+  <hr>
   <form class="form-horizontal" role="form" novalidate name="form" >
     <div class="form-group">
-      <label class="col-sm-2 control-label">{{'common.type' | translate}}</label>
+      <label class="col-sm-2 one-row-value">{{'common.type' | translate}}</label>
       <div class="col-sm-10">
-        <label class="control-label">{{group.groupTypeName | translate}}</label>
+        <label class="one-row-value">{{group.groupTypeName | translate}}</label>
       </div>
     </div>
     <div class="form-group">
-      <label class="col-sm-2 control-label">{{group.groupTypeName | translate}} {{'groups.members' | translate}}</label>
+      <label class="col-sm-2">{{group.groupTypeName | translate}} {{'groups.members' | translate}}</label>
       <div class="col-sm-10">
         <editable-list items-source="group.editingUsers" resource-type="User" editable="group.group_type == 'LOCAL'"></editable-list>
       </div>
     </div>
     <div class="form-group" ng-show="cluster">
-      <label for="role" class="col-sm-2 roles-label control-label">
+      <label for="role" class="col-sm-2 roles-label">
         {{'groups.role' | translate}}
         <i class="fa fa-question-circle" aria-hidden="true" ng-click="showHelpPage()"></i>
       </label>
@@ -53,7 +53,7 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="col-sm-2 control-label">{{'common.privileges' | translate}}</label>
+      <label class="col-sm-2">{{'common.privileges' | translate}}</label>
       <div class="col-sm-10">
         <table class="table" ng-hide="hidePrivileges">
           <thead>
