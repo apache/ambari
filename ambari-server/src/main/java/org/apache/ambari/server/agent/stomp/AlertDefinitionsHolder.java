@@ -18,6 +18,7 @@
 package org.apache.ambari.server.agent.stomp;
 
 import static org.apache.ambari.server.events.AlertDefinitionEventType.CREATE;
+import static org.apache.ambari.server.events.AlertDefinitionEventType.DELETE;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.AlertHelper;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +96,12 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
     return new AlertDefinitionsAgentUpdateEvent(CREATE, result, hostName, hostId);
   }
 
+  public AlertDefinitionsAgentUpdateEvent getDeleteCluster(Long clusterId, Long hostId) throws AmbariException {
+    Map<Long, AlertCluster> result = new TreeMap<>();
+    result.put(clusterId, AlertCluster.emptyAlertCluster());
+    return new AlertDefinitionsAgentUpdateEvent(DELETE, result, null, hostId);
+  }
+
   @Override
   protected AlertDefinitionsAgentUpdateEvent getEmptyData() {
     return AlertDefinitionsAgentUpdateEvent.emptyEvent();
@@ -114,10 +122,15 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
       case UPDATE:
       case DELETE:
         if (!existingClusters.keySet().containsAll(updateClusters.keySet())) {
-          throw new AmbariException("Unknown clusters in update");
+          LOG.info("Unknown clusters in update, perhaps cluster was removed previously");
         }
         for (Map.Entry<Long, AlertCluster> e : updateClusters.entrySet()) {
-          changed |= existingClusters.get(e.getKey()).handleUpdate(update.getEventType(), e.getValue());
+          if (CollectionUtils.isEmpty(e.getValue().getAlertDefinitions())) {
+            existingClusters.remove(e.getKey());
+            changed = true;
+          } else {
+            changed |= existingClusters.get(e.getKey()).handleUpdate(update.getEventType(), e.getValue());
+          }
         }
         LOG.debug("Handled {} of alerts for {} cluster(s) on host with id {}, changed = {}", update.getEventType(), updateClusters.size(), hostId, changed);
         break;

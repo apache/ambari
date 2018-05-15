@@ -77,7 +77,7 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -1421,11 +1421,11 @@ public class ServiceResourceProviderTest {
     ServiceResourceProvider serviceResourceProvider =
         new ServiceResourceProvider(managementController, maintenanceStateHelper, repositoryVersionDAO);
 
-    Field topologyDeleteFormerField = ServiceResourceProvider.class.getDeclaredField("topologyDeleteFormer");
-    topologyDeleteFormerField.setAccessible(true);
-    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
-    topologyDeleteFormerField.set(serviceResourceProvider, topologyDeleteFormer);
-    replay(topologyDeleteFormer);
+    Field STOMPComponentsDeleteHandlerField = ServiceResourceProvider.class.getDeclaredField("STOMPComponentsDeleteHandler");
+    STOMPComponentsDeleteHandlerField.setAccessible(true);
+    STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler = createNiceMock(STOMPComponentsDeleteHandler.class);
+    STOMPComponentsDeleteHandlerField.set(serviceResourceProvider, STOMPComponentsDeleteHandler);
+    replay(STOMPComponentsDeleteHandler);
     return serviceResourceProvider;
   }
 

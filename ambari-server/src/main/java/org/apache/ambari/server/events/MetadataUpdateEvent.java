@@ -43,6 +43,8 @@ public class MetadataUpdateEvent extends STOMPEvent implements Hashable {
    */
   private String hash;
 
+  private final UpdateEventType eventType;
+
   /**
    * Map of metadatas for each cluster by cluster ids.
    */
@@ -52,14 +54,19 @@ public class MetadataUpdateEvent extends STOMPEvent implements Hashable {
   private MetadataUpdateEvent() {
     super(Type.METADATA);
     metadataClusters = null;
+    eventType = null;
   }
 
-  public MetadataUpdateEvent(SortedMap<String, MetadataCluster> metadataClusters, SortedMap<String, String> ambariLevelParams, SortedMap<String, SortedMap<String, String>> metadataAgentConfigs) {
+  public MetadataUpdateEvent(SortedMap<String, MetadataCluster> metadataClusters,
+                             SortedMap<String, String> ambariLevelParams,
+                             SortedMap<String, SortedMap<String, String>> metadataAgentConfigs,
+                             UpdateEventType eventType) {
     super(Type.METADATA);
     this.metadataClusters = metadataClusters;
     if (ambariLevelParams != null) {
       this.metadataClusters.put(AMBARI_LEVEL_CLUSTER_ID, new MetadataCluster(null, new TreeMap<>(), ambariLevelParams, metadataAgentConfigs));
     }
+    this.eventType = eventType;
   }
 
   public Map<String, MetadataCluster> getMetadataClusters() {
@@ -74,6 +81,10 @@ public class MetadataUpdateEvent extends STOMPEvent implements Hashable {
   @Override
   public void setHash(String hash) {
     this.hash = hash;
+  }
+
+  public UpdateEventType getEventType() {
+    return eventType;
   }
 
   public static MetadataUpdateEvent emptyUpdate() {

@@ -47,6 +47,7 @@ import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.StaleConfigsUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
@@ -976,7 +977,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           .setHostNames(new HashSet<>(Collections.singletonList(hostName)))
           .build());
       TopologyUpdateEvent hostComponentVersionUpdate = new TopologyUpdateEvent(topologyUpdates,
-          TopologyUpdateEvent.EventType.UPDATE);
+          UpdateEventType.UPDATE);
       m_topologyHolder.get().updateData(hostComponentVersionUpdate);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
