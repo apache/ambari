@@ -1163,7 +1163,7 @@ class MpackAdvisorImpl(MpackAdvisor):
             # account for only dependencies that are not conditional
             conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
             if not conditionsPresent:
-              requiredComponent = self.getRequiredComponent(serviceInstance.getMapckName(), dependency["Dependencies"]["component_name"])
+              requiredComponent = self.getRequiredComponent(serviceInstance.getMpackName(), dependency["Dependencies"]["component_name"])
               componentDisplayName = component["StackServiceComponents"]["display_name"]
               requiredComponentDisplayName = requiredComponent["display_name"] \
                                              if requiredComponent is not None else dependency["Dependencies"]["component_name"]
@@ -1185,11 +1185,11 @@ class MpackAdvisorImpl(MpackAdvisor):
                                requiredComponentDisplayName, ', '.join(requiredComponentHostsAbsent))
                     items.append({ "type": 'host-component', "level": 'ERROR', "message": message,
                                    "component-name": component["StackServiceComponents"]["component_name"],
-                                   "mpack-name": serviceInstance.getMapckName(), "mpack-version": serviceInstance.getMapckVersion()})
+                                   "mpack-name": serviceInstance.getMpackName(), "mpack-version": serviceInstance.getMpackVersion()})
                 elif scope == "cluster" and not requiredComponentHosts:
                   message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, requiredComponentDisplayName)
                   items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": component["StackServiceComponents"]["component_name"],
-                                 "mpack-name": serviceInstance.getMapckName(), "mpack-version": serviceInstance.getMapckVersion()})
+                                 "mpack-name": serviceInstance.getMpackName(), "mpack-version": serviceInstance.getMpackVersion()})
     return items
 
   def calculateYarnAllocationSizes(self, configurations, services, hosts):
