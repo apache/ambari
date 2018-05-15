@@ -153,8 +153,8 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
 
   @Subscribe
   public void onHostsRemoved(HostsRemovedEvent event) {
-    for (String hostName : event.getHostNames()) {
-      onHostRemoved(hostName);
+    for (Long hostId : event.getHostIds()) {
+      onHostRemoved(hostId);
     }
   }
 
