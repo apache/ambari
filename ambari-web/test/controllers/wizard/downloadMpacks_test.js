@@ -127,7 +127,7 @@ describe('App.WizardConfigureDownloadController', function () {
     });
   });
 
-  describe.only('#loadMpackInfo', function () {
+  describe('#loadMpackInfo', function () {
     it('Adds mpackInfo to registered mpacks list only once.', function () {
       controller.set('content.registeredMpacks', []);
       var mpackInfo = { MpackInfo: { id: 1 } };
