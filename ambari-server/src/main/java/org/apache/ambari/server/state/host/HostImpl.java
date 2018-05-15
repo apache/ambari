@@ -1256,14 +1256,14 @@ public class HostImpl implements Host {
       String category = componentInfo.getCategory();
 
       if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, this)) {
-        if (category.equals("MASTER")) {
+        if ("MASTER".equals(category)) {
           ++masterCount;
-          if (status.equals("STARTED")) {
+          if ("STARTED".equals(status)) {
             ++mastersRunning;
           }
-        } else if (category.equals("SLAVE")) {
+        } else if ("SLAVE".equals(category)) {
           ++slaveCount;
-          if (status.equals("STARTED")) {
+          if ("STARTED".equals(status)) {
             ++slavesRunning;
           }
         }
