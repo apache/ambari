@@ -96,13 +96,20 @@ public class STOMPComponentsDeleteHandler {
   private void updateNonTopologyAgentInfo(Set<Long> changedHosts, Long clusterId) throws AmbariException {
 
     for (Long hostId : changedHosts) {
-      agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
-      hostLevelParamsHolder.get().updateData(hostLevelParamsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
       if (clusterId != null) {
         alertDefinitionsHolder.get().updateData(alertDefinitionsHolder.get().getDeleteCluster(clusterId, hostId));
+        agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
+        hostLevelParamsHolder.get().updateData(hostLevelParamsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
+      } else {
+        agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentData(hostId));
+        hostLevelParamsHolder.get().updateData(hostLevelParamsHolder.get().getCurrentData(hostId));
       }
     }
-    metadataHolder.get().updateData(metadataHolder.get().getDeleteMetadata(clusterId));
+    if (clusterId != null) {
+      metadataHolder.get().updateData(metadataHolder.get().getDeleteMetadata(clusterId));
+    } else {
+      metadataHolder.get().updateData(metadataHolder.get().getCurrentData());
+    }
   }
 
   public TreeMap<String, TopologyCluster> createUpdateFromDeleteByMetaData(DeleteHostComponentStatusMetaData metaData) {
