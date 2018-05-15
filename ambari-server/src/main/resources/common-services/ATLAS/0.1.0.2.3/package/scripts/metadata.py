@@ -25,6 +25,8 @@ from resource_management import StackFeature
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.core.source import StaticFile, InlineTemplate, Template
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions import solr_cloud_util
@@ -149,9 +151,26 @@ def metadata(type='server'):
                                        roles = [params.infra_solr_role_atlas, params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
                                        new_service_principals = [params.atlas_jaas_principal])
 
-      create_collection('vertex_index', 'atlas_configs', jaasFile)
-      create_collection('edge_index', 'atlas_configs', jaasFile)
-      create_collection('fulltext_index', 'atlas_configs', jaasFile)
+      if default('configurations/infra-solr-env/infra_solr_ssl_enabled', False):
+        trust_store_password = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None)
+        trust_store_type = "JKS"
+        trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None)
+      else:
+        trust_store_password = None
+        trust_store_type = None
+        trust_store_location = None
+      create_collection('vertex_index', 'atlas_configs', jaasFile,
+            trust_store_password = solrtruststorepass,
+            trust_store_type = solrtruststoretype,
+            trust_store_location = solrtruststoreloc)
+      create_collection('edge_index', 'atlas_configs', jaasFile,
+            trust_store_password = solrtruststorepass,
+            trust_store_type = solrtruststoretype,
+            trust_store_location = solrtruststoreloc)
+      create_collection('fulltext_index', 'atlas_configs', jaasFile,
+            trust_store_password = solrtruststorepass,
+            trust_store_type = solrtruststoretype,
+            trust_store_location = solrtruststoreloc)
 
       if params.security_enabled:
         secure_znode(format('{infra_solr_znode}/configs/atlas_configs'), jaasFile)

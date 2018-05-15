@@ -167,7 +167,7 @@ def setup_ranger_admin(upgrade_type=None):
 
     Link('/usr/bin/ranger-admin',
     to=format('{ranger_home}/ews/ranger-admin-services.sh'))
-  
+
   if default("/configurations/ranger-admin-site/ranger.authentication.method", "") == 'PAM':
     d = '/etc/pam.d'
     if os.path.isdir(d):
@@ -254,7 +254,7 @@ def setup_ranger_admin(upgrade_type=None):
 
 def setup_ranger_db(stack_version=None):
   import params
-  
+
   ranger_home = params.ranger_home
 
   if stack_version is not None:
@@ -275,7 +275,7 @@ def setup_ranger_db(stack_version=None):
   if params.create_db_dbuser:
     Logger.info('Setting up Ranger DB and DB User')
     dba_setup = format('ambari-python-wrap {ranger_home}/dba_script.py -q')
-    Execute(dba_setup, 
+    Execute(dba_setup,
             environment=env_dict,
             logoutput=True,
             user=params.unix_user,
@@ -284,7 +284,7 @@ def setup_ranger_db(stack_version=None):
     Logger.info('Separate DBA property not set. Assuming Ranger DB and DB User exists!')
 
   db_setup = format('ambari-python-wrap {ranger_home}/db_setup.py')
-  Execute(db_setup, 
+  Execute(db_setup,
           environment=env_dict,
           logoutput=True,
           user=params.unix_user,
@@ -303,7 +303,7 @@ def setup_java_patch(stack_version=None):
     env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home, 'LD_LIBRARY_PATH':params.ld_lib_path}
 
   setup_java_patch = format('ambari-python-wrap {ranger_home}/db_setup.py -javapatch')
-  Execute(setup_java_patch, 
+  Execute(setup_java_patch,
           environment=env_dict,
           logoutput=True,
           user=params.unix_user,
@@ -477,7 +477,7 @@ def setup_usersync(upgrade_type=None):
     group = params.unix_group,
     mode=0755
   )
-  
+
   Directory(format("{ranger_ugsync_conf}/"),
     owner = params.unix_user
   )
@@ -535,7 +535,7 @@ def setup_usersync(upgrade_type=None):
        group = params.unix_group,
        mode = 0640
   )
-  
+
   File([params.usersync_start, params.usersync_stop],
        owner = params.unix_user,
        group = params.unix_group
@@ -741,8 +741,14 @@ def setup_ranger_audit_solr():
       solr_cloud_util.add_solr_roles(params.config,
                                      roles = [params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
                                      new_service_principals = service_principals)
-
-
+    if default('configurations/infra-solr-env/infra_solr_ssl_enabled', False) and not params.is_external_solrCloud_enabled:
+        solrtruststoretype = "JKS"
+        solrtruststorepass = params.truststore_password
+        solrtruststoreloc = params.config['configurations']['ranger-admin-site']['ranger.truststore.file']
+    else:
+        solrtruststoretype = None
+        solrtruststorepass = None
+        solrtruststoreloc = None
     solr_cloud_util.create_collection(
       zookeeper_quorum = params.zookeeper_quorum,
       solr_znode = params.solr_znode,
@@ -751,7 +757,10 @@ def setup_ranger_audit_solr():
       java64_home = params.ambari_java_home,
       shards = params.ranger_solr_shards,
       replication_factor = int(params.replication_factor),
-      jaas_file = params.solr_jaas_file)
+      jaas_file = params.solr_jaas_file,
+      trust_store_password = solrtruststorepass,
+      trust_store_type = solrtruststoretype,
+      trust_store_location = solrtruststoreloc)
 
     if params.security_enabled and params.has_infra_solr \
       and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
