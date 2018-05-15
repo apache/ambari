@@ -58,7 +58,7 @@ public class AtlasMigrationPropertyCheck extends AbstractCheckDescriptor {
     @Override
     public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
       String atlasMigrationProperty = getProperty(request,"application-properties","atlas.migration.data.filename");
-      if(null == atlasMigrationProperty || StringUtils.isBlank(atlasMigrationProperty.trim())) {
+      if(StringUtils.isBlank(atlasMigrationProperty)) {
         LOG.info("The property atlas.migration.data.filename is not found in application-properties, need to add the property before upgrade.");
         prerequisiteCheck.getFailedOn().add(serviceName);
         prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
