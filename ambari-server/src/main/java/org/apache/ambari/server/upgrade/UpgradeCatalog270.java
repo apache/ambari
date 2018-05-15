@@ -239,7 +239,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
   protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
   protected static final String CONFIGURATION_CORE_SITE = "core-site";
+  protected static final String CONFIGURATION_WEBHCAT_SITE = "webhcat-site";
   protected static final String PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS = "hadoop.proxyuser.HTTP.hosts";
+  protected static final String PROPERTY_TEMPLETON_HIVE_PROPERTIES = "templeton.hive.properties";
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
@@ -1076,6 +1078,17 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           if (StringUtils.isNotBlank(currentHadoopProxyuserHttpHosts)) {
             LOG.info("Updating hadoop.proxyuser.HTTP.hosts...");
             coreSiteConfiguration.putProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS, currentHadoopProxyuserHttpHosts.replace("webhcat_server_host|", "webhcat_server_hosts|"));
+            updated = true;
+          }
+        }
+        final KerberosConfigurationDescriptor webhcatSiteConfiguration = webhcatServer.getConfiguration(CONFIGURATION_WEBHCAT_SITE);
+        if (webhcatSiteConfiguration != null) {
+          final String currentTempletonHiveProperties = webhcatSiteConfiguration.getProperty(PROPERTY_TEMPLETON_HIVE_PROPERTIES);
+          if (StringUtils.isNotBlank(currentTempletonHiveProperties)) {
+            LOG.info("Updating " + PROPERTY_TEMPLETON_HIVE_PROPERTIES + "...");
+            String newValue = currentTempletonHiveProperties.replace("hive_metastore_host|", "hive_metastore_hosts|");
+            newValue = newValue.replace("\\\\,", "\\,"); // Replacing the concatDelimiter in 'append' variable replacement function
+            webhcatSiteConfiguration.putProperty(PROPERTY_TEMPLETON_HIVE_PROPERTIES, newValue);
             updated = true;
           }
         }
