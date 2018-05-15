@@ -114,10 +114,11 @@ public class AlertDefinitionsUIUpdateListener {
         LOG.warn(msg, e);
       }
     }
-
-    alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(UPDATE, event.getClusterId(), definitions, hostName);
-    Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(UPDATE, map));
+    if (!definitions.isEmpty()) {
+      alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(UPDATE, event.getClusterId(), definitions, hostName);
+      Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
+      STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(UPDATE, map));
+    }
   }
 
   @Subscribe
@@ -127,9 +128,11 @@ public class AlertDefinitionsUIUpdateListener {
     if (event.isMasterComponent()) {
       definitions.putAll(helper.get().findByServiceMaster(event.getClusterId(), event.getServiceName()));
     }
-    alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(DELETE, event.getClusterId(), definitions, hostName);
-    Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(DELETE, map));
+    if (!definitions.isEmpty()) {
+      alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(DELETE, event.getClusterId(), definitions, hostName);
+      Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
+      STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(DELETE, map));
+    }
   }
 
   private void handleSingleDefinitionChange(AlertDefinitionEventType eventType, AlertDefinition alertDefinition) throws AmbariException {
