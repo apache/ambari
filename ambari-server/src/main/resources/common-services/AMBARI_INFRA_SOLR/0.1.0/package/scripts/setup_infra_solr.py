@@ -131,16 +131,16 @@ def setup_solr_znode_env():
     jaas_file=jaas_file,
     java_opts=java_opts
   )
-
-  solr_cloud_util.setup_kerberos_plugin(
-    zookeeper_quorum=params.zk_quorum,
-    solr_znode=params.infra_solr_znode,
-    jaas_file=jaas_file,
-    java64_home=params.java64_home,
-    secure=params.security_enabled,
-    security_json_location=security_json_file_location,
-    java_opts=java_opts
-  )
+  if not params.infra_solr_security_manually_managed:
+    solr_cloud_util.setup_kerberos_plugin(
+      zookeeper_quorum=params.zk_quorum,
+      solr_znode=params.infra_solr_znode,
+      jaas_file=jaas_file,
+      java64_home=params.java64_home,
+      secure=params.security_enabled,
+      security_json_location=security_json_file_location,
+      java_opts=java_opts
+    )
 
   if params.security_enabled:
     solr_cloud_util.secure_solr_znode(

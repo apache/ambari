@@ -43,8 +43,11 @@ public class PhoenixTransactSQL {
   /**
    * Create table to store individual metric records.
    */
+
+  public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD_UUID";
+
   public static final String CREATE_METRICS_TABLE_SQL = "CREATE TABLE IF NOT " +
-    "EXISTS METRIC_RECORD_UUID (UUID BINARY(32) NOT NULL, " +
+    "EXISTS " + METRICS_RECORD_TABLE_NAME + " (UUID BINARY(20) NOT NULL, " +
     "SERVER_TIME BIGINT NOT NULL, " +
     "METRIC_SUM DOUBLE, " +
     "METRIC_COUNT UNSIGNED_INT, " +
@@ -83,7 +86,7 @@ public class PhoenixTransactSQL {
 
   public static final String CREATE_METRICS_AGGREGATE_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
-      "(UUID BINARY(32) NOT NULL, " +
+      "(UUID BINARY(20) NOT NULL, " +
       "SERVER_TIME BIGINT NOT NULL, " +
       "METRIC_SUM DOUBLE," +
       "METRIC_COUNT UNSIGNED_INT, " +
@@ -155,7 +158,7 @@ public class PhoenixTransactSQL {
 
   public static final String CREATE_HOSTED_APPS_METADATA_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS HOSTED_APPS_METADATA_UUID " +
-      "(HOSTNAME VARCHAR, UUID BINARY(16), APP_IDS VARCHAR, " +
+      "(HOSTNAME VARCHAR, UUID BINARY(4), APP_IDS VARCHAR, " +
       "CONSTRAINT pk PRIMARY KEY (HOSTNAME))" +
       "DATA_BLOCK_ENCODING='%s', COMPRESSION='%s'";
 
@@ -164,9 +167,6 @@ public class PhoenixTransactSQL {
       "(INSTANCE_ID VARCHAR, HOSTNAME VARCHAR, " +
       "CONSTRAINT pk PRIMARY KEY (INSTANCE_ID, HOSTNAME))" +
       "DATA_BLOCK_ENCODING='%s', COMPRESSION='%s'";
-
-  public static final String ALTER_METRICS_METADATA_TABLE =
-    "ALTER TABLE METRICS_METADATA_UUID ADD IF NOT EXISTS IS_WHITELISTED BOOLEAN";
 
   ////////////////////////////////
 
@@ -442,8 +442,6 @@ public class PhoenixTransactSQL {
   public static final String METRICS_CLUSTER_AGGREGATE_DAILY_V1_TABLE_NAME =
     "METRIC_AGGREGATE_DAILY";
 
-  public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD_UUID";
-
   public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME =
     "METRIC_RECORD_MINUTE_UUID";
   public static final String METRICS_AGGREGATE_HOURLY_TABLE_NAME =
@@ -459,7 +457,7 @@ public class PhoenixTransactSQL {
   public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
     "METRIC_AGGREGATE_DAILY_UUID";
 
-  public static final Pattern PHOENIX_TABLES_REGEX_PATTERN = Pattern.compile("METRIC_.*_UUID");
+  public static final Pattern PHOENIX_TABLES_REGEX_PATTERN = Pattern.compile("METRIC_.*");
 
   public static final String[] PHOENIX_TABLES = {
     METRICS_RECORD_TABLE_NAME,
@@ -469,7 +467,9 @@ public class PhoenixTransactSQL {
     METRICS_CLUSTER_AGGREGATE_TABLE_NAME,
     METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME,
     METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME,
-    METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME
+    METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME,
+    METRIC_TRANSIENT_TABLE_NAME,
+    CONTAINER_METRICS_TABLE_NAME
   };
 
   public static final String DEFAULT_TABLE_COMPRESSION = "SNAPPY";

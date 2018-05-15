@@ -20,10 +20,6 @@ import Ember from 'ember';
 
 export function shortenText(params) {
   let text = params[0];
-  if(!text){
-    return text;
-  }
-
   let length = params[1];
   if (text.length < length) {
     return text;

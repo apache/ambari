@@ -73,6 +73,12 @@
        "role": ["admin", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_ranger_audit}}"],
        "name": "backup-ranger-manager",
        "path": "/*"
+    },
+    {
+       "collection": ["old_vertex_index", "old_edge_index", "old_fulltext_index"],
+       "role": ["admin", "{{infra_solr_role_atlas}}"],
+       "name": "backup-atlas-manager",
+       "path": "/*"
     }]
   }
 }

@@ -147,7 +147,7 @@ class TestMetricsCollector(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/ambari-metrics-collector/conf',
                               configurations = self.getConfig()['configurations']['ams-site'],
-                              configuration_attributes = self.getConfig()['configurationAttributes']['ams-hbase-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['ams-site']
     )
 
     self.assertResourceCalled('XmlConfig', 'ssl-server.xml',

@@ -199,6 +199,7 @@
       <dependency>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-views</artifactId>
+        <version>${ambari.version}</version>
       </dependency>
 
       <dependency>

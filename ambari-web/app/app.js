@@ -141,7 +141,9 @@ module.exports = Em.Application.create({
     authRoles = $.map(authRoles.split(","), $.trim);
 
     // When Upgrade running(not suspended) only operations related to upgrade should be allowed
-    if ((!this.get('upgradeSuspended') && !authRoles.contains('CLUSTER.UPGRADE_DOWNGRADE_STACK')) &&
+    if ((!this.get('upgradeSuspended') &&
+      !authRoles.contains('CLUSTER.UPGRADE_DOWNGRADE_STACK') &&
+      !authRoles.contains('CLUSTER.MANAGE_USER_PERSISTED_DATA')) &&
       !App.get('supports.opsDuringRollingUpgrade') &&
       !['NOT_REQUIRED', 'COMPLETED'].contains(this.get('upgradeState')) ||
       !App.auth){

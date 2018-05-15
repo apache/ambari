@@ -994,7 +994,9 @@
             "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier": "1",
             "timeline.metrics.daily.aggregator.minute.interval": "86400",
             "timeline.metrics.cluster.aggregator.minute.interval": "120",
-            "timeline.metrics.host.aggregator.hourly.interval": "3600"
+            "timeline.metrics.host.aggregator.hourly.interval": "3600",
+            "timeline.metrics.initial.configured.master.components": "snamenode,nm,drpc_server,hive_server,resourcemanager,all,slave,webhcat_server,ganglia_server,storm_ui_server,falcon_server,hs,hive_metastore,logviewer_server,nimbus,zookeeper_server,hbase_rs,namenode,hbase_master,metrics_collector,ambari_server,supervisor,ganglia_monitor,hive_mysql",
+            "hbase_total_heapsize": 1073741824
         }
     },
     "configurationAttributes": {
