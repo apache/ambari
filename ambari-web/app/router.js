@@ -709,16 +709,8 @@ App.Router = Em.Router.extend({
                 route = wizardControllerRoute.route;
               }
             }
-            if (wizardControllerRoute && wizardControllerRoute.wizardControllerName === 'mainAdminStackAndUpgradeController') {
-              var clusterController = App.router.get('clusterController');
-              clusterController.loadClusterName().done(function(){
-                clusterController.restoreUpgradeState().done(function(){
-                  callback(route);
-                });
-              });
-            } else {
-              callback(route);
-            }
+
+            callback(route);
           });
         });
       } else {

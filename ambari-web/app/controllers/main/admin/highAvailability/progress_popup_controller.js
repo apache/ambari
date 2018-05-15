@@ -160,9 +160,6 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
       this.calculateHostsData(hostsData);
       App.HostPopup.initPopup(popupTitle, this, false, this.get("requestIds")[0]);
       if (this.isRequestRunning(hostsData)) {
-        if (this.get('progressController.name') === 'mainAdminStackAndUpgradeController') {
-          this.doPolling();
-        }
         this.addObserver('progressController.logs.length', this, 'getDataFromProgressController');
       }
     }

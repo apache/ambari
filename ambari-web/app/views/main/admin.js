@@ -23,13 +23,6 @@ App.MainAdminView = Em.View.extend({
   selectedBinding: 'controller.category',
   categories: function() {
     var items = [];
-    if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
-      items.push({
-        name: 'stackAndUpgrade',
-        url: 'stackAndUpgrade.index',
-        label: Em.I18n.t('admin.stackUpgrade.title')
-      });
-    }
     if(App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
       items.push({
         name: 'adminServiceAccounts',

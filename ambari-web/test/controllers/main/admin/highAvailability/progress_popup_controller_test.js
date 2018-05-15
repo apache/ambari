@@ -282,7 +282,6 @@ describe('App.HighAvailabilityProgressPopupController', function () {
       sinon.stub(App.HostPopup, 'initPopup');
       sinon.stub(controller, 'isRequestRunning').returns(true);
       sinon.stub(controller, 'addObserver');
-      sinon.stub(controller, 'doPolling');
       sinon.stub(spinner, 'hide');
       controller.setProperties({
         requestIds: [1],
@@ -301,7 +300,6 @@ describe('App.HighAvailabilityProgressPopupController', function () {
       App.HostPopup.initPopup.restore();
       controller.isRequestRunning.restore();
       controller.addObserver.restore();
-      controller.doPolling.restore();
       spinner.hide.restore();
     });
 
@@ -319,10 +317,6 @@ describe('App.HighAvailabilityProgressPopupController', function () {
 
     it("spinnerPopup.hide should be called", function() {
       expect(spinner.hide.calledOnce).to.be.true;
-    });
-
-    it("doPolling should be called", function() {
-      expect(controller.doPolling.calledOnce).to.be.true;
     });
   });
 

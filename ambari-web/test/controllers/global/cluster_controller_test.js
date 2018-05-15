@@ -244,151 +244,6 @@ describe('App.clusterController', function () {
 
   });
 
-  describe("#restoreUpgradeState()", function() {
-    var data = {upgradeData: {}};
-    var mock = {
-      done: function (callback) {
-        callback(data.upgradeData);
-      }
-    };
-    var upgradeController = Em.Object.create({
-      restoreLastUpgrade: Em.K,
-      initDBProperties: Em.K,
-      loadUpgradeData: Em.K,
-      loadCompatibleVersions: Em.K,
-      updateCurrentStackVersion: Em.K,
-      loadStackVersionsToModel: function () {
-        return {done: Em.clb};
-      }
-    });
-
-    beforeEach(function () {
-      sinon.stub(controller, 'getAllUpgrades').returns(mock);
-      sinon.spy(mock, 'done');
-      sinon.stub(App.router, 'get').returns(upgradeController);
-      sinon.stub(App.db, 'get').returns('PENDING');
-      sinon.spy(upgradeController, 'restoreLastUpgrade');
-      sinon.spy(upgradeController, 'initDBProperties');
-      sinon.spy(upgradeController, 'loadUpgradeData');
-      sinon.spy(upgradeController, 'loadStackVersionsToModel');
-      sinon.spy(upgradeController, 'loadCompatibleVersions');
-      sinon.spy(upgradeController, 'updateCurrentStackVersion');
-      sinon.stub(App.stackUpgradeHistoryMapper, 'map');
-    });
-
-    afterEach(function () {
-      mock.done.restore();
-      controller.getAllUpgrades.restore();
-      App.router.get.restore();
-      App.db.get.restore();
-      upgradeController.restoreLastUpgrade.restore();
-      upgradeController.initDBProperties.restore();
-      upgradeController.loadUpgradeData.restore();
-      upgradeController.loadStackVersionsToModel.restore();
-      upgradeController.loadCompatibleVersions.restore();
-      upgradeController.updateCurrentStackVersion.restore();
-      App.stackUpgradeHistoryMapper.map.restore();
-    });
-
-    describe("has upgrade request", function() {
-
-      beforeEach(function () {
-        data.upgradeData = {items: [
-          {
-            Upgrade: {
-              request_id: 1
-            }
-          }
-        ]};
-        controller.restoreUpgradeState();
-      });
-
-      it('getAllUpgrades is called once', function () {
-        expect(controller.getAllUpgrades.calledOnce).to.be.true;
-      });
-
-      it('restoreLastUpgrade is called with valid arguments', function () {
-        expect(upgradeController.restoreLastUpgrade.calledWith(data.upgradeData.items[0])).to.be.true;
-      });
-
-      it('loadStackVersionsToModel is called with valid arguments', function () {
-        expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
-      });
-
-      it('loadCompatibleVersions should be called', function () {
-        expect(upgradeController.loadCompatibleVersions.calledOnce).to.be.true;
-      });
-
-      it('updateCurrentStackVersion should be called', function () {
-        expect(upgradeController.updateCurrentStackVersion.calledOnce).to.be.true;
-      });
-
-      it('initDBProperties is not called', function () {
-        expect(upgradeController.initDBProperties.called).to.be.false;
-      });
-
-      it('loadUpgradeData is not called', function () {
-        expect(upgradeController.loadUpgradeData.called).to.be.false;
-      });
-
-      it('App.stackUpgradeHistoryMapper.map should be called', function () {
-        expect(App.stackUpgradeHistoryMapper.map.calledOnce).to.be.true;
-      });
-    });
-
-    describe("has completed upgrade request", function() {
-
-      beforeEach(function () {
-        data.upgradeData = {items: [
-          {
-            Upgrade: {
-              request_id: 1,
-              request_status: 'COMPLETED'
-            }
-          }
-        ]};
-        controller.restoreUpgradeState();
-      });
-
-      it('getAllUpgrades is called once', function () {
-        expect(controller.getAllUpgrades.calledOnce).to.be.true;
-      });
-
-      it('restoreLastUpgrade should not be called', function () {
-        expect(upgradeController.restoreLastUpgrade.called).to.be.false;
-      });
-
-      it('loadStackVersionsToModel should be called', function () {
-        expect(upgradeController.loadStackVersionsToModel).to.be.calledOnce;
-      });
-    });
-
-    describe("does not have upgrade request", function() {
-
-      beforeEach(function () {
-        data.upgradeData = {items: []};
-        controller.restoreUpgradeState();
-      });
-
-      it('getAllUpgrades is called once', function () {
-        expect(controller.getAllUpgrades.calledOnce).to.be.true;
-      });
-
-      it('restoreLastUpgrade is not called', function () {
-        expect(upgradeController.restoreLastUpgrade.called).to.be.false;
-      });
-
-      it('loadStackVersionsToModel is called with valid arguments', function () {
-        expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
-      });
-
-      it('initDBProperties is called once', function () {
-        expect(upgradeController.initDBProperties.calledOnce).to.be.true;
-      });
-
-    });
-  });
-
   describe('#isRunningState()', function() {
     var testCases = [
       {
@@ -645,7 +500,6 @@ describe('App.clusterController', function () {
       sinon.stub(controller, 'loadAuthorizations');
       sinon.stub(controller, 'getAllHostNames');
       sinon.stub(controller, 'loadClusterInfo');
-      sinon.stub(controller, 'restoreUpgradeState');
       sinon.stub(controller, 'loadClusterDataToModel');
       sinon.stub(App.router.get('mainController'), 'startPolling');
       sinon.stub(App.router.get('userSettingsController'), 'getAllUserSettings');
@@ -666,7 +520,6 @@ describe('App.clusterController', function () {
       controller.loadAuthorizations.restore();
       controller.getAllHostNames.restore();
       controller.loadClusterInfo.restore();
-      controller.restoreUpgradeState.restore();
       controller.loadClusterDataToModel.restore();
     });
 
@@ -693,11 +546,6 @@ describe('App.clusterController', function () {
     it('loadClusterInfo should be called', function() {
       controller.loadClusterData();
       expect(controller.loadClusterInfo.calledOnce).to.be.true;
-    });
-
-    it('restoreUpgradeState should be called', function() {
-      controller.loadClusterData();
-      expect(controller.restoreUpgradeState.calledOnce).to.be.true;
     });
 
     it('getUser should be called', function() {
