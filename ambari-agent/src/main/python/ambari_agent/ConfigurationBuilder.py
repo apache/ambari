@@ -80,4 +80,4 @@ class ConfigurationBuilder:
 
   @property
   def public_fqdn(self):
-    hostname.public_hostname(self.config)
+    return hostname.public_hostname(self.config)

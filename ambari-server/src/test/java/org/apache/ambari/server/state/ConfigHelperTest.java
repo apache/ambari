@@ -22,9 +22,12 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +49,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -57,6 +60,7 @@ import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
@@ -1074,6 +1078,75 @@ public class ConfigHelperTest {
     verify(sch);
   }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testFindChangedKeys() throws AmbariException, AuthorizationException, NoSuchMethodException,
+        InvocationTargetException, IllegalAccessException {
+      final String configType = "hdfs-site";
+      final String newPropertyName = "new.property";
+
+      ConfigurationRequest newProperty = new ConfigurationRequest();
+      newProperty.setClusterName(clusterName);
+      newProperty.setType(configType);
+      newProperty.setVersionTag("version3");
+      newProperty.setProperties(new HashMap<String, String>() {{
+        put("hadoop.caller.context.enabled", "false");
+        put(newPropertyName, "true");
+      }});
+      newProperty.setPropertiesAttributes(null);
+
+      final ClusterRequest clusterRequestNewProperty =
+          new ClusterRequest(cluster.getClusterId(), clusterName,
+              cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequestNewProperty.setDesiredConfig(Collections.singletonList(newProperty));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequestNewProperty);
+      }}, null);
+
+
+      ConfigurationRequest removedNewProperty = new ConfigurationRequest();
+      removedNewProperty.setClusterName(clusterName);
+      removedNewProperty.setType(configType);
+      removedNewProperty.setVersionTag("version4");
+      removedNewProperty.setProperties(new HashMap<String, String>() {{
+        put("hadoop.caller.context.enabled", "false");
+      }});
+      removedNewProperty.setPropertiesAttributes(null);
+
+      final ClusterRequest clusterRequestRemovedNewProperty =
+          new ClusterRequest(cluster.getClusterId(), clusterName,
+              cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequestRemovedNewProperty.setDesiredConfig(Collections.singletonList(removedNewProperty));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequestRemovedNewProperty);
+      }}, null);
+
+      ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+      Method method = ConfigHelper.class.getDeclaredMethod("findChangedKeys",
+          Cluster.class, String.class, Collection.class, Collection.class);
+      method.setAccessible(true);
+
+      // property value was changed
+      Collection<String> value = (Collection<String>) method.invoke(configHelper, cluster, configType,
+          Collections.singletonList("version1"), Collections.singletonList("version2"));
+      assertTrue(value.size() == 1);
+      assertEquals(configType + "/hadoop.caller.context.enabled", value.iterator().next());
+
+      // property was added
+      value = (Collection<String>) method.invoke(configHelper, cluster, configType,
+          Collections.singletonList("version2"), Collections.singletonList("version3"));
+      assertTrue(value.size() == 1);
+      assertEquals(configType + "/" + newPropertyName, value.iterator().next());
+
+      // property was removed
+      value = (Collection<String>) method.invoke(configHelper, cluster, configType,
+          Collections.singletonList("version3"), Collections.singletonList("version4"));
+      assertTrue(value.size() == 1);
+      assertEquals(configType + "/" + newPropertyName, value.iterator().next());
+    }
+
   }
 
   public static class RunWithCustomModule {
@@ -1102,12 +1175,12 @@ public class ConfigHelperTest {
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
           bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
           bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
-          bind(StateUpdateEventPublisher.class).toInstance(createNiceMock(StateUpdateEventPublisher.class));
           bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
           bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
           bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
           bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
           bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
+          bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
         }
       });
 

@@ -106,12 +106,15 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
    *  - total counter of service config versions(called in parallel)
    *  - current versions
    *  - filtered versions
+   * @param {boolean} shouldUpdateCounter
    * @return {*}
    */
-  load: function () {
-    var dfd = $.Deferred();
-    this.updateTotalCounter();
-    this.loadConfigVersionsToModel().done(function () {
+  load: function (shouldUpdateCounter = false) {
+    const dfd = $.Deferred();
+    this.loadConfigVersionsToModel().done(() => {
+      if (shouldUpdateCounter) {
+        this.updateTotalCounter();
+      }
       dfd.resolve();
     });
     return dfd.promise();
@@ -143,7 +146,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   },
 
   updateTotalCounterSuccess: function (data, opt, params) {
-    this.set('totalCount', data.itemTotal);
+    this.set('totalCount', Number(data.itemTotal));
   },
 
   getUrl: function (queryParams) {
@@ -160,7 +163,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   },
 
   subscribeToUpdates: function() {
-    App.StompClient.addHandler('/events/configs', 'history', this.load.bind(this));
+    App.StompClient.addHandler('/events/configs', 'history', this.load.bind(this, true));
   },
 
   unsubscribeOfUpdates: function() {

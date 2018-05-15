@@ -23,6 +23,7 @@ export interface Tab {
   isActive?: boolean;
   isCloseable?: boolean;
   label: string;
+  activeFilters?: object;
   appState?: HomogeneousObject<any>;
 }
 
@@ -31,6 +32,7 @@ export const initialTabs: Tab[] = [
     id: 'serviceLogs',
     isActive: true,
     label: 'common.serviceLogs',
+    activeFilters: null,
     appState: {
       activeLogsType: 'serviceLogs',
       isServiceLogsFileView: false
@@ -40,6 +42,7 @@ export const initialTabs: Tab[] = [
     id: 'auditLogs',
     isActive: false,
     label: 'common.auditLogs',
+    activeFilters: null,
     appState: {
       activeLogsType: 'auditLogs',
       isServiceLogsFileView: false

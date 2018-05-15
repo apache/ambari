@@ -95,6 +95,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router) {
       console.time('step0 connectOutlets');
       var self = this;
+      var wizardStep0Controller = router.get('wizardStep0Controller');
       var controller = router.get('installerController');
       var wizardStep0Controller = router.get('wizardStep0Controller');
       wizardStep0Controller.set('wizardController', controller);
@@ -142,13 +143,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step2 connectOutlets');
       });
     },
-    
+
     backTransition: function (router) {
       var controller = router.get('installerController');
       controller.clearErrors();
       router.transitionTo('step0');
     },
-    
+
     next: function (router) {
       console.time('step2 next');
       if (!router.get('btnClickInProgress')) {
@@ -249,13 +250,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('configureDownload connectOutlets');
       });
     },
-    
+
     backTransition: function (router) {
       var controller = router.get('installerController');
       controller.clearErrors();
       router.transitionTo('step3');
     },
-    
+
     next: function (router) {
       console.time('configureDownload next');
       if(router.get('btnClickInProgress')) {
@@ -321,7 +322,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           router.transitionTo('customMpackRepos');
         } else {
           router.transitionTo('downloadMpacks');
-        }  
+        }
         console.timeEnd('selectMpacks next');
       }
     },
@@ -335,13 +336,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var self = this;
       var controller = router.get('installerController');
       const downloadConfig = controller.get('content.downloadConfig');
-      
+
       //do not allow navigation to this step unless we are using custom repos
       if (downloadConfig && !downloadConfig.useCustomRepo) {
         Em.run.next(function () {
           router.transitionTo('downloadMpacks');
         });
-      }  
+      }
 
       var customMpackReposController = router.get('wizardCustomMpackReposController');
       customMpackReposController.set('wizardController', controller);
@@ -371,10 +372,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.setStepSaved('customMpackRepos');
         router.transitionTo('downloadMpacks');
         console.timeEnd('customMpackRepos next');
-      }  
+      }
     }
   }),
-  
+
   downloadMpacks: App.StepRoute.extend({
     route: '/downloadMpacks',
     breadcrumbs: { label: Em.I18n.translations['installer.downloadMpacks.header'] },
@@ -421,7 +422,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.transitionTo('customProductRepos');
       } else {
         router.transitionTo('step5');
-      }  
+      }
       console.timeEnd('downloadMpacks next');
     }
   }),
@@ -434,14 +435,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var self = this;
       var controller = router.get('installerController');
       const downloadConfig = controller.get('content.downloadConfig');
-      
+
       //disable navigation to this step unless we are using custom repos
       if (downloadConfig && !downloadConfig.useCustomRepo) {
         Em.run.next(function () {
           router.transitionTo('verifyProducts');
         });
-      }  
-      
+      }
+
       var customMpackReposController = router.get('wizardCustomMpackReposController');
       customMpackReposController.set('wizardController', controller);
       var newStepIndex = controller.getStepIndex('customProductRepos');
@@ -542,7 +543,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step5 connectOutlets');
       });
     },
-    
+
     backTransition: function (router) {
       var controller = router.get('installerController');
       controller.clearErrors();
@@ -553,7 +554,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.transitionTo('downloadMpacks');
       }
     },
-    
+
     next: function (router) {
       console.time('step5 next');
       if (!router.get('btnClickInProgress')) {
@@ -595,7 +596,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step6 connectOutlets');
       });
     },
-    
+
     backTransition: function(router) {
       var controller = router.get('installerController');
       controller.clearErrors();
@@ -641,7 +642,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       wizardStep7Controller.set('wizardController', controller);
       var newStepIndex = controller.getStepIndex('step7');
       router.setNavigationFlow(newStepIndex);
-      controller.setCurrentStep('step7');     
+      controller.setCurrentStep('step7');
       router.get('preInstallChecksController').loadStep();
       controller.loadAllPriorSteps().done(function () {
         controller.setStepsEnable();
@@ -659,14 +660,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var step = router.get('installerController.content.skipSlavesStep') ? 'step5' : 'step6';
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
-      var goToNextStep = function() {
+      var goToPreviousStep = function() {
         router.transitionTo(step);
       };
 
       if (wizardStep7Controller.hasChanges()) {
-        wizardStep7Controller.showChangesWarningPopup(goToNextStep);
+        wizardStep7Controller.showChangesWarningPopup(goToPreviousStep);
       } else {
-        goToNextStep();
+        goToPreviousStep();
       }
       console.timeEnd('step7 back');
     },
@@ -711,7 +712,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step8 connectOutlets');
       });
     },
-    
+
     backTransition: function (router) {
       if (router.get('wizardStep8Controller.isBackBtnDisabled') == false) {
         var controller = router.get('installerController');
@@ -720,7 +721,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.transitionTo('step7');
       }
     },
-    
+
     next: function (router) {
       console.time('step8 next');
       if (!router.get('btnClickInProgress')) {
@@ -836,13 +837,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         self.scrollTop();
       });
     },
-    
+
     backTransition: function (router) {
       var controller = router.get('installerController');
       controller.clearErrors();
       router.transitionTo('step9');
     },
-    
+
     complete: function (router, context) {
       var controller = router.get('installerController');
       controller.finish();

@@ -26,17 +26,17 @@ import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.ambari.server.events.AmbariUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.STOMPEvent;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 
 /**
  * Is used to saving and updating last version of event in cluster scope
  * @param <T> event with hash to control version
  */
-public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hashable> extends AgentDataHolder<T> {
+public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> extends AgentDataHolder<T> {
 
   @Inject
-  protected StateUpdateEventPublisher stateUpdateEventPublisher;
+  protected STOMPUpdatePublisher STOMPUpdatePublisher;
 
   private T data;
 
@@ -75,7 +75,7 @@ public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hasha
     if (changed) {
       regenerateHash();
       update.setHash(getData().getHash());
-      stateUpdateEventPublisher.publish(update);
+      STOMPUpdatePublisher.publish(update);
     }
     return changed;
   }

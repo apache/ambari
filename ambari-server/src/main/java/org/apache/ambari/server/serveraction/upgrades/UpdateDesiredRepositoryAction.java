@@ -32,6 +32,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
@@ -126,6 +127,10 @@ public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
         }
 
         out.append(message).append(System.lineSeparator());
+
+        // move the cluster's desired stack as well
+        StackId targetStackId = targetRepositoryVersion.getStackId();
+        cluster.setDesiredStackVersion(targetStackId);
       }
 
       if( upgradeContext.getDirection() == Direction.DOWNGRADE ){

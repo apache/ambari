@@ -32,7 +32,6 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
@@ -82,7 +81,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
   private int maxIntervalMS;
   private int workers;
   private int maxBufferSize;
-  private boolean isComputeCurrentCollection = false;
+  private boolean implicitRouting = false;
   private int lastSlotByMin = -1;
   private boolean skipLogtime = false;
 
@@ -116,14 +115,14 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
   @Override
   public void init(LogFeederProps logFeederProps) throws Exception {
     this.logFeederProps = logFeederProps;
-    initParams();
+    initParams(logFeederProps);
     setupSecurity();
     createOutgoingBuffer();
     createSolrStateWatcher();
     createSolrWorkers();
   }
 
-  private void initParams() throws Exception {
+  private void initParams(LogFeederProps logFeederProps) throws Exception {
     type = getStringValue("type");
     while (true) {
       OutputSolrProperties outputSolrProperties = getLogSearchConfig().getOutputSolrProperties(type);
@@ -154,6 +153,13 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
 
     LOG.info(String.format("Config: Number of workers=%d, splitMode=%s, splitInterval=%d."
         + getShortDescription(), workers, splitMode, splitInterval));
+
+    implicitRouting = logFeederProps.isSolrImplicitRouting(); // TODO: in the future, load it from output config (can be a use case to use different routing for audit/service logs)
+    if (implicitRouting) {
+      LOG.info("Config: Use implicit routing globally for adding docs to Solr.");
+    } else {
+      LOG.info("Config: Use compositeId globally for adding docs to Solr.");
+    }
   }
 
   @Override
@@ -167,7 +173,6 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
       if (!splitMode.equalsIgnoreCase("none")) {
         splitInterval = Integer.parseInt(splitMode);
       }
-      isComputeCurrentCollection = !splitMode.equalsIgnoreCase("none");
 
       // collection can not be overwritten after initialization
       if (init) {
@@ -180,12 +185,12 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
   }
 
   private void setupSecurity() {
-    String jaasFile = logFeederProps.getLogFeederSecurityConfig().getSolrJaasFile();
     boolean securityEnabled = logFeederProps.getLogFeederSecurityConfig().isSolrKerberosEnabled();
     if (securityEnabled) {
-      System.setProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG, jaasFile);
-      System.setProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY, Krb5HttpClientBuilder.class.getCanonicalName());
-      LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
+      String javaSecurityConfig = System.getProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+      String solrHttpBuilderFactory = System.getProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY);
+      LOG.info("setupSecurity() called for kerberos configuration, jaas file: "
+        + javaSecurityConfig + ", solr http client factory: " + solrHttpBuilderFactory);
     }
   }
 
@@ -425,7 +430,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
       while (!isDrain()) {
         try {
           synchronized (propertiesLock) {
-            if (isComputeCurrentCollection) {
+            if (implicitRouting) {
               // Compute the current router value
               addRouterField();
             }

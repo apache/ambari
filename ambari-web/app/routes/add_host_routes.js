@@ -223,7 +223,14 @@ module.exports = App.WizardRoute.extend({
       });
     },
     backTransition: function (router) {
-      router.transitionTo('step3');
+      var goToPreviousStep = function() {
+        router.transitionTo(step);
+      };
+      if (wizardStep7Controller.hasChanges()) {
+        wizardStep7Controller.showChangesWarningPopup(goToPreviousStep);
+      } else {
+        goToPreviousStep();
+      }
     },
     nextTransition: function (router) {
       var addHostController = router.get('addHostController');

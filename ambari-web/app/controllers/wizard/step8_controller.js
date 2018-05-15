@@ -46,7 +46,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * Indicates whether to show the repo info section of the summary.
    * Don't need to show this for Add Host in 3.0 because we are not
    * letting the user change repos when installing slave/client components.
-   * 
+   *
    * @type {boolean}
    */
   showRepoInfo: Em.computed.or('isInstaller', 'isAddService'),
@@ -164,7 +164,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   getSelectedStack: function() {
     const selectedStack = this.get('content.selectedStack');
     const stack = this.get('wizardController').getStack(selectedStack.name, selectedStack.version);
-    return stack;    
+    return stack;
   },
 
   installedServices: function() {
@@ -471,7 +471,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   loadServices: function () {
     let services;
-    
+
     if (this.get('isAddHost')) {
       services = this.get('installedServices');
     } else {
@@ -509,7 +509,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         var componentName = component.get('componentName');
         var masterComponents = this.get('content.masterComponentHosts');
         var isMasterComponentSelected = masterComponents.someProperty('component', componentName);
-        
+
         if (!isMaster || isMasterComponentSelected) {
           serviceObj.get('service_components').pushObject(Em.Object.create({
             component_name: isClient ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
@@ -530,7 +530,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       }
       if (serviceObj.get('service_components').length > 0) {
         this.get('services').pushObject(serviceObj);
-      }  
+      }
     }, this);
   },
 
@@ -946,7 +946,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       data: {
         artifactName: 'kerberos_descriptor',
         data: {
-          artifact_data: kerberosDescriptor
+          artifact_data: this.removeIdentityReferences(kerberosDescriptor)
         }
       }
     };
@@ -1031,7 +1031,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   createServiceGroups: function () {
     if (!this.get('isInstaller')) return;
-    
+
     var data = this.createServiceGroupsData();
     if (data) {
       this.addRequestToAjaxQueue({
@@ -1040,7 +1040,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           data: JSON.stringify(data)
         }
       });
-    } 
+    }
   },
 
   /**
@@ -1050,7 +1050,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   createServiceGroupsData: function () {
     const mpacks = this.get('selectedMpacks');
-    
+
     if (mpacks) {
       const serviceGroups = mpacks.map(mpack => ({
           "ServiceGroupInfo": {
@@ -1575,14 +1575,14 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         if (type) {
           const configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(typeName));
           serviceConfigs.data.configurations.push(this.createDesiredConfig(typeName, configs, null, true));
-        }  
+        }
       }, this);
 
       if (serviceConfigs.data.configurations.length > 0) {
         this.get('serviceConfigTags').pushObject(Em.Object.create(serviceConfigs));
-      }  
+      }
     }, this);
-    
+
     this.createNotification();
   },
 
@@ -1605,7 +1605,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         }
       });
     }, this);
-  },  
+  },
 
   /**
    * Get config version message
@@ -1613,11 +1613,11 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @param type
    * @param serviceDisplayName
    * @returns {*}
-   */ 
+   */
   getServiceConfigNote: function(type, serviceDisplayName) {
     return this.get('isAddService') && type === 'core-site' ?
       Em.I18n.t('dashboard.configHistory.table.notes.addService') : Em.I18n.t('dashboard.configHistory.table.notes.default').format(serviceDisplayName);
-  },    
+  },
 
   /**
    * Create and update config groups
@@ -1940,7 +1940,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
 
   generateBlueprint: function () {
     console.log("Prepare blueprint for download...");
-    var blueprint = {};
     var self = this;
     //service configurations
     var totalConf = [];
@@ -2080,15 +2079,13 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       }, this);
     }, this);
 
-    var selectedStack = this.getSelectedStack();
-    blueprint = {
+    const selectedStack = this.getSelectedStack();
+    const blueprint = {
         'configurations': totalConf,
         'host_groups': host_groups.filter(function (item) { return item.cardinality > 0; }),
         'Blueprints': {'blueprint_name' : App.clusterStatus.clusterName, 'stack_name':selectedStack.get('stackName'), 'stack_version':selectedStack.get('stackVersion')}
     };
-    fileUtils.downloadTextFile(JSON.stringify(blueprint), 'json', 'blueprint.json')
-
-    var cluster_template = {
+    const cluster_template = {
       "blueprint": App.clusterStatus.clusterName,
       "config_recommendation_strategy" : "NEVER_APPLY",
       "provision_action" : "INSTALL_AND_START",
@@ -2096,7 +2093,18 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       "host_groups": cluster_template_host_groups.filter(function (item) { return item.hosts.length > 0; }),
       "Clusters": {'cluster_name': App.clusterStatus.clusterName}
     };
-    fileUtils.downloadTextFile(JSON.stringify(cluster_template), 'json', 'clustertemplate.json')
+    fileUtils.downloadFilesInZip([
+      {
+        data: JSON.stringify(blueprint),
+        type: 'json',
+        name: 'blueprint.json'
+      },
+      {
+        data: JSON.stringify(cluster_template),
+        type: 'json',
+        name: 'clustertemplate.json'
+      }
+    ]);
   },
 
   downloadCSV: function() {

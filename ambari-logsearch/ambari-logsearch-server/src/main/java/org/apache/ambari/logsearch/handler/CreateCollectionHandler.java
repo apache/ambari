@@ -71,10 +71,10 @@ public class CreateCollectionHandler implements SolrZkRequestHandler<Boolean> {
     }
 
     boolean result;
-    if (solrPropsConfig.getSplitInterval().equalsIgnoreCase("none")) {
-      result = createCollection(solrClient, solrPropsConfig, this.allCollectionList);
-    } else {
+    if (solrPropsConfig.isSolrImplicitRouting()) {
       result = setupCollectionsWithImplicitRouting(solrClient, solrPropsConfig, this.allCollectionList);
+    } else {
+      result = createCollection(solrClient, solrPropsConfig, this.allCollectionList);
     }
 
     return result;

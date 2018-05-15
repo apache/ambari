@@ -99,7 +99,7 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
       return authentication;
     } catch (ExpiredJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
       LOG.info("URL = " + request.getRequestURL());
-      LOG.warn("Error during JWT authentication: ", e.getMessage());
+      LOG.warn("Error during JWT authentication: {}", e.getMessage());
       throw new BadCredentialsException(e.getMessage(), e);
     }
   }
@@ -119,9 +119,9 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
     super.successfulAuthentication(request, response, chain, authResult);
     String ajaxRequestHeader = request.getHeader("X-Requested-With");
     if (isWebUserAgent(request.getHeader("User-Agent")) && !"XMLHttpRequest".equals(ajaxRequestHeader)) {
-      response.sendRedirect(createForwardableURL(request) + getOriginalQueryString(request));
+      chain.doFilter(request, response);
+      //response.sendRedirect(createForwardableURL(request) + getOriginalQueryString(request));
     }
-    // chain.doFilter(request, response); TODO: check
   }
 
   @Override

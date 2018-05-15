@@ -132,7 +132,7 @@
       (only used if the cluster is secure and this property overrides the security.json which generated during solr
       start).
     </description>
-    <value>{"authentication":{"class": "org.apache.solr.security.KerberosPlugin"}}</value>
+    <value/>
     <value-attributes>
       <type>content</type>
       <show-property-name>false</show-property-name>

@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-FROM centos:centos6
+FROM centos:centos7
 
 RUN echo root:changeme | chpasswd
 
@@ -54,14 +54,14 @@ RUN echo 'X11DisplayOffset 10\n' /etc/ssh/sshd_config
 RUN git config --global url."https://".insteadOf git://
 
 # Install Solr
-ENV SOLR_VERSION 7.2.1
+ENV SOLR_VERSION 7.3.0
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 
 # Install Knox
 WORKDIR /
 RUN adduser knox
-ENV KNOX_VERSION 0.14.0
+ENV KNOX_VERSION 1.0.0
 RUN wget -q -O /knox-${KNOX_VERSION}.zip http://download.nextag.com/apache/knox/${KNOX_VERSION}/knox-${KNOX_VERSION}.zip && unzip /knox-${KNOX_VERSION}.zip && rm knox-${KNOX_VERSION}.zip && ln -nsf knox-${KNOX_VERSION} knox && chmod +x /knox/bin/*.sh && chown -R knox /knox/
 
 ADD knox/keystores /knox-secrets

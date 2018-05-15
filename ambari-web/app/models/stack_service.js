@@ -216,9 +216,6 @@ App.StackService = DS.Model.extend({
     if(!App.supports.installGanglia) {
       skipServices.push('GANGLIA');
     }
-    if(App.router.get('clusterInstallCompleted') != true){
-      skipServices.push('RANGER', 'RANGER_KMS');
-    }
     return skipServices.contains(this.get('serviceName'));
   }.property('serviceName'),
 

@@ -218,10 +218,10 @@ def __setup_unlimited_key_jce_policy(custom_java_home, custom_jdk_name, custom_j
     Logger.info("Skipping unlimited key JCE policy check and setup since the host is sys prepped")
 
   elif not custom_jdk_name:
-    Logger.debug("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
+    Logger.info("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
 
   elif not params.unlimited_key_jce_required:
-    Logger.debug("Skipping unlimited key JCE policy check and setup since it is not required")
+    Logger.info("Skipping unlimited key JCE policy check and setup since it is not required")
 
   else:
     jcePolicyInfo = JcePolicyInfo(custom_java_home)

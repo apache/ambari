@@ -17,13 +17,13 @@ limitations under the License.
 
 """
 
+import os
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
-
 
 def setup_infra_solr(name = None):
   import params
@@ -91,6 +91,13 @@ def setup_infra_solr(name = None):
            owner=params.infra_solr_user,
            group=params.user_group,
            mode=0640)
+
+    File(os.path.join(params.limits_conf_dir, 'infra-solr.conf'),
+         owner='root',
+         group='root',
+         mode=0644,
+         content=Template("infra-solr.conf.j2")
+         )
 
   elif name == 'client':
     solr_cloud_util.setup_solr_client(params.config)

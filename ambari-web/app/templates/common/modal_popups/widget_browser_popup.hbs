@@ -51,7 +51,10 @@
                   </div>
                   <div class="col-md-8">
                     <div class="label-description">
-                      <p class="label-text">{{widget.widgetName}}</p>
+                      <p class="label-text">
+                        {{widget.widgetName}}
+                        {{#if widget.tag}} - {{widget.tag}}{{/if}}
+                      </p>
                       <p class="is-shared-icon pull-right">
                         {{#if widget.isShared}}
                           <i class="glyphicon glyphicon-group" rel="shared-icon-tooltip"

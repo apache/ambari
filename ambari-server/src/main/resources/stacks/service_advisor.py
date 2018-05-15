@@ -53,6 +53,23 @@ class ServiceAdvisor(DefaultStackAdvisor):
   Abstract class implemented by all service advisors.
   """
 
+  def colocateServiceWithServicesInfo(self, hostsComponentsMap, serviceComponents, services):
+    """
+    Populate hostsComponentsMap with key = hostname and value = [{"name": "COMP_NAME_1"}, {"name": "COMP_NAME_2"}, ...]
+    of services that must be co-hosted and on which host they should be present.
+    :param hostsComponentsMap: Map from hostname to list of [{"name": "COMP_NAME_1"}, {"name": "COMP_NAME_2"}, ...]
+    present on on that host.
+    :param serviceComponents: Mapping of components
+    :param services: The full list of servies
+
+    If any components of the service should be colocated with other services,
+    and the decision should be based on information that is only available in the services list,
+    such as what are the master components, etc,
+    this is where you should set up that layout.
+
+    Each service should only implement either this method or the colocateService method
+    """
+    pass
 
   def colocateService(self, hostsComponentsMap, serviceComponents):
     """
@@ -62,18 +79,9 @@ class ServiceAdvisor(DefaultStackAdvisor):
     present on on that host.
     :param serviceComponents: Mapping of components
 
-    If any components of the service should be colocated with other services,
-    this is where you should set up that layout.  Example:
+    If any components of the service should be colocated with other services, this is where you should set up that layout.
 
-      # colocate HAWQSEGMENT with DATANODE, if no hosts have been allocated for HAWQSEGMENT
-      hawqSegment = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
-      if not self.isComponentHostsPopulated(hawqSegment):
-        for hostName in hostsComponentsMap.keys():
-          hostComponents = hostsComponentsMap[hostName]
-          if {"name": "DATANODE"} in hostComponents and {"name": "HAWQSEGMENT"} not in hostComponents:
-            hostsComponentsMap[hostName].append( { "name": "HAWQSEGMENT" } )
-          if {"name": "DATANODE"} not in hostComponents and {"name": "HAWQSEGMENT"} in hostComponents:
-            hostComponents.remove({"name": "HAWQSEGMENT"})
+    Each service should only implement either this method or the colocateServiceWithServicesInfo method
     """
     pass
 
@@ -106,3 +114,51 @@ class ServiceAdvisor(DefaultStackAdvisor):
     such as validateHDFSConfigurations.
     """
     return []
+
+  def getDBDriver(self, databaseType):
+    driverDict = {
+      "NEW MYSQL DATABASE": "com.mysql.jdbc.Driver",
+      "NEW DERBY DATABASE": "org.apache.derby.jdbc.EmbeddedDriver",
+      "EXISTING MYSQL DATABASE": "com.mysql.jdbc.Driver",
+      "EXISTING MYSQL / MARIADB DATABASE": "com.mysql.jdbc.Driver",
+      "EXISTING POSTGRESQL DATABASE": "org.postgresql.Driver",
+      "EXISTING ORACLE DATABASE": "oracle.jdbc.driver.OracleDriver",
+      "EXISTING SQL ANYWHERE DATABASE": "sap.jdbc4.sqlanywhere.IDriver"
+    }
+    return driverDict.get(databaseType.upper())
+
+  def getDBConnectionString(self, databaseType):
+    driverDict = {
+      "NEW MYSQL DATABASE": "jdbc:mysql://{0}/{1}?createDatabaseIfNotExist=true",
+      "NEW DERBY DATABASE": "jdbc:derby:${{oozie.data.dir}}/${{oozie.db.schema.name}}-db;create=true",
+      "EXISTING MYSQL DATABASE": "jdbc:mysql://{0}/{1}",
+      "EXISTING MYSQL / MARIADB DATABASE": "jdbc:mysql://{0}/{1}",
+      "EXISTING POSTGRESQL DATABASE": "jdbc:postgresql://{0}:5432/{1}",
+      "EXISTING ORACLE DATABASE": "jdbc:oracle:thin:@//{0}:1521/{1}",
+      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere:host={0};database={1}"
+    }
+    return driverDict.get(databaseType.upper())
+
+  def getProtocol(self, databaseType):
+    first_parts_of_connection_string = {
+      "NEW MYSQL DATABASE": "jdbc:mysql",
+      "NEW DERBY DATABASE": "jdbc:derby",
+      "EXISTING MYSQL DATABASE": "jdbc:mysql",
+      "EXISTING MYSQL / MARIADB DATABASE": "jdbc:mysql",
+      "EXISTING POSTGRESQL DATABASE": "jdbc:postgresql",
+      "EXISTING ORACLE DATABASE": "jdbc:oracle",
+      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere"
+    }
+    return first_parts_of_connection_string.get(databaseType.upper())
+
+  def getDBTypeAlias(self, databaseType):
+    driverDict = {
+      "NEW MYSQL DATABASE": "mysql",
+      "NEW DERBY DATABASE": "derby",
+      "EXISTING MYSQL / MARIADB DATABASE": "mysql",
+      "EXISTING MYSQL DATABASE": "mysql",
+      "EXISTING POSTGRESQL DATABASE": "postgres",
+      "EXISTING ORACLE DATABASE": "oracle",
+      "EXISTING SQL ANYWHERE DATABASE": "sqla"
+    }
+    return driverDict.get(databaseType.upper())

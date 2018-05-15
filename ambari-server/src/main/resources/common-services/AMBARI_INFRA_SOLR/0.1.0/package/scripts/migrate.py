@@ -28,11 +28,6 @@ def migrate_index(env):
   import params, command_commons
   env.set_params(command_commons)
 
-  collection_available = command_commons.is_collection_available_on_host()
-  if command_commons.check_hosts and not collection_available:
-    Logger.info(format("No any '{collection}' replica is used on {params.hostname} host"))
-    return
-
   index_migrate_cmd = format("{index_helper_script} upgrade-index -d {index_location} -v {index_version}")
 
   if command_commons.force is True:

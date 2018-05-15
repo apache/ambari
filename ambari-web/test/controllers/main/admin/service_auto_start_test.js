@@ -67,8 +67,9 @@ describe('App.MainAdminServiceAutoStartController', function() {
   });
 
   describe('#load', function() {
-    var mock = {
-      getConfigsByTags: sinon.stub().returns({
+
+    beforeEach(function() {
+      sinon.stub(App.router.get('configurationController'), 'getCurrentConfigsBySites').returns({
         done: function(callback) {
           callback([
             {
@@ -88,7 +89,6 @@ describe('App.MainAdminServiceAutoStartController', function() {
           });
         }
       });
-      sinon.stub(App.router, 'get').returns(mock);
       sinon.stub(controller, 'loadComponentsConfigs').returns({
         then: Em.clb
       });

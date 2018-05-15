@@ -19,29 +19,25 @@ limitations under the License.
 Ambari Agent
 
 """
-import re
-import os
+import \
+  ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import grp
+import os
 import pwd
+import re
 import time
-from resource_management.core.environment import Environment
-from resource_management.core.base import Fail
-from resource_management.core.resources.system import Execute
-from resource_management.core.resources.system import File
-from resource_management.core.providers import Provider
-from resource_management.core.logger import Logger
 from resource_management.core import shell
 from resource_management.core import sudo
-from resource_management.libraries.script import Script
+from resource_management.core.base import Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
+from resource_management.core.providers import Provider
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import File
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.get_user_call_output import get_user_call_output
-from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import namenode_ha_utils
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
-
-
-import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-from ambari_commons import subprocess32
 
 JSON_PATH = '/var/lib/ambari-agent/tmp/hdfs_resources_{timestamp}.json'
 JAR_PATH = '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
@@ -64,6 +60,7 @@ RESOURCE_TO_JSON_FIELDS = {
 EXCEPTIONS_TO_RETRY = {
   # "ExceptionName": (try_count, try_sleep_seconds)
   "LeaseExpiredException": (20, 6),
+  "RetriableException": (20, 6),
 }
 
 class HdfsResourceJar:
@@ -150,15 +147,12 @@ class WebHDFSCallException(Fail):
 
 class WebHDFSUtil:
   def __init__(self, hdfs_site, nameservice, run_user, security_enabled, logoutput=None):
-    https_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, nameservice, 'dfs.namenode.https-address',
-                                                                          security_enabled, run_user)
-    http_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, nameservice, 'dfs.namenode.http-address',
-                                                                         security_enabled, run_user)
     self.is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
-
-    address = https_nn_address if self.is_https_enabled else http_nn_address
+    address_property = 'dfs.namenode.https-address' if self.is_https_enabled else 'dfs.namenode.http-address'
+    address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, nameservice, address_property,
+                                                                 security_enabled, run_user)
     protocol = "https" if self.is_https_enabled else "http"
-    
+
     self.address = format("{protocol}://{address}")
     self.run_user = run_user
     self.security_enabled = security_enabled
@@ -319,12 +313,24 @@ class HdfsResourceWebHDFS:
     if main_resource.resource.security_enabled:
       main_resource.kinit()
 
-    nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
+    if main_resource.resource.nameservices is None:
+      nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
+    else:
+      nameservices = main_resource.resource.nameservices
+
     if not nameservices:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
       for nameservice in nameservices:
-        self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
+        try:
+          self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
+        except namenode_ha_utils.NoActiveNamenodeException as ex:
+          # one of ns can be down (during initial start forexample) no need to worry for federated cluster
+          if len(nameservices) > 1:
+            Logger.exception("Cannot run HdfsResource for nameservice {0}. Due to no active namenode present".format(nameservice))
+          else:
+            raise
+
 
   def action_delayed_for_nameservice(self, nameservice, action_name, main_resource):
     self.util = WebHDFSUtil(main_resource.resource.hdfs_site, nameservice, main_resource.resource.user,

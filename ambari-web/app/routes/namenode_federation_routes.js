@@ -35,7 +35,7 @@ module.exports = App.WizardRoute.extend({
         classNames: ['wizard-modal-wrapper'],
         modalDialogClasses: ['modal-xlg'],
         header: Em.I18n.t('admin.nameNodeFederation.wizard.header'),
-        bodyClass: App.RMHighAvailabilityWizardView.extend({
+        bodyClass: App.NameNodeFederationWizardView.extend({
           controller: nameNodeFederationWizardController
         }),
         primary: Em.I18n.t('form.cancel'),
@@ -44,14 +44,10 @@ module.exports = App.WizardRoute.extend({
 
         onClose: function () {
           var nameNodeFederationWizardController = router.get('nameNodeFederationWizardController'),
-              currStep = nameNodeFederationWizardController.get('currentStep');
-          if (parseInt(currStep) === 4) {
-            App.showConfirmationPopup(function () {
-              nameNodeFederationWizardController.resetOnClose(nameNodeFederationWizardController, 'main.services.index');
-            }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
-          } else {
+            currStep = nameNodeFederationWizardController.get('currentStep');
+          App.showConfirmationPopup(function () {
             nameNodeFederationWizardController.resetOnClose(nameNodeFederationWizardController, 'main.services.index');
-          }
+          }, Em.I18n.t(parseInt(currStep) === 4 ? 'admin.nameNodeFederation.closePopup2' : 'admin.nameNodeFederation.closePopup'));
         },
         didInsertElement: function () {
           this._super();

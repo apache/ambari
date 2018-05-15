@@ -198,4 +198,8 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
       return false;
     }
   }
+
+  public void setLogFeederProps(LogFeederProps logFeederProps) {
+    this.logFeederProps = logFeederProps;
+  }
 }

@@ -18,12 +18,15 @@
 package org.apache.ambari.swagger;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.Path;
 
+import org.apache.ambari.annotations.SwaggerOverwriteNestedAPI;
+import org.apache.ambari.annotations.SwaggerPreferredParent;
 import org.apache.maven.plugin.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import io.swagger.models.Swagger;
 import io.swagger.models.Tag;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
+import io.swagger.models.properties.StringProperty;
 
 /**
  * Customized {@link com.github.kongchen.swagger.docgen.reader.ClassSwaggerReader} implementation to
@@ -84,7 +88,7 @@ public class AmbariSwaggerReader extends JaxrsReader {
           Class<?> returnType = method.getReturnType();
           Api nestedApi = AnnotationUtils.findAnnotation(returnType, Api.class);
           Path nestedApiPath = AnnotationUtils.findAnnotation(returnType, Path.class);
-          logger.debug("Examinig API method {}#{}, path={}, returnType={}", cls.getSimpleName(), method.getName(),
+          logger.debug("Examining API method {}#{}, path={}, returnType={}", cls.getSimpleName(), method.getName(),
               nestedApiPath != null ? nestedApiPath.value() : null, returnType.getSimpleName());
           if (null != nestedApi) {
             if (null != nestedApiPath) {
@@ -92,24 +96,58 @@ public class AmbariSwaggerReader extends JaxrsReader {
                   returnType.getName());
             }
             else {
-              Path apiPath = AnnotationUtils.findAnnotation(cls, Path.class);
-              String apiPathValue;
-              if (null == apiPath) {
-                logger.warn("Parent api {} also seems to be a nested API. The current version does not support " +
-                    "multi-level nesting.");
-                apiPathValue = "";
-              }
-              else {
-                apiPathValue = apiPath.value();
-              }
-              NestedApiRecord nar = new NestedApiRecord(returnType, cls, apiPathValue, method, methodPath.value());
+              boolean skipAdd = false;
+              Class<?> preferredParentClass = cls;
+              String parentApiPath;
+              String methodPathAsString = methodPath.value();
+
+              // API is a nested API of multiple top level APIs
               if (nestedAPIs.containsKey(returnType)) {
-                logger.warn("{} is a nested API of multiple top level API's. Ignoring top level API {}", returnType, cls);
+                SwaggerPreferredParent preferredParentAnnotation = AnnotationUtils.findAnnotation(returnType,
+                        SwaggerPreferredParent.class);
+                if (null != preferredParentAnnotation) {
+                  preferredParentClass = preferredParentAnnotation.preferredParent();
+                  if (nestedAPIs.get(returnType).parentApi.getName().equals(preferredParentClass.getName())) {
+                    skipAdd = true;
+                  } else {
+                    logger.info("Setting top level API of {} to {} based on @SwaggerPreferredParent " +
+                            "annotation", returnType, preferredParentClass.getSimpleName());
+                    try {
+                      method = preferredParentClass.getMethod(method.getName(), method.getParameterTypes());
+                    } catch (NoSuchMethodException exc) {
+                      skipAdd = true;
+                      logger.error("{} class defined as parent API is invalid due to method mismatch! Ignoring " +
+                              "API {}", preferredParentClass, returnType);
+                    }
+                  }
+                } else {
+                  logger.warn("{} is a nested API of multiple top level API's. Ignoring top level API {}",
+                          returnType, cls);
+                  skipAdd = true;
+                }
               }
-              else {
-                logger.info("Registering nested API: {}", returnType);
-                nestedAPIs.put(returnType, nar);
+
+              if (skipAdd) {
+                continue;
+              } else {
+                nestedAPIs.remove(returnType);
               }
+
+              // API parent customization by @SwaggerOverwriteNestedAPI
+              SwaggerOverwriteNestedAPI swaggerOverwriteNestedAPI = AnnotationUtils.findAnnotation(returnType,
+                      SwaggerOverwriteNestedAPI.class);
+              if (null != swaggerOverwriteNestedAPI) {
+                preferredParentClass = swaggerOverwriteNestedAPI.parentApi();
+                parentApiPath = swaggerOverwriteNestedAPI.parentApiPath();
+                methodPathAsString = swaggerOverwriteNestedAPI.parentMethodPath();
+              } else {
+                parentApiPath = validateParentApiPath(preferredParentClass);
+              }
+
+              logger.info("Registering nested API: {}", returnType);
+              NestedApiRecord nar = new NestedApiRecord(returnType, preferredParentClass, parentApiPath, method,
+                methodPathAsString);
+              nestedAPIs.put(returnType, nar);
             }
           }
         }
@@ -118,6 +156,18 @@ public class AmbariSwaggerReader extends JaxrsReader {
     logger.info("Found {} nested API's", nestedAPIs.size());
     // With all information gathered, call superclass implementation
     return super.read(classes);
+  }
+
+  private String validateParentApiPath(Class<?> cls) {
+    Path apiPath = AnnotationUtils.findAnnotation(cls, Path.class);
+    if (null == apiPath) {
+      logger.warn("Parent api {} also seems to be a nested API. The current version does not support " +
+              "multi-level nesting.", cls.getSimpleName());
+      return "";
+    }
+    else {
+      return apiPath.value();
+    }
   }
 
   /**
@@ -134,13 +184,27 @@ public class AmbariSwaggerReader extends JaxrsReader {
     NestedApiRecord nestedApiRecord = nestedAPIs.get(cls);
     if (null != nestedApiRecord) {
       logger.info("Processing nested API: {}", nestedApiRecord);
-      // Get the path parameters of the parent API method. All methods of the nested API class should include these
-      // parameters.
-      Operation operation = parseMethod(nestedApiRecord.parentMethod);
-      List<Parameter> pathParameters = ImmutableList.copyOf(
+      List<Parameter> pathParameters = new ArrayList<>();
+      SwaggerOverwriteNestedAPI swaggerOverwriteNestedAPI = AnnotationUtils.findAnnotation(nestedApiRecord.nestedApi,
+        SwaggerOverwriteNestedAPI.class);
+      if (null != swaggerOverwriteNestedAPI) {
+        logger.info("Will use path params from @SwaggerOverwriteNestedAPI: {}", (Object[]) swaggerOverwriteNestedAPI
+          .pathParameters());
+        for (String param : swaggerOverwriteNestedAPI.pathParameters()) {
+          PathParameter pathParam = new PathParameter();
+          pathParam.setName(param);
+          pathParam.setType(StringProperty.TYPE);
+          pathParameters.add(pathParam);
+        }
+      } else {
+        // Get the path parameters of the parent API method. All methods of the nested API class should include these
+        // parameters.
+        Operation operation = parseMethod(nestedApiRecord.parentMethod);
+        pathParameters = ImmutableList.copyOf(
           Collections2.filter(operation.getParameters(), Predicates.instanceOf(PathParameter.class)));
-      logger.info("Will copy path params from parent method: {}",
+        logger.info("Will copy path params from parent method: {}",
           Lists.transform(pathParameters, new ParameterToName()));
+      }
       return super.read(cls,
           joinPaths(nestedApiRecord.parentApiPath, nestedApiRecord.parentMethodPath, parentPath),
           parentMethod, readHidden,

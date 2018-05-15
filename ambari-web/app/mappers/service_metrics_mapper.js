@@ -40,8 +40,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
-    // TODO renove active_name_node_id after activeNameNode property becomes unused
-    active_name_node_id: 'active_name_node_id',
     active_name_nodes: 'active_name_nodes',
     standby_name_nodes: 'standby_name_nodes',
     journal_nodes: 'journal_nodes',
@@ -439,6 +437,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       }
     }, this)
   },
+
+  setNameNodeMetricsProperties: function (item, hostComponent) {
+    const activeNameNodeConfig = this.activeNameNodeConfig,
+      activeNameNodeConfigKeys = Object.keys(activeNameNodeConfig);
+    activeNameNodeConfigKeys.forEach(key => {
+      item[key][Em.get(hostComponent, 'HostRoles.host_name')] = Em.get(hostComponent, activeNameNodeConfig[key]);
+    });
+  },
+
   /**
    * Map quick links to services:OOZIE,GANGLIA
    * @param finalJson
@@ -494,9 +501,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     let finalConfig = jQuery.extend({}, this.config);
     // Change the JSON so that it is easy to map
     const hdfsConfig = this.hdfsConfig,
-      activeNameNodeConfig = this.activeNameNodeConfig,
-      activeNameNodeConfigKeys = Object.keys(activeNameNodeConfig),
-      activeNameNodeConfigInitial = activeNameNodeConfigKeys.reduce((obj, key) => Object.assign({}, obj, {
+      activeNameNodeConfigInitial = Object.keys(this.activeNameNodeConfig).reduce((obj, key) => Object.assign({}, obj, {
         [key]: {}
       }), {});
     Object.assign(item, activeNameNodeConfigInitial);
@@ -530,11 +535,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
                 });
                 break;
             }
-            activeNameNodeConfigKeys.forEach(key => {
-              if (clusterIdValue && (!item[key][clusterIdValue] || haState === 'active')) {
-                item[key][clusterIdValue] = Em.get(hc, activeNameNodeConfig[key]);
-              }
-            });
+            this.setNameNodeMetricsProperties(item, hc);
           });
           unknownNameNodes.forEach(nameNode => {
             if (nameSpacesWithActiveNameNodes.contains(nameNode.clusterIdValue)) {
@@ -542,44 +543,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
             }
           });
         } else {
-          activeNameNodeConfigKeys.forEach(key => {
-            item[key].default = Em.get(firstHostComponent, activeNameNodeConfig[key]);
-          });
-        }
-
-        // TODO remove after activeNameNode property becomes unused
-        if (hostComponents.length === 2) {
-          const haState1 = Em.get(firstHostComponent, 'metrics.dfs.FSNamesystem.HAState'),
-            haState2 = Em.get(hostComponents[1], 'metrics.dfs.FSNamesystem.HAState'),
-            namenodeName1 = firstHostComponent.HostRoles.host_name,
-            namenodeName2 = hostComponents[1].HostRoles.host_name;
-          let active_name_node = [],
-            standby_name_nodes = [];
-
-          switch (haState1) {
-            case "active":
-              active_name_node.push(namenodeName1);
-              break;
-            case "standby":
-              standby_name_nodes.push(namenodeName1);
-              break;
-          }
-          switch (haState2) {
-            case "active":
-              active_name_node.push(namenodeName2);
-              break;
-            case "standby":
-              standby_name_nodes.push(namenodeName2);
-              break;
-          }
-          item.active_name_node_id = null;
-          switch (active_name_node.length) {
-            case 1:
-              item.active_name_node_id = `NAMENODE_${active_name_node[0]}`;
-              break;
-          }
-          var activeHostComponentIndex = haState2 == "active" ? 1 : 0;
-          this.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
+          this.setNameNodeMetricsProperties(item, firstHostComponent);
         }
 
         item.nameNodeComponent = component;
@@ -587,9 +551,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         // Get the live, dead & decommission nodes from string json
         if (firstHostComponent.metrics && firstHostComponent.metrics.dfs && firstHostComponent.metrics.dfs.namenode) {
           item.metrics_not_available = false;
-          var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
-          var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
-          var liveNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.LiveNodes);
+          var decommissionNodesJson = App.parseJSON(firstHostComponent.metrics.dfs.namenode.DecomNodes);
+          var deadNodesJson = App.parseJSON(firstHostComponent.metrics.dfs.namenode.DeadNodes);
+          var liveNodesJson = App.parseJSON(firstHostComponent.metrics.dfs.namenode.LiveNodes);
         } else {
           item.metrics_not_available = true;
         }

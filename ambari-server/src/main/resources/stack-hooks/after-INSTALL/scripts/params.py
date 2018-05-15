@@ -105,6 +105,16 @@ has_namenode = not len(namenode_host) == 0
 if has_namenode or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
+  mount_table_xml_inclusion_file_full_path = None
+  mount_table_content = None
+  if 'viewfs-mount-table' in config['configurations']:
+    xml_inclusion_file_name = 'viewfs-mount-table.xml'
+    mount_table = config['configurations']['viewfs-mount-table']
+
+    if 'content' in mount_table and mount_table['content'].strip():
+      mount_table_xml_inclusion_file_full_path = os.path.join(hadoop_conf_dir, xml_inclusion_file_name)
+      mount_table_content = mount_table['content']
+
 link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")
 

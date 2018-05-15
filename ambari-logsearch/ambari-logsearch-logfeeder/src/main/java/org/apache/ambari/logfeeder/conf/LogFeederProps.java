@@ -50,7 +50,7 @@ public class LogFeederProps implements LogFeederProperties {
     examples = {"cl1"},
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
-  @Value("${" + LogFeederConstants.CLUSTER_NAME_PROPERTY + "}")
+  @Value("#{'${" + LogFeederConstants.CLUSTER_NAME_PROPERTY + "}'.toLowerCase()}")
   private String clusterName;
 
   @LogSearchPropertyDescription(
@@ -72,6 +72,16 @@ public class LogFeederProps implements LogFeederProperties {
   )
   @Value("${"+ LogFeederConstants.LOG_FILTER_ENABLE_PROPERTY + "}")
   private boolean logLevelFilterEnabled;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_IMPLICIT_ROUTING_PROPERTY,
+    description = "Use implicit routing for Solr Collections.",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LogFeederConstants.SOLR_IMPLICIT_ROUTING_PROPERTY}
+  )
+  @Value("${"+ LogFeederConstants.SOLR_IMPLICIT_ROUTING_PROPERTY + ":false}")
+  private boolean solrImplicitRouting;
 
   @LogSearchPropertyDescription(
     name = LogFeederConstants.INCLUDE_DEFAULT_LEVEL_PROPERTY,
@@ -207,6 +217,14 @@ public class LogFeederProps implements LogFeederProperties {
 
   public void setCheckpointFolder(String checkpointFolder) {
     this.checkpointFolder = checkpointFolder;
+  }
+
+  public boolean isSolrImplicitRouting() {
+    return solrImplicitRouting;
+  }
+
+  public void setSolrImplicitRouting(boolean solrImplicitRouting) {
+    this.solrImplicitRouting = solrImplicitRouting;
   }
 
   @PostConstruct

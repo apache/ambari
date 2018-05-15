@@ -21,9 +21,11 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.host.aggregator.TimelineMetricsHolder;
 import org.apache.hadoop.metrics2.host.aggregator.TimelineMetricsHolderTest;
+import org.easymock.cglib.core.CollectionUtils;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -113,7 +115,7 @@ public class RawMetricsPublisherTest {
     @Test
     public void testGetMetricsFromCache() throws InterruptedException {
 
-        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4);
+        TimelineMetricsHolder timelineMetricsHolder = TimelineMetricsHolder.getInstance(4,4, Collections.EMPTY_LIST);
         timelineMetricsHolder.extractMetricsForAggregationPublishing();
         timelineMetricsHolder.extractMetricsForRawPublishing();
 

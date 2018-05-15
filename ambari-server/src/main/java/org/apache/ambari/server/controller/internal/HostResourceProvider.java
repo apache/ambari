@@ -571,7 +571,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             addedHost.getRackInfo(),
             addedHost.getIPv4()));
         HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(clusterId, new HostLevelParamsCluster(
-            getManagementController().retrieveHostRepositories(cl, addedHost), null));
+            getManagementController().retrieveHostRepositories(cl, addedHost),
+            recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
+                addedHost.getHostName())
+        ));
         hostLevelParamsUpdateEvent.setHostId(addedHost.getHostId());
         hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
       }
@@ -699,7 +702,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
   }
 
-  public RequestStatusResponse install(final String cluster, final String hostname, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, final boolean skipFailure)
+  public RequestStatusResponse install(final String cluster, final String hostname,
+                                       Collection<String> skipInstallForComponents,
+                                       Collection<String> dontSkipInstallForComponents, final boolean skipFailure,
+                                       boolean useClusterHostInfo)
       throws ResourceAlreadyExistsException,
       SystemException,
       NoSuchParentResourceException,
@@ -707,7 +713,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
 
     return ((HostComponentResourceProvider) getResourceProvider(Resource.Type.HostComponent)).
-        install(cluster, hostname, skipInstallForComponents, dontSkipInstallForComponents, skipFailure);
+        install(cluster, hostname, skipInstallForComponents, dontSkipInstallForComponents, skipFailure, useClusterHostInfo);
   }
 
   public RequestStatusResponse start(final String cluster, final String hostname)

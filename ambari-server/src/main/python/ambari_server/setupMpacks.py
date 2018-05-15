@@ -27,7 +27,7 @@ import logging
 from ambari_server.serverClassPath import ServerClassPath
 
 from ambari_commons.exceptions import FatalException
-from ambari_commons.inet_utils import download_file, download_file_anyway
+from ambari_commons.inet_utils import download_file_anyway
 from ambari_commons.logging_utils import print_info_msg, print_error_msg, print_warning_msg
 from ambari_commons.os_utils import copy_file, run_os_command, change_owner, set_file_permissions
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
@@ -39,7 +39,8 @@ from ambari_server.userInput import get_YN_input
 from ambari_server.dbConfiguration import ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
 
 from resource_management.core import sudo
-from resource_management.libraries.functions.tar_archive import extract_archive, get_archive_root_dir
+from resource_management.core.environment import Environment
+from resource_management.libraries.functions.tar_archive import untar_archive, get_archive_root_dir
 from resource_management.libraries.functions.version import compare_versions
 
 
@@ -157,7 +158,9 @@ def expand_mpack(archive_path):
   print_info_msg("Expand management pack at temp location {0}".format(tmp_root_dir))
   if os.path.exists(tmp_root_dir):
     sudo.rmtree(tmp_root_dir)
-  extract_archive(archive_path, tmpdir)
+
+  with Environment():
+    untar_archive(archive_path, tmpdir)
 
   if not os.path.exists(tmp_root_dir):
     print_error_msg("Malformed management pack. Failed to expand management pack!")
@@ -430,7 +433,7 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
 
 def create_dashboard_symlinks(src_service_dir, service_name, dashboard_location, options):
   """
-  If there is a dashboards directory under the src_service_dir, 
+  If there is a dashboards directory under the src_service_dir,
   create symlinks under the dashboard_location for the grafana_dashboards
   and the service-metrics
   :param src_service_dir: Location of the service directory in the management pack
@@ -494,7 +497,7 @@ def process_extension_definitions_artifact(artifact, artifact_source_dir, option
         if os.path.exists(src_services_dir):
           for file in sorted(os.listdir(src_services_dir)):
             src_service_dir = os.path.join(src_services_dir, file)
-            create_dashboard_symlinks(src_service_dir, file, dashboard_location, options) 
+            create_dashboard_symlinks(src_service_dir, file, dashboard_location, options)
 
 def process_service_definitions_artifact(artifact, artifact_source_dir, options):
   """

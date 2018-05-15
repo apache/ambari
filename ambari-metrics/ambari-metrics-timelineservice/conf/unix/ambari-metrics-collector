@@ -25,15 +25,15 @@ HBASE_RS_PID=/var/run/ams-hbase/hbase-${USER}-regionserver.pid
 
 HBASE_DIR=/usr/lib/ams-hbase
 
-DAEMON_NAME=timelineserver
+DAEMON_NAME=ams-metrics-collector
 
 COLLECTOR_CONF_DIR=/etc/ambari-metrics-collector/conf
 HBASE_CONF_DIR=/etc/ams-hbase/conf
 
 HBASE_CMD=${HBASE_DIR}/bin/hbase
 
-METRIC_TABLES=(METRIC_AGGREGATE_DAILY METRIC_AGGREGATE_HOURLY METRIC_AGGREGATE_MINUTE METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_DAILY METRIC_RECORD_HOURLY METRIC_RECORD_MINUTE)
-METRIC_FIFO_COMPACTION_TABLES=(METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_MINUTE)
+METRIC_TABLES=(METRIC_AGGREGATE_DAILY_UUID METRIC_AGGREGATE_HOURLY_UUID METRIC_AGGREGATE_MINUTE_UUID METRIC_AGGREGATE_UUID METRIC_RECORD_UUID METRIC_RECORD_DAILY_UUID METRIC_RECORD_HOURLY_UUID METRIC_RECORD_MINUTE_UUID)
+METRIC_FIFO_COMPACTION_TABLES=(METRIC_AGGREGATE_UUID METRIC_RECORD_UUID METRIC_RECORD_MINUTE_UUID)
 METRIC_COLLECTOR=ambari-metrics-collector
 
 NORMALIZER_ENABLED_STUB_FILE=/var/run/ambari-metrics-collector/normalizer_enabled
@@ -238,7 +238,7 @@ function start()
     echo "$(date) Launching in distributed mode. Assuming Hbase daemons up and running." | tee -a $STARTUPFILE
   fi
 
-	CLASS='org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer'
+	CLASS='org.apache.ambari.metrics.AMSApplicationServer'
 	# YARN_OPTS="${YARN_OPTS} ${YARN_TIMELINESERVER_OPTS}"
 	# if [[ -n "${YARN_TIMELINESERVER_HEAPSIZE}" ]]; then
 	#   JAVA_HEAP_MAX="-Xmx${YARN_TIMELINESERVER_HEAPSIZE}m"
@@ -263,7 +263,7 @@ function start()
   sleep 2
 
   echo "Verifying ${METRIC_COLLECTOR} process status..." | tee -a $STARTUPFILE
-  if [ -z "`ps ax | grep -w ${PID} | grep ApplicationHistoryServer`" ]; then
+  if [ -z "`ps ax | grep -w ${PID} | grep AMSApplicationServer`" ]; then
     if [ -s ${OUTFILE} ]; then
       echo "ERROR: ${METRIC_COLLECTOR} start failed. For more details, see ${OUTFILE}:" | tee -a $STARTUPFILE
       echo "===================="

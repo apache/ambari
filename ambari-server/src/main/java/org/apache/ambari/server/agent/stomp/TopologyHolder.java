@@ -42,6 +42,8 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -49,6 +51,8 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> {
+
+  private final static Logger LOG = LoggerFactory.getLogger(TopologyHolder.class);
 
   @Inject
   private AmbariManagementControllerImpl ambariManagementController;
@@ -131,7 +135,8 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         copiedUpdate.getEventType()
       );
       prepareAgentTopology(topologyAgentUpdateEvent);
-      stateUpdateEventPublisher.publish(topologyAgentUpdateEvent);
+      LOG.debug("Publishing Topology Agent Update Event hash={}", topologyAgentUpdateEvent.getHash());
+      STOMPUpdatePublisher.publish(topologyAgentUpdateEvent);
     }
 
     return changed;
@@ -176,6 +181,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         for (TopologyComponent topologyComponent : topologyCluster.getTopologyComponents()) {
           topologyComponent.setHostNames(new HashSet<>());
           topologyComponent.setPublicHostNames(new HashSet<>());
+          topologyComponent.setLastComponentState(null);
         }
         if (topologyUpdateEvent.getEventType().equals(TopologyUpdateEvent.EventType.DELETE)) {
           for (TopologyHost topologyHost : topologyCluster.getTopologyHosts()) {

@@ -18,21 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -63,6 +49,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -379,41 +366,9 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         }
         String osFamily = clusters.getHost(hostName).getOsFamily();
 
-        TreeMap<String, String> hostLevelParams = new TreeMap<>();
-        StageUtils.useStackJdkIfExists(hostLevelParams, configs);
-        hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
-        hostLevelParams.put(STACK_NAME, stackId.getStackName());
-        hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
-        hostLevelParams.put(DB_NAME, managementController.getServerDB());
-        hostLevelParams.put(MYSQL_JDBC_URL, managementController.getMysqljdbcUrl());
-        hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
-        hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
-        hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
-        hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
-        hostLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
-
         //may set SERVICE_REPO_INFO in hostLevelParams inside the method
-        List<OsSpecific.Package> packages = managementController.getPackagesForStackServiceHost(stackInfo, serviceInfo, hostLevelParams, osFamily);
+        List<OsSpecific.Package> packages = managementController.getPackagesForStackServiceHost(stackInfo, serviceInfo, osFamily);
         String packageList = gson.toJson(packages);
-
-        Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredClusterConfigs);
-        String userList = gson.toJson(userSet);
-        hostLevelParams.put(USER_LIST, userList);
-
-        //Create a user_group mapping and send it as part of the hostLevelParams
-        Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
-          stackId, cluster, desiredClusterConfigs);
-        String userGroups = gson.toJson(userGroupsMap);
-        hostLevelParams.put(USER_GROUPS,userGroups);
-
-        Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredClusterConfigs);
-        String groupList = gson.toJson(groupSet);
-        hostLevelParams.put(GROUP_LIST, groupList);
-
-        Map<org.apache.ambari.server.state.PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredClusterConfigs);
-        Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
-        String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-        hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
         String jsonConfigurations = null;
         Map<String, Object> commandParams = new HashMap<>();
@@ -434,6 +389,17 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           }
         }
 
+        TreeMap<String, String> clusterLevelParams = null;
+        TreeMap<String, String> ambariLevelParams = null;
+        if (getManagementController() instanceof AmbariManagementControllerImpl){
+          AmbariManagementControllerImpl controller = ((AmbariManagementControllerImpl)getManagementController());
+          clusterLevelParams = controller.getMetadataClusterLevelParams(cluster, stackId);
+          ambariLevelParams = controller.getMetadataAmbariLevelParams();
+        }
+        TreeMap<String, String> agentLevelParams = new TreeMap<>();
+        agentLevelParams.put("hostname", hostName);
+        agentLevelParams.put("public_hostname", publicHostName);
+
         commandParams.put(PACKAGE_LIST, packageList);
         commandParams.put("xml_configs_list", xmlConfigs);
         commandParams.put("env_configs_list", envConfigs);
@@ -444,10 +410,12 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("configurations", configurations);
         jsonContent.put("clusterSettings", clusterSettingsMap);
         jsonContent.put("stackSettings", stackSettingsMap);
-        jsonContent.put("configuration_attributes", configurationAttributes);
+        jsonContent.put("configurationAttributes", configurationAttributes);
         jsonContent.put("commandParams", commandParams);
         jsonContent.put("clusterHostInfo", clusterHostInfo);
-        jsonContent.put("hostLevelParams", hostLevelParams);
+        jsonContent.put("ambariLevelParams", ambariLevelParams);
+        jsonContent.put("clusterLevelParams", clusterLevelParams);
+        jsonContent.put("agentLevelParams", agentLevelParams);
         jsonContent.put("hostname", hostName);
         jsonContent.put("public_hostname", publicHostName);
         jsonContent.put("clusterName", cluster.getClusterName());
@@ -922,4 +890,5 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
             (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
             null);
   }
+
 }

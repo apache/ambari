@@ -27,6 +27,8 @@ import {ClusterSelectionService} from '@app/services/storage/cluster-selection.s
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {FilterDropdownComponent} from '@modules/shared/components/filter-dropdown/filter-dropdown.component';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
+import {DataAvailabilityValues} from '@app/classes/string';
 
 @Component({
   selector: 'cluster-filter',
@@ -53,7 +55,8 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
     private utilsService: UtilsService,
     private router: Router,
     private clusterSelectionStoreService: ClusterSelectionService,
-    private routingUtilsService: RoutingUtilsService
+    private routingUtilsService: RoutingUtilsService,
+    private appStateService: AppStateService
   ) { }
 
   ngOnInit() {
@@ -98,10 +101,26 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
   private setDropdownSelectionByActivatedRouteSnapshot(routeSnapshot: ActivatedRouteSnapshot): void {
     let clusterSelection = this.routingUtilsService.getParamFromActivatedRouteSnapshot(routeSnapshot, 'cluster');
     if (clusterSelection) {
-      clusterSelection = this.useMultiSelection.getValue() ? clusterSelection.split(/,|;/) : clusterSelection;
-      this.filterDropdown.updateSelection(Object.assign(this.utilsService.getListItemFromString(clusterSelection), {
-        isChecked: true
-      }));
+      clusterSelection = this.useMultiSelection.getValue() ? clusterSelection.split(/[,;]/) : clusterSelection;
+      if (Array.isArray(clusterSelection)) {
+        clusterSelection = clusterSelection.map(
+          (clusterName: string) => Object.assign(this.utilsService.getListItemFromString(clusterName), {
+            isChecked: true
+          })
+        );
+      } else {
+        clusterSelection = Object.assign(this.utilsService.getListItemFromString(clusterSelection), {
+          isChecked: true
+        });
+      }
+      this.appStateService.getParameter('clustersDataState')
+        .filter((state: DataAvailabilityValues) => state === DataAvailabilityValues.AVAILABLE)
+        .first()
+        .subscribe(() => {
+          this.filterDropdown.updateSelection(clusterSelection);
+        });
+    } else {
+      this.filterDropdown.selection = [];
     }
   }
 
@@ -116,10 +135,10 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
   }
 
   onDropDownSelectionChanged = (values): void => {
-    this.setSelection(values);
+    this.setSelectionInClusterSelectionStore(values);
   }
 
-  private setSelection = (values): void => {
+  private setSelectionInClusterSelectionStore = (values): void => {
     this.clusterSelectionStoreService.getParameter(this.clusterSelectionStoreKey.getValue()).first()
       .subscribe(currentCluster => {
         if (!this.utilsService.isEqual(currentCluster, values)) {

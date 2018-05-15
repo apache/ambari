@@ -75,9 +75,9 @@ public class ExportBlueprintRequest implements TopologyRequest {
   public ExportBlueprintRequest(TreeNode<Resource> clusterNode) throws InvalidTopologyTemplateException {
     Resource clusterResource = clusterNode.getObject();
     clusterName = String.valueOf(clusterResource.getPropertyValue(
-        ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
+        ClusterResourceProvider.CLUSTER_NAME));
     clusterId = Long.valueOf(String.valueOf(clusterResource.getPropertyValue(
-            ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID)));
+            ClusterResourceProvider.CLUSTER_ID)));
 
     // create service group to mpack map
     serviceGroupToMpack = clusterNode.getChild("servicegroups").getChildren().stream().
@@ -267,11 +267,11 @@ public class ExportBlueprintRequest implements TopologyRequest {
       for (TreeNode<Resource> component : components.getChildren()) {
         Resource resource = component.getObject();
         String componentName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.COMPONENT_NAME));
         String serviceName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.SERVICE_NAME));
         String serviceGroupName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.SERVICE_GROUP_NAME));
         StackId stackId = serviceGroupToMpack.get(serviceGroupName);
         getComponents().add(new Component(componentName, stackId, serviceName, null));
       }

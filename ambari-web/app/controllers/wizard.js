@@ -230,10 +230,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   getPreviousStepName: function () {
     const index = this.get('currentStep');
-    
+
     if (index > 0) {
       const steps = this.get('steps');
-      
+
       if (steps) {
         return steps[index - 1];
       } else {
@@ -256,7 +256,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         return null
       }
     }
-    
+
     //legacy support
     const totalSteps = this.get('totalSteps');
     if (index < totalSteps - 1) {
@@ -363,7 +363,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.stepsSavedState', newState);
     this.save('stepsSavedState');
   },
-  
+
   /**
    * Move user to the selected step
    *
@@ -384,7 +384,24 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       return false;
     }
 
-    if ((this.get('currentStep') - step) > 0 && !disableNaviWarning) {
+    var currentStep = this.get('currentStep');
+    var currentControllerName = this.get('content.controllerName');
+    // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
+    // to Step 9
+    if (currentControllerName === 'installerController' && currentStep === '9' && step < 9) {
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_NOT_CREATED_1',
+        wizardControllerName: 'installerController',
+        localdb: {}
+      });
+    }
+    var isCustomizeServicesStep = false;
+    if ((currentControllerName === 'installerController' && currentStep === '7') || ((currentControllerName === 'addServiceController'|| currentControllerName === 'addHostController' ) && currentStep === '4')) {
+      isCustomizeServicesStep = true;
+    }
+    var stepDiff = currentStep - step;
+    if (!disableNaviWarning && (stepDiff  > 1 || (isCustomizeServicesStep && stepDiff > 0))) {
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),
         onPrimary: function () {
@@ -554,7 +571,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.saveClusterStatus(clusterStatus);
 
     const serviceGroups = this.get('content.serviceGroups');
-    
+
     const installPromises = serviceGroups.map(sg => {
       data.serviceGroupName = sg;
 
@@ -1449,7 +1466,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadRegisteredMpacks: function () {
     this.set('content.registeredMpacks', this.getDBProperty('registeredMpacks') || []);
     const registeredMpacks = this.get('content.registeredMpacks');
-    
+
     //TODO: mpacks - currently we create a service group for each mpack; this will be changed in the future
     const serviceGroups = registeredMpacks.map(rmp => rmp.MpackInfo.mpack_name);
     this.set('content.serviceGroups', serviceGroups);

@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -45,24 +46,23 @@ import com.google.common.collect.Sets;
  */
 public class ViewResourceProvider extends AbstractAuthorizedResourceProvider {
 
-  /**
-   * View property id constants.
-   */
-  public static final String VIEW_NAME_PROPERTY_ID    = "ViewInfo/view_name";
+  public static final String VIEW_INFO = "ViewInfo";
+  public static final String VIEW_NAME_PROPERTY_ID = "view_name";
+
+  public static final String VIEW_NAME = VIEW_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VIEW_NAME_PROPERTY_ID;
 
 
   /**
    * The key property ids for a view resource.
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.View, VIEW_NAME_PROPERTY_ID)
-      .build();
+    .put(Resource.Type.View, VIEW_NAME)
+    .build();
 
   /**
    * The property ids for a view resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
-      VIEW_NAME_PROPERTY_ID);
+  private static Set<String> propertyIds = Sets.newHashSet(VIEW_NAME);
 
 
   // ----- Constructors ------------------------------------------------------
@@ -104,14 +104,14 @@ public class ViewResourceProvider extends AbstractAuthorizedResourceProvider {
 
     for (Map<String, Object> propertyMap : propertyMaps) {
 
-      String viewName    = (String) propertyMap.get(VIEW_NAME_PROPERTY_ID);
+      String viewName    = (String) propertyMap.get(VIEW_NAME);
 
       for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
         if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
           if (viewRegistry.includeDefinition(viewDefinition)) {
             Resource resource = new ResourceImpl(Resource.Type.View);
 
-            setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewDefinition.getCommonName(), requestedIds);
+            setResourceProperty(resource, VIEW_NAME, viewDefinition.getCommonName(), requestedIds);
 
             resources.add(resource);
           }

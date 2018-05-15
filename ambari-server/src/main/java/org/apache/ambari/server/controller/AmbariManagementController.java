@@ -662,7 +662,35 @@ public interface AmbariManagementController {
                              Map<State, List<ServiceComponent>> changedComponents,
                              Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
                              Collection<ServiceComponentHost> ignoredHosts,
-                             boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs) throws AmbariException;
+
+  /**
+   * Add stages to the request.
+   *
+   * @param requestStages       Stages currently associated with request
+   * @param cluster             cluster being acted on
+   * @param requestProperties   the request properties
+   * @param requestParameters   the request parameters; may be null
+   * @param changedServices     the services being changed; may be null
+   * @param changedComponents   the components being changed
+   * @param changedHosts        the hosts being changed
+   * @param ignoredHosts        the hosts to be ignored
+   * @param runSmokeTest        indicates whether or not the smoke tests should be run
+   * @param reconfigureClients  indicates whether or not the clients should be reconfigured
+   * @param useGeneratedConfigs indicates whether or not the actual configs should be a part of the stage
+   * @param useClusterHostInfo  indicates whether or not the cluster topology info  should be a part of the stage
+   *
+   * @return request stages
+   *
+   * @throws AmbariException if stages can't be created
+   */
+  RequestStageContainer addStages(RequestStageContainer requestStages, Cluster cluster, Map<String, String> requestProperties,
+                             Map<String, String> requestParameters,
+                             Map<State, List<Service>> changedServices,
+                             Map<State, List<ServiceComponent>> changedComponents,
+                             Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                             Collection<ServiceComponentHost> ignoredHosts,
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs, boolean useClusterHostInfo) throws AmbariException;
 
   /**
    * Getter for the url of JDK, stored at server resources folder
@@ -837,13 +865,11 @@ public interface AmbariManagementController {
   /**
    * @param stackInfo stack info for a given service stack
    * @param serviceInfo service info for a given service
-   * @param hostParams parameter map. May be changed during method execution
    * @param osFamily os family for host
    * @return a full list of package dependencies for a stack service that should be
    * installed on a host
    */
-  List<OsSpecific.Package> getPackagesForStackServiceHost(StackInfo stackInfo, ServiceInfo serviceInfo,
-                                                            Map<String, String> hostParams, String osFamily);
+  List<OsSpecific.Package> getPackagesForStackServiceHost(StackInfo stackInfo, ServiceInfo serviceInfo, String osFamily);
 
   /**
    * Register a change in rack information for the hosts of the given cluster.

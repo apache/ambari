@@ -441,7 +441,12 @@ angular.module('ambariAdminConsole')
         $t('common.deleteConfirmation', {
           instanceType: $t('views.viewInstance'),
           instanceName: instance.ViewInstanceInfo.label
-        })
+        }),
+        null,
+        null,
+        {
+          primaryClass: 'btn-danger'
+        }
       ).then(function() {
         View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
           .then(function() {

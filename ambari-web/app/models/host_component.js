@@ -35,9 +35,7 @@ App.HostComponent = DS.Model.extend({
   publicHostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
-  haNameSpace: DS.attr('string', {
-    defaultValue: 'default'
-  }),
+  haNameSpace: DS.attr('string'),
   clusterIdValue: DS.attr('string'),
 
   serviceDisplayName: Em.computed.truncate('service.displayName', 14, 11),
@@ -431,7 +429,7 @@ App.HostComponentActionMap = {
         customCommand: 'STARTDEMOLDAP',
         context: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
         label: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
-        cssClass: 'glyphicon glyphicon-play-sign',
+        cssClass: 'icon icon-play-sign',
         disabled: false
       },
       STOPDEMOLDAP: {
@@ -548,8 +546,8 @@ App.HostComponentActionMap = {
       TOGGLE_NN_FEDERATION: {
         action: 'openNameNodeFederationWizard',
         label: Em.I18n.t('admin.nameNodeFederation.button.enable'),
-        cssClass: 'glyphicon glyphicon-arrow-up',
-        //todo: provide disabled flag
+        cssClass: 'icon icon-sitemap',
+        disabled: !App.get('isHaEnabled')
       }
     };
   },

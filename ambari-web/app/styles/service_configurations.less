@@ -32,8 +32,13 @@
   }
 
   .property-value-column {
+    word-break: break-all;
     overflow: auto;
     max-height: 300px;
+  }
+
+  .accordion-without-tabs {
+    margin-top: 50px;
   }
 
   .comparison-row {
@@ -159,6 +164,13 @@
     line-height: 20px;
   }
 
+  .common-config-category {
+    .icon-repeat {
+      color: #cbcbcb;
+      padding: 5px 10px;
+      text-decoration: none;
+    }
+  }
   .enhanced-config-tab-content {
     .action {
       display: inline-block;
@@ -283,11 +295,15 @@
     .glyphicon-warning-sign {
       color: @health-status-red;
     }
+    .btn-wrapper {
+      min-width: 200px;
+    }
     .connection-result {
       font-size: 15px;
-      line-height: 30px;
+      line-height: @default-button-height;
     }
-    a.mute {
+    a {
+      vertical-align: top;
       color: #333;
       &:hover {
         text-decoration: none;
@@ -350,5 +366,14 @@
   display: inline-block;
   .row {
     padding: 0;
+  }
+}
+
+.change-config-group-modal {
+  .modal-body {
+    overflow-y: visible;
+    .dropdown-select {
+      min-width: 120px;
+    }
   }
 }

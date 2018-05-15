@@ -22,28 +22,28 @@ import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
 import 'rxjs/add/operator/delay';
 import * as moment from 'moment';
-import {mockDataGet} from "@mockdata/mock-data-get";
-import {mockDataPost} from "@mockdata/mock-data-post";
+import {mockDataGet} from '@mockdata/mock-data-get';
+import {mockDataPost} from '@mockdata/mock-data-post';
 
-export class mockBackendService extends InMemoryBackendService {
+export class MockBackendService extends InMemoryBackendService {
   getLocation(url: string): any {
     return super.getLocation(url);
   }
 }
 
-export class mockApiDataService implements InMemoryDbService {
+export class MockApiDataService implements InMemoryDbService {
 
   private filterByMessage = (value: string, filterValue: string): boolean => {
     return value.toLowerCase().indexOf(filterValue.toLowerCase()) > -1;
-  };
+  }
 
   private filterByStartTime = (value: number, filterValue: number | string | Date | moment.Moment): boolean => {
     return value >= moment(filterValue).valueOf();
-  };
+  }
 
   private filterByEndTime = (value: number, filterValue: number | string | Date | moment.Moment): boolean => {
     return value <= moment(filterValue).valueOf();
-  };
+  }
 
   private readonly filterMap = {
     'api/v1/service/logs': {
@@ -62,7 +62,7 @@ export class mockApiDataService implements InMemoryDbService {
           key: 'level',
           isValuesList: true
         },
-        iMessage: {
+        includeMessage: {
           key: 'log_message',
           filterFunction: this.filterByMessage
         },
@@ -88,7 +88,7 @@ export class mockApiDataService implements InMemoryDbService {
           key: 'cluster',
           isValuesList: true
         },
-        iMessage: {
+        includeMessage: {
           key: 'log_message',
           filterFunction: this.filterByMessage
         },
@@ -109,7 +109,7 @@ export class mockApiDataService implements InMemoryDbService {
   };
 
   parseUrl(url: string): any {
-    const urlLocation = mockBackendService.prototype.getLocation(url),
+    const urlLocation = MockBackendService.prototype.getLocation(url),
       query = urlLocation.search && new URLSearchParams(urlLocation.search.substr(1), {
           encodeKey: key => key,
           encodeValue: value => value
@@ -127,11 +127,21 @@ export class mockApiDataService implements InMemoryDbService {
 
   private findDataByUrlPatter(path: string, mockDataObj: {[key: string]: any}): {[key: string]: any} | undefined | Function {
     const paths: string[] = Object.keys(mockDataObj);
-    const matchedPath:string = paths.find((key:string):boolean => {
-      const test:RegExp = new RegExp(key);
+    const matchedPath: string = paths.find((key: string): boolean => {
+      const test: RegExp = new RegExp(key);
       return test.test(path);
     });
     return mockDataObj[matchedPath];
+  }
+
+  /**
+   * The goal here is to check if the given real api url should be always POST or not.\
+   * See https://issues.apache.org/jira/browse/AMBARI-23779
+   * @param {string} url The full url for the api end point.
+   * @returns {boolean}
+   */
+  private shouldTurnGetToPost(url: string): boolean {
+    return /(audit|service)/.test(url);
   }
 
   get(interceptorArgs: any): Observable<Response> {
@@ -145,9 +155,17 @@ export class mockApiDataService implements InMemoryDbService {
         allData = this.findDataByUrlPatter(path, mockDataGet);
       }
       if (typeof allData === 'function') {
-        allData = allData(query, interceptorArgs.requestInfo.req);
+        try {
+          allData = allData(query, interceptorArgs.requestInfo.req);
+        } catch (error) {
+          return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
+            new Response(createErrorResponse(
+              interceptorArgs.requestInfo.req, 500, error
+            )))
+          );
+        }
       }
-      let is404 = !allData;
+      const is404 = !allData;
 
       if (is404) {
         return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
@@ -200,8 +218,8 @@ export class mockApiDataService implements InMemoryDbService {
             filteredData[filterMapItem.totalCountKey] = filteredCollection.length;
           }
           if (query && query.paramsMap.has('page') && query.paramsMap.has('pageSize')) {
-            const page = parseInt(query.paramsMap.get('page')[0]),
-              pageSize = parseInt(query.paramsMap.get('pageSize')[0]);
+            const page = parseInt(query.paramsMap.get('page')[0], 0),
+              pageSize = parseInt(query.paramsMap.get('pageSize')[0], 0);
             filteredCollection = filteredCollection.slice(page * pageSize, (page + 1) * pageSize);
           }
           filteredData[pathToCollection] = filteredCollection;
@@ -229,9 +247,17 @@ export class mockApiDataService implements InMemoryDbService {
       responseBody = this.findDataByUrlPatter(path, mockDataPost);
     }
     if (typeof responseBody === 'function') {
-      responseBody = responseBody(query, interceptorArgs.requestInfo.req);
+      try {
+        responseBody = responseBody(query, interceptorArgs.requestInfo.req);
+      } catch (error) {
+        return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
+          new Response(createErrorResponse(
+            interceptorArgs.requestInfo.req, 500, error
+          )))
+        );
+      }
     }
-    let is404 = !responseBody;
+    const is404 = !responseBody;
 
     if (is404) {
       return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(

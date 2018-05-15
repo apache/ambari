@@ -38,6 +38,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1333,17 +1334,20 @@ public class TestHeartbeatHandler {
     expect(nnComponent.getStackId()).andReturn(dummyStackId).atLeastOnce();
     componentMap.put("NAMENODE", nnComponent);
 
-    expect(service.getServiceComponents()).andReturn(componentMap);
+    expect(service.getServiceComponents()).andReturn(componentMap).atLeastOnce();
     expect(service.getServiceId()).andReturn(1L).atLeastOnce();
     expect(service.getServiceType()).andReturn("HDFS").atLeastOnce();
     expect(service.getStackId()).andReturn(dummyStackId).atLeastOnce();
 
-    replay(service, nnComponent);
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
+
+    replay(service, nnComponent, am);
 
     cluster.addService(service);
 
-    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(
-        actionManagerTestHelper.getMockActionManager());
+    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am);
+    // Make sure handler is not null, this has possibly been an intermittent problem in the past
+    assertNotNull(handler);
 
     ComponentsResponse actual = handler.handleComponents(DummyCluster);
 

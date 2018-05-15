@@ -31,6 +31,7 @@ import org.apache.hadoop.fs.Trash;
 import org.apache.hadoop.fs.TrashPolicy;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.json.simple.JSONArray;
 import org.slf4j.Logger;
@@ -52,6 +53,9 @@ public class HdfsApi {
   private final static Logger LOG =
       LoggerFactory.getLogger(HdfsApi.class);
 
+  public static String KeyIsErasureCoded = "isErasureCoded";
+  public static String KeyIsEncrypted = "isEncrypted";
+  public static String KeyErasureCodingPolicyName = "erasureCodingPolicyName";
   private final Configuration conf;
   private Map<String, String> authParams;
 
@@ -554,7 +558,6 @@ public class HdfsApi {
     Map<String, Object> json = new LinkedHashMap<String, Object>();
     json.put("path", Path.getPathWithoutSchemeAndAuthority(status.getPath())
         .toString());
-    json.put("replication", status.getReplication());
     json.put("isDirectory", status.isDirectory());
     json.put("len", status.getLen());
     json.put("owner", status.getOwner());
@@ -567,6 +570,15 @@ public class HdfsApi {
     json.put("readAccess", checkAccessPermissions(status, FsAction.READ, ugi));
     json.put("writeAccess", checkAccessPermissions(status, FsAction.WRITE, ugi));
     json.put("executeAccess", checkAccessPermissions(status, FsAction.EXECUTE, ugi));
+    json.put(KeyIsErasureCoded, status.isErasureCoded());
+    json.put(KeyIsEncrypted, status.isEncrypted());
+
+    if( status instanceof HdfsFileStatus){
+      HdfsFileStatus hdfsFileStatus = (HdfsFileStatus) status;
+      if(null != hdfsFileStatus.getErasureCodingPolicy()) {
+        json.put(KeyErasureCodingPolicyName, hdfsFileStatus.getErasureCodingPolicy().getName());
+      }
+    }
     return json;
   }
 

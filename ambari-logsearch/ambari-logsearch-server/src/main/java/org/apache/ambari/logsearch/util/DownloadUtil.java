@@ -112,20 +112,20 @@ public class DownloadUtil {
     models.put("from", from);
     models.put("levels", StringUtils.join(levels, ", "));
     models.put("to", to);
-    String includeString = request.getiMessage();
+    String includeString = request.getIncludeMessage();
     if (StringUtils.isBlank(includeString)) {
       includeString = "\"\"";
     } else {
-      List<String> include = Splitter.on(request.getiMessage()).splitToList(LogSearchConstants.I_E_SEPRATOR);
+      List<String> include = Splitter.on(request.getIncludeMessage()).splitToList(LogSearchConstants.I_E_SEPRATOR);
       includeString = "\"" + StringUtils.join(include, "\", \"") + "\"";
     }
     models.put("iString", includeString);
 
-    String excludeString = request.geteMessage();
+    String excludeString = request.getExcludeMessage();
     if (StringUtils.isBlank(excludeString)) {
       excludeString = "\"\"";
     } else {
-      List<String> exclude = Splitter.on(request.getiMessage()).splitToList(LogSearchConstants.I_E_SEPRATOR);
+      List<String> exclude = Splitter.on(request.getIncludeMessage()).splitToList(LogSearchConstants.I_E_SEPRATOR);
       excludeString = "\"" + StringUtils.join(exclude, "\", \"") + "\"";
     }
     models.put("eString", excludeString);

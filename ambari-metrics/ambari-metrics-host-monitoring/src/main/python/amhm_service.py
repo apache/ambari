@@ -26,10 +26,10 @@ from ambari_commons.ambari_service import AmbariService
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import print_warning_msg, print_error_msg
 from ambari_commons.os_windows import SvcStatusCallback
-from core.config_reader import SERVER_OUT_FILE, SERVICE_USERNAME_KEY, SERVICE_PASSWORD_KEY, \
+from core.config_reader import SERVICE_USERNAME_KEY, SERVICE_PASSWORD_KEY, \
   SETUP_ACTION, START_ACTION, STOP_ACTION, RESTART_ACTION, STATUS_ACTION
 from core.stop_handler import bind_signal_handlers, StopHandler
-from main import server_process_main
+from main import server_process_main, main_config
 
 
 #
@@ -64,7 +64,7 @@ class AMHostMonitoringService(AmbariService):
     return init_options_parser()
 
   def redirect_output_streams(self):
-    self._RedirectOutputStreamsToFile(SERVER_OUT_FILE)
+    self._RedirectOutputStreamsToFile(main_config.ams_monitor_out_file())
     pass
 
 

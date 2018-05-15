@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<a {{bindAttr id="view.buttonId" class=":btn view.buttonClassNames" disabled="view.isDisabled"}} {{action handleClick target="view"}}>
+<button {{bindAttr id="view.buttonId" class=":btn view.buttonClassNames" disabled="view.isDisabled"}} {{action handleClick target="view"}}>
   {{#if view.doSpinRight}}
     {{yield}}
   {{/if}}
@@ -26,4 +26,4 @@
   {{#unless view.doSpinRight}}
     {{yield}}
   {{/unless}}
-</a>
+</button>

@@ -668,7 +668,7 @@ public class ServiceResourceProviderTest {
 
     expect(managementController.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
-        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
+        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean(), anyBoolean()
     )).andReturn(requestStages);
     requestStages.persist();
     expect(requestStages.getRequestStatusResponse()).andReturn(requestStatusResponse);
@@ -790,12 +790,12 @@ public class ServiceResourceProviderTest {
 
     expect(managementController1.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
-        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
+        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean(), anyBoolean()
     )).andReturn(requestStages1);
 
     expect(managementController2.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
-        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
+        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean(), anyBoolean()
     )).andReturn(requestStages2);
 
     requestStages1.persist();

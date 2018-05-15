@@ -23,11 +23,15 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import freemarker.template.TemplateException;
@@ -36,13 +40,19 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.model.metadata.AuditFieldMetadataResponse;
-import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
-import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
-import org.apache.ambari.logsearch.model.request.impl.UserExportRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.AuditBarGraphBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.AuditLogBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.AuditServiceLoadBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ClusterBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.TopFieldAuditLogBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.UserExportBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.AuditBarGraphQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.AuditLogQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.AuditServiceLoadQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.TopFieldAuditLogQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.UserExportQueryRequest;
 import org.apache.ambari.logsearch.model.response.AuditLogResponse;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
-import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
 import org.apache.ambari.logsearch.manager.AuditLogsManager;
 import org.springframework.context.annotation.Scope;
 
@@ -62,71 +72,144 @@ public class AuditLogsResource {
 
   @GET
   @Path("/schema/fields")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_SCHEMA_FIELD_LIST_OD)
-  public AuditFieldMetadataResponse getSolrFieldList() {
+  public AuditFieldMetadataResponse getSolrFieldListGet() {
+    return auditLogsManager.getAuditLogSchemaMetadata();
+  }
+
+
+  @POST
+  @Path("/schema/fields")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_SCHEMA_FIELD_LIST_OD)
+  public AuditFieldMetadataResponse getSolrFieldListPost() {
     return auditLogsManager.getAuditLogSchemaMetadata();
   }
 
   @GET
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_LOGS_OD)
-  public AuditLogResponse getAuditLogs(@BeanParam AuditLogRequest auditLogRequest) {
+  public AuditLogResponse getAuditLogsGet(@BeanParam AuditLogQueryRequest auditLogRequest) {
+    return auditLogsManager.getLogs(auditLogRequest);
+  }
+
+  @POST
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_LOGS_OD)
+  public AuditLogResponse getAuditLogsPost(AuditLogBodyRequest auditLogRequest) {
     return auditLogsManager.getLogs(auditLogRequest);
   }
 
   @DELETE
-  @Produces({"application/json"})
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(PURGE_AUDIT_LOGS_OD)
-  public StatusMessage deleteAuditLogs(@BeanParam AuditLogRequest auditLogRequest) {
+  public StatusMessage deleteAuditLogs(AuditLogBodyRequest auditLogRequest) {
     return auditLogsManager.deleteLogs(auditLogRequest);
   }
 
   @GET
   @Path("/components")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_COMPONENTS_OD)
-  public Map<String, String> getAuditComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+  public Map<String, String> getAuditComponentsGet(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return auditLogsManager.getAuditComponents(clusters);
+  }
+
+  @POST
+  @Path("/components")
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_COMPONENTS_OD)
+  public Map<String, String> getAuditComponentsPost(@Nullable ClusterBodyRequest clusterBodyRequest) {
+    return auditLogsManager.getAuditComponents(clusterBodyRequest != null ? clusterBodyRequest.getClusters() : null);
   }
 
   @GET
   @Path("/bargraph")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_LINE_GRAPH_DATA_OD)
-  public BarGraphDataListResponse getAuditBarGraphData(@BeanParam AuditBarGraphRequest request) {
+  public BarGraphDataListResponse getAuditBarGraphDataGet(@BeanParam AuditBarGraphQueryRequest request) {
+    return auditLogsManager.getAuditBarGraphData(request);
+  }
+
+  @POST
+  @Path("/bargraph")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_LINE_GRAPH_DATA_OD)
+  public BarGraphDataListResponse getAuditBarGraphDataPost(AuditBarGraphBodyRequest request) {
     return auditLogsManager.getAuditBarGraphData(request);
   }
 
   @GET
   @Path("/resources/{top}")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_TOP_AUDIT_RESOURCES_OD)
-  public BarGraphDataListResponse getResources(@BeanParam TopFieldAuditLogRequest request) {
+  public BarGraphDataListResponse getResourcesGet(@BeanParam TopFieldAuditLogQueryRequest request) {
+    return auditLogsManager.topResources(request);
+  }
+
+  @POST
+  @Path("/resources/{top}")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_TOP_AUDIT_RESOURCES_OD)
+  public BarGraphDataListResponse getResourcesPost(TopFieldAuditLogBodyRequest request, @PathParam(LogSearchConstants.REQUEST_PARAM_TOP) Integer top) {
+    request.setTop(top); // TODO: set this in the request
     return auditLogsManager.topResources(request);
   }
 
   @GET
   @Path("/export")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(EXPORT_USER_TALBE_TO_TEXT_FILE_OD)
-  public Response exportUserTableToTextFile(@BeanParam UserExportRequest request) throws TemplateException {
+  public Response exportUserTableToTextFileGet(@BeanParam UserExportQueryRequest request) throws TemplateException {
+    return auditLogsManager.export(request);
+  }
+
+  @POST
+  @Path("/export")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(EXPORT_USER_TALBE_TO_TEXT_FILE_OD)
+  public Response exportUserTableToTextFilePost(UserExportBodyRequest request) throws TemplateException {
     return auditLogsManager.export(request);
   }
 
   @GET
   @Path("/serviceload")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_SERVICE_LOAD_OD)
-  public BarGraphDataListResponse getServiceLoad(@BeanParam AuditServiceLoadRequest request) {
+  public BarGraphDataListResponse getServiceLoadGet(@BeanParam AuditServiceLoadQueryRequest request) {
+    return auditLogsManager.getServiceLoad(request);
+  }
+
+  @POST
+  @Path("/serviceload")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_SERVICE_LOAD_OD)
+  public BarGraphDataListResponse getServiceLoadPost(AuditServiceLoadBodyRequest request) {
     return auditLogsManager.getServiceLoad(request);
   }
 
   @GET
   @Path("/clusters")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AUDIT_CLUSTERS_OD)
-  public List<String> getClustersForAuditLog() {
+  public List<String> getClustersForAuditLogGet() {
+    return auditLogsManager.getClusters();
+  }
+
+  @POST
+  @Path("/clusters")
+  @Produces({MediaType.APPLICATION_JSON})
+  @Consumes({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AUDIT_CLUSTERS_OD)
+  public List<String> getClustersForAuditLogPost() {
     return auditLogsManager.getClusters();
   }
 

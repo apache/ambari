@@ -67,6 +67,12 @@
        "role": ["admin", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_ranger_audit}}"],
        "name": "ranger-manager",
        "path": "/*"
+    },
+    {
+       "collection": "old_ranger_audits",
+       "role": ["admin", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_ranger_audit}}"],
+       "name": "backup-ranger-manager",
+       "path": "/*"
     }]
   }
 }

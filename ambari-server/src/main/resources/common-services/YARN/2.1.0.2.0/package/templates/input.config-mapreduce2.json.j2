@@ -15,14 +15,14 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
  #}
-{
+ {
   "input":[
     {
       "type":"mapred_historyserver",
       "rowtype":"service",
       "path":"{{default('/configurations/mapred-env/mapred_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/mapred-env/mapred_user', 'mapred')}}/mapred-{{default('configurations/mapred-env/mapred_user', 'mapred')}}-historyserver*.log"
     }
-  ],
+   ],
   "filter":[
     {
       "filter":"grok",
@@ -31,8 +31,8 @@
           "type":[
             "mapred_historyserver"
           ]
-        }
-      },
+         }
+       },
       "log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
       "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
       "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\(%{JAVAFILE:file}:%{JAVAMETHOD:method}\\(%{INT:line_number}\\)\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
@@ -41,8 +41,8 @@
           "map_date":{
             "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
           }
-        }
-      }
-    }
-  ]
-}
+         }
+       }
+     }
+   ]
+ }

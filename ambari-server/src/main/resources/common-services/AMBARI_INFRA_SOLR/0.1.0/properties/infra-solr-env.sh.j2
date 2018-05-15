@@ -22,6 +22,8 @@ SOLR_JAVA_HOME={{java64_home}}
 # Increase Java Min/Max Heap as needed to support your indexing / query needs
 SOLR_JAVA_MEM="-Xms{{infra_solr_min_mem}}m -Xmx{{infra_solr_max_mem}}m"
 
+SOLR_JAVA_STACK_SIZE="-Xss{{infra_solr_java_stack_size}}m"
+
 # Enable verbose GC logging
 GC_LOG_OPTS="-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails \
 -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime"

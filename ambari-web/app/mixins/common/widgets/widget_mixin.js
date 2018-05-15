@@ -42,7 +42,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  VALUE_NAME_REGEX: /(\w+\s+\w+)?[\w\.\,\-\:\=\[\]]+/g,
+  VALUE_NAME_REGEX: /[^(\s+\-\*\/\\+\s+)+](\w+\s+\w+)?[\w\.\,\-\:\=\[\]]*/g,
 
   /**
    * @type {string}
@@ -167,7 +167,7 @@ App.WidgetMixin = Ember.Mixin.create({
   getRequestData: function (metrics) {
     var requestsData = {};
     if (metrics) {
-      metrics.forEach(function (metric, index) {
+      metrics.forEach(function (metric) {
         var key;
         if (metric.host_component_criteria) {
           key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
@@ -190,6 +190,7 @@ App.WidgetMixin = Ember.Mixin.create({
             id: requestMetric["metric_path"] + "_" + this.get('metricType'),
             context: this}];
           delete requestMetric["metric_path"];
+          requestMetric.tag = this.get('content.tag');
           requestsData[key] = requestMetric;
         }
       }, this);
@@ -255,16 +256,21 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   getHostComponentMetrics: function (request) {
     var metricPaths = this.prepareMetricPaths(request.metric_paths);
+    var data = {
+      componentName: request.component_name,
+      metricPaths: this.prepareMetricPaths(request.metric_paths),
+      hostComponentCriteria: this.computeHostComponentCriteria(request)
+    };
+
+    if (request.tag) {
+      data.selectedHostsParam = '&HostRoles/host_name.in(' + App.HDFSService.find().objectAt(0).get('masterComponentGroups').findProperty('name', request.tag).hosts.join(',') + ')';
+    }
 
     if (metricPaths.length) {
       var xhr = App.ajax.send({
           name: 'widgets.hostComponent.metrics.get',
           sender: this,
-          data: {
-            componentName: request.component_name,
-            metricPaths: this.prepareMetricPaths(request.metric_paths),
-            hostComponentCriteria: this.computeHostComponentCriteria(request)
-          }
+          data: data
         }),
         graph = this.get('graphView') && this.get('childViews') && this.get('childViews').findProperty('runningRequests');
       if (graph) {
@@ -558,7 +564,8 @@ App.WidgetMixin = Ember.Mixin.create({
     this.get('controller').hideWidget(
       {
         context: Em.Object.create({
-          id: event.context
+          id: event.contexts[0],
+          nsLayout: event.contexts[1]
         })
       }
     );
@@ -585,7 +592,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @returns {{WidgetInfo: {widget_name: *, widget_type: *, description: *, scope: *, metrics: *, values: *, properties: *}}}
    */
   collectWidgetData: function () {
-    return {
+    var widgetData = {
       WidgetInfo: {
         widget_name: this.get('content.widgetName'),
         widget_type: this.get('content.widgetType'),
@@ -604,6 +611,12 @@ App.WidgetMixin = Ember.Mixin.create({
         properties: this.get('content.properties')
       }
     };
+
+    this.get('content.metrics').forEach(function (metric) {
+      if (metric.tag) widgetData.WidgetInfo.tag = metric.tag;
+    });
+
+    return widgetData;
   },
 
   /**
@@ -634,9 +647,9 @@ App.WidgetMixin = Ember.Mixin.create({
     widgets.pushObject(Em.Object.create({
       id: data.resources[0].WidgetInfo.id
     }));
-    var mainServiceInfoSummaryController =  App.router.get('mainServiceInfoSummaryController');
-    mainServiceInfoSummaryController.saveWidgetLayout(widgets).done(function(){
-      mainServiceInfoSummaryController.updateActiveLayout();
+    var mainServiceInfoMetricsController =  App.router.get('mainServiceInfoMetricsController');
+    mainServiceInfoMetricsController.saveWidgetLayout(widgets).done(function(){
+      mainServiceInfoMetricsController.updateActiveLayout();
     });
   },
 
@@ -650,9 +663,9 @@ App.WidgetMixin = Ember.Mixin.create({
     widgets.pushObject(Em.Object.create({
       id: id
     }));
-    var mainServiceInfoSummaryController =  App.router.get('mainServiceInfoSummaryController');
-    mainServiceInfoSummaryController.saveWidgetLayout(widgets).done(function() {
-      mainServiceInfoSummaryController.getActiveWidgetLayout().done(function() {
+    var mainServiceInfoMetricsController =  App.router.get('mainServiceInfoMetricsController');
+    mainServiceInfoMetricsController.saveWidgetLayout(widgets).done(function() {
+      mainServiceInfoMetricsController.getActiveWidgetLayout().done(function() {
         var newWidget = App.Widget.find().findProperty('id', id);
         controller.editWidget(newWidget);
       });
@@ -785,7 +798,8 @@ App.WidgetLoadAggregator = Em.Object.create({
     requests.forEach(function (request) {
       //poll metrics for graph widgets separately
       var graphSuffix = request.context.get('content.widgetType') === "GRAPH" ? "_graph" : '';
-      var id = request.startCallName + "_" + request.data.component_name + graphSuffix;
+      var tagSuffix = request.context.get('content.tag') ? '_' + request.context.get('content.tag') : '';
+      var id = request.startCallName + "_" + request.data.component_name + graphSuffix + tagSuffix;
 
       if (Em.isNone(bulks[id])) {
         bulks[id] = {

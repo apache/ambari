@@ -26,23 +26,18 @@ import {GraphComponent} from '@app/classes/components/graph/graph.component';
 
 export class TimeGraphComponent extends GraphComponent implements OnInit {
 
-  constructor() {
-    super();
-    this.appSettings = ServiceInjector.injector.get(AppSettingsService);
-  }
-
-  ngOnInit() {
-    this.appSettings.getParameter('timeZone').subscribe((value: string): void => {
-      this.timeZone = value;
-      this.createGraph();
-    });
-  }
-
   @Input()
   tickTimeFormat: string = 'MM/DD HH:mm';
 
   @Input()
   historyStartEndTimeFormat: string = 'dddd, MMMM DD, YYYY';
+
+  @Input()
+  defaultChartTimeGap: ChartTimeGap = {
+    value: 1,
+    unit: 'h',
+    label: 'filter.timeRange.1hr'
+  };
 
   @Output()
   selectArea: EventEmitter<number[]> = new EventEmitter();
@@ -78,6 +73,21 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
    */
   protected rightDragArea: d3.Selection<SVGGraphicsElement, undefined, SVGGraphicsElement, undefined>;
 
+  constructor() {
+    super();
+    this.appSettings = ServiceInjector.injector.get(AppSettingsService);
+  }
+
+  ngOnInit() {
+    this.subscriptions.push(
+      this.appSettings.getParameter('timeZone').subscribe((value: string): void => {
+        this.timeZone = value;
+        this.createGraph();
+      })
+    );
+    super.ngOnInit();
+  }
+
   /**
    * This is a Date object holding the value of the first tick of the xAxis. It is a helper getter for the template.
    */
@@ -96,7 +106,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
 
   protected xAxisTickFormatter = (tick: Date): string => {
     return moment(tick).tz(this.timeZone).format(this.tickTimeFormat);
-  };
+  }
 
   protected setXScaleDomain(data: GraphScaleItem[]): void {
     this.xScale.domain(d3.extent(data, item => item.tick)).nice();
@@ -140,7 +150,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
    * It will reset the time gap if the xScale is not set or there are no ticks.
    */
   protected setChartTimeGapByXScale(): void {
-    let ticks = this.xScale && this.xScale.ticks();
+    const ticks = this.xScale && this.xScale.ticks();
     if (ticks && ticks.length) {
       this.setChartTimeGap(ticks[0], ticks[1] || ticks[0]);
     } else {
@@ -152,7 +162,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
    * Simply reset the time gap property to null.
    */
   protected resetChartTimeGap(): void {
-    this.chartTimeGap = null;
+    this.chartTimeGap = this.defaultChartTimeGap;
   }
 
   /**
@@ -161,7 +171,10 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
    * @param {Date} endDate
    */
   protected setChartTimeGap(startDate: Date, endDate: Date): void {
-    this.chartTimeGap = this.getTimeGap(startDate, endDate);
+    const gap: ChartTimeGap = this.getTimeGap(startDate, endDate);
+    if (gap.value > 0) {
+      this.chartTimeGap = gap;
+    }
   }
 
   protected getTimeRangeByXRanges(startX: number, endX: number): [number, number] {
@@ -224,17 +237,19 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
         const startX = Math.min(currentX, this.dragStartX);
         const currentWidth = Math.abs(currentX - this.dragStartX);
         this.dragArea.attr('x', startX).attr('width', currentWidth);
-        let timeRange = this.getTimeRangeByXRanges(startX, startX + currentWidth);
+        const timeRange = this.getTimeRangeByXRanges(startX, startX + currentWidth);
         this.setChartTimeGap(new Date(timeRange[0]), new Date(timeRange[1]));
       })
       .on('end', (): void => {
         const dragAreaDetails = this.dragArea.node().getBBox();
         const startX = Math.max(0, dragAreaDetails.x);
         const endX = Math.min(this.width, dragAreaDetails.x + dragAreaDetails.width);
-        const dateRange: [number, number] = this.getTimeRangeByXRanges(startX, endX);
-        this.selectArea.emit(dateRange);
-        this.dragArea.remove();
-        this.setChartTimeGap(new Date(dateRange[0]), new Date(dateRange[1]));
+        if (endX !== startX) {
+          const dateRange: [number, number] = this.getTimeRangeByXRanges(startX, endX);
+          this.selectArea.emit(dateRange);
+          this.dragArea.remove();
+          this.setChartTimeGap(new Date(dateRange[0]), new Date(dateRange[1]));
+        }
       })
     );
     d3.selectAll(`svg#${this.svgId} .value, svg#${this.svgId} .axis`).call(d3.drag().on('start', (): void => {

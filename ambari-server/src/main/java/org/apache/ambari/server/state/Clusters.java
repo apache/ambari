@@ -285,4 +285,9 @@ public interface Clusters {
    */
   void invalidate(Cluster cluster);
 
+  /**
+   * Invalidates all clusters by retrieving each from the database and refreshing all of its internal
+   * stateful collections.
+   */
+  void invalidateAllClusters();
 }

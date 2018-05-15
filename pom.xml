@@ -61,6 +61,7 @@
     <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
     <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
     <assemblyPhase>package</assemblyPhase> <!-- use -DassemblyPhase=none to skip building tarball, useful when you want purely compile jar -->
+    <eclipselink.version>2.6.2</eclipselink.version>
   </properties>
   <pluginRepositories>
     <pluginRepository>
@@ -408,6 +409,7 @@
             <exclude>ambari-metrics/target/rpm/ambari-metrics/SPECS/ambari-metrics.spec</exclude>
             <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/4.2.0/phoenix-core-tests-4.2.0.pom</exclude>
             <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/maven-metadata-local.xml</exclude>
+            <exclude>ambari-metrics/ambari-metrics-alertservice/*.iml</exclude>
             <exclude>ambari-metrics/*/target/**</exclude>
             <!-- ignore .settings and .project  -->
             <exclude>ambari-metrics/**/.*/**</exclude>
@@ -482,7 +484,7 @@
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>mpack-instance-manager</module>
-        
+
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
       </modules>
@@ -506,7 +508,7 @@
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>mpack-instance-manager</module>
-        
+
       </modules>
     </profile>
     <profile>
@@ -520,7 +522,7 @@
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>mpack-instance-manager</module>
-        
+
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
@@ -543,7 +545,7 @@
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>mpack-instance-manager</module>
-        
+
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
@@ -578,7 +580,7 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        
+
       </modules>
     </profile>
     <profile>

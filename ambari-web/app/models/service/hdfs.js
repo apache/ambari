@@ -22,9 +22,6 @@ App.HDFSService = App.Service.extend({
   nameNode: DS.belongsTo('App.HostComponent'),
   snameNode: DS.belongsTo('App.HostComponent'),
 
-  // TODO remove after implementing widgets changes
-  activeNameNode: DS.belongsTo('App.HostComponent'),
-
   activeNameNodes: DS.hasMany('App.HostComponent', {
     defaultValue: []
   }),
@@ -103,9 +100,9 @@ App.HDFSService = App.Service.extend({
     let result = [];
     this.get('hostComponents').forEach(component => {
       if (component.get('componentName') === 'NAMENODE') {
-        const nameSpace = component.get('haNameSpace'),
+        const nameSpace = component.get('haNameSpace') || 'default',
           hostName = component.get('hostName'),
-          clusterId = component.get('clusterIdValue'),
+          clusterId = component.get('clusterIdValue') || 'default',
           existingNameSpace = result.findProperty('name', nameSpace),
           currentNameSpace = existingNameSpace || {
               name: nameSpace,
@@ -116,14 +113,14 @@ App.HDFSService = App.Service.extend({
             };
         if (!existingNameSpace) {
           result.push(currentNameSpace);
-        }
+    }
         if (!currentNameSpace.hosts.contains(hostName)) {
           currentNameSpace.hosts.push(hostName);
         }
       }
     });
-    return result;
-  }.property('hostComponents.length')
+    return result.sortProperty('name');
+  }.property('hostComponents.length', 'App.router.clusterController.isHDFSNameSpacesLoaded')
 });
 
 App.HDFSService.FIXTURES = [];

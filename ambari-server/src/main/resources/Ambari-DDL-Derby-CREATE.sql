@@ -182,7 +182,6 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_tag UNIQUE (version_tag, type_name, cluster_id),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
-
 CREATE TABLE servicedependencies (
   id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
@@ -195,6 +194,12 @@ CREATE TABLE servicedependencies (
   CONSTRAINT UQ_servicedependencies UNIQUE (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
   CONSTRAINT FK_svcdep_svc_grp_clstr_id FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT FK_svcdep_dep_scv_grp_clstr_id FOREIGN KEY (dependent_service_id) REFERENCES clusterservices (id));
+
+CREATE TABLE ambari_configuration (
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(2048),
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
@@ -844,6 +849,7 @@ CREATE TABLE widget (
   widget_values VARCHAR(3000),
   properties VARCHAR(3000),
   cluster_id BIGINT NOT NULL,
+  tag VARCHAR(255),
   CONSTRAINT PK_widget PRIMARY KEY (id)
 );
 

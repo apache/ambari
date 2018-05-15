@@ -24,6 +24,7 @@ import ast
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format
@@ -36,10 +37,10 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
-from ambari_commons.constants import AMBARI_SUDO_BINARY, HADOOP_CLIENTS_MODULE_NAME, HADOOP_CLIENT_COMPONENT_TYPE
 from resource_management.libraries.functions.mpack_manager_helper import get_component_conf_path, get_component_home_path
 from resource_management.libraries.execution_command import execution_command
 from resource_management.libraries.execution_command import module_configs
+from resource_management.libraries.functions.namenode_ha_utils import get_properties_for_all_nameservices, namenode_federation_enabled
 
 config = Script.get_config()
 execution_command = Script.get_execution_command()
@@ -207,17 +208,49 @@ has_ranger_admin = not len(ranger_admin_hosts) == 0
 has_zeppelin_master = not len(zeppelin_master_hosts) == 0
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
+hostname = config['agentLevelParams']['hostname']
+hdfs_site = config['configurations']['hdfs-site']
+
 # HDFS High Availability properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.internal.nameservices')
 if dfs_ha_nameservices is None:
   dfs_ha_nameservices = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.nameservices')
-dfs_ha_namenode_ids = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.ha.namenodes.{dfs_ha_nameservices}')
-if dfs_ha_namenode_ids:
-  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
-  if dfs_ha_namenode_ids_array_len > 1:
-    dfs_ha_enabled = True
+
+# on stacks without any filesystem there is no hdfs-site
+dfs_ha_namenode_ids_all_ns = get_properties_for_all_nameservices(hdfs_site, 'dfs.ha.namenodes') if 'hdfs-site' in config['configurations'] else {}
+dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.automatic-failover.enabled", False)
+
+# Values for the current Host
+namenode_id = None
+namenode_rpc = None
+
+dfs_ha_namemodes_ids_list = []
+other_namenode_id = None
+
+for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.iteritems():
+  found = False
+  if not is_empty(dfs_ha_namenode_ids):
+    dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+    dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+    if dfs_ha_namenode_ids_array_len > 1:
+      dfs_ha_enabled = True
+  if dfs_ha_enabled:
+    for nn_id in dfs_ha_namemodes_ids_list:
+      nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{ns}.{nn_id}')]
+      if hostname in nn_host:
+        namenode_id = nn_id
+        namenode_rpc = nn_host
+        found = True
+    # With HA enabled namenode_address is recomputed
+    namenode_address = format('hdfs://{ns}')
+
+    # Calculate the namenode id of the other namenode. This is needed during RU to initiate an HA failover using ZKFC.
+    if namenode_id is not None and len(dfs_ha_namemodes_ids_list) == 2:
+      other_namenode_id = list(set(dfs_ha_namemodes_ids_list) - set([namenode_id]))[0]
+
+  if found:
+    break
 
 # if has_namenode or dfs_type == 'HCFS':
 #     hadoop_conf_dir = get_component_conf_path(mpack_name=mpack_name, instance_name=mpack_instance_name,

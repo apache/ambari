@@ -652,12 +652,10 @@ describe('App.clusterController', function () {
       sinon.stub(App.router.get('errorsHandlerController'), 'loadErrorLogs');
       sinon.stub(App.router.get('wizardWatcherController'), 'getUser');
       sinon.stub(App.db, 'setFilterConditions');
-      sinon.stub(App.router.get('updateController'), 'updateClusterEnv');
       controller.set('isLoaded', false);
     });
 
     afterEach(function() {
-      App.router.get('updateController').updateClusterEnv.restore();
       App.db.setFilterConditions.restore();
       App.router.get('wizardWatcherController').getUser.restore();
       App.router.get('errorsHandlerController').loadErrorLogs.restore();
@@ -713,11 +711,6 @@ describe('App.clusterController', function () {
     it('loadClusterDataToModel should be called', function() {
       controller.loadClusterData();
       expect(controller.loadClusterDataToModel.calledOnce).to.be.true;
-    });
-
-    it('updateClusterEnv should be called', function() {
-      controller.loadClusterData();
-      expect(App.router.get('updateController').updateClusterEnv.calledOnce).to.be.true;
     });
 
     it('startPolling should be called', function() {
@@ -837,16 +830,24 @@ describe('App.clusterController', function () {
 
     beforeEach(function() {
       sinon.stub(App.config, 'loadConfigsFromStack').returns({
-        complete: Em.clb
+        always: Em.clb
       });
       sinon.stub(App.config, 'loadClusterConfigsFromStack').returns({
-        complete: Em.clb
+        always: Em.clb
+      });
+      sinon.stub(App.router.get('configurationController'), 'updateConfigTags').returns({
+        always: Em.clb
+      });
+      sinon.stub(App.router.get('updateController'), 'updateClusterEnv').returns({
+        always: Em.clb
       });
     });
 
     afterEach(function() {
       App.config.loadClusterConfigsFromStack.restore();
       App.config.loadConfigsFromStack.restore();
+      App.router.get('configurationController').updateConfigTags.restore();
+      App.router.get('updateController').updateClusterEnv.restore();
     });
 
     it('App.config.loadConfigsFromStack should be called', function() {
@@ -857,6 +858,16 @@ describe('App.clusterController', function () {
     it('App.config.loadClusterConfigsFromStack should be called', function() {
       controller.loadConfigProperties();
       expect(App.config.loadClusterConfigsFromStack.calledOnce).to.be.true;
+    });
+
+    it('updateConfigTags should be called', function() {
+      controller.loadConfigProperties();
+      expect(App.router.get('configurationController').updateConfigTags.calledOnce).to.be.true;
+    });
+
+    it('updateClusterEnv should be called', function() {
+      controller.loadConfigProperties();
+      expect(App.router.get('updateController').updateClusterEnv.calledOnce).to.be.true;
     });
 
     it('isConfigsPropertiesLoaded should be true', function() {

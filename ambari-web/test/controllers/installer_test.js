@@ -410,9 +410,9 @@ describe('App.InstallerController', function () {
           value: true
         })
       ]);
-      
+
       installerController.set('isStepDisabled', steps);
-      
+
       installerController.set('steps', [
         "step0",
         "step1",
@@ -420,7 +420,7 @@ describe('App.InstallerController', function () {
         "step3",
         "step4"
       ]);
-      
+
       installerController.set('currentStep', 2);
     });
 
@@ -539,7 +539,7 @@ describe('App.InstallerController', function () {
         expect(serviceGroups).to.deep.equal(["mpack1", "mpack2", "mpack3"]);
         installerController.getDBProperty.restore();
         App.stackMapper.map.restore();
-      });  
+      });
     });
 
     describe('Should load loadServices (2)', function() {
@@ -1189,4 +1189,37 @@ describe('App.InstallerController', function () {
       expect(stepController).to.equal(wizardStep0Controller);
     });
   });
+
+  describe('#finish', function() {
+    beforeEach(function() {
+      sinon.stub(installerController, 'setCurrentStep');
+      sinon.stub(installerController, 'clearStorageData');
+      sinon.stub(installerController, 'clearServiceConfigProperties');
+      sinon.stub(App.themesMapper, 'resetModels');
+      installerController.finish();
+    });
+    afterEach(function() {
+      installerController.setCurrentStep.restore();
+      installerController.clearStorageData.restore();
+      installerController.clearServiceConfigProperties.restore();
+      App.themesMapper.resetModels.restore();
+    });
+
+    it('setCurrentStep should be called', function() {
+      expect(installerController.setCurrentStep.calledWith('0')).to.be.true;
+    });
+
+    it('clearStorageData should be called', function() {
+      expect(installerController.clearStorageData.calledOnce).to.be.true;
+    });
+
+    it('clearServiceConfigProperties should be called', function() {
+      expect(installerController.clearServiceConfigProperties.calledOnce).to.be.true;
+    });
+
+    it('App.themesMapper.resetModels should be called', function() {
+      expect(App.themesMapper.resetModels.calledOnce).to.be.true;
+    });
+  });
+
 });

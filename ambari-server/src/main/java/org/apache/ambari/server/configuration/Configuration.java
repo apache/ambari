@@ -33,8 +33,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -65,9 +63,7 @@ import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.services.RetryUpgradeActionService;
@@ -157,6 +153,8 @@ public class Configuration {
    * The HTML {@code <br/>} tag.
    */
   private static final String HTML_BREAK_TAG = "<br/>";
+
+  private static final String AGENT_CONFIGS_DEFAULT_SECTION = "agentConfig";
 
   /**
    * Used to determine which repository validation strings should be used
@@ -1143,59 +1141,6 @@ public class Configuration {
   @Markdown(description = "A comma-separate list of upgrade tasks details to skip when retrying failed commands automatically.")
   public static final ConfigurationProperty<String> STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.command.details.to.ignore", "\"Execute HDFS Finalize\"");
-
-  /**
-   * Determines whether to use JWT authentication when connecting to remote Hadoop resources.
-   */
-  @Markdown(description = "Determines whether to use JWT authentication when connecting to remote Hadoop resources.")
-  public static final ConfigurationProperty<Boolean> JWT_AUTH_ENABLED = new ConfigurationProperty<>(
-      "authentication.jwt.enabled", Boolean.FALSE);
-
-  /**
-   * The URL for authentication of the user in the absence of a JWT token when
-   * handling a JWT request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The URL for authentication of the user in the absence of a JWT token when handling a JWT request.")
-  public static final ConfigurationProperty<String> JWT_AUTH_PROVIDER_URL = new ConfigurationProperty<>(
-      "authentication.jwt.providerUrl", null);
-
-  /**
-   * The public key to use when verifying the authenticity of a JWT token.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The public key to use when verifying the authenticity of a JWT token.")
-  public static final ConfigurationProperty<String> JWT_PUBLIC = new ConfigurationProperty<>(
-      "authentication.jwt.publicKey", null);
-
-  /**
-   * A list of the JWT audiences expected. Leaving this blank will allow for any audience.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "A list of the JWT audiences expected. Leaving this blank will allow for any audience.")
-  public static final ConfigurationProperty<String> JWT_AUDIENCES = new ConfigurationProperty<>(
-      "authentication.jwt.audiences", null);
-
-  /**
-   * The name of the cookie which will be used to extract the JWT token from the request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The name of the cookie which will be used to extract the JWT token from the request.")
-  public static final ConfigurationProperty<String> JWT_COOKIE_NAME = new ConfigurationProperty<>(
-      "authentication.jwt.cookieName", "hadoop-jwt");
-
-  /**
-   * The original URL to use when constructing the logic URL for JWT.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The original URL to use when constructing the logic URL for JWT.")
-  public static final ConfigurationProperty<String> JWT_ORIGINAL_URL_QUERY_PARAM = new ConfigurationProperty<>(
-      "authentication.jwt.originalUrlParamName", "originalUrl");
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    * Kerberos authentication-specific properties
@@ -2620,7 +2565,7 @@ public class Configuration {
   private String ambariUpgradeConfigUpdatesFilePath;
   private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
-  private Map<String, String> agentConfigsMap;
+  private Map<String, Map<String,String>> agentConfigsMap;
   private Properties customDbProperties = null;
   private Properties customPersistenceProperties = null;
   private Long configLastModifiedDateForCustomJDBC = 0L;
@@ -2773,13 +2718,16 @@ public class Configuration {
     this.properties = properties;
 
     agentConfigsMap = new HashMap<>();
-    agentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
-    agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
-    agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
-    agentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
+    agentConfigsMap.put(AGENT_CONFIGS_DEFAULT_SECTION, new HashMap<String, String>());
+
+    Map<String,String> defaultAgentConfigsMap = agentConfigsMap.get(AGENT_CONFIGS_DEFAULT_SECTION);
+    defaultAgentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
+    defaultAgentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
+    defaultAgentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
+    defaultAgentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
 
     configsMap = new HashMap<>();
-    configsMap.putAll(agentConfigsMap);
+    configsMap.putAll(defaultAgentConfigsMap);
     configsMap.put(AMBARI_PYTHON_WRAP.getKey(), getProperty(AMBARI_PYTHON_WRAP));
     configsMap.put(SRVR_AGENT_HOSTNAME_VALIDATE.getKey(), getProperty(SRVR_AGENT_HOSTNAME_VALIDATE));
     configsMap.put(SRVR_TWO_WAY_SSL.getKey(), getProperty(SRVR_TWO_WAY_SSL));
@@ -2997,7 +2945,7 @@ public class Configuration {
   private void writeConfigFile(Properties propertiesToStore, boolean append) throws AmbariException {
     File configFile = null;
     try {
-      configFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
+      configFile = getConfigFile();
       propertiesToStore.store(new OutputStreamWriter(new FileOutputStream(configFile, append), Charsets.UTF_8), null);
     } catch (Exception e) {
       LOG.error("Cannot write properties [" + propertiesToStore + "] into configuration file [" + configFile + ", " + append + "] ");
@@ -3157,7 +3105,7 @@ public class Configuration {
   }
 
   public Map<String, String> getDatabaseConnectorNames() {
-    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
     Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBC.longValue()) {
@@ -3181,8 +3129,12 @@ public class Configuration {
     return databaseConnectorNames;
   }
 
+  public File getConfigFile() {
+    return new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+  }
+
   public Map<String, String> getPreviousDatabaseConnectorNames() {
-    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
     Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBCToRemove.longValue()) {
@@ -3460,7 +3412,7 @@ public class Configuration {
    * Keys - public constants of this class
    * @return the map with server config parameters related to agent configuration
    */
-  public Map<String, String> getAgentConfigsMap() {
+  public Map<String, Map<String,String>> getAgentConfigsMap() {
     return agentConfigsMap;
   }
 
@@ -5135,48 +5087,6 @@ public class Configuration {
    */
   public boolean useMetricsCacheCustomSizingEngine() {
     return Boolean.parseBoolean(getProperty(TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE));
-  }
-
-  /**
-   * Get set of properties desribing SSO configuration (JWT)
-   */
-  public JwtAuthenticationProperties getJwtProperties() {
-    boolean enableJwt = Boolean.valueOf(getProperty(JWT_AUTH_ENABLED));
-
-    if (enableJwt) {
-      String providerUrl = getProperty(JWT_AUTH_PROVIDER_URL);
-      if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.");
-        return null;
-      }
-      String publicKeyPath = getProperty(JWT_PUBLIC);
-      if (publicKeyPath == null) {
-        LOG.error("Public key pem not specified for JWT auth provider {}. JWT auth will be disabled.", providerUrl);
-        return null;
-      }
-      try {
-        RSAPublicKey publicKey = CertificateUtils.getPublicKeyFromFile(publicKeyPath);
-        JwtAuthenticationProperties jwtProperties = new JwtAuthenticationProperties();
-        jwtProperties.setAuthenticationProviderUrl(providerUrl);
-        jwtProperties.setPublicKey(publicKey);
-
-        jwtProperties.setCookieName(getProperty(JWT_COOKIE_NAME));
-        jwtProperties.setAudiencesString(getProperty(JWT_AUDIENCES));
-        jwtProperties.setOriginalUrlQueryParam(getProperty(JWT_ORIGINAL_URL_QUERY_PARAM));
-
-        return jwtProperties;
-
-      } catch (IOException e) {
-        LOG.error("Unable to read public certificate file. JWT auth will be disabled.", e);
-        return null;
-      } catch (CertificateException e) {
-        LOG.error("Unable to parse public certificate file. JWT auth will be disabled.", e);
-        return null;
-      }
-    } else {
-      return null;
-    }
-
   }
 
   /**

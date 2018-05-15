@@ -136,12 +136,12 @@ public class HostComponentResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID, "Component100");
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
+    properties.put(HostComponentResourceProvider.CLUSTER_NAME, "Cluster100");
+    properties.put(HostComponentResourceProvider.SERVICE_GROUP_NAME, SERVICE_GROUP_NAME);
+    properties.put(HostComponentResourceProvider.SERVICE_NAME, "Service100");
+    properties.put(HostComponentResourceProvider.COMPONENT_NAME, "Component100");
+    properties.put(HostComponentResourceProvider.COMPONENT_TYPE, "Component100");
+    properties.put(HostComponentResourceProvider.HOST_NAME, "Host100");
 
     propertySet.add(properties);
 
@@ -197,17 +197,17 @@ public class HostComponentResourceProviderTest {
 
     Map<String, String> expectedNameValues = new HashMap<>();
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+        HostComponentResourceProvider.CLUSTER_NAME, "Cluster100");
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.toString());
+        HostComponentResourceProvider.STATE, State.INSTALLED.toString());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId.getStackVersion());
+        HostComponentResourceProvider.VERSION, stackId.getStackVersion());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.toString());
+        HostComponentResourceProvider.DESIRED_STATE, State.STARTED.toString());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
+        HostComponentResourceProvider.DESIRED_STACK_ID, stackId2.getStackId());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
+        HostComponentResourceProvider.UPGRADE_STATE, UpgradeState.NONE.name());
 
 
     // set expectations
@@ -217,57 +217,57 @@ public class HostComponentResourceProviderTest {
 
     Set<String> propertyIds = new HashSet<>();
 
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.CLUSTER_NAME);
+    propertyIds.add(HostComponentResourceProvider.COMPONENT_NAME);
+    propertyIds.add(HostComponentResourceProvider.STATE);
+    propertyIds.add(HostComponentResourceProvider.VERSION);
+    propertyIds.add(HostComponentResourceProvider.DESIRED_STATE);
+    propertyIds.add(HostComponentResourceProvider.DESIRED_STACK_ID);
 
     Predicate predicate = new PredicateBuilder().property(
-        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
+        HostComponentResourceProvider.CLUSTER_NAME).equals("Cluster100").toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     Set<Resource> hostsComponentResources = new HashSet<>();
 
     Resource hostsComponentResource1 = new ResourceImpl(Resource.Type.HostComponent);
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.CLUSTER_NAME, "Cluster100");
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_NAME, "Host100");
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.SERVICE_GROUP_NAME, SERVICE_GROUP_NAME);
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.SERVICE_NAME, "Service100");
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.COMPONENT_NAME, "Component100");
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.STATE, State.INSTALLED.name());
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.DESIRED_STATE, State.STARTED.name());
     hostsComponentResource1.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
+        HostComponentResourceProvider.VERSION, stackId2.getStackVersion());
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.DESIRED_STACK_ID, stackId2.getStackId());
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.UPGRADE_STATE, UpgradeState.NONE.name());
 
     Resource hostsComponentResource2 = new ResourceImpl(Resource.Type.HostComponent);
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component101");
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.CLUSTER_NAME, "Cluster100");
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_NAME, "Host100");
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.SERVICE_GROUP_NAME, SERVICE_GROUP_NAME);
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.SERVICE_NAME, "Service100");
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.COMPONENT_NAME, "Component101");
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.STATE, State.INSTALLED.name());
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.DESIRED_STATE, State.STARTED.name());
     hostsComponentResource2.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
+        HostComponentResourceProvider.VERSION, stackId2.getStackVersion());
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.DESIRED_STACK_ID, stackId2.getStackId());
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.UPGRADE_STATE, UpgradeState.NONE.name());
 
     Resource hostsComponentResource3 = new ResourceImpl(Resource.Type.HostComponent);
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component102");
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.CLUSTER_NAME, "Cluster100");
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_NAME, "Host100");
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.SERVICE_GROUP_NAME, SERVICE_GROUP_NAME);
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.SERVICE_NAME, "Service100");
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.COMPONENT_NAME, "Component102");
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.STATE, State.INSTALLED.name());
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.DESIRED_STATE, State.STARTED.name());
     hostsComponentResource3.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
+        HostComponentResourceProvider.VERSION, stackId2.getStackVersion());
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.DESIRED_STACK_ID, stackId2.getStackId());
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.UPGRADE_STATE, UpgradeState.NONE.name());
 
     hostsComponentResources.add(hostsComponentResource1);
     hostsComponentResources.add(hostsComponentResource2);
@@ -294,7 +294,7 @@ public class HostComponentResourceProviderTest {
         Assert.assertEquals(expectedNameValues.get(key), resource.getPropertyValue(key));
       }
       names.add((String) resource.getPropertyValue(
-          HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+          HostComponentResourceProvider.COMPONENT_NAME));
     }
     // Make sure that all of the response objects got moved into resources
     for (ServiceComponentHostResponse response : allResponse) {
@@ -369,7 +369,7 @@ public class HostComponentResourceProviderTest {
     changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
 
     expect(managementController.addStages(null, cluster, mapRequestProps, null, null, null, changedHosts,
-        Collections.emptyList(), false, false)).andReturn(stageContainer).anyTimes();
+        Collections.emptyList(), false, false, false, false)).andReturn(stageContainer).once();
 
     stageContainer.persist();
     expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
@@ -392,18 +392,18 @@ public class HostComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    properties.put(HostComponentResourceProvider.STATE, "STARTED");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     // update the cluster named Cluster102
     Predicate predicate = new PredicateBuilder().property(
-        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID).equals("INSTALLED").and().
-            property(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID).equals("ServiceGroup100").and().
-            property(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID).equals("Service100").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID).equals(100L).toPredicate();
+        HostComponentResourceProvider.CLUSTER_NAME).equals("Cluster102").and().
+        property(HostComponentResourceProvider.STATE).equals("INSTALLED").and().
+            property(HostComponentResourceProvider.SERVICE_GROUP_NAME).equals("ServiceGroup100").and().
+            property(HostComponentResourceProvider.SERVICE_NAME).equals("Service100").and().
+        property(HostComponentResourceProvider.ID).equals(100L).toPredicate();
     RequestStatus requestStatus = provider.updateResources(request, predicate);
     Resource responseResource = requestStatus.getRequestResource();
     assertEquals("response msg", responseResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "message")));
@@ -455,10 +455,10 @@ public class HostComponentResourceProviderTest {
     provider.addObserver(observer);
 
     Predicate predicate = new PredicateBuilder().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID).equals(1L).and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID).equals("Component100").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
+        property(HostComponentResourceProvider.ID).equals(1L).and().
+        property(HostComponentResourceProvider.COMPONENT_NAME).equals("Component100").and().
+        property(HostComponentResourceProvider.COMPONENT_TYPE).equals("Component100").and().
+        property(HostComponentResourceProvider.HOST_NAME).equals("Host100").toPredicate();
     provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
@@ -570,16 +570,16 @@ public class HostComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    properties.put(HostComponentResourceProvider.STATE, "STARTED");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     // update the cluster named Cluster102
     Predicate predicate = new PredicateBuilder().property(
-        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID).equals("INSTALLED").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID).equals(100L).toPredicate();
+        HostComponentResourceProvider.CLUSTER_NAME).equals("Cluster102").and().
+        property(HostComponentResourceProvider.STATE).equals("INSTALLED").and().
+        property(HostComponentResourceProvider.ID).equals(100L).toPredicate();
 
 
     try {
@@ -610,7 +610,8 @@ public class HostComponentResourceProviderTest {
 
     provider.setFieldValue("maintenanceStateHelper", injector.getInstance(MaintenanceStateHelper.class));
 
-    RequestStageContainer requestStages = provider.updateHostComponents(null, requests, requestProperties, runSmokeTest);
+    RequestStageContainer requestStages = provider.updateHostComponents(null, requests, requestProperties,
+        runSmokeTest, false, false);
     requestStages.persist();
     return requestStages.getRequestStatusResponse();
   }

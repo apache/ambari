@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -49,7 +50,9 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConditionalField;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.IfValueMatchType;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Masked;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
@@ -90,6 +93,7 @@ import com.google.inject.Provider;
 public class ConfigureAction extends AbstractUpgradeServerAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
+  private static final String ALL_SYMBOL = "*";
 
   /**
    * Used to update the configuration properties.
@@ -219,8 +223,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     List<Transfer> transfers = Collections.emptyList();
     String transferJson = commandParameters.get(ConfigureTask.PARAMETER_TRANSFERS);
     if (null != transferJson) {
-      transfers = m_gson.fromJson(
-        transferJson, new TypeToken<List<Transfer>>(){}.getType());
+      transfers = m_gson.fromJson(transferJson, new TypeToken<List<Transfer>>(){}.getType());
       transfers = getAllowedTransfers(cluster, configType, transfers);
     }
 
@@ -228,8 +231,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     List<Replace> replacements = Collections.emptyList();
     String replaceJson = commandParameters.get(ConfigureTask.PARAMETER_REPLACEMENTS);
     if (null != replaceJson) {
-      replacements = m_gson.fromJson(
-          replaceJson, new TypeToken<List<Replace>>(){}.getType());
+      replacements = m_gson.fromJson(replaceJson, new TypeToken<List<Replace>>(){}.getType());
       replacements = getAllowedReplacements(cluster, configType, replacements);
     }
 
@@ -237,8 +239,8 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     List<Insert> insertions = Collections.emptyList();
     String insertJson = commandParameters.get(ConfigureTask.PARAMETER_INSERTIONS);
     if (null != insertJson) {
-      insertions = m_gson.fromJson(
-          insertJson, new TypeToken<List<Insert>>(){}.getType());
+      insertions = m_gson.fromJson(insertJson, new TypeToken<List<Insert>>(){}.getType());
+      insertions = getAllowedInsertions(cluster, configType, insertions);
     }
 
     // if there is nothing to do, then skip the task
@@ -367,7 +369,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
           break;
         case DELETE:
-          if ("*".equals(transfer.deleteKey)) {
+          if (ALL_SYMBOL.equals(transfer.deleteKey)) {
             newValues.clear();
 
             // append standard output
@@ -472,9 +474,15 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
           newValues.put(replacement.key, replaced);
 
-          updateBufferWithMessage(outputBuffer,
-              MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"", configType,
-                  replacement.key, replacement.find, replacement.replaceWith));
+          // customize the replacement message if the new value is empty
+          if (StringUtils.isEmpty(replacement.replaceWith)) {
+            updateBufferWithMessage(outputBuffer, MessageFormat.format(
+                "Removed \"{0}\" from {1}/{2}", replacement.find, configType, replacement.key));
+          } else {
+            updateBufferWithMessage(outputBuffer,
+                MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"", configType,
+                    replacement.key, replacement.find, replacement.replaceWith));
+          }
         }
       } else {
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
@@ -527,7 +535,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
         newValues.put(insert.key, valueToInsertInto);
 
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
-            "Updated {0}/{1} by inserting {2}", configType, insert.key, insert.value));
+            "Updated {0}/{1} by inserting \"{2}\"", configType, insert.key, insert.value));
       } else {
         updateBufferWithMessage(outputBuffer, MessageFormat.format(
             "Skipping insertion for {0}/{1} because it does not exist or is empty.", configType,
@@ -661,8 +669,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     List<Replace> allowedReplacements= new ArrayList<>();
 
     for(Replace replacement: replacements){
-      if(isOperationAllowed(cluster, configType, replacement.key,
-          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState)) {
+      if(isOperationAllowed(cluster, configType, replacement.key, replacement)) {
         allowedReplacements.add(replacement);
       }
     }
@@ -674,8 +681,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     List<ConfigurationKeyValue> allowedSets = new ArrayList<>();
 
     for(ConfigurationKeyValue configurationKeyValue: sets){
-      if(isOperationAllowed(cluster, configType, configurationKeyValue.key,
-          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState)) {
+      if(isOperationAllowed(cluster, configType, configurationKeyValue.key, configurationKeyValue)) {
         allowedSets.add(configurationKeyValue);
       }
     }
@@ -686,21 +692,28 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
   private List<Transfer> getAllowedTransfers(Cluster cluster, String configType, List<Transfer> transfers){
     List<Transfer> allowedTransfers = new ArrayList<>();
     for (Transfer transfer : transfers) {
-      String key = "";
+      String key;
       if(transfer.operation == TransferOperation.DELETE) {
         key = transfer.deleteKey;
       } else {
         key = transfer.fromKey;
       }
 
-      if(isOperationAllowed(cluster, configType, key,
-          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState)) {
+      if(isOperationAllowed(cluster, configType, key, transfer)) {
         allowedTransfers.add(transfer);
       }
     }
 
     return allowedTransfers;
   }
+
+
+  private List<Insert> getAllowedInsertions(Cluster cluster, String configType, List<Insert> insertions){
+    return insertions.stream()
+      .filter(insertion -> isOperationAllowed(cluster, configType, insertion.key, insertion))
+      .collect(Collectors.toList());
+  }
+
 
   /**
    * Gets whether the {@code set} directive is valid based on the optional
@@ -712,66 +725,63 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
    *          the configuration type for the change (not {@code null}).
    * @param targetPropertyKey
    *          the property to set (not {@code null}).
-   * @param ifKey
-   *          the property name to check in order to satisfy a condition, or
-   *          {@code null} if there is no condition.
-   * @param ifType
-   *          the property type to check in order to satisfy a condition, or
-   *          {@code null} if there is no condition.
-   * @param ifValue
-   *          the property value to compare for equality in order to satisfy a
-   *          condition, or {@code null} if there is no condition.
-   * @param ifKeyState
-   *          the state of the if-property. If the property is
-   *          {@link PropertyKeyState#ABSENT}, then execute the set directory
-   *          only if the if-key is absent.
+   * @param operationItem
+   *           operation field compatible with {@link ConditionalField}
    * @return {@code true} if the set operation should be executed by the
    *         upgrade, {@code false} otherwise.
    */
-  private boolean isOperationAllowed(Cluster cluster, String configType, String targetPropertyKey,
-      String ifKey, String ifType, String ifValue, PropertyKeyState ifKeyState){
+  private boolean isOperationAllowed(Cluster cluster, String configType, String targetPropertyKey, ConditionalField operationItem)
+  {
     boolean isAllowed = true;
 
-    boolean ifKeyIsNotBlank = StringUtils.isNotBlank(ifKey);
-    boolean ifTypeIsNotBlank = StringUtils.isNotBlank(ifType);
-    boolean ifValueIsBlank = StringUtils.isBlank(ifValue);
+    boolean ifKeyIsNotBlank = StringUtils.isNotBlank(operationItem.ifKey);
+    boolean ifTypeIsNotBlank = StringUtils.isNotBlank(operationItem.ifType);
+    boolean ifValueIsBlank = StringUtils.isBlank(operationItem.ifValue);
 
     // if-key/if-type and no value - set only if absent
-    if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank && ifKeyState == PropertyKeyState.ABSENT) {
-      boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
+    if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank && operationItem.ifKeyState == PropertyKeyState.ABSENT) {
+      boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, operationItem.ifType, operationItem.ifKey);
       if (keyPresent) {
         LOG.info("Skipping property operation for {}/{} as the key {} for {} is present",
-          configType, targetPropertyKey, ifKey, ifType);
+          configType, targetPropertyKey, operationItem.ifKey, operationItem.ifType);
         isAllowed = false;
       }
       // if-key/if-type and no value - set only is present
-    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank && ifKeyState == PropertyKeyState.PRESENT) {
-      boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
+    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank
+      && operationItem.ifKeyState == PropertyKeyState.PRESENT) {
+
+      boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, operationItem.ifType, operationItem.ifKey);
       if (!keyPresent) {
         LOG.info("Skipping property operation for {}/{} as the key {} for {} is not present",
-          configType, targetPropertyKey, ifKey, ifType);
+          configType, targetPropertyKey, operationItem.ifKey, operationItem.ifType);
         isAllowed = false;
       }
       // if-key/if-type and a value to check - set only if values match
     } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && !ifValueIsBlank) {
-      String ifConfigType = ifType;
-      String checkValue = getDesiredConfigurationValue(cluster, ifConfigType, ifKey);
+      String checkValue = getDesiredConfigurationValue(cluster, operationItem.ifType, operationItem.ifKey);
 
       // the check value is blank and there is an if-key-state of ABSENT - in
       // this case, it means set the value if it matches or if it's absent
-      if (ifKeyState == PropertyKeyState.ABSENT) {
-        boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
+      if (operationItem.ifKeyState == PropertyKeyState.ABSENT) {
+        boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, operationItem.ifType, operationItem.ifKey);
         if (!keyPresent) {
           return true;
         }
       }
 
       // the if-key was found, so we need to do a comparison
-      if (!StringUtils.equalsIgnoreCase(ifValue, checkValue)) {
-        // skip adding
-        LOG.info("Skipping property operation for {}/{} as the value {} for {}/{} is not equal to {}",
-                 configType, targetPropertyKey, checkValue, ifConfigType, ifKey, ifValue);
-        isAllowed = false;
+      if (operationItem.ifValueMatchType == IfValueMatchType.PARTIAL) {
+        if (!StringUtils.containsIgnoreCase(checkValue, operationItem.ifValue) ^ operationItem.ifValueNotMatched) {
+          LOG.info("Skipping property operation for {}/{} as the value {} for {}/{} is not found in {}",
+            configType, targetPropertyKey, operationItem.ifValue, operationItem.ifType, operationItem.ifKey, checkValue);
+          isAllowed = false;
+        }
+      } else {
+        if (!StringUtils.equalsIgnoreCase(operationItem.ifValue, checkValue) ^ operationItem.ifValueNotMatched) {
+          LOG.info("Skipping property operation for {}/{} as the value {} for {}/{} is not equal to {}",
+            configType, targetPropertyKey, checkValue, operationItem.ifType, operationItem.ifKey, operationItem.ifValue);
+          isAllowed = false;
+        }
       }
     }
 

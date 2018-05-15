@@ -40,7 +40,7 @@ def phoenix_service(action = 'start'): # 'start', 'stop', 'status'
         Execute(daemon_cmd,
                 user=format("{hbase_user}"),
                 environment=env)
-  
+
       elif action == 'stop':
         Execute(daemon_cmd,
                 user=format("{hbase_user}"),

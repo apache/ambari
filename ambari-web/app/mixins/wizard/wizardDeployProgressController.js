@@ -79,7 +79,12 @@ App.wizardDeployProgressControllerMixin = Em.Mixin.create({
    * @method ajaxQueueRequestErrorCallback
    */
   ajaxQueueRequestErrorCallback: function (xhr, status, error) {
-    var responseText = JSON.parse(xhr.responseText);
+    var responseText;
+    try{
+      responseText = JSON.parse(xhr.responseText);
+    } catch(e) {
+     responseText = {message: xhr.responseText}
+    }
     var controller = App.router.get(App.clusterStatus.wizardControllerName);
     controller.registerErrPopup(Em.I18n.t('common.error'), responseText.message);
     this.set('hasErrorOccurred', true);

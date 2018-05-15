@@ -107,7 +107,10 @@ function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Setti
       $t('common.deleteConfirmation', {
         instanceType: $t('common.group').toLowerCase(),
         instanceName: '"' + group.group_name + '"'
-      })
+      }),
+      null,
+      null,
+      {primaryClass: 'btn-danger'}
     ).then(function() {
       Cluster.getPrivilegesForResource({
         nameFilter : group.group_name,

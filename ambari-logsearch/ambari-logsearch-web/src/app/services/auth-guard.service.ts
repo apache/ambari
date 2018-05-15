@@ -23,7 +23,7 @@ import {Observable} from 'rxjs/Observable';
 import {AuthService} from '@app/services/auth.service';
 
 /**
- * This service meant to be a single place where the authorization should happen.
+ * This guard goal is to prevent to display screens where authorization needs.
  */
 @Injectable()
 export class AuthGuardService implements CanActivate {

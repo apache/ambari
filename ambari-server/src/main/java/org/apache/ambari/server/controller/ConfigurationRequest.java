@@ -20,6 +20,10 @@ package org.apache.ambari.server.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * This class encapsulates a configuration update request.
  * The configuration properties are grouped at service level. It is assumed that
@@ -79,6 +83,7 @@ public class ConfigurationRequest {
   /**
    * @return the type
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.TYPE_PROPERTY_ID)
   public String getType() {
     return type;
   }
@@ -93,6 +98,7 @@ public class ConfigurationRequest {
   /**
    * @return the versionTag
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.TAG_PROPERTY_ID)
   public String getVersionTag() {
     return tag;
   }
@@ -107,6 +113,7 @@ public class ConfigurationRequest {
   /**
    * @return the configs
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.PROPERTIES_PROPERTY_ID)
   public Map<String, String> getProperties() {
     return configs;
   }
@@ -121,6 +128,7 @@ public class ConfigurationRequest {
   /**
    * @return the clusterName
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.CLUSTER_NAME)
   public String getClusterName() {
     return clusterName;
   }
@@ -162,6 +170,7 @@ public class ConfigurationRequest {
    * Gets if the configuration is to be selected.
    * @return <code>true</code> if the configuration is selected.
    */
+  @ApiModelProperty(hidden = true)
   public boolean isSelected() {
     return selected;
   }
@@ -187,6 +196,7 @@ public class ConfigurationRequest {
   /**
    * @return Attributes of configs
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID)
   public Map<String, Map<String, String>> getPropertiesAttributes() {
     return configsAttributes;
   }
@@ -196,6 +206,7 @@ public class ConfigurationRequest {
     this.configsAttributes = configsAttributes;
   }
 
+  @ApiModelProperty(name = ConfigurationResourceProvider.VERSION_PROPERTY_ID)
   public Long getVersion() {
     return version;
   }
@@ -204,6 +215,7 @@ public class ConfigurationRequest {
     this.version = version;
   }
 
+  @ApiModelProperty(hidden = true)
   public String getServiceConfigVersionNote() {
     return serviceConfigVersionNote;
   }

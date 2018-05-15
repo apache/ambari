@@ -21,10 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.SecretReference;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * This class encapsulates a configuration update request.
@@ -138,6 +141,7 @@ public class ConfigurationResponse {
   /**
    * @return the versionTag
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.TAG_PROPERTY_ID)
   public String getVersionTag() {
     return versionTag;
   }
@@ -152,6 +156,7 @@ public class ConfigurationResponse {
   /**
    * @return the configs
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.PROPERTIES_PROPERTY_ID)
   public Map<String, String> getConfigs() {
     return configs;
   }
@@ -163,6 +168,7 @@ public class ConfigurationResponse {
     this.configs = configs;
   }
 
+  @ApiModelProperty(name = ConfigurationResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID)
   public Map<String, Map<String, String>> getConfigAttributes() {
     return configAttributes;
   }
@@ -174,6 +180,7 @@ public class ConfigurationResponse {
   /**
    * @return the type
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.TYPE_PROPERTY_ID)
   public String getType() {
     return type;
   }
@@ -181,10 +188,12 @@ public class ConfigurationResponse {
   /**
    * @return the clusterName
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.CLUSTER_NAME)
   public String getClusterName() {
     return clusterName;
   }
 
+  @ApiModelProperty(name = ConfigurationResourceProvider.VERSION_PROPERTY_ID)
   public Long getVersion() {
     return version;
   }
@@ -214,6 +223,7 @@ public class ConfigurationResponse {
    *
    * @return
    */
+  @ApiModelProperty(name = ConfigurationResourceProvider.STACK_ID, dataType = "String")
   public StackId getStackId() {
     return stackId;
   }
@@ -268,6 +278,7 @@ public class ConfigurationResponse {
     return result;
   }
 
+  @ApiModelProperty(hidden = true)
   public List<Long> getServiceConfigVersions() {
     return serviceConfigVersions;
   }
@@ -276,6 +287,7 @@ public class ConfigurationResponse {
     this.serviceConfigVersions = serviceConfigVersions;
   }
 
+  @ApiModelProperty(hidden = true)
   public Map<PropertyInfo.PropertyType, Set<String>> getPropertiesTypes() {
     return propertiesTypes;
   }

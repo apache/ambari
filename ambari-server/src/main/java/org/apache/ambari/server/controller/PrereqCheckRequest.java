@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
@@ -149,5 +150,15 @@ public class PrereqCheckRequest {
    */
   public boolean isRevert() {
     return m_revert;
+  }
+
+  public Direction getDirection() {
+    int direction = m_sourceStackId.compareTo(m_targetRepositoryVersion.getStackId());
+    if (direction < 0) {
+      return Direction.UPGRADE;
+    } else if (direction > 0) {
+      return Direction.DOWNGRADE;
+    }
+    throw new RuntimeException("Invalid upgrade direction. Source and target version is the same.");
   }
 }

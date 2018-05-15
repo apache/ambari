@@ -83,34 +83,56 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   private static final Logger LOG = LoggerFactory.getLogger(ComponentResourceProvider.class);
 
-  // ----- Property ID constants ---------------------------------------------
+  public static final String SERVICE_COMPONENT_INFO = "ServiceComponentInfo";
 
-  // Components
+  public static final String CLUSTER_ID_PROPERTY_ID = "cluster_id";
+  public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
+  public static final String SERVICE_GROUP_ID_PROPERTY_ID = "service_group_id";
+  public static final String SERVICE_GROUP_NAME_PROPERTY_ID = "service_group_name";
+  public static final String SERVICE_ID_PROPERTY_ID = "service_id";
+  public static final String SERVICE_NAME_PROPERTY_ID = "service_name";
+  public static final String SERVICE_TYPE_PROPERTY_ID = "service_type";
+  public static final String COMPONENT_ID_PROPERTY_ID = "id";
+  public static final String COMPONENT_NAME_PROPERTY_ID  = "component_name";
+  public static final String COMPONENT_TYPE_PROPERTY_ID = "component_type";
+  public static final String DISPLAY_NAME_PROPERTY_ID = "display_name";
+  public static final String STATE_PROPERTY_ID = "state";
+  public static final String CATEGORY_PROPERTY_ID = "category";
+  public static final String TOTAL_COUNT_PROPERTY_ID = "total_count";
+  public static final String STARTED_COUNT_PROPERTY_ID = "started_count";
+  public static final String INSTALLED_COUNT_PROPERTY_ID = "installed_count";
+  public static final String INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID = "installed_and_maintenance_off_count";
+  public static final String INIT_COUNT_PROPERTY_ID = "init_count";
+  public static final String UNKNOWN_COUNT_PROPERTY_ID = "unknown_count";
+  public static final String INSTALL_FAILED_COUNT_PROPERTY_ID = "install_failed_count";
+  public static final String RECOVERY_ENABLED_PROPERTY_ID = "recovery_enabled";
+  public static final String DESIRED_STACK_PROPERTY_ID = "desired_stack";
+  public static final String DESIRED_VERSION_PROPERTY_ID = "desired_version";
 
-  protected static final String COMPONENT_CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_id";
-  public static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
-  protected static final String COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
-  protected static final String COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
-  protected static final String COMPONENT_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
-  public static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
-  public static final String COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
-  protected static final String COMPONENT_COMPONENT_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
-  public static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
-  protected static final String COMPONENT_COMPONENT_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_type";
-  protected static final String COMPONENT_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "display_name";
-  protected static final String COMPONENT_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
-  protected static final String COMPONENT_CATEGORY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "category";
-  protected static final String COMPONENT_TOTAL_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "total_count";
-  protected static final String COMPONENT_STARTED_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "started_count";
-  protected static final String COMPONENT_INSTALLED_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "installed_count";
-  protected static final String COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "installed_and_maintenance_off_count";
-
-  protected static final String COMPONENT_INIT_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "init_count";
-  protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "unknown_count";
-  protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "install_failed_count";
-  public static final String COMPONENT_RECOVERY_ENABLED_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "recovery_enabled";
-  protected static final String COMPONENT_DESIRED_STACK = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
-  protected static final String COMPONENT_DESIRED_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_version";
+  public static final String CLUSTER_ID = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_ID_PROPERTY_ID;
+  public static final String CLUSTER_NAME = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME_PROPERTY_ID;
+  public static final String SERVICE_GROUP_ID = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_GROUP_ID_PROPERTY_ID;
+  public static final String SERVICE_GROUP_NAME = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_GROUP_NAME_PROPERTY_ID;
+  public static final String SERVICE_ID = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_ID_PROPERTY_ID;
+  public static final String SERVICE_TYPE = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_TYPE_PROPERTY_ID;
+  public static final String SERVICE_NAME = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_NAME_PROPERTY_ID;
+  public static final String COMPONENT_ID = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + COMPONENT_ID_PROPERTY_ID;
+  public static final String COMPONENT_TYPE = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + COMPONENT_TYPE_PROPERTY_ID;
+  public static final String COMPONENT_NAME = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + COMPONENT_NAME_PROPERTY_ID;
+  public static final String DISPLAY_NAME = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + DISPLAY_NAME_PROPERTY_ID;
+  public static final String STATE = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + STATE_PROPERTY_ID;
+  public static final String CATEGORY = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + CATEGORY_PROPERTY_ID;
+  public static final String TOTAL_COUNT = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_COUNT_PROPERTY_ID;
+  public static final String STARTED_COUNT = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + STARTED_COUNT_PROPERTY_ID;
+  public static final String INSTALLED_COUNT = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + INSTALLED_COUNT_PROPERTY_ID;
+  public static final String INSTALLED_AND_MAINTENANCE_OFF_COUNT =
+          SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID;
+  public static final String INIT_COUNT = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + INIT_COUNT_PROPERTY_ID;
+  public static final String UNKNOWN_COUNT = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + UNKNOWN_COUNT_PROPERTY_ID;
+  public static final String INSTALL_FAILED_COUNT = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + INSTALL_FAILED_COUNT_PROPERTY_ID;
+  public static final String RECOVERY_ENABLED = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + RECOVERY_ENABLED_PROPERTY_ID;
+  public static final String DESIRED_STACK = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + DESIRED_STACK_PROPERTY_ID;
+  public static final String DESIRED_VERSION = SERVICE_COMPONENT_INFO + PropertyHelper.EXTERNAL_PATH_SEP + DESIRED_VERSION_PROPERTY_ID;
 
   private static final String TRUE = "true";
 
@@ -118,12 +140,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
 
   private static Set<String> pkPropertyIds = Sets.newHashSet(
-          COMPONENT_CLUSTER_NAME_PROPERTY_ID,
-          COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID,
-          COMPONENT_SERVICE_NAME_PROPERTY_ID,
-          COMPONENT_COMPONENT_ID_PROPERTY_ID,
-          COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-          COMPONENT_COMPONENT_TYPE_PROPERTY_ID);
+          CLUSTER_NAME,
+          SERVICE_GROUP_NAME,
+          SERVICE_NAME,
+          COMPONENT_ID,
+          COMPONENT_NAME,
+          COMPONENT_TYPE);
 
   /**
    * The property ids for an servce resource.
@@ -137,38 +159,36 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   static {
     // properties
-    PROPERTY_IDS.add(COMPONENT_CLUSTER_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_SERVICE_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_SERVICE_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_SERVICE_TYPE_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_COMPONENT_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_COMPONENT_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_COMPONENT_TYPE_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_DISPLAY_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_STATE_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_CATEGORY_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_TOTAL_COUNT_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_STARTED_COUNT_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID);
-
-    PROPERTY_IDS.add(COMPONENT_INIT_COUNT_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_RECOVERY_ENABLED_ID);
-    PROPERTY_IDS.add(COMPONENT_DESIRED_STACK);
-    PROPERTY_IDS.add(COMPONENT_DESIRED_VERSION);
-
+    PROPERTY_IDS.add(CLUSTER_ID);
+    PROPERTY_IDS.add(CLUSTER_NAME);
+    PROPERTY_IDS.add(SERVICE_GROUP_ID);
+    PROPERTY_IDS.add(SERVICE_GROUP_NAME);
+    PROPERTY_IDS.add(SERVICE_ID);
+    PROPERTY_IDS.add(SERVICE_NAME);
+    PROPERTY_IDS.add(SERVICE_TYPE);
+    PROPERTY_IDS.add(COMPONENT_ID);
+    PROPERTY_IDS.add(COMPONENT_NAME);
+    PROPERTY_IDS.add(COMPONENT_TYPE);
+    PROPERTY_IDS.add(DISPLAY_NAME);
+    PROPERTY_IDS.add(STATE);
+    PROPERTY_IDS.add(CATEGORY);
+    PROPERTY_IDS.add(TOTAL_COUNT);
+    PROPERTY_IDS.add(STARTED_COUNT);
+    PROPERTY_IDS.add(INSTALLED_COUNT);
+    PROPERTY_IDS.add(INSTALLED_AND_MAINTENANCE_OFF_COUNT);
+    PROPERTY_IDS.add(INIT_COUNT);
+    PROPERTY_IDS.add(UNKNOWN_COUNT);
+    PROPERTY_IDS.add(INSTALL_FAILED_COUNT);
+    PROPERTY_IDS.add(RECOVERY_ENABLED);
+    PROPERTY_IDS.add(DESIRED_STACK);
+    PROPERTY_IDS.add(DESIRED_VERSION);
     PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Component, COMPONENT_COMPONENT_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Service, COMPONENT_SERVICE_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Component, COMPONENT_NAME);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_GROUP_NAME);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_NAME);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, CLUSTER_NAME);
   }
 
   private MaintenanceStateHelper maintenanceStateHelper;
@@ -223,23 +243,23 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ServiceComponentResponse response = itr.next();
         notifyCreate(Resource.Type.Component, request);
         Resource resource = new ResourceImpl(Resource.Type.Component);
-        resource.setProperty(COMPONENT_CLUSTER_ID_PROPERTY_ID, response.getClusterId());
-        resource.setProperty(COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
-        resource.setProperty(COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId());
-        resource.setProperty(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
-        resource.setProperty(COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId());
-        resource.setProperty(COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
-        resource.setProperty(COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType());
-        resource.setProperty(COMPONENT_COMPONENT_ID_PROPERTY_ID, response.getComponentId());
-        resource.setProperty(COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName());
-        resource.setProperty(COMPONENT_COMPONENT_TYPE_PROPERTY_ID, response.getComponentType());
-        resource.setProperty(COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName());
-        resource.setProperty(COMPONENT_STATE_PROPERTY_ID, response.getDesiredState());
-        resource.setProperty(COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory());
-        resource.setProperty(COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getServiceComponentStateCount());
-        resource.setProperty(COMPONENT_RECOVERY_ENABLED_ID, response.isRecoveryEnabled());
-        resource.setProperty(COMPONENT_DESIRED_STACK, response.getDesiredStackId());
-        resource.setProperty(COMPONENT_DESIRED_VERSION, response.getDesiredVersion());
+        resource.setProperty(CLUSTER_ID, response.getClusterId());
+        resource.setProperty(CLUSTER_NAME, response.getClusterName());
+        resource.setProperty(SERVICE_GROUP_ID, response.getServiceGroupId());
+        resource.setProperty(SERVICE_GROUP_NAME, response.getServiceGroupName());
+        resource.setProperty(SERVICE_ID, response.getServiceId());
+        resource.setProperty(SERVICE_NAME, response.getServiceName());
+        resource.setProperty(SERVICE_TYPE, response.getServiceType());
+        resource.setProperty(COMPONENT_ID, response.getComponentId());
+        resource.setProperty(COMPONENT_NAME, response.getComponentName());
+        resource.setProperty(COMPONENT_TYPE, response.getComponentType());
+        resource.setProperty(DISPLAY_NAME, response.getDisplayName());
+        resource.setProperty(STATE, response.getDesiredState());
+        resource.setProperty(CATEGORY, response.getCategory());
+        resource.setProperty(TOTAL_COUNT, response.getServiceComponentStateCount());
+        resource.setProperty(RECOVERY_ENABLED, response.isRecoveryEnabled());
+        resource.setProperty(DESIRED_STACK, response.getDesiredStackId());
+        resource.setProperty(DESIRED_VERSION, response.getDesiredVersion());
 
         associatedResources.add(resource);
       }
@@ -271,29 +291,29 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
     for (ServiceComponentResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Component);
-      setResourceProperty(resource, COMPONENT_CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
-      setResourceProperty(resource, COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
-      setResourceProperty(resource, COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId(), requestedIds);
-      setResourceProperty(resource, COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName(), requestedIds);
-      setResourceProperty(resource, COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId(), requestedIds);
-      setResourceProperty(resource, COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
-      setResourceProperty(resource, COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType(), requestedIds);
-      setResourceProperty(resource, COMPONENT_COMPONENT_ID_PROPERTY_ID, response.getComponentId(), requestedIds);
-      setResourceProperty(resource, COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
-      setResourceProperty(resource, COMPONENT_COMPONENT_TYPE_PROPERTY_ID, response.getComponentType(), requestedIds);
-      setResourceProperty(resource, COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName(), requestedIds);
-      setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
-      setResourceProperty(resource, COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory(), requestedIds);
-      setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("totalCount"), requestedIds);
-      setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("startedCount"), requestedIds);
-      setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installedCount"), requestedIds);
-      setResourceProperty(resource, COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installedAndMaintenanceOffCount"), requestedIds);
-      setResourceProperty(resource, COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installFailedCount"), requestedIds);
-      setResourceProperty(resource, COMPONENT_INIT_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("initCount"), requestedIds);
-      setResourceProperty(resource, COMPONENT_UNKNOWN_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);
-      setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
-      setResourceProperty(resource, COMPONENT_DESIRED_STACK, response.getDesiredStackId(), requestedIds);
-      setResourceProperty(resource, COMPONENT_DESIRED_VERSION, response.getDesiredVersion(), requestedIds);
+      setResourceProperty(resource, CLUSTER_ID, response.getClusterId(), requestedIds);
+      setResourceProperty(resource, CLUSTER_NAME, response.getClusterName(), requestedIds);
+      setResourceProperty(resource, SERVICE_GROUP_ID, response.getServiceGroupId(), requestedIds);
+      setResourceProperty(resource, SERVICE_GROUP_NAME, response.getServiceGroupName(), requestedIds);
+      setResourceProperty(resource, SERVICE_ID, response.getServiceId(), requestedIds);
+      setResourceProperty(resource, SERVICE_NAME, response.getServiceName(), requestedIds);
+      setResourceProperty(resource, SERVICE_TYPE, response.getServiceType(), requestedIds);
+      setResourceProperty(resource, COMPONENT_ID, response.getComponentId(), requestedIds);
+      setResourceProperty(resource, COMPONENT_NAME, response.getComponentName(), requestedIds);
+      setResourceProperty(resource, COMPONENT_TYPE, response.getComponentType(), requestedIds);
+      setResourceProperty(resource, DISPLAY_NAME, response.getDisplayName(), requestedIds);
+      setResourceProperty(resource, STATE, response.getDesiredState(), requestedIds);
+      setResourceProperty(resource, CATEGORY, response.getCategory(), requestedIds);
+      setResourceProperty(resource, TOTAL_COUNT, response.getServiceComponentStateCount().get("totalCount"), requestedIds);
+      setResourceProperty(resource, STARTED_COUNT, response.getServiceComponentStateCount().get("startedCount"), requestedIds);
+      setResourceProperty(resource, INSTALLED_COUNT, response.getServiceComponentStateCount().get("installedCount"), requestedIds);
+      setResourceProperty(resource, INSTALLED_AND_MAINTENANCE_OFF_COUNT, response.getServiceComponentStateCount().get("installedAndMaintenanceOffCount"), requestedIds);
+      setResourceProperty(resource, INSTALL_FAILED_COUNT, response.getServiceComponentStateCount().get("installFailedCount"), requestedIds);
+      setResourceProperty(resource, INIT_COUNT, response.getServiceComponentStateCount().get("initCount"), requestedIds);
+      setResourceProperty(resource, UNKNOWN_COUNT, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);
+      setResourceProperty(resource, RECOVERY_ENABLED, String.valueOf(response.isRecoveryEnabled()), requestedIds);
+      setResourceProperty(resource, DESIRED_STACK, response.getDesiredStackId(), requestedIds);
+      setResourceProperty(resource, DESIRED_VERSION, response.getDesiredVersion(), requestedIds);
 
       resources.add(resource);
     }
@@ -368,14 +388,14 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
    */
   private ServiceComponentRequest getRequest(Map<String, Object> properties) {
     return new ServiceComponentRequest(
-        (String) properties.get(COMPONENT_CLUSTER_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_COMPONENT_TYPE_PROPERTY_ID),
-        (String) properties.get(COMPONENT_STATE_PROPERTY_ID),
-        (String) properties.get(COMPONENT_RECOVERY_ENABLED_ID),
-        (String) properties.get(COMPONENT_CATEGORY_PROPERTY_ID));
+        (String) properties.get(CLUSTER_NAME),
+        (String) properties.get(SERVICE_GROUP_NAME),
+        (String) properties.get(SERVICE_NAME),
+        (String) properties.get(COMPONENT_NAME),
+        (String) properties.get(COMPONENT_TYPE),
+        (String) properties.get(STATE),
+        (String) properties.get(RECOVERY_ENABLED),
+        (String) properties.get(CATEGORY));
   }
 
   // Create the components for the given requests.

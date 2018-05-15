@@ -38,6 +38,7 @@ class ComponentStatusExecutor(threading.Thread):
     self.stop_event = initializer_module.stop_event
     self.recovery_manager = initializer_module.recovery_manager
     self.reported_component_status = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:None))) # component statuses which were received by server
+    self.server_responses_listener = initializer_module.server_responses_listener
     threading.Thread.__init__(self)
 
   def run(self):
@@ -93,6 +94,11 @@ class ComponentStatusExecutor(threading.Thread):
               service_name = component_dict.serviceName
               component_name = component_dict.componentName
 
+              # do not run status commands for the component which is starting/stopping or doing other action
+              if self.customServiceOrchestrator.commandsRunningForComponent(cluster_id, component_name):
+                logger.info("Skipping status command for {0}. Since command for it is running".format(component_name))
+                continue
+
               command_dict = {
                 'serviceName': service_name,
                 'role': component_name,
@@ -102,6 +108,11 @@ class ComponentStatusExecutor(threading.Thread):
 
               component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
               status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
+
+              # if exec command for component started to run after status command completion
+              if self.customServiceOrchestrator.commandsRunningForComponent(cluster_id, component_name):
+                logger.info("Skipped status command result for {0}. Since command for it is running".format(component_name))
+                continue
 
               # log if status command failed
               if status == LiveStatus.DEAD_STATUS:
@@ -135,8 +146,10 @@ class ComponentStatusExecutor(threading.Thread):
     if not cluster_reports or not self.initializer_module.is_registered:
       return
 
-    self.initializer_module.connection.send(message={'clusters': cluster_reports}, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    correlation_id = self.initializer_module.connection.send(message={'clusters': cluster_reports}, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_reported_component_status(cluster_reports)
 
+  def save_reported_component_status(self, cluster_reports):
     for cluster_id, reports in cluster_reports.iteritems():
       for report in reports:
         component_name = report['componentName']

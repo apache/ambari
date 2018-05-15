@@ -31,12 +31,12 @@
           <div class="clearfix">
             {{#each task in controller.tasks}}
               {{#view view.taskView contentBinding="task"}}
-                <div class="item">
-                  <div {{bindAttr class=":pull-left view.linkClass view.parentView.labelWidth"}}>
+                <div class="item row">
+                  <div {{bindAttr class="view.linkClass view.parentView.labelWidth"}}>
                     <i {{bindAttr class="view.icon view.iconColor"}}></i>
                     <a {{action "showHostProgressPopup" task target="controller"}} >{{task.title}}</a>
                   </div>
-                  <div {{bindAttr class="view.showProgressBar::hide :row :col-md-5 :pull-left" }}>
+                  <div {{bindAttr class="view.showProgressBar::hide :col-md-5" }}>
                     <div {{bindAttr class=":progress-wrapper controller.isRollback::col-md-8 controller.isRollback:col-md-3"}}>
                       <div class="progress">
                         <div class="progress-bar-striped active progress-bar-info progress-bar" {{bindAttr style="view.barWidth"}}></div>
@@ -49,7 +49,7 @@
                       <a {{action retryTask target="controller"}} class="btn btn-primary retry"
                                                                   rel="tooltip"
                                                                   data-trigger="click" {{bindAttr title="view.showDBTooltip:testDBRetryTooltip"}}>
-                        <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
+                        <i class="glyphicon glyphicon-repeat glyphicon-white"></i>&nbsp;
                         {{t common.retry}}
                       </a>
 

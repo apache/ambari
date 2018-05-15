@@ -22,11 +22,8 @@ App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hive'),
   serviceName: 'HIVE',
 
-  viewsToShow: {
-  'AUTO_HIVE20_INSTANCE': {},
-  'TEZ_CLUSTER_INSTANCE': {
-    overwriteLabel: 'app.debugHiveQuery'
-  }},
+  viewsToShow: {},
+
   viewLinks: function() {
     var viewsToShow = this.get('viewsToShow');
     var links = [];

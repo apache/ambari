@@ -81,6 +81,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return stepController;
   },
 
+  isInstallerWizard: true,
+
   content: Em.Object.create({
     cluster: null,
     installOptions: null,
@@ -193,6 +195,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.setDBProperty('hosts', dbHosts);
   },
 
+  cancelInstall: function() {
+    return App.showConfirmationPopup(() => {
+      App.router.get('applicationController').goToAdminView();
+    });
+  },
+
   /**
    * Load data for services selected from mpacks. Will be used at <code>Download Mpacks</code> step submit action.
    *
@@ -222,7 +230,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
     this.addError(message);
     return message;
-    
+
     console.log(`${message} ${status} - ${error}`);
   },
 
@@ -290,6 +298,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       stacks.setEach('isSelected', false);
       stacks.sortProperty('id').set('lastObject.isSelected', true);
     }
+    dfd.resolve();
     this.set('content.stacks', App.Stack.find());
     App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
   },
@@ -553,6 +562,164 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.showAlertPopup(header, body);
   },
 
+  getSupportedOSList: function (versionDefinition, stackInfo, dfd) {
+    this.incrementProperty('loadStacksRequestsCounter');
+    return App.ajax.send({
+      name: 'wizard.step1.get_supported_os_types',
+      sender: this,
+      data: {
+        stackName: versionDefinition.VersionDefinition.stack_name,
+        stackVersion: versionDefinition.VersionDefinition.stack_version,
+        versionDefinition: versionDefinition,
+        stackInfo: stackInfo,
+        dfd: dfd
+      },
+      success: 'getSupportedOSListSuccessCallback',
+      error: 'getSupportedOSListErrorCallback'
+    });
+  },
+
+  /**
+   * onSuccess callback for getSupportedOSList.
+   */
+  getSupportedOSListSuccessCallback: function (response, request, data) {
+    var self = this;
+    var stack_default = data.versionDefinition.VersionDefinition.stack_default;
+    var existedOS = data.versionDefinition.operating_systems;
+    var existedMap = {};
+    existedOS.map(function (existedOS) {
+      existedOS.isSelected = true;
+      existedMap[existedOS.OperatingSystems.os_type] = existedOS;
+    });
+    response.operating_systems.forEach(function(supportedOS) {
+      if(!existedMap[supportedOS.OperatingSystems.os_type]) {
+        supportedOS.isSelected = false;
+        existedOS.push(supportedOS);
+      } else {
+        if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.base_url = supportedRepo.Repositories.base_url;
+                repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
+                repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
+          });
+        }
+        else{
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
+          });
+        }
+      }
+    });
+
+    App.stackMapper.map(data.versionDefinition);
+
+    if (!this.decrementProperty('loadStacksRequestsCounter')) {
+      if (data.stackInfo.dfd) {
+        data.stackInfo.dfd.resolve(data.stackInfo.response);
+      } else {
+        var versionData = this.getSelectedRepoVersionData();
+        if (versionData) {
+          this.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
+            self.mergeChanges(data.stackInfo.repos, data.stackInfo.oses, data.stackInfo.stacks);
+            App.Stack.find().setEach('isSelected', false);
+            var stackId = Em.get(versionData, 'data.VersionDefinition.available') || versionInfo.stackNameVersion + "-" + versionInfo.actualVersion;
+            App.Stack.find().findProperty('id', stackId).set('isSelected', true);
+            self.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
+          }).fail(function () {
+            self.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
+          });
+        } else {
+          this.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
+        }
+      }
+    }
+  },
+
+  /**
+   * onError callback for getSupportedOSList
+   */
+  getSupportedOSListErrorCallback: function (request, ajaxOptions, error, data, params) {
+    var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.error.title');
+    var body = "";
+    if(request && request.responseText){
+      try {
+        var json = $.parseJSON(request.responseText);
+        body = json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(header, body);
+  },
+
+  updateRepoOSInfo: function (repoToUpdate, repo) {
+    var deferred = $.Deferred();
+    var repoVersion = this.prepareRepoForSaving(repo);
+    App.ajax.send({
+      name: 'admin.stack_versions.edit.repo',
+      sender: this,
+      data: {
+        stackName: repoToUpdate.stackName,
+        stackVersion: repoToUpdate.stackVersion,
+        repoVersionId: repoToUpdate.id,
+        repoVersion: repoVersion
+      }
+    }).success(function() {
+      deferred.resolve([]);
+    }).error(function() {
+      deferred.resolve([]);
+    });
+    return deferred.promise();
+  },
+
+  /**
+   * transform repo data into json for
+   * saving changes to repository version
+   * @param {Em.Object} repo
+   * @returns {{operating_systems: Array}}
+   */
+  prepareRepoForSaving: function(repo) {
+    var repoVersion = { "operating_systems": [] };
+    var ambariManagedRepositories = !repo.get('useRedhatSatellite');
+    var k = 0;
+    repo.get('operatingSystems').forEach(function (os) {
+      if (os.get('isSelected')) {
+        repoVersion.operating_systems.push({
+          "OperatingSystems": {
+            "os_type": os.get("osType"),
+            "ambari_managed_repositories": ambariManagedRepositories
+          },
+          "repositories": []
+        });
+        os.get('repositories').forEach(function (repository) {
+          if (!(repository.get('isGPL') && _.isEmpty(repository.get('baseUrl')))) {
+            repoVersion.operating_systems[k].repositories.push({
+              "Repositories": {
+                "base_url": repository.get('baseUrl'),
+                "repo_id": repository.get('repoId'),
+                "repo_name": repository.get('repoName'),
+                "components": repository.get('components'),
+                "tags": repository.get('tags'),
+                "distribution": repository.get('distribution')
+              }
+            });
+          }
+        });
+        k++;
+      }
+    });
+    return repoVersion;
+  },
+
   /**
    * Check validation of the customized local urls
    */
@@ -809,7 +976,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   gotoConfigureDownload: function () {
     this.gotoStep('configureDownload');
   },
-  
+
   gotoSelectMpacks: function () {
     this.gotoStep('selectMpacks');
   },
@@ -912,6 +1079,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.clearStorageData();
     this.clearServiceConfigProperties();
     App.router.get('userSettingsController').postUserPref('show_bg', true);
+    App.themesMapper.resetModels();
   },
 
   /**
@@ -932,7 +1100,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     const steps = this.get('steps');
     for (let i = 0, length = steps.length; i < length; i++) {
       let stepDisabled = true;
-      
+
       const stepController = this.getStepController(steps[i]);
       if (stepController) {
         stepController.set('wizardController', this);
@@ -964,10 +1132,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         });
       } else {
         dfd.resolve();
-      }  
+      }
     } else {
       dfd.resolve();
-    }  
+    }
 
     return dfd.promise();
   },
@@ -1038,7 +1206,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
       dfd.resolve();
     });
-    
+
     return dfd;
   }
 });

@@ -86,9 +86,9 @@ public class ConfigurationResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID, "tag");
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, "type");
+    properties.put(ConfigurationResourceProvider.CLUSTER_NAME, "Cluster100");
+    properties.put(ConfigurationResourceProvider.TAG, "tag");
+    properties.put(ConfigurationResourceProvider.TYPE, "type");
 
     propertySet.add(properties);
 
@@ -133,9 +133,9 @@ public class ConfigurationResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID, "tag");
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, "type");
+    properties.put(ConfigurationResourceProvider.CLUSTER_NAME, "Cluster100");
+    properties.put(ConfigurationResourceProvider.TAG, "tag");
+    properties.put(ConfigurationResourceProvider.TYPE, "type");
     properties.put("properties/a", "b");
     properties.put("properties_attributes/final/a", "true");
 
@@ -192,12 +192,12 @@ public class ConfigurationResourceProviderTest {
 
     Set<String> propertyIds = new HashSet<>();
 
-    propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+    propertyIds.add(ConfigurationResourceProvider.CLUSTER_NAME);
+    propertyIds.add(ConfigurationResourceProvider.TAG);
 
     // equals predicate
     Predicate predicate = new PredicateBuilder().property(
-        ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
+        ConfigurationResourceProvider.CLUSTER_NAME).equals("Cluster100").toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
     Set<Resource> resources = provider.getResources(request, predicate);
 
@@ -215,14 +215,14 @@ public class ConfigurationResourceProviderTest {
 
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(
-          ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+          ConfigurationResourceProvider.CLUSTER_NAME);
 
-      String stackIdProperty = (String) resource.getPropertyValue(ConfigurationResourceProvider.CONFIGURATION_STACK_ID_PROPERTY_ID);
+      String stackIdProperty = (String) resource.getPropertyValue(ConfigurationResourceProvider.STACK_ID);
 
       Assert.assertEquals("Cluster100", clusterName);
       Assert.assertEquals(stackId.getStackId(), stackIdProperty);
       String tag = (String) resource.getPropertyValue(
-          ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+          ConfigurationResourceProvider.TAG);
 
       if (tag.equals("tag1")) {
         containsResource1 = true;
@@ -238,8 +238,8 @@ public class ConfigurationResourceProviderTest {
 
     // OR predicate
     predicate = new PredicateBuilder().property(
-        ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("tag1").or().
-        property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("tag2").toPredicate();
+        ConfigurationResourceProvider.TAG).equals("tag1").or().
+        property(ConfigurationResourceProvider.TAG).equals("tag2").toPredicate();
 
     request = PropertyHelper.getReadRequest(propertyIds);
     resources = provider.getResources(request, predicate);
@@ -265,10 +265,10 @@ public class ConfigurationResourceProviderTest {
 
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(
-          ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+          ConfigurationResourceProvider.CLUSTER_NAME);
       Assert.assertEquals("Cluster100", clusterName);
       String tag = (String) resource.getPropertyValue(
-          ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+          ConfigurationResourceProvider.TAG);
 
       if (tag.equals("tag1")) {
         containsResource1 = true;
@@ -304,7 +304,7 @@ public class ConfigurationResourceProviderTest {
     Request request = PropertyHelper.getUpdateRequest(properties, null);
 
     Predicate predicate = new PredicateBuilder().property(
-        ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("Configuration100").toPredicate();
+        ConfigurationResourceProvider.TAG).equals("Configuration100").toPredicate();
 
     try {
       provider.updateResources(request, predicate);
@@ -331,7 +331,7 @@ public class ConfigurationResourceProviderTest {
         managementController);
 
     Predicate predicate = new PredicateBuilder().property(
-        ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("Configuration100").toPredicate();
+        ConfigurationResourceProvider.TAG).equals("Configuration100").toPredicate();
     try {
       provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected an UnsupportedOperationException");

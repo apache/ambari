@@ -16,33 +16,19 @@
  * limitations under the License.
  */
 
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {Response} from '@angular/http';
 import 'rxjs/add/operator/finally';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
-import {Subscription} from "rxjs/Subscription";
-import {TakeUntilDestroy} from "angular2-take-until-destroy";
+import {Observable} from 'rxjs/Observable';
 
 @Component({
   selector: 'login-form',
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.less']
 })
-export class LoginFormComponent implements OnInit, OnDestroy {
-
-  constructor(private authService: AuthService, private appState: AppStateService) {}
-
-  ngOnInit() {
-    this.appStateIsLoginInProgressSubscription = this.appState.getParameter('isLoginInProgress')
-      .subscribe(value => this.isLoginInProgress = value);
-  }
-
-  ngOnDestroy(){
-    this.appStateIsLoginInProgressSubscription.unsubscribe();
-  }
-
-  private appStateIsLoginInProgressSubscription: Subscription;
+export class LoginFormComponent {
 
   username: string;
 
@@ -50,7 +36,9 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   isLoginAlertDisplayed: boolean;
 
-  isLoginInProgress: boolean;
+  isLoginInProgress$: Observable<boolean> = this.appState.getParameter('isLoginInProgress');
+
+  constructor(private authService: AuthService, private appState: AppStateService) {}
 
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
@@ -59,7 +47,8 @@ export class LoginFormComponent implements OnInit, OnDestroy {
    */
   private onLoginError = (resp: Response): void => {
     this.isLoginAlertDisplayed = true;
-  };
+  }
+
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
    * When it gets success response it hides.
@@ -67,10 +56,10 @@ export class LoginFormComponent implements OnInit, OnDestroy {
    */
   private onLoginSuccess = (resp: Response): void => {
     this.isLoginAlertDisplayed = false;
-  };
+  }
 
   login() {
-    this.authService.login(this.username,this.password).subscribe(this.onLoginSuccess, this.onLoginError);
+    this.authService.login(this.username, this.password).subscribe(this.onLoginSuccess, this.onLoginError);
   }
 
 }

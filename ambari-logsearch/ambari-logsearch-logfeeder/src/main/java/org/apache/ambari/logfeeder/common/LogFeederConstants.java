@@ -50,6 +50,7 @@ public class LogFeederConstants {
 
   public static final String LOG_FILTER_ENABLE_PROPERTY = "logfeeder.log.filter.enable";
   public static final String INCLUDE_DEFAULT_LEVEL_PROPERTY = "logfeeder.include.default.level";
+  public static final String SOLR_IMPLICIT_ROUTING_PROPERTY = "logfeeder.solr.implicit.routing";
 
   public static final String CONFIG_DIR_PROPERTY = "logfeeder.config.dir";
   public static final String CONFIG_FILES_PROPERTY = "logfeeder.config.files";

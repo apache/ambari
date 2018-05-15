@@ -294,4 +294,113 @@ describe('App.ConfigurationController', function () {
       ]));
     });
   });
+
+  describe('#getCurrentConfigsBySites', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'getConfigTags').returns({
+        done: Em.clb
+      });
+      sinon.stub(controller, 'getConfigsByTags').returns({
+        done: Em.clb
+      });
+    });
+    afterEach(function() {
+      controller.getConfigTags.restore();
+      controller.getConfigsByTags.restore();
+    });
+
+    it('getConfigTags should be called', function() {
+      controller.getCurrentConfigsBySites();
+      expect(controller.getConfigTags.calledOnce).to.be.true;
+    });
+
+    it('getConfigsByTags should be called', function() {
+      controller.getCurrentConfigsBySites();
+      expect(controller.getConfigsByTags.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#getConfigTags', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'extractTagsFromLocalDB');
+      sinon.stub(controller, 'updateConfigTags').returns({
+        always: Em.clb
+      });
+      this.mock = sinon.stub(App.db, 'getTags');
+    });
+    afterEach(function() {
+      controller.extractTagsFromLocalDB.restore();
+      controller.updateConfigTags.restore();
+      this.mock.restore();
+    });
+
+    it('should get configs from localDB', function() {
+      this.mock.returns([{}]);
+      controller.getConfigTags();
+      expect(controller.extractTagsFromLocalDB.calledOnce).to.be.true;
+    });
+
+    it('should load configs from server', function() {
+      this.mock.returns([]);
+      controller.getConfigTags();
+      expect(controller.updateConfigTags.calledOnce).to.be.true;
+      expect(controller.extractTagsFromLocalDB.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#extractTagsFromLocalDB', function() {
+    beforeEach(function() {
+      sinon.stub(App.db, 'getTags').returns([{siteName: 'site1'}, {siteName: 'site2'}]);
+    });
+    afterEach(function() {
+      App.db.getTags.restore();
+    });
+
+    it('should return all tags', function() {
+      expect(controller.extractTagsFromLocalDB([])).to.be.eql([
+        {siteName: 'site1'},
+        {siteName: 'site2'}
+      ]);
+    });
+
+    it('should return specified tags', function() {
+      expect(controller.extractTagsFromLocalDB(['site1'])).to.be.eql([
+        {siteName: 'site1'}
+      ]);
+    });
+  });
+
+  describe('#updateConfigTags', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'loadConfigTags').returns({
+        done: function(callback) {
+          callback({
+            Clusters: {
+              desired_configs: {
+                "site1": {
+                  tag: 1
+                }
+              }
+            }
+          })
+        }
+      });
+      sinon.stub(App.db, 'setTags');
+    });
+    afterEach(function() {
+      controller.loadConfigTags.restore();
+      App.db.setTags.restore();
+    });
+
+    it('App.db.setTags should be called', function() {
+      controller.updateConfigTags();
+      expect(App.db.setTags.calledWith([
+        {
+          siteName: 'site1',
+          tagName: 1
+        }
+      ])).to.be.true;
+    });
+  });
+
 });
