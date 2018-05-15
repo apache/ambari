@@ -177,7 +177,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
       name: 'restart.custom.filter',
       sender: this,
       data: {
-        filter: "HostRoles/component_name!=NAMENODE&HostRoles/component_name!=RANGER_ADMIN&HostRoles/component_name!=RANGER_USERSYNC&HostRoles/cluster_name=" + App.get('clusterName'),
+        filter: "HostRoles/component_name!=NAMENODE&HostRoles/component_name!=JOURNALNODE&HostRoles/component_name!=ZKFC&HostRoles/component_name!=RANGER_ADMIN&HostRoles/component_name!=RANGER_USERSYNC&HostRoles/cluster_name=" + App.get('clusterName'),
         context: "Restart Required Services"
       },
       success: 'startPolling',
