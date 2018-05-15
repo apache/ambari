@@ -1057,15 +1057,16 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       }
     }
 
-    final boolean updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive = updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(kerberosDescriptor);
+    final boolean updateWebHCatHostKerberosDescriptor = updateWebHCatHostKerberosDescriptor(kerberosDescriptor);
 
-    if (ambariInfraService != null || updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive) {
+    if (ambariInfraService != null || updateWebHCatHostKerberosDescriptor) {
       artifactEntity.setArtifactData(kerberosDescriptor.toMap());
       artifactDAO.merge(artifactEntity);
     }
   }
 
-  private boolean updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(KerberosDescriptor kerberosDescriptor) {
+  // some command json elements were modified from ..._host to ..._hosts, kerberos related properties must be adjusted accordingly
+  private boolean updateWebHCatHostKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
     boolean updated = false;
     final KerberosServiceDescriptor hiveService = kerberosDescriptor.getServices().get(HiveServiceValidator.HIVE_SERVICE);
     if (hiveService != null) {
