@@ -57,7 +57,7 @@ function upgrade_core() {
   SOLR_CORE_FILTER_ARR=$(echo $SOLR_CORE_FILTERS | sed "s/,/ /g")
 
   local version_prefix="$(echo $LUCENE_VERSION | head -c 1)"
-
+  local write_lock_exists="false"
   local core_str="Core"
   if [[ "$BACKUP_MODE" == "true" ]]; then
     core_str="Snapshot"
@@ -70,6 +70,7 @@ function upgrade_core() {
 
   if [[ -f "$INDEX_DIR/write.lock" ]]; then
     echo "Deleting $INDEX_DIR/write.lock file..."
+    write_lock_exists="true"
     rm "$INDEX_DIR/write.lock"
   fi
 
@@ -92,6 +93,11 @@ function upgrade_core() {
       fi
     fi
   done
+
+  if [[ "$write_lock_exists" == "true" ]]; then
+    echo "Putting write.lock file back..."
+    touch "$INDEX_DIR/write.lock"
+  fi
 }
 
 function upgrade_index() {
