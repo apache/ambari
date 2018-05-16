@@ -152,17 +152,17 @@ def metadata(type='server'):
                                        new_service_principals = [params.atlas_jaas_principal])
 
       create_collection('vertex_index', 'atlas_configs', jaasFile,
-            trust_store_password =  default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None),
-            trust_store_type = "JKS" if default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None) else None,
-            trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None))
+            trust_store_password =  params.truststore_password if params.credential_provider else None,
+            trust_store_type = "JKS" if params.credential_provider else None,
+            trust_store_location = params.trust_store_location)
       create_collection('edge_index', 'atlas_configs', jaasFile,
-            trust_store_password =  default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None),
-            trust_store_type = "JKS" if default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None) else None,
-            trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None))
+            trust_store_password =  params.truststore_password if params.credential_provider else None,
+            trust_store_type = "JKS" if params.credential_provider else None,
+            trust_store_location = params.trust_store_location)
       create_collection('fulltext_index', 'atlas_configs', jaasFile,
-            trust_store_password =  default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None),
-            trust_store_type = "JKS" if default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None) else None,
-            trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None))
+            trust_store_password =  params.truststore_password if params.credential_provider else None,
+            trust_store_type = "JKS" if params.credential_provider else None,
+            trust_store_location = params.trust_store_location)
 
       if params.security_enabled:
         secure_znode(format('{infra_solr_znode}/configs/atlas_configs'), jaasFile)

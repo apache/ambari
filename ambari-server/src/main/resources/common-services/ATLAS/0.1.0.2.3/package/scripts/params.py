@@ -26,6 +26,9 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
+from resource_management.core.utils import PasswordString
+from ambari_commons.credential_store_helper import get_password_from_credential_store
+
 
 # Local Imports
 from status_params import *
@@ -131,14 +134,19 @@ java64_home = config['ambariLevelParams']['java_home']
 ambari_java_home = default("/ambariLevelParams/ambari_java_home", java64_home)
 java_exec = format("{java64_home}/bin/java")
 env_sh_template = config['configurations']['atlas-env']['content']
+jdk_location = config['ambariLevelParams']['jdk_location']
+
 
 # credential provider
-credential_provider = format( "jceks://file@{conf_dir}/atlas-site.jceks")
+credential_provider = default("/configurations/application-properties/cert.stores.credential.provider.path", None)
 
 # command line args
 ssl_enabled = default("/configurations/application-properties/atlas.enableTLS", False)
 http_port = default("/configurations/application-properties/atlas.server.http.port", "21000")
 https_port = default("/configurations/application-properties/atlas.server.https.port", "21443")
+truststore_location = default("/configurations/application-properties/truststore.file", None)
+keystore_location = default("/configurations/application-properties/keystore.file", None)
+
 if ssl_enabled:
   metadata_port = https_port
   metadata_protocol = 'https'
@@ -421,3 +429,10 @@ if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
 # atlas admin login username password
 atlas_admin_username = config['configurations']['atlas-env']['atlas.admin.username']
 atlas_admin_password = config['configurations']['atlas-env']['atlas.admin.password']
+
+# Atlas Passwords Extracted From Credential Store
+if credential_provider:
+    default_credential_shell_lib_path = os.path.join('/var/lib/ambari-agent/cred/lib', '*')
+    truststore_password = PasswordString(get_password_from_credential_store('truststore.password', credential_provider, '/var/lib/ambari-agent/cred/lib', java64_home, jdk_location))
+    keystore_password = PasswordString(get_password_from_credential_store('keystore.password', credential_provider, '/var/lib/ambari-agent/cred/lib', java64_home, jdk_location))
+    key_password = PasswordString(get_password_from_credential_store('password', credential_provider, '/var/lib/ambari-agent/cred/lib/*', java64_home, jdk_location))
