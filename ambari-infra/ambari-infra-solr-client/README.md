@@ -57,7 +57,7 @@ Ambari Infra Solr uses Solr 7 from Ambari 2.7.0, therefore it is required migrat
         - [6. Transport old data to Atlas collections](#vi/6.-transport-old-data-to-atlas-collections)
 #### <a id="i.-upgrade-ambari-infra-solr-client">I. Upgrade Ambari Infra Solr Client</a>
 
-First make sure `ambari-infra-solr-client` is the latest. (If its before 2.7.x) It will contain the migrationHelper.py script at `/usr/lib/ambari-infra-solr-client` location. 
+First make sure `ambari-infra-solr-client` is the latest. (If its before 2.7.x) It will contain the migrationHelper.py script at `/usr/lib/ambari-infra-solr-client` location.
 Also make sure you won't upgrade `ambari-infra-solr` until the migration has not done. (all of this should happen after `ambari-server` upgrade, also make sure to not restart `INFRA_SOLR` instances)
 
 ### <a id="ii.-backup-collections-(ambari-2.6.x-to-ambari-2.7.x)">II. Backup collections (Ambari 2.6.x to Ambari 2.7.x)</a>
@@ -94,7 +94,7 @@ Example:
 ```bash
 
 su infra-solr
-SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr 
+SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr
 # collection parameters
 BACKUP_PATH=... # backup location, e.g.: /tmp/ranger-backup
 
@@ -115,7 +115,7 @@ Next you can copy `ranger_audits` configs to a different znode, in order to keep
 
 ```bash
 export JAVA_HOME=/usr/jdk64/1.8.0_112 # or other jdk8 location
-export ZK_CONN_STR=... # without znode, e.g.: myhost1:2181,myhost2:2181,myhost3:2181 
+export ZK_CONN_STR=... # without znode, e.g.: myhost1:2181,myhost2:2181,myhost3:2181
 # note 1: --transfer-mode copyToLocal or --transfer-mode copyFromLocal can be used if you want to use the local filesystem
 # note 2: use --jaas-file option only if the cluster is kerberized
 infra-solr-cloud-cli --transfer-znode -z $ZK_CONN_STR --jaas-file /etc/ambari-infra-solr/conf/infra_solr_jaas.conf --copy-src /infra-solr/configs/ranger_audits --copy-dest /infra-solr/configs/old_ranger_audits
@@ -133,7 +133,7 @@ COLLECTION_NAME=ranger_audits
 # use kinit and --negotiate option for curl only if the cluster is kerberized
 kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hostname -f)
 
-curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
+curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME"
 ```
 
 #### <a id="ii/4.-upgrade-ranger-solr-schema">II/4. Upgrade Ranger Solr schema</a>
@@ -148,7 +148,7 @@ kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hos
 
 ## BACKUP OLD CONFIG
 export JAVA_HOME=/usr/jdk64/1.8.0_112 # or other jdk8 location
-export ZK_CONN_STR=... # without znode, e.g.: myhost1:2181,myhost2:2181,myhost3:2181 
+export ZK_CONN_STR=... # without znode, e.g.: myhost1:2181,myhost2:2181,myhost3:2181
 # note: --transfer-mode copyToLocal or --transfer-mode copyFromLocal can be used if you want to use the local filesystem
 infra-solr-cloud-cli --transfer-znode -z $ZK_CONN_STR --jaas-file /etc/ambari-infra-solr/conf/infra_solr_jaas.conf --copy-src /infra-solr/configs/ranger_audits --copy-dest /infra-solr/configs/old_ranger_audits
 ## UPLOAD NEW SCHEMA
@@ -192,7 +192,7 @@ Example:
 ```bash
 
 su infra-solr
-SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr 
+SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr
 # collection parameters
 BACKUP_PATH=... # backup location, e.g.: /tmp/fulltext_index_backup
 
@@ -218,11 +218,11 @@ SOLR_URL=... # example: http://c6401.ambari.apache.org:8886/solr
 kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hostname -f)
 
 COLLECTION_NAME=fulltext_index
-curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
+curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME"
 COLLECTION_NAME=edge_index
-curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
+curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME"
 COLLECTION_NAME=vertex_index
-curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
+curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME"
 ```
 
 #### <a id="ii/7.-delete-log-search-collections">II/7. Delete Log Search collections</a>
@@ -237,11 +237,11 @@ SOLR_URL=... # example: http://c6401.ambari.apache.org:8886/solr
 kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hostname -f)
 
 COLLECTION_NAME=hadoop_logs
-curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
+curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME"
 COLLECTION_NAME=audit_logs
-curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
+curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME"
 COLLECTION_NAME=history
-curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME" 
+curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=DELETE&name=$COLLECTION_NAME"
 ```
 
 #### <a id="ii/8.-delete-log-search-solr-configs">II/8. Delete Log Search Solr configs</a>
@@ -251,7 +251,7 @@ Log Search configs are changed a lot between Ambari 2.6.x and Ambari 2.7.x, so i
 ```bash
 su infra-solr # infra-solr user - if you have a custom one, use that
 # ZOOKEEPER CONNECTION STRING from zookeeper servers
-export ZK_CONN_STR=... # without znode,e.g.: myhost1:2181,myhost2:2181,myhost3:2181 
+export ZK_CONN_STR=... # without znode,e.g.: myhost1:2181,myhost2:2181,myhost3:2181
 
 kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hostname -f)
 
@@ -308,7 +308,7 @@ infra-lucene-index-tool upgrade-index -d /tmp/ranger-backup -f -b -g
 # with 'infra-lucene-index-tool help' command you can checkout the command line options
 ```
 
-By default, the tool will migrate from lucene version 5 to lucene version 6.6.0. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.3.0` option. 
+By default, the tool will migrate from lucene version 5 to lucene version 6.6.0. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.3.1` option.
 
 #### <a id="v/2.-migrate-atlas-collections">V/2. Migrate Atlas collections</a>
 
@@ -343,7 +343,7 @@ infra-lucene-index-tool upgrade-index -d /tmp/fulltext_index_backup -f -b -g
 # with 'infra-lucene-index-tool help' command you can checkout the command line options
 ```
 
-By default, the tool will migrate from lucene version 5 to lucene version 6.6.0. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.3.0` option. 
+By default, the tool will migrate from lucene version 5 to lucene version 6.6.0. (that's ok for Solr 7) If you want a lucene 7 index, you will need to re-run the migration tool command with `-v 7.3.1` option.
 
 ### <a id="vi.-restore-collections">VI. Restore Collections</a>
 
@@ -367,10 +367,10 @@ OLD_DATA_COLLECTION=old_ranger_audits
 kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hostname -f)
 
 export JAVA_HOME=/usr/jdk64/1.8.0_112 # or other jdk8 location
-export ZK_CONN_STR=... # without znode, e.g.: myhost1:2181,myhost2:2181,myhost3:2181 
+export ZK_CONN_STR=... # without znode, e.g.: myhost1:2181,myhost2:2181,myhost3:2181
 
 # note 1: jaas-file option required only if kerberos is enabled for the cluster
-# note 2: copy new solrconfig.xml as the old one won't be compatible with solr 7 
+# note 2: copy new solrconfig.xml as the old one won't be compatible with solr 7
 infra-solr-cloud-cli --transfer-znode -z $ZK_CONN_STR --jaas-file /etc/ambari-infra-solr/conf/infra_solr_jaas.conf --copy-src /infra-solr/configs/ranger_audits/solrconfig.xml --copy-dest /infra-solr/configs/old_ranger_audits/solrconfig.xml
 
 curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=CREATE&name=$OLD_DATA_COLLECTION&numShards=$NUM_SHARDS&replicationFactor=$NUM_REP&maxShardsPerNode=$MAX_SHARDS_PER_NODE&collection.configName=$CONFIG_NAME"
@@ -399,7 +399,7 @@ Also you can manually run restore commands: ([get core names](#get-core-/-shard-
 
 ```bash
 su infra-solr
-SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr 
+SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr
 BACKUP_PATH=... # backup location, e.g.: /tmp/ranger-backup
 
 OLD_BACKUP_COLLECTION_CORE=... # choose a core to restore
@@ -417,7 +417,7 @@ After the cores are restored you will need to reload the old_ranger_audits colle
 
 ```bash
 su infra-solr
-SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr 
+SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr
 OLD_RANGER_COLLECTION=old_ranger_audits
 
 # use kinit only if kerberos is enabled
@@ -472,7 +472,7 @@ OLD_DATA_COLLECTION=old_vertex_index
 curl --negotiate -k -u : "$SOLR_URL/admin/collections?action=CREATE&name=$OLD_DATA_COLLECTION&numShards=$NUM_SHARDS&replicationFactor=$NUM_REP&maxShardsPerNode=$MAX_SHARDS_PER_NODE&collection.configName=$CONFIG_NAME"
 ```
 
-Restore the collection(s): 
+Restore the collection(s):
 (important note: you will need to add `--solr-hdfs-path` option if your index is on HDFS (value can be like: `/user/infra-solr`), which should be the location where your collections are located.)
 Example with fulltext_index: (do the same for old_vertex_index and old_edge_index)
 ```bash
@@ -496,7 +496,7 @@ Also you can manually run restore commands: ([get core names](#get-core-/-shard-
 
 ```bash
 su infra-solr
-SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr 
+SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr
 BACKUP_PATH=... # backup location, e.g.: /tmp/fulltext_index-backup
 
 OLD_BACKUP_COLLECTION_CORE=... # choose a core to restore
@@ -514,7 +514,7 @@ After the cores are restored you will need to reload the all 3 Atlas collections
 
 ```bash
 su infra-solr
-SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr 
+SOLR_URL=... # actual solr host url, example: http://c6401.ambari.apache.org:8886/solr
 
 # use kinit only if kerberos is enabled
 kinit -kt /etc/security/keytabs/ambari-infra-solr.service.keytab $(whoami)/$(hostname -f)
@@ -599,7 +599,7 @@ Options:
   --collection=COLLECTION
                         solr collection
   --version=INDEX_VERSION
-                        lucene index version for migration (6.6.2 or 7.3.0)
+                        lucene index version for migration (6.6.2 or 7.3.1)
   --request-tries=REQUEST_TRIES
                         number of tries for BACKUP/RESTORE status api calls in
                         the request
