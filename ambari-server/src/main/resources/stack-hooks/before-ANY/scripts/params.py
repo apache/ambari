@@ -30,16 +30,9 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option_value
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions.expect import expect
-from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
-from ambari_commons.constants import AMBARI_SUDO_BINARY, HADOOP_CLIENTS_MODULE_NAME, HADOOP_CLIENT_COMPONENT_TYPE
-from resource_management.libraries.functions.mpack_manager_helper import get_component_conf_path, get_component_home_path
-from resource_management.libraries.execution_command import execution_command
-from resource_management.libraries.execution_command import module_configs
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 config = Script.get_config()
 execution_command = Script.get_execution_command()
@@ -172,7 +165,6 @@ mapred_log_dir_prefix = module_configs.get_property_value(module_name, 'mapred-e
 hadoop_env_sh_template = module_configs.get_property_value(module_name, 'hadoop-env', 'content')
 
 #users and groups
-hbase_user = module_configs.get_property_value(module_name, 'hbase-env', 'hbase_user')
 smoke_user =  get_cluster_setting_value('smokeuser')
 gmetad_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmetad_user')
 gmond_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmond_user')
@@ -187,25 +179,21 @@ user_group = get_cluster_setting_value('user_group')
 
 ganglia_server_hosts = execution_command.get_component_hosts('ganglia_server')
 namenode_host = execution_command.get_component_hosts('namenode')
-hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
 oozie_servers = execution_command.get_component_hosts('oozie_server')
 falcon_server_hosts = execution_command.get_component_hosts('falcon_server')
 ranger_admin_hosts = execution_command.get_component_hosts('ranger_admin')
 zeppelin_master_hosts = execution_command.get_component_hosts('zeppelin_master')
 
 # get the correct version to use for checking stack features
-version_for_stack_feature_checks = get_stack_feature_version(config)
 
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_tez = bool(module_configs.get_all_properties(module_name, 'tez-site'))
-has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 has_zeppelin_master = not len(zeppelin_master_hosts) == 0
-stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
 # HDFS High Availability properties
 dfs_ha_enabled = False
@@ -219,14 +207,6 @@ if dfs_ha_namenode_ids:
   if dfs_ha_namenode_ids_array_len > 1:
     dfs_ha_enabled = True
 
-# if has_namenode or dfs_type == 'HCFS':
-#     hadoop_conf_dir = get_component_conf_path(mpack_name=mpack_name, instance_name=mpack_instance_name,
-#                                               module_name=HADOOP_CLIENTS_MODULE_NAME,
-#                                               components_instance_type=HADOOP_CLIENT_COMPONENT_TYPE)
-#     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
-
-hbase_tmp_dir = "/tmp/hbase-hbase"
-
 proxyuser_group = module_configs.get_property_value(module_name, 'hadoop-env', 'proxyuser_group', 'users')
 ranger_group = module_configs.get_property_value(module_name, 'ranger-env', 'ranger_group')
 dfs_cluster_administrators_group = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.cluster.administrators')
@@ -236,8 +216,6 @@ ignore_groupsusers_create = get_cluster_setting_value('ignore_groupsusers_create
 fetch_nonlocal_groups = get_cluster_setting_value('fetch_nonlocal_groups')
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
-if has_hbase_masters:
-  hbase_user_dirs = format("/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
 #repo params
 repo_info = execution_command.get_repo_info()
 service_repo_info = execution_command.get_service_repo_info()
@@ -260,7 +238,3 @@ host_sys_prepped = execution_command.is_host_system_prepared()
 
 tez_am_view_acls = module_configs.get_property_value(module_name, 'tez-site', 'tez.am.view-acls')
 override_uid = get_cluster_setting_value('override_uid')
-
-# if NN HA on secure clutser, access Zookeper securely
-# if stack_supports_zk_security and dfs_ha_enabled and security_enabled:
-#     hadoop_zkfc_opts=format("-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client")

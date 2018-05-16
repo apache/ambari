@@ -709,14 +709,18 @@ public class ConfigHelper {
     Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
     Map<String, ServiceInfo> servicesMap, Set<PropertyInfo> stackProperties, Set<PropertyInfo> clusterProperties) throws AmbariException {
 
-    Map<String, Set<String>> userGroupsMap = new HashMap<>();
     Map<PropertyInfo, String> userProperties = getPropertiesWithPropertyType(
       PropertyType.USER, cluster, desiredConfigs, servicesMap, stackProperties, clusterProperties);
     Map<PropertyInfo, String> groupProperties = getPropertiesWithPropertyType(
       PropertyType.GROUP, cluster, desiredConfigs, servicesMap, stackProperties, clusterProperties);
 
+    return createUserGroupsMap(userProperties, groupProperties);
+  }
+
+  public Map<String, Set<String>> createUserGroupsMap(Map<PropertyInfo, String> userProperties, Map<PropertyInfo, String> groupProperties) {
+    Map<String, Set<String>> userGroupsMap = new HashMap<>();
     if(userProperties != null && groupProperties != null) {
-      for(Map.Entry<PropertyInfo, String> userProperty : userProperties.entrySet()) {
+      for(Entry<PropertyInfo, String> userProperty : userProperties.entrySet()) {
         PropertyInfo userPropertyInfo = userProperty.getKey();
          String userPropertyValue = userProperty.getValue();
         if(userPropertyInfo.getPropertyValueAttributes() != null
@@ -725,7 +729,7 @@ public class ConfigHelper {
           Collection<UserGroupInfo> userGroupEntries = userPropertyInfo.getPropertyValueAttributes().getUserGroupEntries();
           for (UserGroupInfo userGroupInfo : userGroupEntries) {
             boolean found = false;
-            for(Map.Entry<PropertyInfo, String> groupProperty : groupProperties.entrySet()) {
+            for(Entry<PropertyInfo, String> groupProperty : groupProperties.entrySet()) {
               PropertyInfo groupPropertyInfo = groupProperty.getKey();
               String groupPropertyValue = groupProperty.getValue();
               if(StringUtils.equals(userGroupInfo.getType(),
