@@ -499,6 +499,27 @@ public class BlueprintConfigurationProcessor {
         if (parsedNameServices.length > 1) {
           Set<String> activeNameNodeHostnames = new HashSet<>();
           Set<String> standbyNameNodeHostnames = new HashSet<>();
+          String tagsyncNameserviceMappingProperty   = "ranger.tagsync.atlas.hdfs.instance." + getClusterName() + ".%s.ranger.service";
+
+          Map<String,String> rangerTagsyncPropertiesMap = clusterConfig.getFullProperties().get("ranger-tagsync-site");
+          Map<String, String> rangerHDFSPluginProperties = clusterConfig.getFullProperties().get("ranger-hdfs-plugin-properties");
+
+          String rangerHDFSPluginEnabledValue = rangerHDFSPluginProperties.getOrDefault("ranger-hdfs-plugin-enabled","No");
+          boolean isRangerHDFSPluginEnabled = ("yes".equalsIgnoreCase(rangerHDFSPluginEnabledValue));
+
+          Map<String, String> rangerHDFSSecurityConfig = clusterConfig.getFullProperties().get("ranger-hdfs-security");
+          String rangerHDFSPluginServiceName = rangerHDFSSecurityConfig.get("ranger.plugin.hdfs.service.name");
+          boolean isTagsyncPropertyConfigurationRequired = (clusterTopology.getBlueprint().getServices().contains("RANGER_ADMIN") &&
+                                                       clusterTopology.getBlueprint().getServices().contains("RANGER_TAGSYNC") &&
+                                                       clusterTopology.getBlueprint().getServices().contains("ATLAS"));
+
+          Map<String, String> coreSiteConfig = clusterConfig.getFullProperties().get("core-site");
+          String fsDefaultFSValue = coreSiteConfig.get("fs.defaultFS");
+          String nameServiceInFsDefaultFSConfig="";
+
+          if (isTagsyncPropertyConfigurationRequired && isRangerHDFSPluginEnabled && "{{repo_name}}".equalsIgnoreCase(rangerHDFSPluginServiceName)) {
+            rangerHDFSPluginServiceName = getClusterName() + "_hadoop";
+          }
 
           for (String nameService : parsedNameServices) {
             List<String> hostNames = new ArrayList<>();
@@ -525,7 +546,23 @@ public class BlueprintConfigurationProcessor {
               // since HA is assumed, there should only be two NameNodes deployed per NameService
               activeNameNodeHostnames.add(hostNames.get(0));
               standbyNameNodeHostnames.add(hostNames.get(1));
+              if (isTagsyncPropertyConfigurationRequired && isRangerHDFSPluginEnabled) {
+                tagsyncNameserviceMappingProperty = String.format(tagsyncNameserviceMappingProperty, nameService);
+                String updatedRangerHDFSPluginServiceName = rangerHDFSPluginServiceName + "_" + nameService;
+                //rangerTagsyncPropertiesMap.put(tagsyncNameserviceMappingProperty, updatedRangerHDFSPluginServiceName);
+                clusterConfig.setProperty("ranger-tagsync-site", tagsyncNameserviceMappingProperty, updatedRangerHDFSPluginServiceName);
+                if (fsDefaultFSValue.contains(nameService)) {
+                  nameServiceInFsDefaultFSConfig = nameService;
+                }
+              }
             }
+          }
+
+          if(isTagsyncPropertyConfigurationRequired && isRangerHDFSPluginEnabled) {
+            String rangerTagsyncAtlasNNServiceMappingProperty = "ranger.tagsync.atlas.hdfs.instance."+getClusterName() + ".ranger.service";
+            String rangerTagsyncAtlasNNServiceName = rangerHDFSPluginServiceName + nameServiceInFsDefaultFSConfig;
+            clusterConfig.setProperty("ranger-tagsync-site", rangerTagsyncAtlasNNServiceMappingProperty, rangerTagsyncAtlasNNServiceName);
+            configTypesUpdated.add("ranger-tagsync-site");
           }
 
           // set the properties what configure the NameNode Active/Standby status for each nameservice
