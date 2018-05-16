@@ -151,26 +151,18 @@ def metadata(type='server'):
                                        roles = [params.infra_solr_role_atlas, params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
                                        new_service_principals = [params.atlas_jaas_principal])
 
-      if default('configurations/infra-solr-env/infra_solr_ssl_enabled', False):
-        trust_store_password = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None)
-        trust_store_type = "JKS"
-        trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None)
-      else:
-        trust_store_password = None
-        trust_store_type = None
-        trust_store_location = None
       create_collection('vertex_index', 'atlas_configs', jaasFile,
-            trust_store_password = solrtruststorepass,
-            trust_store_type = solrtruststoretype,
-            trust_store_location = solrtruststoreloc)
+            trust_store_password =  default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None),
+            trust_store_type = "JKS" if default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None) else None,
+            trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None))
       create_collection('edge_index', 'atlas_configs', jaasFile,
-            trust_store_password = solrtruststorepass,
-            trust_store_type = solrtruststoretype,
-            trust_store_location = solrtruststoreloc)
+            trust_store_password =  default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None),
+            trust_store_type = "JKS" if default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None) else None,
+            trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None))
       create_collection('fulltext_index', 'atlas_configs', jaasFile,
-            trust_store_password = solrtruststorepass,
-            trust_store_type = solrtruststoretype,
-            trust_store_location = solrtruststoreloc)
+            trust_store_password =  default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore.password', None),
+            trust_store_type = "JKS" if default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None) else None,
+            trust_store_location = default('configurations/ranger-atlas-policymgr-ssl/xasecure.policymgr.clientssl.truststore', None))
 
       if params.security_enabled:
         secure_znode(format('{infra_solr_znode}/configs/atlas_configs'), jaasFile)

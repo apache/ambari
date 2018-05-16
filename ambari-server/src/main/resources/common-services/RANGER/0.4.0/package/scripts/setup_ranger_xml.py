@@ -741,14 +741,6 @@ def setup_ranger_audit_solr():
       solr_cloud_util.add_solr_roles(params.config,
                                      roles = [params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
                                      new_service_principals = service_principals)
-    if default('configurations/infra-solr-env/infra_solr_ssl_enabled', False) and not params.is_external_solrCloud_enabled:
-        solrtruststoretype = "JKS"
-        solrtruststorepass = params.truststore_password
-        solrtruststoreloc = params.config['configurations']['ranger-admin-site']['ranger.truststore.file']
-    else:
-        solrtruststoretype = None
-        solrtruststorepass = None
-        solrtruststoreloc = None
     solr_cloud_util.create_collection(
       zookeeper_quorum = params.zookeeper_quorum,
       solr_znode = params.solr_znode,
@@ -758,9 +750,9 @@ def setup_ranger_audit_solr():
       shards = params.ranger_solr_shards,
       replication_factor = int(params.replication_factor),
       jaas_file = params.solr_jaas_file,
-      trust_store_password = solrtruststorepass,
-      trust_store_type = solrtruststoretype,
-      trust_store_location = solrtruststoreloc)
+      trust_store_password = default('configurations/ranger-admin-site/ranger.truststore.file', None),
+      trust_store_type = "JKS" if default('configurations/ranger-admin-site/ranger.truststore.file', None) else None,
+      trust_store_location = default('configurations/ranger-admin-site/ranger.truststore.password', None))
 
     if params.security_enabled and params.has_infra_solr \
       and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
