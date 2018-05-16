@@ -52,6 +52,7 @@ import static org.powermock.api.easymock.PowerMock.replayAll;
 public class TimelineMetricClusterAggregatorSecondWithCacheSourceTest {
 
   private static TimelineMetricsIgniteCache timelineMetricsIgniteCache;
+  private static TimelineMetricMetadataManager metricMetadataManagerMock;
   @BeforeClass
   public static void setupConf() throws Exception {
     TimelineMetricConfiguration conf = new TimelineMetricConfiguration(new
@@ -60,8 +61,11 @@ public class TimelineMetricClusterAggregatorSecondWithCacheSourceTest {
     expect(TimelineMetricConfiguration.getInstance()).andReturn(conf).anyTimes();
     conf.getMetricsConf().set(TIMELINE_METRICS_COLLECTOR_IGNITE_NODES, "localhost");
     replayAll();
+    metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
+    expect(metricMetadataManagerMock.getMetadataCacheValue((TimelineMetricMetadataKey) anyObject())).andReturn(null).anyTimes();
+    replay(metricMetadataManagerMock);
 
-    timelineMetricsIgniteCache = new TimelineMetricsIgniteCache();
+    timelineMetricsIgniteCache = new TimelineMetricsIgniteCache(metricMetadataManagerMock);
   }
 
   @Test
@@ -71,9 +75,6 @@ public class TimelineMetricClusterAggregatorSecondWithCacheSourceTest {
 
     Configuration configuration = new Configuration();
 
-    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
-    expect(metricMetadataManagerMock.getMetadataCacheValue((TimelineMetricMetadataKey) anyObject())).andReturn(null).anyTimes();
-    replay(metricMetadataManagerMock);
 
     TimelineMetricClusterAggregatorSecondWithCacheSource secondAggregator = new TimelineMetricClusterAggregatorSecondWithCacheSource(
         METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null, configuration, null,

@@ -102,7 +102,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
 
   private TimelineMetricDistributedCache startCacheNode() throws MalformedURLException, URISyntaxException {
     //TODO make configurable
-    return new TimelineMetricsIgniteCache();
+    return new TimelineMetricsIgniteCache(metricMetadataManager);
   }
 
 
@@ -408,7 +408,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics, false);
 
     if (configuration.isCollectorInMemoryAggregationEnabled()) {
-      cache.putMetrics(metrics.getMetrics(), metricMetadataManager);
+      cache.putMetrics(metrics.getMetrics());
     }
 
     return response;
