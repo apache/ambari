@@ -1554,11 +1554,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
     for (final Cluster cluster : clusterMap.values()) {
       updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content, "7.3.0");
+        content = updateLuceneMatchVersion(content, "7.3.1");
         return updateMergeFactor(content, "logsearch_service_logs_merge_factor");
       });
       updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content,"7.3.0");
+        content = updateLuceneMatchVersion(content,"7.3.1");
         return updateMergeFactor(content, "logsearch_audit_logs_merge_factor");
       });
       updateConfig(cluster, "ranger-solr-configuration", (content) -> {

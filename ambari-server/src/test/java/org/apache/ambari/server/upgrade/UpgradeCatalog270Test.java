@@ -1279,9 +1279,9 @@ public class UpgradeCatalog270Test {
 
     replay(upgradeCatalog270);
 
-    String updated = upgradeCatalog270.updateLuceneMatchVersion(solrConfigXml,"7.3.0");
+    String updated = upgradeCatalog270.updateLuceneMatchVersion(solrConfigXml,"7.3.1");
 
-    assertThat(updated.contains("<luceneMatchVersion>7.3.0</luceneMatchVersion>"), is(true));
+    assertThat(updated.contains("<luceneMatchVersion>7.3.1</luceneMatchVersion>"), is(true));
     assertThat(updated.contains("<luceneMatchVersion>5.0.0</luceneMatchVersion>"), is(false));
     verify(upgradeCatalog270);
   }
