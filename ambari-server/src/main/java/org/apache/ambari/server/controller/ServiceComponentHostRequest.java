@@ -26,7 +26,7 @@ public class ServiceComponentHostRequest {
   private String clusterName; // REF
   private String serviceGroupName;
   private String serviceName;
-  private Long componentId;
+  private Long hostComponentId;
   private String componentName;
   private String componentType;
   private String hostname;
@@ -41,7 +41,7 @@ public class ServiceComponentHostRequest {
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceGroupName,
                                      String serviceName,
-                                     Long componentId,
+                                     Long hostComponentId,
                                      String componentName,
                                      String componentType,
                                      String hostname,
@@ -49,7 +49,7 @@ public class ServiceComponentHostRequest {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
-    this.componentId = componentId;
+    this.hostComponentId = hostComponentId;
     this.componentName = componentName;
     this.componentType = componentType;
     this.hostname = hostname;
@@ -91,10 +91,10 @@ public class ServiceComponentHostRequest {
   }
 
   /**
-   * @return the componentd
+   * @return the ID of the host component
    */
-  public Long getComponentId() {
-    return componentId;
+  public Long getHostComponentId() {
+    return hostComponentId;
   }
 
   /**
@@ -112,10 +112,10 @@ public class ServiceComponentHostRequest {
   }
 
   /**
-   * @param componentId the componentId to set
+   * @param hostComponentId ID of the host component the request applies to
    */
-  public void setComponentId(Long componentId) {
-    this.componentId = componentId;
+  public void setHostComponentId(Long hostComponentId) {
+    this.hostComponentId = hostComponentId;
   }
 
   /**
@@ -201,7 +201,7 @@ public class ServiceComponentHostRequest {
     sb.append("{" + " clusterName=").append(clusterName)
       .append(", serviceGroupName=").append(serviceGroupName)
       .append(", serviceName=").append(serviceName)
-      .append(", componentId=").append(componentId)
+      .append(", componentId=").append(hostComponentId)
       .append(", componentName=").append(componentName)
       .append(", componentType=").append(componentType)
       .append(", hostname=").append(hostname)
@@ -244,7 +244,7 @@ public class ServiceComponentHostRequest {
     return Objects.equals(clusterName, other.clusterName) &&
       Objects.equals(serviceGroupName, other.serviceGroupName) &&
       Objects.equals(serviceName, other.serviceName) &&
-      Objects.equals(componentId, other.componentId) &&
+      Objects.equals(hostComponentId, other.hostComponentId) &&
       Objects.equals(componentName, other.componentName) &&
       Objects.equals(componentType, other.componentType) &&
       Objects.equals(hostname, other.hostname) &&
@@ -259,7 +259,7 @@ public class ServiceComponentHostRequest {
 
   @Override
   public int hashCode() {
-    return Objects.hash(clusterName, serviceGroupName, serviceName, componentId, componentName, componentType, hostname,
+    return Objects.hash(clusterName, serviceGroupName, serviceName, hostComponentId, componentName, componentType, hostname,
       publicHostname, desiredState, state, desiredStackId, staleConfig, adminState, maintenanceState);
   }
 }

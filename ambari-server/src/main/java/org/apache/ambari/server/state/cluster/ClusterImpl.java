@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -209,6 +210,7 @@ public class ClusterImpl implements Cluster {
    * [ ServiceName -> [ ServiceComponentName -> [ HostName -> [ ... ] ] ] ]
    */
   private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, ServiceComponentHost>>> serviceComponentHosts = new ConcurrentHashMap<>();
+  private final Map<Long, ServiceComponentHost> serviceComponentHostsById = new ConcurrentHashMap<>();
 
   /**
    * [ HostName -> [ ... ] ]
@@ -467,6 +469,8 @@ public class ClusterImpl implements Cluster {
             serviceComponentHosts.get(service.getName()).get(componentName).put(hostname,
               svcHostComponent);
           }
+
+          serviceComponentHostsById.put(svcHostComponent.getHostComponentId(), svcHostComponent);
         }
       }
     }
@@ -762,14 +766,16 @@ public class ClusterImpl implements Cluster {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a new ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname= {}",
-        getClusterName(), getClusterId(), serviceName, componentName, hostname);
+      LOG.debug("Adding a new ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName={}, hostname={}, hostComponentId={}",
+        getClusterName(), getClusterId(), serviceName, componentName, hostname, svcCompHost.getHostComponentId());
     }
 
     serviceComponentHosts.get(serviceName).get(componentName).put(hostname,
       svcCompHost);
 
     serviceComponentHostsByHost.get(hostname).add(svcCompHost);
+
+    serviceComponentHostsById.put(svcCompHost.getHostComponentId(), svcCompHost);
   }
 
   @Override
@@ -836,13 +842,14 @@ public class ClusterImpl implements Cluster {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Removing a ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname= {}",
-        getClusterName(), getClusterId(), serviceName, componentName, hostname);
+      LOG.debug("Removing a ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname={}, hostComponentId={}",
+        getClusterName(), getClusterId(), serviceName, componentName, hostname, schToRemove.getHostComponentId());
     }
 
     serviceComponentHosts.get(serviceName).get(componentName).remove(hostname);
     if (schToRemove != null) {
       serviceComponentHostsByHost.get(hostname).remove(schToRemove);
+      serviceComponentHostsById.remove(schToRemove.getHostComponentId());
     }
   }
 
@@ -1225,6 +1232,11 @@ public class ClusterImpl implements Cluster {
     }
 
     throw new ServiceNotFoundException(getClusterName(), "component Id: " + componentId);
+  }
+
+  @Override
+  public ServiceComponentHost getHostComponentById(Long hostComponentId) {
+    return serviceComponentHostsById.get(hostComponentId);
   }
 
   @Override
@@ -1832,6 +1844,7 @@ public class ClusterImpl implements Cluster {
     services.remove(serviceName);
     servicesById.remove(service.getServiceId());
     serviceConfigTypes.remove(service.getServiceId());
+    serviceComponentHostsById.values().removeIf(each -> Objects.equals(each.getServiceId(), service.getServiceId()));
 
     for (List<ServiceComponentHost> serviceComponents : serviceComponentHostsByHost.values()) {
       Iterables.removeIf(serviceComponents, new Predicate<ServiceComponentHost>() {

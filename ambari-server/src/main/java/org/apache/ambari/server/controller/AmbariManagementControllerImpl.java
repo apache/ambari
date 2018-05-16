@@ -1398,13 +1398,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (request.getComponentId() != null) {
-      Service service = cluster.getServiceByComponentId(request.getComponentId());
-      if (Strings.isNullOrEmpty(request.getServiceGroupName())) {
-        request.setServiceGroupName(service.getServiceGroupName());
-      }
-      if (Strings.isNullOrEmpty(request.getServiceName())) {
-        request.setServiceName(service.getName());
+    if (request.getHostComponentId() != null) {
+      ServiceComponentHost sch = cluster.getHostComponentById(request.getHostComponentId());
+      if (sch != null) {
+        if (Strings.isNullOrEmpty(request.getServiceGroupName())) {
+          request.setServiceGroupName(sch.getServiceGroupName());
+        }
+        if (Strings.isNullOrEmpty(request.getServiceName())) {
+          request.setServiceName(sch.getServiceName());
+        }
       }
     }
 
@@ -1482,18 +1484,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
      */
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = null;
     HostComponentStateEntity hostComponentStateEntity = null;
-    if (request.getComponentId() != null) {
-      hostComponentStateEntity = hostComponentStateDAO.findById(request.getComponentId());
+    if (request.getHostComponentId() != null) {
+      hostComponentStateEntity = hostComponentStateDAO.findById(request.getHostComponentId());
       if (hostComponentStateEntity == null) {
         throw new AmbariException("Could not find Host Component resource for"
-                + " componentId = "+ request.getComponentId());
+                + " componentId = "+ request.getHostComponentId());
       }
       serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(hostComponentStateEntity.getClusterId(),
               hostComponentStateEntity.getServiceGroupId(), hostComponentStateEntity.getServiceId(),
               hostComponentStateEntity.getComponentName(), hostComponentStateEntity.getComponentType());
       if (serviceComponentDesiredStateEntity == null) {
         throw new AmbariException("Could not find Service Component resource for"
-                + " componentId = " + request.getComponentId() + ", serviceGroupId = " + hostComponentStateEntity.getServiceGroupId()
+                + " componentId = " + request.getHostComponentId() + ", serviceGroupId = " + hostComponentStateEntity.getServiceGroupId()
                 + ", serviceId = " + hostComponentStateEntity.getServiceId() + ", componentName = " + hostComponentStateEntity.getComponentName()
                 + ", componntType = " + hostComponentStateEntity.getComponentType());
         }
@@ -1574,7 +1576,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
-            if (request.getServiceName() == null || request.getComponentId() == null) {
+            if (request.getServiceName() == null || request.getHostComponentId() == null) {
               // Ignore the exception if either the service name or component name are not specified.
               // This is an artifact of how we get host_components and can happen in the case where
               // we get all host_components for a host, for example.
@@ -1586,7 +1588,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               // condition.
               LOG.debug("ServiceComponentHost not found ", e);
               throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
-                  request.getServiceName(), request.getComponentId(), request.getHostname());
+                  request.getServiceName(), request.getHostComponentId(), request.getHostname());
             }
           }
         } else {
@@ -3797,7 +3799,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // if any request are for the whole host, they need to be expanded
     for (ServiceComponentHostRequest request : requests) {
-      if (null == request.getComponentId()) {
+      if (null == request.getHostComponentId()) {
         if (null == request.getClusterName() || request.getClusterName().isEmpty() ||
             null == request.getHostname() || request.getHostname().isEmpty()) {
           throw new IllegalArgumentException("Cluster name and hostname must be specified.");
@@ -3832,10 +3834,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Service s = null;
 
       if (StringUtils.isEmpty(request.getServiceName())) {
-        hostComponentStateEntity = hostComponentStateDAO.findById(request.getComponentId());
+        hostComponentStateEntity = hostComponentStateDAO.findById(request.getHostComponentId());
         if (hostComponentStateEntity == null) {
           throw new AmbariException("Could not find Host Component resource for"
-                  + " componentId = "+ request.getComponentId());
+                  + " componentId = "+ request.getHostComponentId());
         }
         s = cluster.getService(hostComponentStateEntity.getServiceId());
         request.setServiceGroupName(s.getServiceGroupName());
@@ -3848,7 +3850,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         + ", clusterName=" + request.getClusterName()
         + ", serviceGroupName=" + request.getServiceGroupName()
         + ", serviceName=" + request.getServiceName()
-        + ", componentId=" + request.getComponentId()
+        + ", componentId=" + request.getHostComponentId()
         + ", componentName=" + request.getComponentName()
         + ", componentType=" + request.getComponentType()
         + ", hostname=" + request.getHostname()

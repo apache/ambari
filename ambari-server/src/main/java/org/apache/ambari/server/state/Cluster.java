@@ -178,6 +178,8 @@ public interface Cluster {
 
   String getComponentType(Long componentId) throws AmbariException;
 
+  ServiceComponentHost getHostComponentById(Long hostComponentId);
+
   /**
    * Get all services
    *
