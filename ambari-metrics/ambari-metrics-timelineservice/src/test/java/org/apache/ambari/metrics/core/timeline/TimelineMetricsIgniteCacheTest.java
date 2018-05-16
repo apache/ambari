@@ -67,16 +67,17 @@ public class TimelineMetricsIgniteCacheTest {
     conf.getMetricsConf().set(TIMELINE_METRICS_COLLECTOR_IGNITE_NODES, "localhost");
     replayAll();
 
-    timelineMetricsIgniteCache = new TimelineMetricsIgniteCache();
+    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
+    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class), anyBoolean())).andReturn(new byte[16]).once();
+    expect(metricMetadataManagerMock.getHostedAppsCache()).andReturn(new HashMap<>()).anyTimes();
+    replay(metricMetadataManagerMock);
+
+    timelineMetricsIgniteCache = new TimelineMetricsIgniteCache(metricMetadataManagerMock);
   }
 
   @Test
   public void putEvictMetricsFromCacheSlicesMerging() throws Exception {
     long cacheSliceIntervalMillis = 30000L;
-
-    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
-    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class), anyBoolean())).andReturn(new byte[16]).once();
-    replay(metricMetadataManagerMock);
 
     long startTime = getRoundedCheckPointTimeMillis(System.currentTimeMillis(), cacheSliceIntervalMillis);
 
@@ -103,7 +104,7 @@ public class TimelineMetricsIgniteCacheTest {
 
     Collection<TimelineMetric> timelineMetrics = new ArrayList<>();
     timelineMetrics.add(timelineMetric);
-    timelineMetricsIgniteCache.putMetrics(timelineMetrics, metricMetadataManagerMock);
+    timelineMetricsIgniteCache.putMetrics(timelineMetrics);
     Map<TimelineClusterMetric, MetricClusterAggregate> aggregateMap = timelineMetricsIgniteCache.evictMetricAggregates(startTime, startTime + 120*seconds);
 
     Assert.assertEquals(aggregateMap.size(), 2);
@@ -151,7 +152,7 @@ public class TimelineMetricsIgniteCacheTest {
     timelineMetrics = new ArrayList<>();
     timelineMetrics.add(timelineMetric);
     timelineMetrics.add(timelineMetric2);
-    timelineMetricsIgniteCache.putMetrics(timelineMetrics, metricMetadataManagerMock);
+    timelineMetricsIgniteCache.putMetrics(timelineMetrics);
     aggregateMap = timelineMetricsIgniteCache.evictMetricAggregates(startTime, startTime + 120*seconds);
 
     Assert.assertEquals(aggregateMap.size(), 2);
@@ -176,11 +177,6 @@ public class TimelineMetricsIgniteCacheTest {
     //make sure hosts metrics are aggregated for appIds from "timeline.metrics.service.cluster.aggregator.appIds"
 
     long cacheSliceIntervalMillis = 30000L;
-
-    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
-    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class), anyBoolean())).andReturn(new byte[16]).once();
-    expect(metricMetadataManagerMock.getHostedAppsCache()).andReturn(new HashMap<>()).anyTimes();
-    replay(metricMetadataManagerMock);
 
     long startTime = getRoundedCheckPointTimeMillis(System.currentTimeMillis(), cacheSliceIntervalMillis);
 
@@ -216,7 +212,7 @@ public class TimelineMetricsIgniteCacheTest {
     timelineMetric.setMetricValues(metricValues);
     timelineMetrics.add(timelineMetric);
 
-    timelineMetricsIgniteCache.putMetrics(timelineMetrics, metricMetadataManagerMock);
+    timelineMetricsIgniteCache.putMetrics(timelineMetrics);
 
     Map<TimelineClusterMetric, MetricClusterAggregate> aggregateMap = timelineMetricsIgniteCache.evictMetricAggregates(startTime, startTime + 120*seconds);
     Assert.assertEquals(aggregateMap.size(), 6);
