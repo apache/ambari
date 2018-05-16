@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentSupport;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
@@ -51,6 +52,9 @@ import com.google.inject.Inject;
 public class DeleteUnsupportedServicesAndComponents extends AbstractUpgradeServerAction {
   @Inject
   private ServiceComponentSupport serviceComponentSupport;
+
+  @Inject
+  private STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
@@ -68,7 +72,10 @@ public class DeleteUnsupportedServicesAndComponents extends AbstractUpgradeServe
   private Set<String> deleteUnsupportedServices(Cluster cluster, RepositoryVersionEntity repoVersion) throws AmbariException {
     Set<String> servicesToBeRemoved = serviceComponentSupport.unsupportedServices(cluster, repoVersion.getStackName(), repoVersion.getStackVersion());
     for (String serviceName : servicesToBeRemoved) {
-      cluster.deleteService(serviceName, new DeleteHostComponentStatusMetaData());
+      DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
+      cluster.deleteService(serviceName, deleteMetaData);
+      STOMPComponentsDeleteHandler.processDeleteByMetaDataException(deleteMetaData);
+      STOMPComponentsDeleteHandler.processDeleteByMetaData(deleteMetaData);
       deleteUpgradeHistory(cluster, history -> serviceName.equals(history.getServiceName()));
     }
     return servicesToBeRemoved;
@@ -77,7 +84,10 @@ public class DeleteUnsupportedServicesAndComponents extends AbstractUpgradeServe
   private Set<String> deleteUnsupportedComponents(Cluster cluster, RepositoryVersionEntity repoVersion) throws AmbariException {
     Set<String> deletedComponents = new HashSet<>();
     for (ServiceComponent component : serviceComponentSupport.unsupportedComponents(cluster, repoVersion.getStackName(), repoVersion.getStackVersion())) {
-      cluster.getService(component.getServiceName()).deleteServiceComponent(component.getName(), new DeleteHostComponentStatusMetaData());
+      DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
+      cluster.getService(component.getServiceName()).deleteServiceComponent(component.getName(), deleteMetaData);
+      STOMPComponentsDeleteHandler.processDeleteByMetaDataException(deleteMetaData);
+      STOMPComponentsDeleteHandler.processDeleteByMetaData(deleteMetaData);
       deleteUpgradeHistory(cluster, history -> component.getName().equals(history.getComponentName()));
       deletedComponents.add(component.getName());
     }
