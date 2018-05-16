@@ -141,7 +141,7 @@ public class JobService extends BaseService {
           Throwable th = error.get().getError();
           if(th instanceof SQLException){
             SQLException sqlException = (SQLException) th;
-            if(sqlException.getSQLState().equals("AUTHFAIL") && ConnectionFactory.isLdapEnabled(context))
+            if(sqlException.getSQLState() != null && sqlException.getSQLState().equals("AUTHFAIL") && ConnectionFactory.isLdapEnabled(context))
               throw new ServiceFormattedException("Hive Authentication failed", sqlException, 401);
           }
           throw new Exception(th);

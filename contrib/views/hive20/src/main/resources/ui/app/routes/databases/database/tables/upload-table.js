@@ -307,6 +307,7 @@ export default NewTable.extend(UILoggerMixin, {
         column.set("precision");
       }
       column.set("isPartitioned", false); // remove all partitioning information from temp table.
+      column.set("isClustered", false); // remove all clustering information from temp table.
       return column;
     });
 
