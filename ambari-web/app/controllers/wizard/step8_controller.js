@@ -365,47 +365,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   },
 
   /**
-   * Load repo info for add Service/Host wizard review page
-   * @return {$.ajax|null}
-   * @method loadRepoInfo
-   */
-  loadRepoInfo: function () {
-    var stackName = App.get('currentStackName');
-    var currentStackVersionNumber = App.get('currentStackVersionNumber');
-    var currentStackVersion = App.StackVersion.find().filterProperty('stack', stackName).findProperty('version', currentStackVersionNumber);
-    var currentRepoVersion = currentStackVersion.get('repositoryVersion.repositoryVersion');
-
-    return App.ajax.send({
-      name: 'cluster.load_repo_version',
-      sender: this,
-      data: {
-        stackName: stackName,
-        repositoryVersion: currentRepoVersion
-      },
-      success: 'loadRepoInfoSuccessCallback',
-      error: 'loadRepoInfoErrorCallback'
-    });
-  },
-
-  /**
-   * Save all repo base URL of all OS type to <code>repoInfo<code>
-   * @param {object} data
-   * @method loadRepoInfoSuccessCallback
-   */
-  loadRepoInfoSuccessCallback: function (data) {
-    Em.assert('Current repo-version may be only one', data.items.length === 1);
-    if (data.items.length) {
-      var allRepos = this.generateRepoInfo(Em.getWithDefault(data, 'items.0.repository_versions.0.operating_systems', []));
-      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-      this.get('clusterInfo').set('repoInfo', allRepos);
-      //if the property is missing, set as false
-      this.get('clusterInfo').set('useRedhatSatellite', data.items[0].repository_versions[0].operating_systems[0].OperatingSystems.ambari_managed_repositories === false);
-    } else {
-      this.loadDefaultRepoInfo();
-    }
-  },
-
-  /**
    * Generate list regarding info about OS versions and repositories.
    *
    * @param {Object{}} oses - OS array
@@ -421,48 +380,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         });
       });
     }).reduce(function(p, c) { return p.concat(c); });
-  },
-
-  /**
-   * Load repo info from stack. Used if installed stack doesn't have upgrade info.
-   *
-   * @returns {$.Deferred}
-   * @method loadDefaultRepoInfo
-   */
-  loadDefaultRepoInfo: function() {
-    var nameVersionCombo = App.get('currentStackVersion').split('-');
-
-    return App.ajax.send({
-      name: 'cluster.load_repositories',
-      sender: this,
-      data: {
-        stackName: nameVersionCombo[0],
-        stackVersion: nameVersionCombo[1]
-      },
-      success: 'loadDefaultRepoInfoSuccessCallback',
-      error: 'loadRepoInfoErrorCallback'
-    });
-  },
-
-  /**
-   * @param {Object} data - JSON data from server
-   * @method loadDefaultRepoInfoSuccessCallback
-   */
-  loadDefaultRepoInfoSuccessCallback: function (data) {
-    var allRepos = this.generateRepoInfo(Em.getWithDefault(data, 'items', []));
-    allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-    this.get('clusterInfo').set('repoInfo', allRepos);
-    //if the property is missing, set as false
-    this.get('clusterInfo').set('useRedhatSatellite', data.items[0].OperatingSystems.ambari_managed_repositories === false);
-  },
-
-  /**
-   * @method loadRepoInfoErrorCallback
-   */
-  loadRepoInfoErrorCallback: function () {
-    var allRepos = [];
-    allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-    this.get('clusterInfo').set('repoInfo', allRepos);
   },
 
   /**
