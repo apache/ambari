@@ -812,6 +812,12 @@
       <groupId>org.apache.ignite</groupId>
       <artifactId>ignite-core</artifactId>
       <version>2.1.0</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>ignite-shmem</artifactId>
+          <groupId>org.gridgain</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ignite</groupId>
