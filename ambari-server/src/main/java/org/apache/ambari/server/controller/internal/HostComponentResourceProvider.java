@@ -344,7 +344,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     notifyDelete(Resource.Type.HostComponent, predicate);
     for(ServiceComponentHostRequest svcCmpntHostReq : requests) {
-      deleteStatusMetaData.addDeletedKey("component_id: "+svcCmpntHostReq.getComponentId());
+      deleteStatusMetaData.addDeletedKey("component_id: "+svcCmpntHostReq.getHostComponentId());
     }
     return getRequestStatus(null, null, deleteStatusMetaData);
   }

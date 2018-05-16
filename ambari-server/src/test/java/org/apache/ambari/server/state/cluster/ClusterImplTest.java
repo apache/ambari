@@ -26,6 +26,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -251,6 +253,9 @@ public class ClusterImplTest {
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
     ServiceComponentHost tezClientHost2 = tezClient.addServiceComponentHost(hostName2);
 
+    assertSame(tezClientHost1, cluster.getHostComponentById(tezClientHost1.getHostComponentId()));
+    assertSame(tezClientHost2, cluster.getHostComponentById(tezClientHost2.getHostComponentId()));
+
     // When
     cluster.deleteService(serviceToDelete, new DeleteHostComponentStatusMetaData());
 
@@ -264,6 +269,8 @@ public class ClusterImplTest {
 
     assertTrue("All components of the deleted service should be removed from all hosts", checkHost1 && checkHost2);
 
+    assertNull(cluster.getHostComponentById(tezClientHost1.getHostComponentId()));
+    assertNull(cluster.getHostComponentById(tezClientHost2.getHostComponentId()));
   }
 
   @Test
