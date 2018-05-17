@@ -64,7 +64,7 @@ module.exports = App.WizardRoute.extend({
                 const DEPLOY_STEP = '6';
                 const LAST_STEP = '7';
                 if (currentStep === LAST_STEP) {
-                  this.hide();
+                  mainPopupContext.afterWarning();
                 } else {
                   App.ModalPopup.show({
                     encodeBody: false,
