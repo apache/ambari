@@ -432,7 +432,7 @@ atlas_admin_password = config['configurations']['atlas-env']['atlas.admin.passwo
 
 # Atlas Passwords Extracted From Credential Store
 if credential_provider:
-    default_credential_shell_lib_path = '/var/lib/ambari-agent/cred/lib'
-    truststore_password = PasswordString(get_password_from_credential_store('truststore.password', credential_provider, os.path.join(default_credential_shell_lib_path, '*'), java64_home, default_credential_shell_lib_path))
-    keystore_password = PasswordString(get_password_from_credential_store('keystore.password', credential_provider, os.path.join(default_credential_shell_lib_path, '*'), java64_home, default_credential_shell_lib_path))
-    key_password = PasswordString(get_password_from_credential_store('password', credential_provider, os.path.join(default_credential_shell_lib_path, '*'), java64_home, default_credential_shell_lib_path))
+    default_credential_shell_lib_path = jdk_location
+    truststore_password = PasswordString(get_password_from_credential_store('truststore.password', credential_provider, os.path.join(default_credential_shell_lib_path, '*'), java64_home, jdk_location))
+    keystore_password = PasswordString(get_password_from_credential_store('keystore.password', credential_provider, os.path.join(default_credential_shell_lib_path, '*'), java64_home, jdk_location))
+    key_password = PasswordString(get_password_from_credential_store('password', credential_provider, os.path.join(default_credential_shell_lib_path, '*'), java64_home, jdk_location))
