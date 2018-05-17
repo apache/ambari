@@ -24,22 +24,20 @@ from resource_management.core.resources import File, Directory
 
 __all__ = ["generate_logfeeder_input_config"]
 
-def generate_logfeeder_input_config(type, content, env):
+def generate_logfeeder_input_config(type, content):
   """
   :param type: type of the logfeeder input config (most likely a service name: hdfs),
   it will be generated as input.config-<type>.json in logfeeder config folder
   :param content: generated template for the input config json file (you can use Template or InlineTemplate)
-  :param env: environment, needs to be pass in order to access param values in the jinja template
   """
   import params
-  env.set_params(params)
   Directory(LOGFEEDER_CONF_DIR,
             mode=0755,
             cd_access='a',
             create_parents=True
             )
   input_file_name = 'input.config-' + type + '.json'
-  Logger.info("Generate Log Feeder config file: " + input_file_name)
+  Logger.info("Generate Log Feeder config file: " + os.path.join(LOGFEEDER_CONF_DIR, input_file_name))
   File(os.path.join(LOGFEEDER_CONF_DIR, input_file_name),
        content=content,
        mode=0644
