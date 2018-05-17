@@ -1254,16 +1254,21 @@ public class HostImpl implements Host {
       String status = scHost.getState().name();
 
       String category = componentInfo.getCategory();
+      if (category == null) {
+        LOG.warn("In stack {}-{} service {} component {} category is null!",
+                stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(), scHost.getServiceComponentName());
+        continue;
+      }
 
       if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, this)) {
-        if ("MASTER".equals(category)) {
+        if (StringUtils.equals("MASTER", category)) {
           ++masterCount;
-          if ("STARTED".equals(status)) {
+          if (StringUtils.equals("STARTED", status)) {
             ++mastersRunning;
           }
-        } else if ("SLAVE".equals(category)) {
+        } else if (StringUtils.equals("SLAVE", category)) {
           ++slaveCount;
-          if ("STARTED".equals(status)) {
+          if (StringUtils.equals("STARTED", status)) {
             ++slavesRunning;
           }
         }
