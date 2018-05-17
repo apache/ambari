@@ -2071,7 +2071,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var validations = this.get('stepConfigs').mapProperty('configsWithErrors.length').reduce(Em.sum, 0);
     var configErrorList = this.get('configErrorList');
     this.set('issuesCounter', recommendations + validations + configErrorList.get('issues.length') + configErrorList.get('criticalIssues.length'));
-    if (validations > this.get('validationsCounter')) {
+    if (validations !== this.get('validationsCounter')) {
       this.ringBell();
     }
     this.set('hasErrors', !!validations);

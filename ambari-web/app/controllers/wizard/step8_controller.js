@@ -1709,7 +1709,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   showLoadingIndicator: function () {
     return App.ModalPopup.show({
 
-      header: '',
+      header: Em.I18n.t('installer.step8.deployPopup.header'),
 
       showFooter: false,
 

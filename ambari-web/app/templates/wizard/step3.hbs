@@ -71,6 +71,8 @@
                 <th {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.status}}</th>
                 <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
                 <th {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.action}}</th>
+                <!-- empty th to contain extra space of table -->
+                <th></th>
                 <!-- trash icon -->
                 <!-- retry icon -->
               </tr>
@@ -103,6 +105,8 @@
                         <i class="glyphicon glyphicon-trash" {{translateAttr title="common.remove"}}></i>
                       </a>
                     </td>
+                    <!-- empty td to contain extra space of table -->
+                    <td></td>
                   {{/view}}
                 {{/each}}
               {{else}}
