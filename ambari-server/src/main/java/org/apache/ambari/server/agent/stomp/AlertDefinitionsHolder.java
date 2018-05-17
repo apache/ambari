@@ -125,7 +125,7 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
           LOG.info("Unknown clusters in update, perhaps cluster was removed previously");
         }
         for (Map.Entry<Long, AlertCluster> e : updateClusters.entrySet()) {
-          if (CollectionUtils.isEmpty(e.getValue().getAlertDefinitions())) {
+          if (update.getEventType().equals(DELETE) && CollectionUtils.isEmpty(e.getValue().getAlertDefinitions())) {
             existingClusters.remove(e.getKey());
             changed = true;
           } else {

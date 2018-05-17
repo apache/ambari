@@ -17,14 +17,19 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
 import org.apache.ambari.server.events.AlertEvent;
+import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -74,6 +79,9 @@ public class AlertMaintenanceModeListener {
   @Inject
   private AggregateDefinitionMapping m_aggregateMapping;
 
+  @Inject
+  private STOMPUpdatePublisher  STOMPUpdatePublisher;
+
   private long clusterId = -1;
 
   /**
@@ -107,7 +115,7 @@ public class AlertMaintenanceModeListener {
     if (event.getMaintenanceState() != MaintenanceState.OFF) {
       newMaintenanceState = MaintenanceState.ON;
     }
-
+    Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> alertUpdates = new HashMap<>();
     for( AlertCurrentEntity currentAlert : currentAlerts ){
       AlertHistoryEntity history = currentAlert.getAlertHistory();
 
@@ -124,7 +132,7 @@ public class AlertMaintenanceModeListener {
         if( null != host ){
           String hostName = host.getHostName();
           if( hostName.equals( alertHostName ) ){
-            if (updateMaintenanceStateAndRecalculateAggregateAlert(history, currentAlert, newMaintenanceState))
+            if (updateMaintenanceStateAndRecalculateAggregateAlert(history, currentAlert, newMaintenanceState, alertUpdates))
               recalculateAggregateAlert = true;
             continue;
           }
@@ -132,7 +140,7 @@ public class AlertMaintenanceModeListener {
           // service level maintenance
           String serviceName = service.getName();
           if( serviceName.equals(alertServiceName)){
-            if (updateMaintenanceStateAndRecalculateAggregateAlert(history, currentAlert, newMaintenanceState))
+            if (updateMaintenanceStateAndRecalculateAggregateAlert(history, currentAlert, newMaintenanceState, alertUpdates))
               recalculateAggregateAlert = true;
             continue;
           }
@@ -145,7 +153,7 @@ public class AlertMaintenanceModeListener {
           // match on all 3 for a service component
           if (hostName.equals(alertHostName) && serviceName.equals(alertServiceName)
               && componentName.equals(alertComponentName)) {
-            if (updateMaintenanceStateAndRecalculateAggregateAlert(history, currentAlert, newMaintenanceState))
+            if (updateMaintenanceStateAndRecalculateAggregateAlert(history, currentAlert, newMaintenanceState, alertUpdates))
               recalculateAggregateAlert = true;
             continue;
           }
@@ -155,6 +163,10 @@ public class AlertMaintenanceModeListener {
         LOG.error("Unable to put alert '{}' for host {} into maintenance mode",
             definition.getDefinitionName(), alertHostName, exception);
       }
+    }
+
+    if (!alertUpdates.isEmpty()) {
+      STOMPUpdatePublisher.publish(new AlertUpdateEvent(alertUpdates));
     }
 
     if (recalculateAggregateAlert) {
@@ -178,12 +190,14 @@ public class AlertMaintenanceModeListener {
    *          {@link MaintenanceState#OFF} or {@link MaintenanceState#ON}.
    */
   private boolean updateMaintenanceStateAndRecalculateAggregateAlert (AlertHistoryEntity historyAlert,
-      AlertCurrentEntity currentAlert, MaintenanceState maintenanceState) {
+      AlertCurrentEntity currentAlert, MaintenanceState maintenanceState, Map<Long, Map<String,
+      AlertSummaryGroupedRenderer.AlertDefinitionSummary>> alertUpdates) {
 
+    AlertDefinitionEntity definitionEntity = currentAlert.getAlertHistory().getAlertDefinition();
     // alerts only care about OFF or ON
     if (maintenanceState != MaintenanceState.OFF && maintenanceState != MaintenanceState.ON) {
       LOG.warn("Unable to set invalid maintenance state of {} on the alert {}", maintenanceState,
-          currentAlert.getAlertHistory().getAlertDefinition().getDefinitionName());
+          definitionEntity.getDefinitionName());
 
       return false;
     }
@@ -197,6 +211,15 @@ public class AlertMaintenanceModeListener {
     m_alertsDao.merge(currentAlert);
 
     AlertState alertState = historyAlert.getAlertState();
+
+    if (!alertUpdates.containsKey(historyAlert.getClusterId())) {
+      alertUpdates.put(historyAlert.getClusterId(), new HashMap<>());
+    }
+    Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = alertUpdates.get(historyAlert.getClusterId());
+
+    // alert history doesn't change when MM is turned on/off, so timestamp and text should be empty
+    AlertSummaryGroupedRenderer.updateSummary(summaries, definitionEntity.getDefinitionId(),
+        definitionEntity.getDefinitionName(), alertState, -1L, maintenanceState, "");
 
     if (AlertState.RECALCULATE_AGGREGATE_ALERT_STATES.contains(alertState)){
       clusterId = historyAlert.getClusterId();
