@@ -206,7 +206,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
 
   didInsertElement: function () {
     this.observesCategories();
-    this.$(".accordion").on("show hide", function (e) {
+    this.$(".accordion").on("show.bs.collapse hide.bs.collapse", function (e) {
       $(e.target).siblings(".accordion-heading").find("i.accordion-toggle").toggleClass('icon-caret-right icon-caret-down');
     });
 
