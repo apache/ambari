@@ -1059,7 +1059,7 @@ class MpackAdvisorImpl(MpackAdvisor):
         componentName = component["StackServiceComponents"]["component_name"]
         requiredComponentName = dependency["Dependencies"]["component_name"]
         mpackName = component["StackServiceComponents"]["stack_name"]
-        requiredComponent = self.getRequiredComponent(mpackName, requiredComponentName)
+        requiredComponent = self.getRequiredComponent(requiredComponentName)
 
         # We only deal with "host" scope.
         if requiredComponent and requiredComponent.get("component_category") != "CLIENT":
@@ -1163,7 +1163,7 @@ class MpackAdvisorImpl(MpackAdvisor):
             # account for only dependencies that are not conditional
             conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
             if not conditionsPresent:
-              requiredComponent = self.getRequiredComponent(serviceInstance.getMpackName(), dependency["Dependencies"]["component_name"])
+              requiredComponent = self.getRequiredComponent(dependency["Dependencies"]["component_name"])
               componentDisplayName = component["StackServiceComponents"]["display_name"]
               requiredComponentDisplayName = requiredComponent["display_name"] \
                                              if requiredComponent is not None else dependency["Dependencies"]["component_name"]
@@ -1815,7 +1815,7 @@ class MpackAdvisorImpl(MpackAdvisor):
   def isMasterComponent(self, component):
     return self.getComponentAttribute(component, "is_master")
 
-  def getRequiredComponent(self, mpackName, componentName):
+  def getRequiredComponent(self, componentName):
     """
     Return Category for component
 
@@ -1825,7 +1825,7 @@ class MpackAdvisorImpl(MpackAdvisor):
     componentsListList = [serviceInstance.getComponents() for serviceInstance in self.serviceInstancesSet]
     componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
     component = next((component for component in componentsList
-                      if component["component_name"] == componentName and component["stack_name"] == mpackName), None)
+                      if component["component_name"] == componentName), None)
 
     return component
 
