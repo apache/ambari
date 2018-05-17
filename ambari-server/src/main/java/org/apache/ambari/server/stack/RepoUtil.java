@@ -26,6 +26,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
@@ -46,7 +48,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 
 /**
- * Utility functions for repository replated tasks.
+ * Utility functions for repository related tasks.
  */
 public class RepoUtil {
 
@@ -120,6 +122,8 @@ public class RepoUtil {
    * @param stackReposByOs - Stack repositories loaded from the disk (including service repositories), grouped by os.
    * @return {@code true} if there were added repositories
    */
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   public static boolean addServiceReposToOperatingSystemEntities(List<RepoOsEntity> operatingSystems,
                                                                  ListMultimap<String, RepositoryInfo> stackReposByOs) {
     Set<String> addedRepos = new HashSet<>();
@@ -145,6 +149,8 @@ public class RepoUtil {
    * @param stackReposByOs the repositories in the stack model (loaded from disks)
    * @return A list of service repositories
    */
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   public static List<RepositoryInfo> getServiceRepos(List<RepositoryInfo> vdfRepos,
                                                    ListMultimap<String, RepositoryInfo> stackReposByOs) {
     Set<String> serviceRepoIds = new HashSet<>();
@@ -187,6 +193,8 @@ public class RepoUtil {
     return responses;
   }
 
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   private static RepoDefinitionEntity toRepositoryEntity(RepositoryInfo repoInfo) {
     RepoDefinitionEntity re = new RepoDefinitionEntity();
     re.setBaseUrl(repoInfo.getBaseUrl());
@@ -195,6 +203,7 @@ public class RepoUtil {
     re.setDistribution(repoInfo.getDistribution());
     re.setComponents(repoInfo.getComponents());
     re.setTags(repoInfo.getTags());
+    re.setApplicableServices(repoInfo.getApplicableServices());
     return re;
   }
 

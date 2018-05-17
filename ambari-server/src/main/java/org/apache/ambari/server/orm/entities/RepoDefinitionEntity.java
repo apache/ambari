@@ -18,6 +18,8 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CollectionTable;
@@ -35,6 +37,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.stack.RepoTag;
 
 import com.google.common.base.Objects;
@@ -93,6 +97,15 @@ public class RepoDefinitionEntity {
   @Column(name = "unique_repo", nullable = false)
   private short unique = 0;
 
+  /**
+   * CollectionTable for RepoTag enum
+   */
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  @ElementCollection(targetClass = String.class)
+  @CollectionTable(name = "repo_applicable_services", joinColumns = {@JoinColumn(name = "repo_definition_id")})
+  @Column(name = "service_name")
+  private List<String> applicableServices = new LinkedList<>();
 
   public String getDistribution() {
     return distribution;
@@ -142,6 +155,18 @@ public class RepoDefinitionEntity {
     this.mirrors = mirrors;
   }
 
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public List<String> getApplicableServices() {
+    return applicableServices;
+  }
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public void setApplicableServices(List<String> applicableServices) {
+    this.applicableServices = applicableServices;
+  }
+
   public Long getId() {
     return id;
   }
@@ -179,7 +204,7 @@ public class RepoDefinitionEntity {
    */
   @Override
   public int hashCode() {
-    return java.util.Objects.hash(repoTags, repoName, repoID, baseUrl, mirrors, distribution, components, unique);
+    return java.util.Objects.hash(repoTags, repoName, repoID, baseUrl, mirrors, distribution, components, unique, applicableServices);
   }
 
   /**
@@ -207,6 +232,7 @@ public class RepoDefinitionEntity {
         && Objects.equal(baseUrl, that.baseUrl)
         && Objects.equal(mirrors, that.mirrors)
         && Objects.equal(distribution, that.distribution)
-        && Objects.equal(components, that.components);
+        && Objects.equal(components, that.components)
+        && Objects.equal(applicableServices, that.applicableServices);
   }
 }

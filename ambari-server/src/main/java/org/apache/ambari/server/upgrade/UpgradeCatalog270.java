@@ -221,6 +221,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String REPO_TAGS_TAG_COLUMN = "tag";
   protected static final String REPO_TAGS_FOREIGN_KEY = "FK_repo_tag_definition_id";
 
+  protected static final String REPO_APPLICABLE_SERVICES_TABLE = "repo_applicable_services";
+  protected static final String REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN = "repo_definition_id";
+  protected static final String REPO_APPLICABLE_SERVICES_SERVICE_NAME_COLUMN = "service_name";
+  protected static final String REPO_APPLICABLE_SERVICES_FOREIGN_KEY = "FK_repo_applicable_service_definition_id";
+
   protected static final String REPO_VERSION_TABLE = "repo_version";
   protected static final String REPO_VERSION_REPO_VERSION_ID_COLUMN = "repo_version_id";
   protected static final String REPO_VERSION_REPOSITORIES_COLUMN = "repositories";
@@ -327,6 +332,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     createRepoOsTable();
     createRepoDefinitionTable();
     createRepoTagsTable();
+    createRepoApplicableServicesTable();
     migrateRepoData();
     updateRepoVersionTable();
   }
@@ -411,6 +417,26 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable(REPO_TAGS_TABLE, columns);
     dbAccessor.addFKConstraint(REPO_TAGS_TABLE, REPO_TAGS_FOREIGN_KEY, REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
+  }
+
+  /**
+   * Adds the repo_applicable_services table to the Ambari database.
+   * <pre>
+   *   CREATE TABLE repo_applicable_services (
+   *     repo_definition_id BIGINT NOT NULL,
+   *     service_name VARCHAR(255) NOT NULL,
+   *     CONSTRAINT FK_repo_applicable_service_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+   * </pre>
+   *
+   * @throws SQLException
+   */
+  private void createRepoApplicableServicesTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_APPLICABLE_SERVICES_SERVICE_NAME_COLUMN, String.class, 255, null, false));
+
+    dbAccessor.createTable(REPO_APPLICABLE_SERVICES_TABLE, columns);
+    dbAccessor.addFKConstraint(REPO_APPLICABLE_SERVICES_TABLE, REPO_APPLICABLE_SERVICES_FOREIGN_KEY, REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
   }
 
   /**

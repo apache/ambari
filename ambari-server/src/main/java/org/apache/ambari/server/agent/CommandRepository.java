@@ -27,6 +27,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -265,6 +266,11 @@ public class CommandRepository {
     @JsonProperty("mirrorsList")
     private String m_mirrorsList;
 
+    @SerializedName("applicableServices")
+    @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+      comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+    private List<String> m_applicableServices;
+
     @SerializedName("tags")
     private Set<RepoTag> m_tags;
 
@@ -279,6 +285,7 @@ public class CommandRepository {
       m_distribution = info.getDistribution();
       m_components = info.getComponents();
       m_mirrorsList = info.getMirrorsList();
+      m_applicableServices = info.getApplicableServices();
       m_tags = info.getTags();
     }
 
@@ -289,6 +296,7 @@ public class CommandRepository {
       m_distribution = entity.getDistribution();
       m_components = entity.getComponents();
       m_mirrorsList = entity.getMirrors();
+      m_applicableServices = entity.getApplicableServices();
       m_osType = osType;
       m_tags = entity.getTags();
     }
@@ -305,12 +313,28 @@ public class CommandRepository {
       return m_repoName;
     }
 
+    public String getRepoId() {
+      return m_repoId;
+    }
+
     public String getBaseUrl() {
       return m_baseUrl;
     }
 
     public boolean isAmbariManaged() {
       return m_ambariManaged;
+    }
+
+    @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+      comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+    public void setApplicableServices(List<String> applicableServices) {
+      m_applicableServices = applicableServices;
+    }
+
+    @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+      comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+    public List<String> getApplicableServices() {
+      return m_applicableServices;
     }
 
     /**
@@ -325,9 +349,9 @@ public class CommandRepository {
           .append("components", m_components)
           .append("id", m_repoId)
           .append("baseUrl", m_baseUrl)
+          .append("applicableServices", (m_applicableServices != null? StringUtils.join(m_applicableServices, ",") : ""))
           .toString();
     }
-
   }
 
   @Override
