@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.constants import LOGFEEDER_CONF_DIR
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.script import get_config_lock_file
 from resource_management.libraries.functions import default
@@ -47,7 +48,7 @@ major_stack_version = get_major_version(stack_version_formatted)
 service_name = config['serviceName']
 
 # logsearch configuration
-logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_conf = LOGFEEDER_CONF_DIR
 
 agent_cache_dir = config['agentLevelParams']['agentCacheDir']
 service_package_folder = config['serviceLevelParams']['service_package_folder']
