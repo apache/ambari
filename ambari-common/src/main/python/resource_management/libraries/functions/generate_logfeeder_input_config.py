@@ -17,41 +17,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+from resource_management.core.logger import Logger
+from ambari_commons.constants import LOGFEEDER_CONF_DIR
+from resource_management.core.resources import File, Directory
 
-AMBARI_SUDO_BINARY = "ambari-sudo.sh"
+__all__ = ["generate_logfeeder_input_config"]
 
-UPGRADE_TYPE_ROLLING = "rolling"
-UPGRADE_TYPE_NON_ROLLING = "nonrolling"
-UPGRADE_TYPE_HOST_ORDERED = "host_ordered"
-
-AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
-
-LOGFEEDER_CONF_DIR = "/usr/lib/ambari-logsearch-logfeeder/conf"
-
-class SERVICE:
+def generate_logfeeder_input_config(type, content, env):
   """
-  Constants for service names to avoid hardcoding strings.
+  :param type:
+  :param content:
+  :param env:
   """
-
-  ATLAS = "ATLAS"
-  FALCON = "FALCON"
-  FLUME = "FLUME"
-  HAWQ = "HAWQ"
-  HDFS = "HDFS"
-  HIVE = "HIVE"
-  KAFKA = "KAFKA"
-  KNOX = "KNOX"
-  MAHOUT = "MAHOUT"
-  OOZIE = "OOZIE"
-  PIG = "PIG"
-  PXF = "PXF"
-  RANGER = "RANGER"
-  SLIDER = "SLIDER"
-  SPARK = "SPARK"
-  SQOOP = "SQOOP"
-  STORM = "STORM"
-  TEZ = "TEZ"
-  YARN = "YARN"
-  ZEPPELIN = "ZEPPELIN"
-  ZOOKEEPER = "ZOOKEEPER"
-  HBASE = "HBASE"
+  import params
+  env.set_params(params)
+  Directory(LOGFEEDER_CONF_DIR,
+            mode=0755,
+            cd_access='a',
+            create_parents=True
+            )
+  input_file_name = 'input.config-' + type + '.json'
+  Logger.info("Generate Log Feeder config file: " + input_file_name)
+  File(os.path.join(LOGFEEDER_CONF_DIR, input_file_name),
+       content=content,
+       mode=0644
+       )
