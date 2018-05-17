@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -1254,16 +1255,21 @@ public class HostImpl implements Host {
       String status = scHost.getState().name();
 
       String category = componentInfo.getCategory();
+      if (category == null) {
+        LOG.warn("In stack {}-{} service {} component {} category is null!",
+                stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(), scHost.getServiceComponentName());
+        continue;
+      }
 
       if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, this)) {
-        if (category.equals("MASTER")) {
+        if (Objects.equals("MASTER", category)) {
           ++masterCount;
-          if (status.equals("STARTED")) {
+          if (Objects.equals("STARTED", status)) {
             ++mastersRunning;
           }
-        } else if (category.equals("SLAVE")) {
+        } else if (Objects.equals("SLAVE", category)) {
           ++slaveCount;
-          if (status.equals("STARTED")) {
+          if (Objects.equals("STARTED", status)) {
             ++slavesRunning;
           }
         }
