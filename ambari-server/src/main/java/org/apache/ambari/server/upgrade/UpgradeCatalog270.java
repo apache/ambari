@@ -224,7 +224,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String REPO_APPLICABLE_SERVICES_TABLE = "repo_applicable_services";
   protected static final String REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN = "repo_definition_id";
   protected static final String REPO_APPLICABLE_SERVICES_SERVICE_NAME_COLUMN = "service_name";
-  protected static final String REPO_APPLICABLE_SERVICES_FOREIGN_KEY = "FK_repo_applicable_service_definition_id";
+  protected static final String REPO_APPLICABLE_SERVICES_FOREIGN_KEY = "FK_repo_app_service_def_id";
 
   protected static final String REPO_VERSION_TABLE = "repo_version";
   protected static final String REPO_VERSION_REPO_VERSION_ID_COLUMN = "repo_version_id";

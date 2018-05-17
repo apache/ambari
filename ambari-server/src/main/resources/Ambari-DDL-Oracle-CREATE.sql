@@ -201,8 +201,7 @@ CREATE TABLE repo_tags (
 CREATE TABLE repo_applicable_services (
   repo_definition_id NUMBER(19) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
-  CONSTRAINT FK_repo_applicable_service_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
-
+  CONSTRAINT FK_repo_app_service_def_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id NUMBER(19) NOT NULL,
