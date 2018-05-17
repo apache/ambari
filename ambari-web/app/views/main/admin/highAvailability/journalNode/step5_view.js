@@ -29,7 +29,9 @@ App.ManageJournalNodeWizardStep5View = Em.View.extend({
       nameSpaces = App.HDFSService.find('HDFS').get('masterComponentGroups').mapProperty('name'),
       hdfsSiteConfigs = this.get('controller.content.serviceConfigProperties.items').findProperty('type', 'hdfs-site'),
       configProperties = hdfsSiteConfigs ? hdfsSiteConfigs.properties : {},
-      directories = nameSpaces.map(ns => configProperties[`dfs.journalnode.edits.dir.${ns}`]).uniq(),
+      directories = nameSpaces.length > 1
+        ? nameSpaces.map(ns => configProperties[`dfs.journalnode.edits.dir.${ns}`]).uniq()
+        : [configProperties['dfs.journalnode.edits.dir']],
       directoriesString = directories.map(dir => `<b>${dir}</b>`).join(', ');
     return Em.I18n.t('admin.manageJournalNode.wizard.step5.body').format(existingJournalNode.hostName, directoriesString);
   }.property('controller.content.masterComponentHosts', 'controller.isHDFSNameSpacesLoaded')
