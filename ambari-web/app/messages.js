@@ -1372,10 +1372,9 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step2.header': 'Review',
   'admin.manageJournalNode.wizard.step3.header': 'Save Namespace',
   'admin.manageJournalNode.wizard.step4.header': 'Add/Remove JournalNodes',
-  'admin.manageJournalNode.wizard.step5.header': 'Format JournalNodes',
-  'admin.manageJournalNode.wizard.step6.header': 'Start Active NameNode',
-  'admin.manageJournalNode.wizard.step7.header': 'BootStrap Standby NameNode',
-  'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
+  'admin.manageJournalNode.wizard.step5.header': 'Copy JournalNode directories',
+  'admin.manageJournalNode.wizard.step6.header': 'Start JournalNodes',
+  'admin.manageJournalNode.wizard.step7.header': 'Start All Services',
 
   'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
   'admin.manageJournalNode.wizard.step3.confirm.hosts.body': '<b>Confirm your host selections.</b>',
@@ -1386,25 +1385,21 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step4.task1.title': 'Stop Services',
   'admin.manageJournalNode.wizard.step4.task2.title': 'Add JournalNodes',
   'admin.manageJournalNode.wizard.step4.task3.title': 'Delete JournalNodes',
-  'admin.manageJournalNode.wizard.step4.task4.title': 'Start JournalNodes',
-  'admin.manageJournalNode.wizard.step4.task5.title': 'Reconfigure HDFS',
-  'admin.manageJournalNode.wizard.step6.task0.title': 'Start Zookeeper Server',
-  'admin.manageJournalNode.wizard.step6.task1.title': 'Start Active NameNode',
-  'admin.manageJournalNode.wizard.step8.task0.title': 'Stop HDFS',
-  'admin.manageJournalNode.wizard.step8.task1.title': 'Start All Services',
+  'admin.manageJournalNode.wizard.step4.task4.title': 'Reconfigure HDFS',
+  'admin.manageJournalNode.wizard.step6.task0.title': 'Start JournalNodes',
+  'admin.manageJournalNode.wizard.step7.task0.title': 'Start All Services',
 
 
-  'admin.manageJournalNode.wizard.step5.bodyHeader': 'Manual Steps Required: Format JournalNodes',
-  'admin.manageJournalNode.wizard.step7.bodyHeader': 'Manual Steps Required: BootStrap Standby NameNode',
+  'admin.manageJournalNode.wizard.step5.bodyHeader': 'Manual Steps Required: Copy JournalNode directories',
 
 
   'admin.manageJournalNode.step4.save.configuration.note' : 'This configuration is created by Manage JournalNode Wizard',
 
-  'admin.manageJournalNode.wizard.step8.notice.inProgress': 'Please wait while services are started',
   'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait while JournalNodes are being deployed',
-  'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait for related services to be started',
   'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait while JournalNodes are being deployed',
-  'admin.manageJournalNode.wizard.step8.notice.completed':'Completed update to JournalNodes.',
+  'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait while JournalNodes are started',
+  'admin.manageJournalNode.wizard.step7.notice.inProgress': 'Please wait while services are started',
+  'admin.manageJournalNode.wizard.step7.notice.completed':'Completed update to JournalNodes.',
 
   'admin.manageJournalNode.wizard.step3.body':
   '<ol>' +
@@ -1419,26 +1414,10 @@ Em.I18n.translations = {
 
   'admin.manageJournalNode.wizard.step5.body':
   '<ol>' +
-  '<li>Login to the NameNode host <b>{1}</b>.</li>' +
-  '<li>Initialize the JournalNodes by running:' +
-  '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -initializeSharedEdits\'</div></li>' +
-  '<li>You will be able to proceed once Ambari detects that the JournalNodes have been initialized successfully.</li>' +
+  '<li>Login to the JournalNode host <b>{0}</b>.</li>' +
+  '<li>Create a tarball of the Journal directories: {1}.</li>' +
+  '<li>Copy the tarball on the new JournalNodes and untar at the respective locations as in Step 2.</li>' +
   '</ol>',
-
-  'admin.manageJournalNode.wizard.step7.body':
-  '<div class="alert alert-info">' +
-  '<ol start="1">' +
-  '<li>Login to the Additional NameNode host <b>{1}</b>.<br>' +
-  '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from previous steps.</div>' +
-  '</li>' +
-  '<li>Initialize the metadata for the Additional NameNode by running:' +
-  '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
-  '</ol>' +
-  '</div>' +
-  'Please proceed once you have completed the steps above.',
-
-
-
 
   'admin.highAvailability':' High Availability',
   'admin.highAvailability.button.enable':'Enable NameNode HA',

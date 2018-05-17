@@ -23,7 +23,7 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
 
   name: 'manageJournalNodeWizardController',
 
-  totalSteps: 8,
+  totalSteps: 7,
 
   /**
    * Used for hiding back button in wizard
