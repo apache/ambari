@@ -234,6 +234,4 @@ App.StackServiceComponent = DS.Model.extend({
 
 App.StackServiceComponent.FIXTURES = [];
 
-App.StackServiceComponent.coHost = {
-  'WEBHCAT_SERVER': 'HIVE_SERVER'
-};
+App.StackServiceComponent.coHost = {};
