@@ -55,6 +55,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -203,6 +204,9 @@ public class UpgradeHelper {
    */
   @Inject
   private Provider<AmbariManagementControllerImpl> m_controllerProvider;
+
+  @Inject
+  private Provider<ClusterMetadataGenerator> metadataGenerator;
 
   @Inject
   private Provider<MetadataHolder> m_metadataHolder;
@@ -1166,7 +1170,7 @@ public class UpgradeHelper {
       }
     }
     if (configsChanged) {
-      m_metadataHolder.get().updateData(m_controllerProvider.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_metadataHolder.get().updateData(metadataGenerator.get().getClusterMetadataOnConfigsUpdate(cluster));
       m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
     }
   }

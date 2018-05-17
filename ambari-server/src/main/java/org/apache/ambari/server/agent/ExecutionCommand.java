@@ -538,6 +538,9 @@ public class ExecutionCommand extends AgentCommand {
     String AMBARI_JDK_NAME = "ambari_jdk_name";
     String AMBARI_JCE_NAME = "ambari_jce_name";
     String AMBARI_JAVA_VERSION = "ambari_java_version";
+    String AMBARI_SERVER_HOST = "ambari_server_host";
+    String AMBARI_SERVER_PORT = "ambari_server_port";
+    String AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl";
     String JAVA_VERSION = "java_version";
     String JDK_NAME = "jdk_name";
     String JCE_NAME = "jce_name";

@@ -35,8 +35,8 @@ import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
@@ -127,7 +127,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
   private Gson m_gson;
 
   @Inject
-  private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
+  private Provider<ClusterMetadataGenerator> metadataGenerator;
 
   @Inject
   private Provider<MetadataHolder> m_metadataHolder;
@@ -542,7 +542,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
       config.setProperties(newValues);
       config.save();
 
-      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_metadataHolder.get().updateData(metadataGenerator.get().getClusterMetadataOnConfigsUpdate(cluster));
       m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputBuffer.toString(), "");

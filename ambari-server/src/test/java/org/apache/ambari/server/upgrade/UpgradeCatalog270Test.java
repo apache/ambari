@@ -181,6 +181,7 @@ import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
@@ -1128,11 +1129,11 @@ public class UpgradeCatalog270Test {
         .addMockedMethod("createConfiguration")
         .addMockedMethod("getClusters", new Class[]{})
         .addMockedMethod("createConfig")
-        .addMockedMethod("getClusterMetadataOnConfigsUpdate", Cluster.class)
         .createMock();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class), 1L)).andReturn(newConfig).once();
-    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster1))).andReturn(createNiceMock(MetadataUpdateEvent.class)).once();
+    final ClusterMetadataGenerator metadataGenerator = createMock(ClusterMetadataGenerator.class);
+    expect(metadataGenerator.getClusterMetadataOnConfigsUpdate(eq(cluster1))).andReturn(createNiceMock(MetadataUpdateEvent.class)).once();
 
 
     Injector injector = createNiceMock(Injector.class);
@@ -1144,7 +1145,7 @@ public class UpgradeCatalog270Test {
     expect(kerberosHelperMock.createTemporaryDirectory()).andReturn(new File("/invalid/file/path")).times(2);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelperMock).anyTimes();
 
-    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock);
+    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock, metadataGenerator);
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("configuration");
 
@@ -1160,7 +1161,7 @@ public class UpgradeCatalog270Test {
     field.set(upgradeCatalog270, createNiceMock(Configuration.class));
     upgradeCatalog270.updateKerberosConfigurations();
 
-    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog270);
+    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog270, metadataGenerator);
 
 
     Assert.assertEquals(1, capturedProperties.getValues().size());

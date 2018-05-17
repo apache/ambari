@@ -40,11 +40,11 @@ import org.apache.ambari.server.agent.stomp.dto.ClusterConfigs;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.HostComponentUpdate;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
@@ -137,7 +137,7 @@ public class ConfigHelper {
   private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   @Inject
-  private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
+  private Provider<ClusterMetadataGenerator> metadataGenerator;
 
   @Inject
   private StateUpdateEventPublisher stateUpdateEventPublisher;
@@ -1200,7 +1200,7 @@ public class ConfigHelper {
       || !Maps.difference(oldConfigProperties, properties).areEqual()) {
       if (createConfigType(cluster, stackId, controller, configType, properties,
         propertiesAttributes, authenticatedUserName, serviceVersionNote)) {
-        m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+        m_metadataHolder.get().updateData(metadataGenerator.get().getClusterMetadataOnConfigsUpdate(cluster));
         m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
       }
     }
@@ -1212,7 +1212,7 @@ public class ConfigHelper {
 
     if (createConfigType(cluster, stackId, controller, configType, properties,
       new HashMap<>(), authenticatedUserName, serviceVersionNote)) {
-      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_metadataHolder.get().updateData(metadataGenerator.get().getClusterMetadataOnConfigsUpdate(cluster));
       m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
     }
   }

@@ -450,7 +450,6 @@ public class AmbariManagementControllerImplTest {
     // test
     AmbariManagementController controller = partialMockBuilder(AmbariManagementControllerImpl.class)
         .withConstructor(actionManager, clusters, injector)
-        .addMockedMethod("getClusterMetadataOnConfigsUpdate")
         .createMock();
     controller.updateClusters(setRequests, null);
 

@@ -52,6 +52,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -642,7 +643,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             }
             MetadataHolder metadataHolder = injector.getInstance(MetadataHolder.class);
             AgentConfigsHolder agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
-            metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(cluster));
+            ClusterMetadataGenerator metadataGenerator = injector.getInstance(ClusterMetadataGenerator.class);
+            metadataHolder.updateData(metadataGenerator.getClusterMetadataOnConfigsUpdate(cluster));
             agentConfigsHolder.updateData(cluster.getClusterId(), null);
           }
         } else {
