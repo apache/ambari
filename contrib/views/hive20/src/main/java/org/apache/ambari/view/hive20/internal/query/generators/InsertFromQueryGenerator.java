@@ -47,7 +47,9 @@ public class InsertFromQueryGenerator implements QueryGenerator{
   public Optional<String> getQuery() throws ServiceException {
     StringBuilder insertQuery = new StringBuilder();
     //Dynamic partition strict mode requires at least one static partition column. To turn this off set hive.exec.dynamic.partition.mode=nonstrict
-    insertQuery.append("set hive.exec.dynamic.partition.mode=nonstrict;").append("\n");
+    insertQuery.append("SET hive.exec.dynamic.partition.mode=nonstrict;").append("\n");
+    insertQuery.append("SET hive.support.concurrency=true;").append("\n");
+    insertQuery.append("SET hive.txn.manager=org.apache.hadoop.hive.ql.lockmgr.DbTxnManager;").append("\n");
 
     insertQuery.append(" FROM ").append("`").append(insertFromQueryInput.getFromDatabase()).append("`.`")
         .append(insertFromQueryInput.getFromTable()).append("` tempTable");
