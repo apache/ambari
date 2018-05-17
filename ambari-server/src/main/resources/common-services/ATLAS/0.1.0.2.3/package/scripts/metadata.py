@@ -250,7 +250,7 @@ def create_collection(collection, config_set, jaasFile):
       replication_factor = params.infra_solr_replication_factor,
       trust_store_password =  params.truststore_password if params.credential_provider else None,
       trust_store_type = "JKS" if params.credential_provider else None,
-      trust_store_location = params.trust_store_location if params.credential_provider else None)
+      trust_store_location = params.truststore_location if params.credential_provider else None)
 
 def secure_znode(znode, jaasFile):
   import params
