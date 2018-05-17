@@ -1433,10 +1433,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     List<Service> services;
-    if (!Strings.isNullOrEmpty(request.getServiceName())) {
-      services = ImmutableList.of(cluster.getService(request.getServiceName()));
-    } else if (!Strings.isNullOrEmpty(request.getServiceGroupName())) {
+    if (!Strings.isNullOrEmpty(request.getServiceGroupName())) {
       services = ImmutableList.copyOf(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
+    } else if (!Strings.isNullOrEmpty(request.getServiceName())) {
+      services = ImmutableList.of(cluster.getService(request.getServiceName()));
     } else {
       services = ImmutableList.copyOf(cluster.getServices().values());
     }
@@ -3119,7 +3119,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           for (ServiceComponentHost scHost :
               changedScHosts.get(compName).get(newState)) {
 
-            Service service = cluster.getService(scHost.getServiceName());
+            Service service = cluster.getService(scHost.getServiceGroupName(), scHost.getServiceName());
             ServiceComponent serviceComponent = service.getServiceComponent(compName);
             StackId stackId = cluster.getServiceGroup(scHost.getServiceGroupId()).getStackId();
 
