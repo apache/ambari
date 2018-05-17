@@ -151,18 +151,9 @@ def metadata(type='server'):
                                        roles = [params.infra_solr_role_atlas, params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
                                        new_service_principals = [params.atlas_jaas_principal])
 
-      create_collection('vertex_index', 'atlas_configs', jaasFile,
-            trust_store_password =  params.truststore_password if params.credential_provider else None,
-            trust_store_type = "JKS" if params.credential_provider else None,
-            trust_store_location = params.trust_store_location)
-      create_collection('edge_index', 'atlas_configs', jaasFile,
-            trust_store_password =  params.truststore_password if params.credential_provider else None,
-            trust_store_type = "JKS" if params.credential_provider else None,
-            trust_store_location = params.trust_store_location)
-      create_collection('fulltext_index', 'atlas_configs', jaasFile,
-            trust_store_password =  params.truststore_password if params.credential_provider else None,
-            trust_store_type = "JKS" if params.credential_provider else None,
-            trust_store_location = params.trust_store_location)
+      create_collection('vertex_index', 'atlas_configs', jaasFile)
+      create_collection('edge_index', 'atlas_configs', jaasFile)
+      create_collection('fulltext_index', 'atlas_configs', jaasFile)
 
       if params.security_enabled:
         secure_znode(format('{infra_solr_znode}/configs/atlas_configs'), jaasFile)
@@ -256,7 +247,10 @@ def create_collection(collection, config_set, jaasFile):
       java64_home=params.ambari_java_home,
       jaas_file=jaasFile,
       shards=params.atlas_solr_shards,
-      replication_factor = params.infra_solr_replication_factor)
+      replication_factor = params.infra_solr_replication_factor,
+      trust_store_password =  params.truststore_password if params.credential_provider else None,
+      trust_store_type = "JKS" if params.credential_provider else None,
+      trust_store_location = params.trust_store_location)
 
 def secure_znode(znode, jaasFile):
   import params
