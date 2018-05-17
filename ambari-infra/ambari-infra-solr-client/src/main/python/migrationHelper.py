@@ -243,18 +243,19 @@ if __name__=="__main__":
   parser.add_option("--solr-keep-backup", dest="solr_keep_backup", default=False, action="store_true", help="If it is turned on, Snapshot Solr data will not be deleted from the filesystem during restore.")
 
   (options, args) = parser.parse_args()
-
-  protocol = 'https' if options.ssl else 'http'
-
-  accessor = api_accessor(options.host, options.username, options.password, protocol, options.port)
-
-  print 'Inputs: ' + str(options)
-  if options.action.lower() == 'backup':
-    backup(options, accessor, parser)
-  elif options.action.lower() == 'restore':
-    restore(options, accessor, parser)
-  elif options.action.lower() == 'migrate':
-    migrate(options, accessor, parser)
+  if options.action is None:
+     parser.print_help()
+     print 'action option is missing'
   else:
-    parser.print_help()
-    print 'action option is wrong or missing'
+    protocol = 'https' if options.ssl else 'http'
+    accessor = api_accessor(options.host, options.username, options.password, protocol, options.port)
+    print 'Inputs: ' + str(options)
+    if options.action.lower() == 'backup':
+      backup(options, accessor, parser)
+    elif options.action.lower() == 'restore':
+      restore(options, accessor, parser)
+    elif options.action.lower() == 'migrate':
+      migrate(options, accessor, parser)
+    else:
+      parser.print_help()
+      print 'action option is invalid (available actions: backup | restore | migrate)'
