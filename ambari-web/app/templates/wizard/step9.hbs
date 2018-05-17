@@ -22,14 +22,12 @@
 
   <div class="panel panel-default">
     <div class="panel-body">
-      <div class="row" {{QAAttr "overall-progress"}}>
-        <div class="col-md-10">
-          <div class="progress" {{QAAttr "progress-{status}"}}>
-            <div {{bindAttr class="view.isStepCompleted::progress-bar-striped view.isStepCompleted::active view.barColor :progress-bar"}} {{bindAttr style="view.barWidth"}} {{QAAttr "progress-bar-{progress}"}}>
-            </div>
+      <div class="overall-progress" {{QAAttr "overall-progress"}}>
+        <div class="progress" {{QAAttr "progress-{status}"}}>
+          <div {{bindAttr class="view.isStepCompleted::progress-bar-striped view.isStepCompleted::active view.barColor :progress-bar"}} {{bindAttr style="view.barWidth"}} {{QAAttr "progress-bar-{progress}"}}>
           </div>
         </div>
-        <div class="col-md-2" {{QAAttr "progress-message"}}>{{view.progressMessage}}</div>
+        <div {{QAAttr "progress-message"}} class="progress-message">{{view.progressMessage}}</div>
       </div>
 
       <div class="panel panel-default panel-internal install-retry-panel">

@@ -68,13 +68,11 @@
           <tbody>
             {{#each host in view.pageContent}}
               <tr {{QAAttr "host-row"}} {{bindAttr class="host.isLast:last-row"}}>
-                  {{#view App.WizardStep6HostView hostBinding="host" }}
-                  <div class="checkbox">
-                    <span class="trim_hostname">{{host.hostName}}</span>
-                    {{#if host.hasMaster}}
-                      <i {{QAAttr "has-masters"}} class="glyphicon glyphicon-asterisks">&#10037;</i>
-                    {{/if}}
-                  </div>
+                {{#view App.WizardStep6HostView hostBinding="host" }}
+                  <span class="trim_hostname">{{host.hostName}}</span>
+                  {{#if host.hasMaster}}
+                    <i {{QAAttr "has-masters"}} class="glyphicon glyphicon-asterisks">&#10037;</i>
+                  {{/if}}
                 {{/view}}
                 {{#each checkbox in host.checkboxes}}
                   <td {{QAAttr "toggle-component"}} {{bindAttr class="checkbox.hasErrorMessage:error checkbox.hasWarnMessage:warning checkbox.component"}}>

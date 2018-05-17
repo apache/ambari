@@ -50,6 +50,16 @@ App.WizardStep6View = App.TableView.extend({
   didInsertElement: function () {
     this.setLabel();
     this.get('controller').loadStep();
+    Em.run.next(this, this.adjustColumnWidth);
+  },
+
+  adjustColumnWidth: function() {
+    const table = $('#component_assign_table');
+    const columnsCount = this.get('controller.headers.length');
+    if (table.width() > table.find('tbody').width()) {
+      const columnWidth = Math.floor(table.width() / columnsCount);
+      table.find("th:not('.freeze'), td:not('.freeze')").width(columnWidth);
+    }
   },
 
   /**
