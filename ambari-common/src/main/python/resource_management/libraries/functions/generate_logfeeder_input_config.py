@@ -26,9 +26,10 @@ __all__ = ["generate_logfeeder_input_config"]
 
 def generate_logfeeder_input_config(type, content, env):
   """
-  :param type:
-  :param content:
-  :param env:
+  :param type: type of the logfeeder input config (most likely a service name: hdfs),
+  it will be generated as input.config-<type>.json in logfeeder config folder
+  :param content: generated template for the input config json file (you can use Template or InlineTemplate)
+  :param env: environment, needs to be pass in order to access param values in the jinja template
   """
   import params
   env.set_params(params)
