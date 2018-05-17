@@ -232,12 +232,14 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         App.ajax.send({
           name: 'common.batch.request_schedules',
           sender: {
-            checkIfComponentWasDeleted: this.checkIfComponentWasDeleted.bind(this, batches, displayName, hostName)
+            checkIfComponentWasDeleted: this.checkIfComponentWasDeleted
           },
           data: {
             intervalTimeSeconds: 60,
             tolerateSize: 0,
-            batches: batches
+            batches: batches,
+            displayName: displayName,
+            hostName: hostName
           },
           success: 'checkIfComponentWasDeleted'
         });
@@ -245,20 +247,20 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
     }
   },
 
-  checkIfComponentWasDeleted: function (batches, displayName, hostName, resp) {
+  checkIfComponentWasDeleted: function (resp, req, data) {
     var scheduleId = resp.resources[0].RequestSchedule.id;
     var self = this;
     setTimeout(function () {
       batchUtils.getRequestSchedule(scheduleId, function (resp) {
         var lastStatus = resp.RequestSchedule.last_execution_status;
         var status = resp.RequestSchedule.status;
-        if (lastStatus !== 'COMPLETED' || status !== 'COMPLETED') {
+        if (lastStatus === 'FAILED' || status === 'FAILED') {
           App.showAlertPopup(
             Em.I18n.t('hosts.bulkOperation.delete.component.failed.header'),
-            Em.I18n.t('hosts.bulkOperation.delete.component.failed.body').format(displayName, hostName));
+            Em.I18n.t('hosts.bulkOperation.delete.component.failed.body').format(data.displayName, data.hostName));
         }
       }, function () {});
-    }, batches.length * 60000)
+    }, data.batches.length * 60000)
   },
 
   /**
