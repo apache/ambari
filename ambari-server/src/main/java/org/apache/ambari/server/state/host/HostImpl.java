@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -1261,14 +1262,14 @@ public class HostImpl implements Host {
       }
 
       if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, this)) {
-        if (StringUtils.equals("MASTER", category)) {
+        if (Objects.equals("MASTER", category)) {
           ++masterCount;
-          if (StringUtils.equals("STARTED", status)) {
+          if (Objects.equals("STARTED", status)) {
             ++mastersRunning;
           }
-        } else if (StringUtils.equals("SLAVE", category)) {
+        } else if (Objects.equals("SLAVE", category)) {
           ++slaveCount;
-          if (StringUtils.equals("STARTED", status)) {
+          if (Objects.equals("STARTED", status)) {
             ++slavesRunning;
           }
         }
