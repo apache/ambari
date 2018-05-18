@@ -36,11 +36,11 @@ from ambari_configuration import AmbariConfiguration
 from resource_management.libraries.functions.data_structure_utils import get_from_dict
 from resource_management.core.exceptions import Fail
 
-class StackAdvisor(object):
+class MpackAdvisor(object):
   """
-  Abstract class implemented by all stack advisors. Stack advisors advise on stack specific questions. 
+  Abstract mpack_advisor class implemented by default_mpack_advisor.
 
-  Currently stack advisors provide following abilities:
+  Currently mpack advisor provide following abilities:
   - Recommend where services should be installed in cluster
   - Recommend configurations based on host hardware
   - Validate user selection of where services are installed on cluster
@@ -48,80 +48,46 @@ class StackAdvisor(object):
 
   Each of the above methods is passed in parameters about services and hosts involved as described below.
 
-    @type services: dictionary
-    @param services: Dictionary containing all information about services selected by the user. 
+    @type mapck_instances: dictionary
+    @param mpack_instances: Dictionary containing all information about mpack_instances with services selected by the user.
       Example: {
-      "services": [
+      "mpack_instances": [
         {
-          "StackServices": {
-            "service_name" : "HDFS",
-            "service_version" : "2.6.0.2.2",
-          },
-          "components" : [ 
+          "name": "HDPCORE",
+          "type": "HDPCORE",
+          "verson", "1.0.0.-b202",
+          "service_instance": [
             {
-              "StackServiceComponents" : {
-                "cardinality" : "1+",
-                "component_category" : "SLAVE",
-                "component_name" : "DATANODE",
-                "display_name" : "DataNode",
-                "service_name" : "HDFS",
-                "hostnames" : []
-              },
-              "dependencies" : []
-            }, {
-              "StackServiceComponents" : {
-                "cardinality" : "1-2",
-                "component_category" : "MASTER",
-                "component_name" : "NAMENODE",
-                "display_name" : "NameNode",
-                "service_name" : "HDFS",
-                "hostnames" : []
-              },
-              "dependencies" : []
+              "name": "HDFS"
             },
+            {
+              "name": "ZK1",
+              "type": "ZOOKEEPER"
+            },
+            {
+              "name": "ZK2",
+              "type": "ZOOKEEPER"
+            },
+            {
+              "name": "HADOOP_CLIENTS"
+            },
+            {
+              "name": "ZOOKEEPER_CLIENTS"
+            }
             ...
           ]
         },
         ...
       ]
-    }
-  @type hosts: dictionary
-  @param hosts: Dictionary containing all information about hosts in this cluster
-    Example: {
-      "items": [
-        {
-          Hosts: {
-            "host_name": "c6401.ambari.apache.org",
-            "public_host_name" : "c6401.ambari.apache.org",
-            "ip": "192.168.1.101",
-            "cpu_count" : 1,
-            "disk_info" : [
-              {
-              "available" : "4564632",
-              "used" : "5230344",
-              "percent" : "54%",
-              "size" : "10319160",
-              "type" : "ext4",
-              "mountpoint" : "/"
-              },
-              {
-              "available" : "1832436",
-              "used" : "0",
-              "percent" : "0%",
-              "size" : "1832436",
-              "type" : "tmpfs",
-              "mountpoint" : "/dev/shm"
-              }
-            ],
-            "host_state" : "HEALTHY",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "total_mem" : 3664872
-          }
-        },
-        ...
+    @type hosts: dictionary
+    @param hosts: Dictionary containing host list in this cluster
+     Example: {
+      "hosts": [
+        "mpack-1.c.pramod-thangali.inernal",
+        "mpack-2.c.pramod-thangali.inernal",
+        "mpack-3.c.pramod-thangali.inernal",
       ]
-    }
+     }
 
     Each of the methods can either return recommendations or validations.
 
@@ -129,7 +95,7 @@ class StackAdvisor(object):
     Validations are an array of validation objects.
   """
 
-  def recommendComponentLayout(self, services, hosts):
+  def recommendComponentLayout(self):
     """
     Returns recommendation of which hosts various service components should be installed on.
 
@@ -144,59 +110,94 @@ class StackAdvisor(object):
     @rtype: dictionary
     @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format. 
         Example: {
-          "resources" : [
+          "host_groups" : [
             {
-              "hosts" : [
-                "c6402.ambari.apache.org",
-                "c6401.ambari.apache.org"
-              ],
-              "services" : [
-                "HDFS"
-              ],
-              "recommendations" : {
-                "blueprint" : {
-                  "host_groups" : [
-                    {
-                      "name" : "host-group-2",
-                      "components" : [
-                        { "name" : "JOURNALNODE" },
-                        { "name" : "ZKFC" },
-                        { "name" : "DATANODE" },
-                        { "name" : "SECONDARY_NAMENODE" }
-                      ]
-                    },
-                    {
-                      "name" : "host-group-1",
-                      "components" : [
-                        { "name" : "HDFS_CLIENT" },
-                        { "name" : "NAMENODE" },
-                        { "name" : "JOURNALNODE" },
-                        { "name" : "ZKFC" },
-                        { "name" : "DATANODE" }
-                      ]
-                    }
-                  ]
+              "name": "host-group-1",
+              "components" : [
+                {
+                  "name" : "NAMENODE",
+                  "mpack_instance": "HDPCORE",
+                  "service_instance": "HDFS"
                 },
-                "blueprint_cluster_binding" : {
-                  "host_groups" : [
-                    {
-                      "name" : "host-group-1",
-                      "hosts" : [ { "fqdn" : "c6401.ambari.apache.org" } ]
-                    },
-                    {
-                      "name" : "host-group-2",
-                      "hosts" : [ { "fqdn" : "c6402.ambari.apache.org" } ]
-                    }
-                  ]
+                {
+                  "name" : "ZOOKEEEPER_SERVER",
+                  "mpack_instance": "HDPCORE",
+                  "service_instance": "ZK1"
+                },
+                {
+                  "name" : "ZOOKEEEPER_SERVER",
+                  "mpack_instance": "HDPCORE",
+                  "service_instance": "ZK2"
+                },
+                {
+                  "name" : "HBASE_MASTER",
+                  "mpack_instance": "ODS-DEFAULT",
+                  "service_instance": "HBASE"
                 }
-              }
+              ]
+            },
+            {
+              "name": "host-group-2",
+              "components" : [
+                {
+                  "name" : "DATANODE",
+                  "mpack_instance": "HDPCORE",
+                  "service_instance": "HDFS"
+                },
+                {
+                  "name" : "SECONDARY_NAMENODE",
+                  "mpack_instance": "HDPCORE",
+                  "service_instance": "HDFS"
+                },
+                {
+                  "name" : "HBASE_MASTER",
+                  "mpack_instance": "ODS-MKTG",
+                  "service_instance": "HBASE"
+                },
+                {
+                  "name" : "HBASE_MASTER",
+                  "mpack_instance": "ODS-DEFAULT",
+                  "service_instance": "HBASE"
+                },
+                {
+                  "name" : "HADOOP_CLIENT",
+                  "mpack_instance": "ODS-MKTG",
+                  "service_instance": "HADOOP_CLIENTS",
+                  "is_internal": "true"
+                },
+                {
+                  "name" : "HBASE_REGIONSERVER",
+                  "mpack_instance": "ODS",
+                  "service_instance": "HBASE"
+                }
+              ]
+            }
+          ]
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": [
+            {
+              "name": "host-group-1",
+              "hosts": [
+                {
+                  "fqdn": "c6401.ambari.apache.org"
+                }
+              ]
+            },
+            {
+              "name": "host-group-2",
+              "hosts": [
+                {
+                  "fqdn" : "c6402.ambari.apache.org"
+                }
+              ]
             }
           ]
         }
     """
     pass
 
-  def validateComponentLayout(self, services, hosts):
+  def validateComponentLayout(self):
     """
     Returns array of Validation issues with service component layout on hosts
 
@@ -225,7 +226,7 @@ class StackAdvisor(object):
     """
     pass
 
-  def recommendConfigurations(self, services, hosts):
+  def recommendConfigurations(self):
     """
     Returns recommendation of service configurations based on host-specific layout of components.
 
@@ -238,47 +239,52 @@ class StackAdvisor(object):
     @param hosts: Dictionary containing all information about hosts in this cluster
     @rtype: dictionary
     @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format. 
-        Example: {
-         "services": [
-          "HIVE", 
-          "TEZ", 
-          "YARN"
-         ], 
-         "recommendations": {
-          "blueprint": {
-           "host_groups": [], 
-           "configurations": {
-            "yarn-site": {
-             "properties": {
-              "yarn.scheduler.minimum-allocation-mb": "682", 
-              "yarn.scheduler.maximum-allocation-mb": "2048", 
-              "yarn.nodemanager.resource.memory-mb": "2048"
-             }
-            }, 
-            "tez-site": {
-             "properties": {
-              "tez.am.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC", 
-              "tez.am.resource.memory.mb": "682"
-             }
-            }, 
-            "hive-site": {
-             "properties": {
-              "hive.tez.container.size": "682", 
-              "hive.tez.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC", 
-              "hive.auto.convert.join.noconditionaltask.size": "238026752"
-             }
+        Example:
+        "blueprint": {
+          "mpack_instances": [
+            {
+              "name": "HDPCORE",
+              "type": "HDPCORE",
+              "version", "1.0.0.b202",
+              "servuce_instances": [
+                {
+                  "name": "HDFS",
+                  "type": "HDFS"
+                },
+                {
+                  "name": "ZK1",
+                  "type": "ZOOKEEPER"
+                },
+                {
+                  "name": "ZK2",
+                  "type": "ZOOKEEPER"
+                },
+                {
+                  "name": "HADOOP_CLIENTS",
+                  "type": "HADOOP_CLIENTS"
+                },
+                {
+                  "name": "ZOOKEEPER_CLIENTS",
+                  "type": "ZOOKEEPER_CLIENTS"
+                }
+              ]
+            },
+            {
+              "name": "ODS-DEFAULT",
+              "type": "ODS",
+              "version": "1.0.0.-b37",
+              "service_instances": [
+                {
+                  "name": "HBASE",
+                  "type": "HBASE"
+                },
+                {
+                  "name": "HBASE_CLIENTS",
+                  "type": "HBASE_CLIENTS"
+                }
+              ]
             }
-           }
-          }, 
-          "blueprint_cluster_binding": {
-           "host_groups": []
-          }
-         }, 
-         "hosts": [
-          "c6401.ambari.apache.org", 
-          "c6402.ambari.apache.org", 
-          "c6403.ambari.apache.org" 
-         ] 
+          ]
         }
     """
     pass
@@ -341,7 +347,7 @@ class StackAdvisor(object):
     """
     pass
 
-  def validateConfigurations(self, services, hosts):
+  def validateConfigurations(self):
     """"
     Returns array of Validation issues with configurations provided by user
 
@@ -369,8 +375,57 @@ class StackAdvisor(object):
     """
     pass
 
+class ServiceInstance(object):
+  """
+  All the recommendaton and validation should be based on service instance
+  """
 
-class DefaultStackAdvisor(StackAdvisor):
+  def __init__(self, name, serviceType, version, mpackName, mpackVersion, components, configurations):
+    self.name = name
+    self.type = serviceType
+    self.version = version
+    self.mpackName = mpackName
+    self.mpackVersion = mpackVersion
+    self.components = components if components else []
+    self.configurations = configurations if configurations else []
+    self.serviceAdvisor = None
+    # Identify this serviceInstance object
+    self.key = self.mpackName+"+"+self.name
+
+  def __eq__(self, other):
+    return self.key == other.key
+
+  def getKey(self):
+    return self.key
+
+  def setServiceAdvisor(self, serviceAdvisor):
+    self.serviceAdvisor = serviceAdvisor
+
+  def getServiceAdvisor(self):
+    return self.serviceAdvisor
+
+  def getName(self):
+    return self.name
+
+  def getType(self):
+    return self.type
+
+  def getVersion(self):
+    return self.version
+
+  def getMpackName(self):
+    return self.mpackName
+
+  def getMpackVersion(self):
+    return self.mpackVersion
+
+  def getComponents(self):
+    return self.components
+
+  def getConfigurations(self):
+    return self.configurations
+
+class MpackAdvisorImpl(MpackAdvisor):
 
   CLUSTER_CREATE_OPERATION = "ClusterCreate"
   ADD_SERVICE_OPERATION = "AddService"
@@ -383,25 +438,28 @@ class DefaultStackAdvisor(StackAdvisor):
   CALL_TYPE = "call_type"
 
   """
-  Default stack advisor implementation.
-  
-  This implementation is used when a stack-version, or its hierarchy does not
-  have an advisor. Stack-versions can extend this class to provide their own
-  implement
+  mpack advisor implementation.
   """
 
   def __init__(self):
+    super(MpackAdvisorImpl, self).__init__()
     self.services = None
+    self.hostsList = None
 
-    self.initialize_logger('DefaultStackAdvisor')
-    
-    # Dictionary that maps serviceName or componentName to serviceAdvisor
-    self.serviceAdvisorsDict = {}
+    self.initialize_logger('MpackAdvisor')
+
+    # Since potentially we have to support multiple mpack instances with multiple service instances,
+    # the service instance in different mpack instance may have different service advisor, so we will
+    # use following data structure to track the relationship among serviceInstance, mapckInstance and serviceAdvisor:
+    # Dictionary that maps serviceInstance or componentName to serviceAdvisor
+    # the key should be: mpackName+serviceInstanceName[+componentName], the value is serviceAdvisor
+    self.mpackServiceInstancesDict = {}
+
+    self.serviceInstancesSet = set()
 
     # Contains requested properties during 'recommend-configuration-dependencies' request.
     # It's empty during other requests.
     self.allRequestedProperties = None
-
 
     # Data structures that may be extended by Service Advisors with information specific to each Service 
     self.mastersWithMultipleInstances = set()
@@ -409,9 +467,8 @@ class DefaultStackAdvisor(StackAdvisor):
     self.notPreferableOnServerComponents = set()
     self.cardinalitiesDict = {}
     self.componentLayoutSchemes = {}
-    self.loaded_service_advisors = False
 
-  def initialize_logger(self, name='DefaultStackAdvisor', logging_level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(funcName)s: - %(message)s'):
+  def initialize_logger(self, name='MpackAdvisor', logging_level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(funcName)s: - %(message)s'):
     # set up logging (two separate loggers for stderr and stdout with different loglevels)
     self.logger = logging.getLogger(name)
     self.logger.setLevel(logging_level)
@@ -425,6 +482,45 @@ class DefaultStackAdvisor(StackAdvisor):
     self.logger.handlers = []
     self.logger.addHandler(cherr)
     self.logger.addHandler(chout)
+
+  def preprocessHostsAndServices(self, hosts, services):
+    """
+    This method is to parse hosts and services dictionaries and build active host list and service instances information
+    :param hosts: list of hosts including active and maintenance hosts
+    :param services: services dictionary includes mpack instances and service instances information
+    :return: void
+    """
+    self.services = services
+    self.hostsList = self.filterHostMounts(hosts)
+    services = services.get("services")
+    if not services:
+      self.logger.info("No services section is found in services.json")
+      return
+    for service in services:
+      stackService = service.get("StackServices")
+      if not stackService:
+        continue
+      mpackName = stackService.get("stack_name")
+      mpackVersion = stackService.get("stack_version")
+      # In the future, there should have multiple service instances
+      serviceInstanceName = stackService.get("service_name")
+      serviceInstanceType = serviceInstanceName
+      serviceInstanceVersion = stackService.get("service_version")
+      components = service.get("components")
+      configurations = stackService.get("configurations")
+      serviceInstance = ServiceInstance(serviceInstanceName, serviceInstanceType, serviceInstanceVersion,
+                                        mpackName, mpackVersion, components, configurations)
+      self.serviceInstancesSet.add(serviceInstance)
+      serviceInstanceList = self.mpackServiceInstancesDict.get(mpackName, [])
+      serviceInstanceList.append(serviceInstance)
+      self.mpackServiceInstancesDict[mpackName] = serviceInstanceList
+      if not self.getServiceAdvisor(serviceInstance):
+          serviceAdvisor = self.instantiateServiceAdvisor(stackService)
+          if serviceAdvisor:
+            serviceInstance.setServiceAdvisor(serviceAdvisor)
+
+  def getServiceAdvisor(self, serviceInstance):
+    return serviceInstance.getServiceAdvisor()
 
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
@@ -585,99 +681,70 @@ class DefaultStackAdvisor(StackAdvisor):
     """ Filters the list of specified hosts object and returns
         a list of hosts which are not in maintenance mode. """
     hostsList = []
-    if hosts is not None:
+    if hosts:
       hostsList = [host['host_name'] for host in hosts
-                   if host.get('maintenance_state') is None or host.get('maintenance_state') == "OFF"]
+                   if not host.get('maintenance_state') or host.get('maintenance_state') == "OFF"]
     return hostsList
 
-  def getServiceAdvisor(self, key):
+  def instantiateServiceAdvisor(self, stackService):
     """
-    Get the class name for the Service Advisor with the given name if it exists, or None otherwise.
-    :param key: Service Name
-    :return: Class name if it exists, or None otherwise.
-    """
-    if not self.loaded_service_advisors:
-      self.loadServiceAdvisors()
-
-    return self.serviceAdvisorsDict[key] if key in self.serviceAdvisorsDict else None
-
-  def loadServiceAdvisors(self):
-    """
-    If not loaded, for all of the services requested load the Service Advisor into the in-memory dictionary.
-    """
-    self.loaded_service_advisors = True
-    if self.services is None or "services" not in self.services:
-      return
-
-    for service in self.services["services"]:
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.instantiateServiceAdvisor(service)
-      # This may store None for that service advisor.
-      self.serviceAdvisorsDict[serviceName] = serviceAdvisor
-      for component in service["components"]:
-        componentName = self.getComponentName(component)
-        self.serviceAdvisorsDict[componentName] = self.serviceAdvisorsDict[serviceName]
-
-  def instantiateServiceAdvisor(self, service):
-    """
-    Load the Service Advisor for the given services by finding the best class in the given file.
-    :param service: Service object that contains a path to the advisor being requested.
+    Load the Service Advisor for the given service name by finding the best class in the given file.
+    :param serviceInstance: ServiceInstance object that contains a path to the advisor being requested.
     :return: The class name for the Service Advisor requested, or None if one could not be found.
     """
-    os.environ["advisor"] = "default"
-    service_name = service["StackServices"]["service_name"]
-    class_name = service["StackServices"]["advisor_name"] if "advisor_name" in service["StackServices"] else None
-    path = service["StackServices"]["advisor_path"] if "advisor_path" in service["StackServices"] else None
+    os.environ["advisor"] = "mpack"
+    serviceName = stackService.get("service_name")
+    className = stackService.get("advisor_name")
+    path = stackService.get("advisor_path")
+    classNamePattern = re.compile("%s.*?ServiceAdvisor" % serviceName, re.IGNORECASE)
 
-    class_name_pattern = re.compile("%s.*?ServiceAdvisor" % service_name, re.IGNORECASE)
-
-    if path is not None and os.path.exists(path) and class_name is not None:
+    if path and os.path.exists(path) and className:
       try:
         with open(path, 'rb') as fp:
-          service_advisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
+          serviceAdvisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
 
           # Find the class name by reading from all of the available attributes of the python file.
-          attributes = dir(service_advisor)
-          best_class_name = class_name
-          for potential_class_name in attributes:
-            if not potential_class_name.startswith("__"):
-              m = class_name_pattern.match(potential_class_name)
+          attributes = dir(serviceAdvisor)
+          bestClassName = className
+          for potentialClassName in attributes:
+            if not potentialClassName.startswith("__"):
+              m = classNamePattern.match(potentialClassName)
               if m:
-                best_class_name = potential_class_name
+                bestClassName = potentialClassName
                 break
 
-          if hasattr(service_advisor, best_class_name):
-            self.logger.info("ServiceAdvisor implementation for service {0} was loaded".format(service_name))
-            return getattr(service_advisor, best_class_name)(DefaultStackAdvisor)
+          if hasattr(serviceAdvisor, bestClassName):
+            self.logger.info("ServiceAdvisor implementation for service {0} was loaded".format(serviceName))
+            sa = getattr(serviceAdvisor, bestClassName)
+            return sa()
           else:
             self.logger.error("Failed to load or create ServiceAdvisor implementation for service {0}: " \
-                  "Expecting class name {1} but it was not found.".format(service_name, best_class_name))
+                  "Expecting class name {1} but it was not found.".format(serviceName, bestClassName))
       except Exception as e:
-        self.logger.exception("Failed to load or create ServiceAdvisor implementation for service {0}".format(service_name))
+        self.logger.exception("Failed to load or create ServiceAdvisor implementation for service {0}".format(serviceName))
 
     return None
 
-  def recommendComponentLayout(self, services, hosts):
+  def recommendComponentLayout(self):
     """Returns Services object with hostnames array populated for components"""
 
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-    hostsList = self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
-    servicesList = self.getServiceNames(services)
+    layoutRecommendations = self.createComponentLayoutRecommendations()
 
-    layoutRecommendations = self.createComponentLayoutRecommendations(services, hosts)
+    serviceInstanceNames = map(lambda si: si.getName(), self.serviceInstancesSet)
+    self.logger.info("Create recommendComponentLayout for {0}".format(serviceInstanceNames))
+    hostsList = self.getActiveHosts([host["Hosts"] for host in self.hostsList["items"]])
 
     recommendations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
       "hosts": hostsList,
-      "services": servicesList,
+      "services": serviceInstanceNames,
       "recommendations": layoutRecommendations
     }
 
     return recommendations
 
-  def get_heap_size_properties(self, services):
+  def get_heap_size_properties(self):
     """
+    Now for mulitple service instances scenario, so this default setting should apply to individual service instance
     Get dictionary of all of the components and a mapping to the heap-size configs, along with default values
     if the heap-size config could not be found. This is used in calculations for the total memory needed to run
     the cluster.
@@ -685,6 +752,7 @@ class DefaultStackAdvisor(StackAdvisor):
     configs that have been delegated to Service Advisors to define.
     :return: Dictionary of mappings from component name to another dictionary of the heap-size configs.
     """
+
     default = {
       "NAMENODE":
         [{"config-name": "hadoop-env",
@@ -774,28 +842,31 @@ class DefaultStackAdvisor(StackAdvisor):
           "default": "1024m"}]
     }
 
-
+    defaultHeapSizeDict = {}
     try:
-      # Override any by reading from the Service Advisors
-
-      for service in services["services"]:
-        serviceName = service["StackServices"]["service_name"]
-        serviceAdvisor = self.getServiceAdvisor(serviceName)
-
-        # This seems confusing, but "self" may actually refer to the actual Service Advisor class that was loaded
-        # as opposed to this class.
-        advisor = serviceAdvisor if serviceAdvisor is not None else self
-
-        # TODO, switch this to a function instead of a property.
-        if hasattr(advisor, "heap_size_properties"):
-          # Override the values in "default" with those from the service advisor
-          default.update(advisor.heap_size_properties)
+      for mpackName, serviceInstancesList in self.mpackServiceInstancesDict.items():
+        # Override any by reading from the Service Advisors
+        newDefault = default.deepcopy()
+        for serviceInstance in serviceInstancesList:
+          serviceAdvisor = serviceInstance.getServiceAdvisor()
+          # This seems confusing, but "self" may actually refer to the actual Service Advisor class that was loaded
+          # as opposed to this class.
+          advisor = serviceAdvisor if serviceAdvisor else self
+          # TODO, switch this to a function instead of a property.
+          if hasattr(advisor, "heap_size_properties"):
+            # Override the values in "default" with those from the service advisor
+            newDefault.update(advisor.heap_size_properties)
+        defaultHeapSizeDict[mpackName] = newDefault
     except Exception, e:
       self.logger.exception()
     return default
 
-  def createComponentLayoutRecommendations(self, services, hosts):
-    self.services = services
+  def createComponentLayoutRecommendations(self):
+    """
+    This method is to create service instance based component layout,
+    At this time, we actually only support one serviceInstance/service
+    :return: componentLayoutRecommendation dict
+    """
 
     recommendations = {
       "blueprint": {
@@ -806,9 +877,8 @@ class DefaultStackAdvisor(StackAdvisor):
       }
     }
 
-    hostsList = self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
-
     # for fast lookup
+    hostsList = self.getActiveHosts([host["Hosts"] for host in self.hostsList["items"]])
     hostsSet = set(hostsList)
 
     hostsComponentsMap = {}
@@ -816,59 +886,59 @@ class DefaultStackAdvisor(StackAdvisor):
       if hostName not in hostsComponentsMap:
         hostsComponentsMap[hostName] = []
 
-    #Sort the services so that the dependent services will be processed before those that depend on them.
-    sortedServices = self.getServicesSortedByDependencies(services)
+    #Sort the serviceInstances so that the dependent serviceInstances will be processed before those that depend on them.
+    sortedServiceInstances = self.getServiceInstancesSortedByDependencies()
     #extend hostsComponentsMap' with MASTER components
-    for service in sortedServices:
-      masterComponents = [component for component in service["components"] if self.isMasterComponent(component)]
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
+    for serviceInstance in sortedServiceInstances:
+      masterComponents = [component for component in serviceInstance.getComponents() if self.isMasterComponent(component)]
+      serviceInstanceName = serviceInstance.getName()
+      serviceAdvisor = serviceInstance.getServiceAdvisor()
       for component in masterComponents:
         componentName = component["StackServiceComponents"]["component_name"]
-        advisor = serviceAdvisor if serviceAdvisor is not None else self
+        advisor = serviceAdvisor if serviceAdvisor else self
         #Filter the hosts such that only hosts that meet the dependencies are included (if possible)
-        filteredHosts = self.getFilteredHostsBasedOnDependencies(services, component, hostsList, hostsComponentsMap)
-        hostsForComponent = advisor.getHostsForMasterComponent(services, hosts, component, filteredHosts)
+        filteredHosts = self.getFilteredHostsBasedOnDependencies(component, hostsList, hostsComponentsMap)
+        hostsForComponent = advisor.getHostsForMasterComponent(component, filteredHosts)
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
           if hostName in hostsSet:
-            hostsComponentsMap[hostName].append( { "name":componentName } )
+            hostsComponentsMap[hostName].append({"name": componentName, "service_instance": serviceInstance.getName(),
+                                                 "mpack_instance": serviceInstance.getMpackName()})
 
     #extend 'hostsComponentsMap' with Slave and Client Components
-    componentsListList = [service["components"] for service in services["services"]]
+    componentsListList = [serviceInstance.getComponents() for serviceInstance in self.serviceInstancesSet]
     componentsList = [item for sublist in componentsListList for item in sublist]
     usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
     utilizedHosts = [item for sublist in usedHostsListList for item in sublist]
     freeHosts = [hostName for hostName in hostsList if hostName not in utilizedHosts]
 
-    for service in sortedServices:
-      slaveClientComponents = [component for component in service["components"]
+    for serviceInstance in sortedServiceInstances:
+      slaveClientComponents = [component for component in serviceInstance.getComponents()
                                if self.isSlaveComponent(component) or self.isClientComponent(component)]
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
+      serviceAdvisor = serviceInstance.getServiceAdvisor()
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
-        advisor = serviceAdvisor if serviceAdvisor is not None else self
+        advisor = serviceAdvisor if serviceAdvisor else self
         #Filter the hosts and free hosts such that only hosts that meet the dependencies are included (if possible)
-        filteredHosts = self.getFilteredHostsBasedOnDependencies(services, component, hostsList, hostsComponentsMap)
+        filteredHosts = self.getFilteredHostsBasedOnDependencies(component, hostsList, hostsComponentsMap)
         filteredFreeHosts = self.filterList(freeHosts, filteredHosts)
-        hostsForComponent = advisor.getHostsForSlaveComponent(services, hosts, component, filteredHosts, filteredFreeHosts)
+        hostsForComponent = advisor.getHostsForSlaveComponent(component, filteredHosts, filteredFreeHosts)
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
           if hostName not in hostsComponentsMap and hostName in hostsSet:
             hostsComponentsMap[hostName] = []
           if hostName in hostsSet:
-            hostsComponentsMap[hostName].append( { "name": componentName } )
+            hostsComponentsMap[hostName].append({"name": componentName, "service_instance": serviceInstance.getName(),
+                                                 "mpack_instance": serviceInstance.getMpackName()})
 
     #colocate custom services
-    for service in sortedServices:
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
-      if serviceAdvisor is not None:
-        serviceComponents = [component for component in service["components"]]
-        serviceAdvisor.colocateService(hostsComponentsMap, serviceComponents)
+    for serviceInstance in sortedServiceInstances:
+      serviceAdvisor = serviceInstance.getServiceAdvisor()
+      if serviceAdvisor:
+        serviceInstanceComponents = [component for component in serviceInstance.getComponents()]
+        serviceAdvisor.colocateService(hostsComponentsMap, serviceInstanceComponents)
 
     #prepare 'host-group's from 'hostsComponentsMap'
     host_groups = recommendations["blueprint"]["host_groups"]
@@ -877,30 +947,30 @@ class DefaultStackAdvisor(StackAdvisor):
     for key in hostsComponentsMap.keys():
       index += 1
       host_group_name = "host-group-{0}".format(index)
-      host_groups.append( { "name": host_group_name, "components": hostsComponentsMap[key] } )
-      bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": key }] } )
+      host_groups.append({"name": host_group_name, "components": hostsComponentsMap[key]})
+      bindings.append({"name": host_group_name, "hosts": [{"fqdn": key}]})
 
     return recommendations
 
-  def getHostsForMasterComponent(self, services, hosts, component, hostsList):
+  def getHostsForMasterComponent(self, component, hosts):
     if self.isComponentHostsPopulated(component):
       return component["StackServiceComponents"]["hostnames"]
 
-    if len(hostsList) > 1 and self.isMasterComponentWithMultipleInstances(component):
-      hostsCount = self.getMinComponentCount(component, hosts)
+    if len(hosts) > 1 and self.isMasterComponentWithMultipleInstances(component):
+      hostsCount = self.getMinComponentCount(component, self.hostsList)
       if hostsCount > 1: # get first 'hostsCount' available hosts
         hostsForComponent = []
         hostIndex = 0
-        while hostsCount > len(hostsForComponent) and hostIndex < len(hostsList):
-          currentHost = hostsList[hostIndex]
+        while hostsCount > len(hostsForComponent) and hostIndex < len(hosts):
+          currentHost = hosts[hostIndex]
           if self.isHostSuitableForComponent(currentHost, component):
             hostsForComponent.append(currentHost)
           hostIndex += 1
         return hostsForComponent
 
-    return [self.getHostForComponent(component, hostsList)]
+    return [self.getHostForComponent(component, hosts)]
 
-  def getHostsForSlaveComponent(self, services, hosts, component, hostsList, freeHosts):
+  def getHostsForSlaveComponent(self, component, hostsList, freeHosts):
     if component["StackServiceComponents"]["cardinality"] == "ALL":
       return hostsList
 
@@ -933,34 +1003,35 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return hostsForComponent
 
-  def getServicesSortedByDependencies(self, services):
+  def getServiceInstancesSortedByDependencies(self):
     """
-    Sorts the services based on their dependencies.  This is limited to non-conditional host scope dependencies.
-    Services with no dependencies will go first.  Services with dependencies will go after the services they are dependent on.
-    If there are circular dependencies, the services will go in the order in which they were processed.
+    Sorts the serviceInstances based on their dependencies.  This is limited to non-conditional host scope dependencies.
+    ServiceInstances with no dependencies will go first.  ServiceInstances with dependencies will go after the services
+    they are dependent on. If there are circular dependencies, the serviceInstances will go in the order in which they
+    were processed.
     """
-    processedServices = []
-    sortedServices = []
+    processedServiceInstances = []
+    sortedServiceInstances = []
 
-    for service in services["services"]:
-      self.sortServicesByDependencies(services, service, processedServices, sortedServices)
+    for serviceInstance in self.serviceInstancesSet:
+      self.sortServiceInstancesByDependencies(serviceInstance, processedServiceInstances, sortedServiceInstances)
 
-    return sortedServices
+    return sortedServiceInstances
 
-  def sortServicesByDependencies(self, services, service, processedServices, sortedServices):
+  def sortServiceInstancesByDependencies(self, serviceInstance, processedServiceInstances, sortedServiceInstances):
     """
-    Sorts the services based on their dependencies.  This is limited to non-conditional host scope dependencies.
-    Services with no dependencies will go first.  Services with dependencies will go after the services they are dependent on.
-    If there are circular dependencies, the services will go in the order in which they were processed.
+    Sorts the serviceInstances based on their dependencies.  This is limited to non-conditional host scope dependencies.
+    ServiceInstances with no dependencies will go first.  ServiceInstances with dependencies will go after the services
+    they are dependent on. If there are circular dependencies, the serviceInstances will go in the order in which they
+    were processed.
     """
-    if service is None or service in processedServices:
+    if serviceInstance is None or serviceInstance in processedServiceInstances:
       return
 
-    processedServices.append(service)
+    processedServiceInstances.append(serviceInstance)
 
-    components = [] if "components" not in service else service["components"]
-    for component in components:
-      dependencies = [] if "dependencies" not in component else component['dependencies']
+    for component in serviceInstance.getComponents():
+      dependencies = component.get("dependencies", [])
       for dependency in dependencies:
         # accounts only for dependencies that are not conditional
         conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
@@ -968,35 +1039,36 @@ class DefaultStackAdvisor(StackAdvisor):
         if not conditionsPresent and scope == "host":
           componentName = component["StackServiceComponents"]["component_name"]
           requiredComponentName = dependency["Dependencies"]["component_name"]
-          requiredService = self.getServiceForComponentName(services, requiredComponentName)
-          self.sortServicesByDependencies(services, requiredService, processedServices, sortedServices)
+          requiredServiceInstance = self.getRequiredServiceInstanceForComponentName(serviceInstance, requiredComponentName)
+          self.sortServiceInstancesByDependencies(requiredServiceInstance, processedServiceInstances, sortedServiceInstances)
 
-    sortedServices.append(service)
+    sortedServiceInstances.append(serviceInstance)
 
-  def getFilteredHostsBasedOnDependencies(self, services, component, hostsList, hostsComponentsMap):
+  def getFilteredHostsBasedOnDependencies(self, component, hostsList, hostsComponentsMap):
     """
     Returns a list of hosts that only includes the ones which have all host scope dependencies already assigned to them.
     If an empty list would be returned, instead the full list of hosts are returned.
     In that case, we can't possibly return a valid recommended layout so we will at least return a fully filled layout.
     """
     removeHosts = []
-    dependencies = [] if "dependencies" not in component else component['dependencies']
+    dependencies = component.get("dependencies", [])
     for dependency in dependencies:
       # accounts only for dependencies that are not conditional
-      conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
+      conditionsPresent = "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
       if not conditionsPresent:
         componentName = component["StackServiceComponents"]["component_name"]
         requiredComponentName = dependency["Dependencies"]["component_name"]
-        requiredComponent = self.getRequiredComponent(services, requiredComponentName)
+        mpackName = component["StackServiceComponents"]["stack_name"]
+        requiredComponent = self.getRequiredComponent(requiredComponentName)
 
         # We only deal with "host" scope.
-        if (requiredComponent is not None) and (requiredComponent["component_category"] != "CLIENT"):
+        if requiredComponent and requiredComponent.get("component_category") != "CLIENT":
           scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
           if scope == "host":
             for host, hostComponents in hostsComponentsMap.iteritems():
               isRequiredIncluded = False
               for hostComponent in hostComponents:
-                currentComponentName = None if "name" not in hostComponent else hostComponent["name"]
+                currentComponentName = hostComponent.get("name")
                 if requiredComponentName == currentComponentName:
                   isRequiredIncluded = True
               if not isRequiredIncluded:
@@ -1018,74 +1090,71 @@ class DefaultStackAdvisor(StackAdvisor):
         filteredList.append(item)
     return filteredList
 
-  def getServiceForComponentName(self, services, componentName):
+  def getRequiredServiceInstanceForComponentName(self, serviceInstance, componentName):
     """
-    Return service for component name
+    Return serviceInstance for requested component
+    There are two cases: 1. the serviceInstance may be in the same mpackInstance as input serviceInstance
+    2. the serviceInstance may be in another mpackInstance
 
-    :type services dict
-    :type componentName str
+    :type servieInstance ServiceInstance: the original serviceInstance
+    :type componentName str: component name
     """
-    for service in services["services"]:
-      for component in service["components"]:
+    rst = None
+    for si in self.serviceInstancesSet:
+      for component in si.getComponents():
         if self.getComponentName(component) == componentName:
-          return service
+          if si == serviceInstance:
+            return si
+          rst = si
 
-    return None
+    return rst
 
   def isComponentUsingCardinalityForLayout(self, componentName):
-    return False
+    return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER'] or \
+           componentName in ['SPARK2_THRIFTSERVER', 'LIVY2_SERVER', 'LIVY_SERVER']
 
-  def createValidationResponse(self, services, validationItems):
+  def createValidationResponse(self, validationItems):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-
     validations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
       "items": validationItems
     }
 
     return validations
 
-  def validateComponentLayout(self, services, hosts):
+  def validateComponentLayout(self):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    validationItems = self.getComponentLayoutValidations(services, hosts)
-    return self.createValidationResponse(services, validationItems)
 
-  def validateConfigurations(self, services, hosts):
+    validationItems = self.getComponentLayoutValidations()
+    return self.createValidationResponse(validationItems)
+
+  def validateConfigurations(self):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    self.services = services
+    validationItems = self.getConfigurationsValidationItems()
+    return self.createValidationResponse(validationItems)
 
-    validationItems = self.getConfigurationsValidationItems(services, hosts)
-    return self.createValidationResponse(services, validationItems)
-
-  def getComponentLayoutValidations(self, services, hosts):
-    self.services = services
-
+  def getComponentLayoutValidations(self):
     items = []
-    if services is None:
+    if not self.serviceInstancesSet:
       return items
 
-    items.extend(self.validateRequiredComponentsPresent(services))
+    items.extend(self.validateRequiredComponentsPresent())
 
-    for service in services["services"]:
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
+    for serviceInstance in self.serviceInstancesSet:
+      serviceAdvisor = serviceInstance.getServiceAdvisor()
       if serviceAdvisor is not None:
-        items.extend(serviceAdvisor.getServiceComponentLayoutValidations(services, hosts))
+        items.extend(serviceAdvisor.getServiceComponentLayoutValidations(self.services, self.hostsList))
 
     return items
 
-  def validateRequiredComponentsPresent(self, services):
+  def validateRequiredComponentsPresent(self):
     """
     Returns validation items derived from component dependencies as specified in service metainfo.xml for all services
     :type services dict
     :rtype list
     """
     items = []
-    for service in services["services"]:
-      for component in service["components"]:
-
+    for serviceInstance in self.serviceInstancesSet:
+      for component in serviceInstance.getComponents():
         # Client components are not validated for the dependencies
         # Rather dependent client components are auto-deployed in both UI deployments and blueprint deployments
         if (self.isSlaveComponent(component) or self.isMasterComponent(component)) and \
@@ -1094,7 +1163,7 @@ class DefaultStackAdvisor(StackAdvisor):
             # account for only dependencies that are not conditional
             conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
             if not conditionsPresent:
-              requiredComponent = self.getRequiredComponent(services, dependency["Dependencies"]["component_name"])
+              requiredComponent = self.getRequiredComponent(dependency["Dependencies"]["component_name"])
               componentDisplayName = component["StackServiceComponents"]["display_name"]
               requiredComponentDisplayName = requiredComponent["display_name"] \
                                              if requiredComponent is not None else dependency["Dependencies"]["component_name"]
@@ -1115,24 +1184,24 @@ class DefaultStackAdvisor(StackAdvisor):
                     message = "{0} requires {1} to be co-hosted on following host(s): {2}.".format(componentDisplayName,
                                requiredComponentDisplayName, ', '.join(requiredComponentHostsAbsent))
                     items.append({ "type": 'host-component', "level": 'ERROR', "message": message,
-                                   "component-name": component["StackServiceComponents"]["component_name"]})
+                                   "component-name": component["StackServiceComponents"]["component_name"],
+                                   "mpack-name": serviceInstance.getMpackName(), "mpack-version": serviceInstance.getMpackVersion()})
                 elif scope == "cluster" and not requiredComponentHosts:
                   message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, requiredComponentDisplayName)
-                  items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": component["StackServiceComponents"]["component_name"]})
+                  items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": component["StackServiceComponents"]["component_name"],
+                                 "mpack-name": serviceInstance.getMpackName(), "mpack-version": serviceInstance.getMpackVersion()})
     return items
-
 
   def calculateYarnAllocationSizes(self, configurations, services, hosts):
     # initialize data
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+                  for serviceInstance in self.serviceInstancesSet
+                  for component in serviceInstance.getComponents()]
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
 
     # calculate memory properties and get cluster data dictionary with whole information
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(hosts, services)
 
     # executing code from stack advisor HDP 206
     nodemanagerMinRam = 1048576 # 1TB in mb
@@ -1162,16 +1231,23 @@ class DefaultStackAdvisor(StackAdvisor):
         putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
         putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
-
-
-  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
+  def getConfigurationClusterSummary(self, hosts, services):
     """
     Copied from HDP 2.0.6 so that it could be used by Service Advisors.
+    :servicesList: a list of serviceInstances which may be a subset of whole serviceInstances installed in this cluster
+    :hosts: a list of hosts within the cluster, it may be a subset of all hosts in this cluster
+    :components:
+    :services
     :return: Dictionary of memory and CPU attributes in the cluster
     """
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     hBaseInstalled = False
     if 'HBASE' in servicesList:
       hBaseInstalled = True
+
+    components = [component["StackServiceComponents"]["component_name"]
+                  for service in services["services"]
+                  for component in service["components"]]
 
     cluster = {
       "cpu": 0,
@@ -1181,15 +1257,18 @@ class DefaultStackAdvisor(StackAdvisor):
       "components": components
     }
 
-    if len(hosts["items"]) > 0:
+    serviceInstances = [serviceInstance for serviceInstance in self.serviceInstancesSet if serviceInstance.getType() in servicesList]
+
+    if len(hosts.get("items")) > 0:
+      # nodeManagerHosts=[(host, componentCount),...]
       nodeManagerHosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
       # NodeManager host with least memory is generally used in calculations as it will work in larger hosts.
-      if nodeManagerHosts is not None and len(nodeManagerHosts) > 0:
+      if nodeManagerHosts:
         nodeManagerHost = nodeManagerHosts[0];
         for nmHost in nodeManagerHosts:
-          if nmHost["Hosts"]["total_mem"] < nodeManagerHost["Hosts"]["total_mem"]:
+          if nmHost[0]["Hosts"]["total_mem"]/nmHost[1] < nodeManagerHost[0]["Hosts"]["total_mem"]/nodeManagerHost[1]:
             nodeManagerHost = nmHost
-        host = nodeManagerHost["Hosts"]
+        host = nodeManagerHost[0]["Hosts"]
         cluster["referenceNodeManagerHost"] = host
       else:
         host = hosts["items"][0]["Hosts"]
@@ -1247,7 +1326,7 @@ class DefaultStackAdvisor(StackAdvisor):
     suggestedMinContainerRam = 1024   # new smaller value for YARN min container
     callContext = self.getCallContext(services)
 
-    operation = self.getUserOperationContext(services, DefaultStackAdvisor.OPERATION)
+    operation = self.getUserOperationContext(services, MpackAdvisorImpl.OPERATION)
     adding_yarn = self.isServiceBeingAdded(services, 'YARN')
     if operation:
       self.logger.info("user operation context : " + str(operation))
@@ -1259,8 +1338,8 @@ class DefaultStackAdvisor(StackAdvisor):
       # If add service but YARN is not being added
       if self.getOldValue(services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
               'recommendConfigurations' != callContext or \
-              operation == DefaultStackAdvisor.RECOMMEND_ATTRIBUTE_OPERATION or \
-          (operation == DefaultStackAdvisor.ADD_SERVICE_OPERATION and not adding_yarn):
+              operation == MpackAdvisorImpl.RECOMMEND_ATTRIBUTE_OPERATION or \
+          (operation == MpackAdvisorImpl.ADD_SERVICE_OPERATION and not adding_yarn):
 
         self.logger.info("Full context: callContext = " + str(callContext) +
                     " and operation = " + str(operation) + " and adding YARN = " + str(adding_yarn) +
@@ -1321,24 +1400,22 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getCallContext(self, services):
     if services:
-      if DefaultStackAdvisor.ADVISOR_CONTEXT in services:
-        self.logger.info("call type context : " + str(services[DefaultStackAdvisor.ADVISOR_CONTEXT]))
-        return services[DefaultStackAdvisor.ADVISOR_CONTEXT][DefaultStackAdvisor.CALL_TYPE]
+      if MpackAdvisorImpl.ADVISOR_CONTEXT in services:
+        self.logger.info("call type context : " + str(services[MpackAdvisorImpl.ADVISOR_CONTEXT]))
+        return services[MpackAdvisorImpl.ADVISOR_CONTEXT][MpackAdvisorImpl.CALL_TYPE]
     return ""
-
 
   # if serviceName is being added
   def isServiceBeingAdded(self, services, serviceName):
     if services:
       if 'user-context' in services.keys():
         userContext = services["user-context"]
-        if DefaultStackAdvisor.OPERATION in userContext and \
-              'AddService' == userContext[DefaultStackAdvisor.OPERATION] and \
-              DefaultStackAdvisor.OPERATION_DETAILS in userContext:
+        if MpackAdvisorImpl.OPERATION in userContext and \
+              'AddService' == userContext[MpackAdvisorImpl.OPERATION] and \
+          MpackAdvisorImpl.OPERATION_DETAILS in userContext:
           if -1 != userContext["operation_details"].find(serviceName):
             return True
     return False
-
 
   def getUserOperationContext(self, services, contextName):
     if services:
@@ -1382,7 +1459,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return uid_min
 
-  def validateClusterConfigurations(self, configurations, services, hosts):
+  def validateClusterConfigurations(self):
     validationItems = []
 
     return self.toConfigurationValidationProblems(validationItems, "")
@@ -1396,17 +1473,23 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     result = []
     for validationProblem in validationProblems:
-      validationItem = validationProblem.get("item", None)
-      if validationItem is not None:
+      validationItem = validationProblem.get("item")
+      if validationItem:
         problem = {"type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
                    "config-type": siteName, "config-name": validationProblem["config-name"] }
         result.append(problem)
     return result
 
   def validateServiceConfigurations(self, serviceName):
-    return self.getServiceConfigurationValidators().get(serviceName, None)
+
+    return self.getServiceConfigurationValidators().get(serviceName)
 
   def getServiceConfigurationValidators(self):
+    """
+    TODO
+    The validator call should forward to individual serviceAdvisor, I do not understand why it is implemented in services/StackAdvisor
+    :return:
+    """
     return {}
 
   def validateMinMax(self, items, recommendedDefaults, configurations):
@@ -1438,21 +1521,31 @@ class DefaultStackAdvisor(StackAdvisor):
       items.extend(self.toConfigurationValidationProblems(validationItems, configName))
     pass
 
-
-  def getConfigurationsValidationItems(self, services, hosts):
+  def getConfigurationsValidationItems(self):
     """Returns array of Validation objects about issues with configuration values provided in services"""
     items = []
-
-    recommendations = self.recommendConfigurations(services, hosts)
-    recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
-    configurations = services["configurations"]
-
-    for service in services["services"]:
-      items.extend(self.getConfigurationsValidationItemsForService(configurations, recommendedDefaults, service, services, hosts))
-
-    clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
-    items.extend(clusterWideItems)
-    self.validateMinMax(items, recommendedDefaults, configurations)
+    """
+    This section of configuration is recommended configuration which is used for validation
+    """
+    configurations = self.services["configurations"]
+    recommendations = self.recommendConfigurations()
+    mpackInstances = recommendations["recommendations"]["blueprint"]["mpack_instances"]
+    mpackInstancesDict = {"mpack_instances": []}
+    items.append(mpackInstancesDict)
+    mpackInstancesList = mpackInstancesDict.get("mpack_instances")
+    for mpackInstance in mpackInstances:
+      recommendedDefaults = mpackInstance["configurations"]
+      mpackName = mpackInstance["name"]
+      mpackVersion = mpackInstance["version"]
+      mpackInstanceConfigurations = {}
+      mpackItems = []
+      mpackInstanceItem = {"name": mpackName, "version": mpackVersion, "items": mpackItems}
+      mpackInstancesList.append(mpackInstanceItem)
+      for serviceInstance in self.mpackServiceInstancesDict.get(mpackName):
+        mpackItems.extend(self.getConfigurationsValidationItemsForService(configurations, recommendedDefaults, serviceInstance, self.services, self.hostsList))
+      self.validateMinMax(mpackItems, recommendedDefaults, configurations)
+    clusterWideItems = self.validateClusterConfigurations()
+    items.append({"cluster": clusterWideItems})
     return items
 
   def validateListOfConfigUsingMethod(self, configurations, recommendedDefaults, services, hosts, validators):
@@ -1490,28 +1583,27 @@ class DefaultStackAdvisor(StackAdvisor):
         return method(siteProperties, siteRecommendations, configurations, services, hosts)
     return []
 
-  def getConfigurationsValidationItemsForService(self, configurations, recommendedDefaults, service, services, hosts):
+  def getConfigurationsValidationItemsForService(self, configurations, recommendedDefaults, serviceInstance, services, hosts):
     items = []
-    serviceName = service["StackServices"]["service_name"]
+    serviceName = serviceInstance.getType()
     validator = self.validateServiceConfigurations(serviceName)
     if validator is not None:
       for siteName, method in validator.items():
         resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
         items.extend(resultItems)
 
-    serviceAdvisor = self.getServiceAdvisor(serviceName)
+    serviceAdvisor = serviceInstance.getServiceAdvisor()
     if serviceAdvisor is not None:
       items.extend(serviceAdvisor.getServiceConfigurationsValidationItems(configurations, recommendedDefaults, services, hosts))
 
     return items
 
-  def recommendConfigGroupsConfigurations(self, recommendations, services, components, hosts,
-                            servicesList):
+  def recommendConfigGroupsConfigurations(self, recommendations):
     recommendations["recommendations"]["config-groups"] = []
-    for configGroup in services["config-groups"]:
+    for configGroup in self.services["config-groups"]:
 
       # Override configuration with the config group values
-      cgServices = services.copy()
+      cgServices = self.services.copy()
       for configName in configGroup["configurations"].keys():
         if configName in cgServices["configurations"]:
           cgServices["configurations"][configName]["properties"].update(
@@ -1521,29 +1613,29 @@ class DefaultStackAdvisor(StackAdvisor):
           configGroup["configurations"][configName]
 
       # Override hosts with the config group hosts
-      cgHosts = {"items": [host for host in hosts["items"] if
+      cgHosts = {"items": [host for host in self.hostsList["items"] if
                            host["Hosts"]["host_name"] in configGroup["hosts"]]}
 
       # Override clusterSummary
-      cgClusterSummary = self.getConfigurationClusterSummary(servicesList,
-                                                             cgHosts,
-                                                             components,
-                                                             cgServices)
+      cgClusterSummary = self.getConfigurationClusterSummary(cgHosts, cgServices)
 
       configurations = {}
 
       # there can be dependencies between service recommendations which require special ordering
       # for now, make sure custom services (that have service advisors) run after standard ones
+      servicesList = [cgServices["StackServices"]["service_name"] for service in cgServices["services"]]
+      serviceInstances = [serviceInstance for serviceInstance in self.serviceInstancesSet if
+                          serviceInstance.getType() in servicesList]
       serviceAdvisors = []
-      for service in services["services"]:
-        serviceName = service["StackServices"]["service_name"]
-        # "calculation" is a function pointer
-        calculation = self.getServiceConfigurationRecommender(serviceName)
-        if calculation is not None:
+      for serviceInstance in serviceInstances:
+        serviceName = serviceInstance.getType()
+        calculation = self.getServiceConfigurationRecommenderForSSODict(serviceName) if isSSO \
+          else self.getServiceConfigurationRecommender(serviceName)
+        if calculation:
           calculation(configurations, cgClusterSummary, cgServices, cgHosts)
         else:
-          serviceAdvisor = self.getServiceAdvisor(serviceName)
-          if serviceAdvisor is not None:
+          serviceAdvisor = serviceInstance.getServiceAdvisor()
+          if serviceAdvisor:
             serviceAdvisors.append(serviceAdvisor)
       for serviceAdvisor in serviceAdvisors:
         serviceAdvisor.getServiceConfigurationRecommendations(configurations, cgClusterSummary, cgServices, cgHosts)
@@ -1574,27 +1666,12 @@ class DefaultStackAdvisor(StackAdvisor):
               cgRecommendation["dependent_configurations"][config][
                 configElement][property] = value
 
-  def recommendConfigurations(self, services, hosts):
-    self.services = services
-
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
-
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+  def getRecommendConfigurations(self, isSSO=False):
 
     recommendations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "hosts": hostsList,
-      "services": servicesList,
       "recommendations": {
         "blueprint": {
-          "configurations": {},
-          "host_groups": []
+          "mpack_instances": []
         },
         "blueprint_cluster_binding": {
           "host_groups": []
@@ -1603,81 +1680,50 @@ class DefaultStackAdvisor(StackAdvisor):
     }
 
     # If recommendation for config groups
-    if "config-groups" in services:
-      self.recommendConfigGroupsConfigurations(recommendations, services, components, hosts,
-                                 servicesList)
+    if "config-groups" in self.services:
+      self.recommendConfigGroupsConfigurations(recommendations)
     else:
-      configurations = recommendations["recommendations"]["blueprint"]["configurations"]
+      clusterSummary = self.getConfigurationClusterSummary(self.hostsList, self.services)
+      mpackInstances = recommendations["recommendations"]["blueprint"]["mpack_instances"]
+      for mpackInstanceName, serviceInstances in self.mpackServiceInstancesDict.items():
+        mpackInstance = {}
+        mpackInstance["name"] = mpackInstanceName
+        mpackInstance["version"] = serviceInstances[0].getMpackVersion()
+        mpackInstance["service_instances"] = [serviceInstance.getName() for serviceInstance in serviceInstances]
+        mpackInstance["configurations"] = {}
+        mpackInstance["hosts"] = []
+        mpackInstances.append(mpackInstance)
+        configurations = mpackInstance["configurations"]
+        # there can be dependencies between service recommendations which require special ordering
+        # for now, make sure custom services (that have service advisors) run after standard ones
+        serviceAdvisors = []
+        for serviceInstance in serviceInstances:
+          serviceName = serviceInstance.getType()
+          calculation = self.getServiceConfigurationRecommenderForSSODict(serviceName) if isSSO \
+                        else self.getServiceConfigurationRecommender(serviceName)
+          if calculation:
+            # ???????
+            calculation(configurations, clusterSummary, self.services, self.hostsList)
+          else:
+            serviceAdvisor = serviceInstance.getServiceAdvisor()
+            if serviceAdvisor:
+              serviceAdvisors.append(serviceAdvisor)
+        for serviceAdvisor in serviceAdvisors:
+          if isSSO:
+            serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, self.services, self.hostsList)
+          else:
+            serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, self.services, self.hostsList)
 
-      # there can be dependencies between service recommendations which require special ordering
-      # for now, make sure custom services (that have service advisors) run after standard ones
-      serviceAdvisors = []
-      for service in services["services"]:
-        serviceName = service["StackServices"]["service_name"]
-        calculation = self.getServiceConfigurationRecommender(serviceName)
-        if calculation is not None:
-          calculation(configurations, clusterSummary, services, hosts)
-        else:
-          serviceAdvisor = self.getServiceAdvisor(serviceName)
-          if serviceAdvisor is not None:
-            serviceAdvisors.append(serviceAdvisor)
-      for serviceAdvisor in serviceAdvisors:
-        serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, services, hosts)
 
     return recommendations
 
-  def recommendConfigurationsForSSO(self, services, hosts):
-    self.services = services
+  def recommendConfigurations(self):
 
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    return self.getRecommendConfigurations()
 
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+  def recommendConfigurationsForSSO(self):
 
-    recommendations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "hosts": hostsList,
-      "services": servicesList,
-      "recommendations": {
-        "blueprint": {
-          "configurations": {},
-          "host_groups": []
-        },
-        "blueprint_cluster_binding": {
-          "host_groups": []
-        }
-      }
-    }
-
-    # If recommendation for config groups
-    if "config-groups" in services:
-      self.recommendConfigGroupsConfigurations(recommendations, services, components, hosts,
-                                 servicesList)
-    else:
-      configurations = recommendations["recommendations"]["blueprint"]["configurations"]
-
-      # there can be dependencies between service recommendations which require special ordering
-      # for now, make sure custom services (that have service advisors) run after standard ones
-      serviceAdvisors = []
-      recommenderDict = self.getServiceConfigurationRecommenderForSSODict()
-      for service in services["services"]:
-        serviceName = service["StackServices"]["service_name"]
-        calculation = recommenderDict.get(serviceName, None)
-        if calculation is not None:
-          calculation(configurations, clusterSummary, services, hosts)
-        else:
-          serviceAdvisor = self.getServiceAdvisor(serviceName)
-          if serviceAdvisor is not None:
-            serviceAdvisors.append(serviceAdvisor)
-      for serviceAdvisor in serviceAdvisors:
-        serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, services, hosts)
-
-    return recommendations
+    getRecommendConfigurations(True)
 
   def getServiceConfigurationRecommender(self, service):
     return self.getServiceConfigurationRecommenderDict().get(service, None)
@@ -1719,15 +1765,15 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     return AmbariConfiguration(services)
 
-  def is_secured_cluster(self, services):
+  def is_secured_cluster(self):
     """
     Detects if cluster is secured or not
     :type services dict
     :rtype bool
     """
-    return services and "cluster-env" in services["configurations"] and \
-           "security_enabled" in services["configurations"]["cluster-env"]["properties"] and \
-           services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
+    return self.services and "cluster-settings" in self.services["configurations"] and \
+           "security_enabled" in self.services["configurations"]["cluster-settings"]["properties"] and \
+           self.services["configurations"]["cluster-settings"]["properties"]["security_enabled"].lower() == "true"
 
   def getZKHostPortString(self, services, include_port=True):
     """
@@ -1769,26 +1815,25 @@ class DefaultStackAdvisor(StackAdvisor):
   def isMasterComponent(self, component):
     return self.getComponentAttribute(component, "is_master")
 
-  def getRequiredComponent(self, services, componentName):
+  def getRequiredComponent(self, componentName):
     """
     Return Category for component
 
-    :type services dict
     :type componentName str
     :rtype dict
     """
-    componentsListList = [service["components"] for service in services["services"]]
+    componentsListList = [serviceInstance.getComponents() for serviceInstance in self.serviceInstancesSet]
     componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
     component = next((component for component in componentsList
-                              if component["component_name"] == componentName), None)
+                      if component["component_name"] == componentName), None)
 
     return component
 
   def getComponentAttribute(self, component, attribute):
-    serviceComponent = component.get("StackServiceComponents", None)
-    if serviceComponent is None:
+    serviceInstanceComponent = component.get("StackServiceComponents")
+    if not serviceInstanceComponent:
       return None
-    return serviceComponent.get(attribute, None)
+    return serviceInstanceComponent.get(attribute)
 
   def isLocalHost(self, hostName):
     return socket.getfqdn(hostName) == socket.getfqdn()
@@ -1800,6 +1845,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def isComponentNotValuable(self, component):
     componentName = self.getComponentName(component)
+    # here we use service because the set is populated by the service advisor
     service = self.getNotValuableComponents()
     return componentName in service
 
@@ -1815,8 +1861,8 @@ class DefaultStackAdvisor(StackAdvisor):
     else:
       return {"min": 1, "max": 1}
 
-  def isServiceDeployed(self, services, serviceName):
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+  def isServiceDeployed(self, serviceInstances, serviceName):
+    servicesInstancesList = [serviceInstance.getType() for serviceInstance in se]
     return serviceName in servicesList
 
   def getHostForComponent(self, component, hostsList):
@@ -1893,7 +1939,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def recommendConfigurationDependencies(self, services, hosts):
     self.allRequestedProperties = self.getAllRequestedProperties(services)
-    result = self.recommendConfigurations(services, hosts)
+    result = self.recommendConfigurations()
     return self.filterResult(result, services)
 
   # returns recommendations only for changed and depended properties
@@ -1977,7 +2023,6 @@ class DefaultStackAdvisor(StackAdvisor):
     def normalize(v):
       return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
     return cmp(normalize(version1), normalize(version2))
-  pass
 
   def getSiteProperties(self, configurations, siteName):
     siteConfig = configurations.get(siteName)
@@ -1987,14 +2032,14 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getServicesSiteProperties(self, services, siteName):
     if not services:
-      return None
+      return {}
 
     configurations = services.get("configurations")
     if not configurations:
-      return None
+      return {}
     siteConfig = configurations.get(siteName)
     if siteConfig is None:
-      return None
+      return {}
     return siteConfig.get("properties")
 
   def putProperty(self, config, configType, services=None):
@@ -2141,19 +2186,19 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return mount_points
 
-  def getStackRoot(self, services):
+  def getStackRoot(self):
     """
     Gets the stack root associated with the stack
     :param services: the services structure containing the current configurations
     :return: the stack root as specified in the config or /usr/hdp
     """
-    cluster_env = self.getServicesSiteProperties(services, "cluster-env")
+    cluster_settings = self.getServicesSiteProperties(self.services, "cluster-settings")
     stack_root = "/usr/hdp"
-    if cluster_env and "stack_root" in cluster_env:
-      stack_root_as_str = cluster_env["stack_root"]
+    if cluster_settings and "stack_root" in cluster_settings:
+      stack_root_as_str = cluster_settings["stack_root"]
       stack_roots = json.loads(stack_root_as_str)
-      if "stack_name" in cluster_env:
-        stack_name = cluster_env["stack_name"]
+      if "stack_name" in cluster_settings:
+        stack_name = cluster_settings["stack_name"]
         if stack_name in stack_roots:
           stack_root = stack_roots[stack_name]
 
@@ -2161,17 +2206,24 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def isSecurityEnabled(self, services):
     """
-    Determines if security is enabled by testing the value of cluster-env/security enabled.
+    back compatibilty
+    :param services:
+    :return:
+    """
+    return self.isSecurityEnabled()
+
+  def isSecurityEnabled(self):
+    """
+    Determines if security is enabled by testing the value of cluster-settings/security enabled.
 
     If the property exists and is equal to "true", then is it enabled; otherwise is it assumed to be
     disabled.
 
-    This is an alias for stacks.stack_advisor.DefaultStackAdvisor#is_secured_cluster
+    This is an alias for stacks.stack_advisor.MpackAdvisor#is_secured_cluster
 
-    :param services: the services structure containing the current configurations
     :return: true if security is enabled; otherwise false
     """
-    return self.is_secured_cluster(services)
+    return self.is_secured_cluster()
 
   def parseCardinality(self, cardinality, hostsCount):
     """
@@ -2196,7 +2248,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getServiceNames(self, services):
     return [service["StackServices"]["service_name"] for service in services["services"]]
 
-  def filterHostMounts(self, hosts, services):
+  def filterHostMounts(self, hosts):
     """
     Filter mounts on the host using agent_mounts_ignore_list, by excluding and record with mount-point
      mentioned in agent_mounts_ignore_list.
@@ -2232,20 +2284,19 @@ class DefaultStackAdvisor(StackAdvisor):
     :type hosts dict
     :type services dict
     """
-    if not services or "items" not in hosts:
+    if not self.services or "items" not in hosts:
       return hosts
 
     banned_filesystems = ["devtmpfs", "tmpfs", "vboxsf", "cdfs"]
     banned_mount_points = ["/etc/resolv.conf", "/etc/hostname", "/boot", "/mnt", "/tmp", "/run/secrets"]
 
-    cluster_env = self.getServicesSiteProperties(services, "cluster-env")
+    cluster_settings = self.getServicesSiteProperties(self.services, "cluster-settings")
     ignore_list = []
 
-    if cluster_env and "agent_mounts_ignore_list" in cluster_env and cluster_env["agent_mounts_ignore_list"].strip():
-      ignore_list = [x.strip() for x in cluster_env["agent_mounts_ignore_list"].strip().split(",")]
+    if cluster_settings and "agent_mounts_ignore_list" in cluster_settings and cluster_settings["agent_mounts_ignore_list"].strip():
+      ignore_list = [x.strip() for x in cluster_settings["agent_mounts_ignore_list"].strip().split(",")]
 
     ignore_list.extend(banned_mount_points)
-
     for host in hosts["items"]:
       if "Hosts" not in host and "disk_info" not in host["Hosts"]:
         continue
@@ -2385,6 +2436,15 @@ class DefaultStackAdvisor(StackAdvisor):
     return []
 
   def getHostsWithComponent(self, serviceName, componentName, services, hosts):
+    """
+    This method should get for a service with multiple instances, how many hosts have this component installed
+    and how many same components running on a host
+    :param serviceName:
+    :param componentName:
+    :param serviceInstances:
+    :param hosts:
+    :return:
+    """
     if services is not None and hosts is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
       service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
       components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
@@ -2537,7 +2597,7 @@ class DefaultStackAdvisor(StackAdvisor):
       "OOZIE":  [("oozie-env", "oozie_user", {HOSTS_PROPERTY: ["OOZIE_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
       "HIVE":   [("hive-env", "hive_user", {HOSTS_PROPERTY: ["HIVE_SERVER", "HIVE_SERVER_INTERACTIVE"], GROUPS_PROPERTY: ALL_WILDCARD}),
                  ("hive-env", "webhcat_user", {HOSTS_PROPERTY: ["WEBHCAT_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
-      "YARN":   [("yarn-env", "yarn_user", {HOSTS_PROPERTY: ["RESOURCEMANAGER"]}, lambda services, hosts: len(self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)) > 1)],
+      "YARN":   [("yarn-env", "yarn_user", {HOSTS_PROPERTY: ["RESOURCEMANAGER"]}, lambda services, hosts: len(self.getHostsWithComponent("YARN", "RESOURCEMANAGER", self.services, self.hostsList)) > 1)],
       "FALCON": [("falcon-env", "falcon_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
       "SPARK":  [("livy-env", "livy_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})]
     }
@@ -2571,7 +2631,7 @@ class DefaultStackAdvisor(StackAdvisor):
               componentHosts = self.getHostsWithComponent(serviceName, component, services, hosts)
               if componentHosts is not None:
                 for componentHost in componentHosts:
-                  componentHostName =  componentHost["Hosts"]["host_name"]
+                  componentHostName = componentHost["Hosts"]["host_name"]
                   componentHostNames.add(componentHostName)
 
             componentHostNamesString = ",".join(sorted(componentHostNames))
@@ -2637,22 +2697,22 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getAmbariUser(self, services):
     ambari_user = services['ambari-server-properties']['ambari-server.user']
-    if "cluster-env" in services["configurations"] \
-        and "ambari_principal_name" in services["configurations"]["cluster-env"]["properties"] \
-        and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
-        and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
-      ambari_user = services["configurations"]["cluster-env"]["properties"]["ambari_principal_name"]
+    if "cluster-settings" in services["configurations"] \
+        and "ambari_principal_name" in services["configurations"]["cluster-settings"]["properties"] \
+        and "security_enabled" in services["configurations"]["cluster-settings"]["properties"] \
+        and services["configurations"]["cluster-settings"]["properties"]["security_enabled"].lower() == "true":
+      ambari_user = services["configurations"]["cluster-settings"]["properties"]["ambari_principal_name"]
       ambari_user = ambari_user.split('@')[0]
     return ambari_user
 
   def getOldAmbariUser(self, services):
     ambari_user = None
-    if "cluster-env" in services["configurations"]:
-      if "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
-          and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
+    if "cluster-settings" in services["configurations"]:
+      if "security_enabled" in services["configurations"]["cluster-settings"]["properties"] \
+          and services["configurations"]["cluster-settings"]["properties"]["security_enabled"].lower() == "true":
         ambari_user = services['ambari-server-properties']['ambari-server.user']
-      elif "ambari_principal_name" in services["configurations"]["cluster-env"]["properties"]:
-        ambari_user = services["configurations"]["cluster-env"]["properties"]["ambari_principal_name"]
+      elif "ambari_principal_name" in services["configurations"]["cluster-settings"]["properties"]:
+        ambari_user = services["configurations"]["cluster-settings"]["properties"]["ambari_principal_name"]
         ambari_user = ambari_user.split('@')[0]
     return ambari_user
   #endregion
@@ -2759,11 +2819,10 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getOldValue(self, services, configType, propertyName):
     if services:
-      if 'changed-configurations' in services.keys():
-        changedConfigs = services["changed-configurations"]
-        for changedConfig in changedConfigs:
-          if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
-            return changedConfig["old_value"]
+      changedConfigs = services.get("changed-configurations")
+      for changedConfig in changedConfigs:
+        if changedConfig.get("type") == configType and changedConfig.get("name")== propertyName:
+          return changedConfig.get("old_value")
     return None
 
   @classmethod
@@ -2898,7 +2957,7 @@ class DefaultStackAdvisor(StackAdvisor):
     mountPoints = []
     for mountPoint in hostInfo["disk_info"]:
       mountPoints.append(mountPoint["mountpoint"])
-    mountPoint = DefaultStackAdvisor.getMountPointForDir(dir, mountPoints)
+    mountPoint = MpackAdvisorImpl.getMountPointForDir(dir, mountPoints)
 
     if "/" == mountPoint and self.getPreferredMountPoints(hostInfo)[0] != mountPoint:
       return self.getWarnItem("It is not recommended to use root partition for {0}".format(propertyName))
@@ -2916,7 +2975,7 @@ class DefaultStackAdvisor(StackAdvisor):
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
-    mountPoint = DefaultStackAdvisor.getMountPointForDir(dir, mountPoints.keys())
+    mountPoint = MpackAdvisorImpl.getMountPointForDir(dir, mountPoints.keys())
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])

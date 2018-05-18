@@ -46,13 +46,23 @@ convention listed above.
 For examples see: common-services/HAWQ/2.0.0/service_advisor.py
 and common-services/PXF/3.0.0/service_advisor.py
 """
-from stack_advisor import DefaultStackAdvisor
 
-class ServiceAdvisor(DefaultStackAdvisor):
+import os
+import sys
+path = os.path.abspath(__file__)
+dir_path = os.path.dirname(path)
+sys.path.append(dir_path)
+
+import stack_advisor
+import mpack_advisor
+
+"""
+Dynamically inherit DefaultStackAdvisor base class or MpackAdvisor base class
+"""
+class ServiceAdvisor(mpack_advisor.MpackAdvisorImpl if os.environ["advisor"] == "mpack"  else stack_advisor.DefaultStackAdvisor):
   """
   Abstract class implemented by all service advisors.
   """
-
 
   def colocateService(self, hostsComponentsMap, serviceComponents):
     """
