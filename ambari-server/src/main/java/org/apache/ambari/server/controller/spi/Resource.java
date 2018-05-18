@@ -130,7 +130,9 @@ public interface Resource {
     ViewVersion,
     ViewInstance,
     Blueprint,
+    MpackRecommendation,
     Recommendation,
+    MpackValidation,
     Validation,
     HostComponentProcess,
     Permission,
@@ -263,7 +265,9 @@ public interface Resource {
     public static final Type ViewVersion = InternalType.ViewVersion.getType();
     public static final Type ViewInstance = InternalType.ViewInstance.getType();
     public static final Type Blueprint = InternalType.Blueprint.getType();
+    public static final Type MpackRecommendation = InternalType.MpackRecommendation.getType();
     public static final Type Recommendation = InternalType.Recommendation.getType();
+    public static final Type MpackValidation = InternalType.MpackValidation.getType();
     public static final Type Validation = InternalType.Validation.getType();
     public static final Type HostComponentProcess = InternalType.HostComponentProcess.getType();
     public static final Type Permission = InternalType.Permission.getType();

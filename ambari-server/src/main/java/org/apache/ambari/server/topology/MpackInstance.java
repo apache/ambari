@@ -43,6 +43,8 @@ public class MpackInstance implements Configurable {
   @JsonProperty("url")
   private String url;
 
+  private String mpackType;
+
   private Stack stack;
   private Configuration configuration = new Configuration();
 
@@ -57,6 +59,13 @@ public class MpackInstance implements Configurable {
     this.configuration = configuration;
   }
 
+  public MpackInstance(String mpackName, String mpackType, String mpackVersion, Collection<ServiceInstance> serviceInstances) {
+    this.mpackName = mpackName;
+    this.mpackType = mpackType;
+    this.mpackVersion = mpackVersion;
+    this.serviceInstances = serviceInstances;
+  }
+
   public MpackInstance() { }
 
   public String getMpackName() {
@@ -66,6 +75,15 @@ public class MpackInstance implements Configurable {
   public void setMpackName(String mpackName) {
     this.mpackName = mpackName;
   }
+
+  public String getMpackType() {
+    return mpackType;
+  }
+
+  public void setMpackType(String mpackType) {
+    this.mpackType = mpackType;
+  }
+
 
   public String getMpackVersion() {
     return mpackVersion;

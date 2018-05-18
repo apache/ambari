@@ -53,6 +53,7 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
+import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.audit.AuditLoggerModule;
@@ -71,6 +72,7 @@ import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackAdvisorResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.RegistryAdvisorResourceProvider;
@@ -911,6 +913,8 @@ public class AmbariServer {
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class),
             injector.getInstance(Configuration.class));
+    MpackAdvisorResourceProvider.init(injector.getInstance(MpackAdvisorHelper.class),
+        injector.getInstance(Configuration.class));
     RegistryAdvisorResourceProvider.init(injector.getInstance(RegistryAdvisor.class));
 
     StageUtils.setGson(injector.getInstance(Gson.class));

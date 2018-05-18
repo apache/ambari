@@ -427,6 +427,14 @@ public class Configuration {
       "recommendations.dir", AmbariPath.getPath("/var/run/ambari-server/stack-recommendations"));
 
   /**
+   * The directory on the Ambari Server file system used for storing
+   * Mpack Recommendation API artifacts.
+   */
+  @Markdown(description = "The directory on the Ambari Server file system used for storing Mpack Recommendation API artifacts.")
+  public static final ConfigurationProperty<String> MPACK_RECOMMENDATIONS_DIR = new ConfigurationProperty<>(
+      "mpackrecommendations.dir", AmbariPath.getPath("/var/run/ambari-server/mpack-recommendations"));
+
+  /**
    * The location and name of the Python stack advisor script executed when
    * configuring services.
    */
@@ -434,6 +442,15 @@ public class Configuration {
   public static final ConfigurationProperty<String> STACK_ADVISOR_SCRIPT = new ConfigurationProperty<>(
       "stackadvisor.script",
       AmbariPath.getPath("/var/lib/ambari-server/resources/scripts/stack_advisor.py"));
+
+  /**
+   * The location and name of the Python mpack advisor script executed when
+   * configuring services.
+   */
+  @Markdown(description = "The location and name of the Python stack advisor script executed when configuring services.")
+  public static final ConfigurationProperty<String> MPACK_ADVISOR_SCRIPT = new ConfigurationProperty<>(
+      "mpackadvisor.script",
+      AmbariPath.getPath("/var/lib/ambari-server/resources/scripts/mpack_advisor_wrapper.py"));
 
   /**
    * The name of the shell script used to wrap all invocations of Python by Ambari.
@@ -3314,6 +3331,11 @@ public class Configuration {
     return new File(fileName);
   }
 
+  public File getMpackRecommendationsDir() {
+    String fileName = getProperty(MPACK_RECOMMENDATIONS_DIR);
+    return new File(fileName);
+  }
+
   public String getRecommendationsArtifactsLifetime() {
     return getProperty(RECOMMENDATIONS_ARTIFACTS_LIFETIME);
   }
@@ -3342,6 +3364,10 @@ public class Configuration {
 
   public String getStackAdvisorScript() {
     return getProperty(STACK_ADVISOR_SCRIPT);
+  }
+
+  public String getMpackAdvisorScript() {
+    return getProperty(MPACK_ADVISOR_SCRIPT);
   }
 
   /**

@@ -19,8 +19,10 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -101,8 +103,17 @@ public class StackServiceDirectory extends ServiceDirectory {
     String stackName = stackDir.getName();
     String versionString = stackVersionDir.getName().replaceAll("\\.", "");
 
+    List<String> legacyStackNames = new ArrayList<>(Arrays.asList("HDP", "HDF")); // Old stacks.
+    String advisorClassName = "";
+    if (legacyStackNames.contains(stackName)) {
+      advisorClassName = stackName + versionString + serviceName + "ServiceAdvisor";
+    } else {
+      // Mpack world and its corresponding Stacks, where we shouldn't have
+      // stackName + versionString prefixed.
+      advisorClassName = serviceName + "ServiceAdvisor";
+    }
+
     // Remove illegal python characters from the advisor name
-    String advisorClassName = stackName + versionString + serviceName + "ServiceAdvisor";
     advisorClassName = advisorClassName.replaceAll("[^a-zA-Z0-9]+", "");
 
     return advisorClassName;
