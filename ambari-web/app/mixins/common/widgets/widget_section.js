@@ -205,9 +205,9 @@ App.WidgetSectionMixin = Ember.Mixin.create({
 
   createLayouts: function (data) {
     var self = this;
-    var namespaces = App.HDFSService.find().objectAt(0).get('masterComponentGroups');
     if (data.items[0]) {
-      if (this.get('isHDFSFederatedSummary') && namespaces.length + 2 !== data.items.length) {
+      var hdfs = App.HDFSService.find().objectAt(0);
+      if (hdfs && this.get('isHDFSFederatedSummary') && hdfs.get('masterComponentGroups').length + 2 !== data.items.length) {
         this.createFederationWidgetLayouts(data);
       } else {
         self.getWidgetLayoutSuccessCallback(data);
