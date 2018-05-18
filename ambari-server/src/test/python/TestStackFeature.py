@@ -195,7 +195,8 @@ class TestStackFeature(TestCase):
         "direction":"UPGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
-        "orchestration":"STANDARD"
+        "orchestration":"STANDARD",
+        "isDowngradeAllowed": True
       }
     }
 
@@ -232,7 +233,8 @@ class TestStackFeature(TestCase):
         "direction":"DOWNGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
-        "orchestration":"STANDARD"
+        "orchestration":"STANDARD",
+        "isDowngradeAllowed": True
       }
     }
 
@@ -270,7 +272,8 @@ class TestStackFeature(TestCase):
         "direction":"DOWNGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
-        "orchestration":"STANDARD"
+        "orchestration":"STANDARD",
+        "isDowngradeAllowed": True
       }
     }
 
