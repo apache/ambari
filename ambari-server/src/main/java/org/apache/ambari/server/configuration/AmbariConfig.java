@@ -39,7 +39,11 @@ public class AmbariConfig {
   private final String mysqljdbcUrl;
 
   public AmbariConfig(Configuration configs) throws UnknownHostException {
-    masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
+    this(configs, InetAddress.getLocalHost().getCanonicalHostName());
+  }
+
+  AmbariConfig(Configuration configs, String masterHostname) {
+    this.masterHostname = masterHostname;
     if (configs != null) {
       if (configs.getApiSSLAuthentication()) {
         masterProtocol = "https";
@@ -100,10 +104,12 @@ public class AmbariConfig {
   }
 
   public String getAmbariServerURI(String path) {
-    if(masterProtocol==null || masterHostname==null || masterPort==null) {
-      return null;
-    }
+    return (masterProtocol == null || masterHostname == null || masterPort == null)
+      ? null
+      : getAmbariServerURI(path, masterProtocol, masterHostname, masterPort);
+  }
 
+  static String getAmbariServerURI(String path, String masterProtocol, String masterHostname, Integer masterPort) {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(masterProtocol);
     uriBuilder.setHost(masterHostname);

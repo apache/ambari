@@ -365,8 +365,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private RepositoryVersionHelper repoVersionHelper;
 
-  @Inject
-  private ClusterMetadataGenerator metadataGenerator;
+  private final ClusterMetadataGenerator metadataGenerator;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -389,7 +388,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
-      Clusters clusters, Injector injector) throws Exception {
+      Clusters clusters, ClusterMetadataGenerator metadataGenerator, Injector injector) throws Exception {
     this.clusters = clusters;
     this.actionManager = actionManager;
     this.injector = injector;
@@ -402,6 +401,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     m_agentConfigsHolder = injector.getProvider(AgentConfigsHolder.class);
     hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    this.metadataGenerator = metadataGenerator;
     ambariConfig = metadataGenerator != null ? metadataGenerator.getAmbariConfig() : new AmbariConfig(configs);
     helper = new AmbariManagementHelper(stackDAO, extensionDAO, linkDAO);
   }
@@ -1323,33 +1323,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (request.getComponentName() != null) {
-      if (StringUtils.isBlank(request.getServiceName())) {
-
-        // !!! FIXME the assumption that a component is unique across all stacks is a ticking
-        // time bomb.  Blueprints are making this assumption.
-        String serviceName = "";
-        try {
-          serviceName = findServiceName(cluster, request.getComponentName());
-        } catch (ServiceNotFoundException e) {
-          // handled below
-        }
-
-        if (StringUtils.isBlank(serviceName)) {
-          LOG.error("Unable to find service for componentName : {}", request.getComponentName());
-          throw new ServiceComponentHostNotFoundException(
-              cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
-        }
-
-        request.setServiceName(serviceName);
-      }
-    }
-
     List<Service> services;
-    if (!Strings.isNullOrEmpty(request.getServiceGroupName())) {
-      services = ImmutableList.copyOf(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
-    } else if (!Strings.isNullOrEmpty(request.getServiceName())) {
+    if (!Strings.isNullOrEmpty(request.getServiceName())) {
       services = ImmutableList.of(cluster.getService(request.getServiceName()));
+    } else if (!Strings.isNullOrEmpty(request.getServiceGroupName())) {
+      services = ImmutableList.copyOf(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
     } else {
       services = ImmutableList.copyOf(cluster.getServices().values());
     }
@@ -1494,7 +1472,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               // Ignore the exception if either the service name or component name are not specified.
               // This is an artifact of how we get host_components and can happen in the case where
               // we get all host_components for a host, for example.
-              // LOG.debug("Ignoring not specified host_component ", e);
+              LOG.debug("Ignoring not specified host_component ", e);
 
             } else {
               // Otherwise rethrow the exception and let the caller decide if it's an error condition.
