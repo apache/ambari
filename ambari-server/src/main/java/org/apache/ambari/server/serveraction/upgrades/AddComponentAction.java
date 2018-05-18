@@ -119,6 +119,10 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
       ServiceComponentHost sch = serviceComponent.addServiceComponentHost(host.getHostName());
       sch.setDesiredState(State.INSTALLED);
       sch.setState(State.INSTALLED);
+
+      // for now, this is the easiest way to fire a topology event which
+      // refreshes the information about the cluster (needed for restart
+      // commands)
       sch.setVersion(StackVersionListener.UNKNOWN_VERSION);
 
       buffer.append("  ")
