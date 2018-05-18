@@ -1141,7 +1141,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     var relationType,
         componentName,
         hostName,
-        linkTailTpl = '?host_name={0}&file_name={1}&component_name={2}';
+        linkTailTpl = '/#logs/serviceLogs?hosts={0}&components={2}&query=%5B%7B"id":0,"name":"path","label":"Path","value":"{1}","isExclude":false%7D%5D';
 
     if (this.get('openedTask.id')) {
       relationType = this._determineRoleRelation(this.get('openedTask'));
