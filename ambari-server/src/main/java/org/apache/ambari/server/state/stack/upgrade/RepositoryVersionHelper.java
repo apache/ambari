@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -193,6 +194,14 @@ public class RepositoryVersionHelper {
         if (repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID) != null) {
           repositoryEntity.setUnique(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID).getAsBoolean());
         }
+        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID) != null) {
+          List<String> applicableServices = new LinkedList<>();
+          JsonArray jsonArray = repositoryJson.get(RepositoryResourceProvider.REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID).getAsJsonArray();
+          for (JsonElement je : jsonArray) {
+            applicableServices.add(je.getAsString());
+          }
+          repositoryEntity.setApplicableServices(applicableServices);
+        }
 
         if (null != repositoryJson.get(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID)) {
           Set<RepoTag> tags = new HashSet<>();
@@ -232,6 +241,7 @@ public class RepositoryVersionHelper {
         repositoryDefinition.setUnique(repository.isUnique());
 
         repositoryDefinition.setTags(repository.getTags());
+        repositoryDefinition.setApplicableServices(repository.getApplicableServices());
 
         repositoriesList.add(repositoryDefinition);
         operatingSystemEntity.setAmbariManaged(repository.isAmbariManagedRepositories());

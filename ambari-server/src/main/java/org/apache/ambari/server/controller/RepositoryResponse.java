@@ -18,8 +18,11 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.stack.RepoTag;
 
 public class RepositoryResponse {
@@ -40,9 +43,14 @@ public class RepositoryResponse {
   private boolean unique;
   private Set<RepoTag> tags;
 
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  private List<String> applicableServices;
+
   public RepositoryResponse(String baseUrl, String osType, String repoId,
                             String repoName, String distribution, String components,
-                            String mirrorsList, String defaultBaseUrl, Set<RepoTag> repoTags) {
+                            String mirrorsList, String defaultBaseUrl,
+                            Set<RepoTag> repoTags, List<String> applicableServices) {
     setBaseUrl(baseUrl);
     setOsType(osType);
     setRepoId(repoId);
@@ -52,6 +60,7 @@ public class RepositoryResponse {
     setMirrorsList(mirrorsList);
     setDefaultBaseUrl(defaultBaseUrl);
     setTags(repoTags);
+    setApplicableServices(applicableServices);
   }
 
   public String getStackName() {
@@ -74,31 +83,25 @@ public class RepositoryResponse {
     return baseUrl;
   }
 
-
   public void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
   }
-
 
   public String getOsType() {
     return osType;
   }
 
-
   public void setOsType(String osType) {
     this.osType = osType;
   }
-
 
   public String getRepoId() {
     return repoId;
   }
 
-
   public void setRepoId(String repoId) {
     this.repoId = repoId;
   }
-
 
   public String getRepoName() {
     return repoName;
@@ -197,5 +200,17 @@ public class RepositoryResponse {
    */
   public void setTags(Set<RepoTag> repoTags) {
     tags = repoTags;
+  }
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public List<String> getApplicableServices() {
+    return applicableServices;
+  }
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public void setApplicableServices(List<String> applicableServices) {
+    this.applicableServices = applicableServices;
   }
 }

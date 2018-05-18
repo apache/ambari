@@ -55,6 +55,9 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KERBEROS_KEY
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KKP;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KKP_MAPPING_SERVICE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PRINCIPAL_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_APPLICABLE_SERVICES_FOREIGN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_APPLICABLE_SERVICES_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_BASE_URL_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_COMPONENTS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_DISTRIBUTION_COLUMN;
@@ -432,6 +435,7 @@ public class UpgradeCatalog270Test {
     Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns = newCapture(CaptureType.ALL);
     Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns = newCapture(CaptureType.ALL);
     Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns = newCapture(CaptureType.ALL);
+    Capture<List<DBAccessor.DBColumnInfo>> addRepoApplicableServicesTableCapturedColumns = newCapture(CaptureType.ALL);
     Capture<String[]> insertRepoOsTableRowColumns = newCapture(CaptureType.ALL);
     Capture<String[]> insertRepoOsTableRowValues = newCapture(CaptureType.ALL);
     Capture<String[]> insertAmbariSequencesRowColumns = newCapture(CaptureType.ALL);
@@ -445,7 +449,7 @@ public class UpgradeCatalog270Test {
     prepareUpdateAdminPrivilegeRecords(dbAccessor, createAdminPrincipalTableCaptures);
     prepareUpdateUsersTable(dbAccessor, updateUserTableCaptures, alterUserTableCaptures);
     prepareUpdateRepoTables(dbAccessor, addRepoOsTableCapturedColumns, addRepoDefinitionTableCapturedColumns, addRepoTagsTableCapturedColumns,
-        insertRepoOsTableRowColumns, insertRepoOsTableRowValues, insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
+      addRepoApplicableServicesTableCapturedColumns, insertRepoOsTableRowColumns, insertRepoOsTableRowValues, insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
 
     // upgradeKerberosTables
     Capture<List<DBAccessor.DBColumnInfo>> kerberosKeytabColumnsCapture = newCapture();
@@ -743,6 +747,7 @@ public class UpgradeCatalog270Test {
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns,
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns,
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns,
+                                       Capture<List<DBAccessor.DBColumnInfo>> addRepoApplicableServicesTableCapturedColumns,
                                        Capture<String[]> insertRepoOsTableRowColumns,
                                        Capture<String[]> insertRepoOsTableRowValues,
                                        Capture<String[]> insertAmbariSequencesRowColumns,
@@ -766,6 +771,11 @@ public class UpgradeCatalog270Test {
     dbAccessor.createTable(eq(REPO_TAGS_TABLE), capture(addRepoTagsTableCapturedColumns));
     expectLastCall().once();
     dbAccessor.addFKConstraint(REPO_TAGS_TABLE, REPO_TAGS_FOREIGN_KEY, REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
+    expectLastCall().once();
+
+    dbAccessor.createTable(eq(REPO_APPLICABLE_SERVICES_TABLE), capture(addRepoApplicableServicesTableCapturedColumns));
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(REPO_APPLICABLE_SERVICES_TABLE, REPO_APPLICABLE_SERVICES_FOREIGN_KEY, REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
     expectLastCall().once();
 
     expect(dbAccessor.tableHasColumn(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPOSITORIES_COLUMN))).andReturn(true).once();

@@ -37,5 +37,10 @@ public enum ExperimentalFeature {
   /**
    * For code that is for multi-service
    */
-  MULTI_SERVICE
+  MULTI_SERVICE,
+
+  /**
+   * Support for service-specific repos for custom services
+   */
+  CUSTOM_SERVICE_REPOS
 }
