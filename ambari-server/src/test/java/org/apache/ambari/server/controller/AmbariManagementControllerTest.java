@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller;
 
 
-
 import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -96,6 +95,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -8552,6 +8552,7 @@ public class AmbariManagementControllerTest {
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Clusters clusters = createNiceMock(Clusters.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
+    ClusterMetadataGenerator metadataGenerator = createNiceMock(ClusterMetadataGenerator.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
@@ -8580,12 +8581,11 @@ public class AmbariManagementControllerTest {
 
     expect(service.convertToResponse()).andReturn(response);
 
-
     // replay mocks
-    replay(maintHelper, injector, clusters, cluster, service, response, hostComponentStateDAO, serviceComponentDesiredStateDAO);
+    replay(maintHelper, injector, clusters, cluster, service, response, hostComponentStateDAO, serviceComponentDesiredStateDAO, metadataGenerator);
 
     //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, metadataGenerator, injector);
     Set<ServiceResponse> setResponses = ServiceResourceProviderTest.getServices(controller, setRequests);
 
     // assert and verify
@@ -8606,6 +8606,7 @@ public class AmbariManagementControllerTest {
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Clusters clusters = createNiceMock(Clusters.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
+    ClusterMetadataGenerator metadataGenerator = createNiceMock(ClusterMetadataGenerator.class);
     Cluster cluster = createNiceMock(Cluster.class);
 
     // requests
@@ -8629,10 +8630,10 @@ public class AmbariManagementControllerTest {
     expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
 
     // replay mocks
-    replay(maintHelper, injector, clusters, cluster, hostComponentStateDAO, serviceComponentDesiredStateDAO);
+    replay(maintHelper, injector, clusters, cluster, hostComponentStateDAO, serviceComponentDesiredStateDAO, metadataGenerator);
 
     //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, metadataGenerator, injector);
 
     // assert that exception is thrown in case where there is a single request
     try {
@@ -8657,6 +8658,7 @@ public class AmbariManagementControllerTest {
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Clusters clusters = createNiceMock(Clusters.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
+    ClusterMetadataGenerator metadataGenerator = createNiceMock(ClusterMetadataGenerator.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
     Service service1 = createNiceMock(Service.class);
@@ -8700,10 +8702,10 @@ public class AmbariManagementControllerTest {
 
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, service1, service2,
-      response, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO);
+      response, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO, metadataGenerator);
 
     //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, metadataGenerator, injector);
     Set<ServiceResponse> setResponses = ServiceResourceProviderTest.getServices(controller, setRequests);
 
     // assert and verify

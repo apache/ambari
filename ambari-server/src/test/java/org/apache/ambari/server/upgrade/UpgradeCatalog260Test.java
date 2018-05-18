@@ -85,6 +85,7 @@ import org.apache.ambari.server.hooks.users.PostUserCreationHookContext;
 import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -654,6 +655,7 @@ public class UpgradeCatalog260Test {
     final Config coreSiteConfNew = createMock(Config.class);
     final Service hdfsMock = createNiceMock(Service.class);
     final AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    final ClusterMetadataGenerator metadataGenerator = createMock(ClusterMetadataGenerator.class);
 
     Capture<? extends Map<String, String>> captureCoreSiteConfProperties = newCapture();
 
@@ -679,11 +681,11 @@ public class UpgradeCatalog260Test {
     expect(controller.createConfig(eq(cluster), anyObject(StackId.class), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class), anyLong()))
         .andReturn(coreSiteConfNew)
         .once();
-    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
+    expect(metadataGenerator.getClusterMetadataOnConfigsUpdate(eq(cluster)))
         .andReturn(createNiceMock(MetadataUpdateEvent.class))
         .once();
 
-    replay(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller);
+    replay(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller, metadataGenerator);
 
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.ensureZeppelinProxyUserConfigs();
@@ -804,15 +806,16 @@ public class UpgradeCatalog260Test {
     expect(controller.createConfig(eq(cluster), eq(stackId), eq("hive-interactive-site"), capture(captureHsiProperties), anyString(), anyObject(Map.class), eq(1L)))
             .andReturn(null)
             .anyTimes();
-    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
+    final ClusterMetadataGenerator metadataGenerator = createMock(ClusterMetadataGenerator.class);
+    expect(metadataGenerator.getClusterMetadataOnConfigsUpdate(eq(cluster)))
         .andReturn(createNiceMock(MetadataUpdateEvent.class))
         .once();
 
-    replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller, stackId);
+    replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller, stackId, metadataGenerator);
 
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
-    verify(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller, stackId);
+    verify(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller, stackId, metadataGenerator);
     KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(captureMap.getValue());
     Assert.assertNotNull(kerberosDescriptorUpdated);
 

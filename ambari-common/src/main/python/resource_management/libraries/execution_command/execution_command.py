@@ -20,8 +20,6 @@ limitations under the License.
 
 __all__ = ["ExecutionCommand"]
 
-import ambari_simplejson
-
 from resource_management.libraries.execution_command import module_configs
 
 
@@ -265,28 +263,28 @@ class ExecutionCommand(object):
     Retrieve mpack version from command.json, i.e "stack_version": "1.0.0-b224"
     :return: mpack version string
     """
-    return self.__get_value("clusterLevelParams/stack_version")
+    return self.__get_value("stackSettings/stack_version")
 
   def get_user_groups(self):
     """
     Retrieve ambari server user groups, i.e "user_groups": "{\"zookeeper\":[\"hadoop\"],\"ambari-qa\":[\"hadoop\"]}"
     :return: a user group dict object
     """
-    return self.__get_value("clusterLevelParams/user_groups")
+    return self.__get_value("stackSettings/user_groups")
 
   def get_group_list(self):
     """
     Retrieve a list of user groups from command.json, i.e "group_list": "[\"hadoop\"]"
     :return: a list of groups
     """
-    return self.__get_value("clusterLevelParams/group_list")
+    return self.__get_value("stackSettings/group_list")
 
   def get_user_list(self):
     """
     Retrieve a list of users from command.json, i.e "user_list": "[\"zookeeper\",\"ambari-qa\"]"
     :return: a list of users
     """
-    return self.__get_value("clusterLevelParams/user_list")
+    return self.__get_value("stackSettings/user_list")
 
   """
   Agent related variable section

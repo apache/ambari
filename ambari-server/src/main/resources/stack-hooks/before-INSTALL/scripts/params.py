@@ -18,14 +18,10 @@ limitations under the License.
 """
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from resource_management.libraries.functions.version import format_stack_version, compare_versions
-from resource_management.core.system import System
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import default, format
-from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions import format
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
-from resource_management.libraries.execution_command import execution_command
-from resource_management.libraries.execution_command import module_configs
 
 config = Script.get_config()
 execution_command = Script.get_execution_command()
@@ -40,7 +36,6 @@ agent_stack_retry_count = execution_command.get_agent_stack_retry_count()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #users and groups
-hbase_user = module_configs.get_property_value(module_name, 'hbase-env', 'hbase_user')
 smoke_user = get_cluster_setting_value('smokeuser')
 gmetad_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmetad_user')
 gmond_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmond_user')
@@ -63,7 +58,6 @@ slave_hosts = execution_command.get_component_hosts('datanode')
 oozie_servers = execution_command.get_component_hosts('oozie_server')
 hcat_server_hosts = execution_command.get_component_hosts('webhcat_server')
 hive_server_host =  execution_command.get_component_hosts('hive_server')
-hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
 hs_host = execution_command.get_component_hosts('historyserver')
 namenode_host = execution_command.get_component_hosts('namenode')
 zk_hosts = execution_command.get_component_hosts('zookeeper_server')
@@ -79,7 +73,6 @@ has_slaves = not len(slave_hosts) == 0
 has_oozie_server = not len(oozie_servers)  == 0
 has_hcat_server_host = not len(hcat_server_hosts) == 0
 has_hive_server_host = not len(hive_server_host) == 0
-has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_storm_server = not len(storm_server_hosts) == 0
@@ -89,12 +82,9 @@ has_tez = bool(module_configs.get_all_properties(module_name, 'tez-site'))
 is_namenode_master = hostname in namenode_host
 is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
-is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
-
-hbase_tmp_dir = "/tmp/hbase-hbase"
 
 #security params
 security_enabled = get_cluster_setting_value('security_enabled')
@@ -110,8 +100,6 @@ ignore_groupsusers_create = get_cluster_setting_value('ignore_groupsusers_create
 host_sys_prepped = execution_command.is_host_system_prepared()
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
-if has_hbase_masters:
-  hbase_user_dirs = format("/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
 #repo params
 repo_info = execution_command.get_repo_info()
 service_repo_info = execution_command.get_service_repo_info()

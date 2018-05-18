@@ -65,6 +65,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -140,7 +141,7 @@ public class ComponentResourceProviderTest {
     expect(managementController.getServiceComponentFactory()).andReturn(serviceComponentFactory);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-    expect(cluster.getService("Service100")).andReturn(service).anyTimes();
+    expect(cluster.getService("CORE", "Service100")).andReturn(service).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     expect(service.getStackId()).andReturn(stackId).anyTimes();
@@ -180,7 +181,6 @@ public class ComponentResourceProviderTest {
     properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ComponentResourceProvider.COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "CORE");
     properties.put(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(ComponentResourceProvider.COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "CORE");
     properties.put(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
 
     propertySet.add(properties);
@@ -534,7 +534,7 @@ public class ComponentResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
 
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster);
-    expect(cluster.getService(SERVICE_NAME)).andReturn(service);
+    expect(cluster.getService(null, SERVICE_NAME)).andReturn(service);
     expect(cluster.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
 
     expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
@@ -837,7 +837,7 @@ public class ComponentResourceProviderTest {
 
     // getComponents
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getService("CORE", "service1")).andReturn(service);
     expect(service.getName()).andReturn("service1").anyTimes();
     expect(service.getServiceType()).andReturn("service1").anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
@@ -901,8 +901,8 @@ public class ComponentResourceProviderTest {
     // getComponents
     expect(clusters.getCluster("cluster1")).andReturn(cluster).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
-    expect(cluster.getService("service1")).andReturn(service).anyTimes();
-    expect(cluster.getService("service2")).andThrow(new ObjectNotFoundException("service2"));
+    expect(cluster.getService("CORE", "service1")).andReturn(service).anyTimes();
+    expect(cluster.getService("CORE", "service2")).andThrow(new ObjectNotFoundException("service2"));
 
     expect(ambariMetaInfo.getComponent("stackName", "1", "service1", "component3")).andReturn(component3Info);
     expect(ambariMetaInfo.getComponent("stackName", "1", "service1", "component4")).andReturn(component4Info);
@@ -961,6 +961,7 @@ public class ComponentResourceProviderTest {
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
+    ClusterMetadataGenerator metadataGenerator = createNiceMock(ClusterMetadataGenerator.class);
     HostComponentStateDAO hostComponentStateDAO = createMock(HostComponentStateDAO.class);
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = createMock(ServiceComponentDesiredStateDAO.class);
 
@@ -981,14 +982,14 @@ public class ComponentResourceProviderTest {
 
     // getComponents
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getService("CORE", "service1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andThrow(
         new ServiceComponentNotFoundException("cluster1", "service1", "service1", "CORE", "component1"));
     // replay mocks
-    replay(maintHelper, injector, clusters, cluster, service);
+    replay(maintHelper, injector, clusters, cluster, service, metadataGenerator);
 
     //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, metadataGenerator, injector);
 
     // assert that exception is thrown in case where there is a single request
     try {

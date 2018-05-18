@@ -41,12 +41,12 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -153,7 +153,7 @@ public class ClustersImpl implements Clusters {
   private Provider<MetadataHolder> m_metadataHolder;
 
   @Inject
-  private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
+  private Provider<ClusterMetadataGenerator> metadataGenerator;
 
   @Inject
   public ClustersImpl(ClusterDAO clusterDAO, ClusterFactory clusterFactory, HostDAO hostDAO,
@@ -367,7 +367,7 @@ public class ClustersImpl implements Clusters {
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedClusters,
         TopologyUpdateEvent.EventType.UPDATE);
     m_topologyHolder.get().updateData(topologyUpdateEvent);
-    m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadata(cluster));
+    m_metadataHolder.get().updateData(metadataGenerator.get().getClusterMetadata(cluster));
   }
 
   @Override

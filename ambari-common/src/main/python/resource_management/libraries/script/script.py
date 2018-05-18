@@ -66,14 +66,6 @@ from resource_management.libraries.execution_command.module_configs import Modul
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.install_windows_msi import install_windows_msi
-  from resource_management.libraries.functions.reload_windows_env import reload_windows_env
-  from resource_management.libraries.functions.zip_archive import archive_dir
-  from resource_management.libraries.resources import Msi
-else:
-  from resource_management.libraries.functions.tar_archive import archive_dir
-
 USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR> [PROTOCOL]
 
 <COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
@@ -251,7 +243,7 @@ class Script(object):
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
+    stack_version_unformatted = self.execution_command.get_mpack_version()
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
@@ -458,11 +450,11 @@ class Script(object):
 
   def get_stack_version_before_packages_installed(self):
     """
-    This works in a lazy way (calculates the version first time and stores it). 
+    This works in a lazy way (calculates the version first time and stores it).
     If you need to recalculate the version explicitly set:
-    
+
     Script.stack_version_from_distro_select = None
-    
+
     before the call. However takes a bit of time, so better to avoid.
 
     :return: stack version including the build number. e.g.: 2.3.4.0-1234.
@@ -691,10 +683,10 @@ class Script(object):
     :return: a normalized stack version or None
     """
     config = Script.get_config()
-    if 'clusterLevelParams' not in config or 'stack_version' not in config['clusterLevelParams']:
+    if 'stackSettings' not in config or 'stack_version' not in config['stackSettings']:
       return None
 
-    stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
+    stack_version_unformatted = str(config['stackSettings']['stack_version'])
 
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
@@ -806,7 +798,7 @@ class Script(object):
     List of packages that are required< by service is received from the server
     as a command parameter. The method installs all packages
     from this list
-    
+
     exclude_packages - list of regexes (possibly raw strings as well), the
     packages which match the regex won't be installed.
     NOTE: regexes don't have Python syntax, but simple package regexes which support only * and .* and ?
@@ -841,14 +833,6 @@ class Script(object):
     except KeyError:
       traceback.print_exc()
 
-    if OSCheck.is_windows_family():
-      #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
-      hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(config['ambariLevelParams']['jdk_location'],
-                          config["agentLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
-                          hadoop_user, self.get_password(hadoop_user),
-                          str(config['clusterLevelParams']['stack_version']))
-      reload_windows_env()
 
   def check_package_condition(self, package):
     condition = package['condition']
@@ -872,7 +856,7 @@ class Script(object):
   @staticmethod
   def matches_any_regexp(string, regexp_list):
     for regex in regexp_list:
-      # we cannot use here Python regex, since * will create some troubles matching plaintext names. 
+      # we cannot use here Python regex, since * will create some troubles matching plaintext names.
       package_regex = '^' + re.escape(regex).replace('\\.\\*','.*').replace("\\?", ".").replace("\\*", ".*") + '$'
       if re.match(package_regex, string):
         return True

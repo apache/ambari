@@ -21,11 +21,9 @@ import os
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import default
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option_value
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_stack_version, compare_versions, get_major_version
-from ambari_commons.os_check import OSCheck
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
@@ -33,8 +31,6 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.execution_command import execution_command
-from resource_management.libraries.execution_command import module_configs
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 
@@ -79,7 +75,7 @@ hadoop_bin = stack_select.get_hadoop_dir("sbin")
 mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 hadoop_home = stack_select.get_hadoop_dir("home")
 create_lib_snappy_symlinks = False
-  
+
 current_service = module_name
 
 #security params
@@ -112,7 +108,6 @@ slave_hosts = execution_command.get_component_hosts('datanode')
 oozie_servers = execution_command.get_component_hosts('oozie_server')
 hcat_server_hosts = execution_command.get_component_hosts('webhcat_server')
 hive_server_host =  execution_command.get_component_hosts('hive_server')
-hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
 hs_host = execution_command.get_component_hosts('historyserver')
 namenode_host = execution_command.get_component_hosts('namenode')
 zk_hosts = execution_command.get_component_hosts('zookeeper_server')
@@ -131,7 +126,6 @@ has_slaves = not len(slave_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_hcat_server_host = not len(hcat_server_hosts) == 0
 has_hive_server_host = not len(hive_server_host) == 0
-has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_metric_collector = not len(ams_collector_hosts) == 0
@@ -139,7 +133,6 @@ has_metric_collector = not len(ams_collector_hosts) == 0
 is_namenode_master = hostname in namenode_host
 is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
-is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
 
 if has_ganglia_server:
@@ -186,7 +179,6 @@ if has_namenode or dfs_type == 'HCFS':
 
 hadoop_pid_dir_prefix = module_configs.get_property_value(module_name, 'hadoop-env', 'hadoop_pid_dir_prefix')
 hdfs_log_dir_prefix = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_log_dir_prefix')
-hbase_tmp_dir = "/tmp/hbase-hbase"
 #db params
 oracle_driver_symlink_url = format("{ambari_server_resources_url}/oracle-jdbc-driver.jar")
 mysql_driver_symlink_url = format("{ambari_server_resources_url}/mysql-jdbc-driver.jar")
@@ -244,7 +236,7 @@ refresh_topology = execution_command.need_refresh_topology()
 ambari_java_home = execution_command.get_ambari_java_home()
 ambari_jdk_name = execution_command.get_ambari_jdk_name()
 ambari_jce_name = execution_command.get_ambari_jce_name()
-  
+
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 is_webhdfs_enabled = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.webhdfs.enabled')
 default_fs = module_configs.get_property_value(module_name, 'core-site', 'fs.defaultFS')
@@ -261,7 +253,7 @@ net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
 net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)
 
-#Added logic to create /tmp and /user directory for HCFS stack.  
+#Added logic to create /tmp and /user directory for HCFS stack.
 has_core_site = bool(module_configs.get_all_properties(module_name, "core-site"))
 hdfs_user_keytab = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user_keytab')
 kinit_path_local = get_kinit_path()
