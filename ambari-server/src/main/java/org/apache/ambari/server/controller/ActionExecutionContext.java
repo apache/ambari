@@ -286,7 +286,7 @@ public class ActionExecutionContext {
    * commands for a component which has yet to be added to the cluster (since
    * it's added as part of the upgrade).
    *
-   * @return the skipVerificationOfCommand
+   * @return {@code true} if the command is scheduled to run in the future.
    */
   public boolean isFutureCommand() {
     return isFutureCommand;
@@ -301,7 +301,7 @@ public class ActionExecutionContext {
    * commands for a component which has yet to be added to the cluster (since
    * it's added as part of the upgrade).
    *
-   * @param skipVerificationOfCommand
+   * @param isFutureCommand
    *          {@code true} to have Ambari skip verification of things like
    *          component hosts while scheduling commands.
    */
