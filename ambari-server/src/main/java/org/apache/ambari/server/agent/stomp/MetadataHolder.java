@@ -26,7 +26,6 @@ import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.AmbariPropertiesChangedEvent;
 import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
-import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.ServiceCredentialStoreUpdateEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -34,6 +33,7 @@ import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 
 import com.google.common.eventbus.Subscribe;
@@ -85,15 +85,14 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
             changed = true;
           } else {
             MetadataCluster cluster = clusters.get(clusterId);
-            if (!cluster.getClusterLevelParams().equals(updatedCluster.getClusterLevelParams())) {
-              cluster.getClusterLevelParams().putAll(updatedCluster.getClusterLevelParams());
+            if (cluster.updateClusterLevelParams(updatedCluster.getClusterLevelParams())) {
               changed = true;
             }
-            if (!cluster.getServiceLevelParams().equals(updatedCluster.getServiceLevelParams())) {
-              cluster.getServiceLevelParams().putAll(updatedCluster.getServiceLevelParams());
+            if (cluster.updateServiceLevelParams(updatedCluster.getServiceLevelParams())) {
               changed = true;
             }
-            if (!cluster.getStatusCommandsToRun().equals(updatedCluster.getStatusCommandsToRun())) {
+            if (CollectionUtils.isNotEmpty(updatedCluster.getStatusCommandsToRun())
+                && !cluster.getStatusCommandsToRun().containsAll(updatedCluster.getStatusCommandsToRun())) {
               cluster.getStatusCommandsToRun().addAll(updatedCluster.getStatusCommandsToRun());
               changed = true;
             }
@@ -114,13 +113,6 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   @Override
   protected MetadataUpdateEvent getEmptyData() {
     return MetadataUpdateEvent.emptyUpdate();
-  }
-
-  @Subscribe
-  public void onConfigsChange(ClusterConfigChangedEvent configChangedEvent) throws AmbariException {
-    Cluster cluster = m_clusters.get().getCluster(configChangedEvent.getClusterName());
-    updateData(ambariManagementController.getClusterMetadataOnConfigsUpdate(cluster));
-
   }
 
   @Subscribe

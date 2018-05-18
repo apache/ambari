@@ -78,6 +78,34 @@ public class MetadataCluster {
     this.agentConfigs = agentConfigs;
   }
 
+  public boolean updateServiceLevelParams(SortedMap<String, MetadataServiceInfo> update) {
+    boolean changed = false;
+    for (String key : update.keySet()) {
+      if (!clusterLevelParams.containsKey(key) || !clusterLevelParams.get(key).equals(update.get(key))) {
+        changed = true;
+        break;
+      }
+    }
+    if (changed) {
+      serviceLevelParams.putAll(update);
+    }
+    return changed;
+  }
+
+  public boolean updateClusterLevelParams(SortedMap<String, String> update) {
+    boolean changed = false;
+    for (String key : update.keySet()) {
+      if (!clusterLevelParams.containsKey(key) || !clusterLevelParams.get(key).equals(update.get(key))) {
+        changed = true;
+        break;
+      }
+    }
+    if (changed) {
+      clusterLevelParams.putAll(update);
+    }
+    return changed;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

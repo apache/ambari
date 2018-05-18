@@ -105,6 +105,34 @@ public class RecoveryConfig {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RecoveryConfig that = (RecoveryConfig) o;
+
+    if (type != null ? !type.equals(that.type) : that.type != null) return false;
+    if (maxCount != null ? !maxCount.equals(that.maxCount) : that.maxCount != null) return false;
+    if (windowInMinutes != null ? !windowInMinutes.equals(that.windowInMinutes) : that.windowInMinutes != null)
+      return false;
+    if (retryGap != null ? !retryGap.equals(that.retryGap) : that.retryGap != null) return false;
+    if (maxLifetimeCount != null ? !maxLifetimeCount.equals(that.maxLifetimeCount) : that.maxLifetimeCount != null)
+      return false;
+    return enabledComponents != null ? enabledComponents.equals(that.enabledComponents) : that.enabledComponents == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = type != null ? type.hashCode() : 0;
+    result = 31 * result + (maxCount != null ? maxCount.hashCode() : 0);
+    result = 31 * result + (windowInMinutes != null ? windowInMinutes.hashCode() : 0);
+    result = 31 * result + (retryGap != null ? retryGap.hashCode() : 0);
+    result = 31 * result + (maxLifetimeCount != null ? maxLifetimeCount.hashCode() : 0);
+    result = 31 * result + (enabledComponents != null ? enabledComponents.hashCode() : 0);
+    return result;
+  }
+
+  @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("RecoveryConfig{");
     buffer.append(", type=").append(type);
