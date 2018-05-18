@@ -167,8 +167,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private KerberosHelper kerberosHelper;
 
-  @Inject
-  private TopologyDeleteFormer topologyDeleteFormer;
+  private final TopologyDeleteFormer topologyDeleteFormer;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -180,9 +179,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @AssistedInject
   public ServiceResourceProvider(
       @Assisted AmbariManagementController managementController,
-      MaintenanceStateHelper maintenanceStateHelper) {
+      MaintenanceStateHelper maintenanceStateHelper, TopologyDeleteFormer topologyDeleteFormer) {
     super(Resource.Type.Service, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
+    this.topologyDeleteFormer = topologyDeleteFormer;
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
     setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_SERVICE);

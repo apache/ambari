@@ -52,6 +52,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
@@ -123,10 +124,10 @@ public class AbstractResourceProviderTest {
   public void testGetRequestStatus() {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    replay(maintenanceStateHelper);
+    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
+    replay(maintenanceStateHelper, topologyDeleteFormer);
 
-    AbstractResourceProvider provider = new ServiceResourceProvider(managementController,
-        maintenanceStateHelper);
+    AbstractResourceProvider provider = new ServiceResourceProvider(managementController, maintenanceStateHelper, topologyDeleteFormer);
 
     RequestStatus status = provider.getRequestStatus(null);
 

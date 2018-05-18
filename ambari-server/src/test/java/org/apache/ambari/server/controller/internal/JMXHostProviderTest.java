@@ -51,6 +51,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -554,26 +555,20 @@ public class JMXHostProviderTest {
 
   private static class JMXHostProviderModule extends AbstractProviderModule {
 
+    private final ResourceProvider clusterResourceProvider = new ClusterResourceProvider(controller);
 
-
-    ResourceProvider clusterResourceProvider = new ClusterResourceProvider(controller);
-
-    Injector injector = createNiceMock(Injector.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    private final Injector injector = createNiceMock(Injector.class);
+    private final MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    private final TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
 
     {
       expect(injector.getInstance(Clusters.class)).andReturn(null);
-      replay(maintenanceStateHelper, injector);
+      replay(maintenanceStateHelper, injector, topologyDeleteFormer);
     }
 
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(controller,
-        maintenanceStateHelper);
-
-    ResourceProvider hostCompResourceProvider = new
-      HostComponentResourceProvider(controller, injector);
-
-    ResourceProvider configResourceProvider = new ConfigurationResourceProvider(
-        controller);
+    private final ResourceProvider serviceResourceProvider = new ServiceResourceProvider(controller, maintenanceStateHelper, topologyDeleteFormer);
+    private final ResourceProvider hostCompResourceProvider = new HostComponentResourceProvider(controller, injector);
+    private final ResourceProvider configResourceProvider = new ConfigurationResourceProvider(controller);
 
     JMXHostProviderModule(AmbariManagementController ambariManagementController) {
       super();
