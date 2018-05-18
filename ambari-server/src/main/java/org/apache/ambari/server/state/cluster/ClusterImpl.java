@@ -2497,10 +2497,9 @@ public class ClusterImpl implements Cluster {
 
   //TODO this needs to be reworked to support multiple instance of same service
   @Transactional
-  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException{
-
-List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
-Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getType).collect(toList()));
+  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException {
+    List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
+    Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getType).collect(toList()));
     Long resultingServiceId = null;
     for (Config config : configs) {
       for (Long serviceId : serviceConfigTypes.keySet()) {

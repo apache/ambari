@@ -329,7 +329,7 @@ public class RepositoryVersionHelper {
 
     long serviceGroupId = component.getServiceGroupId();
     ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupId);
-    long mpackId = serviceGroup.getMpackId();
+    Long mpackId = serviceGroup.getMpackId();
     MpackEntity mpackEntity = mpackDAO.findById(mpackId);
     Mpack mpack = ambariMetaInfo.getMpack(mpackId);
 

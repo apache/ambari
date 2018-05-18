@@ -340,6 +340,8 @@ public class OrmTestHelper {
       mpackEntity.setMpackVersion(stackId.getStackVersion());
       mpackEntity.setMpackUri("http://mpacks.org/" + stackId.toString() + ".json");
       mpackDAO.create(mpackEntity);
+      stackEntity.setMpackId(mpackEntity.getId());
+      stackDAO.merge(stackEntity);
     }
 
     if (mpackEntity.getRepositoryOperatingSystems().isEmpty()) {

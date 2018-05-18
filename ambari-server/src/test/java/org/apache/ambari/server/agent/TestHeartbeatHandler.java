@@ -819,6 +819,7 @@ public class TestHeartbeatHandler {
     cr.setStdErr("none");
     cr.setStdOut("dummy output");
     cr.setExitCode(777);
+    cr.setClusterId("1");
     reports.add(cr);
     hb.setReports(reports);
     hb.setComponentStatus(new ArrayList<>());
@@ -885,6 +886,7 @@ public class TestHeartbeatHandler {
     cr.setStdErr("none");
     cr.setStdOut("dummy output");
     cr.setExitCode(777);
+    cr.setClusterId("1");
     reports.add(cr);
     hb.setReports(reports);
     hb.setComponentStatus(new ArrayList<>());
@@ -1232,6 +1234,7 @@ public class TestHeartbeatHandler {
     cr1.setStdErr("");
     cr1.setStdOut("");
     cr1.setExitCode(215);
+    cr1.setClusterId("1");
     cr1.setRoleCommand("STOP");
     //cr1.setClusterName(DummyCluster);
     ArrayList<CommandReport> reports = new ArrayList<>();
@@ -1257,6 +1260,7 @@ public class TestHeartbeatHandler {
     cr1.setStdErr("none");
     cr1.setStdOut("dummy output");
     cr1.setExitCode(0);
+    cr1.setClusterId("1");
     CommandReport cr2 = new CommandReport();
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
     cr2.setTaskId(2);
@@ -1268,6 +1272,7 @@ public class TestHeartbeatHandler {
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
     cr2.setExitCode(0);
+    cr2.setClusterId("1");
 
     ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
