@@ -105,7 +105,7 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 else:
-  class HDP26ONEFSServiceAdvisor(service_advisor.ServiceAdvisor):
+  class ONEFSServiceAdvisor(service_advisor.ServiceAdvisor):
     def getServiceConfigurationRecommendations(self, configs, clusterData, services, hosts):
       try:
         putCoreSiteProperty = self.putProperty(configs, "core-site", services)
@@ -140,4 +140,3 @@ else:
       validation_errors.extend(self.toConfigurationValidationProblems(CoreSite(services).validate(), 'core-site'))
       validation_errors.extend(self.toConfigurationValidationProblems(HdfsSite(services).validate(), 'hdfs-site'))
       return validation_errors
-

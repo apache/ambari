@@ -296,6 +296,7 @@ require('views/main/dashboard/config_history_search_box');
 require('views/main/service');
 require('views/main/service/service');
 require('views/main/service/services/hdfs');
+require('views/main/service/services/onefs');
 require('views/main/service/services/yarn');
 require('views/main/service/services/mapreduce2');
 require('views/main/service/services/hbase');
