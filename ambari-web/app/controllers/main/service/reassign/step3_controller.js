@@ -482,7 +482,7 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
       if (additionalConfigs.hasOwnProperty(site)) {
         for (var property in additionalConfigs[site]) {
           if (additionalConfigs[site].hasOwnProperty(property)) {
-            if (App.get('isHaEnabled') && componentName === 'NAMENODE' && (property === 'fs.defaultFS' || property === 'dfs.namenode.rpc-address')) continue;
+            if (App.get('isHaEnabled') && componentName === 'NAMENODE' && (['fs.defaultFS', 'dfs.namenode.rpc-address', 'dfs.namenode.http-address', 'dfs.namenode.https-address'].contains(property))) continue;
 
             configs[site][property] = additionalConfigs[site][property].replace('<replace-value>', replaceValue);
             if (!this.get('propertiesToChange').hasOwnProperty(site)) {
@@ -553,9 +553,9 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
           httpAddressPropertiesNames = propertyNames.filter(propertyName => propertyName.startsWith(propertyNameStart)),
           matchingPropertyName = httpAddressPropertiesNames.find(propertyName => configsObject[propertyName].startsWith(this.get('content.reassignHosts.source')));
         if (matchingPropertyName) {
-          const nameSpaceMatch = matchingPropertyName.match(new RegExp(`${propertyNameStart}(\\w+)`));
+          const nameNodeSuffixMatch = matchingPropertyName.match(new RegExp(`${propertyNameStart}(\\w+)`));
           ret.namespaceId = nameSpace;
-          ret.suffix = nameSpaceMatch && nameSpaceMatch[1];
+          ret.suffix = nameNodeSuffixMatch && nameNodeSuffixMatch[1];
           break;
         }
       }
