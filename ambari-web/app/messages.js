@@ -2716,6 +2716,8 @@ Em.I18n.translations = {
   'hosts.bulkOperation.confirmation.delete.component.notInstalled': '{0} not Installed',
   'hosts.bulkOperation.delete.component.result.body': ' was successfully removed from the following hosts:',
   'hosts.bulkOperation.delete.component.dryRun.message':'{0} could not be deleted from the following hosts(expand for reason)',
+  'hosts.bulkOperation.delete.component.failed.header': 'Delete Component failed',
+  'hosts.bulkOperation.delete.component.failed.body': 'Delete {0} component from {1} host failed',
 
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group. All hosts belonging to this group will have the same set of configurations.',
