@@ -779,8 +779,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       hostNames.add(hostName);
       ServiceComponentHost sch = sc.getServiceComponentHost(request.getHostname());
 
-      StackId stackId = cluster.getDesiredStackVersion();
-
       TopologyComponent newComponent = TopologyComponent.newBuilder()
           .setComponentName(sch.getServiceComponentName())
           .setServiceName(sch.getServiceName())
@@ -5896,7 +5894,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, Map<String,String>> agentConfigsMap = configs.getAgentConfigsMap();
 
     for (String key : agentConfigsMap.keySet()) {
-      agentConfigs.put(key, new TreeMap<String, String>(agentConfigsMap.get(key)));
+      agentConfigs.put(key, new TreeMap<>(agentConfigsMap.get(key)));
     }
 
     return agentConfigs;
