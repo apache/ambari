@@ -219,14 +219,18 @@ describe('App.ComponentActionsByConfigs', function () {
         hostName: 'host1'
       }]);
       mixin.doComponentDeleteActions();
+
       var args = testHelpers.findAjaxRequest('name', 'common.batch.request_schedules');
       expect(args[0]).to.be.eql({
         name: 'common.batch.request_schedules',
-        sender: mixin,
+        sender: {checkIfComponentWasDeleted: mixin.checkIfComponentWasDeleted},
+        success : "checkIfComponentWasDeleted",
         data: {
           intervalTimeSeconds: 60,
           tolerateSize: 0,
-          batches: [{}, {}]
+          batches: [{}, {}],
+          displayName: undefined,
+          hostName: 'host1'
         }
       });
     });
