@@ -931,7 +931,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       throws AmbariException {
 
     Clusters clusters = getManagementController().getClusters();
-    return clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(componentName);
+    return clusters.getCluster(clusterName).getService(ServiceGroupName, serviceName).getServiceComponent(componentName);
   }
 
   // Perform direct transitions (without task generation)

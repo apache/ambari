@@ -1259,7 +1259,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     Service service = null;
     try {
       cluster = clusters.getCluster(clusterName);
-      service = cluster.getService(serviceName);
+      String serviceGroupName = cluster.getServiceGroup(serviceComponent.getServiceGroupId()).getServiceGroupName();
+      service = cluster.getService(serviceGroupName, serviceName);
     } catch (AmbariException e) {
       e.printStackTrace();
     }

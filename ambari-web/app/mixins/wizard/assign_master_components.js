@@ -1186,6 +1186,8 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     }).then(function() {
       self.validateSelectedHostComponents({
         hosts: hostNames,
+        stackName: selectedMpacks[0].name,
+        stackVersion: selectedMpacks[0].version,  
         blueprint: self.get('recommendations')
       }).then(function() {
         if (callback) {

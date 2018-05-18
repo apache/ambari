@@ -28,11 +28,13 @@ App.False = false;
 App.True = true;
 
 //upgrade process states
-App.UpgradeState.NotRequired = 'NOT_REQUIRED';
-App.UpgradeState.Pending = 'PENDING';
-App.UpgradeState.InProgress = 'IN_PROGRESS';
-App.UpgradeState.Holding = 'HOLDING';
-App.UpgradeState.Completed = 'COMPLETED';
-App.UpgradeState.Aborted = 'ABORTED';
-App.UpgradeState.Failed = 'HOLDING_FAILED';
-App.UpgradeState.Timeout = 'HOLDING_TIMEDOUT';
+App.UpgradeState = {
+  NotRequired: 'NOT_REQUIRED',
+  Pending: 'PENDING',
+  InProgress: 'IN_PROGRESS',
+  Holding: 'HOLDING',
+  Completed: 'COMPLETED',
+  Aborted: 'ABORTED',
+  Failed: 'HOLDING_FAILED',
+  Timeout: 'HOLDING_TIMEDOUT'
+}
