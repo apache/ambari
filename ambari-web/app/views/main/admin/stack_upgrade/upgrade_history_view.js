@@ -97,9 +97,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
    */
   selectedCategory: Em.computed.findBy('categories', 'isSelected', true),
 
-  filteredCount: function () {
-    return this.get('filteredContent').map(item => Object.keys(item.get('versions') || {}).length).reduce(Em.sum, 0);
-  }.property('filteredContent'),
+  filteredCount: Em.computed.alias('filteredContent.length'),
 
   /**
    * displaying content filtered by upgrade type and upgrade status.
