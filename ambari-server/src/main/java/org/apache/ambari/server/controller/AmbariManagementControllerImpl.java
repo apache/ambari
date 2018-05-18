@@ -5779,31 +5779,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(STACK_NAME, stackId.getStackName());
     clusterLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    if (MapUtils.isNotEmpty(desiredConfigs)) {
-
-      Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
-      String userList = gson.toJson(userSet);
-      clusterLevelParams.put(USER_LIST, userList);
-
-      //Create a user_group mapping and send it as part of the hostLevelParams
-      Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
-          stackId, cluster, desiredConfigs);
-      String userGroups = gson.toJson(userGroupsMap);
-      clusterLevelParams.put(USER_GROUPS, userGroups);
-
-      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredConfigs);
-      String groupList = gson.toJson(groupSet);
-      clusterLevelParams.put(GROUP_LIST, groupList);
-    }
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId,
-        PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
-    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-    clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
+    clusterLevelParams.putAll(getMetadataClusterLevelConfigsParams(cluster, stackId));
     clusterLevelParams.put(CLUSTER_NAME, cluster.getClusterName());
-
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     clusterLevelParams.put(HOOKS_FOLDER, configs.getProperty(Configuration.HOOKS_FOLDER));
 
     return clusterLevelParams;
@@ -5812,7 +5789,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public TreeMap<String, String> getMetadataClusterLevelConfigsParams(Cluster cluster, StackId stackId) throws AmbariException {
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
 
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs(false);
     if (MapUtils.isNotEmpty(desiredConfigs)) {
 
       Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
@@ -5928,8 +5905,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException {
     List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(host.getHostName());
-    Map<Long, CommandRepository> hostRepositories = new HashMap<>();
-    Map<String, Long> componentsRepos = new HashMap<>();
+    SortedMap<Long, CommandRepository> hostRepositories = new TreeMap<>();
+    SortedMap<String, Long> componentsRepos = new TreeMap<>();
     for (ServiceComponentHost serviceComponentHost : hostComponents) {
 
       CommandRepository commandRepository;
