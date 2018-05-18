@@ -361,6 +361,19 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+
+  <xs:complexType name="add_component">
+    <xs:complexContent>
+      <xs:extension base="abstract-server-task-type">
+        <xs:sequence />
+        <xs:attribute name="service" type="xs:string" use="required"/>
+        <xs:attribute name="component" type="xs:string" use="required"/>
+        <xs:attribute name="host-service" type="xs:string" use="optional"/>
+        <xs:attribute name="host-component" type="xs:string" use="optional"/>
+        <xs:attribute name="hosts" use="required" type="host-target-type" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   
   <xs:complexType name="order-type">
     <xs:sequence>

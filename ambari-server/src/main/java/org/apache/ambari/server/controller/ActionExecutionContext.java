@@ -46,6 +46,13 @@ public class ActionExecutionContext {
   private boolean allowRetry = false;
   private RepositoryVersionEntity repositoryVersion;
 
+  /**
+   * If {@code true}, instructs Ambari not to worry about whether or not the
+   * command is valid. This is used in cases where we might have to schedule
+   * commands ahead of time for components which are not yet installed.
+   */
+  private boolean isFutureCommand = false;
+
   private List<ExecutionCommandVisitor> m_visitors = new ArrayList<>();
 
   /**
@@ -268,6 +275,38 @@ public class ActionExecutionContext {
    */
   public interface ExecutionCommandVisitor {
     void visit(ExecutionCommand command);
+  }
+
+  /**
+   * Gets whether Ambari should skip all kinds of command verifications while
+   * scheduling since this command runs in the future and might not be
+   * considered "valid".
+   * <p/>
+   * A use case for this would be during an upgrade where trying to schedule
+   * commands for a component which has yet to be added to the cluster (since
+   * it's added as part of the upgrade).
+   *
+   * @return the skipVerificationOfCommand
+   */
+  public boolean isFutureCommand() {
+    return isFutureCommand;
+  }
+
+  /**
+   * Sets whether Ambari should skip all kinds of command verifications while
+   * scheduling since this command runs in the future and might not be
+   * considered "valid".
+   * <p/>
+   * A use case for this would be during an upgrade where trying to schedule
+   * commands for a component which has yet to be added to the cluster (since
+   * it's added as part of the upgrade).
+   *
+   * @param skipVerificationOfCommand
+   *          {@code true} to have Ambari skip verification of things like
+   *          component hosts while scheduling commands.
+   */
+  public void setIsFutureCommand(boolean isFutureCommand) {
+    this.isFutureCommand = isFutureCommand;
   }
 
 }

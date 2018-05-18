@@ -231,8 +231,12 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
 
-    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    // set the display names of the service and component in the target stack
+    // to make sure that we can correctly render display strings during the
+    // upgrade
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.2.0", "ZOOKEEPER");
     si.setDisplayName("Zk");
+
     ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
     ci.setDisplayName("ZooKeeper1 Server2");
 
@@ -310,8 +314,12 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
 
-    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    // set the display names of the service and component in the target stack
+    // to make sure that we can correctly render display strings during the
+    // upgrade
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.2.0", "ZOOKEEPER");
     si.setDisplayName("Zk");
+
     ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
     ci.setDisplayName("ZooKeeper1 Server2");
 
@@ -367,8 +375,12 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
 
-    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    // set the display names of the service and component in the target stack
+    // to make sure that we can correctly render display strings during the
+    // upgrade
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.2.0", "ZOOKEEPER");
     si.setDisplayName("Zk");
+
     ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
     ci.setDisplayName("ZooKeeper1 Server2");
 
@@ -1255,8 +1267,12 @@ public class UpgradeHelperTest extends EasyMockSupport {
   public void testUpgradeOrchestrationFullTask() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
 
-    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    // set the display names of the service and component in the target stack
+    // to make sure that we can correctly render display strings during the
+    // upgrade
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.2.0", "ZOOKEEPER");
     si.setDisplayName("Zk");
+
     ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
     ci.setDisplayName("ZooKeeper1 Server2");
 

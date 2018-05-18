@@ -31,6 +31,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.utils.StageUtils;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 
 /**
@@ -59,9 +60,15 @@ public abstract class AbstractServerAction implements ServerAction {
   @Inject
   private AuditLogger auditLogger;
 
+  /**
+   * Used to deserialized JSON.
+   */
+  @Inject
+  protected Gson gson;
+
   @Override
   public ExecutionCommand getExecutionCommand() {
-    return this.executionCommand;
+    return executionCommand;
   }
 
   @Override
@@ -71,7 +78,7 @@ public abstract class AbstractServerAction implements ServerAction {
 
   @Override
   public HostRoleCommand getHostRoleCommand() {
-    return this.hostRoleCommand;
+    return hostRoleCommand;
   }
 
   @Override
