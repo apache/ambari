@@ -193,6 +193,11 @@ public class CommandReport {
     return clusterId;
   }
 
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterId")
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
+  }
+
   /**
    * @param tags the config tags that match this command
    */

@@ -183,6 +183,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -293,6 +294,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -391,6 +393,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -483,6 +486,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -577,6 +581,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -648,6 +653,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -751,6 +757,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -843,6 +850,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -926,6 +934,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -1011,6 +1020,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -1080,6 +1090,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay
     replayAll();
+    replay(managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider) provider).addObserver(observer);
@@ -1180,6 +1191,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay mocks
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -1216,6 +1228,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay mocks
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     getHosts(managementController, setRequests);
@@ -1251,6 +1264,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay mocks
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     getHosts(managementController, setRequests);
@@ -1314,6 +1328,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // replay mocks
     replayAll();
+    replay(managementController);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -1384,7 +1399,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     provider.updateHosts(requests);
   }
 
-  private Injector createInjector() throws Exception {
+  private Injector createInjector() {
     Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {

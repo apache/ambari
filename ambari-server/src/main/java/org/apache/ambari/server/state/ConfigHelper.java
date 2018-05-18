@@ -1701,12 +1701,15 @@ public class ConfigHelper {
     for (Map.Entry<String, String> currentConfig : currentConfigs.entrySet()) {
       String type = currentConfig.getKey();
       String tag = currentConfig.getValue();
-      Collection<String> changedKeys;
+      Collection<String> changedKeys = Collections.emptySet();
       if (previousConfigs.containsKey(type)) {
         changedKeys = findChangedKeys(cluster, type, Collections.singletonList(tag),
             Collections.singletonList(previousConfigs.get(type)));
       } else {
-        changedKeys = cluster.getConfig(type, tag).getProperties().keySet();
+        Config config = cluster.getConfig(type, tag);
+        if (config != null) {
+          changedKeys = config.getProperties().keySet();
+        }
       }
       if (CollectionUtils.isNotEmpty(changedKeys)) {
         changedConfigs.put(type, changedKeys);

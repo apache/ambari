@@ -239,7 +239,7 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource1.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId.getStackVersion());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
 
@@ -252,7 +252,7 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource2.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId.getStackVersion());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
 
@@ -265,7 +265,7 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource3.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId.getStackVersion());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
 
@@ -291,7 +291,7 @@ public class HostComponentResourceProviderTest {
     Set<String> names = new HashSet<>();
     for (Resource resource : resources) {
       for (String key : expectedNameValues.keySet()) {
-        Assert.assertEquals(expectedNameValues.get(key), resource.getPropertyValue(key));
+        Assert.assertEquals(key, expectedNameValues.get(key), resource.getPropertyValue(key));
       }
       names.add((String) resource.getPropertyValue(
           HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
@@ -349,7 +349,7 @@ public class HostComponentResourceProviderTest {
     expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService("Service100")).andReturn(service).anyTimes();
+    expect(cluster.getService("ServiceGroup100", "Service100")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("Component100")).andReturn(component).anyTimes();
     expect(component.getServiceComponentHost("Host100")).andReturn(componentHost).anyTimes();
     expect(component.getName()).andReturn("Component100").anyTimes();

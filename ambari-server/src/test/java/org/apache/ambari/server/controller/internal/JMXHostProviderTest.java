@@ -133,7 +133,7 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, r.getStackVersion());
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, STACK_ID.getStackId());
     String serviceName = "HDFS";
     createService(clusterName, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -148,7 +148,7 @@ public class JMXHostProviderTest {
     clusters.addHost(host1);
     Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
+    hostAttributes.put("os_release_version", "6.4");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
@@ -236,7 +236,7 @@ public class JMXHostProviderTest {
     clusters.addHost(host1);
     Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
+    hostAttributes.put("os_release_version", "6.4");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
@@ -338,7 +338,7 @@ public class JMXHostProviderTest {
     clusters.addHost(host1);
     Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
+    hostAttributes.put("os_release_version", "6.4");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);

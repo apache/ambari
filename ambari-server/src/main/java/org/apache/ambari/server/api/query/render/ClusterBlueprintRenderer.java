@@ -53,6 +53,7 @@ import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -115,7 +116,10 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     ensureChild(resultTree, Resource.Type.ClusterSetting);
 
-    TreeNode<Set<String>> serviceGroupNode = ensureChild(resultTree, Resource.Type.ServiceGroup);
+    TreeNode<Set<String>> serviceGroupNode = ensureChild(resultTree, Resource.Type.ServiceGroup,
+      ServiceGroupResourceProvider.SERVICE_GROUP_MPACK_NAME,
+      ServiceGroupResourceProvider.SERVICE_GROUP_MPACK_VERSION
+    );
     TreeNode<Set<String>> serviceNode = ensureChild(serviceGroupNode, Resource.Type.Service);
     ensureChild(serviceNode, Resource.Type.Component,
       ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID,
@@ -247,7 +251,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     // TODO: find a way to add mpack uri
     List<Map<String, Object>> mpackInstances = clusterNode.getChild("servicegroups").getChildren().stream().map(
       child -> {
-        Map<String, Object> serviceGroupProps = child.getObject().getPropertiesMap().get("ServiceGroupInfo");
+        Map<String, Object> serviceGroupProps = child.getObject().getPropertiesMap().get(ServiceGroupResourceProvider.RESPONSE_KEY);
         return ImmutableMap.of(
           "name", serviceGroupProps.get("mpack_name"),
           "version", serviceGroupProps.get("mpack_version"));
