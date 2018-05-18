@@ -106,12 +106,7 @@ from resource_management.core.logger import Logger
 #from resource_management.core.resources.system import File
 #from resource_management.core.environment import Environment
 
-from ambari_agent import HeartbeatThread
 from ambari_agent.InitializerModule import InitializerModule
-from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
-from ambari_agent.CommandStatusReporter import CommandStatusReporter
-from ambari_agent.HostStatusReporter import HostStatusReporter
-from ambari_agent.AlertStatusReporter import AlertStatusReporter
 
 #logging.getLogger('ambari_agent').propagate = False
 
@@ -360,25 +355,11 @@ MAX_RETRIES = 10
 
 def run_threads(initializer_module):
   initializer_module.alert_scheduler_handler.start()
-
-  heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
-  heartbeat_thread.start()
-
-  component_status_executor = ComponentStatusExecutor(initializer_module)
-  component_status_executor.start()
-
-  command_status_reporter = CommandStatusReporter(initializer_module)
-  command_status_reporter.start()
-
-  host_status_reporter = HostStatusReporter(initializer_module)
-  host_status_reporter.start()
-
-  alert_status_reporter = AlertStatusReporter(initializer_module)
-  alert_status_reporter.start()
-
-  # clean caches for non-existing clusters (ambari-server reset case)
-  heartbeat_thread.post_registration_actions += [component_status_executor.clean_not_existing_clusters_info, alert_status_reporter.clean_not_existing_clusters_info, host_status_reporter.clean_cache]
-
+  initializer_module.heartbeat_thread.start()
+  initializer_module.component_status_executor.start()
+  initializer_module.command_status_reporter.start()
+  initializer_module.host_status_reporter.start()
+  initializer_module.alert_status_reporter.start()
   initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():
@@ -386,11 +367,11 @@ def run_threads(initializer_module):
 
   initializer_module.action_queue.interrupt()
 
-  command_status_reporter.join()
-  component_status_executor.join()
-  host_status_reporter.join()
-  alert_status_reporter.join()
-  heartbeat_thread.join()
+  initializer_module.command_status_reporter.join()
+  initializer_module.component_status_executor.join()
+  initializer_module.host_status_reporter.join()
+  initializer_module.alert_status_reporter.join()
+  initializer_module.heartbeat_thread.join()
   initializer_module.action_queue.join()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process

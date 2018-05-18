@@ -38,6 +38,12 @@ from ambari_agent.StaleAlertsMonitor import StaleAlertsMonitor
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 
+from ambari_agent import HeartbeatThread
+from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
+from ambari_agent.CommandStatusReporter import CommandStatusReporter
+from ambari_agent.HostStatusReporter import HostStatusReporter
+from ambari_agent.AlertStatusReporter import AlertStatusReporter
+
 logger = logging.getLogger(__name__)
 
 class InitializerModule:
@@ -74,8 +80,21 @@ class InitializerModule:
 
     self.recovery_manager = RecoveryManager(self.config.recovery_cache_dir)
     self.commandStatuses = CommandStatusDict(self)
+
+    self.init_threads()
+
+
+  def init_threads(self):
+    """
+    Initialize thread objects
+    """
+    self.component_status_executor = ComponentStatusExecutor(self)
     self.action_queue = ActionQueue(self)
     self.alert_scheduler_handler = AlertSchedulerHandler(self)
+    self.command_status_reporter = CommandStatusReporter(self)
+    self.host_status_reporter = HostStatusReporter(self)
+    self.alert_status_reporter = AlertStatusReporter(self)
+    self.heartbeat_thread = HeartbeatThread.HeartbeatThread(self)
 
   @property
   def connection(self):

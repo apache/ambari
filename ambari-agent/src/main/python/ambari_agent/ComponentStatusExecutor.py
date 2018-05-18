@@ -99,39 +99,10 @@ class ComponentStatusExecutor(threading.Thread):
                 logger.info("Skipping status command for {0}. Since command for it is running".format(component_name))
                 continue
 
-              command_dict = {
-                'serviceName': service_name,
-                'role': component_name,
-                'clusterId': cluster_id,
-                'commandType': 'STATUS_COMMAND',
-              }
+              result = self.check_component_status(cluster_id, service_name, component_name, command_name)
 
-              component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
-              status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
-
-              # if exec command for component started to run after status command completion
-              if self.customServiceOrchestrator.commandsRunningForComponent(cluster_id, component_name):
-                logger.info("Skipped status command result for {0}. Since command for it is running".format(component_name))
-                continue
-
-              # log if status command failed
-              if status == LiveStatus.DEAD_STATUS:
-                stderr = component_status_result['stderr']
-                if not "ComponentIsNotRunning" in stderr and not "ClientComponentHasNoStatus" in stderr:
-                  logger.info("Status command for {0} failed:\n{1}".format(component_name, stderr))
-
-              result = {
-                'serviceName': service_name,
-                'componentName': component_name,
-                'command': command_name,
-                'status': status,
-                'clusterId': cluster_id,
-              }
-
-              if status != self.reported_component_status[cluster_id][component_name][command_name]:
-                logging.info("Status for {0} has changed to {1}".format(component_name, status))
+              if result:
                 cluster_reports[cluster_id].append(result)
-                self.recovery_manager.handle_status_change(component_name, status)
 
         self.send_updates_to_server(cluster_reports)
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
@@ -141,6 +112,50 @@ class ComponentStatusExecutor(threading.Thread):
 
       self.stop_event.wait(self.status_commands_run_interval)
     logger.info("ComponentStatusExecutor has successfully finished")
+
+  def check_component_status(self, cluster_id, service_name, component_name, command_name, report=False):
+    """
+    Returns components status if it has changed, otherwise None.
+    """
+
+    # if not a component
+    if self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name) is None:
+      return None
+
+    command_dict = {
+      'serviceName': service_name,
+      'role': component_name,
+      'clusterId': cluster_id,
+      'commandType': 'STATUS_COMMAND',
+    }
+
+    component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
+    status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
+
+    # log if status command failed
+    if status == LiveStatus.DEAD_STATUS:
+      stderr = component_status_result['stderr']
+      if not "ComponentIsNotRunning" in stderr and not "ClientComponentHasNoStatus" in stderr:
+        logger.info("Status command for {0} failed:\n{1}".format(component_name, stderr))
+
+    result = {
+      'serviceName': service_name,
+      'componentName': component_name,
+      'command': command_name,
+      'status': status,
+      'clusterId': cluster_id,
+    }
+
+    if status != self.reported_component_status[cluster_id][component_name][command_name]:
+      logging.info("Status for {0} has changed to {1}".format(component_name, status))
+      self.recovery_manager.handle_status_change(component_name, status)
+
+      if report:
+        self.send_updates_to_server({cluster_id: [result]})
+
+      return result
+
+    return None
 
   def send_updates_to_server(self, cluster_reports):
     if not cluster_reports or not self.initializer_module.is_registered:
