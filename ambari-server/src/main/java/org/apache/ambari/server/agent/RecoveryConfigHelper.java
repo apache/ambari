@@ -108,7 +108,7 @@ public class RecoveryConfigHelper {
     recoveryConfig.setType(autoStartConfig.getNodeRecoveryType());
     recoveryConfig.setWindowInMinutes(autoStartConfig.getNodeRecoveryWindowInMin());
     if (autoStartConfig.isRecoveryEnabled()) {
-      recoveryConfig.setEnabledComponents(StringUtils.join(autoStartConfig.getEnabledComponents(hostname), ','));
+      recoveryConfig.setEnabledComponents(autoStartConfig.getEnabledComponents(hostname));
     }
 
     return recoveryConfig;
@@ -316,8 +316,8 @@ public class RecoveryConfigHelper {
      * maintenance mode.
      * @return
      */
-    private List<String> getEnabledComponents(String hostname) throws AmbariException {
-      List<String> enabledComponents = new ArrayList<>();
+    private List<RecoveryConfigComponent> getEnabledComponents(String hostname) throws AmbariException {
+      List<RecoveryConfigComponent> enabledComponents = new ArrayList<>();
 
       if (cluster == null) {
         return enabledComponents;
@@ -343,7 +343,7 @@ public class RecoveryConfigHelper {
           if (service.getMaintenanceState() == MaintenanceState.OFF) {
             // Keep the components that are not in maintenance mode.
             if (sch.getMaintenanceState() == MaintenanceState.OFF) {
-              enabledComponents.add(sch.getServiceComponentName());
+              enabledComponents.add(new RecoveryConfigComponent(sch));
             }
           }
         }

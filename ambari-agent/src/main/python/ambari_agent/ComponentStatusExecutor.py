@@ -154,7 +154,6 @@ class ComponentStatusExecutor(threading.Thread):
         self.send_updates_to_server({cluster_id: [result]})
 
       return result
-
     return None
 
   def send_updates_to_server(self, cluster_reports):
