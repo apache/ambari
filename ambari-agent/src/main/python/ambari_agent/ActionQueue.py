@@ -143,7 +143,7 @@ class ActionQueue(threading.Thread):
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
 
-            if command == None:
+            if command is None:
               break
 
             self.process_command(command)
@@ -153,17 +153,16 @@ class ActionQueue(threading.Thread):
             while not self.stop_event.is_set():
               command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
 
-              if command == None:
+              if command is None:
                 break
               # If command is not retry_enabled then do not start them in parallel
               # checking just one command is enough as all commands for a stage is sent
               # at the same time and retry is only enabled for initial start/install
-              retryAble = False
+              retry_able = False
               if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
-                retryAble = command['commandParams']['command_retry_enabled'] == "true"
-              if retryAble:
-                logger.info("Kicking off a thread for the command, id=" +
-                            str(command['commandId']) + " taskId=" + str(command['taskId']))
+                retry_able = command['commandParams']['command_retry_enabled'] == "true"
+              if retry_able:
+                logger.info("Kicking off a thread for the command, id={} taskId={}".format(command['commandId'], command['taskId']))
                 t = threading.Thread(target=self.process_command, args=(command,))
                 t.daemon = True
                 t.start()
@@ -172,14 +171,14 @@ class ActionQueue(threading.Thread):
                 break
               pass
             pass
-        except (Queue.Empty):
+        except Queue.Empty:
           pass
-      except:
+      except Exception:
         logger.exception("ActionQueue thread failed with exception. Re-running it")
     logger.info("ActionQueue thread has successfully finished")
 
   def fillRecoveryCommands(self):
-    if not self.tasks_in_progress_or_pending():
+    if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
       self.put(self.recovery_manager.get_recovery_commands())
 
   def processBackgroundQueueSafeEmpty(self):

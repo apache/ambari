@@ -116,14 +116,8 @@ class _TestRecoveryManager(TestCase):
     }
   }
 
-  def setUp(self):
-    pass
-
-  def tearDown(self):
-    pass
-
   def test_defaults(self):
-    rm = RecoveryManager(tempfile.mktemp())
+    rm = RecoveryManager()
     self.assertFalse(rm.enabled())
     self.assertEqual(None, rm.get_install_command("NODEMANAGER"))
     self.assertEqual(None, rm.get_start_command("NODEMANAGER"))
@@ -131,7 +125,6 @@ class _TestRecoveryManager(TestCase):
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
-    pass
 
   @patch.object(RecoveryManager, "_now_")
   def test_sliding_window(self, time_mock):
@@ -139,7 +132,7 @@ class _TestRecoveryManager(TestCase):
       [1000, 1001, 1002, 1003, 1004, 1071, 1150, 1151, 1152, 1153, 1400, 1401,
        1500, 1571, 1572, 1653, 1900, 1971, 2300, 2301]
 
-    rm = RecoveryManager(tempfile.mktemp(), True, False)
+    rm = RecoveryManager(True, False)
     self.assertTrue(rm.enabled())
 
     config = rm.update_config(0, 60, 5, 12, True, False, False, "")
@@ -206,11 +199,12 @@ class _TestRecoveryManager(TestCase):
     # lifetime max reached
     self.assertTrue(rm.execute("NODEMANAGER2"))
     self.assertFalse(rm.execute("NODEMANAGER2"))
-    pass
 
   def test_recovery_required(self):
-    rm = RecoveryManager(tempfile.mktemp(), True, False)
-    rm.update_config(12, 5, 1, 15, True, False, False, "NODEMANAGER")
+    rm = RecoveryManager(True, False)
+    rm.update_config(12, 5, 1, 15, True, False, False, [
+      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
+    ])
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
@@ -239,7 +233,7 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
-    rm = RecoveryManager(tempfile.mktemp(), True, True)
+    rm = RecoveryManager(True, True)
 
     rm.update_current_status("NODEMANAGER", "INIT")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
@@ -253,18 +247,20 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("NODEMANAGER", "START")
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
 
-    pass
-
   def test_recovery_required2(self):
 
-    rm = RecoveryManager(tempfile.mktemp(), True, True)
-    rm.update_config(15, 5, 1, 16, True, False, False, "NODEMANAGER")
+    rm = RecoveryManager(True, True)
+    rm.update_config(15, 5, 1, 16, True, False, False, [
+      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
+    ])
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
-    rm = RecoveryManager(tempfile.mktemp(), True, True)
-    rm.update_config(15, 5, 1, 16, True, False, False, "NODEMANAGER")
+    rm = RecoveryManager( True, True)
+    rm.update_config(15, 5, 1, 16, True, False, False, [
+      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
+    ])
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
@@ -273,7 +269,7 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("DATANODE", "STARTED")
     self.assertFalse(rm.requires_recovery("DATANODE"))
 
-    rm = RecoveryManager(tempfile.mktemp(), True, True)
+    rm = RecoveryManager(True, True)
     rm.update_config(15, 5, 1, 16, True, False, False, "")
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
@@ -283,7 +279,9 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("DATANODE", "STARTED")
     self.assertFalse(rm.requires_recovery("DATANODE"))
 
-    rm.update_config(15, 5, 1, 16, True, False, False, "NODEMANAGER")
+    rm.update_config(15, 5, 1, 16, True, False, False, [
+      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
+    ])
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
@@ -291,31 +289,30 @@ class _TestRecoveryManager(TestCase):
     rm.update_current_status("DATANODE", "INSTALLED")
     rm.update_desired_status("DATANODE", "STARTED")
     self.assertFalse(rm.requires_recovery("DATANODE"))
-    pass
 
   @patch.object(RecoveryManager, "update_config")
   def test_update_rm_config(self, mock_uc):
-    rm = RecoveryManager(tempfile.mktemp())
+    rm = RecoveryManager()
     rm.update_recovery_config(None)
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, "")])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, [])])
 
     mock_uc.reset_mock()
     rm.update_recovery_config({})
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, "")])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, [])])
 
     mock_uc.reset_mock()
     rm.update_recovery_config(
       {"recoveryConfig": {
       "type" : "DEFAULT"}}
     )
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, "")])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, [])])
 
     mock_uc.reset_mock()
     rm.update_recovery_config(
       {"recoveryConfig": {
         "type" : "FULL"}}
     )
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, True, False, False, "")])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, True, False, False, [])])
 
     mock_uc.reset_mock()
     rm.update_recovery_config(
@@ -323,7 +320,7 @@ class _TestRecoveryManager(TestCase):
         "type" : "AUTO_START",
         "max_count" : "med"}}
     )
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, True, True, False, "")])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, True, True, False, [])])
 
     mock_uc.reset_mock()
     rm.update_recovery_config(
@@ -331,28 +328,41 @@ class _TestRecoveryManager(TestCase):
         "type" : "AUTO_INSTALL_START",
         "max_count" : "med"}}
     )
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, True, False, True, "")])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, True, False, True, [])])
 
     mock_uc.reset_mock()
     rm.update_recovery_config(
       {"recoveryConfig": {
-        "type" : "AUTO_START",
-        "maxCount" : "5",
+        "type": "AUTO_START",
+        "maxCount": "5",
         "windowInMinutes" : 20,
-        "retryGap" : 2,
+        "retryGap": 2,
         "maxLifetimeCount" : 5,
-        "components" : " A,B",
-        "recoveryTimestamp" : 1}}
+        "components": [
+          {
+            "service_name": "A",
+            "component_name": "A",
+            "desired_state": "INSTALLED"
+          },
+          {
+            "service_name": "B",
+            "component_name": "B",
+            "desired_state": "INSTALLED"
+          }
+        ],
+        "recoveryTimestamp": 1}}
     )
-    mock_uc.assert_has_calls([call(5, 20, 2, 5, True, True, False, " A,B")])
-  pass
+    mock_uc.assert_has_calls([call(5, 20, 2, 5, True, True, False, [
+      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'},
+      {'component_name': 'B', 'service_name': 'B', 'desired_state': 'INSTALLED'}
+    ])])
 
   @patch.object(RecoveryManager, "_now_")
   def test_recovery_report(self, time_mock):
     time_mock.side_effect = \
       [1000, 1071, 1072, 1470, 1471, 1472, 1543, 1644, 1815]
 
-    rm = RecoveryManager(tempfile.mktemp())
+    rm = RecoveryManager()
     rec_st = rm.get_recovery_status()
     self.assertEquals(rec_st, {"summary": "DISABLED"})
 
@@ -392,20 +402,21 @@ class _TestRecoveryManager(TestCase):
                                  {"name": "LION", "numAttempts": 4, "limitReached": True},
                                  {"name": "PUMA", "numAttempts": 4, "limitReached": True}
                                ]})
-    pass
 
   @patch.object(RecoveryManager, "_now_")
   def test_command_expiry(self, time_mock):
     time_mock.side_effect = \
       [1000, 1001, 1104, 1105, 1106, 1807, 1808, 1809, 1810, 1811, 1812]
 
-    rm = RecoveryManager(tempfile.mktemp(), True)
+    rm = RecoveryManager(True)
     rm.update_config(5, 5, 0, 11, True, False, False, "")
 
     command1 = copy.deepcopy(self.command)
 
     #rm.store_or_update_command(command1)
-    rm.update_config(12, 5, 1, 15, True, False, False, "NODEMANAGER")
+    rm.update_config(12, 5, 1, 15, True, False, False, [
+      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
+    ])
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
 
@@ -426,28 +437,38 @@ class _TestRecoveryManager(TestCase):
     commands = rm.get_recovery_commands()
     self.assertEqual(1, len(commands))
     self.assertEqual("START", commands[0]["roleCommand"])
-    pass
 
   def test_configured_for_recovery(self):
-    rm = RecoveryManager(tempfile.mktemp(), True)
-    rm.update_config(12, 5, 1, 15, True, False, False, "A,B")
+    rm = RecoveryManager(True)
+    rm.update_config(12, 5, 1, 15, True, False, False, [
+      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'},
+      {'component_name': 'B', 'service_name': 'B', 'desired_state': 'INSTALLED'},
+    ])
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertTrue(rm.configured_for_recovery("B"))
 
-    rm.update_config(5, 5, 1, 11, True, False, False, "")
+    rm.update_config(5, 5, 1, 11, True, False, False, [])
     self.assertFalse(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
 
-    rm.update_config(5, 5, 1, 11, True, False, False, "A")
+    rm.update_config(5, 5, 1, 11, True, False, False, [
+      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'}
+    ])
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
 
-    rm.update_config(5, 5, 1, 11, True, False, False, "A")
+    rm.update_config(5, 5, 1, 11, True, False, False, [
+      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'}
+    ])
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
     self.assertFalse(rm.configured_for_recovery("C"))
 
-    rm.update_config(5, 5, 1, 11, True, False, False, "A, D, F ")
+    rm.update_config(5, 5, 1, 11, True, False, False, [
+      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'},
+      {'component_name': 'D', 'service_name': 'D', 'desired_state': 'INSTALLED'},
+      {'component_name': 'F', 'service_name': 'F', 'desired_state': 'INSTALLED'}
+    ])
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
     self.assertFalse(rm.configured_for_recovery("C"))
@@ -459,7 +480,7 @@ class _TestRecoveryManager(TestCase):
   def test_reset_if_window_passed_since_last_attempt(self, time_mock):
     time_mock.side_effect = \
       [1000, 1071, 1372]
-    rm = RecoveryManager(tempfile.mktemp(), True)
+    rm = RecoveryManager(True)
 
     rm.update_config(2, 5, 1, 4, True, True, False, "")
 
@@ -478,7 +499,7 @@ class _TestRecoveryManager(TestCase):
   @patch.object(RecoveryManager, "_now_")
   def test_is_action_info_stale(self, time_mock):
 
-    rm = RecoveryManager(tempfile.mktemp(), True)
+    rm = RecoveryManager(True)
     rm.update_config(5, 60, 5, 16, True, False, False, "")
 
     time_mock.return_value = 0

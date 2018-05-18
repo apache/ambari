@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.agent;
 
-import com.google.gson.annotations.SerializedName;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Recovery config to be sent to the agent
@@ -33,34 +35,34 @@ public class RecoveryConfig {
   }
 
   @SerializedName("type")
-  @com.fasterxml.jackson.annotation.JsonProperty("type")
+  @JsonProperty("type")
   private String type;
 
   @SerializedName("maxCount")
-  @com.fasterxml.jackson.annotation.JsonProperty("maxCount")
+  @JsonProperty("maxCount")
   private String maxCount;
 
   @SerializedName("windowInMinutes")
-  @com.fasterxml.jackson.annotation.JsonProperty("windowInMinutes")
+  @JsonProperty("windowInMinutes")
   private String windowInMinutes;
 
   @SerializedName("retryGap")
-  @com.fasterxml.jackson.annotation.JsonProperty("retryGap")
+  @JsonProperty("retryGap")
   private String retryGap;
 
   @SerializedName("maxLifetimeCount")
-  @com.fasterxml.jackson.annotation.JsonProperty("maxLifetimeCount")
+  @JsonProperty("maxLifetimeCount")
   private String maxLifetimeCount;
 
   @SerializedName("components")
-  @com.fasterxml.jackson.annotation.JsonProperty("components")
-  private String enabledComponents;
+  @JsonProperty("components")
+  private List<RecoveryConfigComponent> enabledComponents;
 
-  public String getEnabledComponents() {
+  public List<RecoveryConfigComponent> getEnabledComponents() {
     return enabledComponents;
   }
 
-  public void setEnabledComponents(String enabledComponents) {
+  public void setEnabledComponents(List<RecoveryConfigComponent> enabledComponents) {
     this.enabledComponents = enabledComponents;
   }
 

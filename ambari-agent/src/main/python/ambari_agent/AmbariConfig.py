@@ -186,21 +186,23 @@ class AmbariConfig:
   @property
   def cluster_cache_dir(self):
     return os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
-  @property
-  def recovery_cache_dir(self):
-    return os.path.join(self.cache_dir, FileCache.RECOVERY_CACHE_DIRECTORY)
+
   @property
   def alerts_cachedir(self):
     return os.path.join(self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
+
   @property
   def stacks_dir(self):
     return os.path.join(self.cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+
   @property
   def common_services_dir(self):
     return os.path.join(self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+
   @property
   def extensions_dir(self):
     return os.path.join(self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
+
   @property
   def host_scripts_dir(self):
     return os.path.join(self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)

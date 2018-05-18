@@ -46,6 +46,7 @@ from ambari_agent.AlertStatusReporter import AlertStatusReporter
 
 logger = logging.getLogger(__name__)
 
+
 class InitializerModule:
   """
   - Instantiate some singleton classes or widely used instances along with providing their dependencies.
@@ -56,6 +57,23 @@ class InitializerModule:
   def __init__(self):
     self.stop_event = threading.Event()
     self.config = AmbariConfig.get_resolved_config()
+
+    self.is_registered = None
+    self.metadata_cache = None
+    self.topology_cache = None
+    self.host_level_params_cache = None
+    self.configurations_cache = None
+    self.alert_definitions_cache = None
+    self.configuration_builder = None
+    self.stale_alerts_monitor = None
+    self.server_responses_listener = None
+    self.file_cache = None
+    self.customServiceOrchestrator = None
+    self.recovery_manager = None
+    self.commandStatuses = None
+    self.action_queue = None
+    self.alert_scheduler_handler = None
+
     self.init()
 
   def init(self):
@@ -71,14 +89,10 @@ class InitializerModule:
     self.alert_definitions_cache = ClusterAlertDefinitionsCache(self.config.cluster_cache_dir)
     self.configuration_builder = ConfigurationBuilder(self)
     self.stale_alerts_monitor = StaleAlertsMonitor(self)
-
     self.server_responses_listener = ServerResponsesListener()
-
     self.file_cache = FileCache(self.config)
-
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
-
-    self.recovery_manager = RecoveryManager(self.config.recovery_cache_dir)
+    self.recovery_manager = RecoveryManager()
     self.commandStatuses = CommandStatusDict(self)
 
     self.init_threads()
