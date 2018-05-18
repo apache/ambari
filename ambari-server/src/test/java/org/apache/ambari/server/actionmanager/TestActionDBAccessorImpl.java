@@ -48,6 +48,7 @@ import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.serveraction.MockServerAction;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
@@ -117,6 +118,8 @@ public class TestActionDBAccessorImpl {
 
     StackId stackId = new StackId("HDP-0.1");
     clusters.addCluster(clusterName, stackId);
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.addServiceGroup("core", stackId);
     db = injector.getInstance(ActionDBAccessorImpl.class);
 
     am = injector.getInstance(ActionManager.class);

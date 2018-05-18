@@ -29,6 +29,11 @@
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
           <version>0.95.2.2.0.6.0-hbase-master</version>
+          <commandScript>
+            <script>scripts/some_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>300</timeout>
+          </commandScript>
         </component>
       </components>
       <commandScript>

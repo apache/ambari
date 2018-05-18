@@ -1114,6 +1114,7 @@ public class HeartbeatProcessorTest {
     cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
     cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
     cmdReport.setRole("install_packages");
+    cmdReport.setClusterId("1");
 
     List<CommandReport> reports = new ArrayList<>();
     reports.add(cmdReport);

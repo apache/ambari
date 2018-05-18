@@ -55,6 +55,7 @@ import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
@@ -367,6 +368,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(ComponentResolver.class).to(StackComponentResolver.class);
       bind(BlueprintValidator.class).to(BasicBlueprintValidator.class);
       bind(StackFactory.class).to(DefaultStackFactory.class);
+      bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
     }
 
     private void installDependencies() {

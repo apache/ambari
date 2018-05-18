@@ -480,7 +480,8 @@ public class TestActionScheduler {
 
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 0, db, fsm, 3,
-        new HostsMap((String) null), unitOfWork, eventPublisher, conf, entityManagerProviderMock, hostRoleCommandDAOMock, null,null);
+      new HostsMap((String) null), unitOfWork, eventPublisher, conf, entityManagerProviderMock, hostRoleCommandDAOMock, null,
+      agentCommandsPublisher);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
 
@@ -986,20 +987,16 @@ public class TestActionScheduler {
     Stage s = getStageWithServerAction(1, 977, null, "test", 2, false, false);
     s.setHostRoleStatus(null, Role.AMBARI_SERVER_ACTION.toString(), HostRoleStatus.IN_PROGRESS);
 
-    ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class)
-      .withConstructor(long.class, long.class, ActionDBAccessor.class, Clusters.class, int.class,
-            HostsMap.class, UnitOfWork.class, CommandReportEventPublisher.class, Configuration.class,
-            Provider.class, HostRoleCommandDAO.class, HostRoleCommandFactory.class)
-      .withArgs(100L, 50L, null, null, null, -1, null, null, eventPublisher, null, entityManagerProviderMock,
-            mock(HostRoleCommandDAO.class), mock(HostRoleCommandFactory.class))
-      .createNiceMock();
+    HostRoleCommandDAO hostRoleCommandDAO = createNiceMock(HostRoleCommandDAO.class);
+    AgentCommandsPublisher agentCommandsPublisher = createNiceMock(AgentCommandsPublisher.class);
+    ActionScheduler scheduler = new ActionScheduler(
+      100L, 50L, null, null, -1, null, null,
+      eventPublisher, null, entityManagerProviderMock, hostRoleCommandDAO, hostRoleCommandFactory, agentCommandsPublisher);
 
-    EasyMock.replay(scheduler);
+    EasyMock.replay(hostRoleCommandDAO, agentCommandsPublisher);
 
     // currentTime should be set to -1 and taskTimeout to 1 because it is needed for timeOutActionNeeded method will return false value
-    Assert.assertEquals(false, scheduler.timeOutActionNeeded(HostRoleStatus.IN_PROGRESS, s, null, Role.AMBARI_SERVER_ACTION.toString(), -1L, 1L));
-
-    EasyMock.verify(scheduler);
+    assertFalse(scheduler.timeOutActionNeeded(HostRoleStatus.IN_PROGRESS, s, null, Role.AMBARI_SERVER_ACTION.toString(), -1L, 1L));
   }
 
   @Test

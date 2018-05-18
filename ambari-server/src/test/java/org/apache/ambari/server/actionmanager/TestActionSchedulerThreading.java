@@ -47,6 +47,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,8 +56,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.UnitOfWork;
-
-import junit.framework.Assert;
 
 /**
  * Tests {@link ActionScheduler}, focusing on multi-threaded concerns.
@@ -144,7 +143,6 @@ public class TestActionSchedulerThreading {
     // check desired config
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    desiredConfig = desiredConfigs.get(configType);
     assertNotNull(desiredConfig);
     assertEquals(Long.valueOf(2), desiredConfig.getVersion());
     assertEquals("version-2", desiredConfig.getTag());

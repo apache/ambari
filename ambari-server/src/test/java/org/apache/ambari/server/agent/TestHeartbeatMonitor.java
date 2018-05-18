@@ -144,6 +144,7 @@ public class TestHeartbeatMonitor {
     hm.shutdown();
   }
 
+  @Ignore // need test mpack (a stack with mpackId)
   @Test
   public void testStateCommandsGeneration() throws AmbariException, InterruptedException,
           InvalidStateTransitionException {

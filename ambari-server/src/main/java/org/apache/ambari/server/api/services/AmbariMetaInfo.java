@@ -1612,8 +1612,9 @@ public class AmbariMetaInfo {
    * @return a single mpack
    */
   public Mpack getMpack(Long mpackId) {
-    if (mpackManager.getMpackMap() != null && mpackManager.getMpackMap().containsKey(mpackId)) {
-      return mpackManager.getMpackMap().get(mpackId);
+    Map<Long, Mpack> mpacks = mpackManager.getMpackMap();
+    if (mpackId != null && mpacks != null) {
+      return mpacks.get(mpackId);
     }
     return null;
   }
