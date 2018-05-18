@@ -999,6 +999,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private void processDeleteHostRequests(List<HostRequest> requests,  Clusters clusters, DeleteStatusMetaData deleteStatusMetaData) throws AmbariException {
     Set<String> hostsClusters = new HashSet<>();
     Set<String> hostNames = new HashSet<>();
+    Set<Long> hostIds = new HashSet<>();
     Set<Cluster> allClustersWithHosts = new HashSet<>();
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     for (HostRequest hostRequest : requests) {
@@ -1006,6 +1007,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       String hostname = hostRequest.getHostname();
       Long hostId = clusters.getHost(hostname).getHostId();
       hostNames.add(hostname);
+      hostIds.add(hostId);
 
       if (hostRequest.getClusterName() != null) {
         hostsClusters.add(hostRequest.getClusterName());
@@ -1066,7 +1068,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
     }
-    clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
+    clusters.publishHostsDeletion(hostIds, hostNames);
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
         UpdateEventType.DELETE);
     topologyHolder.updateData(topologyUpdateEvent);

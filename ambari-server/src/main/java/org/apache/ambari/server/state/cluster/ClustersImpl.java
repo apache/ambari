@@ -831,10 +831,10 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames) throws AmbariException {
+  public void publishHostsDeletion(Set<Long> hostIds, Set<String> hostNames) throws AmbariException {
     // Publish the event, using the original list of clusters that the host
     // belonged to
-    HostsRemovedEvent event = new HostsRemovedEvent(hostNames, clusters);
+    HostsRemovedEvent event = new HostsRemovedEvent(hostNames, hostIds);
     eventPublisher.publish(event);
   }
 

@@ -1084,8 +1084,9 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(cluster.getClusterId()).andReturn(100L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<>()).anyTimes();
     clusters.deleteHost("Host100");
-    clusters.publishHostsDeletion(Collections.EMPTY_SET, Collections.singleton("Host100"));
+    clusters.publishHostsDeletion(Collections.singleton(1L), Collections.singleton("Host100"));
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
+    expect(host1.getHostId()).andReturn(1L).anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
     expect(topologyManager.getRequests(Collections.emptyList())).andReturn(Collections.emptyList()).anyTimes();

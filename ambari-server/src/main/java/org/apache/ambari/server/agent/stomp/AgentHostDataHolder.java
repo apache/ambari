@@ -103,7 +103,7 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
   /**
    * Remove data for the given host.
    */
-  public final void onHostRemoved(String hostId) {
+  public final void onHostRemoved(Long hostId) {
     data.remove(hostId);
   }
 

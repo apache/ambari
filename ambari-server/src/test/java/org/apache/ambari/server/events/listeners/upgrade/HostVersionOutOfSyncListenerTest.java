@@ -398,7 +398,9 @@ public class HostVersionOutOfSyncListenerTest {
     // add the 2nd host
     addHost("h2");
     clusters.mapHostToCluster("h2", "c1");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
+    Host host = clusters.getHost("h2");
+    Long hostId = host.getHostId();
+    host.setState(HostState.HEALTHY);
 
     StackId stackId = new StackId(this.stackId);
     RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,
@@ -432,7 +434,7 @@ public class HostVersionOutOfSyncListenerTest {
     // event handle it
     injector.getInstance(UnitOfWork.class).begin();
     clusters.deleteHost("h2");
-    clusters.publishHostsDeletion(Collections.singleton(c1), Collections.singleton("h2"));
+    clusters.publishHostsDeletion(Collections.singleton(hostId), Collections.singleton("h2"));
     injector.getInstance(UnitOfWork.class).end();
     assertRepoVersionState("2.2.0", RepositoryVersionState.CURRENT);
     assertRepoVersionState("2.2.9-9999", RepositoryVersionState.INSTALLED);
