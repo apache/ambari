@@ -25,7 +25,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
 
   templateName: require('templates/common/configs/service_config_category'),
 
-  classNames: ['panel-group', 'common-config-category'],
+  classNames: ['panel-group', 'common-config-category', 'clear'],
 
   classNameBindings: ['isShowBlock::hidden'],
 
