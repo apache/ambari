@@ -83,6 +83,7 @@ class ActionQueue(threading.Thread):
     self.tmpdir = self.config.get('agent', 'prefix')
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.parallel_execution = self.config.get_parallel_exec_option()
+    self.component_status_executor = initializer_module.component_status_executor
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
     self.lock = threading.Lock()
@@ -420,6 +421,14 @@ class ActionQueue(threading.Thread):
 
     self.recovery_manager.process_execution_command_result(command, status)
     self.commandStatuses.put_command_status(command, roleResult)
+
+    cluster_id = str(command['clusterId'])
+
+    if cluster_id != '-1' and cluster_id != 'null':
+      service_name = command['serviceName']
+      if service_name != 'null':
+        component_name = command['role']
+        self.component_status_executor.check_component_status(clusterId, service_name, component_name, "STATUS", report=True)
 
   def log_command_output(self, text, taskId):
     """
