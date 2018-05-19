@@ -29,6 +29,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
@@ -118,6 +119,11 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
       ServiceComponentHost sch = serviceComponent.addServiceComponentHost(host.getHostName());
       sch.setDesiredState(State.INSTALLED);
       sch.setState(State.INSTALLED);
+
+      // for now, this is the easiest way to fire a topology event which
+      // refreshes the information about the cluster (needed for restart
+      // commands)
+      sch.setVersion(StackVersionListener.UNKNOWN_VERSION);
 
       buffer.append("  ")
         .append(host.getHostName())

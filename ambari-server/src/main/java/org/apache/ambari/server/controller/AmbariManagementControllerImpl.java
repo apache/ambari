@@ -107,9 +107,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
-import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
@@ -364,10 +362,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
 
-  private Provider<MetadataHolder> m_metadataHolder;
-
-  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
-
   @Inject
   private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
 
@@ -426,8 +420,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
     maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
     kerberosHelper = injector.getInstance(KerberosHelper.class);
-    m_metadataHolder = injector.getProvider(MetadataHolder.class);
-    m_agentConfigsHolder = injector.getProvider(AgentConfigsHolder.class);
     if(configs != null)
     {
       if (configs.getApiSSLAuthentication()) {
@@ -756,7 +748,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
+  /**
+   * {@inheritDoc}
+   */
+  public TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     Set<String> hostsToUpdate = new HashSet<>();
@@ -778,8 +773,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Set<String> hostNames = new HashSet<>();
       hostNames.add(hostName);
       ServiceComponentHost sch = sc.getServiceComponentHost(request.getHostname());
-
-      StackId stackId = cluster.getDesiredStackVersion();
 
       TopologyComponent newComponent = TopologyComponent.newBuilder()
           .setComponentName(sch.getServiceComponentName())
@@ -5896,7 +5889,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, Map<String,String>> agentConfigsMap = configs.getAgentConfigsMap();
 
     for (String key : agentConfigsMap.keySet()) {
-      agentConfigs.put(key, new TreeMap<String, String>(agentConfigsMap.get(key)));
+      agentConfigs.put(key, new TreeMap<>(agentConfigsMap.get(key)));
     }
 
     return agentConfigs;

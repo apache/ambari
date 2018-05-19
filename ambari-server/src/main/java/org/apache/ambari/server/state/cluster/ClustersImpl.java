@@ -529,6 +529,7 @@ public class ClustersImpl implements Clusters {
     // the hosts by ID map is updated separately since the host has not yet
     // been persisted yet - the below event is what causes the persist
     getHostsByName().put(hostname, host);
+    getHostsById().put(host.getHostId(), host);
 
     getHostClustersMap().put(hostname,
         Collections.newSetFromMap(new ConcurrentHashMap<>()));

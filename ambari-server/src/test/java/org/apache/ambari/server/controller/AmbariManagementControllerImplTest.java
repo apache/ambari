@@ -2265,7 +2265,7 @@ public class AmbariManagementControllerImplTest {
 
     public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector, OsFamily osFamilyMock) throws Exception {
       super(actionManager, clusters, injector);
-      this.osFamily = osFamilyMock;
+      osFamily = osFamilyMock;
     }
 
 //    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
@@ -2432,8 +2432,6 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(gson);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintenanceStateHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
-    expect(injector.getProvider(MetadataHolder.class)).andReturn(m_metadataHolder);
-    expect(injector.getProvider(AgentConfigsHolder.class)).andReturn(m_agentConfigsHolder);
   }
 
   public static void constructorInit(Injector injector, Capture<AmbariManagementController> controllerCapture,
@@ -2442,7 +2440,5 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
-    expect(injector.getProvider(MetadataHolder.class)).andReturn(null);
-    expect(injector.getProvider(AgentConfigsHolder.class)).andReturn(null);
   }
 }
