@@ -233,6 +233,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     stormComponents.add("NIMBUS");
     serviceComponents.put("STORM", stormComponents);
 
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+    rangerComponents.add("RANGER_TAGSYNC");
+    serviceComponents.put("RANGER",rangerComponents);
+
     for (Map.Entry<String, Collection<String>> entry : serviceComponents.entrySet()) {
       String service = entry.getKey();
       for (String component : entry.getValue()) {
@@ -248,7 +254,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
-  
+
    stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
 
 
@@ -9151,6 +9157,703 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals(" ",
       clusterConfig.getPropertyValue("hdfs-site", "test.single.space"));
   }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeFederationEnabledTagsyncEnabledDefaultRepoName() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedNameServiceTwo = "mynameservicetwo";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedHostNameThree = "c6403.apache.ambari.org";
+    final String expectedHostNameFour = "c6404.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedNodeThree = "nn3";
+    final String expectedNodeFour = "nn4";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedHostGroupNameThree = "host-group-3";
+    final String expectedHostGroupNameFour = "host-group-4";
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    Map<String, String> hbaseSiteProperties = new HashMap<>();
+    Map<String, String> hadoopEnvProperties = new HashMap<>();
+    Map<String, String> coreSiteProperties = new HashMap<>();
+    Map<String, String> accumuloSiteProperties = new HashMap<>();
+    Map<String, String> rangerHDFSPluginProperties = new HashMap<>();
+    Map<String, String> rangerHDFSSecurityProperties = new HashMap<>();
+
+    properties.put("hdfs-site", hdfsSiteProperties);
+    properties.put("hadoop-env", hadoopEnvProperties);
+    properties.put("core-site", coreSiteProperties);
+    properties.put("hbase-site", hbaseSiteProperties);
+    properties.put("accumulo-site", accumuloSiteProperties);
+    properties.put("ranger-hdfs-plugin-properties", rangerHDFSPluginProperties);
+    properties.put("ranger-hdfs-security", rangerHDFSSecurityProperties);
+
+    // setup multiple nameservices, to indicate NameNode Federation will be used
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService + "," + expectedNameServiceTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeThree + "," + expectedNodeFour);
+
+    //setup nameservice-specific properties
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameService,
+            "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns1");
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo,
+            "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns2");
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
+
+    rangerHDFSPluginProperties.put("hadoop.rpc.protection","authentication");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_USERNAME","hadoop");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_PASSWORD","hadoop");
+    rangerHDFSPluginProperties.put("ranger-hdfs-plugin-enabled","Yes");
+
+    rangerHDFSSecurityProperties.put("ranger.plugin.hdfs.service.name","{{repo_name}}");
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = new HashSet<>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("RANGER_ADMIN");
+    hgComponents.add("RANGER_USERSYNC");
+    hgComponents.add("RANGER_TAGSYNC");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<>();
+    hgComponents2.add("NAMENODE");
+    hgComponents2.add("ATLAS_SERVER");
+    hgComponents2.add("ATLAS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    // add third and fourth hostgroup with NAMENODE, to simulate HDFS NameNode Federation
+    TestHostGroup group3 = new TestHostGroup(expectedHostGroupNameThree, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameThree));
+    TestHostGroup group4 = new TestHostGroup(expectedHostGroupNameFour, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameFour));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+    hostGroups.add(group4);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
+    expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> updatedConfigTypes =
+            updater.doUpdateForClusterCreate();
+
+    // verify that correct configuration types were listed as updated in the returned set
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site", "ranger-tagsync-site"), updatedConfigTypes);
+
+
+    Map<String, String> updatedRangerTagsyncSiteConfigurations = clusterConfig.getProperties().get("ranger-tagsync-site");
+    assertTrue("Expected property ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservice.ranger.service not found.", updatedRangerTagsyncSiteConfigurations.containsKey("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservice.ranger.service"));
+    assertTrue("Expected property ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservicetwo.ranger.service not found.", updatedRangerTagsyncSiteConfigurations.containsKey("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservicetwo.ranger.service"));
+    assertTrue("Expected property ranger.tagsync.atlas.hdfs.instance.clusterName.ranger.service not found.", updatedRangerTagsyncSiteConfigurations.containsKey("ranger.tagsync.atlas.hdfs.instance.clusterName.ranger.service"));
+    assertEquals("Expected name service clusterName_hadoop_mynameservice not found", "clusterName_hadoop_mynameservice",updatedRangerTagsyncSiteConfigurations.get("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservice.ranger.service"));
+    assertEquals("Expected name service clusterName_hadoop_mynameservicetwo not found", "clusterName_hadoop_mynameservicetwo",updatedRangerTagsyncSiteConfigurations.get("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservicetwo.ranger.service"));
+    assertEquals("Expected name service clusterName_hadoop_mynameservicetwo not found", "clusterName_hadoop_mynameservice",updatedRangerTagsyncSiteConfigurations.get("ranger.tagsync.atlas.hdfs.instance.clusterName.ranger.service"));
+  }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeFederationEnabledTagsyncEnabledCustomRepoName() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedNameServiceTwo = "mynameservicetwo";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedHostNameThree = "c6403.apache.ambari.org";
+    final String expectedHostNameFour = "c6404.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedNodeThree = "nn3";
+    final String expectedNodeFour = "nn4";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedHostGroupNameThree = "host-group-3";
+    final String expectedHostGroupNameFour = "host-group-4";
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    Map<String, String> hbaseSiteProperties = new HashMap<>();
+    Map<String, String> hadoopEnvProperties = new HashMap<>();
+    Map<String, String> coreSiteProperties = new HashMap<>();
+    Map<String, String> accumuloSiteProperties = new HashMap<>();
+    Map<String, String> rangerHDFSPluginProperties = new HashMap<>();
+    Map<String, String> rangerHDFSSecurityProperties = new HashMap<>();
+
+    properties.put("hdfs-site", hdfsSiteProperties);
+    properties.put("hadoop-env", hadoopEnvProperties);
+    properties.put("core-site", coreSiteProperties);
+    properties.put("hbase-site", hbaseSiteProperties);
+    properties.put("accumulo-site", accumuloSiteProperties);
+    properties.put("ranger-hdfs-plugin-properties", rangerHDFSPluginProperties);
+    properties.put("ranger-hdfs-security", rangerHDFSSecurityProperties);
+
+    // setup multiple nameservices, to indicate NameNode Federation will be used
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService + "," + expectedNameServiceTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeThree + "," + expectedNodeFour);
+
+    //setup nameservice-specific properties
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameService,
+            "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns1");
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo,
+            "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns2");
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
+
+    rangerHDFSPluginProperties.put("hadoop.rpc.protection","authentication");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_USERNAME","hadoop");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_PASSWORD","hadoop");
+    rangerHDFSPluginProperties.put("ranger-hdfs-plugin-enabled","Yes");
+
+    rangerHDFSSecurityProperties.put("ranger.plugin.hdfs.service.name","hdfs_service");
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = new HashSet<>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("RANGER_ADMIN");
+    hgComponents.add("RANGER_USERSYNC");
+    hgComponents.add("RANGER_TAGSYNC");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<>();
+    hgComponents2.add("NAMENODE");
+    hgComponents2.add("ATLAS_SERVER");
+    hgComponents2.add("ATLAS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    // add third and fourth hostgroup with NAMENODE, to simulate HDFS NameNode Federation
+    TestHostGroup group3 = new TestHostGroup(expectedHostGroupNameThree, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameThree));
+    TestHostGroup group4 = new TestHostGroup(expectedHostGroupNameFour, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameFour));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+    hostGroups.add(group4);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
+    expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> updatedConfigTypes =
+            updater.doUpdateForClusterCreate();
+
+    // verify that correct configuration types were listed as updated in the returned set
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site", "ranger-tagsync-site"), updatedConfigTypes);
+
+
+    Map<String, String> updatedRangerTagsyncSiteConfigurations = clusterConfig.getProperties().get("ranger-tagsync-site");
+    assertTrue("Expected property ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservice.ranger.service not found.", updatedRangerTagsyncSiteConfigurations.containsKey("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservice.ranger.service"));
+    assertTrue("Expected property ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservicetwo.ranger.service not found.", updatedRangerTagsyncSiteConfigurations.containsKey("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservicetwo.ranger.service"));
+    assertTrue("Expected property ranger.tagsync.atlas.hdfs.instance.clusterName.ranger.service not found.", updatedRangerTagsyncSiteConfigurations.containsKey("ranger.tagsync.atlas.hdfs.instance.clusterName.ranger.service"));
+    assertEquals("Expected name service hdfs_service_mynameservice not found", "hdfs_service_mynameservice",updatedRangerTagsyncSiteConfigurations.get("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservice.ranger.service"));
+    assertEquals("Expected name service hdfs_service_mynameservicetwo not found", "hdfs_service_mynameservicetwo",updatedRangerTagsyncSiteConfigurations.get("ranger.tagsync.atlas.hdfs.instance.clusterName.nameservice.mynameservicetwo.ranger.service"));
+    assertEquals("Expected name service hdfs_service_mynameservicetwo not found", "hdfs_service_mynameservice",updatedRangerTagsyncSiteConfigurations.get("ranger.tagsync.atlas.hdfs.instance.clusterName.ranger.service"));
+  }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeFederationEnabledTagsyncEnabledPluginDisabled() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedNameServiceTwo = "mynameservicetwo";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedHostNameThree = "c6403.apache.ambari.org";
+    final String expectedHostNameFour = "c6404.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedNodeThree = "nn3";
+    final String expectedNodeFour = "nn4";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedHostGroupNameThree = "host-group-3";
+    final String expectedHostGroupNameFour = "host-group-4";
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    Map<String, String> hbaseSiteProperties = new HashMap<>();
+    Map<String, String> hadoopEnvProperties = new HashMap<>();
+    Map<String, String> coreSiteProperties = new HashMap<>();
+    Map<String, String> accumuloSiteProperties = new HashMap<>();
+    Map<String, String> rangerHDFSPluginProperties = new HashMap<>();
+    Map<String, String> rangerHDFSSecurityProperties = new HashMap<>();
+
+    properties.put("hdfs-site", hdfsSiteProperties);
+    properties.put("hadoop-env", hadoopEnvProperties);
+    properties.put("core-site", coreSiteProperties);
+    properties.put("hbase-site", hbaseSiteProperties);
+    properties.put("accumulo-site", accumuloSiteProperties);
+    properties.put("ranger-hdfs-plugin-properties", rangerHDFSPluginProperties);
+    properties.put("ranger-hdfs-security", rangerHDFSSecurityProperties);
+
+    // setup multiple nameservices, to indicate NameNode Federation will be used
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService + "," + expectedNameServiceTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeThree + "," + expectedNodeFour);
+
+    //setup nameservice-specific properties
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameService,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns1");
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns2");
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
+
+    rangerHDFSPluginProperties.put("hadoop.rpc.protection","authentication");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_USERNAME","hadoop");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_PASSWORD","hadoop");
+    rangerHDFSPluginProperties.put("ranger-hdfs-plugin-enabled","No");
+
+    rangerHDFSSecurityProperties.put("ranger.plugin.hdfs.service.name","{{repo_name}}");
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = new HashSet<>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("RANGER_ADMIN");
+    hgComponents.add("RANGER_USERSYNC");
+    hgComponents.add("RANGER_TAGSYNC");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<>();
+    hgComponents2.add("NAMENODE");
+    hgComponents2.add("ATLAS_SERVER");
+    hgComponents2.add("ATLAS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    // add third and fourth hostgroup with NAMENODE, to simulate HDFS NameNode Federation
+    TestHostGroup group3 = new TestHostGroup(expectedHostGroupNameThree, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameThree));
+    TestHostGroup group4 = new TestHostGroup(expectedHostGroupNameFour, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameFour));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+    hostGroups.add(group4);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
+    expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> updatedConfigTypes = updater.doUpdateForClusterCreate();
+
+    // verify that correct configuration types were listed as updated in the returned set
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
+
+
+    Map<String, String> updatedRangerTagsyncSiteConfigurations = clusterConfig.getProperties().get("ranger-tagsync-site");
+    assertNull(updatedRangerTagsyncSiteConfigurations);
+
+
+  }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeFederationEnabledTagsyncEnabledPluginEnabledNoAtlas() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedNameServiceTwo = "mynameservicetwo";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedHostNameThree = "c6403.apache.ambari.org";
+    final String expectedHostNameFour = "c6404.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedNodeThree = "nn3";
+    final String expectedNodeFour = "nn4";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedHostGroupNameThree = "host-group-3";
+    final String expectedHostGroupNameFour = "host-group-4";
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    Map<String, String> hbaseSiteProperties = new HashMap<>();
+    Map<String, String> hadoopEnvProperties = new HashMap<>();
+    Map<String, String> coreSiteProperties = new HashMap<>();
+    Map<String, String> accumuloSiteProperties = new HashMap<>();
+    Map<String, String> rangerHDFSPluginProperties = new HashMap<>();
+    Map<String, String> rangerHDFSSecurityProperties = new HashMap<>();
+
+    properties.put("hdfs-site", hdfsSiteProperties);
+    properties.put("hadoop-env", hadoopEnvProperties);
+    properties.put("core-site", coreSiteProperties);
+    properties.put("hbase-site", hbaseSiteProperties);
+    properties.put("accumulo-site", accumuloSiteProperties);
+    properties.put("ranger-hdfs-plugin-properties", rangerHDFSPluginProperties);
+    properties.put("ranger-hdfs-security", rangerHDFSSecurityProperties);
+
+    // setup multiple nameservices, to indicate NameNode Federation will be used
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService + "," + expectedNameServiceTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeThree + "," + expectedNodeFour);
+
+    //setup nameservice-specific properties
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameService,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns1");
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns2");
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
+
+    rangerHDFSPluginProperties.put("hadoop.rpc.protection","authentication");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_USERNAME","hadoop");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_PASSWORD","hadoop");
+    rangerHDFSPluginProperties.put("ranger-hdfs-plugin-enabled","Yes");
+
+    rangerHDFSSecurityProperties.put("ranger.plugin.hdfs.service.name","{{repo_name}}");
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = new HashSet<>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("RANGER_ADMIN");
+    hgComponents.add("RANGER_USERSYNC");
+    hgComponents.add("RANGER_TAGSYNC");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<>();
+    hgComponents2.add("NAMENODE");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    // add third and fourth hostgroup with NAMENODE, to simulate HDFS NameNode Federation
+    TestHostGroup group3 = new TestHostGroup(expectedHostGroupNameThree, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameThree));
+    TestHostGroup group4 = new TestHostGroup(expectedHostGroupNameFour, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameFour));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+    hostGroups.add(group4);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
+    expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> updatedConfigTypes = updater.doUpdateForClusterCreate();
+
+    // verify that correct configuration types were listed as updated in the returned set
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
+
+
+    Map<String, String> updatedRangerTagsyncSiteConfigurations = clusterConfig.getProperties().get("ranger-tagsync-site");
+    assertNull(updatedRangerTagsyncSiteConfigurations);
+  }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeFederationEnabledTagsyncEnabledPluginEnabledNoTagsync() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedNameServiceTwo = "mynameservicetwo";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedHostNameThree = "c6403.apache.ambari.org";
+    final String expectedHostNameFour = "c6404.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedNodeThree = "nn3";
+    final String expectedNodeFour = "nn4";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedHostGroupNameThree = "host-group-3";
+    final String expectedHostGroupNameFour = "host-group-4";
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    Map<String, String> hbaseSiteProperties = new HashMap<>();
+    Map<String, String> hadoopEnvProperties = new HashMap<>();
+    Map<String, String> coreSiteProperties = new HashMap<>();
+    Map<String, String> accumuloSiteProperties = new HashMap<>();
+    Map<String, String> rangerHDFSPluginProperties = new HashMap<>();
+    Map<String, String> rangerHDFSSecurityProperties = new HashMap<>();
+
+    properties.put("hdfs-site", hdfsSiteProperties);
+    properties.put("hadoop-env", hadoopEnvProperties);
+    properties.put("core-site", coreSiteProperties);
+    properties.put("hbase-site", hbaseSiteProperties);
+    properties.put("accumulo-site", accumuloSiteProperties);
+    properties.put("ranger-hdfs-plugin-properties", rangerHDFSPluginProperties);
+    properties.put("ranger-hdfs-security", rangerHDFSSecurityProperties);
+
+    // setup multiple nameservices, to indicate NameNode Federation will be used
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService + "," + expectedNameServiceTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeThree + "," + expectedNodeFour);
+
+    //setup nameservice-specific properties
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameService,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns1");
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns2");
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
+
+    rangerHDFSPluginProperties.put("hadoop.rpc.protection","authentication");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_USERNAME","hadoop");
+    rangerHDFSPluginProperties.put("REPOSITORY_CONFIG_PASSWORD","hadoop");
+    rangerHDFSPluginProperties.put("ranger-hdfs-plugin-enabled","Yes");
+
+    rangerHDFSSecurityProperties.put("ranger.plugin.hdfs.service.name","{{repo_name}}");
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = new HashSet<>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("RANGER_ADMIN");
+    hgComponents.add("RANGER_USERSYNC");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<>();
+    hgComponents2.add("NAMENODE");
+    hgComponents2.add("ATLAS_SERVER");
+    hgComponents2.add("ATLAS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    // add third and fourth hostgroup with NAMENODE, to simulate HDFS NameNode Federation
+    TestHostGroup group3 = new TestHostGroup(expectedHostGroupNameThree, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameThree));
+    TestHostGroup group4 = new TestHostGroup(expectedHostGroupNameFour, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameFour));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+    hostGroups.add(group4);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
+    expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> updatedConfigTypes = updater.doUpdateForClusterCreate();
+
+    // verify that correct configuration types were listed as updated in the returned set
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
+
+
+    Map<String, String> updatedRangerTagsyncSiteConfigurations = clusterConfig.getProperties().get("ranger-tagsync-site");
+    assertNull(updatedRangerTagsyncSiteConfigurations);
+  }
+
 
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
     return createExportedHostName(expectedHostGroupName, expectedPortNum);

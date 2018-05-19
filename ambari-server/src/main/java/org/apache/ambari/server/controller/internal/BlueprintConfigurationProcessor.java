@@ -22,6 +22,8 @@ package org.apache.ambari.server.controller.internal;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -114,6 +116,7 @@ public class BlueprintConfigurationProcessor {
   );
 
   private final static String HADOOP_ENV_CONFIG_TYPE_NAME = "hadoop-env";
+  private final static String RANGER_TAGSYNC_SITE_CONFIG_TYPE_NAME = "ranger-tagsync-site";
 
 
   /**
@@ -499,26 +502,41 @@ public class BlueprintConfigurationProcessor {
         if (parsedNameServices.length > 1) {
           Set<String> activeNameNodeHostnames = new HashSet<>();
           Set<String> standbyNameNodeHostnames = new HashSet<>();
-          String tagsyncNameserviceMappingProperty   = "ranger.tagsync.atlas.hdfs.instance." + getClusterName() + ".%s.ranger.service";
+          String clusterName = getClusterName();
 
-          Map<String,String> rangerTagsyncPropertiesMap = clusterConfig.getFullProperties().get("ranger-tagsync-site");
-          Map<String, String> rangerHDFSPluginProperties = clusterConfig.getFullProperties().get("ranger-hdfs-plugin-properties");
+          // Getting configuration and properties for adding configurations to ranger-tagsync-site
+          Map<String, String> rangerHDFSPluginProperties = null;
+          boolean isRangerHDFSPluginEnabled =  false;
+          Map<String, String> rangerHDFSSecurityConfig = null;
+          String rangerHDFSPluginServiceName = "";
 
-          String rangerHDFSPluginEnabledValue = rangerHDFSPluginProperties.getOrDefault("ranger-hdfs-plugin-enabled","No");
-          boolean isRangerHDFSPluginEnabled = ("yes".equalsIgnoreCase(rangerHDFSPluginEnabledValue));
 
-          Map<String, String> rangerHDFSSecurityConfig = clusterConfig.getFullProperties().get("ranger-hdfs-security");
-          String rangerHDFSPluginServiceName = rangerHDFSSecurityConfig.get("ranger.plugin.hdfs.service.name");
-          boolean isTagsyncPropertyConfigurationRequired = (clusterTopology.getBlueprint().getServices().contains("RANGER_ADMIN") &&
-                                                       clusterTopology.getBlueprint().getServices().contains("RANGER_TAGSYNC") &&
-                                                       clusterTopology.getBlueprint().getServices().contains("ATLAS"));
+          String atlasServerComponentName = "ATLAS_SERVER";
+          String rangerAdminComponentName = "RANGER_ADMIN";
+          String rangerTagsyncComponentName = "RANGER_TAGSYNC";
+          Collection<String> hostGroupInfoRangerAdmin = clusterTopology.getHostGroupsForComponent(rangerAdminComponentName);
+          boolean isRangerAdminToBeInstalled = (hostGroupInfoRangerAdmin.size() >= 1);
+          if (isRangerAdminToBeInstalled) {
+            rangerHDFSPluginProperties = clusterProps.get("ranger-hdfs-plugin-properties");
+            String rangerHDFSPluginEnabledValue = rangerHDFSPluginProperties.getOrDefault("ranger-hdfs-plugin-enabled","No");
+            isRangerHDFSPluginEnabled = ("yes".equalsIgnoreCase(rangerHDFSPluginEnabledValue));
 
-          Map<String, String> coreSiteConfig = clusterConfig.getFullProperties().get("core-site");
+            rangerHDFSSecurityConfig = clusterProps.get("ranger-hdfs-security");
+            rangerHDFSPluginServiceName = rangerHDFSSecurityConfig.get("ranger.plugin.hdfs.service.name");
+          }
+          Collection<String> hostGroupInfoRangerTagSync = clusterTopology.getHostGroupsForComponent(rangerTagsyncComponentName);
+          boolean isRangerTagsyncToBeInstalled = (hostGroupInfoRangerTagSync.size() >= 1);
+          Collection<String> hostGroupInfoAtlasServer = clusterTopology.getHostGroupsForComponent(atlasServerComponentName);
+          boolean isAtlasServerToBeInstalled = (hostGroupInfoAtlasServer.size() >= 1);
+          boolean isTagsyncPropertyConfigurationRequired = ( isRangerAdminToBeInstalled && isRangerTagsyncToBeInstalled &&
+                                                            isAtlasServerToBeInstalled );
+
+          Map<String, String> coreSiteConfig = clusterProps.get("core-site");
           String fsDefaultFSValue = coreSiteConfig.get("fs.defaultFS");
           String nameServiceInFsDefaultFSConfig="";
 
           if (isTagsyncPropertyConfigurationRequired && isRangerHDFSPluginEnabled && "{{repo_name}}".equalsIgnoreCase(rangerHDFSPluginServiceName)) {
-            rangerHDFSPluginServiceName = getClusterName() + "_hadoop";
+            rangerHDFSPluginServiceName = clusterName + "_hadoop";
           }
 
           for (String nameService : parsedNameServices) {
@@ -532,7 +550,6 @@ public class BlueprintConfigurationProcessor {
                 throw new ConfigurationTopologyException("NameNode HA property = " + propertyName + " is not found in the cluster config.  This indicates an error in configuration for HA/Federated clusters.  " +
                   "Please recheck the HDFS configuration and try this deployment again");
               }
-
               String hostName = propertyValue.split(":")[0];
               hostNames.add(hostName);
             }
@@ -546,23 +563,29 @@ public class BlueprintConfigurationProcessor {
               // since HA is assumed, there should only be two NameNodes deployed per NameService
               activeNameNodeHostnames.add(hostNames.get(0));
               standbyNameNodeHostnames.add(hostNames.get(1));
+              // Adding configurations for Ranger-Tagsync to map Ranger HDFS service for Atlas
               if (isTagsyncPropertyConfigurationRequired && isRangerHDFSPluginEnabled) {
-                tagsyncNameserviceMappingProperty = String.format(tagsyncNameserviceMappingProperty, nameService);
+                String tagsyncNameserviceMappingProperty   = "ranger.tagsync.atlas.hdfs.instance." + clusterName + ".nameservice." + nameService + ".ranger.service";
                 String updatedRangerHDFSPluginServiceName = rangerHDFSPluginServiceName + "_" + nameService;
-                //rangerTagsyncPropertiesMap.put(tagsyncNameserviceMappingProperty, updatedRangerHDFSPluginServiceName);
-                clusterConfig.setProperty("ranger-tagsync-site", tagsyncNameserviceMappingProperty, updatedRangerHDFSPluginServiceName);
-                if (fsDefaultFSValue.contains(nameService)) {
-                  nameServiceInFsDefaultFSConfig = nameService;
+                clusterConfig.setProperty(RANGER_TAGSYNC_SITE_CONFIG_TYPE_NAME, tagsyncNameserviceMappingProperty, updatedRangerHDFSPluginServiceName);
+                try {
+                  URI fsDefaultFSURI = new URI(fsDefaultFSValue);
+                  String fsDefaultFSNameService = fsDefaultFSURI.getHost();
+                  if (fsDefaultFSNameService.contains(nameService)) {
+                    nameServiceInFsDefaultFSConfig = nameService;
+                  }
+                } catch (URISyntaxException e) {
+                  LOG.error("Error occurred while parsing the defaultFS URI.", e);
                 }
               }
             }
           }
 
           if(isTagsyncPropertyConfigurationRequired && isRangerHDFSPluginEnabled) {
-            String rangerTagsyncAtlasNNServiceMappingProperty = "ranger.tagsync.atlas.hdfs.instance."+getClusterName() + ".ranger.service";
-            String rangerTagsyncAtlasNNServiceName = rangerHDFSPluginServiceName + nameServiceInFsDefaultFSConfig;
-            clusterConfig.setProperty("ranger-tagsync-site", rangerTagsyncAtlasNNServiceMappingProperty, rangerTagsyncAtlasNNServiceName);
-            configTypesUpdated.add("ranger-tagsync-site");
+            String rangerTagsyncAtlasNNServiceMappingProperty = "ranger.tagsync.atlas.hdfs.instance." + clusterName + ".ranger.service";
+            String rangerTagsyncAtlasNNServiceName = rangerHDFSPluginServiceName + "_" + nameServiceInFsDefaultFSConfig;
+            clusterConfig.setProperty(RANGER_TAGSYNC_SITE_CONFIG_TYPE_NAME, rangerTagsyncAtlasNNServiceMappingProperty, rangerTagsyncAtlasNNServiceName);
+            configTypesUpdated.add(RANGER_TAGSYNC_SITE_CONFIG_TYPE_NAME);
           }
 
           // set the properties what configure the NameNode Active/Standby status for each nameservice
@@ -572,7 +595,7 @@ public class BlueprintConfigurationProcessor {
 
             // also set the clusterID property, required for Federation installs of HDFS
             if (!isPropertySet(clusterProps, HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME)) {
-              clusterConfig.setProperty(HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, getClusterName());
+              clusterConfig.setProperty(HDFS_HA_INITIAL_CONFIG_TYPE, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, clusterName);
             }
 
             configTypesUpdated.add(HDFS_HA_INITIAL_CONFIG_TYPE);
