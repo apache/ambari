@@ -311,7 +311,7 @@ CREATE TABLE user_authentication (
   user_authentication_id INTEGER,
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
-  authentication_key CLOB,
+  authentication_key VARCHAR(2048),
   create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),

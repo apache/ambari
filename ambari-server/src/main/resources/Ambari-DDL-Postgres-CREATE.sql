@@ -313,7 +313,7 @@ CREATE TABLE user_authentication (
   user_authentication_id INTEGER,
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
-  authentication_key TEXT,
+  authentication_key VARCHAR(2048),
   create_time TIMESTAMP DEFAULT NOW(),
   update_time TIMESTAMP DEFAULT NOW(),
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
