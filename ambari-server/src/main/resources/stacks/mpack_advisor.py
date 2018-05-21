@@ -1689,31 +1689,28 @@ class MpackAdvisorImpl(MpackAdvisor):
         mpackInstance = {}
         mpackInstance["name"] = mpackInstanceName
         mpackInstance["version"] = serviceInstances[0].getMpackVersion()
-        mpackInstance["service_instances"] = [serviceInstance.getName() for serviceInstance in serviceInstances]
-        mpackInstance["configurations"] = {}
-        mpackInstance["hosts"] = []
+        mpackInstance["service_instances"] = []
         mpackInstances.append(mpackInstance)
-        configurations = mpackInstance["configurations"]
         # there can be dependencies between service recommendations which require special ordering
         # for now, make sure custom services (that have service advisors) run after standard ones
         serviceAdvisors = []
         for serviceInstance in serviceInstances:
           serviceName = serviceInstance.getType()
+          serviceInstanceConfigurations = {"name": serviceName, "type": serviceInstance.getType(), \
+                                           "version": serviceInstance.getVersion(), "configurations": {}}
+          mpackInstance.get("service_instances").append(serviceInstanceConfigurations)
+          configurations = serviceInstanceConfigurations.get("configurations")
           calculation = self.getServiceConfigurationRecommenderForSSODict(serviceName) if isSSO \
                         else self.getServiceConfigurationRecommender(serviceName)
           if calculation:
-            # ???????
             calculation(configurations, clusterSummary, self.services, self.hostsList)
           else:
             serviceAdvisor = serviceInstance.getServiceAdvisor()
             if serviceAdvisor:
-              serviceAdvisors.append(serviceAdvisor)
-        for serviceAdvisor in serviceAdvisors:
-          if isSSO:
-            serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, self.services, self.hostsList)
-          else:
-            serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, self.services, self.hostsList)
-
+              if isSSO:
+                serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, self.services, self.hostsList)
+              else:
+                serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, self.services, self.hostsList)
 
     return recommendations
 
