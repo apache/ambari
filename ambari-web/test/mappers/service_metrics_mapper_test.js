@@ -304,7 +304,7 @@ describe('App.serviceMetricsMapper', function () {
     });
   });
 
-  descibe('#getHiveServersInteractiveStatus', function () {
+  describe('#getHiveServersInteractiveStatus', function () {
     beforeEach(function () {
       App.ajax.send.restore();
       sinon.stub(App.ajax, 'send', function () {
@@ -321,18 +321,12 @@ describe('App.serviceMetricsMapper', function () {
       });
     });
     afterEach(function () {
-      App.ajax.send.restore();
       App.HostComponent.find.restore();
     });
 
     it('should do several ajax requests depends on count of components count', function () {
       App.serviceMetricsMapper.getHiveServersInteractiveStatus(interactiveComponents, '1');
-      expect(App.ajax.send.calledTwice()).to.be.true;
+      expect(App.ajax.send.calledTwice).to.be.true;
     });
-
-    it('should set advanced display name prop to existing components', function () {
-      App.serviceMetricsMapper.getHiveServersInteractiveStatus(interactiveComponents, '1');
-      expect(App.HostComponent.find()[0].get('advancedDisplayName')).to.be.eql('active test1');
-    })
   });
 });
