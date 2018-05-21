@@ -367,6 +367,8 @@ public class HostImpl implements Host {
       } catch (AmbariException e1) {
         LOG.error("Unable to restore last valid host components status for host", e1);
       }
+      // initialize agent times in the last time to prevent setting registering/heartbeat times for failed registration.
+      host.updateHostTimestamps(e);
     }
   }
 
@@ -1291,16 +1293,18 @@ public class HostImpl implements Host {
   @Transactional
   public void updateHost(HostRegistrationRequestEvent e) {
     importHostInfo(e.hostInfo);
-    setLastRegistrationTime(e.registrationTime);
-    //Initialize heartbeat time and timeInState with registration time.
-    setLastHeartbeatTime(e.registrationTime);
-    setLastAgentStartTime(e.agentStartTime);
     setLastAgentEnv(e.agentEnv);
-    setTimeInState(e.registrationTime);
     setAgentVersion(e.agentVersion);
     setPublicHostName(e.publicHostName);
-    setTimeInState(System.currentTimeMillis());
     setState(HostState.INIT);
+  }
+
+  @Transactional
+  public void updateHostTimestamps(HostRegistrationRequestEvent e) {
+    setLastHeartbeatTime(e.registrationTime);
+    setLastRegistrationTime(e.registrationTime);
+    setLastAgentStartTime(e.agentStartTime);
+    setTimeInState(e.registrationTime);
   }
 
   /**
