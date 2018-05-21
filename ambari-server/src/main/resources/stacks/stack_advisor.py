@@ -2301,7 +2301,8 @@ class DefaultStackAdvisor(StackAdvisor):
 
     mounts = self.__getSameHostMounts(hosts)
     for banned in banned_mounts:
-      mounts.remove(banned)
+      if banned in mounts:
+        mounts.remove(banned)
     sep = "/"
 
     if not mounts:

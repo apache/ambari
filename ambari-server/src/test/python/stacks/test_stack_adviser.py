@@ -243,3 +243,77 @@ class TestBasicAdvisor(TestCase):
     self.stackAdvisor.updateMountProperties("some-site", pathProperties, configurations, services, hosts)
 
     self.assertEquals("/test,/data/test", configurations["some-site"]["properties"]["path_prop"])
+
+
+  def test_updateMountPropertiesWithBannedMounts(self):
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 4,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/", "type": "ext3"},
+              {"mountpoint": "/dev/shm", "type": "ext3"},
+              {"mountpoint": "/vagrant", "type": "vboxsf"},
+              {"mountpoint": "/dev/shm", "type": "ext3"},
+              {"mountpoint": "/vagrant", "type": "ext3"},
+              {"mountpoint": "/data", "type": "ext3"},
+              {"mountpoint": "/home", "type": "ext3"},
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        },
+        {
+          "Hosts": {
+            "cpu_count": 4,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/", "type": "ext3"},
+              {"mountpoint": "/dev/shm1", "type": "ext3"},
+              {"mountpoint": "/vagrant", "type": "vboxsf"},
+              {"mountpoint": "/data", "type": "ext3"},
+              {"mountpoint": "/home", "type": "ext3"},
+            ],
+            "public_host_name": "c6402.ambari.apache.org",
+            "host_name": "c6402.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+    services = {
+      "Versions": {
+        "parent_stack_version": "2.5",
+        "stack_name": "HDP",
+        "stack_version": "2.6",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
+      "services": [
+      ],
+      "configurations": {
+        "cluster-env": {
+          "properties": {
+            "agent_mounts_ignore_list": ""
+          }
+        },
+        "some-site": {
+          "path_prop": "/test"
+        }
+      }
+    }
+
+    pathProperties = [
+      ("path_prop", "DATANODE", "/test", "multi"),
+    ]
+
+    configurations = {}
+    hosts = self.stackAdvisor.filterHostMounts(hosts, services)
+
+    self.stackAdvisor.updateMountProperties("some-site", pathProperties, configurations, services, hosts, ["/home", "/nono"])
+
+    self.assertEquals("/test,/data/test", configurations["some-site"]["properties"]["path_prop"])
