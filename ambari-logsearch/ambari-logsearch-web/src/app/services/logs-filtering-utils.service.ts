@@ -24,13 +24,14 @@ import {LogsType, SortingType} from '@app/classes/string';
 import {UtilsService} from '@app/services/utils.service';
 
 // @ToDo remove duplication, this options are in the LogContainerService
-const timeRangeFilterOptions = [{
+export const timeRangeFilterOptions = [{
     label: 'filter.timeRange.7d',
     value: {
       type: 'LAST',
       unit: 'd',
       interval: 7
-    }
+    },
+    group: 0
   },
   {
     label: 'filter.timeRange.30d',
@@ -38,7 +39,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'd',
       interval: 30
-    }
+    },
+    group: 0
   },
   {
     label: 'filter.timeRange.60d',
@@ -46,7 +48,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'd',
       interval: 60
-    }
+    },
+    group: 0
   },
   {
     label: 'filter.timeRange.90d',
@@ -54,7 +57,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'd',
       interval: 90
-    }
+    },
+    group: 0
   },
   {
     label: 'filter.timeRange.6m',
@@ -62,7 +66,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'M',
       interval: 6
-    }
+    },
+    group: 0
   },
   {
     label: 'filter.timeRange.1y',
@@ -70,7 +75,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'y',
       interval: 1
-    }
+    },
+    group: 0
   },
   {
     label: 'filter.timeRange.2y',
@@ -78,7 +84,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'y',
       interval: 2
-    }
+    },
+    group: 0
   },
   {
     label: 'filter.timeRange.5y',
@@ -86,69 +93,81 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'y',
       interval: 5
-    }
-  }, {
+    },
+    group: 0
+  },
+  {
     label: 'filter.timeRange.yesterday',
     value: {
       type: 'PAST',
       unit: 'd'
-    }
+    },
+    group: 1
   },
   {
     label: 'filter.timeRange.previousWeek',
     value: {
       type: 'PAST',
       unit: 'w'
-    }
+    },
+    group: 1
   },
   {
     label: 'filter.timeRange.previousMonth',
     value: {
       type: 'PAST',
       unit: 'M'
-    }
+    },
+    group: 1
   },
   {
     label: 'filter.timeRange.previousYear',
     value: {
       type: 'PAST',
       unit: 'y'
-    }
+    },
+    group: 1
   },
   {
     label: 'filter.timeRange.today',
     value: {
       type: 'CURRENT',
       unit: 'd'
-    }
+    },
+    group: 1
   },
   {
     label: 'filter.timeRange.thisWeek',
     value: {
       type: 'CURRENT',
       unit: 'w'
-    }
+    },
+    group: 1
   },
   {
     label: 'filter.timeRange.thisMonth',
     value: {
       type: 'CURRENT',
       unit: 'M'
-    }
+    },
+    group: 1
   },
   {
     label: 'filter.timeRange.thisYear',
     value: {
       type: 'CURRENT',
       unit: 'y'
-    }
-  }, {
+    },
+    group: 1
+  },
+  {
     label: 'filter.timeRange.5min',
     value: {
       type: 'LAST',
       unit: 'm',
       interval: 5
-    }
+    },
+    group: 2
   },
   {
     label: 'filter.timeRange.15min',
@@ -156,7 +175,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'm',
       interval: 15
-    }
+    },
+    group: 2
   },
   {
     label: 'filter.timeRange.30min',
@@ -164,7 +184,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'm',
       interval: 30
-    }
+    },
+    group: 2
   },
   {
     label: 'filter.timeRange.1hr',
@@ -172,7 +193,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'h',
       interval: 1
-    }
+    },
+    group: 2
   },
   {
     label: 'filter.timeRange.3hr',
@@ -180,7 +202,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'h',
       interval: 3
-    }
+    },
+    group: 2
   },
   {
     label: 'filter.timeRange.6hr',
@@ -188,7 +211,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'h',
       interval: 6
-    }
+    },
+    group: 2
   },
   {
     label: 'filter.timeRange.12hr',
@@ -196,7 +220,8 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'h',
       interval: 12
-    }
+    },
+    group: 2
   },
   {
     label: 'filter.timeRange.24hr',
@@ -204,15 +229,63 @@ const timeRangeFilterOptions = [{
       type: 'LAST',
       unit: 'h',
       interval: 24
-    }
+    },
+    group: 2
   }];
 
 @Injectable()
 export class LogsFilteringUtilsService {
 
+  readonly defaultFilterSelections = {
+    clusters: [],
+    timeRange: {
+      value: {
+        type: 'LAST',
+        unit: 'h',
+        interval: 1
+      },
+      label: 'filter.timeRange.1hr'
+    },
+    components: [],
+    levels: [],
+    hosts: [],
+    auditLogsSorting: {
+      label: 'sorting.time.desc',
+      value: {
+        key: 'evtTime',
+        type: 'desc'
+      }
+    },
+    serviceLogsSorting: {
+      label: 'sorting.time.desc',
+      value: {
+        key: 'logtime',
+        type: 'desc'
+      }
+    },
+    pageSize: [{
+      label: '10',
+      value: '10'
+    }],
+    page: 0,
+    query: [],
+    users: [],
+    isUndoOrRedo: false
+  };
+
   constructor(
     private utilsService: UtilsService
   ) { }
+
+  getTimeRandeOptionsByGroup() {
+    return timeRangeFilterOptions.reduce((groups: any, item: any) => {
+      const groupItem = {...item};
+      delete groupItem.group;
+      groups[item.group] = groups[item.group] || [];
+      groups[item.group].push(groupItem);
+      return groups;
+    }, []);
+  }
 
   getStartTimeMomentFromTimeUnitListItem(selection: TimeUnitListItem, end: moment.Moment, timeZone: string): moment.Moment | undefined {
     let time;
@@ -298,11 +371,11 @@ export class LogsFilteringUtilsService {
   }
 
   getSortTypeFromSortingListItem(selection: SortingListItem[] = []): SortingType {
-    return selection[0] && selection[0].value ? selection[0].value.type : 'desc';
+    return selection && selection[0] && selection[0].value ? selection[0].value.type : 'desc';
   }
 
   getSortKeyFromSortingListItem(selection: SortingListItem[] = []): string {
-    return selection[0] && selection[0].value ? selection[0].value.key : '';
+    return selection && selection[0] && selection[0].value ? selection[0].value.key : '';
   }
 
   getPage(value: number | undefined): string | undefined {
@@ -326,52 +399,54 @@ export class LogsFilteringUtilsService {
       const newParams = {
         ...currentParams
       };
-      switch (key) {
-        case 'auditLogsSorting':
-        case 'serviceLogsSorting':
-          if (`${activeLogsType}Sorting` === key) {
-            const item = Array.isArray(filters[key]) ? filters[key][0] : filters[key];
-            const itemValue = item && item.value;
+      if (filters[key] !== null && filters[key] !== undefined) {
+        switch (key) {
+          case 'auditLogsSorting':
+          case 'serviceLogsSorting':
+            if (`${activeLogsType}Sorting` === key) {
+              const item = Array.isArray(filters[key]) ? filters[key][0] : filters[key];
+              const itemValue = item && item.value;
+              Object.assign(newParams, {
+                sortingKey: itemValue.key,
+                sortingType: itemValue.type,
+              });
+            }
+            break;
+          case 'query' :
             Object.assign(newParams, {
-              sortingKey: itemValue.key,
-              sortingType: itemValue.type,
+              [key]: JSON.stringify(filters[key])
             });
-          }
-          break;
-        case 'query' :
-          Object.assign(newParams, {
-            [key]: JSON.stringify(filters[key])
-          });
-          break;
-        case 'timeRange' :
-          const timeRangeValue: TimeUnit | CustomTimeRange = filters[key].value;
-          const timeRangeParams: {[key: string]: string} = {
-            timeRangeType: timeRangeValue.type
-          };
-          if (timeRangeValue.type === 'CUSTOM') {
-            Object.assign(timeRangeParams, {
-              timeRangeStart: timeRangeValue.start.toISOString(),
-              timeRangeEnd: timeRangeValue.end.toISOString()
-            });
-          } else {
-            Object.assign(timeRangeParams, {
-              timeRangeInterval: timeRangeValue.interval,
-              timeRangeUnit: timeRangeValue.unit
-            });
-          }
-          Object.assign(newParams, timeRangeParams);
-          break;
-        default:
-          const customMethodName: string = 'get' + (key.charAt(0).toUpperCase()) + key.slice(1);
-          const valueGetter: Function = (
-            this[customMethodName] || this.defaultValueGetterFromListItem
-          );
-          const paramValue = valueGetter(filters[key]);
-            Object.assign(newParams, {
-              ...newParams,
-              [key]: paramValue
-            });
-          break;
+            break;
+          case 'timeRange' :
+            const timeRangeValue: TimeUnit | CustomTimeRange = filters[key].value;
+            const timeRangeParams: {[key: string]: string} = {
+              timeRangeType: timeRangeValue.type
+            };
+            if (timeRangeValue.type === 'CUSTOM') {
+              Object.assign(timeRangeParams, {
+                timeRangeStart: timeRangeValue.start.toISOString(),
+                timeRangeEnd: timeRangeValue.end.toISOString()
+              });
+            } else {
+              Object.assign(timeRangeParams, {
+                timeRangeInterval: timeRangeValue.interval,
+                timeRangeUnit: timeRangeValue.unit
+              });
+            }
+            Object.assign(newParams, timeRangeParams);
+            break;
+          default:
+            const customMethodName: string = 'get' + (key.charAt(0).toUpperCase()) + key.slice(1);
+            const valueGetter: Function = (
+              this[customMethodName] || this.defaultValueGetterFromListItem
+            );
+            const paramValue = valueGetter(filters[key]);
+              Object.assign(newParams, {
+                ...newParams,
+                [key]: paramValue
+              });
+            break;
+        }
       }
       return newParams;
     }, {});
@@ -443,13 +518,13 @@ export class LogsFilteringUtilsService {
         case 'sortingKey' :
           const sortingKey = `${activeLogsType}Sorting`;
           newFilter = {
-            [sortingKey]: [{
+            [sortingKey]: {
               label: `sorting.time.${queryParams.sortingType}`,
               value: {
                 key: queryParams.sortingKey,
                 type: queryParams.sortingType
               }
-            }]
+            }
           };
           break;
         case 'query' :

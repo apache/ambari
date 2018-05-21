@@ -80,7 +80,9 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
     const checkedItems = this.subItems.filter((option: ListItem): boolean => option.isChecked);
     this.selection = checkedItems;
     this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
-    this.dropdownList.doItemsCheck();
+    if (this.dropdownList) {
+      this.dropdownList.doItemsCheck();
+    }
   }
 
   writeValue(items: ListItem[]) {

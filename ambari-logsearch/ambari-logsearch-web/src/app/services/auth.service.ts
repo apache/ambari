@@ -58,7 +58,11 @@ export class AuthService {
     if (isAuthorized) {
       const redirectTo = this.redirectUrl || (this.router.routerState.snapshot.url === '/login' ? '/' : null);
       if (redirectTo) {
-        this.router.navigate(Array.isArray(redirectTo) ? redirectTo : [redirectTo]);
+        if (Array.isArray(redirectTo)) {
+          this.router.navigate(redirectTo);
+        } else {
+          this.router.navigateByUrl(redirectTo);
+        }
       }
       this.redirectUrl = '';
     } else if (!isAuthorized) {

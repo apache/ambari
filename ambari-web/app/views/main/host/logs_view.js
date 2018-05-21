@@ -45,7 +45,7 @@ App.MainHostLogsView = App.TableView.extend({
 
   content: function() {
     var self = this,
-        linkTailTpl = '?host_name={0}&file_name={1}&component_name={2}';
+        linkTailTpl = '/#logs/serviceLogs?hosts={0}&components={2}&query=%5B%7B"id":0,"name":"path","label":"Path","value":"{1}","isExclude":false%7D%5D';
 
     return this.get('hostLogs').map(function(i) {
       return Em.Object.create({
