@@ -98,14 +98,13 @@ export class DropdownButtonComponent {
           }
         });
       } else {
-        const selectedItem: ListItem = items.find((item: ListItem) => item.isChecked);
+        const selectedItem: ListItem = Array.isArray(updatedItem) ? updatedItem[0] : updatedItem;
         this.options.forEach((item: ListItem) => {
-          item.isChecked = !!selectedItem && this.utils.isEqual(item.value, selectedItem.value);
+          item.isChecked = this.utils.isEqual(item.value, selectedItem.value);
         });
       }
     } else {
       this.options.forEach((item: ListItem) => item.isChecked = false);
-      this.selection = [];
     }
     const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
     this.selection = checkedItems;
