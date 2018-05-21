@@ -16,19 +16,23 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, ViewChild, OnInit, OnDestroy} from '@angular/core';
 import {Response} from '@angular/http';
+import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/finally';
+import {Subscription} from 'rxjs/Subscription';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
-import {Observable} from 'rxjs/Observable';
+import {NotificationService, NotificationType} from '@modules/shared/services/notification.service';
+import {TranslateService} from '@ngx-translate/core';
+import {FormGroup} from '@angular/forms';
 
 @Component({
   selector: 'login-form',
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.less']
 })
-export class LoginFormComponent {
+export class LoginFormComponent implements OnInit, OnDestroy {
 
   username: string;
 
@@ -38,24 +42,47 @@ export class LoginFormComponent {
 
   isLoginInProgress$: Observable<boolean> = this.appState.getParameter('isLoginInProgress');
 
-  constructor(private authService: AuthService, private appState: AppStateService) {}
+  errorMessage: string;
 
-  /**
-   * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
-   * When it gets error response it shows.
-   * @param {Response} resp
-   */
-  private onLoginError = (resp: Response): void => {
-    this.isLoginAlertDisplayed = true;
+  @ViewChild('loginForm')
+  loginForm: FormGroup;
+
+  subscriptions: Subscription[] = [];
+
+  constructor(
+    private authService: AuthService,
+    private appState: AppStateService,
+    private notificationService: NotificationService,
+    private translateService: TranslateService
+  ) {}
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.loginForm.valueChanges.subscribe(this.onLoginFormChange)
+    );
   }
 
-  /**
-   * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
-   * When it gets success response it hides.
-   * @param {Response} resp
-   */
-  private onLoginSuccess = (resp: Response): void => {
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
+  onLoginFormChange = (event) => {
     this.isLoginAlertDisplayed = false;
+  }
+
+  private onLoginSuccess = (result: Boolean): void => {
+    this.isLoginAlertDisplayed = false;
+    this.errorMessage = '';
+  }
+
+  private onLoginError = (resp: Boolean): void => {
+    Observable.combineLatest(
+      this.translateService.get('login.error.title'),
+      this.translateService.get('login.error.message')
+    ).first().subscribe(([title, message]: [string, string]) => {
+      this.errorMessage = message;
+      this.isLoginAlertDisplayed = true;
+    });
   }
 
   login() {

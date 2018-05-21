@@ -219,6 +219,8 @@
   "logIndexFilter.update.error": "Error at updating Log Index Filter for cluster <span class='cluster-name'>{{cluster}}</span>. {{message}}",
 
   "login.title": "Login",
+  "login.error.title": "Login error",
+  "login.error.message": "Unable to sign in. Invalid username/password combination.",
 
   "shipperConfiguration.title": "All Configuration",
   "shipperConfiguration.add": "Add",
