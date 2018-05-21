@@ -20,6 +20,7 @@ var misc = require('utils/misc');
 var stringUtils = require('utils/string_utils');
 var dateUtils = require('utils/date/date');
 var previousMasterComponentIds = [];
+var hiveServerInteractiveAdvancedNameMap = {};
 
 App.serviceMetricsMapper = App.QuickDataMapper.create({
 
@@ -207,7 +208,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    * @type {Array}
    * @const
    */
-  ADVANCED_COMPONENTS: ['SECONDARY_NAMENODE', 'RESOURCEMANAGER', 'NAMENODE', 'HBASE_MASTER', 'RESOURCEMANAGER'],
+  ADVANCED_COMPONENTS: ['SECONDARY_NAMENODE', 'RESOURCEMANAGER', 'NAMENODE', 'HBASE_MASTER', 'RESOURCEMANAGER', 'HIVE_SERVER_INTERACTIVE'],
 
   hostNameIpMap: {},
 
@@ -289,20 +290,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           });
           if (notDefinedHostIp) {
             self.getHostNameIpMap(hostNames).done(function () {
-              self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort, function () {
-                App.store.safeLoadMany(self.get('model3'), hostComponents);
-              });
+              self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
             });
           } else {
-            self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort, function () {
-              App.store.safeLoadMany(self.get('model3'), hostComponents);
-            });
+            self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
           }
         });
-      } else {
-        App.store.safeLoadMany(this.get('model3'), hostComponents);
       }
 
+      App.store.safeLoadMany(this.get('model3'), hostComponents);
       //parse service metrics from components
       services.forEach(function (item) {
         hostComponents.filterProperty('service_id', item.ServiceInfo.service_name).mapProperty('id').forEach(function (hostComponent) {
@@ -352,9 +348,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     }).error(function () {})
   },
 
-  getHiveServersInteractiveStatus: function(hiveInteractiveServers, hiveWebUiPort, callback) {
+  getHiveServersInteractiveStatus: function(hiveInteractiveServers, hiveWebUiPort) {
     var self = this;
-    var requestCounter = 0;
     hiveInteractiveServers.forEach(function (hiveInteractiveServer) {
       App.ajax.send({
         name: 'hiveServerInteractive.getStatus',
@@ -364,13 +359,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         },
         sender: self
       }).success(function (isActive) {
-        hiveInteractiveServer.display_name_advanced = Em.I18n.t('quick.links.label.' +  (isActive ? 'active': 'standby')) + ' ' + hiveInteractiveServer.display_name;
-      }).error(function () {}).done(function () {
-        requestCounter++;
-        if (requestCounter === hiveInteractiveServers.length) {
-          callback();
-        }
-      });
+        var advancedName = Em.I18n.t('quick.links.label.' +  (isActive ? 'active': 'standby')) + ' ' + hiveInteractiveServer.display_name;
+        hiveServerInteractiveAdvancedNameMap[hiveInteractiveServer.host_name] = advancedName;
+      }).error(function () {});
     });
   },
 
@@ -493,6 +484,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
               hostComponent.display_name_advanced = Em.I18n.t('dashboard.services.yarn.resourceManager.standby');
               break;
           }
+        } else if (hostComponent.component_name === 'HIVE_SERVER_INTERACTIVE') {
+          hostComponent.display_name_advanced = hiveServerInteractiveAdvancedNameMap[hostComponent.host_name];
         }
         if (service) {
           if (hostComponent.display_name_advanced) {
