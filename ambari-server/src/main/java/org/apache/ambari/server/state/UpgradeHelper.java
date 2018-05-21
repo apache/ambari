@@ -827,14 +827,32 @@ public class UpgradeHelper {
    * @param component the component name
    */
   private void setDisplayNames(UpgradeContext context, String service, String component) {
+    StackId currentStackId = context.getCluster().getCurrentStackVersion();
     StackId stackId = context.getRepositoryVersion().getStackId();
 
     try {
       ServiceInfo serviceInfo = m_ambariMetaInfoProvider.get().getService(stackId.getStackName(),
           stackId.getStackVersion(), service);
+
+      // if the service doesn't exist in the new stack, try the old one
+      if (null == serviceInfo) {
+        serviceInfo = m_ambariMetaInfoProvider.get().getService(currentStackId.getStackName(),
+            currentStackId.getStackVersion(), service);
+      }
+
+      if (null == serviceInfo) {
+        LOG.debug("Unable to lookup service display name information for {}", service);
+        return;
+      }
+
       context.setServiceDisplay(service, serviceInfo.getDisplayName());
 
       ComponentInfo compInfo = serviceInfo.getComponentByName(component);
+      if (null == compInfo) {
+        LOG.debug("Unable to lookup component display name information for {}", component);
+        return;
+      }
+
       context.setComponentDisplay(service, component, compInfo.getDisplayName());
 
     } catch (AmbariException e) {
