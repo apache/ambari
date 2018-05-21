@@ -618,6 +618,9 @@ Options:
                         core filter for replica folders
   --skip-cores=SKIP_CORES
                         specific cores to skip (comma separated)
+  --skip-generate-restore-host-cores
+                        Skip the generation of restore_host_cores.json, just 
+                        read the file itself, can be useful if command failed at some point.
   --shards=SOLR_SHARDS  number of shards (required to set properly for
                         restore)
   --solr-hdfs-path=SOLR_HDFS_PATH

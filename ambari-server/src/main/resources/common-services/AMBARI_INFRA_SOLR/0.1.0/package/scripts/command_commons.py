@@ -74,6 +74,8 @@ request_time_interval = int(default("/commandParams/solr_request_time_interval",
 check_hosts_default = True if params.security_enabled else False
 check_hosts = default("/commandParams/solr_check_hosts", check_hosts_default)
 
+skip_generate_restore_host_cores = default("/commandParams/solr_skip_generate_restore_host_cores", False)
+
 solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
 solr_port = format("{params.infra_solr_port}")
 solr_base_url = format("{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr")
@@ -316,6 +318,15 @@ def __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores
     json.dump(json_content, outfile)
   return json_content
 
+def __read_host_cores_from_file(json_host_cores_path):
+  """
+  Read host cores from file, can be useful if you do not want to regenerate host core data (with that you can generate your own host core pairs for restore)
+  """
+  with open(json_host_cores_path) as json_file:
+    host_cores_json_data = json.load(json_file)
+    return host_cores_json_data
+
+
 def get_host_cores_for_collection(backup=True):
   """
   Get core details to an object and write them to a file as well. Backup data will be used during restore.
@@ -331,7 +342,8 @@ def get_host_cores_for_collection(backup=True):
     json_host_cores_path = format("{json_folder}/restore_host_cores.json")
   api_request = create_solr_api_request_command(request_path, output=json_zk_state_path)
   Execute(api_request, user=params.infra_solr_user)
-  return __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores_path)
+  return __read_host_cores_from_file(json_host_cores_path) if skip_generate_restore_host_cores \
+    else __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores_path)
 
 def read_backup_json():
   with open(format("{index_location}/backup_host_cores.json")) as json_file:

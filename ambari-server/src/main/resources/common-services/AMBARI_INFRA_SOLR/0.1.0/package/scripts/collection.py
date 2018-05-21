@@ -173,18 +173,21 @@ def restore_collection(env):
                                    recursive_chown=True,
                                    recursive_chmod=True
                                    )
+        command_commons.HdfsResource(None, action="execute")
         command_commons.HdfsResource(format("{hdfs_solr_node_folder}/data/tlog"),
                                    type="directory",
                                    action="create_on_execute",
                                    owner=params.infra_solr_user,
                                    mode=0755
                                    )
+        command_commons.HdfsResource(None, action="execute")
         command_commons.HdfsResource(format("{hdfs_solr_node_folder}/data/snapshot_metadata"),
                                    type="directory",
                                    action="create_on_execute",
                                    owner=params.infra_solr_user,
                                    mode=0755
                                    )
+        command_commons.HdfsResource(None, action="execute")
         if command_commons.solr_keep_backup:
           Directory(format("{index_location}/snapshot.{src_core}"),
                   action="delete",
@@ -239,6 +242,7 @@ def restore_collection(env):
                                action="delete_on_execute",
                                owner=params.infra_solr_user
                                )
+        command_commons.HdfsResource(None, action="execute")
         if command_commons.check_hdfs_folder_exists(backup_collection_core_dir):
           command_commons.move_hdfs_folder(backup_collection_core_dir, collection_core_dir)
       else:
