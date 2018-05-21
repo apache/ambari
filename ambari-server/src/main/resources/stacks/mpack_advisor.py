@@ -28,6 +28,7 @@ import traceback
 import json
 import sys
 import logging
+import copy
 from math import ceil, floor
 from urlparse import urlparse
 
@@ -1184,12 +1185,29 @@ class MpackAdvisorImpl(MpackAdvisor):
                     message = "{0} requires {1} to be co-hosted on following host(s): {2}.".format(componentDisplayName,
                                requiredComponentDisplayName, ', '.join(requiredComponentHostsAbsent))
                     items.append({ "type": 'host-component', "level": 'ERROR', "message": message,
-                                   "component-name": component["StackServiceComponents"]["component_name"],
-                                   "mpack-name": serviceInstance.getMpackName(), "mpack-version": serviceInstance.getMpackVersion()})
+                                   "component_instance_name": component["StackServiceComponents"]["component_name"],
+                                   "component_instance_type": serviceInstance.getType(),
+                                   "host": "null",
+                                   "config_type": "null",
+                                   "config_name": "null",
+                                   "mpack_instance_name": serviceInstance.getMpackName(),
+                                   "mpack_instance_type": serviceInstance.getMpackName(),
+                                   "mpack_version": serviceInstance.getMpackVersion(),
+                                   "service_instance_name": serviceInstance.getName(),
+                                   "service_instance_type": serviceInstance.getType()})
                 elif scope == "cluster" and not requiredComponentHosts:
                   message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, requiredComponentDisplayName)
-                  items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": component["StackServiceComponents"]["component_name"],
-                                 "mpack-name": serviceInstance.getMpackName(), "mpack-version": serviceInstance.getMpackVersion()})
+                  items.append({ "type": 'host-component', "level": 'ERROR', "message": message,
+                                 "component_instance_name": component["StackServiceComponents"]["component_name"],
+                                 "component_instance_type": serviceInstance.getType(),
+                                 "host": "null",
+                                 "config_type": "null",
+                                 "config_name": "null",
+                                 "mpack_instance_name": serviceInstance.getMpackName(),
+                                 "mpack_instance_type": serviceInstance.getMpackName(),
+                                 "mpack_version": serviceInstance.getMpackVersion(),
+                                 "service_instance_name": serviceInstance.getName(),
+                                 "service_instance_type": serviceInstance.getType()})
     return items
 
   def calculateYarnAllocationSizes(self, configurations, services, hosts):
@@ -1459,10 +1477,13 @@ class MpackAdvisorImpl(MpackAdvisor):
 
     return uid_min
 
-  def validateClusterConfigurations(self):
+  def validateClusterConfigurations(self, items, itemHead):
     validationItems = []
 
-    return self.toConfigurationValidationProblems(validationItems, "")
+    validatedItems = self.toConfigurationValidationProblems(validationItems, "")
+    for validatedItem in validatedItems:
+      item = dict(itemHead.items() + validatedItem.items())
+      items.append(item)
 
   def toConfigurationValidationProblems(self, validationProblems, siteName):
     """
@@ -1471,14 +1492,14 @@ class MpackAdvisorImpl(MpackAdvisor):
     :param siteName: Config type
     :return: List of configuration validation problems that include additional fields like the log level.
     """
-    result = []
+    items = []
     for validationProblem in validationProblems:
       validationItem = validationProblem.get("item")
       if validationItem:
         problem = {"type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
-                   "config-type": siteName, "config-name": validationProblem["config-name"] }
-        result.append(problem)
-    return result
+                   "config_type": siteName, "config_name": validationProblem["config-name"] }
+        items.append(problem)
+    return items
 
   def validateServiceConfigurations(self, serviceName):
 
@@ -1492,7 +1513,7 @@ class MpackAdvisorImpl(MpackAdvisor):
     """
     return {}
 
-  def validateMinMax(self, items, recommendedDefaults, configurations):
+  def validateMinMax(self, items, itemHead, recommendedDefaults, configurations):
 
     # required for casting to the proper numeric type before comparison
     def convertToNumber(number):
@@ -1511,14 +1532,17 @@ class MpackAdvisorImpl(MpackAdvisor):
               userValue = convertToNumber(configurations[configName]["properties"][propertyName])
               maxValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["maximum"])
               if userValue > maxValue:
-                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is greater than the recommended maximum of {0} ".format(maxValue))}])
+                validationItems.extend([{"config_name": propertyName, "item": self.getWarnItem("Value is greater than the recommended maximum of {0} ".format(maxValue))}])
             if "minimum" in recommendedDefaults[configName]["property_attributes"][propertyName] and \
                     propertyName in recommendedDefaults[configName]["properties"]:
               userValue = convertToNumber(configurations[configName]["properties"][propertyName])
               minValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["minimum"])
               if userValue < minValue:
-                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is less than the recommended minimum of {0} ".format(minValue))}])
-      items.extend(self.toConfigurationValidationProblems(validationItems, configName))
+                validationItems.extend([{"config_name": propertyName, "item": self.getWarnItem("Value is less than the recommended minimum of {0} ".format(minValue))}])
+      validatedItems = self.toConfigurationValidationProblems(validationItems, configName)
+      for validatedItem in validatedItems:
+        item = dict(itemHead.items() + validatedItem.items())
+        items.append(item)
     pass
 
   def getConfigurationsValidationItems(self):
@@ -1530,22 +1554,17 @@ class MpackAdvisorImpl(MpackAdvisor):
     configurations = self.services["configurations"]
     recommendations = self.recommendConfigurations()
     mpackInstances = recommendations["recommendations"]["blueprint"]["mpack_instances"]
-    mpackInstancesDict = {"mpack_instances": []}
-    items.append(mpackInstancesDict)
-    mpackInstancesList = mpackInstancesDict.get("mpack_instances")
     for mpackInstance in mpackInstances:
-      recommendedDefaults = mpackInstance["configurations"]
       mpackName = mpackInstance["name"]
       mpackVersion = mpackInstance["version"]
-      mpackInstanceConfigurations = {}
-      mpackItems = []
-      mpackInstanceItem = {"name": mpackName, "version": mpackVersion, "items": mpackItems}
-      mpackInstancesList.append(mpackInstanceItem)
-      for serviceInstance in self.mpackServiceInstancesDict.get(mpackName):
-        mpackItems.extend(self.getConfigurationsValidationItemsForService(configurations, recommendedDefaults, serviceInstance, self.services, self.hostsList))
-      self.validateMinMax(mpackItems, recommendedDefaults, configurations)
-    clusterWideItems = self.validateClusterConfigurations()
-    items.append({"cluster": clusterWideItems})
+      for serviceInstance in mpackInstance.get("service_instances"):
+        recommendedDefaults = serviceInstance["configurations"]
+        serviceInstanceObj = next((si for si in self.serviceInstancesSet if si.getName() == serviceInstance["name"]), None)
+        itemHead = {"mpack_instance_name": mpackName, "mpack_instance_type": mpackName, "mpack_version": mpackVersion,
+                "service_instance_name": serviceInstance["name"], "service_instance_type": serviceInstance["type"],
+                "component_instance_name": "null", "component_instance_type": "null", "host": ""}
+        self.getConfigurationsValidationItemsForService(items, itemHead, configurations, recommendedDefaults, serviceInstanceObj, self.services, self.hostsList)
+        self.validateMinMax(items, itemHead, recommendedDefaults, configurations)
     return items
 
   def validateListOfConfigUsingMethod(self, configurations, recommendedDefaults, services, hosts, validators):
@@ -1583,20 +1602,22 @@ class MpackAdvisorImpl(MpackAdvisor):
         return method(siteProperties, siteRecommendations, configurations, services, hosts)
     return []
 
-  def getConfigurationsValidationItemsForService(self, configurations, recommendedDefaults, serviceInstance, services, hosts):
-    items = []
+  def getConfigurationsValidationItemsForService(self, items, itemHead, configurations, recommendedDefaults, serviceInstance, services, hosts):
     serviceName = serviceInstance.getType()
     validator = self.validateServiceConfigurations(serviceName)
     if validator is not None:
       for siteName, method in validator.items():
-        resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
-        items.extend(resultItems)
+        self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
+        for resultItem in resultItems:
+          item = dict(itemHead.items() + resultItem.items())
+          items.append(item)
 
     serviceAdvisor = serviceInstance.getServiceAdvisor()
     if serviceAdvisor is not None:
-      items.extend(serviceAdvisor.getServiceConfigurationsValidationItems(configurations, recommendedDefaults, services, hosts))
-
-    return items
+      moreItems = serviceAdvisor.getServiceConfigurationsValidationItems(configurations, recommendedDefaults, services, hosts)
+      for moreItem in moreItems:
+        item = dict(itemHead.items() + moreItem.items())
+        items.append(item)
 
   def recommendConfigGroupsConfigurations(self, recommendations):
     recommendations["recommendations"]["config-groups"] = []
@@ -1689,31 +1710,28 @@ class MpackAdvisorImpl(MpackAdvisor):
         mpackInstance = {}
         mpackInstance["name"] = mpackInstanceName
         mpackInstance["version"] = serviceInstances[0].getMpackVersion()
-        mpackInstance["service_instances"] = [serviceInstance.getName() for serviceInstance in serviceInstances]
-        mpackInstance["configurations"] = {}
-        mpackInstance["hosts"] = []
+        mpackInstance["service_instances"] = []
         mpackInstances.append(mpackInstance)
-        configurations = mpackInstance["configurations"]
         # there can be dependencies between service recommendations which require special ordering
         # for now, make sure custom services (that have service advisors) run after standard ones
         serviceAdvisors = []
         for serviceInstance in serviceInstances:
           serviceName = serviceInstance.getType()
+          serviceInstanceConfigurations = {"name": serviceName, "type": serviceInstance.getType(), \
+                                           "version": serviceInstance.getVersion(), "configurations": {}}
+          mpackInstance.get("service_instances").append(serviceInstanceConfigurations)
+          configurations = serviceInstanceConfigurations.get("configurations")
           calculation = self.getServiceConfigurationRecommenderForSSODict(serviceName) if isSSO \
                         else self.getServiceConfigurationRecommender(serviceName)
           if calculation:
-            # ???????
             calculation(configurations, clusterSummary, self.services, self.hostsList)
           else:
             serviceAdvisor = serviceInstance.getServiceAdvisor()
             if serviceAdvisor:
-              serviceAdvisors.append(serviceAdvisor)
-        for serviceAdvisor in serviceAdvisors:
-          if isSSO:
-            serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, self.services, self.hostsList)
-          else:
-            serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, self.services, self.hostsList)
-
+              if isSSO:
+                serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, self.services, self.hostsList)
+              else:
+                serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, self.services, self.hostsList)
 
     return recommendations
 
@@ -2909,9 +2927,9 @@ class MpackAdvisorImpl(MpackAdvisor):
   def validatorEqualsPropertyItem(self, properties1, propertyName1,
                                   properties2, propertyName2,
                                   emptyAllowed=False):
-    if not propertyName1 in properties1:
+    if not properties1 or not propertyName1 in properties1:
       return self.getErrorItem("Value should be set for %s" % propertyName1)
-    if not propertyName2 in properties2:
+    if not properties2 or not propertyName2 in properties2:
       return self.getErrorItem("Value should be set for %s" % propertyName2)
     value1 = properties1.get(propertyName1)
     if value1 is None and not emptyAllowed:
