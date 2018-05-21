@@ -120,6 +120,14 @@
             <tfoot>
               <tr>
                 <td colspan="5">
+                  {{#if view.selectedHostsCount}}
+                    <a {{action selectedHostsPopup target="controller"}} href="#">
+                      {{view.selectedHostsCount}}
+                      {{pluralize view.selectedHostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
+                    </a>
+                    -
+                    <a {{action unSelectAll target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
+                  {{/if}}
                   {{view App.PaginationView}}
                 </td>
               </tr>
