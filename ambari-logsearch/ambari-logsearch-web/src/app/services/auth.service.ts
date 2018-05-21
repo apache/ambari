@@ -25,6 +25,7 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {Router} from '@angular/router';
 import {Subscription} from 'rxjs/Subscription';
+import { Observer } from 'rxjs/Observer';
 
 export const IS_AUTHORIZED_APP_STATE_KEY: string = 'isAuthorized';
 export const IS_LOGIN_IN_PROGRESS_APP_STATE_KEY: string = 'isLoginInProgress';
@@ -75,30 +76,48 @@ export class AuthService {
    * @param {string} password
    * @returns {Observable<Response>}
    */
-  login(username: string, password: string): Observable<Response> {
+  login(username: string, password: string): Observable<Boolean> {
     this.setLoginInProgressAppState(true);
     const response$ = this.httpClient.postFormData('login', {
       username: username,
       password: password
-    });
+    }).share();
     response$.subscribe(
       (resp: Response) => this.onLoginResponse(resp),
       (resp: Response) => this.onLoginError(resp)
     );
-    return response$;
+    return response$.switchMap((resp: Response) => {
+      return Observable.create((observer: Observer<boolean>) => {
+        if (resp.ok) {
+          observer.next(resp.ok);
+        } else {
+          observer.error(resp);
+        }
+        observer.complete();
+      });
+    });
   }
 
   /**
    * The single unique entry point to request a logout action
    * @returns {Observable<boolean | Error>}
    */
-  logout(): Observable<Response> {
-    const response$ = this.httpClient.get('logout');
+  logout(): Observable<Boolean> {
+    const response$ = this.httpClient.get('logout').share();
     response$.subscribe(
       (resp: Response) => this.onLogoutResponse(resp),
       (resp: Response) => this.onLogoutError(resp)
     );
-    return response$;
+    return response$.switchMap((resp: Response) => {
+      return Observable.create((observer) => {
+        if (resp.ok) {
+          observer.next(resp.ok);
+        } else {
+          observer.error(resp);
+        }
+        observer.complete();
+      });
+    });
   }
 
   /**
