@@ -29,7 +29,7 @@
 </ng-container>
 <span class="active-parameter-label" *ngIf="isActive && activeItem">{{activeItem.label | translate}}:</span>
 <div [ngClass]="{'search-item-container': true, 'active': isActive, 'value': isValueInput}">
-  <input #parameterInput [(ngModel)]="currentValue" [typeahead]="items" typeaheadOptionField="value"
+  <input #parameterInput [(ngModel)]="currentValue" [typeahead]="items" typeaheadOptionField="label"
          [typeaheadItemTemplate]="listItemTemplate" (typeaheadNoResults)="setParameterNameMatchFlag($event)"
          [typeaheadMinLength]="0"
          (typeaheadOnSelect)="changeParameterName({item: $event.item, isExclude: false})"
