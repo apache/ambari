@@ -72,6 +72,7 @@ public abstract class MpackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private static final String MPACK_SERVICE_INSTANCES_PROPERTY = "service_instances";
   private static final String MPACK_SERVICE_INSTANCE_NAME_PROPERTY = "name";
   private static final String MPACK_SERVICE_INSTANCE_TYPE_PROPERTY = "type";
+  private static final String MPACK_SERVICE_INSTANCE_CONFIGURATION_PROPERTY = "configurations";
 
   // Blueprint -> host-group related
   private static final String BLUEPRINT_HOST_GROUPS_PROPERTY = RECOMMENDATIONS_PROPERTY + "/" + BLUEPRINT_PROPERTY + "/host_groups";
@@ -138,7 +139,7 @@ public abstract class MpackAdvisorResourceProvider extends ReadOnlyResourceProvi
       Collection<HostGroup> hgCompMap = prepareHostGroupComponentsMap(request);
       Map<String, Set<String>> hgHostsMap = calculateHostGroupHostsMap(request);
       Map<String, Map<String, Set<String>>> mpacksToComponentsHostsMap = populateComponentHostsMap(hgCompMap, hgHostsMap);
-      Map<String, Map<String, Map<String, String>>> configurations = calculateConfigurations(request);
+      Map<String, Map<String, Map<String, String>>> configurations = populateConfigurations(request);
       Map<String, String> userContext = readUserContext(request);
       Boolean gplLicenseAccepted = configuration.getGplLicenseAccepted();
 
@@ -188,6 +189,10 @@ public abstract class MpackAdvisorResourceProvider extends ReadOnlyResourceProvi
           if (serviceInstance.getType() == null) {
             serviceInstance.setType(serviceInstance.getName());
           }
+          Map<String, Map<String, Map<String, String>>> serviceConfigsMap = getServiceConfigs(instance);
+          // Putting configurations in attributes object, because of Map issues.
+          org.apache.ambari.server.topology.Configuration serviceConfigsObj = new org.apache.ambari.server.topology.Configuration(null, serviceConfigsMap, null);
+          serviceInstance.setConfiguration(serviceConfigsObj);
           serviceInstances.add(serviceInstance);
         }
         // Update mpackInstancesBag
@@ -196,6 +201,48 @@ public abstract class MpackAdvisorResourceProvider extends ReadOnlyResourceProvi
     }
     return mpackInstancesBag;
   }
+
+
+  public Map<String, Map<String, Map<String, String>>> getServiceConfigs(Map<String, Object> instance) {
+    Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
+    for (String property : instance.keySet()) {
+      if (property.startsWith(CONFIGURATIONS_PROPERTY_ID)) {
+        try {
+          String propertyEnd = property.substring(CONFIGURATIONS_PROPERTY_ID.length()); // /mapred-site/properties/yarn.app.mapreduce.am.resource.mb
+          propertyEnd = propertyEnd.substring(1); // Remove the initial "/", now is : mapred-site/properties/yarn.app.mapreduce.am.resource.mb
+          String[] propertyPath = propertyEnd.split("/"); // length == 3
+          String siteName = propertyPath[0];
+          String propertiesProperty = propertyPath[1];
+          String propertyName = propertyPath[2];
+
+          Map<String, Map<String, String>> siteMap = configurations.get(siteName);
+          if (siteMap == null) {
+            siteMap = new HashMap<>();
+            configurations.put(siteName, siteMap);
+          }
+
+
+          Map<String, String> propertiesMap = siteMap.get(propertiesProperty);
+          if (propertiesMap == null) {
+            propertiesMap = new HashMap<>();
+            siteMap.put(propertiesProperty, propertiesMap);
+          }
+
+          Object propVal = instance.get(property);
+          if (propVal != null)
+            propertiesMap.put(propertyName, propVal.toString());
+          else
+            LOG.info(String.format("No value specified for configuration property, name = %s ", property));
+
+        } catch (Exception e) {
+          LOG.debug(String.format("Error handling configuration property, name = %s", property), e);
+          // do nothing
+        }
+      }
+    }
+    return configurations;
+  }
+
 
   /**
    * Will prepare host-group names to components names map from the
@@ -271,40 +318,48 @@ public abstract class MpackAdvisorResourceProvider extends ReadOnlyResourceProvi
     return map;
   }
 
-  protected static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
-  protected Map<String, Map<String, Map<String, String>>> calculateConfigurations(Request request) {
-    Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
+  protected static final String CLUSTER_CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
+  protected static final String CONFIGURATIONS_PROPERTY_ID = "configurations";
+  protected Map<String, Map<String, Map<String, String>>> populateConfigurations(Request request) {
+    Map<String, Map<String, Map<String, String>>>  configurations = new HashMap<>();
     Map<String, Object> properties = request.getProperties().iterator().next();
-    for (String property : properties.keySet()) {
-      if (property.startsWith(CONFIGURATIONS_PROPERTY_ID)) {
-        try {
-          String propertyEnd = property.substring(CONFIGURATIONS_PROPERTY_ID.length()); // mapred-site/properties/yarn.app.mapreduce.am.resource.mb
-          String[] propertyPath = propertyEnd.split("/"); // length == 3
-          String siteName = propertyPath[0];
-          String propertiesProperty = propertyPath[1];
-          String propertyName = propertyPath[2];
+    //Map<String, Object> clusterLevelConfigs = (Map<String, Object>) getRequestProperty(
+    //    request, CLUSTER_CONFIGURATIONS_PROPERTY_ID);
+    if (properties != null) {
+      for (String property : properties.keySet()) {
+        if (property.startsWith(CLUSTER_CONFIGURATIONS_PROPERTY_ID)) {
+          try {
+            String propertyEnd = property.substring(CLUSTER_CONFIGURATIONS_PROPERTY_ID.length());
+            //getRequestProperty(request, CLUSTER_CONFIGURATIONS_PROPERTY_ID);
+            //String propertyEnd = configPropRelativePath.substring(CONFIGURATIONS_PROPERTY_ID.length()); // mapred-site/properties/yarn.app.mapreduce.am.resource.mb
+            String[] propertyPath = propertyEnd.split("/"); // length == 3
+            String siteName = propertyPath[0];
+            String propertiesProperty = propertyPath[1];
+            String propertyName = propertyPath[2];
 
-          Map<String, Map<String, String>> siteMap = configurations.get(siteName);
-          if (siteMap == null) {
-            siteMap = new HashMap<>();
-            configurations.put(siteName, siteMap);
+            Map<String, Map<String, String>> siteMap = configurations.get(siteName);
+            if (siteMap == null) {
+              siteMap = new HashMap<>();
+              configurations.put(siteName, siteMap);
+            }
+
+            Map<String, String> propertiesMap = siteMap.get(propertiesProperty);
+            if (propertiesMap == null) {
+              propertiesMap = new HashMap<>();
+              siteMap.put(propertiesProperty, propertiesMap);
+            }
+
+            Object propVal = properties.get(property);
+            if (propVal != null)
+              propertiesMap.put(propertyName, propVal.toString());
+            else
+              LOG.info(String.format("No value specified for configuration property, name = %s ", property));
+
+          } catch (Exception e) {
+            LOG.debug(String.format("Error handling configuration property, name = %s", property), e);
+            // do nothing
           }
 
-          Map<String, String> propertiesMap = siteMap.get(propertiesProperty);
-          if (propertiesMap == null) {
-            propertiesMap = new HashMap<>();
-            siteMap.put(propertiesProperty, propertiesMap);
-          }
-
-          Object propVal = properties.get(property);
-          if (propVal != null)
-            propertiesMap.put(propertyName, propVal.toString());
-          else
-            LOG.info(String.format("No value specified for configuration property, name = %s ", property));
-
-        } catch (Exception e) {
-          LOG.debug(String.format("Error handling configuration property, name = %s", property), e);
-          // do nothing
         }
       }
     }

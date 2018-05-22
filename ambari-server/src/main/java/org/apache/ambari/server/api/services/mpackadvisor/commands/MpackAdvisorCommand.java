@@ -52,7 +52,9 @@ import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHan
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.MpackInstance;
+import org.apache.ambari.server.topology.ServiceInstance;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -170,7 +172,8 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
 
       populateComponentHostsMap(root, request.getComponentHostsMap());
       populateServiceAdvisors(root);
-      populateConfigurations(root, request);
+      populateServicesConfigurations(root, request);
+      populateClusterLevelConfigurations(root, request);
       populateAmbariServerInfo(root);
       populateAmbariConfiguration(root);
       // Get previous data, if any from data.servicesJSON and append to it.
@@ -197,10 +200,18 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
     root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, mapper.valueToTree(result));
   }
 
-  private void populateConfigurations(ObjectNode root,
-                                      MpackAdvisorRequest request) {
-    Map<String, Map<String, Map<String, String>>> configurations = request.getConfigurations();
-    ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
+  /* Reads cluster level configurations (eg: cluster-settings).
+   */
+  private void populateClusterLevelConfigurations(ObjectNode root, MpackAdvisorRequest request) {
+    Map<String, Map<String, Map<String, String>>> configurations =
+        request.getConfigurations();
+    // Check if 'configurations' node exists. If not, create.
+    ObjectNode configurationsNode = null;
+    if (root.get(CONFIGURATIONS_PROPERTY) != null) {
+      configurationsNode = (ObjectNode) root.get(CONFIGURATIONS_PROPERTY);
+    } else {
+      configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
+    }
     for (String siteName : configurations.keySet()) {
       ObjectNode siteNode = configurationsNode.putObject(siteName);
 
@@ -215,9 +226,41 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
         }
       }
     }
+  }
+
+  private void populateServicesConfigurations(ObjectNode root, MpackAdvisorRequest request) {
+    Collection<MpackInstance> mpackInstances = request.getMpackInstances();
+    Iterator<MpackInstance> mpackInstanceItr = mpackInstances.iterator();
+    ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
+    while (mpackInstanceItr.hasNext()) {
+      MpackInstance mpackInstance = mpackInstanceItr.next();
+      Collection<ServiceInstance> serviceInstances = mpackInstance.getServiceInstances();
+      Iterator<ServiceInstance> serviceInstanceItr = serviceInstances.iterator();
+      while (serviceInstanceItr.hasNext()) {
+        ServiceInstance serviceInstance = serviceInstanceItr.next();
+        Configuration configurations = serviceInstance.getConfiguration();
+        // We have read configuration properties in attributes as it allows the following format:
+        // eg: {configType -> {attributeName -> {propName, attributeValue}}}
+        Map<String, Map<String, Map<String, String>>> configProperties = configurations.getAttributes();
+        for (String siteName : configProperties.keySet()) {
+          ObjectNode siteNode = configurationsNode.putObject(siteName);
+
+          Map<String, Map<String, String>> siteMap = configProperties.get(siteName);
+          for (String properties : siteMap.keySet()) {
+            ObjectNode propertiesNode = siteNode.putObject(properties);
+
+            Map<String, String> propertiesMap = siteMap.get(properties);
+            for (String propertyName : propertiesMap.keySet()) {
+              String propertyValue = propertiesMap.get(propertyName);
+              propertiesNode.put(propertyName, propertyValue);
+            }
+          }
+        }
+      }
+    }
+
     JsonNode changedConfigs = mapper.valueToTree(request.getChangedConfigurations());
     root.put(CHANGED_CONFIGURATIONS_PROPERTY, changedConfigs);
-
     JsonNode userContext = mapper.valueToTree(request.getUserContext());
     root.put(USER_CONTEXT_PROPERTY, userContext);
     root.put(GPL_LICENSE_ACCEPTED, request.getGplLicenseAccepted());

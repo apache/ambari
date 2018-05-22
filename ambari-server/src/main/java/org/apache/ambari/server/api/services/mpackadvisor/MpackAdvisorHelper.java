@@ -28,6 +28,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackAdvisorCommand;
 import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackComponentLayoutRecommendationCommand;
 import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackComponentLayoutValidationCommand;
+import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.mpackadvisor.recommendations.MpackRecommendationResponse;
 import org.apache.ambari.server.api.services.mpackadvisor.validations.MpackValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
@@ -123,6 +124,9 @@ public class MpackAdvisorHelper {
     MpackAdvisorCommand<MpackRecommendationResponse> command;
     if (requestType == MpackAdvisorRequest.MpackAdvisorRequestType.HOST_GROUPS) {
       command = new MpackComponentLayoutRecommendationCommand(mpackRecommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
+          requestId, maRunner, metaInfo, ambariServerConfigurationHandler);
+    }  else if (requestType == MpackAdvisorRequest.MpackAdvisorRequestType.CONFIGURATIONS) {
+      command = new MpackConfigurationRecommendationCommand(mpackRecommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
           requestId, maRunner, metaInfo, ambariServerConfigurationHandler);
     } else {
       // TODO : for other MpackAdvisorRequestType's.
