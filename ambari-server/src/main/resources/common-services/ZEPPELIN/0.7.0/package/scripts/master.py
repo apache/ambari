@@ -194,11 +194,12 @@ class Master(Script):
                 mode=0644)
 
   def check_and_copy_notebook_in_hdfs(self, params):
-    if params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir'].startswith("/"):
-      notebook_directory = params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+
+    notebook_dir = params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+    if notebook_dir.startswith("/") or '://' in notebook_dir:
+      notebook_directory = notebook_dir
     else:
-      notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + \
-                           params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+      notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + notebook_dir
 
     if not self.is_directory_exists_in_HDFS(notebook_directory, params.zeppelin_user):
       # hdfs dfs -mkdir {notebook_directory}

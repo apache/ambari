@@ -186,11 +186,12 @@ class Master(Script):
                 mode=0644)
 
   def check_and_copy_notebook_in_hdfs(self, params):
-    if params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir'].startswith("/"):
-      notebook_directory = params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+    notebook_dir = params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+    
+    if notebook_dir.startswith("/") or '://' in notebook_dir:
+      notebook_directory = notebook_dir
     else:
-      notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + \
-                           params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+      notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + notebook_dir
 
     kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
     kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
