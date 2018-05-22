@@ -333,7 +333,7 @@ CREATE TABLE user_authentication (
   authentication_type VARCHAR(50) NOT NULL,
   authentication_key VARCHAR(2048),
   create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  update_time TIMESTAMP DEFAULT 0,
+  update_time TIMESTAMP DEFAULT NOW(),
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
   CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
