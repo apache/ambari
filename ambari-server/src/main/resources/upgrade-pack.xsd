@@ -374,7 +374,14 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
+  <xs:complexType name="regenerate_keytabs">
+    <xs:complexContent>
+      <xs:extension base="abstract-server-task-type">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:complexType name="order-type">
     <xs:sequence>
       <xs:element name="group" minOccurs="1" maxOccurs="unbounded" />

@@ -50,6 +50,8 @@ import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteCommandJson;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl.SupportedCustomOperation;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -78,6 +80,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -260,6 +263,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private RequestDAO requestDAO;
+
+  /**
+   * Used for creating keytab regeneration stage inside of an upgrade request.
+   */
+  @Inject
+  private static Provider<KerberosHelper> s_kerberosHelper;
 
   static {
     // properties
@@ -798,41 +807,86 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       for (StageWrapper wrapper : group.items) {
         RepositoryVersionEntity effectiveRepositoryVersion = upgradeContext.getRepositoryVersion();
 
-        if (wrapper.getType() == StageWrapper.Type.SERVER_SIDE_ACTION) {
-          // !!! each stage is guaranteed to be of one type. but because there
-          // is a bug that prevents one stage with multiple tasks assigned for
-          // the same host, break them out into individual stages.
-          for (TaskWrapper taskWrapper : wrapper.getTasks()) {
-            for (Task task : taskWrapper.getTasks()) {
-              if (upgradeContext.isManualVerificationAutoSkipped()
-                  && task.getType() == Task.Type.MANUAL) {
-                continue;
-              }
+        switch(wrapper.getType()) {
+          case SERVER_SIDE_ACTION:{
+            // !!! each stage is guaranteed to be of one type. but because there
+            // is a bug that prevents one stage with multiple tasks assigned for
+            // the same host, break them out into individual stages.
+            for (TaskWrapper taskWrapper : wrapper.getTasks()) {
+              for (Task task : taskWrapper.getTasks()) {
+                if (upgradeContext.isManualVerificationAutoSkipped()
+                    && task.getType() == Task.Type.MANUAL) {
+                  continue;
+                }
 
-              UpgradeItemEntity itemEntity = new UpgradeItemEntity();
+                UpgradeItemEntity itemEntity = new UpgradeItemEntity();
 
-              itemEntity.setText(wrapper.getText());
-              itemEntity.setTasks(wrapper.getTasksJson());
-              itemEntity.setHosts(wrapper.getHostsJson());
+                itemEntity.setText(wrapper.getText());
+                itemEntity.setTasks(wrapper.getTasksJson());
+                itemEntity.setHosts(wrapper.getHostsJson());
 
-              injectVariables(configHelper, cluster, itemEntity);
-              if (makeServerSideStage(group, upgradeContext, effectiveRepositoryVersion, req,
-                  itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
-                itemEntities.add(itemEntity);
+                injectVariables(configHelper, cluster, itemEntity);
+                if (makeServerSideStage(group, upgradeContext, effectiveRepositoryVersion, req,
+                    itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
+                  itemEntities.add(itemEntity);
+                }
               }
             }
+            break;
           }
-        } else {
-          UpgradeItemEntity itemEntity = new UpgradeItemEntity();
-          itemEntity.setText(wrapper.getText());
-          itemEntity.setTasks(wrapper.getTasksJson());
-          itemEntity.setHosts(wrapper.getHostsJson());
-          itemEntities.add(itemEntity);
+          case REGENERATE_KEYTABS: {
+            try {
+              // remmeber how many stages we had before adding keytab stuff
+              int stageCount = req.getStages().size();
 
-          injectVariables(configHelper, cluster, itemEntity);
+              // build a map of request properties which say to
+              //   - only regenerate missing tabs
+              //   - allow all tasks which fail to be retried (so the upgrade doesn't abort)
+              Map<String, String> requestProperties = new HashMap<>();
+              requestProperties.put(SupportedCustomOperation.REGENERATE_KEYTABS.name().toLowerCase(), "missing");
+              requestProperties.put(KerberosHelper.ALLOW_RETRY, Boolean.TRUE.toString().toLowerCase());
 
-          // upgrade items match a stage
-          createStage(group, upgradeContext, effectiveRepositoryVersion, req, itemEntity, wrapper);
+              // add stages to the upgrade which will regenerate missing keytabs only
+              req = s_kerberosHelper.get().executeCustomOperations(cluster, requestProperties, req, null);
+
+              // for every stage which was added for kerberos stuff create an
+              // associated upgrade item for it
+              List<Stage> stages = req.getStages();
+              int newStageCount = stages.size();
+              for (int i = stageCount; i < newStageCount; i++) {
+                Stage stage = stages.get(i);
+                stage.setSkippable(group.skippable);
+                stage.setAutoSkipFailureSupported(group.supportsAutoSkipOnFailure);
+
+                UpgradeItemEntity itemEntity = new UpgradeItemEntity();
+                itemEntity.setStageId(stage.getStageId());
+                itemEntity.setText(stage.getRequestContext());
+                itemEntity.setTasks(wrapper.getTasksJson());
+                itemEntity.setHosts(wrapper.getHostsJson());
+                itemEntities.add(itemEntity);
+                injectVariables(configHelper, cluster, itemEntity);
+              }
+            } catch (KerberosOperationException kerberosOperationException) {
+              throw new AmbariException("Unable to build keytab regeneration stage",
+                  kerberosOperationException);
+            }
+
+            break;
+          }
+          default: {
+            UpgradeItemEntity itemEntity = new UpgradeItemEntity();
+            itemEntity.setText(wrapper.getText());
+            itemEntity.setTasks(wrapper.getTasksJson());
+            itemEntity.setHosts(wrapper.getHostsJson());
+            itemEntities.add(itemEntity);
+
+            injectVariables(configHelper, cluster, itemEntity);
+
+            // upgrade items match a stage
+            createStage(group, upgradeContext, effectiveRepositoryVersion, req, itemEntity, wrapper);
+
+            break;
+          }
         }
       }
 

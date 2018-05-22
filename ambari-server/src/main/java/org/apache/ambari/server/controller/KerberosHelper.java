@@ -132,6 +132,13 @@ public interface KerberosHelper {
   String PRECONFIGURE_SERVICES = "preconfigure_services";
 
   /**
+   * If {@code true}, then this will create the stages and tasks as being
+   * retry-able. A failure during Kerberos operations will not cause the entire
+   * request to be aborted.
+   */
+  String ALLOW_RETRY = "allow_retry_on_failure";
+
+  /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
    * <p/>
    * The cluster "security_type" property is used to determine the security state of the cluster.
