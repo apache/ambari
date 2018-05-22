@@ -160,6 +160,7 @@ public class RequestUpdateEvent extends STOMPEvent {
       this.id = id;
       this.requestId = requestId;
       this.status = status;
+      // AMBARI_SERVER_ACTION does not have attached host, so we use server host
       this.hostName = (hostName == null) ? StageUtils.getHostName() : hostName;
     }
 
