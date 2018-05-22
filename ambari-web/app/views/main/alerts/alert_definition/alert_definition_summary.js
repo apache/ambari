@@ -29,6 +29,8 @@ App.AlertDefinitionSummary = Em.View.extend({
 
   hasMultipleCount: Em.computed.gt('content.hostCnt', 0),
 
+  isActiveDefinitionState: Em.computed.and('hasMultipleCount', 'content.enabled'),
+
   definitionState: function () {
     var content = this.get('content');
     if (!content) {
