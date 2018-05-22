@@ -379,6 +379,19 @@ public class CheckDescription {
         "Hence need to migrate existing data to newer formats post upgrade. " +
         "To migrate existing data, Kindly refer and follow Apache Atlas documentation for 1.0 release.").build());
 
+  public static CheckDescription KERBEROS_ADMIN_CREDENTIAL_CHECK = new CheckDescription("KERBEROS_ADMIN_CREDENTIAL_CHECK",
+      PrereqCheckType.CLUSTER,
+      "The KDC administrator credentials need to be stored in Ambari persisted credential store.",
+      new ImmutableMap.Builder<String, String>()
+          .put(KerberosAdminPersistedCredentialCheck.KEY_PERSISTED_STORE_NOT_CONFIGURED,
+              "Ambari's credential store has not been configured.  " +
+                  "This is needed so the KDC administrator credential may be stored long enough to ensure it will be around if needed during the upgrade process.")
+          .put(KerberosAdminPersistedCredentialCheck.KEY_CREDENTIAL_NOT_STORED,
+              "The KDC administrator credential has not been stored in the persisted credential store. " +
+                  "Visit the Kerberos administrator page to set the credential. " +
+                  "This is needed so the KDC administrator credential may be stored long enough to ensure it will be around if needed during the upgrade process.")
+          .build());
+
   private String m_name;
   private PrereqCheckType m_type;
   private String m_description;
