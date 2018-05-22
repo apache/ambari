@@ -54,12 +54,14 @@ class InfraSolr(Script):
     generate_logfeeder_input_config('ambari-infra', Template("input.config-ambari-infra.json.j2", extra_imports=[default]))
 
     setup_solr_znode_env()
-    start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' >> {infra_solr_log} 2>&1') \
-            if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} >> {infra_solr_log} 2>&1')
+    start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' 2>&1') \
+            if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} 2>&1')
+    piped_start_cmd = format('{start_cmd} | tee {infra_solr_log}') + '; (exit "${PIPESTATUS[0]}")'
     Execute(
-      start_cmd,
+      piped_start_cmd,
       environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
-      user=params.infra_solr_user
+      user=params.infra_solr_user,
+      logoutput=True
     )
 
   def stop(self, env, upgrade_type=None):
@@ -67,10 +69,13 @@ class InfraSolr(Script):
     env.set_params(params)
 
     try:
-      Execute(format('{solr_bindir}/solr stop -all >> {infra_solr_log}'),
+      stop_cmd=format('{solr_bindir}/solr stop -all')
+      piped_stop_cmd=format('{stop_cmd} | tee {infra_solr_log}') + '; (exit "${PIPESTATUS[0]}")'
+      Execute(piped_stop_cmd,
               environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
               user=params.infra_solr_user,
-              only_if=format("test -f {prev_infra_solr_pidfile}")
+              only_if=format("test -f {prev_infra_solr_pidfile}"),
+              logoutput=True
               )
 
       File(params.prev_infra_solr_pidfile,
