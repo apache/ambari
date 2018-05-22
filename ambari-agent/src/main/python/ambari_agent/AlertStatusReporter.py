@@ -42,6 +42,7 @@ class AlertStatusReporter(threading.Thread):
     self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
     self.server_responses_listener = initializer_module.server_responses_listener
     self.reported_alerts = defaultdict(lambda:defaultdict(lambda:[]))
+    self.send_alert_changes_only = initializer_module.config.send_alert_changes_only
     threading.Thread.__init__(self)
 
   def run(self):
@@ -58,11 +59,11 @@ class AlertStatusReporter(threading.Thread):
           self.clean_not_existing_clusters_info()
           alerts = self.collector.alerts()
           self.stale_alerts_monitor.save_executed_alerts(alerts)
-          changed_alerts = self.get_changed_alerts(alerts)
+          alerts_to_send = self.get_changed_alerts(alerts) if self.send_alert_changes_only else alerts
 
-          if changed_alerts and self.initializer_module.is_registered:
-            correlation_id = self.initializer_module.connection.send(message=changed_alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT, log_message_function=AlertStatusReporter.log_sending)
-            self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_results(changed_alerts)
+          if alerts_to_send and self.initializer_module.is_registered:
+            correlation_id = self.initializer_module.connection.send(message=alerts_to_send, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT, log_message_function=AlertStatusReporter.log_sending)
+            self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_results(alerts_to_send)
 
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
