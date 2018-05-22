@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -159,7 +160,8 @@ public class RequestUpdateEvent extends STOMPEvent {
       this.id = id;
       this.requestId = requestId;
       this.status = status;
-      this.hostName = hostName;
+      // AMBARI_SERVER_ACTION does not have attached host, so we use server host
+      this.hostName = (hostName == null) ? StageUtils.getHostName() : hostName;
     }
 
     public Long getId() {
