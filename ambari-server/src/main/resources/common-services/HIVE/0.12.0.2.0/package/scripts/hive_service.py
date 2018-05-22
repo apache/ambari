@@ -36,6 +36,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from ambari_commons.repo_manager.repo_manager_helper import check_installed_metrics_hadoop_sink_version
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -72,6 +73,9 @@ def hive_service(name, action='start', upgrade_type=None):
   process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
 
   if action == 'start':
+    # Check ambari-metrics-hadoop-sink version is less than 2.7.0.0
+    check_installed_metrics_hadoop_sink_version()
+
     if name == 'hiveserver2':
       check_fs_root(params.hive_server_conf_dir, params.execute_path)
 

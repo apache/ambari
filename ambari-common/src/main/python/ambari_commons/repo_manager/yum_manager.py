@@ -63,7 +63,7 @@ class YumManagerProperties(GenericManagerProperties):
   }
 
   verify_dependency_cmd = [repo_manager_bin, '-d', '0', '-e', '0', 'check', 'dependencies']
-  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{{version}}-%{{release}}"]
+  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{version}-%{release}\n"]
 
   remove_without_dependencies_cmd = ['rpm', '-e', '--nodeps']
 
@@ -356,7 +356,7 @@ class YumManager(GenericManager):
 
   def get_installed_package_version(self, package_name):
     version = None
-    cmd = list(self.properties.installed_package_version_command) + ["\"{0}\"".format(package_name)]
+    cmd = list(self.properties.installed_package_version_command) + [package_name]
 
     result = shell.subprocess_executor(cmd)
 
