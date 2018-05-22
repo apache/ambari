@@ -340,6 +340,10 @@ class AmbariConfig:
     """
     return self.get('security', 'ca_cert_path', default="")
 
+  @property
+  def send_alert_changes_only(self):
+    return bool(self.get('agent', 'send_alert_changes_only', '0'))
+
 
 def isSameHostList(hostlist1, hostlist2):
   is_same = True
