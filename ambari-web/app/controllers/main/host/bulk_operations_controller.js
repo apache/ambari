@@ -173,7 +173,7 @@ App.BulkOperationsController = Em.Controller.extend({
     else {
       return App.ModalPopup.show({
         header: Em.I18n.t('rolling.nothingToDo.header'),
-        body: Em.I18n.t('rolling.nothingToDo.body').format(Em.I18n.t('hosts.host.maintainance.allComponents.context')),
+	body: operationData.state == 'OFF' ?Em.I18n.t('hosts.bulkOperation.noPassiveState.nothingToDo.body'):Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
         secondary: false
       });
     }
