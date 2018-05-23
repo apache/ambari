@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 
 /**
@@ -76,7 +79,7 @@ public class HostsType {
    * For example: [sec1, sec2, master1, sec3, sec4, master2]
    */
   public void arrangeHostSecondariesFirst() {
-    this.hosts = getHighAvailabilityHosts().stream()
+    hosts = getHighAvailabilityHosts().stream()
       .flatMap(each -> Stream.concat(each.getSecondaries().stream(), Stream.of(each.getMaster())))
       .collect(toCollection(LinkedHashSet::new));
   }
@@ -168,6 +171,21 @@ public class HostsType {
    */
   public static HostsType single(String host) {
     return HostsType.normal(host);
+  }
+
+  /**
+   * Create an instance with all healthy hosts.
+   */
+  public static HostsType healthy(Cluster cluster) {
+    LinkedHashSet<String> hostNames = new LinkedHashSet<>();
+    for (Host host : cluster.getHosts()) {
+      MaintenanceState maintenanceState = host.getMaintenanceState(cluster.getClusterId());
+      if (maintenanceState == MaintenanceState.OFF) {
+        hostNames.add(host.getHostName());
+      }
+    }
+
+    return normal(hostNames);
   }
 
   private HostsType(List<HighAvailabilityHosts> highAvailabilityHosts, LinkedHashSet<String> hosts) {

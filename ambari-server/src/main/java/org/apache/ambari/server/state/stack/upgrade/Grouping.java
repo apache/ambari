@@ -349,6 +349,9 @@ public class Grouping {
         case SERVICE_CHECK:
           type = StageWrapper.Type.SERVICE_CHECK;
           break;
+        case REGENERATE_KEYTABS:
+          type = StageWrapper.Type.REGENERATE_KEYTABS;
+          break;
       }
       tasks.add(initial);
     }

@@ -176,7 +176,7 @@ public class MasterHostResolver {
       String serviceName, String componentName) {
     Collection<Host> candidates = cluster.getHosts();
     if (StringUtils.isNotBlank(serviceName) && StringUtils.isNotBlank(componentName)) {
-      List<ServiceComponentHost> schs = cluster.getServiceComponentHosts(serviceName,componentName);      
+      List<ServiceComponentHost> schs = cluster.getServiceComponentHosts(serviceName,componentName);
       candidates = schs.stream().map(sch -> sch.getHost()).collect(Collectors.toList());
     }
 
@@ -185,23 +185,23 @@ public class MasterHostResolver {
     }
 
     // figure out where to add the new component
-    List<Host> hosts = Lists.newArrayList();
+    List<Host> winners = Lists.newArrayList();
     switch (executeHostType) {
       case ALL:
-        hosts.addAll(candidates);
+        winners.addAll(candidates);
         break;
       case FIRST:
-        hosts.add(candidates.iterator().next());
+        winners.add(candidates.iterator().next());
         break;
       case MASTER:
-        hosts.add(candidates.iterator().next());
+        winners.add(candidates.iterator().next());
         break;
       case ANY:
-        hosts.add(candidates.iterator().next());
+        winners.add(candidates.iterator().next());
         break;
     }
 
-    return candidates;
+    return winners;
   }
 
   /**

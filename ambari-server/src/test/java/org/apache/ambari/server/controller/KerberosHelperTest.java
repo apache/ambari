@@ -167,6 +167,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   private final AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
   private final TopologyManager topologyManager = createMock(TopologyManager.class);
   private final Configuration configuration = createMock(Configuration.class);
+  private final AmbariCustomCommandExecutionHelper customCommandExecutionHelperMock = createNiceMock(AmbariCustomCommandExecutionHelper.class);
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -249,7 +250,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(SecurityHelper.class).toInstance(createNiceMock(SecurityHelper.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(AmbariCustomCommandExecutionHelper.class).toInstance(createNiceMock(AmbariCustomCommandExecutionHelper.class));
+        bind(AmbariCustomCommandExecutionHelper.class).toInstance(customCommandExecutionHelperMock);
         bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
         bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
@@ -496,6 +497,33 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test
   public void testRegenerateKeytabs() throws Exception {
     testRegenerateKeytabs(new PrincipalKeyCredential("principal", "password"), false, false);
+  }
+
+  /**
+   * Tests that when regenerating keytabs for an upgrade, that the retry allowed
+   * boolean is set on the tasks created.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRegenerateKeytabsWithRetryAllowed() throws Exception {
+    Capture<ActionExecutionContext> captureContext = Capture.newInstance();
+    customCommandExecutionHelperMock.addExecutionCommandsToStage(capture(captureContext),
+        anyObject(Stage.class), anyObject(), eq(null));
+
+    expectLastCall().atLeastOnce();
+
+    Map<String, String> requestMap = new HashMap<>();
+    requestMap.put(KerberosHelper.DIRECTIVE_REGENERATE_KEYTABS, "true");
+    requestMap.put(KerberosHelper.ALLOW_RETRY, "true");
+
+    RequestStageContainer requestStageContainer = testRegenerateKeytabs(
+        new PrincipalKeyCredential("principal", "password"), requestMap, false, false);
+
+    assertNotNull(requestStageContainer);
+
+    ActionExecutionContext capturedContext = captureContext.getValue();
+    assertTrue(capturedContext.isRetryAllowed());
   }
 
   @Test
@@ -1309,7 +1337,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     verifyAll();
   }
 
-  private void testRegenerateKeytabs(final PrincipalKeyCredential PrincipalKeyCredential, boolean mockRequestStageContainer, final boolean testInvalidHost) throws Exception {
+  private RequestStageContainer testRegenerateKeytabs(final PrincipalKeyCredential principalKeyCredential, boolean mockRequestStageContainer, final boolean testInvalidHost) throws Exception {
+    return testRegenerateKeytabs(principalKeyCredential, Collections.singletonMap(KerberosHelper.DIRECTIVE_REGENERATE_KEYTABS, "true"), mockRequestStageContainer, testInvalidHost);
+  }
+
+  private RequestStageContainer testRegenerateKeytabs(final PrincipalKeyCredential PrincipalKeyCredential, Map<String,String> requestMap, boolean mockRequestStageContainer, final boolean testInvalidHost) throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
@@ -1492,9 +1524,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     credentialStoreService.setCredential(cluster.getClusterName(), KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS,
         PrincipalKeyCredential, CredentialStoreType.TEMPORARY);
 
-    Assert.assertNotNull(kerberosHelper.executeCustomOperations(cluster, Collections.singletonMap(KerberosHelper.DIRECTIVE_REGENERATE_KEYTABS, "true"), requestStageContainer, true));
+    RequestStageContainer returnValue = kerberosHelper.executeCustomOperations(cluster,
+        requestMap, requestStageContainer, true);
+
+    Assert.assertNotNull(returnValue);
 
     verifyAll();
+
+    return returnValue;
   }
 
   @Test
@@ -2860,7 +2897,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       put(DIRECTIVE_COMPONENTS, "SERVICE1:COMPONENT1;COMPONENT2,SERVICE2:COMPONENT1;COMPONENT2;COMPONENT3");
     }};
 
-    Set<String> expectedHosts = new HashSet<String>(Arrays.asList("host1", "host2", "host3"));
+    Set<String> expectedHosts = new HashSet<>(Arrays.asList("host1", "host2", "host3"));
     Set<String> hosts = KerberosHelperImpl.parseHostFilter(requestProperties);
 
     assertEquals(expectedHosts, hosts);

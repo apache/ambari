@@ -34,7 +34,8 @@ import com.google.gson.annotations.Expose;
 @XmlSeeAlso(
     value = { ExecuteTask.class, CreateAndConfigureTask.class, ConfigureTask.class,
         ManualTask.class, RestartTask.class, StartTask.class, StopTask.class,
-        ServerActionTask.class, ConfigureFunction.class, AddComponentTask.class })
+        ServerActionTask.class, ConfigureFunction.class, AddComponentTask.class,
+        RegenerateKeytabsTask.class })
 public abstract class Task {
 
   /**
@@ -161,7 +162,12 @@ public abstract class Task {
     /**
      * A task which adds new components to the cluster during the upgrade.
      */
-    ADD_COMPONENT;
+    ADD_COMPONENT,
+
+    /**
+     * Create keytab regeneration steps as part of the upgrade.
+     */
+    REGENERATE_KEYTABS;
 
     /**
      * Commands which run on the server.
@@ -173,7 +179,7 @@ public abstract class Task {
      * Commands which are run on agents.
      */
     public static final EnumSet<Type> COMMANDS = EnumSet.of(RESTART, START, CONFIGURE_FUNCTION,
-        STOP, SERVICE_CHECK);
+        STOP, SERVICE_CHECK, REGENERATE_KEYTABS);
 
     /**
      * @return {@code true} if the task is manual or automated.
