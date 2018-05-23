@@ -565,9 +565,7 @@ public class BlueprintConfigurationProcessor {
     String clusterName = getClusterName();
 
     // Getting configuration and properties for adding configurations to ranger-tagsync-site
-    Map<String, String> rangerHDFSPluginProperties = null;
     boolean isRangerHDFSPluginEnabled =  false;
-    Map<String, String> rangerHDFSSecurityConfig = null;
     String rangerHDFSPluginServiceName = "";
 
     String atlasServerComponentName = "ATLAS_SERVER";
@@ -577,10 +575,10 @@ public class BlueprintConfigurationProcessor {
     boolean isRangerTagsyncToBeInstalled = (clusterTopology.getHostGroupsForComponent(rangerTagsyncComponentName).size() >= 1);
     boolean isAtlasServerToBeInstalled = (clusterTopology.getHostGroupsForComponent(atlasServerComponentName).size() >= 1);
     if (isRangerAdminToBeInstalled) {
-      rangerHDFSPluginProperties = clusterProps.get("ranger-hdfs-plugin-properties");
+      Map<String, String> rangerHDFSPluginProperties = clusterProps.get("ranger-hdfs-plugin-properties");
       String rangerHDFSPluginEnabledValue = rangerHDFSPluginProperties.getOrDefault("ranger-hdfs-plugin-enabled","No");
       isRangerHDFSPluginEnabled = ("yes".equalsIgnoreCase(rangerHDFSPluginEnabledValue));
-      rangerHDFSSecurityConfig = clusterProps.get("ranger-hdfs-security");
+      Map<String, String> rangerHDFSSecurityConfig = clusterProps.get("ranger-hdfs-security");
       rangerHDFSPluginServiceName = rangerHDFSSecurityConfig.get("ranger.plugin.hdfs.service.name");
     }
 
