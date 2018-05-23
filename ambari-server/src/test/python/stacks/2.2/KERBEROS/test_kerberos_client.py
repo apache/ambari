@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 import json
-from mock.mock import MagicMock, patch
+from mock.mock import patch
 import os
 import sys
 import use_cases

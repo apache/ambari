@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
@@ -56,6 +57,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -100,6 +102,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -109,6 +112,7 @@ import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.RegenerateKeytabsTask;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
@@ -147,6 +151,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   private RepositoryVersionDAO repoVersionDao = null;
   private Injector injector;
   private Clusters clusters;
+  private Cluster cluster;
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
   private AgentConfigsHolder agentConfigsHolder = createNiceMock(AgentConfigsHolder.class);
@@ -154,6 +159,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   private TopologyManager topologyManager;
   private ConfigFactory configFactory;
   private HostRoleCommandDAO hrcDAO;
+  private KerberosHelper kerberosHelperMock = createNiceMock(KerberosHelper.class);
 
   RepositoryVersionEntity repoVersionEntity2110;
   RepositoryVersionEntity repoVersionEntity2111;
@@ -256,7 +262,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     clusters = injector.getInstance(Clusters.class);
 
     clusters.addCluster("c1", stack211);
-    Cluster cluster = clusters.getCluster("c1");
+    cluster = clusters.getCluster("c1");
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -2081,6 +2087,45 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   }
 
   /**
+   * Tests that a {@link RegenerateKeytabsTask} causes the upgrade to inject the
+   * correct stages.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCreateRegenerateKeytabStages() throws Exception {
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_regenerate_keytabs");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    cluster.setSecurityType(SecurityType.KERBEROS);
+
+    RequestStageContainer requestStageContainer = createNiceMock(RequestStageContainer.class);
+    expect(requestStageContainer.getStages()).andReturn(Lists.newArrayList()).once();
+
+    expect(kerberosHelperMock.executeCustomOperations(eq(cluster), EasyMock.anyObject(),
+        EasyMock.anyObject(RequestStageContainer.class), eq(null))).andReturn(
+            requestStageContainer).once();
+
+    replayAll();
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    try {
+      upgradeResourceProvider.createResources(request);
+      Assert.fail("The mock request stage container should have caused a problem in JPA");
+    } catch (IllegalArgumentException illegalArgumentException) {
+      // ignore
+    }
+
+    verifyAll();
+  }
+
+  /**
    *
    */
   private class MockModule implements Module {
@@ -2091,6 +2136,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     public void configure(Binder binder) {
       binder.bind(ConfigHelper.class).toInstance(configHelper);
       binder.bind(AgentConfigsHolder.class).toInstance(agentConfigsHolder);
+      binder.bind(KerberosHelper.class).toInstance(kerberosHelperMock);
     }
   }
 }
