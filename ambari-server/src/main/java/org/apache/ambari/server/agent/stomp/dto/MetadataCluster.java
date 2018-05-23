@@ -87,7 +87,16 @@ public class MetadataCluster {
         break;
       }
     }
+
+    for (String key : serviceLevelParams.keySet()) {
+      if (!update.containsKey(key) || !update.get(key).equals(update.get(key))) {
+        changed = true;
+        break;
+      }
+    }
+
     if (changed) {
+      serviceLevelParams.clear();
       serviceLevelParams.putAll(update);
     }
     return changed;
@@ -101,7 +110,16 @@ public class MetadataCluster {
         break;
       }
     }
+
+    for (String key : clusterLevelParams.keySet()) {
+      if (!update.containsKey(key) || !StringUtils.equals(update.get(key), clusterLevelParams.get(key))) {
+        changed = true;
+        break;
+      }
+    }
+
     if (changed) {
+      clusterLevelParams.clear();
       clusterLevelParams.putAll(update);
     }
     return changed;
