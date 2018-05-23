@@ -81,7 +81,7 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
     if (candidates.isEmpty()) {
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "", String.format(
           "Unable to add a new component to the cluster as there are no hosts which contain %s's %s",
-          task.service, task.component));
+          task.hostService, task.hostComponent));
     }
 
     Service service = cluster.getService(task.service);
