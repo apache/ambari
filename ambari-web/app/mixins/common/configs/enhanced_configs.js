@@ -297,34 +297,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     return params;
   },
 
-  /**
-   * Get the url to use to request the correct stack version from stack advisor.
-   * Falls back to using the old global config value if necessary.
-   * 
-   * @param {object} options Should include stackName and stackVersion properties, which should refer to the mpack being installed. 
-   */
-  getStackVersionUrl: function getStackVersionUrl(options) {
-    if (options.stackName && options.stackVersion) {
-      return '/stacks/' + options.stackName + '/versions/' + options.stackVersion;
-    }
-
-    return App.get('stackVersionURL');
-  },
-
   getRecommendationsRequest: function (dataToSend, callback) {
-    var self = this;
+    const self = this;
     this.set('recommendationsInProgress', true);
+    const stackVersionUrl = App.getStackVersionUrl(dataToSend.stackName, dataToSend.stackVersion) || App.get('stackVersionURL');
+    
     return App.ajax.send({
       name: 'config.recommendations',
       sender: self,
       data: {
-        stackVersionUrl: this.getStackVersionUrl(dataToSend),
-        //exclude stackName and stackVersion from dataToSend
+        stackVersionUrl: stackVersionUrl,
         dataToSend: {
           recommend: dataToSend.recommend,
           hosts: dataToSend.hosts,
           services: dataToSend.services,
-          changed_configurations: dataToSend.changed_configurations
+          changed_configurations: dataToSend.changed_configurations,
+          user_context: dataToSend.user_context,
+          recommendations: dataToSend.recommendations
         }
       },
       success: 'loadRecommendationsSuccess',
@@ -332,6 +321,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       callback: function () {
         self.set('recommendationsInProgress', false);
         self.set('recommendationTimeStamp', (new Date).getTime());
+        
         if (callback) {
           callback()
         }
