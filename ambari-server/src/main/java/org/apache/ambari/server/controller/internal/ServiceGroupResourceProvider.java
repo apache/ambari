@@ -86,8 +86,8 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
    * creating a ServiceGroup based on a string ID
    */
   @Deprecated
-  public static final String SERVICE_GROUP_STACK_PROPERTY_ID = RESPONSE_KEY
-      + PropertyHelper.EXTERNAL_PATH_SEP + "stack";
+  public static final String SERVICE_GROUP_VERSION_PROPERTY_ID = RESPONSE_KEY
+      + PropertyHelper.EXTERNAL_PATH_SEP + "version";
 
 
   private static Set<String> pkPropertyIds =
@@ -111,7 +111,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     PROPERTY_IDS.add(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_GROUP_STACK_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_GROUP_VERSION_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_MPACK_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_MPACK_NAME);
     PROPERTY_IDS.add(SERVICE_GROUP_MPACK_VERSION);
@@ -119,7 +119,6 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Stack, SERVICE_GROUP_STACK_PROPERTY_ID);
   }
 
   // ----- Constructors ----------------------------------------------------
@@ -159,14 +158,21 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
       Iterator<ServiceGroupResponse> itr = createServiceGroups.iterator();
       while (itr.hasNext()) {
         ServiceGroupResponse response = itr.next();
+        StackId stackId = response.getStackId();
         notifyCreate(Resource.Type.ServiceGroup, request);
         Resource resource = new ResourceImpl(Resource.Type.ServiceGroup);
         resource.setProperty(SERVICE_GROUP_CLUSTER_ID_PROPERTY_ID, response.getClusterId());
         resource.setProperty(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
         resource.setProperty(SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId());
         resource.setProperty(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
-        resource.setProperty(SERVICE_GROUP_STACK_PROPERTY_ID, response.getStackId());
+        resource.setProperty(SERVICE_GROUP_VERSION_PROPERTY_ID, stackId.toString());
 
+        // Set the specifics of mpack if the stack is linked to an mpack
+        if(response.getMpackId() != null) {
+          resource.setProperty(SERVICE_GROUP_MPACK_ID, response.getMpackId());
+          resource.setProperty(SERVICE_GROUP_MPACK_NAME, stackId.getStackName());
+          resource.setProperty(SERVICE_GROUP_MPACK_VERSION, stackId.getStackVersion());
+        }
         associatedResources.add(resource);
       }
       return getRequestStatus(null, associatedResources);
@@ -207,14 +213,15 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
         response.getServiceGroupId(), requestedIds);
       setResourceProperty(resource, SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID,
         response.getServiceGroupName(), requestedIds);
-      setResourceProperty(resource, SERVICE_GROUP_STACK_PROPERTY_ID,
+      setResourceProperty(resource, SERVICE_GROUP_VERSION_PROPERTY_ID,
           stackId.toString(), requestedIds);
 
-      // set the specifics of the mpack regardless of what keys were requested
-      resource.setProperty(SERVICE_GROUP_MPACK_ID, response.getMpackId());
-      resource.setProperty(SERVICE_GROUP_MPACK_NAME, stackId.getStackName());
-      resource.setProperty(SERVICE_GROUP_MPACK_VERSION, stackId.getStackVersion());
-
+      // Set the specifics of mpack if the stack is linked to an mpack
+      if(response.getMpackId() != null) {
+        resource.setProperty(SERVICE_GROUP_MPACK_ID, response.getMpackId());
+        resource.setProperty(SERVICE_GROUP_MPACK_NAME, stackId.getStackName());
+        resource.setProperty(SERVICE_GROUP_MPACK_VERSION, stackId.getStackVersion());
+      }
       resources.add(resource);
     }
     return resources;
@@ -284,7 +291,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   private ServiceGroupRequest getRequest(Map<String, Object> properties) {
     String clusterName = (String) properties.get(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     String serviceGroupName = (String) properties.get(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    String version = (String) properties.get(SERVICE_GROUP_STACK_PROPERTY_ID);
+    String version = (String) properties.get(SERVICE_GROUP_VERSION_PROPERTY_ID);
     ServiceGroupRequest svcRequest = new ServiceGroupRequest(clusterName, serviceGroupName, version);
     return svcRequest;
   }
