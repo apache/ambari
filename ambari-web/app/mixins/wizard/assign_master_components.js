@@ -465,9 +465,9 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    */
   getRecommendationRequestData: function(options) {
     var res = this._super(options);
-    res.services = this.getCurrentServiceNames();
+    res.dataToSend.services = this.getCurrentServiceNames();
     if (!this.get('isInstallerWizard')) {
-      res.recommendations = this.getCurrentMasterSlaveBlueprint();
+      res.dataToSend.recommendations = this.getCurrentMasterSlaveBlueprint();
     }
     return res;
   },

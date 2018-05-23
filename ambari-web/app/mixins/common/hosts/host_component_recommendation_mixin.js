@@ -91,32 +91,22 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
   },
 
   /**
-   * Get the url to use to request the correct stack version from stack advisor.
-   * Falls back to using the old global config value if necessary.
-   * 
-   * @param {object} options Should include stackName and stackVersion properties, which should refer to the mpack being installed. 
-   */
-  getStackVersionUrl(options) {
-    if (options.stackName && options.stackVersion) {
-      return '/stacks/' + options.stackName + '/versions/' + options.stackVersion;
-    }
-
-    return App.get('stackVersionURL');
-  },
-
-  /**
    * Returns request data for recommendation request
    * @param {HostComponentRecommendationOptions} options
    * @return {HostRecommendationRequestData}
    * @method getRecommendationRequestData
    */
   getRecommendationRequestData: function(options) {
+    const stackVersionUrl = App.getStackVersionUrl(options.stackName, options.stackVersion) || App.get('stackVersionURL');
+
     return {
-      recommend: 'host_groups',
-      stackVersionUrl: this.getStackVersionUrl(options),
-      hosts: options.hosts,
-      services: options.services,
-      recommendations: options.blueprint || this.getComponentsBlueprint(options.components)
+      stackVersionUrl: stackVersionUrl,
+      dataToSend: {
+        recommend: 'host_groups',
+        hosts: options.hosts,
+        services: options.services,
+        recommendations: options.blueprint || this.getComponentsBlueprint(options.components)
+      }
     };
   },
 
@@ -128,7 +118,7 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
    */
   loadComponentsRecommendationsFromServer: function(recommendationData) {
     return App.ajax.send({
-      name: 'wizard.loadrecommendations',
+      name: 'config.recommendations',
       sender: this,
       data: recommendationData,
       success: 'loadRecommendationsSuccessCallback',

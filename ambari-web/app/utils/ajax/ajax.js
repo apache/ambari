@@ -2134,34 +2134,9 @@ var urls = {
     }
   },
 
-
-  'wizard.loadrecommendations': {
-    'real': '{stackVersionUrl}/recommendations',
-    'mock': '/data/stacks/HDP-2.1/recommendations.json',
-    'type': 'POST',
-    'format': function (data) {
-      var q = {
-        hosts: data.hosts,
-        services: data.services,
-        recommend: data.recommend
-      };
-
-      if (data.recommendations) {
-        q.recommendations = data.recommendations;
-      }
-
-      return {
-        data: JSON.stringify(q)
-      }
-    }
-  },
-
-
-  // TODO: merge with wizard.loadrecommendations query
   'config.recommendations': {
     'real': '{stackVersionUrl}/recommendations',
-    'mock': '/data/configurations/recommendations/configuration_dependencies.json',
-    //'mock': '/data/stacks/HDP-2.1/recommendations_configs.json',
+    'mock': '/data/stacks/HDP-2.1/recommendations.json',
     'type': 'POST',
     'format': function (data) {
       return {
@@ -2185,7 +2160,6 @@ var urls = {
       }
     }
   },
-
 
   'preinstalled.checks': {
     'real': '/requests',
