@@ -65,6 +65,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
   isServiceContentFullyLoaded: Em.computed.and('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
 
+  isStackVersionsLoaded: false,
+
   clusterName: Em.computed.alias('App.clusterName'),
 
   updateLoadStatus: function (item) {
@@ -355,6 +357,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         upgradeController.loadCompatibleVersions();
         upgradeController.updateCurrentStackVersion();
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
+        self.set('isStackVersionsLoaded', true);
       });
     });
   },

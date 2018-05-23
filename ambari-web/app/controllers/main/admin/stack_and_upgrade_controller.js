@@ -2194,6 +2194,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * it should be fetched from the repo which corresponds to the desiredRepositoryVersionId of the service
    */
   getServiceVersionFromRepo: function () {
+    if (!App.router.get('clusterController.isLoaded') || !App.router.get('clusterController.isStackVersionsLoaded')) {
+      return;
+    }
 
     var currentStackName = App.get('currentStackName');
     var currentStackVersionNumber = App.get('currentStackVersionNumber');
@@ -2226,6 +2229,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       }
       map[serviceName] = serviceVersion;
     });
-  }.observes('App.router.clusterController.isLoaded')
+  }.observes('App.router.clusterController.isLoaded', 'App.router.clusterController.isStackVersionsLoaded')
 
 });
