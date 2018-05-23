@@ -94,6 +94,14 @@ module.exports = Em.Application.create({
     return '/stacks/{0}/versions/{1}'.format(this.get('currentStackName') || 'HDP', this.get('currentStackVersionNumber'));
   }.property('currentStackName', 'currentStackVersionNumber'),
 
+  getStackVersionUrl: function (stackName, stackVersion) {
+    if (stackName && stackVersion) {
+      return `/stacks/${stackName}/versions/${stackVersion}`;
+    }
+
+    return null;
+  },
+
   falconServerURL: function () {
     var falconService = this.Service.find().findProperty('serviceName', 'FALCON');
     if (falconService) {

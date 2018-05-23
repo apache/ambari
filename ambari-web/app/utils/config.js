@@ -1049,17 +1049,18 @@ App.config = Em.Object.create({
    * @returns {$.ajax}
    * @method loadConfigsFromStack
    */
-  loadConfigsFromStack: function (serviceNames) {
+  loadConfigsFromStack: function (serviceNames, stackName, stackVersion) {
     serviceNames = serviceNames || [];
-    var name = serviceNames.length > 0 ? 'configs.stack_configs.load.services' : 'configs.stack_configs.load.all';
+    const name = serviceNames.length > 0 ? 'configs.stack_configs.load.services' : 'configs.stack_configs.load.all';
+    const stackVersionUrl = App.getStackVersionUrl(stackName, stackVersion) || App.get('stackVersionURL');
+    
     return App.ajax.send({
       name: name,
       sender: this,
       data: {
-        stackVersionUrl: App.get('stackVersionURL'),
+        stackVersionUrl: stackVersionUrl,
         serviceList: serviceNames.join(',')
-      },
-      success: 'saveConfigsToModel'
+      }
     });
   },
 

@@ -133,7 +133,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
       criticalIssues: []
     }));
 
-    this.runServerSideValidation().done(function() {
+    const mpacks = this.get('content.selectedMpacks'); //TODO - mpacks
+    this.runServerSideValidation(mpacks[0].name, mpacks[0].version).done(function() {
       if (self.get('configErrorList.issues.length') || self.get('configErrorList.criticalIssues.length')) {
         App.showConfigValidationPopup(self.get('configErrorList'), primary, secondary, self);
       } else {
@@ -151,7 +152,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * send request to validate configs
    * @returns {*}
    */
-  runServerSideValidation: function () {
+  runServerSideValidation: function (stackName, stackVersion) {
     var self = this;
     var recommendations = this.get('hostGroups');
     var stepConfigs = this.get('stepConfigs');
@@ -163,7 +164,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
         var request = self.validateSelectedConfigs({
           hosts: self.get('hostNames'),
           services: self.get('serviceNames'),
-          blueprint: recommendations
+          blueprint: recommendations,
+          stackName: stackName,
+          stackVersion: stackVersion
         });
         self.set('validationRequest', request);
         request.done(dfd.resolve).fail(dfd.reject);
@@ -208,8 +211,10 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {ConfigsValidationRequestData}
    */
   getServiceConfigsValidationParams: function(options) {
+    const stackVersionUrl = App.getStackVersionUrl(options.stackName, options.stackVersion) || App.get('stackVersionURL');
+
     return {
-      stackVersionUrl: App.get('stackVersionURL'),
+      stackVersionUrl: stackVersionUrl,
       hosts: options.hosts,
       services: options.services,
       validate: 'configurations',
@@ -379,12 +384,14 @@ App.ServerValidatorMixin = Em.Mixin.create({
   valueObserver: function () {
     var self = this;
     if (this.get('isInstallWizard') && this.get('currentTabName') === 'all-configurations') {
+      const mpacks = this.get('content.selectedMpacks'); //TODO - mpacks
+
       if (this.get('requestTimer')) clearTimeout(this.get('requestTimer'));
       self.set('requestTimer', setTimeout(function () {
         if (self.get('validationRequest')) {
           self.get('validationRequest').abort();
         }
-        self.runServerSideValidation().done(function () {
+        self.runServerSideValidation(mpacks[0].name, mpacks[0].version).done(function () {
           self.set('validationRequest', null);
           self.set('requestTimer', 0);
         });
