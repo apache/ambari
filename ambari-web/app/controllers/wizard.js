@@ -1525,24 +1525,36 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @return {$.Deferred}
    */
   loadConfigThemes: function () {
-    var self = this;
-    var dfd = $.Deferred();
+    const self = this;
+    const dfd = $.Deferred();
+    
     if (!this.get('stackConfigsLoaded')) {
-      var serviceNames = App.StackService.find().filter(function (s) {
-        return s.get('isSelected') || s.get('isInstalled');
-      }).mapProperty('serviceName');
       // Load stack configs before loading themes
-      App.config.loadClusterConfigsFromStack().always(function() {
-        App.config.loadConfigsFromStack(serviceNames).done(function () {
-          self.loadConfigThemeForServices(serviceNames).always(function () {
-            self.set('stackConfigsLoaded', true);
-            dfd.resolve();
-          });
+      App.config.loadClusterConfigsFromStack().always(() => {
+        const mpacks = self.get('content.selectedMpacks');
+        const configPromises = mpacks.map(mpack => {
+          const stackName = mpack.name;
+          const stackVersion = mpack.version;
+          
+          const serviceNames = App.StackService.find().filter(service => {
+            return service.get('stackName') === stackName && service.get('stackVersion') === stackVersion
+              && (service.get('isSelected') || service.get('isInstalled'));
+          }).mapProperty('serviceName');
+
+          return App.config.loadConfigsFromStack(serviceNames, stackName, stackVersion)
+            .done(App.config.saveConfigsToModel)
+            .done(() => self.loadConfigThemeForServices(serviceNames, stackName, stackVersion));
         });
+
+        $.when(...configPromises).always(() => {
+          self.set('stackConfigsLoaded', true);
+          dfd.resolve();
+        });  
       });
     } else {
       dfd.resolve();
     }
+
     return dfd.promise();
   },
 

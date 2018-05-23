@@ -63,16 +63,18 @@ App.ThemesMappingMixin = Em.Mixin.create({
    * @param {String|String[]} serviceNames
    * @returns {$.ajax}
    */
-  loadConfigThemeForServices: function (serviceNames) {
+  loadConfigThemeForServices: function (serviceNames, stackName, stackVersion) {
+    const stackVersionUrl = App.getStackVersionUrl(stackName, stackVersion) || App.get('stackVersionURL');
+
     return App.ajax.send({
       name: 'configs.theme.services',
       sender: this,
       data: {
         serviceNames: Em.makeArray(serviceNames).join(','),
-        stackVersionUrl: App.get('stackVersionURL')
+        stackVersionUrl: stackVersionUrl
       },
-      success: '_loadConfigThemeForServicesSuccess',
-      error: '_loadConfigThemeForServicesError'
+      success: 'loadConfigThemeForServicesSuccess',
+      error: 'loadConfigThemeForServicesError'
     });
   },
 
@@ -82,9 +84,9 @@ App.ThemesMappingMixin = Em.Mixin.create({
    * @param opt
    * @param params
    * @private
-   * @method _loadConfigThemeForServicesSuccess
+   * @method loadConfigThemeForServicesSuccess
    */
-  _loadConfigThemeForServicesSuccess: function(data, opt, params) {
+  loadConfigThemeForServicesSuccess: function(data, opt, params) {
     if (!data.items.length) return;
     App.themesMapper.map({
       items: data.items.mapProperty('themes').reduce(function(p,c) {
@@ -95,16 +97,16 @@ App.ThemesMappingMixin = Em.Mixin.create({
 
   /**
    * Error-callback for <code>loadConfigThemeForServices</code>
-   * @param {object} request
+   * @param {object} jqXHR
    * @param {object} ajaxOptions
    * @param {string} error
    * @param {object} opt
    * @param {object} params
    * @private
-   * @method _loadConfigThemeForServicesError
+   * @method loadConfigThemeForServicesError
    */
-  _loadConfigThemeForServicesError: function(request, ajaxOptions, error, opt, params) {
-
+  loadConfigThemeForServicesError: function(jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
   }
 
 });
