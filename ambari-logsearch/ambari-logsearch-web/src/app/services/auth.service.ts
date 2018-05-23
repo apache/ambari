@@ -81,7 +81,7 @@ export class AuthService {
     const response$ = this.httpClient.postFormData('login', {
       username: username,
       password: password
-    }).share();
+    });
     response$.subscribe(
       (resp: Response) => this.onLoginResponse(resp),
       (resp: Response) => this.onLoginError(resp)
@@ -103,7 +103,7 @@ export class AuthService {
    * @returns {Observable<boolean | Error>}
    */
   logout(): Observable<Boolean> {
-    const response$ = this.httpClient.get('logout').share();
+    const response$ = this.httpClient.get('logout');
     response$.subscribe(
       (resp: Response) => this.onLogoutResponse(resp),
       (resp: Response) => this.onLogoutError(resp)

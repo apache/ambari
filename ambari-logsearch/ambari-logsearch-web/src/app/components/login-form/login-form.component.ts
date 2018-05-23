@@ -76,10 +76,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   private onLoginError = (resp: Boolean): void => {
-    Observable.combineLatest(
-      this.translateService.get('login.error.title'),
-      this.translateService.get('login.error.message')
-    ).first().subscribe(([title, message]: [string, string]) => {
+    this.translateService.get('authorization.error.401').first().subscribe((message: string) => {
       this.errorMessage = message;
       this.isLoginAlertDisplayed = true;
     });
