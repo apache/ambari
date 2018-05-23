@@ -108,7 +108,8 @@ export class DropdownButtonComponent {
     }
     const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
     this.selection = checkedItems;
-    this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
+    const selectedValues = checkedItems.map((option: ListItem): any => option.value);
+    this.selectItem.emit(this.isMultipleChoice ? selectedValues : selectedValues.shift());
   }
 
 }

@@ -140,9 +140,6 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   }
 
   ngOnDestroy(): void {
-    // this.parameterNameChangeSubject.unsubscribe();
-    // this.parameterAddSubject.unsubscribe();
-    // this.updateValueSubject.unsubscribe();
     this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
   }
 
