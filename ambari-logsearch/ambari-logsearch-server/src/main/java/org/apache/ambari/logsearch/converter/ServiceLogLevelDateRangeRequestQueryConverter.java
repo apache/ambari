@@ -20,10 +20,8 @@ package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.springframework.data.solr.core.query.SimpleFacetQuery;
 
 import javax.inject.Named;
 
