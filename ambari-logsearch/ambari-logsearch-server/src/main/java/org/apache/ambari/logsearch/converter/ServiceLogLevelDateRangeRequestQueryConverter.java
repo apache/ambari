@@ -20,8 +20,10 @@ package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
+import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.springframework.data.solr.core.query.SimpleFacetQuery;
 
 import javax.inject.Named;
 
@@ -29,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
@@ -59,6 +62,7 @@ public class ServiceLogLevelDateRangeRequestQueryConverter extends AbstractDateR
       }
     }
     addListFilterToSolrQuery(solrQuery, CLUSTER, request.getClusters());
+    addListFilterToSolrQuery(solrQuery, COMPONENT, request.getMustBe());
     return solrQuery;
   }
 
@@ -66,4 +70,6 @@ public class ServiceLogLevelDateRangeRequestQueryConverter extends AbstractDateR
   public LogType getLogType() {
     return LogType.SERVICE;
   }
+
+
 }
