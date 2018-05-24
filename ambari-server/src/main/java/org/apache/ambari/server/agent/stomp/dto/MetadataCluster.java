@@ -18,37 +18,41 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class MetadataCluster {
-  @JsonProperty("status_commands_to_run")
-  private Set<String> statusCommandsToRun = new HashSet<>();
-  private SortedMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
-  private SortedMap<String, String> clusterLevelParams = new TreeMap<>();
+  private final static Lock LOCK = new ReentrantLock();
 
-  private SortedMap<String, SortedMap<String,String>> agentConfigs = new TreeMap<>();
+  @JsonProperty("status_commands_to_run")
+  private final Set<String> statusCommandsToRun;
+  private final SortedMap<String, MetadataServiceInfo> serviceLevelParams;
+  private final SortedMap<String, String> clusterLevelParams;
+  private final SortedMap<String, SortedMap<String,String>> agentConfigs;
 
   public MetadataCluster(SecurityType securityType, SortedMap<String,MetadataServiceInfo> serviceLevelParams,
                          SortedMap<String, String> clusterLevelParams, SortedMap<String, SortedMap<String,String>> agentConfigs) {
+    this.statusCommandsToRun  = new HashSet<>();
     if (securityType != null) {
       this.statusCommandsToRun.add("STATUS");
       if (SecurityType.KERBEROS.equals(securityType)) {
         this.statusCommandsToRun.add("SECURITY_STATUS");
       }
     }
-    this.serviceLevelParams = serviceLevelParams;
-    this.clusterLevelParams = clusterLevelParams;
-    this.agentConfigs = agentConfigs;
+    this.serviceLevelParams = serviceLevelParams == null ? new TreeMap<>() : serviceLevelParams;
+    this.clusterLevelParams = clusterLevelParams == null ? new TreeMap<>() : clusterLevelParams;
+    this.agentConfigs = agentConfigs == null ? new TreeMap<>() : agentConfigs;
   }
 
   public static MetadataCluster emptyMetadataCluster() {
@@ -67,62 +71,31 @@ public class MetadataCluster {
     return clusterLevelParams;
   }
 
-  public void setClusterLevelParams(SortedMap<String, String> clusterLevelParams) {
-    this.clusterLevelParams = clusterLevelParams;
-  }
-
   public SortedMap<String, SortedMap<String, String>> getAgentConfigs() {
     return agentConfigs;
   }
 
-  public void setAgentConfigs(SortedMap<String, SortedMap<String, String>> agentConfigs) {
-    this.agentConfigs = agentConfigs;
-  }
-
   public boolean updateServiceLevelParams(SortedMap<String, MetadataServiceInfo> update) {
-    boolean changed = false;
-    for (String key : update.keySet()) {
-      if (!serviceLevelParams.containsKey(key) || !serviceLevelParams.get(key).equals(update.get(key))) {
-        changed = true;
-        break;
-      }
-    }
-
-    for (String key : serviceLevelParams.keySet()) {
-      if (!update.containsKey(key) || !update.get(key).equals(update.get(key))) {
-        changed = true;
-        break;
-      }
-    }
-
-    if (changed) {
-      serviceLevelParams.clear();
-      serviceLevelParams.putAll(update);
-    }
-    return changed;
+    return updateMapIfNeeded(serviceLevelParams, update);
   }
 
   public boolean updateClusterLevelParams(SortedMap<String, String> update) {
-    boolean changed = false;
-    for (String key : update.keySet()) {
-      if (!clusterLevelParams.containsKey(key) || !StringUtils.equals(clusterLevelParams.get(key), update.get(key))) {
-        changed = true;
-        break;
-      }
-    }
+    return updateMapIfNeeded(clusterLevelParams, update);
+  }
 
-    for (String key : clusterLevelParams.keySet()) {
-      if (!update.containsKey(key) || !StringUtils.equals(update.get(key), clusterLevelParams.get(key))) {
-        changed = true;
-        break;
-      }
-    }
+  private <T> boolean updateMapIfNeeded(Map<String, T> mapToBeUpdated, Map<String, T> updatedMap) {
+    try {
+      LOCK.lock();
+      final boolean changed = !Objects.equals(mapToBeUpdated, updatedMap);
 
-    if (changed) {
-      clusterLevelParams.clear();
-      clusterLevelParams.putAll(update);
+      if (changed) {
+        mapToBeUpdated.clear();
+        mapToBeUpdated.putAll(updatedMap);
+      }
+      return changed;
+    } finally {
+      LOCK.unlock();
     }
-    return changed;
   }
 
   @Override
