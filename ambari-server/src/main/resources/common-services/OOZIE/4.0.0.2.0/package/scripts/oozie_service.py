@@ -139,7 +139,7 @@ def oozie_service(action = 'start', upgrade_type=None):
         params.HdfsResource(None, action="execute")
 
         hdfs_share_dir_exists = True # skip time-expensive hadoop fs -ls check
-      elif WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+      elif WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.dfs_type):
         # check with webhdfs is much faster than executing hadoop fs -ls. 
         util = WebHDFSUtil(params.hdfs_site, nameservice, params.oozie_user, params.security_enabled)
         list_status = util.run_command(params.hdfs_share_dir, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
