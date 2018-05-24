@@ -2029,7 +2029,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   confirmRevertPatchUpgrade: function(version) {
     var self = this;
     var currentStack = App.RepositoryVersion.find(this.get('currentVersion.id'));
-
     App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       popupBody: Em.I18n.t('admin.stackVersions.upgrade.patch.revert.confirmation'),
@@ -2149,9 +2148,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.initDBProperties();
     App.set('upgradeState', lastUpgradeData.Upgrade.request_status);
     this.loadRepoVersionsToModel().done(function () {
-      var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
-      self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
-      self.set('upgradeVersion', toVersion && toVersion.get('displayName'));
+      var upgradeVersion;
+      if (isDowngrade) {
+        var services = Object.keys(lastUpgradeData.versions);
+        upgradeVersion = services[0].from_repository_version;
+      } else {
+        var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
+        upgradeVersion = toVersion && toVersion.get('displayName');
+      }
+      lastUpgradeData.versions
+      self.setDBProperty('upgradeVersion', upgradeVersion);
+      self.set('upgradeVersion', upgradeVersion);
     });
   },
 
