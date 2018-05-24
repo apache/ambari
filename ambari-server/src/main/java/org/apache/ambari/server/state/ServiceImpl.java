@@ -377,7 +377,7 @@ public class ServiceImpl implements Service {
         responses.add(new ServiceDependencyResponse(cluster.getClusterId(), cluster.getClusterName(),
                  sk.getClusterId(), sk.getClusterName(), sk.getServiceGroupId(), sk.getServiceGroupName(),
                  sk.getServiceId(), sk.getServiceName(), getServiceGroupId(), getServiceGroupName(),
-                 getServiceId(), getName(), sk.getDependencyId()));
+                getServiceId(), getName(), sk.getDependencyId(), sk.getDependencyType()));
       }
     }
     return responses;
@@ -417,6 +417,7 @@ public class ServiceImpl implements Service {
         serviceKey.setServiceName(dependencyService.getServiceName());
         serviceKey.setServiceId(dependencyService.getServiceId());
         serviceKey.setDependencyId(sde.getServiceDependencyId());
+        serviceKey.setDependencyType(sde.getDependencyType());
         serviceDependenciesList.add(serviceKey);
       }
     }
@@ -575,7 +576,7 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public ClusterServiceEntity addDependencyService(Long dependencyServiceId) throws AmbariException {
+  public ClusterServiceEntity addDependencyService(Long dependencyServiceId, ServiceDependencyType dependencyType) throws AmbariException {
     Service dependentService = null;
     for (Cluster cl : clusters.getClusters().values()) {
       if (cl.getServicesById().containsKey(dependencyServiceId)) {
@@ -588,6 +589,7 @@ public class ServiceImpl implements Service {
     ClusterServiceEntity dependentServiceEntity = clusterServiceDAO.findByPK(dependentService.getServiceId());
 
     ServiceDependencyEntity newServiceDependency = new ServiceDependencyEntity();
+    newServiceDependency.setDependencyType(dependencyType);
     newServiceDependency.setService(currentServiceEntity);
     newServiceDependency.setServiceGroupId(currentServiceEntity.getServiceGroupId());
     newServiceDependency.setServiceClusterId(currentServiceEntity.getClusterId());

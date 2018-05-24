@@ -19,6 +19,8 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -26,6 +28,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+
+import org.apache.ambari.server.state.ServiceDependencyType;
 
 @Entity
 @Table(name = "servicedependencies")
@@ -49,6 +53,10 @@ public class ServiceDependencyEntity {
 
   @Column(name = "service_group_id", nullable = false, insertable = true, updatable = false)
   private long serviceGroupId;
+
+  @Column(name = "dependency_type", nullable = false, length = 255)
+  @Enumerated(value = EnumType.STRING)
+  private ServiceDependencyType dependencyType;
 
   @Column(name = "dependent_service_id", nullable = false, insertable = false, updatable = false)
   private long dependentServiceId;
@@ -134,6 +142,14 @@ public class ServiceDependencyEntity {
   public void setServiceId(long serviceId) {
     this.serviceId = serviceId;
   }
+
+  public ServiceDependencyType getDependencyType() {
+    return dependencyType;
+  }
+
+  public void setDependencyType(ServiceDependencyType dependencyType) {
+    this.dependencyType = dependencyType;
+      }
 
   @Override
   public boolean equals(Object o) {

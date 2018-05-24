@@ -93,7 +93,7 @@ public interface Service {
 
   ClusterServiceEntity removeDependencyService(Long dependencyServiceId);
 
-  ClusterServiceEntity addDependencyService(Long dependencyServiceId) throws AmbariException;
+  ClusterServiceEntity addDependencyService(Long dependencyServiceId, ServiceDependencyType dependencyType) throws AmbariException;
 
   void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 

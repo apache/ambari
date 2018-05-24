@@ -18,6 +18,8 @@
 package org.apache.ambari.server.controller;
 
 
+import org.apache.ambari.server.state.ServiceDependencyType;
+
 public class ServiceDependencyResponse {
 
   private Long clusterId;
@@ -33,11 +35,12 @@ public class ServiceDependencyResponse {
   private String dependencyServiceName;
   private String dependencyClusterName;
   private String dependencyServiceGroupName;
+  private ServiceDependencyType dependencyType;
 
   public ServiceDependencyResponse(Long clusterId, String clusterName, Long dependencyClusterId, String dependencyClusterName,
                                    Long dependencyServiceGroupId, String dependencyServiceGroupName, Long dependencyServiceId,
                                    String dependencyServiceName, Long serviceGroupId, String serviceGroupName,
-                                   Long serviceId, String serviceName, Long dependencyId) {
+                                   Long serviceId, String serviceName, Long dependencyId, ServiceDependencyType dependencyType) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.dependencyClusterId = dependencyClusterId;
@@ -51,6 +54,7 @@ public class ServiceDependencyResponse {
     this.serviceId = serviceId;
     this.serviceName = serviceName;
     this.dependencyId = dependencyId;
+    this.dependencyType = dependencyType;
   }
 
   public Long getClusterId() {
@@ -157,10 +161,18 @@ public class ServiceDependencyResponse {
     this.dependencyId = dependencyId;
   }
 
+  public ServiceDependencyType getDependencyType() {
+    return dependencyType;
+  }
+
+   public void setDependencyType(ServiceDependencyType dependencyType) {
+    this.dependencyType = dependencyType;
+      }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof ServiceDependencyResponse)) return false;
+    if (o == null || getClass() != o.getClass()) return false;
 
     ServiceDependencyResponse that = (ServiceDependencyResponse) o;
 
@@ -168,6 +180,7 @@ public class ServiceDependencyResponse {
     if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
     if (dependencyClusterId != null ? !dependencyClusterId.equals(that.dependencyClusterId) : that.dependencyClusterId != null)
       return false;
+    if (dependencyId != null ? !dependencyId.equals(that.dependencyId) : that.dependencyId != null) return false;
     if (dependencyClusterName != null ? !dependencyClusterName.equals(that.dependencyClusterName) : that.dependencyClusterName != null)
       return false;
     if (dependencyServiceGroupId != null ? !dependencyServiceGroupId.equals(that.dependencyServiceGroupId) : that.dependencyServiceGroupId != null)
@@ -178,6 +191,7 @@ public class ServiceDependencyResponse {
       return false;
     if (dependencyServiceName != null ? !dependencyServiceName.equals(that.dependencyServiceName) : that.dependencyServiceName != null)
       return false;
+    if (dependencyType != that.dependencyType) return false;
     if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null)
       return false;
     if (serviceGroupName != null ? !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null)
@@ -196,12 +210,14 @@ public class ServiceDependencyResponse {
     result = 31 * result + (dependencyClusterId != null ? dependencyClusterId.hashCode() : 0);
     result = 31 * result + (dependencyServiceId != null ? dependencyServiceId.hashCode() : 0);
     result = 31 * result + (dependencyServiceGroupId != null ? dependencyServiceGroupId.hashCode() : 0);
+    result = 31 * result + (dependencyId != null ? dependencyId.hashCode() : 0);
     result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
     result = 31 * result + (dependencyServiceName != null ? dependencyServiceName.hashCode() : 0);
     result = 31 * result + (dependencyClusterName != null ? dependencyClusterName.hashCode() : 0);
     result = 31 * result + (dependencyServiceGroupName != null ? dependencyServiceGroupName.hashCode() : 0);
+    result = 31 * result + (dependencyType != null ? dependencyType.hashCode() : 0);
     return result;
   }
 }

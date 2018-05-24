@@ -83,6 +83,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceDependencyType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -628,7 +629,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     }
 
     //add dependency from HDFS to HADOOP_CLIENTS
-    c1.addDependencyToService("CORE", "HDFS", clientService.getServiceId());
+    c1.addDependencyToService("CORE", "HDFS", clientService.getServiceId(), ServiceDependencyType.INSTALL);
 
     ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
   }

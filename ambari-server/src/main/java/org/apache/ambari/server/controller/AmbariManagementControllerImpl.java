@@ -3012,11 +3012,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               continue;
             }
 
-            RoleCommand roleCommand;
+                RoleCommand roleCommand = null;
             State oldSchState = scHost.getState();
-            ServiceComponentHostEvent event;
+                ServiceComponentHostEvent event = null;
 
             switch (newState) {
+                  case RESOLVED:
+                    if (oldSchState == State.INIT){
+                      scHost.setState(serviceComponent.getDesiredState());
+                    }
+                    break;
               case INSTALLED:
                 if (oldSchState == State.INIT
                     || oldSchState == State.UNINSTALLED
@@ -3209,6 +3214,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               } catch (InvalidStateTransitionException e) {
                 LOG.error("Error transitioning ServiceComponentHost state to INSTALLED", e);
               }
+                } else if(newState == State.RESOLVED){
+                  scHost.setState(serviceComponent.getDesiredState());
+                  try {
+                    scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost.getServiceComponentName(), scHost.getHostName(), System.currentTimeMillis()));
+                  }catch (InvalidStateTransitionException e) {
+                    LOG.error("Error transitioning ServiceComponentHost state to RESOLVED", e);
+                  }
             } else {
               // !!! can never be null
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
@@ -3455,7 +3467,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return response;  }
 
   @Transactional
-  void updateServiceStates(
+  @Override
+  public void updateServiceStates(
       Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
@@ -3523,6 +3536,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
           //actually set the new state
           sch.setDesiredState(newState);
+          if(newState == State.RESOLVED || newState == State.RESOLVE_FAILED){
+            HostComponentStateEntity hostComponentStateEntity = hostComponentStateDAO.findById(sch.getHostComponentId());
+            hostComponentStateEntity.setCurrentState(newState);
+            hostComponentStateDAO.merge(hostComponentStateEntity);
+            hostComponentStateDAO.refresh(hostComponentStateEntity);
+
+          }
         }
       }
     }

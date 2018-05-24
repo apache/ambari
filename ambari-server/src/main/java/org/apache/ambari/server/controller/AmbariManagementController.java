@@ -663,6 +663,14 @@ public interface AmbariManagementController {
                              Collection<ServiceComponentHost> ignoredHosts,
                              boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
 
+  void updateServiceStates(
+          Cluster cluster,
+          Map<State, List<Service>> changedServices,
+          Map<State, List<ServiceComponent>> changedComps,
+          Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
+          Collection<ServiceComponentHost> ignoredScHosts
+  );
+
   /**
    * Getter for the url of JDK, stored at server resources folder
    */

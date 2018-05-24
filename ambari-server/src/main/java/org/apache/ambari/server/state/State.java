@@ -38,6 +38,14 @@ public enum State {
    */
   INSTALLED,
   /**
+   * State when dependencies have been resolved successfully.
+   */
+  RESOLVED,
+  /**
+   * State when dependency resolution fails.
+   */
+  RESOLVE_FAILED,
+  /**
    * In the process of starting.
    */
   STARTING,
@@ -87,6 +95,7 @@ public enum State {
       case STARTED:
       case UNINSTALLED:
       case DISABLED:
+      case RESOLVED:
         return true;
       default:
         return false;
@@ -120,6 +129,8 @@ public enum State {
       case INSTALLING:
       case INSTALLED:
       case INSTALL_FAILED:
+      case RESOLVED:
+      case RESOLVE_FAILED:
       case UNINSTALLED:
       case UNKNOWN:
       case DISABLED:
@@ -149,7 +160,8 @@ public enum State {
             || startState == State.UPGRADING
             || startState == State.STOPPING
             || startState == State.UNKNOWN
-            || startState == State.DISABLED) {
+            || startState == State.DISABLED
+            || startState == State.RESOLVED) {
           return true;
         }
         break;
@@ -181,6 +193,18 @@ public enum State {
           return true;
         }
         break;
+      case RESOLVED:
+        if (startState == State.INIT
+            || startState == State.RESOLVE_FAILED) {
+          return true;
+        }
+        break;
+      case INSTALL_FAILED:
+        if (startState == State.RESOLVED
+            || startState == State.INSTALLING) {
+          return true;
+        }
+        break;
     }
     return false;
   }
@@ -200,7 +224,8 @@ public enum State {
             || startState == State.UNINSTALLED
             || startState == State.INSTALLED
             || startState == State.STARTED
-            || startState == State.STOPPING) {
+            || startState == State.STOPPING
+            || startState == State.RESOLVED) {
           return true;
         }
         break;
@@ -210,6 +235,12 @@ public enum State {
           return true;
         }
         break;
+      case RESOLVED:
+        if (startState == State.INIT
+            || startState == State.RESOLVE_FAILED) {
+          return true;
+        }
+      break;
     }
     return false;
   }

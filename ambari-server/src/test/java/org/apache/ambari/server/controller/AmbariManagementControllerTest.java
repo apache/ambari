@@ -136,6 +136,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceDependencyType;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -5973,7 +5974,7 @@ public class AmbariManagementControllerTest {
     Service mapred = cluster.addService(serviceGroup, "YARN", "YARN");
     Service hadoop_clients = cluster.addService(serviceGroup, "HADOOP_CLIENTS", "HADOOP_CLIENTS");
 
-    hdfs = cluster.addDependencyToService("CORE", "HDFS", hadoop_clients.getServiceId());
+    hdfs = cluster.addDependencyToService("CORE", "HDFS", hadoop_clients.getServiceId(), ServiceDependencyType.INSTALL);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name(), Role.HDFS_CLIENT.name());
     hdfs.addServiceComponent(Role.NAMENODE.name(), Role.NAMENODE.name());

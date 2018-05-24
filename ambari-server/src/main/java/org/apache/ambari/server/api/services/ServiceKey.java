@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.state.ServiceDependencyType;
+
 public class ServiceKey {
 
   private Long serviceId;
@@ -26,12 +28,13 @@ public class ServiceKey {
   private String serviceName;
   private String serviceGroupName;
   private String clusterName;
+  private ServiceDependencyType dependencyType;
 
   public ServiceKey() {
   }
 
   public ServiceKey(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName, Long serviceId, String serviceName,
-                    Long dependencyId) {
+                    Long dependencyId, ServiceDependencyType dependencyType) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceGroupId = serviceGroupId;
@@ -39,6 +42,8 @@ public class ServiceKey {
     this.serviceId = serviceId;
     this.serviceName = serviceName;
     this.dependencyId = dependencyId;
+    this.dependencyType = dependencyType;
+
   }
 
   public Long getClusterId() {
@@ -97,15 +102,25 @@ public class ServiceKey {
     this.dependencyId = dependencyId;
   }
 
+  public ServiceDependencyType getDependencyType() {
+        return dependencyType;
+      }
+
+  public void setDependencyType(ServiceDependencyType dependencyType) {
+        this.dependencyType = dependencyType;
+      }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof ServiceKey)) return false;
+    if (o == null || getClass() != o.getClass()) return false;
 
     ServiceKey that = (ServiceKey) o;
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (dependencyId != null ? !dependencyId.equals(that.dependencyId) : that.dependencyId != null) return false;
+    if (dependencyType != that.dependencyType) return false;
     if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null)
       return false;
     if (serviceGroupName != null ? !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null)
@@ -121,9 +136,11 @@ public class ServiceKey {
     int result = serviceId != null ? serviceId.hashCode() : 0;
     result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
     result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
+    result = 31 * result + (dependencyId != null ? dependencyId.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
     result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
+    result = 31 * result + (dependencyType != null ? dependencyType.hashCode() : 0);
     return result;
   }
 }

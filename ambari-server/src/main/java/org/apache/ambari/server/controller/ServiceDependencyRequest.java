@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.ServiceDependencyType;
+
 public class ServiceDependencyRequest {
 
   private String clusterName;
@@ -26,9 +28,10 @@ public class ServiceDependencyRequest {
   private String dependentServiceName;
   private String dependentServiceGroupName;
   private Long dependencyId;
+  private ServiceDependencyType dependencyType;
 
   public ServiceDependencyRequest(String clusterName, String serviceName, String serviceGroupName, String dependentClusterName,
-                                  String dependentServiceGroupName, String dependentServiceName, Long dependencyId) {
+                                  String dependentServiceGroupName, String dependentServiceName, Long dependencyId, ServiceDependencyType dependencyType) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.serviceGroupName = serviceGroupName;
@@ -36,6 +39,8 @@ public class ServiceDependencyRequest {
     this.dependentServiceGroupName = dependentServiceGroupName;
     this.dependentServiceName = dependentServiceName;
     this.dependencyId = dependencyId;
+    this.dependencyType = dependencyType;
+
   }
 
   public String getClusterName() {
@@ -94,6 +99,14 @@ public class ServiceDependencyRequest {
     this.serviceName = serviceName;
   }
 
+  public ServiceDependencyType getDependencyType() {
+        return dependencyType;
+      }
+
+  public void setDependencyType(ServiceDependencyType dependencyType) {
+    this.dependencyType = dependencyType;
+      }
+
   @Override
   public String toString() {
     return "ServiceDependencyRequest{" +
@@ -104,6 +117,7 @@ public class ServiceDependencyRequest {
             ", dependentServiceName='" + dependentServiceName + '\'' +
             ", dependentServiceGroupName='" + dependentServiceGroupName + '\'' +
             ", dependencyId=" + dependencyId +
+            ", dependencyType=" + dependencyType +
             '}';
   }
 }

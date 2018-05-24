@@ -76,7 +76,7 @@ public interface Cluster {
       throws AmbariException;
 
   Service addDependencyToService(String  serviceGroupName, String serviceName,
-                                        Long dependencyServiceId) throws AmbariException;
+                                        Long dependencyServiceId, ServiceDependencyType dependencyType) throws AmbariException;
 
   Service removeDependencyFromService(String  serviceGroupName, String serviceName, Long dependencyServiceId);
 

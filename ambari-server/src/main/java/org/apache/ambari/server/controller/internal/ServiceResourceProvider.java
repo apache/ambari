@@ -66,6 +66,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCreden
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RequiredService;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -598,6 +599,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                                                       boolean reconfigureClients, boolean startDependencies) throws AmbariException, AuthorizationException {
 
     AmbariManagementController controller = getManagementController();
+    AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -743,6 +745,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       seenNewStates.add(newState);
 
+      Map<State, List<Service>> resolvedService = new EnumMap<>(State.class);
+      State desiredState = null;
       if (newState != oldState) {
         // The if user is trying to start or stop the service, ensure authorization
         if (((newState == State.INSTALLED) || (newState == State.STARTED)) &&
@@ -764,14 +768,42 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           changedServices.put(newState, new ArrayList<>());
         }
         changedServices.get(newState).add(s);
+
+      if(newState == State.RESOLVED) {
+        // create service dependencies
+        ServiceInfo currentServiceInfo = ambariMetaInfo.getService(s);
+        for (RequiredService requiredService : currentServiceInfo.getRequiredServices()) {
+          if (!cluster.getServices().containsKey(requiredService.getName())) {
+            desiredState = State.RESOLVE_FAILED;
+            break;
+          }
+          Service reqService = cluster.getService(requiredService.getName());
+          cluster.addDependencyToService(s.getServiceGroupName(), s.getName(), reqService.getServiceId(), requiredService.getDependencyType());
+        }
+        if(desiredState != State.RESOLVE_FAILED)
+          desiredState = State.RESOLVED;
       }
+    }
 
       // TODO should we check whether all servicecomponents and
       // servicecomponenthosts are in the required desired state?
 
       updateServiceComponents(requestStages, changedComps, changedScHosts,
-        ignoredScHosts, reqOpLvl, s, newState);
+        ignoredScHosts, reqOpLvl, s, (desiredState == null? newState : desiredState));
+      if(newState == State.RESOLVED){
+        resolvedService.put(desiredState, new ArrayList<>());
+        resolvedService.get(desiredState).add(s);
+        changedServices.put(desiredState, new ArrayList<>());
+        changedServices.get(desiredState).add(s);
+        controller.updateServiceStates(cluster, resolvedService, changedComps, changedScHosts, ignoredScHosts);
+      }
     }
+
+
+    if(changedServices.containsKey(State.RESOLVED)){
+      return requestStages;
+    }
+
 
     if (startDependencies && changedServices.containsKey(State.STARTED)) {
       HashSet<Service> depServices = new HashSet<>();
@@ -863,7 +895,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           }
           continue;
         }
-                                         //
+
         if (newState == oldSchState) {
           ignoredScHosts.add(sch);
           if (LOG.isDebugEnabled()) {

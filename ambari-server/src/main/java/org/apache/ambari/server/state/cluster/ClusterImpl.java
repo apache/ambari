@@ -135,6 +135,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.ServiceDependencyType;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceGroupFactory;
@@ -971,7 +972,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Service addDependencyToService(String  serviceGroupName, String serviceName, Long dependencyServiceId) throws AmbariException {
+  public Service addDependencyToService(String  serviceGroupName, String serviceName, Long dependencyServiceId, ServiceDependencyType dependencyType ) throws AmbariException {
     Service currentService = null;
     for (Service service : getServicesById().values()) {
       if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
@@ -984,7 +985,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
 
-      updatedServiceEntity = currentService.addDependencyService(dependencyServiceId);
+      updatedServiceEntity = currentService.addDependencyService(dependencyServiceId, dependencyType);
 
 
       updatedService = serviceFactory.createExisting(this, getServiceGroup(currentService.getServiceGroupName()), updatedServiceEntity);

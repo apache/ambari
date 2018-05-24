@@ -187,6 +187,7 @@ CREATE TABLE servicedependencies (
   service_id NUMBER(19) NOT NULL,
   service_group_id NUMBER(19) NOT NULL,
   service_cluster_id NUMBER(19) NOT NULL,
+  dependency_type VARCHAR(255) NOT NULL,
   dependent_service_id NUMBER(19) NOT NULL,
   dependent_service_group_id NUMBER(19) NOT NULL,
   dependent_service_cluster_id NUMBER(19) NOT NULL,

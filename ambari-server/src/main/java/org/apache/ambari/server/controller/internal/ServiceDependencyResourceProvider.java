@@ -53,6 +53,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceDependencyType;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
@@ -83,6 +84,7 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
   public static final String SERVICE_DEPENDENCY_DEPENDENT_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "dependent_service_group_name";
   public static final String SERVICE_DEPENDENCY_DEPENDENT_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "dependent_service_group_id";
   public static final String SERVICE_DEPENDENCY_DEPENDENCY_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "dependency_id";
+  public static final String SERVICE_DEPENDENCY_DEPENDENCY_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "dependency_type";
 
   protected ObjectMapper mapper = new ObjectMapper();;
 
@@ -120,6 +122,7 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
     PROPERTY_IDS.add(SERVICE_DEPENDENCY_DEPENDENT_SERVICE_GROUP_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_DEPENDENCY_DEPENDENT_SERVICE_GROUP_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_DEPENDENCY_DEPENDENCY_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_DEPENDENCY_DEPENDENCY_TYPE_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_DEPENDENCY_CLUSTER_NAME_PROPERTY_ID);
@@ -196,6 +199,9 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
                 response.getDependencyServiceGroupName());
         resource.setProperty(SERVICE_DEPENDENCY_DEPENDENCY_ID_PROPERTY_ID,
                 response.getDependencyId());
+        resource.setProperty(SERVICE_DEPENDENCY_DEPENDENCY_TYPE_PROPERTY_ID,
+                                response.getDependencyType());
+
 
         associatedResources.add(resource);
       }
@@ -253,6 +259,8 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
               response.getDependencyServiceGroupName(), requestedIds);
       setResourceProperty(resource, SERVICE_DEPENDENCY_DEPENDENCY_ID_PROPERTY_ID,
               response.getDependencyId(), requestedIds);
+      setResourceProperty(resource, SERVICE_DEPENDENCY_DEPENDENCY_TYPE_PROPERTY_ID,
+                            response.getDependencyType(), requestedIds);
 
       resources.add(resource);
     }
@@ -328,10 +336,12 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
     String dependentClusterName = (String) properties.get(SERVICE_DEPENDENCY_DEPENDENT_CLUSTER_NAME_PROPERTY_ID);
     String dependentServiceName = (String) properties.get(SERVICE_DEPENDENCY_DEPENDENT_SERVICE_NAME_PROPERTY_ID);
     String dependentServiceGroupName = (String) properties.get(SERVICE_DEPENDENCY_DEPENDENT_SERVICE_GROUP_NAME_PROPERTY_ID);
+    String dependencyTypeStr = (String)properties.get(SERVICE_DEPENDENCY_DEPENDENCY_TYPE_PROPERTY_ID);
+    ServiceDependencyType dependencyType = StringUtils.isEmpty(dependencyTypeStr) ? null : ServiceDependencyType.valueOf(dependencyTypeStr);
     String strDependencyId = (String) properties.get(SERVICE_DEPENDENCY_DEPENDENCY_ID_PROPERTY_ID);
     Long dependencyId = strDependencyId == null ? null : Long.valueOf(strDependencyId);
     ServiceDependencyRequest svcRequest = new ServiceDependencyRequest(clusterName, serviceName, serviceGroupName,
-            dependentClusterName, dependentServiceGroupName, dependentServiceName, dependencyId);
+            dependentClusterName, dependentServiceGroupName, dependentServiceName, dependencyId, dependencyType);
     return svcRequest;
   }
 
@@ -368,7 +378,7 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
 
       Service dependentService = cluster.getService(dependentServiceGroup.getServiceGroupName(), request.getDependentServiceName());
 
-      Service updatedService = cluster.addDependencyToService(request.getServiceGroupName(), request.getServiceName(), dependentService.getServiceId());
+      Service updatedService = cluster.addDependencyToService(request.getServiceGroupName(), request.getServiceName(), dependentService.getServiceId(),request.getDependencyType());
       createdServiceDependencies.addAll(updatedService.getServiceDependencyResponses());
     }
     return createdServiceDependencies;
@@ -498,11 +508,13 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
       final String dependentClusterName = request.getDependentClusterName();
       final String dependentServiceGroupName = request.getDependentServiceGroupName();
       final String dependentServiceName = request.getDependentServiceName();
+      final ServiceDependencyType dependencyType = request.getDependencyType();
 
       Validate.notNull(clusterName, "Cluster name should be provided when creating a service dependency");
       Validate.notNull(serviceGroupName, "Service group name should be provided when creating a service dependency");
       Validate.notNull(serviceName, "Service name should be provided when creating a service dependency");
       Validate.notNull(dependentServiceName, "Dependency service name should be provided when creating a service dependency");
+      Validate.notNull(dependencyType, "Dependency type should be provided when creating a service dependency");
 
       //throws cluster not found exception
       Cluster cluster = clusters.getCluster(clusterName);
