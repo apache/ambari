@@ -127,7 +127,6 @@ public class Component {
     return Objects.equals(name, component.name) &&
       Objects.equals(stackId, component.stackId) &&
       Objects.equals(mpackInstance, component.mpackInstance) &&
-      Objects.equals(stackId, component.stackId) &&
       Objects.equals(serviceInstance, component.serviceInstance) &&
       provisionAction == component.provisionAction;
   }
