@@ -28,7 +28,6 @@ import traceback
 import json
 import sys
 import logging
-import copy
 from math import ceil, floor
 from urlparse import urlparse
 
