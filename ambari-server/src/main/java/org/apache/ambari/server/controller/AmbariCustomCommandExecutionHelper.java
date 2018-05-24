@@ -321,8 +321,8 @@ public class AmbariCustomCommandExecutionHelper {
 
     // grab the stack ID from the service first, and use the context's if it's set
     StackId stackId = service.getDesiredStackId();
-    if (null != actionExecutionContext.getRepositoryVersion()) {
-      stackId = actionExecutionContext.getRepositoryVersion().getStackId();
+    if (null != actionExecutionContext.getStackId()) {
+      stackId = actionExecutionContext.getStackId();
     }
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();

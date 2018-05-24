@@ -998,6 +998,33 @@ public class UpgradeContext {
   }
 
   /**
+   * Gets the single target stack for the upgrade.  By definition, ALL the targets,
+   * despite the versions, should have the same stack.  The source stacks may be different
+   * from the target, but all the source stacks must also be the same.
+   * <p/>
+   *
+   * @return the target stack for this upgrade (never {@code null}).
+   */
+  public StackId getTargetStack() {
+    RepositoryVersionEntity repo = m_targetRepositoryMap.values().iterator().next();
+    return repo.getStackId();
+  }
+
+  /**
+   * Gets the single source stack for the upgrade depending on the
+   * direction.  By definition, ALL the source stacks, despite the versions, should have
+   * the same stack.  The target stacks may be different from the source, but all the target
+   * stacks must also be the same.
+   * <p/>
+   *
+   * @return the source stack for this upgrade (never {@code null}).
+   */
+  public StackId getSourceStack() {
+    RepositoryVersionEntity repo = m_sourceRepositoryMap.values().iterator().next();
+    return repo.getStackId();
+  }
+
+  /**
    * Gets the set of services which will participate in the upgrade. The
    * services available in the repository are comapred against those installed
    * in the cluster to arrive at the final subset.
