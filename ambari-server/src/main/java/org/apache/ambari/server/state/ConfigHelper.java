@@ -870,6 +870,12 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
+      // !!! the services map is from the stack, which may not contain services in the cluster.
+      // This is the case for upgrades where the target stack may remove services
+      if (!servicesMap.containsKey(service.getName())) {
+        continue;
+      }
+
       Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
@@ -1476,7 +1482,7 @@ public class ConfigHelper {
       }
       stale = stale | staleEntry;
     }
-    
+
     String refreshCommand = calculateRefreshCommand(stackInfo.getRefreshCommandConfiguration(), sch, changedProperties);
 
     if (STALE_CONFIGS_CACHE_ENABLED) {

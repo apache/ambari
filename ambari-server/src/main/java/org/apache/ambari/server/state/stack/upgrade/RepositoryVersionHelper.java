@@ -453,8 +453,8 @@ public class RepositoryVersionHelper {
     // host params and then return
     if (null == repositoryVersion) {
       // see if the action context has a repository set to use for the command
-      if (null != actionContext.getRepositoryVersion()) {
-        StackId stackId = actionContext.getRepositoryVersion().getStackId();
+      if (null != actionContext.getStackId()) {
+        StackId stackId = actionContext.getStackId();
         hostLevelParams.put(KeyNames.STACK_NAME, stackId.getStackName());
         hostLevelParams.put(KeyNames.STACK_VERSION, stackId.getStackVersion());
       }
@@ -574,9 +574,8 @@ public class RepositoryVersionHelper {
    * @param osEntity      the OS family
    */
   public void addCommandRepositoryToContext(ActionExecutionContext context,
-                                            RepoOsEntity osEntity) throws SystemException {
+      final RepositoryVersionEntity repoVersion, RepoOsEntity osEntity) throws SystemException {
 
-    final RepositoryVersionEntity repoVersion = context.getRepositoryVersion();
     final CommandRepository commandRepo = getCommandRepository(repoVersion, osEntity);
 
     ClusterVersionSummary summary = null;
@@ -593,7 +592,6 @@ public class RepositoryVersionHelper {
     }
 
     final ClusterVersionSummary clusterSummary = summary;
-
 
     context.addVisitor(command -> {
       if (null == command.getRepositoryFile()) {

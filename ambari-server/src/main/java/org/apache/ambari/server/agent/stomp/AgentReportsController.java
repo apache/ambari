@@ -105,7 +105,7 @@ public class AgentReportsController {
   public ReportsResponse handleAlertsStatus(@Header String simpSessionId, Alert[] message) throws AmbariException {
     String hostName = agentSessionManager.getHost(simpSessionId).getHostName();
     List<Alert> alerts = Arrays.asList(message);
-    LOG.info("Handling {} alerts status for host {}", alerts.size(), hostName);
+    LOG.debug("Handling {} alerts status for host {}", alerts.size(), hostName);
     hh.getHeartbeatProcessor().processAlerts(hostName, alerts);
     return new ReportsResponse();
   }
