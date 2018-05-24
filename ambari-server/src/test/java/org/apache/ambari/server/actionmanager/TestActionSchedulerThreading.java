@@ -34,7 +34,9 @@ import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -101,16 +103,18 @@ public class TestActionSchedulerThreading {
 
     StackId stackId = cluster.getCurrentStackVersion();
     StackId newStackId = new StackId("HDP-2.2.0");
-    RepositoryVersionEntity repoVersion220 = ormTestHelper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
+    MpackEntity newMpack = ormTestHelper.createMpack(newStackId);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity newStack = stackDAO.find(newStackId);
+    Assert.assertNotNull(newStack);
 
     // make sure the stacks are different
     Assert.assertFalse(stackId.equals(newStackId));
 
     // add a service
     String serviceName = "ZOOKEEPER";
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service service = cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
 
     Map<String, String> properties = new HashMap<>();
@@ -126,7 +130,8 @@ public class TestActionSchedulerThreading {
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
 
     // bump the stack
-    service.setDesiredRepositoryVersion(repoVersion220);
+
+    serviceGroup.setStack(newStack);
 
     // save v2
     // zoo-cfg for v2 on new stack
@@ -147,7 +152,9 @@ public class TestActionSchedulerThreading {
     final String hostName = cluster.getHosts().iterator().next().getHostName();
 
     // move the stack back to the old stack
-    service.setDesiredRepositoryVersion(repositoryVersion);
+    StackEntity oldStack = stackDAO.find(cluster.getCurrentStackVersion());
+    Assert.assertNotNull(oldStack);
+    serviceGroup.setStack(oldStack);
 
     // create the semaphores, taking 1 from each to make them blocking from the
     // start

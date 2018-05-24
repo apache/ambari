@@ -2,7 +2,7 @@
 __doc__ = """
 This compatibility module is inspired by the one found
 in CherryPy. It provides a common entry point for the various
-functions and types that are used with ambari_ws4py but which
+functions and types that are used with ws4py but which
 differ from Python 2.x to Python 3.x
 
 There are likely better ways for some of them so feel

@@ -129,7 +129,7 @@ def metadata(type='server'):
     # Needed by both Server and Client
     PropertiesFile(format('{conf_dir}/{conf_file}'),
          properties = params.application_properties,
-         mode=0644,
+         mode=0600,
          owner=params.metadata_user,
          group=params.user_group
     )

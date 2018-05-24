@@ -19,10 +19,8 @@ limitations under the License.
 
 import os
 import re
-import getpass
 import tempfile
 from copy import copy
-from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
 from resource_management.core import shell
 
@@ -59,50 +57,6 @@ def setup_users():
     Logger.info('Skipping creation of User and Group as host is sys prepped or ignore_groupsusers_create flag is on')
     pass
 
-
-  if params.has_hbase_masters:
-    Directory (params.hbase_tmp_dir,
-               owner = params.hbase_user,
-               mode=0775,
-               create_parents = True,
-               cd_access="a",
-    )
-
-    if params.override_uid == "true":
-      set_uid(params.hbase_user, params.hbase_user_dirs)
-    else:
-      Logger.info('Skipping setting uid for hbase user as host is sys prepped')
-
-  if should_create_users_and_groups:
-    if params.has_namenode:
-      create_dfs_cluster_admins()
-    if params.has_tez and params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.3') >= 0:
-      create_tez_am_view_acls()
-  else:
-    Logger.info('Skipping setting dfs cluster admin and tez view acls as host is sys prepped')
-
-def create_dfs_cluster_admins():
-  """
-  dfs.cluster.administrators support format <comma-delimited list of usernames><space><comma-delimited list of group names>
-  """
-  import params
-
-  groups_list = create_users_and_groups(params.dfs_cluster_administrators_group)
-
-  User(params.hdfs_user,
-    groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-    fetch_nonlocal_groups = params.fetch_nonlocal_groups
-  )
-
-def create_tez_am_view_acls():
-
-  """
-  tez.am.view-acls support format <comma-delimited list of usernames><space><comma-delimited list of group names>
-  """
-  import params
-
-  if not params.tez_am_view_acls.startswith("*"):
-    create_users_and_groups(params.tez_am_view_acls)
 
 def create_users_and_groups(user_and_groups):
 
@@ -154,11 +108,11 @@ def get_uid(user, return_existing=False):
   """
   import params
   user_str = str(user) + "_uid"
-  service_env = [ serviceEnv for serviceEnv in params.config['configurations'] if user_str in params.config['configurations'][serviceEnv]]
+  service_env = [ serviceEnv for serviceEnv in params.module_configs if params.module_configs.get_property_value(params.module_name, serviceEnv, user_str)]
 
-  if service_env and params.config['configurations'][service_env[0]][user_str]:
+  if service_env and params.module_configs.get_property_value(params.module_name, service_env[0], user_str):
     service_env_str = str(service_env[0])
-    uid = params.config['configurations'][service_env_str][user_str]
+    uid = params.module_configs.get_property_value(params.module_name, service_env_str, user_str)
     if len(service_env) > 1:
       Logger.warning("Multiple values found for %s, using %s"  % (user_str, uid))
     return uid
@@ -176,35 +130,6 @@ def get_uid(user, return_existing=False):
       # do not return UID for existing user, used in User resource call to let OS to choose UID for us
       return None
 
-def setup_hadoop_env():
-  import params
-  stackversion = params.stack_version_unformatted
-  Logger.info("FS Type: {0}".format(params.dfs_type))
-  if params.has_namenode or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
-    if params.security_enabled:
-      tc_owner = "root"
-    else:
-      tc_owner = params.hdfs_user
-
-    # create /etc/hadoop
-    Directory(params.hadoop_dir, mode=0755)
-
-    #Write out the conf directory
-    #TODO: Change with instance manager
-    Directory(params.hadoop_conf_dir, mode=0755)
-    # write out hadoop-env.sh, but only if the directory exists
-    if os.path.exists(params.hadoop_conf_dir):
-      File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'), owner=tc_owner,
-        group=params.user_group,
-        content=InlineTemplate(params.hadoop_env_sh_template))
-
-    # Create tmp dir for java.io.tmpdir
-    # Handle a situation when /tmp is set to noexec
-    Directory(params.hadoop_java_io_tmpdir,
-              owner=params.hdfs_user,
-              group=params.user_group,
-              mode=01777
-    )
 
 def setup_java():
   """

@@ -113,6 +113,7 @@ module.exports = {
     data.items.forEach(host => {
       host.host_components.forEach(hostComponent => {
         hostComponents.push(Em.Object.create({
+          serviceGroupName: hostComponent.HostRoles.service_group_name,
           componentName: hostComponent.HostRoles.component_name,
           hostName: host.Hosts.host_name
         }));
@@ -171,7 +172,6 @@ module.exports = {
       fields += displayParam;
       fields += (array.length === (index + 1)) ? '' : ",";
     });
-    fields += '&minimal_response=true';
 
     return {fields: fields.substring(1, fields.length), params: params};
   },
@@ -222,34 +222,51 @@ module.exports = {
      *  ...
      * }
      */
-    var componentToHostsMap = {};
-    var hosts = [];
-    hostComponentsList.forEach(function(hc) {
-      var hostName = hc.get('hostName');
-      var componentName = hc.get('componentName');
+    const componentToHostsMap = {};
+    const componentToServiceGroupsMap = {};
+
+    hostComponentsList.forEach(function (hc) {
+      const componentName = hc.get('componentName');
+
+      const serviceGroupName = hc.get('serviceGroupName');
+      if (!componentToServiceGroupsMap[componentName]) {
+        componentToServiceGroupsMap[componentName] = [];
+      }
+      componentToServiceGroupsMap[componentName].push(serviceGroupName);
+
+      const hostName = hc.get('hostName');
       if (!componentToHostsMap[componentName]) {
         componentToHostsMap[componentName] = [];
       }
       componentToHostsMap[componentName].push(hostName);
-      hosts.push(hostName);
     });
-    var resource_filters = [];
-    for (var componentName in componentToHostsMap) {
-      if (componentToHostsMap.hasOwnProperty(componentName)) {
-        resource_filters.push({
-          service_name: App.StackServiceComponent.find(componentName).get('serviceName'),
-          component_name: componentName,
-          hosts: componentToHostsMap[componentName].join(",")
-        });
+
+    const resource_filters = [];
+    
+    for (let componentName in componentToServiceGroupsMap) {
+      if (componentToServiceGroupsMap.hasOwnProperty(componentName)) {
+        const component = App.StackServiceComponent.find(componentName);
+        if (component) {
+          const serviceName = component.get('serviceName');
+          
+          const serviceGroups = componentToServiceGroupsMap[componentName];
+          serviceGroups.forEach(serviceGroupName => {
+            resource_filters.push({
+              service_name: serviceName,
+              service_group_name: serviceGroupName,
+              component_name: componentName,
+              hosts: componentToHostsMap[componentName].join(",")
+            });
+          });  
+        }
       }
     }
+
     if (hostComponentsList.length > 0) {
       var serviceComponentName = hostComponentsList[0].get("componentName");
       var serviceName = App.StackServiceComponent.find(serviceComponentName).get('serviceName');
-      var operation_level = this.getOperationLevelObject(level, serviceName,
-        serviceComponentName);
+      var operation_level = this.getOperationLevelObject(level, serviceName, serviceComponentName);
     }
-
 
     if (resource_filters.length) {
       App.ajax.send({
@@ -352,18 +369,21 @@ module.exports = {
    * @returns {Array} list of batches
    */
   getBatchesForRollingRestartRequest: function(restartHostComponents, batchSize) {
-    var hostIndex = 0,
-        batches = [],
-        batchCount = Math.ceil(restartHostComponents.length / batchSize),
-        sampleHostComponent = restartHostComponents.objectAt(0),
-        componentName = sampleHostComponent.get('componentName'),
-        serviceName = sampleHostComponent.get('serviceName');
+    let hostIndex = 0;
+    const batches = [];
+    const batchCount = Math.ceil(restartHostComponents.length / batchSize);
+    const sampleHostComponent = restartHostComponents.objectAt(0);
+    const componentName = sampleHostComponent.get('componentName');
+    const serviceName = sampleHostComponent.get('serviceName');
+    const serviceGroupName = sampleHostComponent.get('serviceGroupName');
 
-    for ( var count = 0; count < batchCount; count++) {
+    for (var count = 0; count < batchCount; count++) {
       var hostNames = [];
-      for ( var hc = 0; hc < batchSize && hostIndex < restartHostComponents.length; hc++) {
+      
+      for (var hc = 0; hc < batchSize && hostIndex < restartHostComponents.length; hc++) {
         hostNames.push(restartHostComponents.objectAt(hostIndex++).get('hostName'));
       }
+
       if (hostNames.length) {
         batches.push({
           "order_id" : count + 1,
@@ -375,7 +395,8 @@ module.exports = {
               "command" : "RESTART"
             },
             "Requests/resource_filters": [{
-              "service_name" : serviceName,
+              "service_name": serviceName,
+              "service_group_name": serviceGroupName,
               "component_name" : componentName,
               "hosts" : hostNames.join(",")
             }]

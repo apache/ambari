@@ -189,10 +189,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new MpackResourceProvider(managementController);
       case StackVersion:
         return new StackVersionResourceProvider(managementController);
-      case ClusterStackVersion:
-        return resourceProviderFactory.getClusterStackVersionResourceProvider(managementController);
-      case HostStackVersion:
-        return new HostStackVersionResourceProvider(managementController);
       case StackService:
         return new StackServiceResourceProvider(managementController);
       case StackServiceComponent:
@@ -229,16 +225,16 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return resourceProviderFactory.getBlueprintResourceProvider(managementController);
       case KerberosDescriptor:
         return resourceProviderFactory.getKerberosDescriptorResourceProvider(managementController);
+      case MpackRecommendation:
+        return new MpackRecommendationResourceProvider(managementController);
       case Recommendation:
         return new RecommendationResourceProvider(managementController);
+      case MpackValidation:
+        return new MpackValidationResourceProvider(managementController);
       case Validation:
         return new ValidationResourceProvider(managementController);
       case ClientConfig:
         return new ClientConfigResourceProvider(managementController);
-      case RepositoryVersion:
-        return resourceProviderFactory.getRepositoryVersionResourceProvider();
-      case CompatibleRepositoryVersion:
-        return new CompatibleRepositoryVersionResourceProvider(managementController);
       case StackArtifact:
         return new StackArtifactResourceProvider(managementController);
       case Theme:
@@ -259,8 +255,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RoleAuthorizationResourceProvider(managementController);
       case UserAuthorization:
         return new UserAuthorizationResourceProvider(managementController);
-      case VersionDefinition:
-        return new VersionDefinitionResourceProvider();
       case ClusterKerberosDescriptor:
         return new ClusterKerberosDescriptorResourceProvider(managementController);
       case LoggingQuery:

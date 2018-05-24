@@ -27,12 +27,19 @@ module.exports = Em.Object.extend({
   /**
    * @type {string}
    */
-  webSocketUrl: 'ws://{hostname}:8080/api/stomp/v1/websocket',
+  webSocketUrl: '{protocol}://{hostname}:8080/api/stomp/v1/websocket',
 
   /**
    * @type {string}
    */
-  sockJsUrl: 'http://{hostname}:8080/api/stomp/v1',
+  sockJsUrl: '{protocol}://{hostname}:8080/api/stomp/v1',
+
+  /**
+   * sockJs should use only alternative options as transport in case when websocket supported but connection fails
+   * @const
+   * @type {Array}
+   */
+  sockJsTransports: ['eventsource', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling'],
 
   /**
    * @type {boolean}
@@ -76,7 +83,7 @@ module.exports = Em.Object.extend({
       this.onConnectionSuccess();
       dfd.resolve();
     }, () => {
-      this.onConnectionError();
+      this.onConnectionError(useSockJS);
       dfd.reject();
     });
     client.debug = Em.K;
@@ -91,11 +98,16 @@ module.exports = Em.Object.extend({
    */
   getSocket: function(useSockJS) {
     const hostname = window.location.hostname;
+    const isSecure = window.location.protocol === 'https:';
+
     if (!WebSocket || useSockJS) {
       this.set('isWebSocketSupported', false);
-      return new SockJS(this.get('sockJsUrl').replace('{hostname}', hostname));
+      const protocol = isSecure ? 'https' : 'http';
+      const sockJsUrl = this.get('sockJsUrl').replace('{hostname}', hostname).replace('{protocol}', protocol);
+      return new SockJS(sockJsUrl, null, {transports: this.get('sockJsTransports')});
     } else {
-      return new WebSocket(this.get('webSocketUrl').replace('{hostname}', hostname));
+      const protocol = isSecure ? 'wss' : 'ws';
+      return new WebSocket(this.get('webSocketUrl').replace('{hostname}', hostname).replace('{protocol}', protocol));
     }
   },
 
@@ -103,20 +115,20 @@ module.exports = Em.Object.extend({
     this.set('isConnected', true);
   },
 
-  onConnectionError: function() {
+  onConnectionError: function(useSockJS) {
     if (this.get('isConnected')) {
-      this.reconnect();
-    } else {
+      this.reconnect(useSockJS);
+    } else if (!useSockJS) {//if SockJs connection failed too the stop trying to connect
       //if webSocket failed on initial connect then switch to SockJS
       this.connect(true);
     }
   },
 
-  reconnect: function() {
+  reconnect: function(useSockJS) {
     const subscriptions = this.get('subscriptions');
     setTimeout(() => {
       console.debug('Reconnecting to WebSocket...');
-      this.connect().done(() => {
+      this.connect(useSockJS).done(() => {
         for (var i in subscriptions) {
           subscriptions[i].unsubscribe();
           this.subscribe(subscriptions[i].destination, subscriptions[i].handlers['default']);

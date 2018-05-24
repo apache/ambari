@@ -29,34 +29,34 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
-@javax.persistence.IdClass(ClusterServiceEntityPK.class)
-@javax.persistence.Table(name = "clusterservices")
 @NamedQueries({
   @NamedQuery(name = "clusterServiceById", query =
     "SELECT clusterService " +
       "FROM ClusterServiceEntity clusterService " +
-      "JOIN clusterService.serviceGroupEntity serviceGroup " +
-      "WHERE clusterService.serviceId=:serviceId " +
-      "AND  serviceGroup.serviceGroupId=:serviceGroupId " +
-      "AND serviceGroup.clusterId=:clusterId"),
-   @NamedQuery(name = "clusterServiceByName", query =
-     "SELECT clusterService " +
-      "FROM ClusterServiceEntity clusterService " +
-       "JOIN clusterService.serviceGroupEntity serviceGroup " +
-        "JOIN clusterService.clusterEntity clusterEntity " +
-       "WHERE clusterService.serviceName=:serviceName " +
-       "AND  serviceGroup.serviceGroupName=:serviceGroupName " +
-        "AND clusterEntity.clusterName=:clusterName")
+      "WHERE clusterService.serviceId=:serviceId "),
+  @NamedQuery(name = "clusterServiceByName", query =
+    "SELECT clusterService " +
+    "FROM ClusterServiceEntity clusterService " +
+    "WHERE clusterService.serviceName=:serviceName " +
+    "AND clusterService.serviceGroupEntity.serviceGroupName=:serviceGroupName " +
+    "AND clusterService.clusterEntity.clusterName=:clusterName")
 })
 @Entity
+@Table(
+  name = "clusterservices",
+  uniqueConstraints = @UniqueConstraint(
+  name = "UQ_clusterservices_id",
+  columnNames = {"service_name", "service_group_id"}))
+
 @TableGenerator(name = "service_id_generator",
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "service_id_seq"
@@ -64,11 +64,9 @@ import javax.persistence.TableGenerator;
 )
 public class ClusterServiceEntity {
 
-  @Id
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false, length = 10)
   private Long clusterId;
 
-  @Id
   @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long serviceGroupId;
 
@@ -93,8 +91,7 @@ public class ClusterServiceEntity {
   private ClusterEntity clusterEntity;
 
   @ManyToOne
-  @JoinColumns({@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-    @JoinColumn(name = "service_group_id", referencedColumnName = "id", nullable = false)})
+  @JoinColumn(name = "service_group_id", referencedColumnName = "id", nullable = false)
   private ServiceGroupEntity serviceGroupEntity;
 
   @OneToOne(mappedBy = "clusterServiceEntity", cascade = { CascadeType.PERSIST, CascadeType.MERGE })

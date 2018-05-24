@@ -17,13 +17,14 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.annotations.SerializedName;
 
+/* Representation of the modules section in the mpack.json*/
 public class Module {
   public enum Category {
     @SerializedName("SERVER")
@@ -52,6 +53,8 @@ public class Module {
   private List<ModuleDependency> dependencies;
   @SerializedName("components")
   private List<ModuleComponent> components;
+
+  private HashMap<String, ModuleComponent> componentHashMap;
 
   public Category getCategory() {
     return category;
@@ -129,14 +132,13 @@ public class Module {
     this.components = components;
   }
 
+  /**
+   * Fetch a particular module component by the component name.
+   * @param moduleComponentName
+   * @return
+   */
   public ModuleComponent getModuleComponent(String moduleComponentName) {
-    for (ModuleComponent moduleComponent : components) {
-      if (StringUtils.equals(moduleComponentName, moduleComponent.getName())) {
-        return moduleComponent;
-      }
-    }
-
-    return null;
+   return componentHashMap.get(moduleComponentName);
   }
 
   @Override
@@ -174,5 +176,15 @@ public class Module {
             ", dependencies=" + dependencies +
             ", components=" + components +
             '}';
+  }
+
+  /**
+   * Loads the components into a map (component name, component) for ease of access.
+   */
+  public void populateComponentMap() {
+    componentHashMap = new HashMap<>();
+    for (ModuleComponent moduleComponent : this.getComponents()){
+      componentHashMap.put(moduleComponent.getName(), moduleComponent);
+    }
   }
 }

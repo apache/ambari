@@ -88,6 +88,20 @@ public class UpgradePlanService extends BaseService {
         createResourceInstance(id));
   }
 
+  @PUT @ApiIgnore
+  @Path("{upgradePlanId}/install")
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response installPlan(String body, @Context HttpHeaders headers,
+      @Context UriInfo ui, @PathParam("upgradePlanId") Long id) {
+
+    Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.Cluster, m_clusterName);
+    mapIds.put(Resource.Type.UpgradePlanInstall, id.toString());
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResource(Resource.Type.UpgradePlanInstall, mapIds));
+  }
+
   @DELETE @ApiIgnore // until documented
   @Path("{upgradePlanId}")
   @Produces(MediaType.TEXT_PLAIN)

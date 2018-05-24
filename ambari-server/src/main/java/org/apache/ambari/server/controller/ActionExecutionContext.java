@@ -42,6 +42,7 @@ public class ActionExecutionContext {
   private Map<String, String> parameters;
   private TargetHostType targetType;
   private Short timeout;
+  private Long mpackId;
   private String expectedServiceGroupName;
   private String expectedServiceName;
   private String expectedComponentName;
@@ -63,8 +64,8 @@ public class ActionExecutionContext {
   public ActionExecutionContext(String clusterName, String actionName,
       List<RequestResourceFilter> resourceFilters,
       Map<String, String> parameters, TargetHostType targetType,
-      Short timeout, String expectedServiceGroupName, String expectedServiceName,
-      String expectedComponentName) {
+      Short timeout, Long mpackId, String expectedServiceGroupName,
+      String expectedServiceName, String expectedComponentName) {
 
     this.clusterName = clusterName;
     this.actionName = actionName;
@@ -72,6 +73,7 @@ public class ActionExecutionContext {
     this.parameters = parameters;
     this.targetType = targetType;
     this.timeout = timeout;
+    this.mpackId = mpackId;
     this.expectedServiceGroupName = expectedServiceGroupName;
     this.expectedServiceName = expectedServiceName;
     this.expectedComponentName = expectedComponentName;
@@ -129,8 +131,20 @@ public class ActionExecutionContext {
     this.operationLevel = operationLevel;
   }
 
+  public Long getMpackId() {
+    return mpackId;
+  }
+
+  public void setMpackId(Long mpackId) {
+    this.mpackId = mpackId;
+  }
+
   public String getExpectedServiceGroupName() {
     return expectedServiceGroupName;
+  }
+
+  public void setExpectedServiceGroupName(String name) {
+    expectedServiceGroupName = name;
   }
 
   public String getExpectedServiceName() {

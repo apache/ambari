@@ -139,7 +139,7 @@ public class RoleCommandOrder implements Cloneable {
 
     Set<StackId> stackIds = new HashSet<>();
     for (Service service : cluster.getServices().values()) {
-      stackIds.add(service.getDesiredStackId());
+      stackIds.add(service.getStackId());
     }
     Set<String> components = cluster.getServices().values().stream()
       .flatMap(s -> s.getServiceComponents().values().stream())

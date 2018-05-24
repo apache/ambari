@@ -860,58 +860,6 @@ public class StacksService extends BaseService {
         createStackServiceComponentResource(stackName, stackVersion, serviceName, componentName));
   }
 
-  /**
-   * Handles ANY /{stackName}/versions/{stackVersion}/operating_systems.
-   *
-   * @param stackName stack name
-   * @param stackVersion stack version
-   * @return operating system service
-   */
-  // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
-  @Path("{stackName}/versions/{stackVersion}/operating_systems")
-  public OperatingSystemReadOnlyService getOperatingSystemsHandler(@ApiParam @PathParam("stackName") String stackName,
-                                                           @ApiParam @PathParam("stackVersion") String stackVersion) {
-    final Map<Resource.Type, String> stackProperties = new HashMap<>();
-    stackProperties.put(Resource.Type.Stack, stackName);
-    stackProperties.put(Resource.Type.StackVersion, stackVersion);
-    return new OperatingSystemReadOnlyService(stackProperties);
-  }
-
-  /**
-   * Handles ANY /{stackName}/versions/{stackVersion}/repository_versions.
-   *
-   * @param stackName stack name
-   * @param stackVersion stack version
-   * @return repository version service
-   */
-  // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
-  @Path("{stackName}/versions/{stackVersion}/repository_versions")
-  public RepositoryVersionService getRepositoryVersionHandler(@ApiParam @PathParam("stackName") String stackName,
-                                                              @ApiParam @PathParam("stackVersion") String stackVersion) {
-    final Map<Resource.Type, String> stackProperties = new HashMap<>();
-    stackProperties.put(Resource.Type.Stack, stackName);
-    stackProperties.put(Resource.Type.StackVersion, stackVersion);
-    return new RepositoryVersionService(stackProperties);
-  }
-
-  /**
-   * Handles ANY /{stackName}/versions/{stackVersion}/compatible_repository_versions.
-   *
-   * @param stackName stack name
-   * @param stackVersion stack version
-   * @return repository version service
-   */
-  // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
-  @Path("{stackName}/versions/{stackVersion}/compatible_repository_versions")
-  public CompatibleRepositoryVersionService getCompatibleRepositoryVersionHandler(
-      @ApiParam @PathParam("stackName") String stackName,
-      @ApiParam @PathParam("stackVersion") String stackVersion) {
-    final Map<Resource.Type, String> stackProperties = new HashMap<>();
-    stackProperties.put(Resource.Type.Stack, stackName);
-    stackProperties.put(Resource.Type.StackVersion, stackVersion);
-    return new CompatibleRepositoryVersionService(stackProperties);
-  }
-
   ResourceInstance createStackServiceComponentResource(
       String stackName, String stackVersion, String serviceName, String componentName) {
 

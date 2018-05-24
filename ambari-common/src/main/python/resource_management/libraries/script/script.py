@@ -60,22 +60,11 @@ from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
-from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
-  get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
 from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 from resource_management.libraries.execution_command.module_configs import ModuleConfigs
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.install_windows_msi import install_windows_msi
-  from resource_management.libraries.functions.reload_windows_env import reload_windows_env
-  from resource_management.libraries.functions.zip_archive import archive_dir
-  from resource_management.libraries.resources import Msi
-else:
-  from resource_management.libraries.functions.tar_archive import archive_dir
 
 USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR> [PROTOCOL]
 
@@ -108,30 +97,7 @@ def get_path_from_configuration(name, configuration):
 def get_config_lock_file():
   return os.path.join(Script.get_tmp_dir(), "link_configs_lock_file")
 
-class LockedConfigureMeta(type):
-  '''
-  This metaclass ensures that Script.configure() is invoked with a fcntl-based process lock
-  if necessary (when Ambari Agent is configured to execute tasks concurrently) for all subclasses.
-  '''
-  def __new__(meta, classname, supers, classdict):
-    if 'configure' in classdict:
-      original_configure = classdict['configure']
-
-      def locking_configure(obj, *args, **kw):
-        # local import to avoid circular dependency (default imports Script)
-        from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(default("/agentLevelParams/agentConfigParams/agent/parallel_execution", 0)) == 1
-        lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
-        with lock:
-          original_configure(obj, *args, **kw)
-
-      classdict['configure'] = locking_configure
-
-    return type.__new__(meta, classname, supers, classdict)
-
 class Script(object):
-  __metaclass__ = LockedConfigureMeta
-
   instance = None
 
   """
@@ -277,7 +243,7 @@ class Script(object):
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
+    stack_version_unformatted = self.execution_command.get_mpack_version()
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
@@ -484,16 +450,17 @@ class Script(object):
 
   def get_stack_version_before_packages_installed(self):
     """
-    This works in a lazy way (calculates the version first time and stores it). 
+    This works in a lazy way (calculates the version first time and stores it).
     If you need to recalculate the version explicitly set:
-    
+
     Script.stack_version_from_distro_select = None
-    
+
     before the call. However takes a bit of time, so better to avoid.
 
     :return: stack version including the build number. e.g.: 2.3.4.0-1234.
     """
     from resource_management.libraries.functions import stack_select
+    from ambari_commons.repo_manager import ManagerFactory
 
     # preferred way is to get the actual selected version of current component
     stack_select_package_name = stack_select.get_package_name()
@@ -506,7 +473,7 @@ class Script(object):
     if not Script.stack_version_from_distro_select or '*' in Script.stack_version_from_distro_select:
       # FIXME: this method is not reliable to get stack-selector-version
       # as if there are multiple versions installed with different <stack-selector-tool>, we won't detect the older one (if needed).
-      pkg_provider = get_provider("Package")
+      pkg_provider = ManagerFactory.get()
 
       Script.stack_version_from_distro_select = pkg_provider.get_installed_package_version(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
@@ -677,11 +644,11 @@ class Script(object):
   @staticmethod
   def get_stack_name():
     """
-    Gets the name of the stack from clusterLevelParams/stack_name.
+    Gets the name of the stack from stackSettings/stack_name.
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = default("/clusterLevelParams/stack_name", None)
+    stack_name = default("/stackSettings/stack_name", None)
     if stack_name is None:
       stack_name = default("/configurations/cluster-env/stack_name", "HDP")
 
@@ -716,10 +683,10 @@ class Script(object):
     :return: a normalized stack version or None
     """
     config = Script.get_config()
-    if 'clusterLevelParams' not in config or 'stack_version' not in config['clusterLevelParams']:
+    if 'stackSettings' not in config or 'stack_version' not in config['stackSettings']:
       return None
 
-    stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
+    stack_version_unformatted = str(config['stackSettings']['stack_version'])
 
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
@@ -797,11 +764,12 @@ class Script(object):
     self.install_packages(env)
 
   def load_available_packages(self):
+    from ambari_commons.repo_manager import ManagerFactory
+
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
-
-    pkg_provider = get_provider("Package")
+    pkg_provider = ManagerFactory.get()
     try:
       self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
     except Exception as err:
@@ -812,12 +780,13 @@ class Script(object):
     # should be used only when mpack-instance-manager is available
     from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
     config = self.get_config()
-    mpack_name = get_mpack_name(config)
-    mpack_version = get_mpack_version(config)
-    mpack_instance_name = get_mpack_instance_name(config)
-    module_name = get_module_name(config)
-    component_type = get_component_type(config)
-    component_instance_name = get_component_instance_name(config)
+    execution_command = self.get_execution_command()
+    mpack_name = execution_command.get_mpack_name()
+    mpack_version = execution_command.get_mpack_version()
+    mpack_instance_name = execution_command.get_servicegroup_name()
+    module_name = execution_command.get_module_name()
+    component_type = execution_command.get_component_type()
+    component_instance_name = execution_command.get_component_instance_name()
 
     create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
                               module_name=module_name, components_instance_type=component_type,
@@ -829,7 +798,7 @@ class Script(object):
     List of packages that are required< by service is received from the server
     as a command parameter. The method installs all packages
     from this list
-    
+
     exclude_packages - list of regexes (possibly raw strings as well), the
     packages which match the regex won't be installed.
     NOTE: regexes don't have Python syntax, but simple package regexes which support only * and .* and ?
@@ -864,14 +833,6 @@ class Script(object):
     except KeyError:
       traceback.print_exc()
 
-    if OSCheck.is_windows_family():
-      #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
-      hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(config['ambariLevelParams']['jdk_location'],
-                          config["agentLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
-                          hadoop_user, self.get_password(hadoop_user),
-                          str(config['clusterLevelParams']['stack_version']))
-      reload_windows_env()
 
   def check_package_condition(self, package):
     condition = package['condition']
@@ -895,7 +856,7 @@ class Script(object):
   @staticmethod
   def matches_any_regexp(string, regexp_list):
     for regex in regexp_list:
-      # we cannot use here Python regex, since * will create some troubles matching plaintext names. 
+      # we cannot use here Python regex, since * will create some troubles matching plaintext names.
       package_regex = '^' + re.escape(regex).replace('\\.\\*','.*').replace("\\?", ".").replace("\\*", ".*") + '$'
       if re.match(package_regex, string):
         return True

@@ -41,8 +41,6 @@ import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
@@ -81,9 +79,7 @@ public class BackgroundCustomCommandExecutionTest {
   @Mock ActionManager am;
 
   private static final String STACK_VERSION = "2.0.6";
-  private static final String REPO_VERSION = "2.0.6-1234";
   private static final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-  private RepositoryVersionEntity m_repositoryVersion;
 
   @Before
   public void setup() throws Exception {
@@ -121,8 +117,7 @@ public class BackgroundCustomCommandExecutionTest {
     // TODO: remove this or replace the authenticated user to test authorization rules
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
-    m_repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
-    Assert.assertNotNull(m_repositoryVersion);
+    ormTestHelper.createMpack(STACK_ID);
   }
   @After
   public void teardown() throws AmbariException, SQLException {
@@ -216,8 +211,8 @@ public class BackgroundCustomCommandExecutionTest {
 
   private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
       throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName, m_repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
-    ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(r1));
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, desiredState != null ? desiredState.toString() : null, null);
+    ServiceResourceProviderTest.createServices(controller, Collections.singleton(r1));
   }
 
   private void createServiceComponent(String clusterName, String serviceGroupName,

@@ -85,14 +85,6 @@ import com.google.common.base.Objects;
             @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
             @QueryHint(name = "eclipselink.query-results-cache.ignore-null", value = "false"),
             @QueryHint(name = "eclipselink.query-results-cache.size", value = "1")
-          }),
-    @NamedQuery(
-        name = "UpgradeEntity.findRevertableUsingJPQL",
-        query = "SELECT upgrade FROM UpgradeEntity upgrade WHERE upgrade.repoVersionId IN (SELECT upgrade.repoVersionId FROM UpgradeEntity upgrade WHERE upgrade.clusterId = :clusterId AND upgrade.orchestration IN :revertableTypes GROUP BY upgrade.repoVersionId HAVING MOD(COUNT(upgrade.repoVersionId), 2) != 0) ORDER BY upgrade.upgradeId DESC",
-        hints = {
-            @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
-            @QueryHint(name = "eclipselink.query-results-cache.ignore-null", value = "false"),
-            @QueryHint(name = "eclipselink.query-results-cache.size", value = "1")
           })
         })
 public class UpgradeEntity {
@@ -128,12 +120,6 @@ public class UpgradeEntity {
   @Column(name="upgrade_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private UpgradeType upgradeType;
-
-  @Column(name = "repo_version_id", insertable = false, updatable = false)
-  private Long repoVersionId;
-
-  @JoinColumn(name = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
-  private RepositoryVersionEntity repositoryVersion;
 
   @Column(name = "skip_failures", nullable = false)
   private Integer skipFailures = 0;
@@ -427,7 +413,7 @@ public class UpgradeEntity {
    *         {@code null}).
    */
   public RepositoryVersionEntity getRepositoryVersion() {
-    return repositoryVersion;
+    return null;
   }
 
   /**
@@ -444,7 +430,6 @@ public class UpgradeEntity {
    *          {@code null}).
    */
   public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
-    this.repositoryVersion = repositoryVersion;
   }
 
   /**

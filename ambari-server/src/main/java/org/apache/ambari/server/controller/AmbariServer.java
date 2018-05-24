@@ -39,7 +39,10 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.rest.AgentResource;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.MethodOverrideFilter;
@@ -50,6 +53,7 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
+import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.audit.AuditLoggerModule;
@@ -68,6 +72,7 @@ import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackAdvisorResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.RegistryAdvisorResourceProvider;
@@ -908,10 +913,16 @@ public class AmbariServer {
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class),
             injector.getInstance(Configuration.class));
+    MpackAdvisorResourceProvider.init(injector.getInstance(MpackAdvisorHelper.class),
+        injector.getInstance(Configuration.class));
     RegistryAdvisorResourceProvider.init(injector.getInstance(RegistryAdvisor.class));
 
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    HostResourceProvider.setRecoveryConfigHelper(injector.getInstance(RecoveryConfigHelper.class));
+    HostResourceProvider.setHostLevelParamsHolder(injector.getInstance(HostLevelParamsHolder.class));
+    HostResourceProvider.setTopologyHolder(injector.getInstance(TopologyHolder.class));
+
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);

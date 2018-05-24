@@ -263,14 +263,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new OperatingSystemResourceDefinition();
         break;
 
-      case OperatingSystemReadOnly:
-        resourceDefinition = new OperatingSystemReadOnlyResourceDefinition();
-        break;
-
-      case Repository:
-        resourceDefinition = new RepositoryResourceDefinition();
-        break;
-
       case DRFeed:
         resourceDefinition = new FeedResourceDefinition();
         break;
@@ -348,8 +340,16 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new BlueprintResourceDefinition();
         break;
 
+      case MpackRecommendation:
+        resourceDefinition = new MpackRecommendationResourceDefinition();
+        break;
+
       case Recommendation:
         resourceDefinition = new RecommendationResourceDefinition();
+        break;
+
+      case MpackValidation:
+        resourceDefinition = new MpackValidationResourceDefinition();
         break;
 
       case Validation:
@@ -420,24 +420,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new LdapSyncEventResourceDefinition();
         break;
 
-      case RepositoryVersion:
-        resourceDefinition = new RepositoryVersionResourceDefinition();
-        break;
-
-      case CompatibleRepositoryVersion:
-        resourceDefinition = new SimpleResourceDefinition(Resource.Type.CompatibleRepositoryVersion,
-            "compatible_repository_version", "compatible_repository_versions",
-            Resource.Type.OperatingSystemReadOnly);
-        break;
-
-      case HostStackVersion:
-        resourceDefinition = new ComponentStackVersionResourceDefinition(Resource.Type.HostStackVersion);
-        break;
-
-      case ClusterStackVersion:
-        resourceDefinition = new ComponentStackVersionResourceDefinition(Resource.Type.ClusterStackVersion);
-        break;
-
       case Upgrade:
         resourceDefinition = new UpgradeResourceDefinition();
         break;
@@ -456,6 +438,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case UpgradePlan:
         resourceDefinition = new SimpleResourceDefinition(
             Resource.Type.UpgradePlan, "upgrade_plan", "upgrade_plans");
+        break;
+
+      case UpgradePlanInstall:
+        resourceDefinition = new SimpleResourceDefinition(
+            Resource.Type.UpgradePlanInstall, "upgrade_plan_install", "upgrade_plan_installs");
         break;
 
       case UpgradeSummary:
@@ -521,10 +508,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case Setting:
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.Setting, "setting", "settings");
-        break;
-
-      case VersionDefinition:
-        resourceDefinition = new VersionDefinitionResourceDefinition();
         break;
 
       case ClusterKerberosDescriptor:

@@ -19,10 +19,13 @@
 var App = require('app');
 
 App.HostComponent = DS.Model.extend({
+  componentId: DS.attr('string'),
   workStatus: DS.attr('string'),
   passiveState: DS.attr('string'),
   componentName: DS.attr('string'),
   displayName: DS.attr('string'),
+  serviceName: DS.attr('string'),
+  serviceGroupName: DS.attr('string'),
   haStatus: DS.attr('string'),
   displayNameAdvanced: DS.attr('string'),
   staleConfigs: DS.attr('boolean'),
@@ -32,7 +35,9 @@ App.HostComponent = DS.Model.extend({
   publicHostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
-  haNameSpace: DS.attr('string'),
+  haNameSpace: DS.attr('string', {
+    defaultValue: 'default'
+  }),
   clusterIdValue: DS.attr('string'),
 
   serviceDisplayName: Em.computed.truncate('service.displayName', 14, 11),

@@ -45,7 +45,7 @@ module.exports = Em.Application.create({
   isClusterUser: false,
   isPermissionDataLoaded: false,
   auth: undefined,
-  isOnlyViewUser: function() {
+  isOnlyViewUser: function () {
     return App.auth && (App.auth.length == 0 || (App.isAuthorized('VIEW.USE') && App.auth.length == 1));
   }.property('auth'),
 
@@ -62,102 +62,20 @@ module.exports = Em.Application.create({
   isKerberosEnabled: false,
 
   /**
-   * state of stack upgrade process
-   * states:
-   *  - NOT_REQUIRED
-   *  - PENDING
-   *  - IN_PROGRESS
-   *  - HOLDING
-   *  - COMPLETED
-   *  - ABORTED
-   *  - HOLDING_FAILED
-   *  - HOLDING_TIMEDOUT
-   * @type {String}
-   */
-  upgradeState: 'NOT_REQUIRED',
-
-  /**
-   * Check if upgrade is in INIT state
-   * 'INIT' is set on upgrade start and when it's finished
-   * @type {boolean}
-   */
-  upgradeInit: Em.computed.equal('upgradeState', 'NOT_REQUIRED'),
-
-  /**
-   * flag is true when upgrade process is running
-   * @returns {boolean}
-   */
-  upgradeInProgress: Em.computed.equal('upgradeState', 'IN_PROGRESS'),
-
-  /**
-   * Checks if update process is completed
-   * @type {boolean}
-   */
-  upgradeCompleted: Em.computed.equal('upgradeState', 'COMPLETED'),
-
-  /**
-   * flag is true when upgrade process is waiting for user action
-   * to proceed, retry, perform manual steps etc.
-   * @returns {boolean}
-   */
-  upgradeHolding: function() {
-    return this.get('upgradeState').contains("HOLDING") || this.get('upgradeAborted');
-  }.property('upgradeState', 'upgradeAborted'),
-
-  /**
-   * flag is true when upgrade process is aborted
-   * SHOULD behave similar to HOLDING_FAILED state
-   * @returns {boolean}
-   */
-  upgradeAborted: function () {
-    return this.get('upgradeState') === "ABORTED" && !App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
-
-  /**
-   * flag is true when upgrade process is suspended
-   * @returns {boolean}
-   */
-  upgradeSuspended: function () {
-    return this.get('upgradeState') === "ABORTED" && App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
-
-  /**
-   * RU is running
-   * @type {boolean}
-   */
-  upgradeIsRunning: Em.computed.or('upgradeInProgress', 'upgradeHolding'),
-
-  /**
-   * flag is true when upgrade process is running or suspended
-   * or wizard used by another user
-   * @returns {boolean}
-   */
-  wizardIsNotFinished: function () {
-    return this.get('upgradeIsRunning') ||
-           this.get('upgradeSuspended') ||
-           App.router.get('wizardWatcherController.isNonWizardUser');
-  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser', 'upgradeSuspended'),
-
-  /**
    * @param {string} authRoles
    * @returns {boolean}
    */
   havePermissions: function (authRoles) {
     var result = false;
-    authRoles = $.map(authRoles.split(","), $.trim);
 
-    // When Upgrade running(not suspended) only operations related to upgrade should be allowed
-    if ((!this.get('upgradeSuspended') && !authRoles.contains('CLUSTER.UPGRADE_DOWNGRADE_STACK')) &&
-      !App.get('supports.opsDuringRollingUpgrade') &&
-      !['NOT_REQUIRED', 'COMPLETED'].contains(this.get('upgradeState')) ||
-      !App.auth){
-      return false;
+    if (App.auth) {
+      authRoles = $.map(authRoles.split(","), $.trim);
+
+      authRoles.forEach(function (auth) {
+        result = result || App.auth.contains(auth);
+      });
     }
-
-    authRoles.forEach(function (auth) {
-      result = result || App.auth.contains(auth);
-    });
-
+    
     return result;
   },
   /**
@@ -174,7 +92,7 @@ module.exports = Em.Application.create({
    */
   stackVersionURL: function () {
     return '/stacks/{0}/versions/{1}'.format(this.get('currentStackName') || 'HDP', this.get('currentStackVersionNumber'));
-  }.property('currentStackName','currentStackVersionNumber'),
+  }.property('currentStackName', 'currentStackVersionNumber'),
 
   falconServerURL: function () {
     var falconService = this.Service.find().findProperty('serviceName', 'FALCON');
@@ -188,7 +106,7 @@ module.exports = Em.Application.create({
    * Because this value is retrieved from the cardinality of the component, it is safe to keep in app.js
    * since its value will not change during the lifetime of the application.
    */
-  doesATSSupportKerberos: function() {
+  doesATSSupportKerberos: function () {
     var YARNService = App.StackServiceComponent.find().filterProperty('serviceName', 'YARN');
     if (YARNService.length) {
       var ATS = App.StackServiceComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER');
@@ -201,7 +119,7 @@ module.exports = Em.Application.create({
   clusterName: null,
   clockDistance: null, // server clock - client clock
   currentStackVersion: '',
-  currentStackName: function() {
+  currentStackName: function () {
     return Em.get((this.get('currentStackVersion') || this.get('defaultStackVersion')).match(/(.+)-\d.+/), '1');
   }.property('currentStackVersion', 'defaultStackVersion'),
 
@@ -250,7 +168,7 @@ module.exports = Em.Application.create({
 
   hasNameNodeFederation: function () {
     return App.HDFSService.find().objectAt(0).get('masterComponentGroups.length') > 1;
-  }.property('router.clusterController.isHDFSNameSpacesLoaded'),
+  }.property('router.clusterController.isHostComponentMetricsLoaded', 'router.clusterController.isHDFSNameSpacesLoaded'),
 
   /**
    * If ResourceManager High Availability is enabled
@@ -260,7 +178,7 @@ module.exports = Em.Application.create({
    */
   isRMHaEnabled: function () {
     var result = false;
-    var rmStackComponent = App.StackServiceComponent.find().findProperty('componentName','RESOURCEMANAGER');
+    var rmStackComponent = App.StackServiceComponent.find().findProperty('componentName', 'RESOURCEMANAGER');
     if (rmStackComponent && rmStackComponent.get('isMultipleAllowed')) {
       result = this.HostComponent.find().filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
     }
@@ -275,7 +193,7 @@ module.exports = Em.Application.create({
    */
   isRAHaEnabled: function () {
     var result = false;
-    var raStackComponent = App.StackServiceComponent.find().findProperty('componentName','RANGER_ADMIN');
+    var raStackComponent = App.StackServiceComponent.find().findProperty('componentName', 'RANGER_ADMIN');
     if (raStackComponent && raStackComponent.get('isMultipleAllowed')) {
       result = App.HostComponent.find().filterProperty('componentName', 'RANGER_ADMIN').length > 1;
     }
@@ -326,11 +244,11 @@ module.exports = Em.Application.create({
       return App.StackService.find().filterProperty('isServiceMetricsService').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
 
-    supportsServiceCheck: function() {
+    supportsServiceCheck: function () {
       return App.StackService.find().filterProperty('serviceCheckSupported').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
 
-    supportsDeleteViaUI: function() {
+    supportsDeleteViaUI: function () {
       return App.StackService.find().filterProperty('supportDeleteViaUi').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded')
   }),

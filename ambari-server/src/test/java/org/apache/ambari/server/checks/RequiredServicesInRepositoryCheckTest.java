@@ -21,18 +21,18 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -42,16 +42,12 @@ import com.google.inject.Provider;
 /**
  * Tests {@link RequiredServicesInRepositoryCheck}.
  */
+@Ignore
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 @RunWith(MockitoJUnitRunner.class)
 public class RequiredServicesInRepositoryCheckTest {
 
   private static final String CLUSTER_NAME = "c1";
-
-  @Mock
-  private VersionDefinitionXml m_vdfXml;
-
-  @Mock
-  private RepositoryVersionEntity m_repositoryVersion;
 
   private RequiredServicesInRepositoryCheck m_requiredServicesCheck;
 
@@ -74,9 +70,6 @@ public class RequiredServicesInRepositoryCheckTest {
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
-
-    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getMissingDependencies(Mockito.eq(cluster))).thenReturn(m_missingDependencies);
   }
 
   /**
@@ -87,7 +80,6 @@ public class RequiredServicesInRepositoryCheckTest {
   @Test
   public void testNoMissingServices() throws Exception {
     PrereqCheckRequest request = new PrereqCheckRequest(CLUSTER_NAME);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     m_requiredServicesCheck.perform(check, request);
@@ -103,7 +95,6 @@ public class RequiredServicesInRepositoryCheckTest {
   @Test
   public void testMissingRequiredService() throws Exception {
     PrereqCheckRequest request = new PrereqCheckRequest(CLUSTER_NAME);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     m_missingDependencies.add("BAR");
 

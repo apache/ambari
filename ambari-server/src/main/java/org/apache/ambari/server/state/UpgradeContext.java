@@ -43,7 +43,6 @@ import java.util.Set;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -59,15 +58,12 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.state.repository.ClusterVersionSummary;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -84,6 +80,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
@@ -96,6 +93,7 @@ import com.google.inject.assistedinject.AssistedInject;
  * upgrade. It is initialized directly from an existing {@link UpgradeEntity} or
  * from a request to create an upgrade/downgrade.
  */
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 public class UpgradeContext {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeContext.class);
@@ -237,12 +235,6 @@ public class UpgradeContext {
   private UpgradeHelper m_upgradeHelper;
 
   /**
-   * Used to lookup the repository version from an ID.
-   */
-  @Inject
-  private RepositoryVersionDAO m_repoVersionDAO;
-
-  /**
    * Used to lookup a prior upgrade by ID.
    */
   @Inject
@@ -304,13 +296,12 @@ public class UpgradeContext {
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster,
       @Assisted Map<String, Object> upgradeRequestMap, Gson gson, UpgradeHelper upgradeHelper,
-      UpgradeDAO upgradeDAO, RepositoryVersionDAO repoVersionDAO, ConfigHelper configHelper)
+      UpgradeDAO upgradeDAO, ConfigHelper configHelper)
       throws AmbariException {
     // injected constructor dependencies
     m_gson = gson;
     m_upgradeHelper = upgradeHelper;
     m_upgradeDAO = upgradeDAO;
-    m_repoVersionDAO = repoVersionDAO;
     m_cluster = cluster;
     m_isRevert = upgradeRequestMap.containsKey(UPGRADE_REVERT_UPGRADE_ID);
 
@@ -411,7 +402,7 @@ public class UpgradeContext {
           m_type = calculateUpgradeType(upgradeRequestMap, null);
 
           // depending on the repository, add services
-          m_repositoryVersion = m_repoVersionDAO.findByPK(Long.valueOf(repositoryVersionId));
+          m_repositoryVersion = null;
           m_orchestration = m_repositoryVersion.getType();
 
           // add all of the services participating in the upgrade
@@ -448,9 +439,8 @@ public class UpgradeContext {
      */
     String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-    RepositoryVersionEntity upgradeFromRepositoryVersion = cluster.getService(
-        m_services.iterator().next()).getDesiredRepositoryVersion();
+    @Experimental(feature= ExperimentalFeature.REPO_VERSION_REMOVAL)
+    RepositoryVersionEntity upgradeFromRepositoryVersion = m_repositoryVersion;
 
     m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
         upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
@@ -1005,63 +995,7 @@ public class UpgradeContext {
   private Set<String> getServicesForUpgrade(Cluster cluster,
       RepositoryVersionEntity repositoryVersion) throws AmbariException {
 
-    // keep track of the services which will be in this upgrade
-    Set<String> servicesForUpgrade = new HashSet<>();
-
-    // standard repo types use all services of the cluster
-    if (repositoryVersion.getType() == RepositoryType.STANDARD) {
-      servicesForUpgrade = cluster.getServices().keySet();
-    } else {
-      try {
-        // use the VDF and cluster to determine what services should be in this
-        // upgrade - this will take into account the type (such as patch/maint)
-        // and the version of services installed in the cluster
-        VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
-        ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster);
-        servicesForUpgrade = clusterVersionSummary.getAvailableServiceNames();
-
-        // if this is every true, then just stop the upgrade attempt and
-        // throw an exception
-        if (servicesForUpgrade.isEmpty()) {
-          String message = String.format(
-              "When using a VDF of type %s, the available services must be defined in the VDF",
-              repositoryVersion.getType());
-
-          throw new AmbariException(message);
-        }
-      } catch (Exception e) {
-        String msg = String.format(
-            "Could not parse version definition for %s.  Upgrade will not proceed.",
-            repositoryVersion.getVersion());
-
-        throw new AmbariException(msg);
-      }
-    }
-
-    // now that we have a list of the services defined by the VDF, only include
-    // services which are actually installed
-    Iterator<String> iterator = servicesForUpgrade.iterator();
-    while (iterator.hasNext()) {
-      String serviceName = null;
-      try {
-        serviceName = iterator.next();
-        Service service = cluster.getService(serviceName);
-
-        m_sourceRepositoryMap.put(serviceName, service.getDesiredRepositoryVersion());
-        m_targetRepositoryMap.put(serviceName, repositoryVersion);
-      } catch (ServiceNotFoundException e) {
-        // remove the service which is not part of the cluster - this should
-        // never happen since the summary from the VDF does this already, but
-        // can't hurt to be safe
-        iterator.remove();
-
-        LOG.warn(
-            "Skipping orchestration for service {}, as it was defined to upgrade, but is not installed in cluster {}",
-            serviceName, cluster.getClusterName());
-      }
-    }
-
-    return servicesForUpgrade;
+    return Sets.newHashSet();
   }
 
   /**

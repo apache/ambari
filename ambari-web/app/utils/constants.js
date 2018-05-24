@@ -26,3 +26,15 @@ var App = require('app');
 //(Otherwise, you would end up setting attributes to the string values "true" and "false", which both evaluate to Boolean true.)
 App.False = false;
 App.True = true;
+
+//upgrade process states
+App.UpgradeState = {
+  NotRequired: 'NOT_REQUIRED',
+  Pending: 'PENDING',
+  InProgress: 'IN_PROGRESS',
+  Holding: 'HOLDING',
+  Completed: 'COMPLETED',
+  Aborted: 'ABORTED',
+  Failed: 'HOLDING_FAILED',
+  Timeout: 'HOLDING_TIMEDOUT'
+}

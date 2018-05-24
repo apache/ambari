@@ -126,6 +126,12 @@ public class ExecutionCommand extends AgentCommand {
   @com.fasterxml.jackson.annotation.JsonProperty("commandParams")
   private Map<String, String> commandParams = new HashMap<>();
 
+  /**
+   * If set, the management pack associated with this command.
+   */
+  @SerializedName("mpackId")
+  private Long mpackId;
+
   @SerializedName("serviceGroupName")
   private String serviceGroupName;
 
@@ -203,12 +209,6 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("roleParameters")
   private Map<String, Object> roleParameters;
-
-  /**
-   * If set, the management pack associated with this command.
-   */
-  @SerializedName("mpackId")
-  private Long mpackId;
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
@@ -538,6 +538,9 @@ public class ExecutionCommand extends AgentCommand {
     String AMBARI_JDK_NAME = "ambari_jdk_name";
     String AMBARI_JCE_NAME = "ambari_jce_name";
     String AMBARI_JAVA_VERSION = "ambari_java_version";
+    String AMBARI_SERVER_HOST = "ambari_server_host";
+    String AMBARI_SERVER_PORT = "ambari_server_port";
+    String AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl";
     String JAVA_VERSION = "java_version";
     String JDK_NAME = "jdk_name";
     String JCE_NAME = "jce_name";

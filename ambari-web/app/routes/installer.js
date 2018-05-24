@@ -315,6 +315,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           router.get('wizardStep6Controller').set('isClientsSet', false);
         }
         controller.setStepSaved('selectMpacks');
+        controller.save('downloadConfig');
         const downloadConfig = controller.get('content.downloadConfig');
         if (downloadConfig && downloadConfig.useCustomRepo) {
           router.transitionTo('customMpackRepos');
@@ -412,6 +413,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
       App.set('router.nextBtnClickInProgress', true);
       const controller = router.get('installerController');
+      controller.save('registeredMpacks');
+      controller.save('serviceGroups');
+      controller.save('selectedStack');
       const downloadConfig = controller.get('content.downloadConfig');
       if (downloadConfig && downloadConfig.useCustomRepo) {
         router.transitionTo('customProductRepos');
@@ -464,6 +468,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         const controller = router.get('installerController');
         controller.clearErrors();
         controller.save('selectedMpacks');
+        controller.save('registeredMpacks');
         controller.setStepSaved('customProductRepos');
         router.transitionTo('verifyProducts');
         console.timeEnd('customProductRepos next');
@@ -511,52 +516,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       const controller = router.get('installerController');
       router.transitionTo(controller.getNextStepName());
       console.timeEnd('verifyProducts next');
-    }
-  }),
-
-  step4: App.StepRoute.extend({
-    route: '/step4',
-    breadcrumbs: { label: Em.I18n.translations['installer.step4.header'] },
-    connectOutlets: function (router, context) {
-      console.time('step4 connectOutlets');
-      var self = this;
-      var controller = router.get('installerController');
-      var wizardStep4Controller = router.get('wizardStep4Controller');
-      wizardStep4Controller.set('wizardController', controller);
-      var newStepIndex = controller.getStepIndex('step4');
-      router.setNavigationFlow(newStepIndex);
-      controller.setCurrentStep('step4');
-      controller.loadAllPriorSteps().done(function () {
-        controller.setStepsEnable();
-        controller.connectOutlet('wizardStep4', App.StackService.find().filterProperty('isInstallable', true));
-        self.scrollTop();
-        console.timeEnd('step4 connectOutlets');
-      });
-    },
-
-    backTransition: function(router) {
-      var controller = router.get('installerController');
-      controller.clearErrors();
-      router.transitionTo('step1');
-    },
-
-    next: function (router) {
-      console.time('step4 next');
-      if (!router.get('btnClickInProgress')) {
-        App.set('router.nextBtnClickInProgress', true);
-        var controller = router.get('installerController');
-        var wizardStep4Controller = router.get('wizardStep4Controller');
-        controller.saveServices(wizardStep4Controller);
-        controller.saveClients(wizardStep4Controller);
-        router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation between steps 4 and 5
-        controller.setDBProperties({
-          recommendations: undefined,
-          masterComponentHosts: undefined
-        });
-        controller.clearEnhancedConfigs();
-        router.transitionTo('step5');
-      }
-      console.timeEnd('step4 next');
     }
   }),
 
@@ -648,27 +607,25 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
       if (!wizardStep6Controller.get('submitDisabled')) {
-        wizardStep6Controller.showValidationIssuesAcceptBox(function () {
-          if (!router.get('btnClickInProgress')) {
-            App.set('router.nextBtnClickInProgress', true);
-            controller.saveSlaveComponentHosts(wizardStep6Controller);
-            controller.get('content').set('serviceConfigProperties', null);
-            controller.get('content').set('componentsFromConfigs', []);
-            // Clear subsequent steps if user made changes
-            if (!wizardStep6Controller.get('isSaved')) {
-              controller.setDBProperties({
-                serviceConfigGroups: null,
-                recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
-                recommendationsConfigs: null,
-                componentsFromConfigs: []
-              });
-              controller.clearServiceConfigProperties();
-            }
-            controller.setStepSaved('step6');
-            router.transitionTo('step7');
-            console.timeEnd('step6 next');
+        if (!router.get('btnClickInProgress')) {
+          App.set('router.nextBtnClickInProgress', true);
+          controller.saveSlaveComponentHosts(wizardStep6Controller);
+          controller.get('content').set('serviceConfigProperties', null);
+          controller.get('content').set('componentsFromConfigs', []);
+          // Clear subsequent steps if user made changes
+          if (!wizardStep6Controller.get('isSaved')) {
+            controller.setDBProperties({
+              serviceConfigGroups: null,
+              recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+              recommendationsConfigs: null,
+              componentsFromConfigs: []
+            });
+            controller.clearServiceConfigProperties();
           }
-        });
+          controller.setStepSaved('step6');
+          router.transitionTo('step7');
+          console.timeEnd('step6 next');
+        }
       }
     }
   }),
@@ -901,13 +858,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   gotoStep0: Em.Router.transitionTo('step0'),
 
-  gotoStep1: Em.Router.transitionTo('step1'),
-
   gotoStep2: Em.Router.transitionTo('step2'),
 
   gotoStep3: Em.Router.transitionTo('step3'),
-
-  gotoStep4: Em.Router.transitionTo('step4'),
 
   gotoStep5: Em.Router.transitionTo('step5'),
 

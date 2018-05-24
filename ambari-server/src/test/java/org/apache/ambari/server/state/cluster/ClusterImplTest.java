@@ -26,6 +26,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -42,7 +44,6 @@ import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMet
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -216,13 +217,10 @@ public class ClusterImplTest {
     String stackVersion = "HDP-2.1.1";
     String repoVersion = "2.1.1-1234";
     StackId stackId = new StackId(stackVersion);
-    ormTestHelper.createStack(stackId);
+    ormTestHelper.createMpack(stackId);
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
-        new StackId(stackVersion), repoVersion);
 
     clusters.addHost(hostName1);
     clusters.addHost(hostName2);
@@ -236,7 +234,7 @@ public class ClusterImplTest {
     clusters.mapAndPublishHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS");
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE", "NAMENODE");
     nameNode.addServiceComponentHost(hostName1);
@@ -249,11 +247,14 @@ public class ClusterImplTest {
     hdfsClient.addServiceComponentHost(hostName1);
     hdfsClient.addServiceComponentHost(hostName2);
 
-    Service tez = cluster.addService(serviceGroup, serviceToDelete, serviceToDelete, repositoryVersion);
+    Service tez = cluster.addService(serviceGroup, serviceToDelete, serviceToDelete);
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT", "TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
     ServiceComponentHost tezClientHost2 = tezClient.addServiceComponentHost(hostName2);
+
+    assertSame(tezClientHost1, cluster.getHostComponentById(tezClientHost1.getHostComponentId()));
+    assertSame(tezClientHost2, cluster.getHostComponentById(tezClientHost2.getHostComponentId()));
 
     // When
     cluster.deleteService(serviceToDelete, new DeleteHostComponentStatusMetaData());
@@ -268,6 +269,8 @@ public class ClusterImplTest {
 
     assertTrue("All components of the deleted service should be removed from all hosts", checkHost1 && checkHost2);
 
+    assertNull(cluster.getHostComponentById(tezClientHost1.getHostComponentId()));
+    assertNull(cluster.getHostComponentById(tezClientHost2.getHostComponentId()));
   }
 
   @Test
@@ -278,7 +281,7 @@ public class ClusterImplTest {
     String hostToDelete = hostName2;
     StackId stackId = new StackId("HDP-2.1.1");
 
-    ormTestHelper.createStack(stackId);
+    ormTestHelper.createMpack(stackId);
     clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);
@@ -318,7 +321,7 @@ public class ClusterImplTest {
     String clusterName = "TEST_CLUSTER_SIZE";
     String hostName1 = "host1", hostName2 = "host2";
     StackId stackId = new StackId("HDP", "2.1.1");
-    ormTestHelper.createStack(stackId);
+    ormTestHelper.createMpack(stackId);
     clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);

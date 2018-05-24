@@ -135,7 +135,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
         sender: this,
         data: {
           hostName: hostName,
-          componentName: hostComponents[i]
+          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('componentId')
         },
         success: 'onComponentsTasksSuccess',
         error: 'onDeleteHostComponentsError'
@@ -156,17 +156,20 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     var hostName = this.get('content.reassignHosts.source');
     this.set('multiTaskCounter', hostComponents.length);
     for (var i = 0; i < hostComponents.length; i++) {
-      App.ajax.send({
-        name: 'common.host.host_component.passive',
-        sender: this,
-        data: {
-          hostName: hostName,
-          passive_state: "ON",
-          componentName: hostComponents[i]
-        },
-        success: 'onComponentsTasksSuccess',
-        error: 'onTaskError'
-      });
+      var hostComponent = App.HostComponent.find().findProperty('componentName', hostComponents[i]);
+      if(hostComponent) {
+        App.ajax.send({
+          name: 'common.host.host_component.passive',
+          sender: this,
+          data: {
+            hostName: hostName,
+            passive_state: "ON",
+            componentId: hostComponent.get('componentId')
+          },
+          success: 'onComponentsTasksSuccess',
+          error: 'onTaskError'
+        });
+      }
     }
   },
 
@@ -195,7 +198,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     data.hostName = this.get('content.reassignHosts.source');
     data.serviceName = 'HIVE';
     data.HostRoles = { "state": "INSTALLED" };
-    data.componentName = "MYSQL_SERVER";
+    data.componentId = App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('componentId');
 
     App.ajax.send({
       name: 'common.host.host_component.update',

@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
@@ -34,7 +32,6 @@ import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -65,7 +62,6 @@ import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ServiceDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
@@ -73,16 +69,11 @@ import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.StackDefinition;
-import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.Cluster;
@@ -93,18 +84,13 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.directory.api.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
@@ -132,9 +118,6 @@ public class AmbariContext {
   @Inject
   StackFactory stackFactory;
 
-  @Inject
-  RepositoryVersionDAO repositoryVersionDAO;
-
   /**
    * Used for getting configuration property values from stack and services.
    */
@@ -155,7 +138,6 @@ public class AmbariContext {
   private static ServiceResourceProvider serviceResourceProvider;
   private static ComponentResourceProvider componentResourceProvider;
   private static HostComponentResourceProvider hostComponentResourceProvider;
-  private static VersionDefinitionResourceProvider versionDefinitionResourceProvider;
 
   private final static Logger LOG = LoggerFactory.getLogger(AmbariContext.class);
 
@@ -222,111 +204,11 @@ public class AmbariContext {
     return getController().getActionManager().getTasks(ids);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
-                                    String repoVersionString, Long repoVersionId) {
-    Map<StackId, Long> repoVersionByStack = new HashMap<>();
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
 
     Set<StackId> stackIds = topology.getStackIds();
-    for (StackId stackId : stackIds) {
-      RepositoryVersionEntity repoVersion = null;
-      if (stackIds.size() == 1) {
-        repoVersion = findSpecifiedRepo(repoVersionString, repoVersionId, stackId);
-      }
-      if (null == repoVersion) {
-        repoVersion = findRepoForStack(stackId);
-      }
-      Preconditions.checkNotNull(repoVersion);
-      // only use a STANDARD repo when creating a new cluster
-      if (repoVersion.getType() != RepositoryType.STANDARD) {
-        throw new IllegalArgumentException(String.format(
-          "Unable to create a cluster using the following repository since it is not a STANDARD type: %s",
-          repoVersion
-        ));
-      }
-    }
-
-    createAmbariClusterResource(clusterName, topology.getStackIds(), securityType);
-    createAmbariServiceAndComponentResources(topology, clusterName, repoVersionByStack);
-  }
-
-  private RepositoryVersionEntity findRepoForStack(StackId stackId) {
-    RepositoryVersionEntity repoVersion;
-    List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
-    if (stackRepoVersions.isEmpty()) {
-      // !!! no repos, try to get the version for the stack
-      VersionDefinitionResourceProvider vdfProvider = getVersionDefinitionResourceProvider();
-
-      Map<String, Object> properties = new HashMap<>();
-      properties.put(VersionDefinitionResourceProvider.VERSION_DEF_AVAILABLE_DEFINITION, stackId.toString());
-
-      Request request = new RequestImpl(Collections.emptySet(),
-        Collections.singleton(properties), Collections.emptyMap(), null
-      );
-
-      Long defaultRepoVersionId = null;
-
-      try {
-        RequestStatus requestStatus = vdfProvider.createResources(request);
-        if (!requestStatus.getAssociatedResources().isEmpty()) {
-          Resource resource = requestStatus.getAssociatedResources().iterator().next();
-          defaultRepoVersionId = (Long) resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
-        }
-      } catch (Exception e) {
-        throw new IllegalArgumentException(String.format(
-          "Failed to create a default repository version definition for stack %s. "
-            + "This typically is a result of not loading the stack correctly or being able "
-            + "to load information about released versions.  Create a repository version "
-            + " and try again.", stackId), e);
-      }
-
-      repoVersion = repositoryVersionDAO.findByPK(defaultRepoVersionId);
-      // !!! better not!
-      if (null == repoVersion) {
-        throw new IllegalArgumentException(String.format(
-          "Failed to load the default repository version definition for stack %s. "
-            + "Check for a valid repository version and try again.", stackId));
-      }
-
-    } else if (stackRepoVersions.size() > 1) {
-      String versions = stackRepoVersions.stream()
-        .map(RepositoryVersionEntity::getVersion)
-        .collect(joining(", "));
-
-      throw new IllegalArgumentException(String.format(
-        "Several repositories were found for %s:  %s.  Specify the version with '%s'",
-        stackId, versions, ProvisionClusterRequest.REPO_VERSION_PROPERTY
-      ));
-    } else {
-      repoVersion = stackRepoVersions.get(0);
-      LOG.info("Found single matching repository version {} for stack {}", repoVersion.getVersion(), stackId);
-    }
-    return repoVersion;
-  }
-
-  private RepositoryVersionEntity findSpecifiedRepo(String repoVersionString, Long repoVersionId, StackId stackId) {
-    RepositoryVersionEntity repoVersion = null;
-    if (null != repoVersionId) {
-      repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
-
-      if (null == repoVersion) {
-        throw new IllegalArgumentException(String.format(
-          "Could not identify repository version with repository version id %s for installing services. "
-            + "Specify a valid repository version id with '%s'",
-          repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY
-        ));
-      }
-    } else if (Strings.isNotEmpty(repoVersionString)) {
-      repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
-
-      if (null == repoVersion) {
-        throw new IllegalArgumentException(String.format(
-          "Could not identify repository version with stack %s and version %s for installing services. "
-            + "Specify a valid version with '%s'",
-          stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY
-        ));
-      }
-    }
-    return repoVersion;
+    createAmbariClusterResource(clusterName, stackIds, securityType);
+    createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
   private void createAmbariClusterResource(String clusterName, Set<StackId> stackIds, SecurityType securityType) {
@@ -358,16 +240,15 @@ public class AmbariContext {
     }
   }
 
-  private void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName, Map<StackId, Long> repoVersionByStack) {
+  private void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName) {
     Set<ServiceGroupRequest> serviceGroupRequests = topology.getComponents()
       .map(c -> new ServiceGroupRequest(clusterName, c.effectiveServiceGroupName(), c.stackId().getStackId()))
       .collect(toSet());
 
     Set<ServiceRequest> serviceRequests = topology.getComponents()
       .map(c -> new ServiceRequest(
-          clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.serviceType(), repoVersionByStack.get(c.stackId()), null,
-          topology.getSetting().getCredentialStoreEnabled(c.effectiveServiceName()), // FIXME settings by service type or name?
-          c.stackId()
+          clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.serviceType(), null,
+            topology.getSetting().getCredentialStoreEnabled(c.effectiveServiceName())
         ))
       .collect(toSet());
 
@@ -827,36 +708,8 @@ public class AmbariContext {
     Set<Stack> stacks = stackIds.stream()
       .map(this::createStack)
       .collect(toSet());
-    StackDefinition composite = StackDefinition.of(stacks);
 
-    // temporary check
-    verifyStackDefinitionsAreDisjoint(composite.getServices().stream(), "Service", composite::getStacksForService);
-    verifyStackDefinitionsAreDisjoint(composite.getComponents().stream(), "Component", composite::getStacksForComponent);
-
-    return composite;
-  }
-
-  /**
-   * Verify that each item in <code>items</code> is defined by only one stack.
-   *
-   * @param items the items to check
-   * @param type string description of the type of items (eg. "Service", or "Component")
-   * @param lookup a function to find the set of stacks that an item belongs to
-   * @throws IllegalArgumentException if some items are defined in multiple stacks
-   */
-  static void verifyStackDefinitionsAreDisjoint(Stream<String> items, String type, Function<String, Set<StackId>> lookup) {
-    Set<Pair<String, Set<StackId>>> definedInMultipleStacks = items
-      .map(s -> Pair.of(s, lookup.apply(s)))
-      .filter(p -> p.getRight().size() > 1)
-      .collect(toCollection(TreeSet::new));
-
-    if (!definedInMultipleStacks.isEmpty()) {
-      String msg = definedInMultipleStacks.stream()
-        .map(p -> String.format("%s %s is defined in multiple stacks: %s", type, p.getLeft(), Joiner.on(", ").join(p.getRight())))
-        .collect(joining("\n"));
-      LOG.error(msg);
-      throw new IllegalArgumentException(msg);
-    }
+    return StackDefinition.of(stacks);
   }
 
   protected Stack createStack(StackId stackId) {
@@ -945,14 +798,4 @@ public class AmbariContext {
     }
     return componentResourceProvider;
   }
-
-  private synchronized VersionDefinitionResourceProvider getVersionDefinitionResourceProvider() {
-    if (versionDefinitionResourceProvider == null) {
-      versionDefinitionResourceProvider = (VersionDefinitionResourceProvider) ClusterControllerHelper.
-          getClusterController().ensureResourceProvider(Resource.Type.VersionDefinition);
-    }
-    return versionDefinitionResourceProvider;
-
-  }
-
 }

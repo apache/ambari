@@ -238,12 +238,20 @@ App.WizardStep2Controller = App.WizardStepController.extend({
           self = this;
     if (response.items.length > 0) {
       response.items.forEach(function (item, indx) {
+        const getFreeSpace = host => {
+          if (host.disk_info.length > 0) {
+            return (parseFloat(host.disk_info[0].available) / (1024 * 1024)).toFixed(2) + " GB";
+          }
+
+          return Em.I18n.t('common.unknown');
+        }
+
         installedHosts.push(Em.Object.create({
           'controller': self,
           'hostName': item.Hosts.host_name,
           'cpuCount': item.Hosts.cpu_count,
           'memory': (parseFloat(item.Hosts.total_mem) / (1024 * 1024)).toFixed(2) + " GB",
-          'freeSpace': (parseFloat(item.Hosts.disk_info[0].available) / (1024 * 1024)).toFixed(2) + " GB",
+          'freeSpace': getFreeSpace(item.Hosts),
           'isVisible': true,
 
           filterRow: function() {
@@ -634,8 +642,20 @@ App.WizardStep2Controller = App.WizardStepController.extend({
       }
     }
 
-    //this.set('content.installOptions.hostNames', this.get('hostNameArr'));
-    this.set('content.hosts', $.extend(hosts, this.getHostInfo()));
+    //add newly registered hosts
+    const newHosts = this.getHostInfo();
+    if (hosts) {
+      for (let hostName in newHosts) {
+        if (!hosts[hostName]) {
+          hosts[hostName] = newHosts[hostName];
+        }
+      }
+    } else {
+      hosts = newHosts;
+    }
+
+    this.set('content.hosts', hosts);
+
     this.setAmbariJavaHome();
   },
 

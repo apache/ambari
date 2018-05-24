@@ -52,6 +52,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -291,6 +292,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Map<String,String> getUpgradeJsonOutput() {
     return upgradeJsonOutput;
   }
@@ -641,7 +643,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             }
             MetadataHolder metadataHolder = injector.getInstance(MetadataHolder.class);
             AgentConfigsHolder agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
-            metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(cluster));
+            ClusterMetadataGenerator metadataGenerator = injector.getInstance(ClusterMetadataGenerator.class);
+            metadataHolder.updateData(metadataGenerator.getClusterMetadataOnConfigsUpdate(cluster));
             agentConfigsHolder.updateData(cluster.getClusterId(), null);
           }
         } else {
@@ -1120,7 +1123,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         continue;
       }
 
-      StackId stackId = service.getDesiredStackId();
+      StackId stackId = service.getStackId();
 
       Map<String, Object> widgetDescriptor = null;
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
@@ -1193,7 +1196,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
       comment = "can only take the first stack we find until we can support multiple with Kerberos")
   private StackId getStackId(Cluster cluster) throws AmbariException {
-    return cluster.getServices().values().iterator().next().getDesiredStackId();
+    return cluster.getServices().values().iterator().next().getStackId();
   }
 
   protected void setConfiguration(Configuration configuration) {

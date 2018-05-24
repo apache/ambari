@@ -179,18 +179,27 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {String[]}
    */
   sitesToLoad: function() {
-    var services = this.get('configDependentServiceNames'), configTypeList = [];
+    const services = this.get('configDependentServiceNames');
+    let configTypeList = [];
+
     if (services.length) {
-      configTypeList = App.StackService.find().filter(function(s) {
-        return services.contains(s.get('serviceName'));
-      }).mapProperty('configTypeList').reduce(function(p, v) {
-        return p.concat(v);
+      const filteredServices = App.StackService.find().filter(function (s) {
+        return services.mapProperty('name').contains(s.get('serviceName'));
       });
+      
+      const mappedServices = filteredServices.mapProperty('configTypeList');
+
+      if (mappedServices && mappedServices.length > 0) {
+        configTypeList = mappedServices.reduce(function (p, v) {
+          return p.concat(v);
+        });
+      }  
     }
+
     if (this.get('serviceConfigsMap')[this.get('content.serviceName')]) {
       configTypeList = configTypeList.concat(this.get('serviceConfigsMap')[this.get('content.serviceName')]);
     }
-    configTypeList.push('cluster-env');
+
     return configTypeList.uniq();
   }.property('content.serviceName'),
 
@@ -235,12 +244,14 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         });
 
         self.get('configDependentServiceNames').forEach(function(serviceName) {
-          var configTypes = App.StackService.find(serviceName).get('configTypeList');
-          var configsByService = allConfigs.filter(function (c) {
-            return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
-          });
-          if (App.config.get('preDefinedServiceConfigs').someProperty('serviceName', serviceName)) {
-            self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+          var configTypes = App.StackService.find(serviceName.name).get('configTypeList');
+          if (configTypes) {
+            var configsByService = allConfigs.filter(function (c) {
+              return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
+            });
+            if (configsByService && App.config.get('preDefinedServiceConfigs').someProperty('serviceName', serviceName)) {
+              self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+            }
           }
         });
 
@@ -383,7 +394,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         this.getHdfsUser().done(() => {
           const maxAge = App.nnCheckpointAgeAlertThreshold,
             hdfsUser = this.get('hdfsUser'),
-            confirmButton =Em.I18n.t('common.next');
+            confirmButton = Em.I18n.t('common.next');
           let msg;
           if (App.get('hasNameNodeFederation') && !groupName) {
             const oldCheckpointNameSpacesList = nameNodesWithOldCheckpoints.map(nn => `<li>${nn.haNameSpace}</li>`),
@@ -576,8 +587,10 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   startStopPopupPrimary: function (serviceHealth, query, components, hosts, label) {
-    const isStart = (serviceHealth === 'STARTED'),
-      serviceName = this.get('content.serviceName');
+    const isStart = (serviceHealth === 'STARTED');
+    const serviceName = this.get('content.serviceName');
+    const serviceGroupName = this.get('content.serviceGroupName');
+
     if (components || hosts) {
       batchUtils.getComponentsFromServer({
         hosts,
@@ -598,6 +611,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           data: {
             context,
             serviceName: serviceName.toUpperCase(),
+            serviceGroupName: serviceGroupName,
             state: serviceHealth,
             query: requestQuery
           },
@@ -611,6 +625,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         data = {
           context,
           serviceName: serviceName.toUpperCase(),
+          serviceGroupName: serviceGroupName,
           ServiceInfo: {
             state: serviceHealth
           },
@@ -1059,10 +1074,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   runSmokeTestPrimary: function(query) {
     var clusterLevelRequired = ['KERBEROS'];
     var requestData = {
-        'serviceName': this.get('content.serviceName'),
-        'displayName': this.get('content.displayName'),
-        'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK',
-        'query': query
+      'serviceName': this.get('content.serviceName'),
+      'serviceGroupName': this.get('content.serviceGroupName'),
+      'displayName': this.get('content.displayName'),
+      'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK',
+      'query': query
     };
     if (clusterLevelRequired.contains(this.get('content.serviceName'))) {
       requestData.operationLevel = {

@@ -60,10 +60,9 @@
             <th class="host-column freeze">{{t common.host}}</th>
             {{#each header in controller.headers}}
               <th {{bindAttr class="header.name"}}>
-                <a href="#" {{QAAttr "select-all"}} {{bindAttr class="header.allChecked:selected:deselected header.isDisabled:remove-link" id="header.allId"}}
-                  {{action "selectAllNodes" header target="controller"}}>{{t all}}</a> &nbsp;|&nbsp; <a
-                {{QAAttr "deselect-all"}} href="#" {{bindAttr class="header.noChecked:selected:deselected header.isDisabled:remove-link" id="header.noneId"}}
-                {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
+                <a href="#" {{QAAttr "select-all"}} {{bindAttr class="header.allChecked:selected:deselected header.isDisabled:remove-link" id="header.allId"}} {{action "selectAllNodes" header target="controller"}}>{{t all}}</a>
+                &nbsp;|&nbsp;
+                <a href="#" {{QAAttr "deselect-all"}} {{bindAttr class="header.noChecked:selected:deselected header.isDisabled:remove-link" id="header.noneId"}} {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
               </th>
             {{/each}}
           </tr>

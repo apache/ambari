@@ -104,7 +104,7 @@ var services = Em.A([
     serviceName: 's4',
     isSelected: true,
     isInstalled: false,
-    displayNameOnSelectServicePage: 's03',
+    displayNameOnSelectServicePage: 's04',
     isClientOnlyService: true,
     serviceComponents: Em.A([
       Em.Object.create({
@@ -337,28 +337,14 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.set('services', Em.A([]));
       installerStep8Controller.reopen({selectedServices: selectedServices});
       installerStep8Controller.loadServices();
+      console.log(installerStep8Controller.get('services'));
     });
 
     it('should load services', function () {
       var expected = [
         {
-          "service_name": "s1",
-          "display_name": "s01",
-          "service_components": []
-        },
-        {
-          "service_name": "s2",
-          "display_name": "s02",
-          "service_components": []
-        },
-        {
-          "service_name": "s3",
-          "display_name": "s03",
-          "service_components": []
-        },
-        {
           "service_name": "s4",
-          "display_name": "s03",
+          "display_name": "s04",
           "service_components": [
             {
               "component_name": "CLIENT",
@@ -667,222 +653,6 @@ describe('App.WizardStep8Controller', function () {
           expect(hosts.mapProperty('hostName')).to.eql(test.e);
         });
       });
-  });
-
-  describe('#loadRepoInfo', function() {
-
-    beforeEach(function () {
-      var stubForGet = sinon.stub(App, 'get');
-      stubForGet.withArgs('currentStackName').returns('HDP');
-      stubForGet.withArgs('currentStackVersionNumber').returns('2.3');
-      sinon.stub(App.StackVersion, 'find', function() {
-        return [
-          Em.Object.create({state: 'NOT_CURRENT', stack: 'HDP', version: '2.3', repositoryVersion: {repositoryVersion: '2.3.0.0-2208'}})
-        ];
-      });
-    });
-
-    afterEach(function () {
-      App.get.restore();
-      App.StackVersion.find.restore();
-    });
-    it('should use current StackVersion', function() {
-      installerStep8Controller.loadRepoInfo();
-      var args = testHelpers.findAjaxRequest('name', 'cluster.load_repo_version');
-      expect(args[0].data).to.eql({stackName: 'HDP', repositoryVersion: '2.3.0.0-2208'});
-    });
-  });
-
-  describe('#loadRepoInfoSuccessCallback', function () {
-    beforeEach(function () {
-      installerStep8Controller.set('clusterInfo', Em.Object.create({}));
-    });
-
-    it('should assert error if no data returned from server', function () {
-      expect(function () {
-        installerStep8Controller.loadRepoInfoSuccessCallback({items: []});
-      }).to.throw(Error);
-    });
-
-    Em.A([
-      {
-        m: 'Normal JSON',
-        e: {
-          base_url: ['baseurl1', 'baseurl2'],
-          os_type: ['redhat6', 'suse11'],
-          repo_id: ['HDP-2.3', 'HDP-UTILS-1.1.0.20']
-        },
-        items: [
-          {
-            repository_versions: [
-              {
-                operating_systems: [
-                  {
-                    OperatingSystems: {
-                      ambari_managed_repositories: true
-                    },
-                    repositories: [
-                      {
-                        Repositories: {
-                          base_url: 'baseurl1',
-                          os_type: 'redhat6',
-                          repo_id: 'HDP-2.3'
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    OperatingSystems: {
-                      ambari_managed_repositories: true
-                    },
-                    repositories: [
-                      {
-                        Repositories: {
-                          base_url: 'baseurl2',
-                          os_type: 'suse11',
-                          repo_id: 'HDP-UTILS-1.1.0.20'
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]).forEach(function (test) {
-
-      it(test.m, function () {
-        installerStep8Controller.loadRepoInfoSuccessCallback({items: test.items});
-        expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('base_url')).to.eql(test.e.base_url);
-        expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('os_type')).to.eql(test.e.os_type);
-        expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('repo_id')).to.eql(test.e.repo_id);
-      });
-
-    });
-
-    /*Em.A([
-        {
-          items: [
-            {
-              repositories: [
-                {
-                  Repositories: {
-                    os_type: 'redhat5',
-                    base_url: 'url1'
-                  }
-                }
-              ],
-              OperatingSystems: {
-                is_type: ''
-              }
-            }
-          ],
-          m: 'only redhat5',
-          e: {
-            base_url: ['url1'],
-            os_type: ['redhat5']
-          }
-        },
-        {
-          items: [
-            {
-              repositories: [
-                {
-                  Repositories: {
-                    os_type: 'redhat5',
-                    base_url: 'url1'
-                  }
-                }
-              ],
-              OperatingSystems: {
-                is_type: ''
-              }
-            },
-            {
-              repositories: [
-                {
-                  Repositories: {
-                    os_type: 'redhat6',
-                    base_url: 'url2'
-                  }
-                }
-              ],
-              OperatingSystems: {
-                is_type: ''
-              }
-            }
-          ],
-          m: 'redhat5, redhat6',
-          e: {
-            base_url: ['url1', 'url2'],
-            os_type: ['redhat5', 'redhat6']
-          }
-        },
-        {
-          items: [
-            {
-              repositories: [
-                {
-                  Repositories: {
-                    os_type: 'redhat5',
-                    base_url: 'url1'
-                  }
-                }
-              ],
-              OperatingSystems: {
-                is_type: ''
-              }
-            },
-            {
-              repositories: [
-                {
-                  Repositories: {
-                    os_type: 'redhat6',
-                    base_url: 'url2'
-                  }
-                }
-              ],
-              OperatingSystems: {
-                is_type: ''
-              }
-            },
-            {
-              repositories: [
-                {
-                  Repositories: {
-                    os_type: 'sles11',
-                    base_url: 'url3'
-                  }
-                }
-              ],
-              OperatingSystems: {
-                is_type: ''
-              }
-            }
-          ],
-          m: 'redhat5, redhat6, sles11',
-          e: {
-            base_url: ['url1', 'url2', 'url3'],
-            os_type: ['redhat5', 'redhat6', 'sles11']
-          }
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          installerStep8Controller.loadRepoInfoSuccessCallback({items: test.items});
-          expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('base_url')).to.eql(test.e.base_url);
-          expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('os_type')).to.eql(test.e.os_type);
-        });
-      });*/
-  });
-
-  describe('#loadRepoInfoErrorCallback', function() {
-    it('should set [] to repoInfo', function() {
-      installerStep8Controller.set('clusterInfo', Em.Object.create({repoInfo: [{}, {}]}));
-      installerStep8Controller.loadRepoInfoErrorCallback({});
-      expect(installerStep8Controller.get('clusterInfo.repoInfo.length')).to.be.equal(0);
-    });
   });
 
   describe('#loadHbaseMasterValue', function () {
@@ -1249,7 +1019,8 @@ describe('App.WizardStep8Controller', function () {
           {"ServiceInfo": { "service_name": 's3' }}
         ];
         installerStep8Controller.createSelectedServices();
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(JSON.stringify(data));
+        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(JSON.stringify({ "ServiceInfo": { "service_name": "s1" } }));
+        expect(installerStep8Controller.addRequestToAjaxQueue.calledThrice).to.be.true;
       });
 
     });
@@ -1293,7 +1064,7 @@ describe('App.WizardStep8Controller', function () {
           componentName = 'c1';
         installerStep8Controller.registerHostsToComponent(hostNames, componentName);
         var data = JSON.parse(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data);
-        expect(data.RequestInfo.query).to.equal('Hosts/host_name=h1|Hosts/host_name=h2');
+        expect(data.RequestInfo.query).to.equal('Hosts/host_name.in(h1,h2)');
         expect(data.Body.host_components[0].HostRoles.component_name).to.equal('c1');
       });
 
@@ -1301,41 +1072,21 @@ describe('App.WizardStep8Controller', function () {
 
     describe('#applyConfigurationsToCluster', function() {
       it('should call addRequestToAjaxQueue', function() {
-        var serviceConfigTags = [
-          {
-            type: 'hdfs',
+        var serviceConfig = {
+          serviceName: "service",
+          serviceGroupName: "serviceGroup",
+          data: {
             properties: {
-              'prop1': 'value1'
+              prop1: "val1"
             }
           }
-        ];
+        }
+        
+        var serviceConfigTags = [Em.Object.create(serviceConfig)];
 
-        installerStep8Controller.reopen({
-          installedServices: [
-            Em.Object.create({
-              isSelected: true,
-              isInstalled: false,
-              configTypesRendered: { hdfs: 'tag1' }
-            })
-          ],
-          selectedServices: []
-        });
         installerStep8Controller.applyConfigurationsToCluster(serviceConfigTags);
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.deep.equal(serviceConfigTags);
+        expect(JSON.stringify(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data)).to.deep.equal(JSON.stringify(serviceConfig));
       });
-    });
-
-    describe('#newServiceComponentErrorCallback', function() {
-
-      it('should add request for new component', function() {
-        var serviceName = 's1',
-          componentName = 'c1';
-        installerStep8Controller.newServiceComponentErrorCallback({}, {}, '', {}, {serviceName: serviceName, componentName: componentName});
-        var data = JSON.parse(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data);
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.serviceName).to.equal(serviceName);
-        expect(data.components[0].ServiceComponentInfo.component_name).to.equal(componentName);
-      });
-
     });
 
     describe('#createAdditionalHostComponents', function() {

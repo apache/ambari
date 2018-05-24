@@ -153,10 +153,10 @@ CREATE TABLE servicegroups (
   service_group_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   stack_id BIGINT NOT NULL,
-  CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
+  CONSTRAINT PK_servicegroups PRIMARY KEY (id),
+  CONSTRAINT UQ_servicegroups_id UNIQUE (cluster_id, service_group_name),
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id),
-  CONSTRAINT UQ_TEMP_UNTIL_REAL_PK UNIQUE(id));
+  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id));
 
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,
@@ -166,8 +166,8 @@ CREATE TABLE servicegroupdependencies (
   dependent_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
   CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, cluster_id, dependent_service_group_id, dependent_cluster_id),
-  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id),
-  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id) REFERENCES servicegroups (id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id) REFERENCES servicegroups (id));
 
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
@@ -176,9 +176,9 @@ CREATE TABLE clusterservices (
   cluster_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_enabled INTEGER NOT NULL,
-  CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
-  CONSTRAINT UQ_service_id UNIQUE (id),
-  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT PK_clusterservices PRIMARY KEY (id),
+  CONSTRAINT UQ_clusterservices_id UNIQUE (service_group_id, service_name),
+  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id) REFERENCES servicegroups (id));
 
 
 CREATE TABLE clusterconfig (
@@ -212,8 +212,8 @@ CREATE TABLE servicedependencies (
   dependent_service_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicedependencies PRIMARY KEY (id),
   CONSTRAINT UQ_servicedependencies UNIQUE (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
-  CONSTRAINT FK_svcdep_svc_grp_clstr_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
-  CONSTRAINT FK_svcdep_dep_scv_grp_clstr_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+  CONSTRAINT FK_svcdep_svc_grp_clstr_id FOREIGN KEY (service_id) REFERENCES clusterservices (id),
+  CONSTRAINT FK_svcdep_dep_scv_grp_clstr_id FOREIGN KEY (dependent_service_id) REFERENCES clusterservices (id));
 
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
@@ -228,7 +228,7 @@ CREATE TABLE serviceconfig (
   note LONGTEXT,
   CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
   CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT FK_serviceconfig_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT FK_serviceconfig_clstr_svc FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version));
 
 CREATE TABLE serviceconfighosts (
@@ -253,32 +253,12 @@ CREATE TABLE clusterstate (
   CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_cs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
 
-CREATE TABLE repo_version (
-  repo_version_id BIGINT NOT NULL,
-  stack_id BIGINT NOT NULL,
-  version VARCHAR(255) NOT NULL,
-  display_name VARCHAR(128) NOT NULL,
-  repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
-  hidden SMALLINT NOT NULL DEFAULT 0,
-  resolved TINYINT(1) NOT NULL DEFAULT 0,
-  legacy TINYINT(1) NOT NULL DEFAULT 0,
-  version_url VARCHAR(1024),
-  version_xml MEDIUMTEXT,
-  version_xsd VARCHAR(512),
-  parent_id BIGINT,
-  CONSTRAINT PK_repo_version PRIMARY KEY (repo_version_id),
-  CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
-  CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
-
 CREATE TABLE repo_os (
   id BIGINT NOT NULL,
-  repo_version_id BIGINT,
   mpack_id BIGINT NOT NULL,
   family VARCHAR(255) NOT NULL DEFAULT '',
   ambari_managed TINYINT(1) DEFAULT 1,
   CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
-  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT FK_repo_os_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id),
   CONSTRAINT UQ_repo_os_family_mpack_id UNIQUE (mpack_id, family));
 
@@ -308,14 +288,11 @@ CREATE TABLE servicecomponentdesiredstate (
   cluster_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
-  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
-  repo_state VARCHAR(255) NOT NULL DEFAULT 'NOT_REQUIRED',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_id, service_group_id, cluster_id),
-  CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+  CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_id) REFERENCES clusterservices (id));
 
 CREATE TABLE hostcomponentdesiredstate (
   id BIGINT NOT NULL,
@@ -372,13 +349,11 @@ CREATE TABLE servicedesiredstate (
   service_group_id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
   desired_host_role_mapping INTEGER NOT NULL,
-  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
   credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
-  CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_group_id, service_id),
-  CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+  CONSTRAINT PK_servicedesiredstate PRIMARY KEY (service_id),
+  CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_id) REFERENCES clusterservices (id));
 
 CREATE TABLE adminprincipaltype (
   principal_type_id INTEGER NOT NULL,
@@ -411,7 +386,7 @@ CREATE TABLE user_authentication (
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
   authentication_key TEXT,
-  create_time TIMESTAMP NOT NULL DEFAULT 0,
+  create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
   CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
@@ -576,7 +551,7 @@ CREATE TABLE hostconfigmapping (
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
   CONSTRAINT PK_hostconfigmapping PRIMARY KEY (create_timestamp, host_id, cluster_id, type_name),
   CONSTRAINT FK_hostconfmapping_clstr_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_hostconfmapping_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT FK_hostconfmapping_clstr_svc FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
 CREATE TABLE metainfo (
@@ -606,7 +581,7 @@ CREATE TABLE configgroup (
   service_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   CONSTRAINT PK_configgroup PRIMARY KEY (group_id),
-  CONSTRAINT FK_configgroup_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT FK_configgroup_cluster_service FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE confgroupclusterconfigmapping (
@@ -1010,7 +985,6 @@ CREATE TABLE upgrade (
   orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
-  repo_version_id BIGINT NOT NULL,
   skip_failures TINYINT(1) NOT NULL DEFAULT 0,
   skip_sc_failures TINYINT(1) NOT NULL DEFAULT 0,
   downgrade_allowed TINYINT(1) NOT NULL DEFAULT 1,
@@ -1018,8 +992,7 @@ CREATE TABLE upgrade (
   suspended TINYINT(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id),
-  FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id)
+  FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
 
 CREATE TABLE upgrade_group (
@@ -1049,15 +1022,11 @@ CREATE TABLE upgrade_history(
   upgrade_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   component_name VARCHAR(255) NOT NULL,
-  from_repo_version_id BIGINT NOT NULL,
-  target_repo_version_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   source_mpack_id BIGINT NOT NULL,
   target_mpack_id BIGINT NOT NULL,
   CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
   CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
-  CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT FK_upgrade_hist_target_repo FOREIGN KEY (target_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name),
   CONSTRAINT FK_upgrade_hist_svc_grp_id FOREIGN KEY (service_group_id) REFERENCES servicegroups (id),
   CONSTRAINT FK_upgrade_hist_src_mpack_id FOREIGN KEY (source_mpack_id) REFERENCES mpacks (id),
@@ -1087,6 +1056,16 @@ CREATE TABLE upgrade_plan_detail (
   CONSTRAINT FK_upgrade_det_upgrade_plan FOREIGN KEY (upgrade_plan_id) REFERENCES upgrade_plan (id)
 );
 
+CREATE TABLE upgrade_plan_config (
+  id BIGINT NOT NULL,
+  upgrade_plan_detail_id BIGINT NOT NULL,
+  config_type VARCHAR(255) NOT NULL,
+  `key` VARCHAR(255) NOT NULL,
+  new_value LONGTEXT,
+  remove SMALLINT DEFAULT 0 NOT NULL,
+  CONSTRAINT PK_upgrade_plan_config PRIMARY KEY (id),
+  CONSTRAINT FK_up_conf_up_detail FOREIGN KEY (upgrade_plan_detail_id) REFERENCES upgrade_plan_detail (id)
+);
 
 CREATE TABLE ambari_operation_history(
   id BIGINT NOT NULL,
@@ -1314,13 +1293,13 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('alert_history_id_seq', 0),
   ('alert_notice_id_seq', 0),
   ('alert_current_id_seq', 0),
-  ('repo_version_id_seq', 0),
   ('repo_os_id_seq', 0),
   ('repo_definition_id_seq', 0),
   ('upgrade_id_seq', 0),
   ('upgrade_group_id_seq', 0),
   ('upgrade_item_id_seq', 0),
   ('upgrade_plan_id_seq', 0),
+  ('upgrade_plan_config_id_seq', 0),
   ('upgrade_plan_detail_id_seq', 0),
   ('stack_id_seq', 0),
   ('mpack_id_seq', 0),

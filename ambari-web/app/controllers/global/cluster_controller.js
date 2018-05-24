@@ -182,7 +182,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     hostsController.updateStatusCounters();
 
     this.loadClusterInfo();
-    this.restoreUpgradeState();
     App.router.get('wizardWatcherController').getUser();
 
     this.loadClusterDataToModel();
@@ -254,6 +253,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
           // make second call, because first is light since it doesn't request host-component metrics
           updater.updateServiceMetric(function() {
             self.set('isHostComponentMetricsLoaded', true);
+            updater.updateHDFSNameSpaces();
           });
           // components config loading doesn't affect overall progress
           self.loadComponentWithStaleConfigs(function () {
@@ -304,60 +304,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
             self.set('isAlertsLoaded', true);
           });
         });
-      });
-    });
-  },
-
-  /**
-   * restore upgrade status from server
-   * and make call to get latest status from server
-   * Also loading all upgrades to App.StackUpgradeHistory model
-   */
-  restoreUpgradeState: function () {
-    var self = this;
-    return this.getAllUpgrades().done(function (data) {
-      var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
-      var allUpgrades = data.items.sortProperty('Upgrade.request_id');
-      var lastUpgradeData = allUpgrades.pop();
-      if (lastUpgradeData){
-        var status = lastUpgradeData.Upgrade.request_status;
-        var lastUpgradeNotFinished = (self.isSuspendedState(status) || self.isRunningState(status));
-        if (lastUpgradeNotFinished){
-          /**
-           * No need to display history if there is only one running or suspended upgrade.
-           * Because UI still needs to provide user the option to resume the upgrade via the Upgrade Wizard UI.
-           * If there is more than one upgrade. Show/Hive the tab based on the status.
-           */
-          var hasFinishedUpgrades = allUpgrades.some(function (item) {
-            var status = item.Upgrade.request_status;
-            if (!self.isRunningState(status)){
-              return true;
-            }
-          }, self);
-          App.set('upgradeHistoryAvailable', hasFinishedUpgrades);
-        } else {
-          //There is at least one finished upgrade. Display it.
-          App.set('upgradeHistoryAvailable', true);
-        }
-      } else {
-        //There is no upgrades at all.
-        App.set('upgradeHistoryAvailable', false);
-      }
-
-      //completed upgrade shouldn't be restored
-      if (lastUpgradeData) {
-        if (lastUpgradeData.Upgrade.request_status !== "COMPLETED") {
-          upgradeController.restoreLastUpgrade(lastUpgradeData);
-        }
-      } else {
-        upgradeController.initDBProperties();
-      }
-
-      App.stackUpgradeHistoryMapper.map(data);
-      upgradeController.loadStackVersionsToModel(true).done(function () {
-        upgradeController.loadCompatibleVersions();
-        upgradeController.updateCurrentStackVersion();
-        App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });
     });
   },
@@ -492,43 +438,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         $.ajax(ajaxOpt);
       }
     });
-  },
-
-  //TODO Replace this check with any other which is applicable to non-HDP stack
-  /**
-   * Check if HDP stack version is more or equal than 2.2.2 to determine if pluggable metrics for Storm are supported
-   * @method checkDetailedRepoVersion
-   * @returns {promise|*|promise|promise|HTMLElement|promise}
-   */
-  checkDetailedRepoVersion: function () {
-    var dfd;
-    var currentStackName = App.get('currentStackName');
-    var currentStackVersionNumber = App.get('currentStackVersionNumber');
-    if (currentStackName == 'HDP' && currentStackVersionNumber == '2.2') {
-      dfd = App.ajax.send({
-        name: 'cluster.load_detailed_repo_version',
-        sender: this,
-        success: 'checkDetailedRepoVersionSuccessCallback',
-        error: 'checkDetailedRepoVersionErrorCallback'
-      });
-    } else {
-      dfd = $.Deferred();
-      App.set('isStormMetricsSupported', currentStackName != 'HDP' || stringUtils.compareVersions(currentStackVersionNumber, '2.2') == 1);
-      dfd.resolve();
-    }
-    return dfd.promise();
-  },
-
-  checkDetailedRepoVersionSuccessCallback: function (data) {
-    var rv = (Em.getWithDefault(data, 'items', []) || []).filter(function(i) {
-      return Em.getWithDefault(i || {}, 'ClusterStackVersions.stack', null) === App.get('currentStackName') &&
-        Em.getWithDefault(i || {}, 'ClusterStackVersions.version', null) === App.get('currentStackVersionNumber');
-    })[0];
-    var version = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.repository_version', false);
-    App.set('isStormMetricsSupported', stringUtils.compareVersions(version, '2.2.2') > -1 || !version);
-  },
-  checkDetailedRepoVersionErrorCallback: function () {
-    App.set('isStormMetricsSupported', true);
   },
 
   /**

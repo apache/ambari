@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -107,11 +108,9 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
@@ -211,6 +210,7 @@ public class ClusterImpl implements Cluster {
    * [ ServiceName -> [ ServiceComponentName -> [ HostName -> [ ... ] ] ] ]
    */
   private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, ServiceComponentHost>>> serviceComponentHosts = new ConcurrentHashMap<>();
+  private final Map<Long, ServiceComponentHost> serviceComponentHostsById = new ConcurrentHashMap<>();
 
   /**
    * [ HostName -> [ ... ] ]
@@ -313,6 +313,7 @@ public class ClusterImpl implements Cluster {
   @Inject
   private ClusterSettingDAO clusterSettingDAO;
 
+  @Inject
   private TopologyDeleteFormer topologyDeleteFormer;
 
 
@@ -468,6 +469,8 @@ public class ClusterImpl implements Cluster {
             serviceComponentHosts.get(service.getName()).get(componentName).put(hostname,
               svcHostComponent);
           }
+
+          serviceComponentHostsById.put(svcHostComponent.getHostComponentId(), svcHostComponent);
         }
       }
     }
@@ -480,15 +483,14 @@ public class ClusterImpl implements Cluster {
     }
 
     for (ClusterServiceEntity serviceEntity : clusterEntity.getClusterServiceEntities()) {
-      ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
-      StackEntity stackEntity = serviceDesiredStateEntity.getDesiredStack();
-      StackId stackId = new StackId(stackEntity);
+      ServiceGroupEntity serviceGroupEntity = serviceEntity.getClusterServiceGroupEntity();
+      StackId stackId = new StackId(serviceGroupEntity.getStack());
       try {
         if (ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), serviceEntity.getServiceType()) != null) {
           Service service = serviceFactory.createExisting(this, getServiceGroup(serviceEntity.getServiceGroupId()), serviceEntity);
           services.put(serviceEntity.getServiceName(), service);
-          stackId = getService(serviceEntity.getServiceName()).getDesiredStackId();
+          stackId = getService(serviceEntity.getServiceName()).getStackId();
           servicesById.put(serviceEntity.getServiceId(), service);
         }
 
@@ -752,9 +754,11 @@ public class ClusterImpl implements Cluster {
 
     if (serviceComponentHosts.get(serviceName).get(componentName).containsKey(
       hostname)) {
-      throw new AmbariException("Duplicate entry for ServiceComponentHost"
-        + ", serviceName=" + serviceName + ", serviceComponentName"
-        + componentName + ", hostname= " + hostname);
+      if(serviceComponentHosts.get(serviceName).get(componentName).get(hostname).getServiceGroupName().equals(svcCompHost.getServiceGroupName())) {
+        throw new AmbariException("Duplicate entry for ServiceComponentHost"
+                + ", serviceName=" + serviceName + ", serviceComponentName"
+                + componentName + ", hostname= " + hostname);
+      }
     }
 
     if (!serviceComponentHostsByHost.containsKey(hostname)) {
@@ -762,14 +766,16 @@ public class ClusterImpl implements Cluster {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a new ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname= {}",
-        getClusterName(), getClusterId(), serviceName, componentName, hostname);
+      LOG.debug("Adding a new ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName={}, hostname={}, hostComponentId={}",
+        getClusterName(), getClusterId(), serviceName, componentName, hostname, svcCompHost.getHostComponentId());
     }
 
     serviceComponentHosts.get(serviceName).get(componentName).put(hostname,
       svcCompHost);
 
     serviceComponentHostsByHost.get(hostname).add(svcCompHost);
+
+    serviceComponentHostsById.put(svcCompHost.getHostComponentId(), svcCompHost);
   }
 
   @Override
@@ -836,13 +842,14 @@ public class ClusterImpl implements Cluster {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Removing a ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname= {}",
-        getClusterName(), getClusterId(), serviceName, componentName, hostname);
+      LOG.debug("Removing a ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname={}, hostComponentId={}",
+        getClusterName(), getClusterId(), serviceName, componentName, hostname, schToRemove.getHostComponentId());
     }
 
     serviceComponentHosts.get(serviceName).get(componentName).remove(hostname);
     if (schToRemove != null) {
       serviceComponentHostsByHost.get(hostname).remove(schToRemove);
+      serviceComponentHostsById.remove(schToRemove.getHostComponentId());
     }
   }
 
@@ -945,17 +952,19 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType,
-                            RepositoryVersionEntity repositoryVersion) throws AmbariException {
+  public Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType)
+      throws AmbariException {
     if (services.containsKey(serviceName)) {
-      String message = MessageFormat.format("The {0} service already exists in {1}", serviceName,
-        getClusterName());
+      if (services.get(serviceName).getServiceGroupName().equals(serviceGroup.getServiceGroupName())) {
+        String message = MessageFormat.format("The {0} service already exists in {1}", serviceName,
+                getClusterName());
 
-      throw new AmbariException(message);
+        throw new AmbariException(message);
+      }
     }
 
     @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-    Service service = serviceFactory.createNew(this, serviceGroup, new ArrayList<>(), serviceName, serviceType, repositoryVersion);
+    Service service = serviceFactory.createNew(this, serviceGroup, new ArrayList<>(), serviceName, serviceType);
     addService(service);
 
     return service;
@@ -1189,6 +1198,17 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public List<Service> getServicesByServiceGroup(String serviceGroupName) {
+    List<Service> servicesByServiceGroup = new ArrayList<>();
+    for (Service s : servicesById.values()) {
+      if (s.getServiceGroupName().equals(serviceGroupName)) {
+        servicesByServiceGroup.add(s);
+      }
+    }
+    return servicesByServiceGroup;
+  }
+
+  @Override
   public Service getServiceByComponentName(String componentName) throws AmbariException {
     for (Service service : services.values()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {
@@ -1212,6 +1232,11 @@ public class ClusterImpl implements Cluster {
     }
 
     throw new ServiceNotFoundException(getClusterName(), "component Id: " + componentId);
+  }
+
+  @Override
+  public ServiceComponentHost getHostComponentById(Long hostComponentId) {
+    return serviceComponentHostsById.get(hostComponentId);
   }
 
   @Override
@@ -1288,7 +1313,6 @@ public class ClusterImpl implements Cluster {
     }
     return clusterSetting;
   }
-
 
   @Override
   public ClusterSetting getClusterSetting(Long clusterSettingId) throws ClusterSettingNotFoundException {
@@ -1820,6 +1844,7 @@ public class ClusterImpl implements Cluster {
     services.remove(serviceName);
     servicesById.remove(service.getServiceId());
     serviceConfigTypes.remove(service.getServiceId());
+    serviceComponentHostsById.values().removeIf(each -> Objects.equals(each.getServiceId(), service.getServiceId()));
 
     for (List<ServiceComponentHost> serviceComponents : serviceComponentHostsByHost.values()) {
       Iterables.removeIf(serviceComponents, new Predicate<ServiceComponentHost>() {
@@ -1953,14 +1978,19 @@ public class ClusterImpl implements Cluster {
   //TODO this needs to be reworked to support multiple instance of same service
   @Override
   public Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions() {
-    return getDesiredConfigs(true);
+    return getDesiredConfigs(true, true);
   }
 
 
   //TODO this needs to be reworked to support multiple instance of same service
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
-    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false);
+    return getDesiredConfigs(true);
+  }
+
+  @Override
+  public Map<String, DesiredConfig> getDesiredConfigs(boolean cachedConfigEntities) {
+    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false, cachedConfigEntities);
     return Maps.transformEntries(
       activeConfigsByType,
       new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
@@ -1976,16 +2006,20 @@ public class ClusterImpl implements Cluster {
    * @param allVersions specifies if all versions of the desired configurations to be returned
    *                    or only the active ones. It is expected that there is one and only one active
    *                    desired configuration per config type.
+   * @param cachedConfigEntities retrieves cluster config entities from the cache if true, otherwise from the DB directly.
    * @return a map of type-to-configuration information.
    */
-  //TODO this needs to be reworked to support multiple instance of same service
-  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions) {
+  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions, boolean cachedConfigEntities) {
     clusterGlobalLock.readLock().lock();
     try {
       Map<String, Set<DesiredConfig>> map = new HashMap<>();
       Collection<String> types = new HashSet<>();
-      Collection<ClusterConfigEntity> entities = getClusterEntity().getClusterConfigEntities();
-
+      Collection<ClusterConfigEntity> entities;
+      if (cachedConfigEntities) {
+        entities = getClusterEntity().getClusterConfigEntities();
+      } else {
+        entities = clusterDAO.getEnabledConfigs(clusterId);
+      }
       for (ClusterConfigEntity configEntity : entities) {
         if (allVersions || configEntity.isSelected()) {
           DesiredConfig desiredConfig = new DesiredConfig();
@@ -2089,9 +2123,9 @@ public class ClusterImpl implements Cluster {
         serviceId);
 
       Service service = getService(serviceId);
-      StackId serviceStackId = service.getDesiredStackId();
+      StackId serviceStackId = service.getStackId();
       StackEntity stackEntity = stackDAO.find(serviceStackId);
-      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(clusterId, service.getServiceGroupId(), service.getServiceId());
+      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(service.getServiceId());
 
       serviceConfigEntity.setServiceId(serviceId);
       serviceConfigEntity.setClusterEntity(clusterEntity);
@@ -3216,7 +3250,8 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
    *
    * @return
    */
-  private ClusterEntity getClusterEntity() {
+  @Override
+  public ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }
 
@@ -3368,11 +3403,6 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
       for (ServiceComponent component : service.getServiceComponents().values()) {
         // skip components which don't advertise a version
         if (!component.isVersionAdvertised()) {
-          continue;
-        }
-
-        // if the repo isn't resolved, then we can't trust the version
-        if (!component.getDesiredRepositoryVersion().isResolved()) {
           continue;
         }
 

@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -24,10 +28,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Models a single upgrade plan that can be used to invoke an Upgrade.
@@ -57,6 +62,9 @@ public class UpgradePlanDetailEntity {
   @ManyToOne
   @JoinColumn(name = "upgrade_plan_id", referencedColumnName = "id", nullable = false)
   private UpgradePlanEntity upgradePlanEntity;
+
+  @OneToMany(mappedBy = "upgradePlanDetailEntity", cascade = { CascadeType.ALL })
+  private List<UpgradePlanConfigEntity> upgradePlanConfigs = new ArrayList<>();
 
   /**
    * @return the id
@@ -107,10 +115,27 @@ public class UpgradePlanDetailEntity {
     upgradePlanEntity = plan;
   }
 
+  /**
+   * @param changes
+   *          the changes for this detail
+   */
+  public void setConfigChanges(List<UpgradePlanConfigEntity> changes) {
+    changes.forEach(change -> change.setPlanDetail(this));
+
+    upgradePlanConfigs = changes;
+  }
+
+  /**
+   * @return the config changes
+   */
+  public List<UpgradePlanConfigEntity> getConfigChanges() {
+    return upgradePlanConfigs;
+  }
+
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).omitNullValues()
+    return MoreObjects.toStringHelper(this).omitNullValues()
         .add("id", id)
         .toString();
   }

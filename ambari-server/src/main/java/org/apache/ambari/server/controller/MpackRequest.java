@@ -81,8 +81,7 @@ public class MpackRequest {
 
   @Override
   public int hashCode() {
-    int result = 1;
-    result = 31 + getId().hashCode();
+    int result = 31 + (null != getId() ? getId().hashCode() : 0);
     return result;
   }
 

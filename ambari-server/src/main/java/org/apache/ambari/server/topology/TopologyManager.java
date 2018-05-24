@@ -48,6 +48,7 @@ import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
@@ -277,16 +278,20 @@ public class TopologyManager {
     return isLogicalRequestFinished(clusterProvisionWithBlueprintCreateRequests.get(clusterId));
   }
 
-  public RequestStatusResponse provisionCluster(final ProvisionClusterRequest request) throws InvalidTopologyException, AmbariException {
+  public RequestStatusResponse provisionCluster(final ProvisionClusterRequest request,
+                                               String rawRequestBody) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
+
+    MpackResourceProvider mpackResourceProvider = (MpackResourceProvider)
+      AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Mpack);
+    new DownloadMpacksTask(mpackResourceProvider, AmbariServer.getController().getAmbariMetaInfo()).
+      downloadMissingMpacks(request.getAllMpacks());
 
     BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
     Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
 
     final ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
     final String clusterName = request.getClusterName();
-    final String repoVersion = request.getRepositoryVersion();
-    final Long repoVersionID = request.getRepositoryVersionId();
     final SecurityConfiguration securityConfiguration = provisionRequest.getSecurity();
 
     topologyValidatorService.validateTopologyConfiguration(topology); // FIXME known stacks validation is too late here
@@ -295,11 +300,13 @@ public class TopologyManager {
     final Long provisionId = ambariContext.getNextRequestId();
 
     // create resources
-    ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType(), repoVersion, repoVersionID);
+    ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType());
 
     if (securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
     }
+
+    submitRawRequestBodyAsArtifact(clusterName, rawRequestBody);
 
     if (securityConfiguration.getType() == SecurityType.KERBEROS) {
       Credential credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
@@ -317,7 +324,8 @@ public class TopologyManager {
     LogicalRequest logicalRequest = RetryHelper.executeWithRetry(new Callable<LogicalRequest>() {
         @Override
         public LogicalRequest call() throws Exception {
-          LogicalRequest logicalRequest = processAndPersistProvisionClusterTopologyRequest(request, topology, provisionId);
+          LogicalRequest logicalRequest =
+            processAndPersistProvisionClusterTopologyRequest(request, topology, provisionId);
           return logicalRequest;
         }
       }
@@ -406,27 +414,41 @@ public class TopologyManager {
 
   }
 
-  private void submitKerberosDescriptorAsArtifact(String clusterName, String descriptor) {
+  private void submitRawRequestBodyAsArtifact(String clusterName, String rawRequestBody) {
+    submitArtifact(clusterName, ArtifactResourceProvider.PROVISION_REQUEST_ARTIFACT_NAME, rawRequestBody);
+  }
 
+
+  private void submitKerberosDescriptorAsArtifact(String clusterName, String descriptor) {
+    submitArtifact(clusterName, "kerberos_descriptor", descriptor);
+  }
+
+  /**
+   * Submits an artifact to {@link ArtifactResourceProvider} for persistence
+   * @param clusterName the cluster name
+   * @param artifactName the artifact name (kerberos_descriptor or provision_cluster_request)
+   * @param artifactJson the artifact as json string
+   */
+  private void submitArtifact(String clusterName, String artifactName, String artifactJson) {
     ResourceProvider artifactProvider =
-        AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);
+      AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);
 
     Map<String, Object> properties = new HashMap<>();
-    properties.put(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY, "kerberos_descriptor");
+    properties.put(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY, artifactName);
     properties.put("Artifacts/cluster_name", clusterName);
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-            "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + artifactJson + "}");
 
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
-        Collections.singleton(properties), requestInfoProps, null);
+      Collections.singleton(properties), requestInfoProps, null);
 
     try {
       RequestStatus status = artifactProvider.createResources(request);
       try {
         while (status.getStatus() != RequestStatus.Status.Complete) {
-          LOG.info("Waiting for kerberos_descriptor artifact creation.");
+          LOG.info("Waiting for {} artifact creation.", artifactName);
           Thread.sleep(100);
         }
       } catch (InterruptedException e) {
@@ -434,15 +456,16 @@ public class TopologyManager {
       }
 
       if (status.getStatus() != RequestStatus.Status.Complete) {
-        throw new RuntimeException("Failed to attach kerberos_descriptor artifact to cluster!");
+        throw new RuntimeException("Failed to attach " + artifactName + " artifact to cluster!");
       }
     } catch (SystemException | UnsupportedPropertyException | NoSuchParentResourceException e) {
-      throw new RuntimeException("Failed to attach kerberos_descriptor artifact to cluster: " + e);
+      throw new RuntimeException("Failed to attach " + artifactName + " artifact to cluster: " + e);
     } catch (ResourceAlreadyExistsException e) {
-      throw new RuntimeException("Failed to attach kerberos_descriptor artifact to cluster as resource already exists.");
+      throw new RuntimeException("Failed to attach " + artifactName + " artifact to cluster as resource already exists.");
     }
 
   }
+
 
   public RequestStatusResponse scaleHosts(final ScaleClusterRequest request)
       throws InvalidTopologyException, AmbariException {
@@ -550,7 +573,7 @@ public class TopologyManager {
 
   /**
    * Creates and persists a {@see PersistedTopologyRequest} and a {@see LogicalRequest} for the provided
-   * provision cluster request and topology.
+   * provision cluster request and topology. Also persists the quick links profile if present.
    * @param request Provision cluster request to create a logical request for.
    * @param topology Cluster topology
    * @param logicalRequestId The Id for the created logical request
@@ -560,10 +583,12 @@ public class TopologyManager {
   protected LogicalRequest processAndPersistProvisionClusterTopologyRequest(ProvisionClusterRequest request, ClusterTopology topology, Long logicalRequestId)
     throws InvalidTopologyException, AmbariException {
 
+    // persist quick links profile if present
     if (null != request.getQuickLinksProfileJson()) {
       saveOrUpdateQuickLinksProfile(request.getQuickLinksProfileJson());
     }
 
+    // create and persist topology request
     LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, logicalRequestId);
 
     return logicalRequest;
@@ -877,6 +902,8 @@ public class TopologyManager {
     }
   }
 
+
+
   @Transactional
   protected LogicalRequest createLogicalRequest(final PersistedTopologyRequest request, ClusterTopology topology, Long requestId)
       throws AmbariException {
@@ -936,7 +963,7 @@ public class TopologyManager {
   }
 
   private ManagedThreadPoolExecutor getOrCreateTopologyTaskExecutor(Long clusterId) {
-    ManagedThreadPoolExecutor topologyTaskExecutor = this.topologyTaskExecutorServiceMap.get(clusterId);
+    ManagedThreadPoolExecutor topologyTaskExecutor = topologyTaskExecutorServiceMap.get(clusterId);
     if (topologyTaskExecutor == null) {
       LOG.info("Creating TopologyTaskExecutorService for clusterId: {}", clusterId);
 

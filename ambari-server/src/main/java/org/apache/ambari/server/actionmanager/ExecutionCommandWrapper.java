@@ -52,7 +52,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.state.UpgradeContextFactory;
@@ -216,7 +215,9 @@ public class ExecutionCommandWrapper {
       Mpack mpack = ambariMetaInfo.getMpack(mpackId);
       MpackEntity mpackEntity = mpackDAO.findById(mpackId);
 
-      executionCommand.setMpackId(mpackId);
+      if (null == executionCommand.getMpackId()) {
+        executionCommand.setMpackId(mpackId);
+      }
 
       // setting repositoryFile
       final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
@@ -263,7 +264,10 @@ public class ExecutionCommandWrapper {
       ServiceComponent serviceComponent = null;
       if (null != service) {
         serviceType = service.getServiceType();
-        serviceComponent = service.getServiceComponent(componentName);
+
+        if (StringUtils.isNotBlank(componentName)) {
+          serviceComponent = service.getServiceComponent(componentName);
+        }
       }
 
       ModuleComponent moduleComponent = null;
@@ -284,7 +288,7 @@ public class ExecutionCommandWrapper {
 
       if (null != stackEntity) {
         StackId stackId = new StackId(stackEntity);
-        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+        ambariMetaInfo.getStack(stackId.getStackName(),
           stackId.getStackVersion());
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
@@ -307,10 +311,12 @@ public class ExecutionCommandWrapper {
       executionCommand.setComponentVersions(cluster);
     } catch (ServiceNotFoundException serviceNotFoundException) {
       // it's possible that there are commands specified for a service where
-      // the service doesn't exist yet
-      LOG.warn(
-        "The service {} is not installed in the cluster. No repository version will be sent for this command.",
-        serviceName);
+      // the service doesn't exist yet.  Ignore nulls to avoid flooding the log.
+      if (null != serviceName) {
+        LOG.warn(
+          "The service {} is not installed in the cluster. No repository version will be sent for this command.",
+          serviceName);
+      }
     } catch (AmbariException e) {
       throw new RuntimeException(e);
     }

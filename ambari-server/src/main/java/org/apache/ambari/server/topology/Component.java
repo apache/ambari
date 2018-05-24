@@ -31,6 +31,9 @@ public class Component {
   private final String name;
 
   @Nullable
+  private final String mpackInstance;
+
+  @Nullable
   private final StackId stackId;
 
   @Nullable
@@ -42,9 +45,18 @@ public class Component {
     this(name, null, null, null);
   }
 
+  public Component(String name, @Nullable String mpackInstance, @Nullable String serviceInstance) {
+    this.name = name;
+    this.stackId = null;
+    this.mpackInstance = mpackInstance;
+    this.serviceInstance = serviceInstance;
+    this.provisionAction = null;
+  }
+
   public Component(String name, @Nullable StackId stackId, @Nullable String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
     this.stackId = stackId;
+    this.mpackInstance = null;
     this.serviceInstance = serviceInstance;
     this.provisionAction = provisionAction;
   }
@@ -73,6 +85,10 @@ public class Component {
   }
 
 
+  public String getMpackInstance() {
+    return this.mpackInstance;
+  }
+
   /**
    * @return the service instance this component belongs to. Can be {@code null} if component does not belong to a service
    * instance (there is a single service of the component's service type)
@@ -96,6 +112,7 @@ public class Component {
     return com.google.common.base.Objects.toStringHelper(this)
       .add("name", name)
       .add("stackId", stackId)
+      .add("mpackInstance", mpackInstance)
       .add("serviceInstance", serviceInstance)
       .add("provisionAction", provisionAction)
       .toString();
@@ -109,12 +126,14 @@ public class Component {
     Component component = (Component) o;
     return Objects.equals(name, component.name) &&
       Objects.equals(stackId, component.stackId) &&
+      Objects.equals(mpackInstance, component.mpackInstance) &&
+      Objects.equals(stackId, component.stackId) &&
       Objects.equals(serviceInstance, component.serviceInstance) &&
       provisionAction == component.provisionAction;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, stackId, serviceInstance, provisionAction);
+    return Objects.hash(name, stackId, mpackInstance, serviceInstance, provisionAction);
   }
 }

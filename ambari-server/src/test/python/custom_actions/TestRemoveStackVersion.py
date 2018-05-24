@@ -41,7 +41,7 @@ class TestRemoveStackVersion(RMFTestCase):
     ]
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.core.providers.get_provider")
+  @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
@@ -80,7 +80,7 @@ class TestRemoveStackVersion(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.core.providers.get_provider")
+  @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
@@ -113,7 +113,7 @@ class TestRemoveStackVersion(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.core.providers.get_provider")
+  @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")

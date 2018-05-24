@@ -81,16 +81,10 @@ describe('App.MainAdminServiceAutoStartController', function() {
       })
     };
     beforeEach(function() {
-      sinon.stub(controller, 'loadClusterConfig').returns({
+      sinon.stub(controller, 'loadClusterSettings').returns({
         done: function(callback) {
           callback({
-            Clusters: {
-              desired_configs: {
-                'cluster-env': {
-                  tag: 1
-                }
-              }
-            }
+            recovery_enabled: 'true'
           });
         }
       });
@@ -101,7 +95,7 @@ describe('App.MainAdminServiceAutoStartController', function() {
       controller.load();
     });
     afterEach(function() {
-      controller.loadClusterConfig.restore();
+      controller.loadClusterSettings.restore();
       App.router.get.restore();
       controller.loadComponentsConfigs.restore();
     });
@@ -125,17 +119,14 @@ describe('App.MainAdminServiceAutoStartController', function() {
     });
   });
 
-  describe('#loadClusterConfig()', function() {
+  describe('#loadClusterSettings()', function() {
 
     it('App.ajax.send should be called', function() {
-      controller.loadClusterConfig();
-      var args = testHelpers.findAjaxRequest('name', 'config.tags.site');
+      controller.loadClusterSettings();
+      var args = testHelpers.findAjaxRequest('name', 'common.cluster.settings');
       expect(args[0]).to.be.eql({
-        name: 'config.tags.site',
-        sender: controller,
-        data: {
-          site: 'cluster-env'
-        }
+        name: 'common.cluster.settings',
+        sender: controller
       });
     });
   });

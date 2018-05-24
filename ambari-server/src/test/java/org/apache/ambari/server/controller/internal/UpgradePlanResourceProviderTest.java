@@ -35,13 +35,18 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.MpackDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.UpgradePlanDAO;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,8 +65,11 @@ import com.google.inject.util.Modules;
 public class UpgradePlanResourceProviderTest {
 
   private Injector injector;
-  private AmbariManagementController amc;
   private UpgradePlanDAO planDAO;
+
+  private AmbariManagementController amc;
+  private MpackDAO mpackDAO;
+  private ServiceGroupDAO serviceGroupDAO;
 
   @Before
   public void before() throws Exception {
@@ -73,6 +81,8 @@ public class UpgradePlanResourceProviderTest {
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
 
     amc = createNiceMock(AmbariManagementController.class);
+    mpackDAO = createNiceMock(MpackDAO.class);
+    serviceGroupDAO = createNiceMock(ServiceGroupDAO.class);
 
     expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
 
@@ -93,6 +103,13 @@ public class UpgradePlanResourceProviderTest {
 
   @Test
   public void testCreateResources() throws Exception {
+    ServiceGroupEntity randomServiceGroup = createNiceMock(ServiceGroupEntity.class);
+    expect(serviceGroupDAO.findByPK(EasyMock.anyLong())).andReturn(randomServiceGroup).atLeastOnce();
+
+    MpackEntity randomMpack = createNiceMock(MpackEntity.class);
+    expect(mpackDAO.findById(EasyMock.anyLong())).andReturn(randomMpack).atLeastOnce();
+
+    replay(serviceGroupDAO, mpackDAO);
 
     UpgradePlanResourceProvider provider = createProvider(amc);
 
@@ -125,6 +142,9 @@ public class UpgradePlanResourceProviderTest {
     UpgradePlanDetailEntity detail = entity.getDetails().iterator().next();
     assertEquals(4L, detail.getServiceGroupId());
     assertEquals(2L, detail.getMpackTargetId());
+    assertNotNull(detail.getConfigChanges());
+    // !!! TODO when more thorough code is added, we'll be able to test more assertions
+    assertEquals(0, detail.getConfigChanges().size());
   }
 
 
@@ -143,6 +163,8 @@ public class UpgradePlanResourceProviderTest {
     @Override
     public void configure(Binder binder) {
       binder.bind(AmbariManagementController.class).toInstance(amc);
+      binder.bind(MpackDAO.class).toInstance(mpackDAO);
+      binder.bind(ServiceGroupDAO.class).toInstance(serviceGroupDAO);
     }
   }
 }

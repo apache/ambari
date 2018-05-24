@@ -133,7 +133,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setDescription(description);
     configGroupEntity.setServiceId(serviceId);
     configGroupEntity.setServiceGroupId(serviceGroupId);
-    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(cluster.getClusterId(), serviceGroupId, serviceId);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(serviceId);
     configGroupEntity.setClusterServiceEntity(clusterServiceEntity);
 
     m_hosts = hosts == null ? new ConcurrentHashMap<>()
@@ -363,7 +363,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setTimestamp(System.currentTimeMillis());
     configGroupEntity.setServiceGroupId(serviceGroupId);
     configGroupEntity.setServiceId(serviceId);
-    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(cluster.getClusterId(), serviceGroupId, serviceId);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(serviceId);
     configGroupEntity.setClusterServiceEntity(clusterServiceEntity);
     configGroupDAO.create(configGroupEntity);
 
@@ -437,7 +437,7 @@ public class ConfigGroupImpl implements ConfigGroup {
           Service service = cluster.getService(serviceId);
 
           //TODO check the serviceid = null for the right use case
-          config = configFactory.createNew(service.getDesiredStackId(), cluster, config.getType(),
+          config = configFactory.createNew(service.getStackId(), cluster, config.getType(),
               config.getTag(), config.getProperties(), config.getPropertiesAttributes(), null);
 
           entry.setValue(config);
@@ -548,7 +548,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setServiceGroupId(serviceGroupId);
     configGroupDAO.merge(configGroupEntity);
 
-    this.serviceId = serviceGroupId;
+    serviceId = serviceGroupId;
   }
 
   /**

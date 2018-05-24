@@ -51,6 +51,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.MpackOsSpecific;
 import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
@@ -135,6 +136,8 @@ public class MpackManager {
                   existingMpack.setResourceId(mpackEntity.getId());
                   existingMpack.setMpackUri(mpackEntity.getMpackUri());
                   existingMpack.setRegistryId(mpackEntity.getRegistryId());
+                  //Load module and component maps
+                  existingMpack.populateModuleMap();
 
                   RepositoryXml repositoryXml = RepoUtil.getRepositoryXml(file);
                   if (null == repositoryXml) {
@@ -214,26 +217,24 @@ public class MpackManager {
       mpackTarPath = downloadMpack(mpackRequest.getMpackUri(), mpack.getDefinition());
 
       LOG.info("Custom Mpack Registration :" + mpackRequest.getMpackUri());
-
-      if (createMpackDirectory(mpack)) {
-        mpackDirectory = mpacksStaging + File.separator + mpack.getName() + File.separator + mpack.getVersion();
-      }
+      createMpackDirectory(mpack);
+      mpackDirectory = mpacksStaging + File.separator + mpack.getName() + File.separator + mpack.getVersion();
     }
 
     extractMpackTar(mpack, mpackTarPath, mpackDirectory);
     mpack.setMpackUri(mpackRequest.getMpackUri());
-    mpackResourceId = populateDB(mpack);
-
-    if (null == mpackResourceId) {
-      String message = "Mpack :" + mpackRequest.getMpackName() + " version: "
-          + mpackRequest.getMpackVersion() + " already exists in server";
-      throw new ResourceAlreadyExistsException(message);
-    }
-
-    mpackMap.put(mpackResourceId, mpack);
+    MpackEntity mpackEntity = populateDB(mpack);
+    mpackResourceId = mpackEntity.getId();
     mpack.setResourceId(mpackResourceId);
-    populateStackDB(mpack);
-
+    if (mpackMap.get(mpackEntity.getId()) != null){
+      String message =
+              "Mpack: " + mpackEntity.getMpackName() + " version: " + mpackEntity.getMpackVersion() + " id: " + mpackResourceId + " already exists in server";
+      LOG.info(message);
+    }
+    else {
+      mpackMap.put(mpackResourceId, mpack);
+      populateStackDB(mpack);
+    }
     MpackRegisteredEvent mpackEvent = new MpackRegisteredEvent(mpackResourceId);
     eventPublisher.publish(mpackEvent);
 
@@ -262,6 +263,8 @@ public class MpackManager {
     //Read the mpack.json file into Mpack Object for further use.
     Gson gson = new Gson();
     Mpack mpack = gson.fromJson(new FileReader(targetPath.toString()), Mpack.class);
+    //Load module and component maps
+    mpack.populateModuleMap();
     return mpack;
   }
 
@@ -317,33 +320,35 @@ public class MpackManager {
    */
   private void extractMpackTar(Mpack mpack, Path mpackTarPath, String mpackDirectory) throws IOException {
 
-    extractTar(mpackTarPath, mpacksStaging);
+    if(!Files.exists(Paths.get(mpackDirectory))) {
+      extractTar(mpackTarPath, mpacksStaging);
 
-    String mpackTarDirectory = mpackTarPath.toString();
-    Path extractedMpackDirectory = Files.move
-      (Paths.get(mpacksStaging + File.separator + mpackTarDirectory
-          .substring(mpackTarDirectory.lastIndexOf('/') + 1, mpackTarDirectory.indexOf(".tar")) + File.separator),
-        Paths.get(mpackDirectory), StandardCopyOption.REPLACE_EXISTING);
+      String mpackTarDirectory = mpackTarPath.toString();
+      Path extractedMpackDirectory = Files.move
+              (Paths.get(mpacksStaging + File.separator + mpackTarDirectory
+                              .substring(mpackTarDirectory.lastIndexOf('/') + 1, mpackTarDirectory.indexOf(".tar")) + File.separator),
+                      Paths.get(mpackDirectory), StandardCopyOption.REPLACE_EXISTING);
 
-    LOG.debug("Extracting Mpack definitions into :" + extractedMpackDirectory);
+      LOG.debug("Extracting Mpack definitions into :" + extractedMpackDirectory);
 
-    createServicesDirectory(extractedMpackDirectory, mpack);
+      createServicesDirectory(extractedMpackDirectory, mpack);
 
-    File metainfoFile = new File(extractedMpackDirectory + File.separator + METAINFO_FILE_NAME);
-    // if metainfo.xml doesn't exist in mpack generate it
-    if (!metainfoFile.exists()) {
-      generateMetainfo(metainfoFile, mpack);
+      File metainfoFile = new File(extractedMpackDirectory + File.separator + METAINFO_FILE_NAME);
+      // if metainfo.xml doesn't exist in mpack generate it
+      if (!metainfoFile.exists()) {
+        generateMetainfo(metainfoFile, mpack);
+      }
+
+      RepositoryXml repositoryXml = RepoUtil.getRepositoryXml(extractedMpackDirectory.toFile());
+      if (null == repositoryXml) {
+        throw new IOException("The repository file " + RepoUtil.REPOSITORY_FILE_NAME
+                + " must exist in the management pack");
+      }
+
+      mpack.setRepositoryXml(repositoryXml);
+
+      createSymLinks(mpack);
     }
-
-    RepositoryXml repositoryXml = RepoUtil.getRepositoryXml(extractedMpackDirectory.toFile());
-    if (null == repositoryXml) {
-      throw new IOException("The repository file " + RepoUtil.REPOSITORY_FILE_NAME
-          + " must exist in the management pack");
-    }
-
-    mpack.setRepositoryXml(repositoryXml);
-
-    createSymLinks(mpack);
   }
 
   /**
@@ -361,15 +366,20 @@ public class MpackManager {
     version.setActive(true);
     generatedMetainfo.setVersion(version);
 
-    //Add osSpecifics to the metainfo.xml
-    OsSpecific osSpecific = new OsSpecific("any");
-    OsSpecific.Package pkg = new OsSpecific.Package();
-    pkg.setName(mpack.getName().toLowerCase());
-    ArrayList<OsSpecific.Package> packageArrayList = new ArrayList<>();
-    packageArrayList.add(pkg);
     ArrayList<OsSpecific> osSpecificArrayList = new ArrayList<>();
-    osSpecificArrayList.add(osSpecific);
-    osSpecific.addPackages(packageArrayList);
+    //Add osSpecifics to the metainfo.xml
+    for(MpackOsSpecific mpackOsSpecific : mpack.getOsSpecifics()){
+      OsSpecific osSpecific = new OsSpecific(mpackOsSpecific.getOsFamily());
+      ArrayList<OsSpecific.Package> packageArrayList = new ArrayList<>();
+      for(String packageName : mpackOsSpecific.getPackages()){
+        OsSpecific.Package pkg = new OsSpecific.Package();
+        pkg.setName(packageName);
+        packageArrayList.add(pkg);
+      }
+      osSpecific.addPackages(packageArrayList);
+      osSpecificArrayList.add(osSpecific);
+    }
+
     generatedMetainfo.setOsSpecifics(osSpecificArrayList);
 
     Map<String, String> prerequisites = mpack.getPrerequisites();
@@ -438,7 +448,7 @@ public class MpackManager {
    * @throws IOException
    */
   private Boolean createMpackDirectory(Mpack mpack)
-    throws IOException, ResourceAlreadyExistsException {
+    throws IOException {
         //Check if the mpack already exists
         List<MpackEntity> mpackEntities = mpackDAO.findByNameVersion(mpack.getName(), mpack.getVersion());
         if (mpackEntities.size() == 0) {
@@ -451,7 +461,8 @@ public class MpackManager {
         } else {
           String message =
             "Mpack: " + mpack.getName() + " version: " + mpack.getVersion() + " already exists in server";
-          throw new ResourceAlreadyExistsException(message);
+          LOG.info(message);
+          return false;
         }
   }
 
@@ -533,7 +544,7 @@ public class MpackManager {
    * @return
    * @throws IOException
    */
-  protected Long populateDB(Mpack mpack) throws IOException {
+  protected MpackEntity populateDB(Mpack mpack) throws IOException {
 
     String mpackName = mpack.getName();
     String mpackVersion = mpack.getVersion();
@@ -556,15 +567,15 @@ public class MpackManager {
           operatingSystem -> operatingSystem.setMpackEntity(mpackEntity));
 
       mpackEntity.setRepositoryOperatingSystems(repositoryOperatingSystems);
-      return mpackDAO.merge(mpackEntity).getId();
+      return mpackDAO.merge(mpackEntity);
     }
 
     //mpack already exists
-    return null;
+    return resultSet.get(0);
   }
 
   /***
-   * Makes an entry or updates the entry in the stack table to establish a link between the mpack and the
+   * Makes an entry in the entry in the stack table to establish a link between the mpack and the
    * associated stack
    *
    * @param mpack

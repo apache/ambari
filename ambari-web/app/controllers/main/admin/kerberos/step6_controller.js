@@ -23,7 +23,7 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
 
   stopServices: function () {
     App.ajax.send({
-      name: 'common.services.update',
+      name: 'common.services.update.all',
       data: {
         context: "Stop services",
         "ServiceInfo": {
@@ -60,7 +60,7 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
       name: 'common.delete.host_component',
       sender: this,
       data: {
-        componentName: 'APP_TIMELINE_SERVER',
+        componentId: App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER').get('componentId'),
         hostName: App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER').get('hostName')
       },
       success: 'onDeleteATSSuccess',

@@ -46,9 +46,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               } else {
                 if (router.get('clusterInstallCompleted')) {
                   if (!App.get('isOnlyViewUser')) {
-                    clusterController.checkDetailedRepoVersion().done(function () {
-                      router.get('mainController').initialize();
-                    });
+                    router.get('mainController').initialize();
                   } else {
                     // Don't transit to Views when user already on View page
                     if (App.router.currentState.name !== 'viewDetails') {
@@ -90,18 +88,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
     });
   },
-  /*
-   routePath: function(router,event) {
-   if (router.getAuthenticated()) {
-   App.router.get('clusterController').loadClusterName(false);
-   router.get('mainController').initialize();
-   // TODO: redirect to last known state
-   } else {
-   Ember.run.next(function () {
-   router.transitionTo('login');
-   });
-   }
-   }, */
 
   index: Ember.Route.extend({
     route: '/',
@@ -581,64 +567,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.get('mainAdminController').connectOutlet('mainAdminServiceGroups');
       }
     }),
-
-    stackAndUpgrade: Em.Route.extend({
-      route: '/stack',
-      breadcrumbs: null,
-      connectOutlets: function (router) {
-        router.set('mainAdminController.category', "stackAndUpgrade");
-        router.set('mainAdminController.categoryLabel', Em.I18n.t('admin.stackUpgrade.title'));
-        router.get('mainAdminController').connectOutlet('mainAdminStackAndUpgrade');
-      },
-
-      index: Em.Route.extend({
-        route: '/',
-        redirectsTo: 'services'
-      }),
-
-      services: Em.Route.extend({
-
-        breadcrumbs: {
-          label: Em.I18n.t('common.stack')
-        },
-
-        route: '/services',
-        connectOutlets: function (router, context) {
-          router.get('mainAdminStackAndUpgradeController').connectOutlet('mainAdminStackServices');
-        }
-      }),
-
-      versions: Em.Route.extend({
-        breadcrumbs: {
-          label: Em.I18n.t('common.versions')
-        },
-        route: '/versions',
-        connectOutlets: function (router, context) {
-          router.get('mainAdminStackAndUpgradeController').connectOutlet('MainAdminStackVersions');
-        }
-      }),
-
-      upgradeHistory: Em.Route.extend({
-
-        breadcrumbs: {
-          label: Em.I18n.t('common.upgrade.history')
-        },
-
-        route: '/history',
-        connectOutlets: function (router, context) {
-          router.get('mainAdminStackAndUpgradeController').connectOutlet('mainAdminStackUpgradeHistory');
-        },
-      }),
-
-      stackNavigate: function (router, event) {
-        var parent = event.view._parentView;
-        parent.deactivateChildViews();
-        event.view.set('active', "active");
-        router.transitionTo(event.context);
-      }
-    }),
-    
-    stackUpgrade: require('routes/stack_upgrade_routes'),
 
     adminAdvanced: Em.Route.extend({
       route: '/advanced',

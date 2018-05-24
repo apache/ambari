@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin, {
+App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin, App.NameNodeWidgetMixin, {
 
   hiddenInfo: function () {
     return [
@@ -34,21 +34,23 @@ App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin
   isRed: Em.computed.gtProperties('data', 'thresholdMax'),
 
   data: function () {
-    if (this.get('model.nameNodeRpc')) {
-      return (this.get('model.nameNodeRpc')).toFixed(2);
+    const clusterId = this.get('clusterId'),
+      rpc = this.get(`model.nameNodeRpcValues.${clusterId}`);
+    if (rpc) {
+      return rpc.toFixed(2);
     }
-    if (this.get('model.nameNodeRpc') == 0) {
+    if (rpc == 0) {
       return 0;
     }
     return null;
-  }.property('model.nameNodeRpc'),
+  }.property('model.nameNodeRpcValues', 'clusterId'),
 
   content: function () {
     if (this.get('data') || this.get('data') == 0) {
       return this.get('data') + " ms";
     }
     return Em.I18n.t('services.service.summary.notAvailable');
-  }.property('model.nameNodeRpc'),
+  }.property('model.nameNodeRpcValues', 'clusterId'),
 
   hintInfo: Em.I18n.t('dashboard.widgets.hintInfo.hint3')
 

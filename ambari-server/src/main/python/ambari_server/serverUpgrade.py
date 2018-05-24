@@ -441,7 +441,7 @@ def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_n
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
       managed_services.append(os.path.basename(service))
   # add deprecated managed services
-  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT"])
+  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT","AMBARI_INFRA"])
 
   stack_backup_dirs = glob.glob(os.path.join(resources_dir, old_dir_name))
   if stack_backup_dirs:

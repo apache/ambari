@@ -23,7 +23,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -55,25 +54,21 @@ public class ServiceGroupDependencyEntity {
   @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false)
   private long serviceGroupId;
 
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false)
   private long serviceGroupClusterId;
 
   @Column(name = "dependent_service_group_id", nullable = false, insertable = false, updatable = false)
   private long dependentServiceGroupId;
 
-  @Column(name = "dependent_cluster_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "dependent_cluster_id", nullable = false, insertable = true, updatable = false)
   private long dependentServiceGroupClusterId;
 
   @ManyToOne
-  @JoinColumns({
-          @JoinColumn(name = "service_group_id", referencedColumnName = "id", nullable = false),
-          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false) })
+  @JoinColumn(name = "service_group_id", referencedColumnName = "id", nullable = false)
   private ServiceGroupEntity serviceGroup;
 
   @ManyToOne
-  @JoinColumns({
-          @JoinColumn(name = "dependent_service_group_id", referencedColumnName = "id", nullable = false),
-          @JoinColumn(name = "dependent_cluster_id", referencedColumnName = "cluster_id", nullable = false) })
+  @JoinColumn(name = "dependent_service_group_id", referencedColumnName = "id", nullable = false)
   private ServiceGroupEntity serviceGroupDependency;
 
   public ServiceGroupEntity getServiceGroup() {
@@ -82,6 +77,22 @@ public class ServiceGroupDependencyEntity {
 
   public void setServiceGroup(ServiceGroupEntity serviceGroup) {
     this.serviceGroup = serviceGroup;
+  }
+
+  public Long getServiceGroupClusterId() {
+    return serviceGroupClusterId;
+  }
+
+  public void setServiceGroupClusterId(Long serviceGroupClusterId) {
+    this.serviceGroupClusterId = serviceGroupClusterId;
+  }
+
+  public Long getDependentServiceGroupClusterId() {
+    return dependentServiceGroupClusterId;
+  }
+
+  public void setDependentServiceGroupClusterId(Long dependentServiceGroupClusterId) {
+    this.dependentServiceGroupClusterId = dependentServiceGroupClusterId;
   }
 
   public ServiceGroupEntity getServiceGroupDependency() {

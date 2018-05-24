@@ -53,7 +53,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -62,6 +62,8 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
+import org.apache.ambari.server.topology.StackFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -110,9 +112,7 @@ public class ConfigHelperTest {
 
       StackId stackId = new StackId("HDP-2.0.6");
       OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
-      helper.createStack(stackId);
-
-      RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, "2.0.6");
+      helper.createMpack(stackId);
 
       clusterName = "c1";
       clusters.addCluster(clusterName, stackId);
@@ -160,9 +160,9 @@ public class ConfigHelperTest {
       cr2.setVersionTag("version1");
 
       ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-      cluster.addService(serviceGroup, "FLUME", "FLUME", repositoryVersion);
-      cluster.addService(serviceGroup, "OOZIE", "OOZIE", repositoryVersion);
-      cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+      cluster.addService(serviceGroup, "FLUME", "FLUME");
+      cluster.addService(serviceGroup, "OOZIE", "OOZIE");
+      cluster.addService(serviceGroup, "HDFS", "HDFS");
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -979,7 +979,7 @@ public class ConfigHelperTest {
 
       // set up mocks
       ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-      expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+      expect(sc.getStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
 
       // set up expectations
       expect(sch.getActualConfigs()).andReturn(schReturn).times(6);
@@ -1055,7 +1055,7 @@ public class ConfigHelperTest {
 
     // set up mocks
     ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-    expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+    expect(sc.getStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
 
     // set up expectations
     expect(sch.getActualConfigs()).andReturn(schReturn).anyTimes();
@@ -1103,7 +1103,11 @@ public class ConfigHelperTest {
           bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
           bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
           bind(StateUpdateEventPublisher.class).toInstance(createNiceMock(StateUpdateEventPublisher.class));
-
+          bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+          bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+          bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
+          bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+          bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
         }
       });
 
@@ -1132,7 +1136,7 @@ public class ConfigHelperTest {
       List<PropertyInfo> serviceProperties = Arrays.asList(mockPropertyInfo1, mockPropertyInfo2);
 
       expect(mockCluster.getService("SERVICE")).andReturn(mockService).once();
-      expect(mockService.getDesiredStackId()).andReturn(mockStackVersion).once();
+      expect(mockService.getStackId()).andReturn(mockStackVersion).once();
       expect(mockService.getServiceType()).andReturn("SERVICE").once();
       expect(mockStackVersion.getStackName()).andReturn("HDP").once();
       expect(mockStackVersion.getStackVersion()).andReturn("2.2").once();

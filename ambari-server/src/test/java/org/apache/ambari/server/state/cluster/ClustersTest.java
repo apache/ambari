@@ -54,7 +54,6 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -145,7 +144,7 @@ public class ClustersTest {
   public void testAddAndGetCluster() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     String c1 = "foo";
     String c2 = "foo";
@@ -199,7 +198,7 @@ public class ClustersTest {
   public void testAddAndGetClusterWithSecurityType() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     String c1 = "foo";
     SecurityType securityType = SecurityType.KERBEROS;
@@ -266,7 +265,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -277,7 +276,6 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c2));
 
     cluster1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     try {
       clusters.mapHostToCluster(h1, c1);
@@ -352,7 +350,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -361,7 +359,6 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c1));
     Assert.assertNotNull(clusters.getCluster(c2));
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     clusters.addHost(h1);
     clusters.addHost(h2);
@@ -385,7 +382,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(c1, stackId);
 
@@ -394,8 +391,6 @@ public class ClustersTest {
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "1",
         new HashMap<String, String>() {{
@@ -428,7 +423,7 @@ public class ClustersTest {
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS");
 
     //Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
@@ -628,7 +623,7 @@ public class ClustersTest {
   private Cluster createCluster(String clusterName) throws AmbariException {
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(clusterName, stackId);
 

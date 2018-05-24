@@ -126,7 +126,7 @@ module.exports = App.WizardRoute.extend({
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
-          var wizardStep4Controller = router.get('wizardStep4Controller');
+          //var wizardStep4Controller = router.get('wizardStep4Controller');
           wizardStep4Controller.set('wizardController', controller);
           controller.loadServiceVersionFromVersionDefinitions().complete(function () {
             controller.set('content.services', App.StackService.find().forEach(function (item) {
@@ -142,7 +142,7 @@ module.exports = App.WizardRoute.extend({
     },
     nextTransition: function (router) {
       var addServiceController = router.get('addServiceController');
-      var wizardStep4Controller = router.get('wizardStep4Controller');
+      //var wizardStep4Controller = router.get('wizardStep4Controller');
       addServiceController.saveServices(wizardStep4Controller);
       addServiceController.saveClients(wizardStep4Controller);
       addServiceController.setDBProperty('masterComponentHosts', undefined);
@@ -219,26 +219,22 @@ module.exports = App.WizardRoute.extend({
       var addServiceController = router.get('addServiceController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
-      wizardStep6Controller.callValidation(function () {
-        wizardStep6Controller.showValidationIssuesAcceptBox(function () {
-          addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
-          addServiceController.get('content').set('serviceConfigProperties', null);
-          addServiceController.setDBProperties({
-            groupsToDelete: null,
-            recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
-            recommendationsConfigs: null
-          });
-          router.get('wizardStep7Controller').set('recommendationsConfigs', null);
-          router.get('wizardStep7Controller').clearAllRecommendations();
-          addServiceController.setDBProperty('serviceConfigGroups', undefined);
-          App.ServiceConfigGroup.find().clear();
-          addServiceController.clearServiceConfigProperties();
-          if (App.get('isKerberosEnabled')) {
-            addServiceController.setDBProperty('kerberosDescriptorConfigs', null);
-          }
-          router.transitionTo('step4');
-        });
+      addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
+      addServiceController.get('content').set('serviceConfigProperties', null);
+      addServiceController.setDBProperties({
+        groupsToDelete: null,
+        recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+        recommendationsConfigs: null
       });
+      router.get('wizardStep7Controller').set('recommendationsConfigs', null);
+      router.get('wizardStep7Controller').clearAllRecommendations();
+      addServiceController.setDBProperty('serviceConfigGroups', undefined);
+      App.ServiceConfigGroup.find().clear();
+      addServiceController.clearServiceConfigProperties();
+      if (App.get('isKerberosEnabled')) {
+        addServiceController.setDBProperty('kerberosDescriptorConfigs', null);
+      }
+      router.transitionTo('step4');
     }
   }),
 
@@ -403,7 +399,7 @@ module.exports = App.WizardRoute.extend({
     back: Em.Router.transitionTo('step6'),
     complete: function (router, context) {
       var addServiceController = router.get('addServiceController');
-      addServiceController.get('popup').onClose();
+      addServiceController.get('popup').onPrimary();
     }
   }),
 

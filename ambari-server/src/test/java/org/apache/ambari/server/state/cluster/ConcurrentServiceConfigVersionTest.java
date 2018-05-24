@@ -37,7 +37,6 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -104,8 +103,6 @@ public class ConcurrentServiceConfigVersionTest {
   private Cluster cluster;
   private ServiceGroup serviceGroup;
 
-  private RepositoryVersionEntity repositoryVersion;
-
   /**
    * Creates a cluster and installs HDFS with NN and DN.
    *
@@ -118,8 +115,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
     serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", stackId, new HashSet<ServiceGroupKey>());
@@ -229,7 +225,7 @@ public class ConcurrentServiceConfigVersionTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName);
       cluster.addService(service);
     }
 

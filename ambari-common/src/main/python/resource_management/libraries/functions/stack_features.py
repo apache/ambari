@@ -39,13 +39,13 @@ def check_stack_feature(stack_feature, stack_version):
   IMPORTANT, notice that the mapping of feature to version comes from cluster-env if it exists there.
   :param stack_feature: Feature name to check if it is supported by the stack. For example: "rolling_upgrade"
   :param stack_version: Version of the stack
-  :return: Will return True if successful, otherwise, False. 
+  :return: Will return True if successful, otherwise, False.
   """
 
   from resource_management.libraries.functions.default import default
   from resource_management.libraries.functions.version import compare_versions
 
-  stack_name = default("/clusterLevelParams/stack_name", None)
+  stack_name = default("/stackSettings/stack_name", None)
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
@@ -84,7 +84,7 @@ def check_stack_feature(stack_feature, stack_version):
         return True
   else:
     Logger.warning("Stack features not defined by stack")
-        
+
   return False
 
 
@@ -104,11 +104,11 @@ def get_stack_feature_version(config):
   """
   from resource_management.libraries.functions.default import default
 
-  if "clusterLevelParams" not in config or "commandParams" not in config:
-    raise Fail("Unable to determine the correct version since clusterLevelParams and commandParams were not present in the configuration dictionary")
+  if "stackSettings" not in config or "commandParams" not in config:
+    raise Fail("Unable to determine the correct version since stackSettings and commandParams were not present in the configuration dictionary")
 
   # should always be there
-  stack_version = config['clusterLevelParams']['stack_version']
+  stack_version = config['stackSettings']['stack_version']
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)

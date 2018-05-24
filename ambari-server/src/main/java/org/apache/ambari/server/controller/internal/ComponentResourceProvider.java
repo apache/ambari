@@ -32,7 +32,6 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -61,7 +60,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.TopologyDeleteFormer;
@@ -113,7 +111,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   public static final String COMPONENT_RECOVERY_ENABLED_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "recovery_enabled";
   protected static final String COMPONENT_DESIRED_STACK = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
   protected static final String COMPONENT_DESIRED_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_version";
-  protected static final String COMPONENT_REPOSITORY_STATE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_state";
 
   private static final String TRUE = "true";
 
@@ -164,7 +161,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     PROPERTY_IDS.add(COMPONENT_RECOVERY_ENABLED_ID);
     PROPERTY_IDS.add(COMPONENT_DESIRED_STACK);
     PROPERTY_IDS.add(COMPONENT_DESIRED_VERSION);
-    PROPERTY_IDS.add(COMPONENT_REPOSITORY_STATE);
 
     PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
 
@@ -244,7 +240,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         resource.setProperty(COMPONENT_RECOVERY_ENABLED_ID, response.isRecoveryEnabled());
         resource.setProperty(COMPONENT_DESIRED_STACK, response.getDesiredStackId());
         resource.setProperty(COMPONENT_DESIRED_VERSION, response.getDesiredVersion());
-        resource.setProperty(COMPONENT_DESIRED_VERSION, response.getRepositoryState());
 
         associatedResources.add(resource);
       }
@@ -299,7 +294,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
       setResourceProperty(resource, COMPONENT_DESIRED_STACK, response.getDesiredStackId(), requestedIds);
       setResourceProperty(resource, COMPONENT_DESIRED_VERSION, response.getDesiredVersion(), requestedIds);
-      setResourceProperty(resource, COMPONENT_REPOSITORY_STATE, response.getRepositoryState(), requestedIds);
 
       resources.add(resource);
     }
@@ -444,7 +438,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       try {
         ServiceComponent sc = s.getServiceComponent(request.getComponentName());
-        if (sc != null) {
+        if (sc != null && (sc.getServiceId().equals(cluster.getService(request.getServiceGroupName(), request.getServiceName()).getServiceId()))) {
           // throw error later for dup
           duplicates.add(request.toString());
           continue;
@@ -453,7 +447,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         // Expected
       }
 
-      StackId stackId = s.getDesiredStackId();
+      StackId stackId = s.getStackId();
       if (!ambariMetaInfo.isValidServiceComponent(stackId.getStackName(),
           stackId.getStackVersion(), s.getServiceType(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
@@ -476,9 +470,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     // now doing actual work
     for (ServiceComponentRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName(), request.getComponentType());
-      sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
@@ -496,7 +489,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setRecoveryEnabled(recoveryEnabled);
         LOG.info("Component: {}, recovery_enabled from request: {}", request.getComponentName(), recoveryEnabled);
       } else {
-        StackId stackId = s.getDesiredStackId();
+        StackId stackId = s.getStackId();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), s.getServiceType(), request.getComponentType());
         if (componentInfo == null) {
@@ -548,14 +541,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final Service s = getServiceFromCluster(request, cluster);
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
-      StackId stackId = sc.getDesiredStackId();
-
-      ServiceGroup sg = null;
-      try {
-        sg = cluster.getServiceGroup(sc.getServiceGroupId());
-      } catch (ServiceGroupNotFoundException e) {
-        sg = null;
-      }
+      StackId stackId = sc.getStackId();
 
       try {
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
@@ -588,7 +574,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           continue;
         }
 
-        StackId stackId = sc.getDesiredStackId();
+        StackId stackId = sc.getStackId();
 
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {
@@ -917,7 +903,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   private Service getServiceFromCluster(final ServiceComponentRequest request, final Cluster cluster) throws AmbariException {
     try {
-      return cluster.getService(request.getServiceName());
+      return cluster.getService(request.getServiceGroupName(), request.getServiceName());
     } catch (ServiceNotFoundException e) {
       throw new ParentObjectNotFoundException("Parent Service resource doesn't exist.", e);
     }
@@ -949,7 +935,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                                       final AmbariMetaInfo ambariMetaInfo) throws AmbariException {
     if (StringUtils.isEmpty(request.getServiceName())) {
 
-      String componentName = request.getComponentName();
       String componentType = request.getComponentType();
 
       String serviceName = getManagementController().findServiceName(cluster, componentType);

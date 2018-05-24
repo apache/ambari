@@ -26,6 +26,45 @@ import org.junit.Test;
 import com.google.gson.Gson;
 
 public class MpackTest {
+  String mpackJsonContents = "{\n" +
+          "  \"definition\": \"hdpcore-1.0.0-b16-definition.tar.gz\",\n" +
+          "  \"description\": \"Hortonworks Data Platform Core\",\n" +
+          "  \"id\": \"hdpcore\",\n" +
+          "  \"modules\": [\n" +
+          "    {\n" +
+          "      \"category\": \"SERVER\",\n" +
+          "      \"components\": [\n" +
+          "        {\n" +
+          "          \"id\": \"zookeeper_server\",\n" +
+          "          \"version\": \"3.4.0.0-b17\",\n" +
+          "          \"name\": \"ZOOKEEPER_SERVER\",\n" +
+          "          \"category\": \"MASTER\",\n" +
+          "          \"isExternal\": \"False\"\n" +
+          "        }\n" +
+          "      ],\n" +
+          "      \"definition\": \"zookeeper-3.4.0.0-b17-definition.tar.gz\",\n" +
+          "      \"dependencies\": [\n" +
+          "        {\n" +
+          "          \"id\": \"zookeeper_clients\",\n" +
+          "          \"name\": \"ZOOKEEPER_CLIENTS\",\n" +
+          "          \"type\": \"INSTALL\"\n" +
+          "        }\n" +
+          "      ],\n" +
+          "      \"description\": \"Centralized service which provides highly reliable distributed coordination\",\n" +
+          "      \"displayName\": \"ZooKeeper\",\n" +
+          "      \"id\": \"zookeeper\",\n" +
+          "      \"name\": \"ZOOKEEPER\",\n" +
+          "      \"version\": \"3.4.0.0-b17\"\n" +
+          "    }\n" +
+          "  ],\n" +
+          "  \"name\": \"HDPCORE\",\n" +
+          "  \"prerequisites\": {\n" +
+          "    \"max-ambari-version\": \"3.1.0.0\",\n" +
+          "    \"min-ambari-version\": \"3.0.0.0\"\n" +
+          "  },\n" +
+          "  \"version\": \"1.0.0-b16\"\n" +
+          "}";
+
   @Test
   public void testMpacks() {
     Mpack mpack = new Mpack();
@@ -46,50 +85,11 @@ public class MpackTest {
 
   @Test
   public void testMpacksUsingGson() {
-    String mpackJsonContents = "{\n" +
-            "  \"definition\": \"hdpcore-1.0.0-b16-definition.tar.gz\",\n" +
-            "  \"description\": \"Hortonworks Data Platform Core\",\n" +
-            "  \"id\": \"hdpcore\",\n" +
-            "  \"modules\": [\n" +
-            "    {\n" +
-            "      \"category\": \"SERVER\",\n" +
-            "      \"components\": [\n" +
-            "        {\n" +
-            "          \"id\": \"zookeeper_server\",\n" +
-            "          \"version\": \"3.4.0.0-b17\",\n" +
-            "          \"name\": \"ZOOKEEPER_SERVER\",\n" +
-            "          \"category\": \"MASTER\",\n" +
-            "          \"isExternal\": \"False\"\n" +
-            "        }\n" +
-            "      ],\n" +
-            "      \"definition\": \"zookeeper-3.4.0.0-b17-definition.tar.gz\",\n" +
-            "      \"dependencies\": [\n" +
-            "        {\n" +
-            "          \"id\": \"zookeeper_clients\",\n" +
-            "          \"name\": \"ZOOKEEPER_CLIENTS\",\n" +
-            "          \"dependencyType\": \"INSTALL\"\n" +
-            "        }\n" +
-            "      ],\n" +
-            "      \"description\": \"Centralized service which provides highly reliable distributed coordination\",\n" +
-            "      \"displayName\": \"ZooKeeper\",\n" +
-            "      \"id\": \"zookeeper\",\n" +
-            "      \"name\": \"ZOOKEEPER\",\n" +
-            "      \"version\": \"3.4.0.0-b17\"\n" +
-            "    }\n" +
-            "  ],\n" +
-            "  \"name\": \"HDPCORE\",\n" +
-            "  \"prerequisites\": {\n" +
-            "    \"max-ambari-version\": \"3.1.0.0\",\n" +
-            "    \"min-ambari-version\": \"3.0.0.0\"\n" +
-            "  },\n" +
-            "  \"version\": \"1.0.0-b16\"\n" +
-            "}";
     HashMap<String, String> expectedPrereq = new HashMap<>();
     expectedPrereq.put("min-ambari-version","3.0.0.0");
     expectedPrereq.put("max-ambari-version","3.1.0.0");
     ArrayList<Module> expectedModules = new ArrayList<>();
     Module zkfc = new Module();
-    //nifi.setType(.PackletType.SERVICE_PACKLET);
     zkfc.setVersion("3.4.0.0-b17");
     zkfc.setDefinition("zookeeper-3.4.0.0-b17-definition.tar.gz");
     zkfc.setName("ZOOKEEPER");

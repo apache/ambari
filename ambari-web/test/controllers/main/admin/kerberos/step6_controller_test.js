@@ -66,9 +66,9 @@ describe('App.KerberosWizardStep6Controller', function() {
 
     it("App.ajax.send should be called", function() {
       controller.stopServices();
-      var args = testHelpers.findAjaxRequest('name', 'common.services.update');
+      var args = testHelpers.findAjaxRequest('name', 'common.services.update.all');
       expect(args[0]).to.be.eql({
-        name: 'common.services.update',
+        name: 'common.services.update.all',
         data: {
           context: "Stop services",
           "ServiceInfo": {
@@ -103,6 +103,7 @@ describe('App.KerberosWizardStep6Controller', function() {
     beforeEach(function() {
       sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({
         componentName: 'APP_TIMELINE_SERVER',
+        componentId: '1',
         hostName: 'host1'
       })]);
     });
@@ -118,7 +119,7 @@ describe('App.KerberosWizardStep6Controller', function() {
         name: 'common.delete.host_component',
         sender: controller,
         data: {
-          componentName: 'APP_TIMELINE_SERVER',
+          componentId: '1',
           hostName: 'host1'
         },
         success: 'onDeleteATSSuccess',

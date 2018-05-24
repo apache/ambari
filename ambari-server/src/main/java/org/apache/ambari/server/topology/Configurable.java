@@ -43,6 +43,32 @@ public interface Configurable {
 
   @JsonProperty("configurations")
   default void setConfigs(Collection<? extends Map<String, ?>> configs) {
+    setConfiguration(parseConfigs(configs));
+  }
+
+  /**
+   * Parses configuration maps The configs can be in fully structured JSON, e.g.
+   * <code>
+   * [{"hdfs-site":
+   *  "properties": {
+   *    ""dfs.replication": "3",
+   *    ...
+   *  },
+   *  properties_attributes: {}
+   * }]
+   * </code>
+   * or '/' separated like
+   * <code>
+   * [{
+   *  "hdfs-site/properties/dfs.replication": "3",
+   *  ...
+   * }]
+   * </code>
+   * In the latter case it calls {@link ConfigurationFactory#getConfiguration(Collection)}
+   * @param configs
+   * @return
+   */
+  static Configuration parseConfigs(Collection<? extends Map<String, ?>> configs) {
     Configuration configuration;
     if (!configs.isEmpty() && configs.iterator().next().keySet().iterator().next().contains("/")) {
       // Configuration has keys with slashes like "zk.cfg/properties/dataDir" means it is coming through
@@ -69,12 +95,15 @@ public interface Configurable {
       });
       configuration = new Configuration(allProperties, allAttributes);
     }
-    setConfiguration(configuration);
+    return configuration;
   }
 
-  @JsonProperty("configurations")
-  default Collection<Map<String, Map<String, ?>>> getConfigs() {
-    Configuration configuration = getConfiguration();
+  /**
+   * Converts {@link Configuration} objects to a collection easily serializable to Json
+   * @param configuration the configuration to convert
+   * @return the resulting collection
+   */
+  static Collection<Map<String, Map<String, ?>>> convertConfigToMap(Configuration configuration) {
     Collection<Map<String, Map<String, ?>>> configurations = new ArrayList<>();
     Set<String> allConfigTypes = Sets.union(configuration.getProperties().keySet(), configuration.getAttributes().keySet());
     for (String configType: allConfigTypes) {
@@ -88,6 +117,11 @@ public interface Configurable {
       configurations.add(ImmutableMap.of(configType, configData));
     }
     return configurations;
+  }
+
+  @JsonProperty("configurations")
+  default Collection<Map<String, Map<String, ?>>> getConfigs() {
+    return convertConfigToMap(getConfiguration());
   }
 
 }

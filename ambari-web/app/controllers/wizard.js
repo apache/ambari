@@ -343,6 +343,27 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return name;
   },
 
+  getStepSavedState: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const stepsSaved = this.get('content.stepsSavedState');
+
+    if (!!stepIndex && stepsSaved && stepsSaved[stepIndex]) {
+      return true;
+    }
+
+    return false;
+  },
+
+  setStepUnsaved: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const oldState = this.get('content.stepsSavedState') || {};
+    const newState = Em.Object.create(oldState);
+    newState[stepIndex] = false;
+
+    this.set('content.stepsSavedState', newState);
+    this.save('stepsSavedState');
+  },
+  
   /**
    * Move user to the selected step
    *
@@ -352,6 +373,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    */
   gotoStep: function (stepName, disableNaviWarning) {
     const step = this.getStepIndex(stepName);
+
+    //in case stepName is a legacy number convert it to the
+    //legacy naming convention, a string starting with "step"
+    if (typeof stepName !== "string") {
+      stepName = "step" + stepName.toString();
+    }
 
     if (step === -1 || this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
       return false;
@@ -526,13 +553,21 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     };
     this.saveClusterStatus(clusterStatus);
 
-    App.ajax.send({
-      name: isRetry ? 'common.host_components.update' : 'common.services.update',
-      sender: this,
-      data: data,
-      success: 'installServicesSuccessCallback',
-      error: 'installServicesErrorCallback'
-    }).then(callback, callback);
+    const serviceGroups = this.get('content.serviceGroups');
+    
+    const installPromises = serviceGroups.map(sg => {
+      data.serviceGroupName = sg;
+
+      return App.ajax.send({
+        name: isRetry ? 'common.host_components.update' : 'common.services.update',
+        sender: this,
+        data: data,
+        success: 'installServicesSuccessCallback',
+        error: 'installServicesErrorCallback'
+      })
+    })
+
+    $.when(...installPromises).then(callback, callback);
   },
 
   installServicesSuccessCallback: function (jsonData) {
@@ -1409,6 +1444,19 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   loadHostsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
+  },
+
+  loadRegisteredMpacks: function () {
+    this.set('content.registeredMpacks', this.getDBProperty('registeredMpacks') || []);
+    const registeredMpacks = this.get('content.registeredMpacks');
+    
+    //TODO: mpacks - currently we create a service group for each mpack; this will be changed in the future
+    const serviceGroups = registeredMpacks.map(rmp => rmp.MpackInfo.mpack_name);
+    this.set('content.serviceGroups', serviceGroups);
+
+    registeredMpacks.forEach(rmp => {
+      App.stackMapper.map(JSON.parse(JSON.stringify(rmp)));
+    });
   },
 
   /**

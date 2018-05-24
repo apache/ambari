@@ -19,7 +19,7 @@ package org.apache.ambari.server.events;
 
 import org.apache.ambari.server.agent.CommandReport;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * The {@link CommandReportReceivedEvent} is fired when a command report is
@@ -69,7 +69,7 @@ public final class CommandReportReceivedEvent {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("clusterId", clusterId)
+    return MoreObjects.toStringHelper(this).add("clusterId", clusterId)
         .add("hostname", hostname)
         .add("status", commandReport.getStatus())
         .add("role", role).toString();

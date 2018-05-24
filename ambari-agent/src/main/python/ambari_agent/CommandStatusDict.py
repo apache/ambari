@@ -168,7 +168,8 @@ class CommandStatusDict():
       'taskId': command['taskId'],
       'clusterId': command['clusterId'],
       'serviceName': command['serviceName'],
-      'roleCommand': command['roleCommand']
+      'roleCommand': command['roleCommand'],
+      'mpackId': command['mpackId'] if 'mpackId' in command else None
     }
     return stub
     

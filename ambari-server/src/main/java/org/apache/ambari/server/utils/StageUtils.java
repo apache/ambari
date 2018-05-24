@@ -106,7 +106,7 @@ public class StageUtils {
 
   @Inject
   private static Configuration configuration;
-  
+
   @Inject
   public StageUtils(StageFactory stageFactory) {
     StageUtils.stageFactory = stageFactory;
@@ -222,7 +222,7 @@ public class StageUtils {
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent("NAMENODE", hostname, now, "HDP-1.2.0"), "cluster1",
-        "core", "HDFS", false, false);
+        1L, "core", "HDFS", false, false);
     ExecutionCommand execCmd = s.getExecutionCommandWrapper(hostname, "NAMENODE").getExecutionCommand();
 
     execCmd.setRequestAndStage(s.getRequestId(), s.getStageId());
@@ -443,7 +443,7 @@ public class StageUtils {
      * ambari-server hostname.
      */
     clusterHostInfo.put(AMBARI_SERVER_HOST, Sets.newHashSet(getHostName()));
-    
+
     boolean serverUseSsl = configuration.getApiSSLAuthentication();
     int port = serverUseSsl ? configuration.getClientSSLApiPort() : configuration.getClientApiPort();
     clusterHostInfo.put(AMBARI_SERVER_PORT, Sets.newHashSet(Integer.toString(port)));

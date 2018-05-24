@@ -72,13 +72,13 @@ def get_component_home_path(mpack_name, instance_name, module_name, components_i
 
 
 def create_component_instance(mpack_name, mpack_version, instance_name, module_name, components_instance_type,
-                              subgroup_name='default', component_instance_name='default'):
+                              subgroup_name='default', component_instance_name='default', fail_if_exists=False):
   """
   creates the single component instance according to the parameters
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
   create_mpack(mpack_name, mpack_version, instance_name, subgroup_name, module_name,
-               None, {components_instance_type: [component_instance_name]})
+               None, {components_instance_type: [component_instance_name]}, fail_if_exists)
 
 
 def set_component_instance_version(mpack_name, mpack_version, instance_name, module_name, components_instance_type,

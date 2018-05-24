@@ -970,7 +970,7 @@ public class ViewRegistry {
 
       for (String serviceName : serviceNames) {
         Service service = cluster.getService(serviceName);
-        stackIds.add(service.getDesiredStackId());
+        stackIds.add(service.getStackId());
       }
 
       for (ViewEntity viewEntity : getDefinitions()) {
@@ -1097,8 +1097,9 @@ public class ViewRegistry {
       LOG.error("Could not update the view instance with new URL, removing URL", ex);
       // Clean up
       Optional<ViewURLEntity> viewURLDAOByName = viewURLDAO.findByName(urlName);
-      if (viewURLDAOByName.isPresent())
+      if (viewURLDAOByName.isPresent()) {
         viewURLDAO.delete(viewURLDAOByName.get());
+      }
     }
   }
 
@@ -1946,7 +1947,7 @@ public class ViewRegistry {
       for (String service : services) {
         try {
           Service svc = cluster.getService(service);
-          StackId stackId = svc.getDesiredStackId();
+          StackId stackId = svc.getStackId();
           if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
             installAutoInstance(clusterId, clusterName, cluster.getService(service), viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
           }

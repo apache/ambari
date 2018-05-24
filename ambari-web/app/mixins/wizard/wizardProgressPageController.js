@@ -433,6 +433,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * @returns {$.ajax}
    */
   stopServices: function (services, stopListedServicesFlag, stopAllServices) {
+    let call = 'common.services.update';
     var stopAllServices = stopAllServices || false;
     var stopListedServicesFlag = stopListedServicesFlag || false;
     var data = {
@@ -442,6 +443,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     };
     if (stopAllServices) {
       data.context = "Stop all services";
+      call = 'common.services.update.all';
     } else {
       if(!services || !services.length) {
         services = App.Service.find().mapProperty('serviceName').filter(function (service) {
@@ -460,7 +462,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     }
     return App.ajax.send({
-      name: 'common.services.update',
+      name: call,
       sender: this,
       data: data,
       success: 'startPolling',
@@ -480,6 +482,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * @returns {$.ajax}
    */
   startServices: function (runSmokeTest, services, startListedServicesFlag) {
+    let call = 'common.services.update';
     var startListedServicesFlag = startListedServicesFlag || false;
     var skipServiceCheck = App.router.get('clusterController.ambariProperties')['skip.service.checks'] === "true";
     var data = {
@@ -500,6 +503,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     } else {
       data.context = "Start all services";
+      call = 'common.services.update.all';
     }
 
     if (runSmokeTest) {
@@ -508,7 +512,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     }
 
     return App.ajax.send({
-      name: 'common.services.update',
+      name: call,
       sender: this,
       data: data,
       success: 'startPolling',
@@ -643,7 +647,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
   /**
    * Update state for array of components of different services and on different hosts
    *
-   * @param {Array} components - array of components object with fields serviceName, hostName and componentName
+   * @param {Array} components - array of components object with fields serviceName, hostName and componentName, and componentId
    * @param {String} state - new state to update
    */
   updateComponentsState: function (components, state) {
@@ -654,7 +658,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
         data: {
           hostName: component.hostName,
           serviceName: component.serviceName,
-          componentName: component.componentName,
+          componentId: component.componentId,
           HostRoles: {
             state: state
           },
@@ -768,7 +772,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       name: 'common.delete.host_component',
       sender: this,
       data: {
-        componentName: componentName,
+        componentId: App.HostComponent.find().findProperty('componentName', componentName).get('componentId'),
         hostName: hostName
       },
       success: 'onTaskCompleted',

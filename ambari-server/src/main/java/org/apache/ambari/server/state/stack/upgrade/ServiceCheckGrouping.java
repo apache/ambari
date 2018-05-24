@@ -180,7 +180,7 @@ public class ServiceCheckGrouping extends Grouping {
         Service svc = clusterServices.get(service);
         if (null != svc) {
           // Services that only have clients such as Pig can still have service check scripts.
-          StackId stackId = svc.getDesiredStackId();
+          StackId stackId = svc.getStackId();
           try {
             ServiceInfo si = m_metaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), svc.getServiceType());
             CommandScriptDefinition script = si.getCommandScript();

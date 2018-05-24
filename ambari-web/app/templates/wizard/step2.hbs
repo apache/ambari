@@ -211,8 +211,7 @@
       </div>
       {{#if isAddHostWizard}}
         <br>
-        {{view view.skipHostsCheckBox checkedBinding="content.installOptions.skipHostChecks"}}
-        {{t installer.step2.skipHostChecks.label}}
+        {{view view.skipHostsCheckBox checkedBinding="content.installOptions.skipHostChecks" labelTranslate="installer.step2.skipHostChecks.label"}}
       {{/if}}
     </div>
   </div>

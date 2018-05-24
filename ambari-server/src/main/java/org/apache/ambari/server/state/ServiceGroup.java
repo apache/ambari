@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -25,6 +26,7 @@ import org.apache.ambari.server.api.services.ServiceGroupKey;
 import org.apache.ambari.server.controller.ServiceGroupDependencyResponse;
 import org.apache.ambari.server.controller.ServiceGroupResponse;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 
 public interface ServiceGroup {
 
@@ -79,4 +81,18 @@ public interface ServiceGroup {
    * @return the management pack.
    */
   Long getMpackId();
+
+  /**
+   * Sets the associated stack and mpack for this service group.
+   *
+   * @param stackEntity the stack to set.
+   */
+  void setStack(StackEntity stackEntity);
+
+  /**
+   * @return the services associated with this service group.
+   *
+   * @throws AmbariException
+   */
+  Collection<Service> getServices() throws AmbariException;
 }

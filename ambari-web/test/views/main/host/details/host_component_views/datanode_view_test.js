@@ -30,11 +30,13 @@ describe('App.DataNodeComponentView', function () {
   describe("#getDNDecommissionStatus()", function () {
 
     beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'NAMENODE', 'componentId': '1'})]);
       this.stub = sinon.stub(App.HDFSService, 'find');
     });
 
     afterEach(function () {
       this.stub.restore();
+      App.HostComponent.find.restore();
     });
 
     it("snameNode absent and no activeNameNode", function () {
@@ -50,7 +52,7 @@ describe('App.DataNodeComponentView', function () {
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
         "hostName": "host1",
-        "componentName": "NAMENODE"
+        "componentId": "1"
       });
     });
 
@@ -67,7 +69,7 @@ describe('App.DataNodeComponentView', function () {
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
         "hostName": "host1",
-        "componentName": "NAMENODE"
+        "componentId": "1"
       });
     });
 
@@ -84,7 +86,7 @@ describe('App.DataNodeComponentView', function () {
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
         "hostName": "host2",
-        "componentName": "NAMENODE"
+        "componentId": "1"
       });
     });
 

@@ -25,13 +25,13 @@ App.stackMapper = App.QuickDataMapper.create({
 
   configStack: {
     id: 'id',
-    stack_name: 'stack_name',
-    stack_version: 'stack_version',
+    stack_name: 'mpack_name',
+    stack_version: 'mpack_version',
     stack_default: 'stack_default',
     stack_repo_update_link_exists: 'stack_repo_update_link_exists',
     show_available: 'show_available',
     type: 'type',
-    repository_version: 'repository_version',
+    repository_version: 'mpack_version',
     active: 'active',
     parent_stack_version: 'parent_stack_version',
     min_upgrade_version: 'min_upgrade_version',
@@ -102,11 +102,9 @@ App.stackMapper = App.QuickDataMapper.create({
     var resultServices = [];
 
     var item = json;
-    var stack = item.VersionDefinition;
-    if (!stack.id) {
-      stack.id = stack.stack_name + '-' + stack.stack_version + '-' + stack.repository_version; //HDP-2.5-2.5.0.0
-    }
-
+    var stack = item.MpackInfo;
+    stack.id = stack.mpack_name + '-' + stack.mpack_version; //HDPCORE-1.0.0-b100
+    
     var operatingSystemsArray = [];
     var servicesArray = [];
 
@@ -114,36 +112,38 @@ App.stackMapper = App.QuickDataMapper.create({
       var operatingSystems = ops.OperatingSystems;
 
       var repositoriesArray = [];
-      ops.repositories.forEach(function(repo) {
-        repo.Repositories.id = [stack.id, repo.Repositories.os_type, repo.Repositories.repo_id].join('-');
-        repo.Repositories.os_id = [stack.id, repo.Repositories.os_type].join('-');
-        if (!repo.Repositories.latest_base_url) repo.Repositories.latest_base_url = repo.Repositories.base_url;
-        resultRepo.push(this.parseIt(repo.Repositories, this.get('configRepository')));
-        repositoriesArray.pushObject(repo.Repositories);
+      operatingSystems.repositories.forEach(function(repo) {
+        repo.id = [stack.id, repo.os_type, repo.repo_id].join('-');
+        repo.os_id = [stack.id, repo.os_type].join('-');
+        if (!repo.latest_base_url) repo.latest_base_url = repo.base_url;
+        resultRepo.push(this.parseIt(repo, this.get('configRepository')));
+        repositoriesArray.pushObject(repo);
       }, this);
 
       operatingSystems.id = stack.id + "-" + operatingSystems.os_type;
-      operatingSystems.stack_id = operatingSystems.stack_name + "-" + operatingSystems.stack_version;
+      operatingSystems.stack_id = stack.id;
       operatingSystems.repositories = repositoriesArray;
-      operatingSystems.is_selected = ops.isSelected == true || ops.isSelected == undefined;
+      operatingSystems.is_selected = false;
       resultOS.push(this.parseIt(operatingSystems, this.get('configOS')));
       operatingSystemsArray.pushObject(operatingSystems);
 
     }, this);
 
-    stack.stack_services.forEach(function(service) {
+    stack.modules.forEach(function(service) {
       var serviceObj = {
         id: service.name + '-' + stack.id,
         name: service.name,
-        display_name: service.display_name,
-        latest_version: service.versions? service.versions[0] : ''
+        display_name: service.displayName,
+        service_group_name: service.serviceGroupName,
+        latest_version: service.versions ? service.versions[0] : ''
       };
       resultServices.push(this.parseIt(serviceObj, this.get('configService')));
       servicesArray.pushObject(serviceObj);
     }, this);
 
     //In case ambari_managed_repositories is undefined, set use_redhat_satellite to be false
-    stack.use_redhat_satellite = item.operating_systems[0].OperatingSystems.ambari_managed_repositories === false;
+    stack.show_available = true;
+    stack.use_redhat_satellite = false;
     stack.stack_services = servicesArray;
     stack.operating_systems = operatingSystemsArray;
     App.store.safeLoadMany(modelRepo, resultRepo);

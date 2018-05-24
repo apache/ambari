@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.resources.HostComponentResourceDefinition;
@@ -94,7 +96,6 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -286,6 +287,8 @@ public class ClusterBlueprintRendererTest {
     serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_name", "HDP");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_version", "1.3.3");
     TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
     clusterTree.addChild(serviceGroupsTree);
 
@@ -709,6 +712,8 @@ public class ClusterBlueprintRendererTest {
     serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_name", "HDP");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_version", "1.3.3");
     TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
     clusterTree.addChild(serviceGroupsTree);
 
@@ -813,15 +818,10 @@ public class ClusterBlueprintRendererTest {
     host3ComponentsTree.addChild(ttComponentResource, "HostComponent:2");
   }
 
+  @Experimental(
+      feature = ExperimentalFeature.REPO_VERSION_REMOVAL,
+      comment = "Blueprints must get mpack data from a different endpoint, not stack_versions")
   private void addStackVersions(TreeNode<Resource> clusterTree) {
-    ResourceImpl clusterStackVersionResource = new ResourceImpl(Resource.Type.ClusterStackVersion);
-    clusterStackVersionResource.getPropertiesMap().put("ClusterStackVersions",
-      ImmutableMap.of(
-        "cluster_name", "testCluster",
-        "stack", STACK_ID.getStackName(),
-        "version", STACK_ID.getStackVersion(),
-        "mpack_uri", "http://mpacks.org/hdp-1.3.3.json"));
-    clusterTree.addChild(null, "stack_versions").addChild(clusterStackVersionResource, "ClusterStackVersion:1");
   }
 
   private void checkMpackInstance(Map<String, Map<String, Object>> blueprintProperties) {

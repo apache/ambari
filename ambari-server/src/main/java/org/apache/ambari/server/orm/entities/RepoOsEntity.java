@@ -34,14 +34,8 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
-
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
-
-
-
 
 /**
  * Represents a Repository operation system type.
@@ -82,15 +76,6 @@ public class RepoOsEntity {
   @OneToMany(orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "repoOs")
   private List<RepoDefinitionEntity> repoDefinitionEntities = new ArrayList<>();
 
-  /**
-   * many-to-one association to {@link RepositoryVersionEntity}
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "repo_version_id", nullable = true)
-  private RepositoryVersionEntity repositoryVersionEntity;
-
   @ManyToOne
   @JoinColumn(name = "mpack_id", referencedColumnName = "id", nullable = false)
   private MpackEntity mpackEntity;
@@ -129,13 +114,6 @@ public class RepoOsEntity {
   public void addRepoDefinition(RepoDefinitionEntity repoDefinition) {
     repoDefinitionEntities.add(repoDefinition);
     repoDefinition.setRepoOs(this);
-  }
-
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setRepositoryVersionEntity(RepositoryVersionEntity repositoryVersionEntity) {
-    this.repositoryVersionEntity = repositoryVersionEntity;
   }
 
   public Long getId() {
@@ -239,7 +217,7 @@ public class RepoOsEntity {
    */
   @Override
   public String toString() {
-    return com.google.common.base.MoreObjects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("mpackId", mpackId)
         .add("family", family)
         .add("isManagedByAmbari", ambariManaged)

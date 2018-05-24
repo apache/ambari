@@ -28,19 +28,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
 
 @Entity
@@ -84,10 +79,10 @@ public class ServiceComponentDesiredStateEntity {
   @Column(name = "component_type", nullable = false, insertable = true, updatable = true)
   private String componentType;
 
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false, length = 10)
   private Long clusterId;
 
-  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Column(name = "service_group_id", nullable = false, insertable = true, updatable = false, length = 10)
   private Long serviceGroupId;
 
   @Column(name = "service_id", nullable = false, insertable = false, updatable = false, length = 10)
@@ -100,33 +95,8 @@ public class ServiceComponentDesiredStateEntity {
   @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
   private Integer recoveryEnabled = 0;
 
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  @Column(name = "repo_state", nullable = false, insertable = true, updatable = true)
-  @Enumerated(EnumType.STRING)
-  private RepositoryVersionState repoState = RepositoryVersionState.NOT_REQUIRED;
-
-  /**
-   * Unidirectional one-to-one association to {@link RepositoryVersionEntity}
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  @OneToOne
-  @JoinColumn(
-      name = "desired_repo_version_id",
-      unique = false,
-      nullable = false,
-      insertable = true,
-      updatable = true)
-  private RepositoryVersionEntity desiredRepositoryVersion;
-
   @ManyToOne
-  @JoinColumns(
-    {
-      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-      @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
-      @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
-    })
+  @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
   private ClusterServiceEntity clusterServiceEntity;
 
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
@@ -179,30 +149,6 @@ public class ServiceComponentDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionEntity getDesiredRepositoryVersion() {
-    return desiredRepositoryVersion;
-  }
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
-    this.desiredRepositoryVersion = desiredRepositoryVersion;
-  }
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public StackEntity getDesiredStack() {
-    return desiredRepositoryVersion.getStack();
-  }
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public String getDesiredVersion() {
-    return desiredRepositoryVersion.getVersion();
-  }
-
   public boolean isRecoveryEnabled() {
     return recoveryEnabled != 0;
   }
@@ -247,10 +193,6 @@ public class ServiceComponentDesiredStateEntity {
     if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
       return false;
     }
-    if (desiredRepositoryVersion != null ? !desiredRepositoryVersion.equals(that.desiredRepositoryVersion)
-      : that.desiredRepositoryVersion != null) {
-      return false;
-    }
     return true;
   }
 
@@ -263,7 +205,6 @@ public class ServiceComponentDesiredStateEntity {
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (componentType != null ? componentType.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
-    result = 31 * result + (desiredRepositoryVersion != null ? desiredRepositoryVersion.hashCode() : 0);
 
     return result;
   }
@@ -291,23 +232,4 @@ public class ServiceComponentDesiredStateEntity {
   public void setHostComponentDesiredStateEntities(Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities) {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
   }
-
-  /**
-   * @param state the repository state for {@link #getDesiredVersion()}
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setRepositoryState(RepositoryVersionState state) {
-    repoState = state;
-  }
-
-  /**
-   * @return the state of the repository for {@link #getDesiredVersion()}
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionState getRepositoryState() {
-    return repoState;
-  }
-
 }

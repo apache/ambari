@@ -747,21 +747,31 @@ describe('App.WizardController', function () {
 
   describe('#installServices', function () {
     var res;
+    var when;
     beforeEach(function(){
       sinon.stub(wizardController,'saveClusterStatus', function(data){
         res = JSON.parse(JSON.stringify(data));
       });
+      sinon.stub($, 'when').returns({ then: sinon.stub() });
     });
     afterEach(function(){
       wizardController.saveClusterStatus.restore();
+      $.when.restore();
     });
     it('should call callbeck with data', function () {
       wizardController.set('content', Em.Object.create({
         cluster: {
           oldRequestsId: '1'
-        }
+        },
+        serviceGroups: [
+          "mpack1",
+          "mpack2",
+          "mpack3"
+        ]
       }));
       wizardController.installServices(true);
+      expect(App.ajax.send.calledThrice).to.be.true;
+      expect($.when.calledOnce).to.be.true;
       expect(res).to.be.eql({
         "status": "PENDING"
       });

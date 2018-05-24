@@ -50,7 +50,8 @@
       "dataDir": "/hadoop/zookeeper",
       "initLimit": "10",
       "tickTime": "3000",
-      "autopurge.snapRetainCount": "30"
+      "autopurge.snapRetainCount": "30",
+      "version": null
     },
     "ranger-hdfs-security": {
       "ranger.plugin.hdfs.policy.source.impl": "org.apache.ranger.admin.client.RangerAdminRESTClient",
@@ -83,11 +84,19 @@
       "zk_user": "zookeeper"
     }
   },
-  "hostLevelParams": {
+  "clusterLevelParams": {
     "stack_name": "HDPCORE",
     "group_list": "[\"hdfs\",\"users\"]",
-    "host_sys_prepped": "false",
     "jdk_name": "jdk-8u112-linux-x64.tar.gz",
     "stack_version": "1.0.0-b141"
-  }
+  },
+  "ambariLevelParams": {
+    "host_sys_prepped": "false",
+    "java_version": "8"
+  },
+  "clusterHostInfo": {
+    "ganglia_server_hosts": "host1",
+    "oozie_server": "host2"
+  },
+  "Versions": null
 }

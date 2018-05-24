@@ -46,8 +46,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 
@@ -55,8 +53,6 @@ import com.google.common.collect.Maps;
  * Test suite for the PostUserCreationHookServer action class.
  */
 public class PostUserCreationHookServerActionTest extends EasyMockSupport {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostUserCreationHookServerActionTest.class);
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -117,6 +113,7 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
     commandParams.put(UserHookParams.CLUSTER_SECURITY_TYPE.param(), SecurityType.KERBEROS.name());
     commandParams.put(UserHookParams.CMD_HDFS_USER.param(), "test-hdfs-user");
 
+    EasyMock.expect(executionCommand.getMpackId()).andReturn(1L);
     EasyMock.expect(executionCommand.getCommandParams()).andReturn(commandParams);
     EasyMock.expect(objectMapperMock.readValue(payloadJson, Map.class)).andReturn(payload);
 

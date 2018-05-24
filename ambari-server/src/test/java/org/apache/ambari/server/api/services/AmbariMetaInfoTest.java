@@ -61,9 +61,7 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
-import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.Cluster;
@@ -90,7 +88,6 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -243,8 +240,6 @@ public class AmbariMetaInfoTest {
     // The current stack already has (HDP, 2.1.1, redhat6) with valid latest
     // url
     ambariMetaInfo.init();
-
-    waitForAllReposToBeResolved(ambariMetaInfo);
 
     List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
         STACK_NAME_HDP, "2.1.1", "redhat6");
@@ -805,7 +800,7 @@ public class AmbariMetaInfoTest {
       LOG.info("Error in metainfo initializing ", e);
       throw e;
     }
-    waitForAllReposToBeResolved(ambariMetaInfo);
+
     String[] metricsTypes = {
       Resource.Type.Component.name(),
       Resource.Type.HostComponent.name()
@@ -1487,58 +1482,6 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void testLatestRepo() throws Exception {
-    // ensure that all of the latest repo retrieval tasks have completed
-    StackManager sm = metaInfo.getStackManager();
-    int maxWait = 45000;
-    int waitTime = 0;
-    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
-      Thread.sleep(5);
-      waitTime += 5;
-    }
-
-    if (waitTime >= maxWait) {
-      fail("Latest Repo tasks did not complete");
-    }
-
-    for (RepositoryInfo ri : metaInfo.getRepositories("HDP", "2.1.1", "centos6")) {
-      Assert.assertEquals(
-          "Expected the default URL to be the same as in the xml file",
-          "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
-          ri.getDefaultBaseUrl());
-    }
-  }
-
-
-  @Test
-  public void testLatestVdf() throws Exception {
-    // ensure that all of the latest repo retrieval tasks have completed
-    StackManager sm = metaInfo.getStackManager();
-    int maxWait = 45000;
-    int waitTime = 0;
-    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
-      Thread.sleep(5);
-      waitTime += 5;
-    }
-
-    if (waitTime >= maxWait) {
-      fail("Latest Repo tasks did not complete");
-    }
-
-    // !!! default stack version is from latest-vdf.  2.2.0 only has one entry
-    VersionDefinitionXml vdf = metaInfo.getVersionDefinition("HDP-2.2.0");
-    assertNotNull(vdf);
-    assertEquals(1, vdf.repositoryInfo.getOses().size());
-
-    // !!! this stack has no "manifests" and no "latest-vdf".  So the default VDF should contain
-    // information from repoinfo.xml and the "latest" structure
-    vdf = metaInfo.getVersionDefinition("HDP-2.2.1");
-    assertNotNull(vdf);
-
-    assertEquals(2, vdf.repositoryInfo.getOses().size());
-  }
-
-  @Test
   public void testGetComponentDependency() throws AmbariException {
     DependencyInfo dependency = metaInfo.getComponentDependency("HDP", "1.3.4", "HIVE", "HIVE_SERVER", "ZOOKEEPER_SERVER");
     assertEquals("ZOOKEEPER/ZOOKEEPER_SERVER", dependency.getName());
@@ -1717,7 +1660,6 @@ public class AmbariMetaInfoTest {
   @Test
   public void testAlertDefinitionMerging() throws Exception {
     final String stackVersion = "2.0.6";
-    final String repoVersion = "2.0.6-1234";
 
     Injector injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
@@ -1745,10 +1687,8 @@ public class AmbariMetaInfoTest {
     StackId stackId = new StackId(STACK_NAME_HDP, stackVersion);
     cluster.setDesiredStackVersion(stackId);
 
-    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
-        cluster.getCurrentStackVersion(), repoVersion);
     ServiceGroup sg = cluster.addServiceGroup("core", stackId.getStackId());
-    cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
+    cluster.addService(sg, "HDFS", "HDFS");
 
     metaInfo.reconcileAlertDefinitions(clusters, false);
 
@@ -1830,7 +1770,6 @@ public class AmbariMetaInfoTest {
    */
   @Test
   public void testAlertDefinitionMergingRemoveScenario() throws Exception {
-    final String repoVersion = "2.0.6-1234";
     final String stackVersion = "2.0.6";
 
     Injector injector = Guice.createInjector(Modules.override(
@@ -1859,11 +1798,8 @@ public class AmbariMetaInfoTest {
     cluster.setDesiredStackVersion(
       new StackId(STACK_NAME_HDP, stackVersion));
 
-    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
-      cluster.getCurrentStackVersion(), repoVersion);
-
     ServiceGroup sg = cluster.addServiceGroup("core", "HDP-2.0.6");
-    cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
+    cluster.addService(sg, "HDFS", "HDFS");
 
     metaInfo.reconcileAlertDefinitions(clusters, false);
 
@@ -1987,35 +1923,6 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
   }
 
-  @Test
-  public void testGetVersionDefinitionsForDisabledStack() throws AmbariException {
-    Map<String, VersionDefinitionXml> versionDefinitions = metaInfo.getVersionDefinitions();
-    Assert.assertNotNull(versionDefinitions);
-    // Check presence
-    Map.Entry<String, VersionDefinitionXml> vdfEntry = null;
-    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
-      if (entry.getKey().equals("HDP-2.2.1")) {
-        vdfEntry = entry;
-      }
-    }
-    Assert.assertNotNull("Candidate stack and vdf for test case.", vdfEntry);
-    StackInfo stackInfo = metaInfo.getStack("HDP", "2.2.1");
-    // Strange that this is not immutable but works for this test !
-    stackInfo.setActive(false);
-
-    // Hate to use reflection hence changed contract to be package private
-    metaInfo.versionDefinitions = null;
-
-    versionDefinitions = metaInfo.getVersionDefinitions();
-    vdfEntry = null;
-    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
-      if (entry.getKey().equals("HDP-2.2.1")) {
-        vdfEntry = entry;
-      }
-    }
-    Assert.assertNull("Disabled stack should not be returned by the API", vdfEntry);
-  }
-
   private File getStackRootTmp(String buildDir) {
     return new File(buildDir + "/ambari-metaInfo");
   }
@@ -2075,7 +1982,6 @@ public class AmbariMetaInfoTest {
       LOG.info("Error in initializing ", e);
       throw e;
     }
-    waitForAllReposToBeResolved(metaInfo);
 
     return metaInfo;
   }
@@ -2089,20 +1995,6 @@ public class AmbariMetaInfoTest {
           }
         }
       }
-    }
-  }
-
-  private static void waitForAllReposToBeResolved(AmbariMetaInfo metaInfo) throws Exception {
-    int maxWait = 45000;
-    int waitTime = 0;
-    StackManager sm = metaInfo.getStackManager();
-    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
-      Thread.sleep(5);
-      waitTime += 5;
-    }
-
-    if (waitTime >= maxWait) {
-      fail("Latest Repo tasks did not complete");
     }
   }
 

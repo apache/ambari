@@ -123,6 +123,7 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
   describe('#pullCheckPointStatus', function() {
 
     it('App.ajax.send should be called', function() {
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'NAMENODE', 'componentId': '1'})]);
       controller.set('content.masterComponentHosts', [
         {
           component: 'NAMENODE',
@@ -136,10 +137,12 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
         name: 'admin.high_availability.getNnCheckPointStatus',
         sender: controller,
         data: {
-          hostName: 'host1'
+          hostName: 'host1',
+          nameNodeId: '1'
         },
         success: 'checkNnCheckPointStatus'
       });
+      App.HostComponent.find.restore();
     });
   });
 

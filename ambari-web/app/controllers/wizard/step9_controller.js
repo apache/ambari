@@ -479,9 +479,12 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
    * @method launchStartServices
    */
   launchStartServices: function (callback) {
-    var data = {};
-    var name = '';
+    let data;
+    let serviceGroups;
+    let promises;
+
     callback = callback || Em.K;
+    
     switch(this.get('content.controllerName')) {
       case 'addHostController':
         name = 'common.host_components.update';
@@ -497,39 +500,67 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
           "query": "HostRoles/component_name.in(" + App.get('components.slaves').join(',') + ")&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")",
           "HostRoles": { "state": "STARTED"}
         };
+
+        return App.ajax.send({
+          name: name,
+          sender: this,
+          data: data,
+          success: 'launchStartServicesSuccessCallback',
+          error: 'launchStartServicesErrorCallback'
+        }).then(callback, callback);
         break;
       case 'addServiceController':
         var servicesList = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName');
         if (servicesList.contains('OOZIE')) {
           servicesList = servicesList.concat(['HDFS', 'YARN', 'MAPREDUCE2']);
         }
-        name = 'common.services.update';
         data = {
           "context": Em.I18n.t("requestInfo.startAddedServices"),
           "ServiceInfo": { "state": "STARTED" },
           "urlParams": "ServiceInfo/state=INSTALLED&ServiceInfo/service_name.in(" + servicesList.join(",") + ")&params/run_smoke_test=true&params/reconfigure_client=false"
         };
+
+        serviceGroups = this.get('content.serviceGroups');
+        promises = serviceGroups.map(sg => {
+          data.serviceGroupName = sg;
+
+          return App.ajax.send({
+            name: 'common.services.update', //TODO: This should change to use common.services.update.all when that is implemented on the back end.
+            sender: this,
+            data: data,
+            success: 'launchStartServicesSuccessCallback',
+            error: 'launchStartServicesErrorCallback'
+          })
+        })
+
+        return $.when(...promises).then(callback, callback);
         break;
       default:
-        name = 'common.services.update';
         data = {
           "context": Em.I18n.t("requestInfo.startServices"),
           "ServiceInfo": { "state": "STARTED" },
           "urlParams": "ServiceInfo/state=INSTALLED&params/run_smoke_test=" + !this.get('skipServiceChecks') + "&params/reconfigure_client=false"
         };
+
+        serviceGroups = this.get('content.serviceGroups');
+        promises = serviceGroups.map(sg => {
+          data.serviceGroupName = sg;
+
+          return App.ajax.send({
+            name: 'common.services.update', //TODO: This should change to use common.services.update.all when that is implemented on the back end.
+            sender: this,
+            data: data,
+            success: 'launchStartServicesSuccessCallback',
+            error: 'launchStartServicesErrorCallback'
+          })
+        })
+
+        return $.when(...promises).then(callback, callback);
     }
 
     if (App.get('testMode')) {
       this.set('numPolls', 6);
     }
-
-    return App.ajax.send({
-      name: name,
-      sender: this,
-      data: data,
-      success: 'launchStartServicesSuccessCallback',
-      error: 'launchStartServicesErrorCallback'
-    }).then(callback, callback);
   },
 
   /**

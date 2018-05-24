@@ -35,7 +35,6 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -81,7 +80,6 @@ public class AlertEventPublisherTest {
   private AggregateDefinitionMapping aggregateMapping;
 
   private static final String STACK_VERSION = "2.0.6";
-  private static final String REPO_VERSION = "2.0.6-1234";
 
   @Before
   public void setup() throws Exception {
@@ -100,7 +98,7 @@ public class AlertEventPublisherTest {
 
     clusterName = "foo";
     StackId stackId = new StackId("HDP", STACK_VERSION);
-    ormHelper.createStack(stackId);
+    ormHelper.createMpack(stackId);
 
     clusters.addCluster(clusterName, stackId);
     cluster = clusters.getCluster(clusterName);
@@ -295,12 +293,9 @@ public class AlertEventPublisherTest {
   }
 
   private void installHdfsService() throws Exception {
-    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
-        cluster.getCurrentStackVersion(), REPO_VERSION);
-
     String serviceName = "HDFS";
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
     Service service = cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

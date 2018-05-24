@@ -257,15 +257,6 @@ public class QueryImplTest {
     Assert.assertEquals(Resource.Type.StackVersion, versionNode.getObject().getType());
 
     Assert.assertEquals(1, versionNode.getChildren().size());
-    TreeNode<Resource> opSystemsNode = versionNode.getChild("operating_systems");
-    Assert.assertEquals(1, opSystemsNode.getChildren().size());
-
-    TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
-    Assert.assertEquals("OperatingSystem:1", opSystemNode.getName());
-    Resource osResource = opSystemNode.getObject();
-    Assert.assertEquals(Resource.Type.OperatingSystemReadOnly, opSystemNode.getObject().getType());
-
-    Assert.assertEquals("centos5", osResource.getPropertyValue("OperatingSystems/os_type"));
   }
 
   @Test
@@ -467,24 +458,6 @@ public class QueryImplTest {
 
     TreeNode<Resource> opSystemsNode = versionNode.getChild("operating_systems");
     Assert.assertEquals(3, opSystemsNode.getChildren().size());
-
-    TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
-    Assert.assertEquals("OperatingSystem:1", opSystemNode.getName());
-    Assert.assertEquals(Resource.Type.OperatingSystemReadOnly, opSystemNode.getObject().getType());
-
-    Assert.assertEquals(1, opSystemNode.getChildren().size());
-    TreeNode<Resource> repositoriesNode = opSystemNode.getChild("repositories");
-    Assert.assertEquals(2, repositoriesNode.getChildren().size());
-
-    TreeNode<Resource> repositoryNode = repositoriesNode.getChild("Repository:1");
-    Assert.assertEquals("Repository:1", repositoryNode.getName());
-    Resource repositoryResource = repositoryNode.getObject();
-    Assert.assertEquals(Resource.Type.Repository, repositoryResource.getType());
-
-    Assert.assertEquals("repo1", repositoryResource.getPropertyValue("Repositories/repo_id"));
-    Assert.assertEquals("centos5", repositoryResource.getPropertyValue("Repositories/os_type"));
-    Assert.assertEquals("1.2.1", repositoryResource.getPropertyValue("Repositories/stack_version"));
-    Assert.assertEquals("HDP", repositoryResource.getPropertyValue("Repositories/stack_name"));
 
     TreeNode<Resource> artifactsNode = versionNode.getChild("artifacts");
     Assert.assertEquals(1, artifactsNode.getChildren().size());

@@ -430,10 +430,12 @@ describe('App.ComponentActionsByConfigs', function () {
   describe("#getDeleteHostComponentRequest()", function () {
 
     it("should return request object", function() {
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'C1', 'componentId': '1'})]);
       expect(mixin.getDeleteHostComponentRequest('host1', 'C1')).to.be.eql({
         "type": 'DELETE',
-        "uri": "/clusters/mycluster/hosts/host1/host_components/C1"
+        "uri": "/clusters/mycluster/hosts/host1/host_components/1"
       });
+      App.HostComponent.find.restore();
     });
   });
 

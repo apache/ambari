@@ -37,6 +37,7 @@ describe('App.WizardConfigureDownloadController', function () {
     ];
 
     controller.set('mpacks', mpacks);
+    controller.set('content', {});
   })
 
   describe('#downloadMpackSuccess', function () {
@@ -107,7 +108,7 @@ describe('App.WizardConfigureDownloadController', function () {
       expect(controller.downloadMpack).to.be.called;
 
       controller.downloadMpack.restore();
-    })
+    });
   });
 
   describe('#showError', function () {
@@ -123,6 +124,27 @@ describe('App.WizardConfigureDownloadController', function () {
       expect(App.ModalPopup.show).to.be.called;
 
       App.ModalPopup.show.restore();
-    })
+    });
+  });
+
+  describe('#loadMpackInfo', function () {
+    it('Adds mpackInfo to registered mpacks list only once.', function () {
+      controller.set('content.registeredMpacks', []);
+      var mpackInfo = { MpackInfo: { id: 1 } };
+      var expected = [mpackInfo];
+      
+      App.ajax.send.restore();
+      sinon.stub(App.ajax, 'send').returns({
+        then: function () {
+          controller.get('content.registeredMpacks').push(mpackInfo);
+        }
+      });
+
+      controller.loadMpackInfo({ resources: [mpackInfo] });
+      expect(controller.get('content.registeredMpacks')).to.deep.equal(expected);
+
+      controller.loadMpackInfo({ resources: [mpackInfo] });
+      expect(controller.get('content.registeredMpacks').length).to.equal(1);
+    });
   });
 });

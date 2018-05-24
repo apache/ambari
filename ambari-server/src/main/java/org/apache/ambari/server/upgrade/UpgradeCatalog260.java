@@ -32,10 +32,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -518,7 +516,6 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     updateAmsConfigs();
     updateHiveConfigs();
     updateHDFSWidgetDefinition();
-    updateExistingRepositoriesToBeResolved();
   }
 
   /**
@@ -1022,21 +1019,6 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
       return container.getParent().getName().toLowerCase() + "_" + container.getName().toLowerCase() + "_" + identityName;
     } else {
       return identityName;
-    }
-  }
-
-  /**
-   * Sets all existing repository versions to be resolved (we have to assume
-   * that they are good since they've been using them to run stuff).
-   *
-   * @throws AmbariException
-   */
-  protected void updateExistingRepositoriesToBeResolved() throws AmbariException {
-    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
-    List<RepositoryVersionEntity> repositoryVersions = repositoryVersionDAO.findAll();
-    for (RepositoryVersionEntity repositoryVersion : repositoryVersions) {
-      repositoryVersion.setResolved(true);
-      repositoryVersionDAO.merge(repositoryVersion);
     }
   }
 }

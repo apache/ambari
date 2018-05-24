@@ -43,7 +43,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
@@ -118,9 +118,9 @@ public class CreateAndConfigureActionTest {
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
 
-  private RepositoryVersionEntity repoVersion2110;
-  private RepositoryVersionEntity repoVersion2111;
-  private RepositoryVersionEntity repoVersion2200;
+  private MpackEntity mpack211;
+  private MpackEntity mpack220;
+  private MpackEntity mpack221;
 
   private final Map<String, Map<String, String>> NO_ATTRIBUTES = new HashMap<>();
 
@@ -130,9 +130,9 @@ public class CreateAndConfigureActionTest {
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.injectMembers(this);
 
-    repoVersion2110 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.1.1"), "2.1.1.0-1234");
-    repoVersion2111 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.1.1"), "2.1.1.1-5678");
-    repoVersion2200 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.2.0"), "2.2.0.0-1234");
+    mpack211 = m_helper.createMpack(new StackId("HDP-2.1.1"));
+    mpack220 = m_helper.createMpack(new StackId("HDP-2.2.0"));
+    mpack221 = m_helper.createMpack(new StackId("HDP-2.2.1"));
 
     makeUpgradeCluster();
   }
@@ -168,10 +168,10 @@ public class CreateAndConfigureActionTest {
     configurations.add(keyValue);
     keyValue.key = "initLimit";
     keyValue.value = "11";
-    c.setCurrentStackVersion(repoVersion2110.getStackId());
-    c.setDesiredStackVersion(repoVersion2111.getStackId());
+    c.setCurrentStackVersion(mpack211.getStackId());
+    c.setDesiredStackVersion(mpack220.getStackId());
 
-    createUpgrade(c, repoVersion2111);
+    createUpgrade(c, mpack220);
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
@@ -200,13 +200,13 @@ public class CreateAndConfigureActionTest {
   }
 
   /**
-   * Creates a cluster using {@link #repoVersion2110} with ZooKeeper installed.
+   * Creates a cluster using {@link #mpack211} with ZooKeeper installed.
    */
   private void makeUpgradeCluster() throws Exception {
     String clusterName = "c1";
     String hostName = "h1";
 
-    clusters.addCluster(clusterName, repoVersion2110.getStackId());
+    clusters.addCluster(clusterName, mpack211.getStackId());
 
     Cluster c = clusters.getCluster(clusterName);
 
@@ -223,8 +223,8 @@ public class CreateAndConfigureActionTest {
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!
-    ServiceGroup serviceGroup = c.addServiceGroup("CORE", repoVersion2110.getStackId().getStackId());
-    Service zk = installService(c, serviceGroup, "ZOOKEEPER", repoVersion2110);
+    ServiceGroup serviceGroup = c.addServiceGroup("CORE", mpack211.getStackId().getStackId());
+    Service zk = installService(c, serviceGroup, "ZOOKEEPER");
     addServiceComponent(zk, "ZOOKEEPER_SERVER");
     addServiceComponent(zk, "ZOOKEEPER_CLIENT");
     createNewServiceComponentHost(c, "ZOOKEEPER", "ZOOKEEPER_SERVER", hostName);
@@ -248,15 +248,14 @@ public class CreateAndConfigureActionTest {
   /**
    * Installs a service in the cluster.
    */
-  private Service installService(Cluster cluster, ServiceGroup serviceGroup, String serviceName,
-    RepositoryVersionEntity repositoryVersion
-  ) throws AmbariException {
+  private Service installService(Cluster cluster, ServiceGroup serviceGroup, String serviceName)
+      throws AmbariException {
     Service service;
 
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
       cluster.addService(service);
     }
 
@@ -295,7 +294,7 @@ public class CreateAndConfigureActionTest {
   /**
    * Creates an upgrade and associates it with the cluster.
    */
-  private UpgradeEntity createUpgrade(Cluster cluster, RepositoryVersionEntity repositoryVersion)
+  private UpgradeEntity createUpgrade(Cluster cluster, MpackEntity mpackEntity)
       throws Exception {
 
     // create some entities for the finalize action to work with for patch
@@ -312,7 +311,6 @@ public class CreateAndConfigureActionTest {
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
-    upgradeEntity.setRepositoryVersion(repositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
 
     Map<String, Service> services = cluster.getServices();
@@ -324,8 +322,6 @@ public class CreateAndConfigureActionTest {
         history.setUpgrade(upgradeEntity);
         history.setServiceName(serviceName);
         history.setComponentName(componentName);
-        history.setFromRepositoryVersion(service.getDesiredRepositoryVersion());
-        history.setTargetRepositoryVersion(repositoryVersion);
         upgradeEntity.addHistory(history);
       }
     }

@@ -25,26 +25,28 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 
-@javax.persistence.IdClass(ServiceDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "servicedesiredstate")
+@NamedQueries({
+  @NamedQuery(name = "ServiceDesiredStateByServiceId", query =
+    "SELECT serviceDesiredState " +
+    "FROM ServiceDesiredStateEntity serviceDesiredState " +
+    "WHERE serviceDesiredState.serviceId=:serviceId ")
+})
+
 @Entity
 public class ServiceDesiredStateEntity {
 
-  @Id
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false, length = 10)
   private Long clusterId;
 
-  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
-  @Id
+  @Column(name = "service_group_id", nullable = false, insertable = true, updatable = false, length = 10)
   private Long serviceGroupId;
 
   @Column(name = "service_id", nullable = false, insertable = false, updatable = false, length = 10)
@@ -67,22 +69,8 @@ public class ServiceDesiredStateEntity {
   private short credentialStoreEnabled = 0;
 
   @OneToOne
-  @JoinColumns(
-    {
-      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-      @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
-      @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
-    })
+  @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
   private ClusterServiceEntity clusterServiceEntity;
-
-  /**
-   * The desired repository that the service should be on.
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  @ManyToOne
-  @JoinColumn(name = "desired_repo_version_id", unique = false, nullable = false, insertable = true, updatable = true)
-  private RepositoryVersionEntity desiredRepositoryVersion;
 
   public Long getClusterId() {
     return clusterId;
@@ -122,12 +110,6 @@ public class ServiceDesiredStateEntity {
 
   public void setDesiredHostRoleMapping(int desiredHostRoleMapping) {
     this.desiredHostRoleMapping = desiredHostRoleMapping;
-  }
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public StackEntity getDesiredStack() {
-    return desiredRepositoryVersion.getStack();
   }
 
   public MaintenanceState getMaintenanceState() {
@@ -191,9 +173,6 @@ public class ServiceDesiredStateEntity {
       return false;
     }
 
-    if (desiredRepositoryVersion != null ? !desiredRepositoryVersion.equals(that.desiredRepositoryVersion) : that.desiredRepositoryVersion != null) {
-      return false;
-    }
     return true;
   }
 
@@ -204,7 +183,6 @@ public class ServiceDesiredStateEntity {
     result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
     result = 31 * result + desiredHostRoleMapping;
-    result = 31 * result + (desiredRepositoryVersion != null ? desiredRepositoryVersion.hashCode() : 0);
     return result;
   }
 
@@ -215,28 +193,4 @@ public class ServiceDesiredStateEntity {
   public void setClusterServiceEntity(ClusterServiceEntity clusterServiceEntity) {
     this.clusterServiceEntity = clusterServiceEntity;
   }
-
-  /**
-   * Gets the desired repository version.
-   *
-   * @return the desired repository (never {@code null}).
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionEntity getDesiredRepositoryVersion() {
-    return desiredRepositoryVersion;
-  }
-
-  /**
-   * Sets the desired repository for this service.
-   *
-   * @param desiredRepositoryVersion
-   *          the desired repository (not {@code null}).
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
-    this.desiredRepositoryVersion = desiredRepositoryVersion;
-  }
-
 }

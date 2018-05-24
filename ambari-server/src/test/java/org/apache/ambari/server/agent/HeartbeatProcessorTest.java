@@ -34,6 +34,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
@@ -64,10 +65,8 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
@@ -858,9 +857,6 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
-    StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack120 = new StackId("HDP-1.2.0");
-
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
 
@@ -870,11 +866,11 @@ public class HeartbeatProcessorTest {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-        DummyCluster, "core", "HDFS", false, false);
+        DummyCluster, 1L, "core", "HDFS", false, false);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-        DummyCluster, "core", "HDFS", false, false);
+        DummyCluster, 1L, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
@@ -968,9 +964,6 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
-    StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack120 = new StackId("HDP-1.2.0");
-
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
 
@@ -1042,6 +1035,8 @@ public class HeartbeatProcessorTest {
     replay(am);
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    assertNotNull(cluster);
+
     Clusters fsm = clusters;
     Host hostObject = clusters.getHost(DummyHostname1);
     hostObject.setIPv4("ipv4");
@@ -1083,69 +1078,6 @@ public class HeartbeatProcessorTest {
 
     // should NOT throw AmbariException from alerts.
     handler.getHeartbeatProcessor().processHeartbeat(hb);
-  }
-
-
-  @Test
-  @Ignore
-  //TODO should be rewritten, componentStatuses already are not actual as a part of heartbeat.
-  public void testInstallPackagesWithVersion() throws Exception {
-    // required since this test method checks the DAO result of handling a
-    // heartbeat which performs some async tasks
-    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
-
-    final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
-        Role.DATANODE, null, null);
-
-    ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
-        Collections.singletonList(command)).anyTimes();
-    replay(am);
-
-    Cluster cluster = heartbeatTestHelper.getDummyCluster();
-
-    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am);
-    HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
-    HeartBeat hb = new HeartBeat();
-
-    JsonObject json = new JsonObject();
-    json.addProperty("actual_version", "2.2.1.0-2222");
-    json.addProperty("package_installation_result", "SUCCESS");
-    json.addProperty("installed_repository_version", "0.1-1234");
-    json.addProperty("stack_id", cluster.getDesiredStackVersion().getStackId());
-
-    CommandReport cmdReport = new CommandReport();
-    cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
-    cmdReport.setTaskId(1);
-    cmdReport.setCustomCommand("install_packages");
-    cmdReport.setStructuredOut(json.toString());
-    cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
-    cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
-    cmdReport.setRole("install_packages");
-    //cmdReport.setClusterName(DummyCluster);
-
-    List<CommandReport> reports = new ArrayList<>();
-    reports.add(cmdReport);
-    hb.setReports(reports);
-    hb.setTimestamp(0L);
-    hb.setResponseId(0);
-    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setHostname(DummyHostname1);
-    hb.setComponentStatus(new ArrayList<>());
-
-    StackId stackId = new StackId("HDP", "0.1");
-
-    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
-    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
-    Assert.assertNotNull(entity);
-
-    heartbeatProcessor.processHeartbeat(hb);
-
-    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
-    Assert.assertNull(entity);
-
-    entity = dao.findByStackAndVersion(stackId, "0.1.1");
-    Assert.assertNotNull(entity);
   }
 
   @Test
@@ -1284,8 +1216,7 @@ public class HeartbeatProcessorTest {
    * @throws AmbariException
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    return cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    return cluster.addService(serviceGroup, serviceName, serviceName);
   }
 }

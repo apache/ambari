@@ -328,9 +328,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     };
     if (Array.isArray(component)) {
-      data.query = "HostRoles/component_name.in(" + component.mapProperty('componentName').join(',') + ")";
+      data.query = "HostRoles/id.in(" + component.mapProperty('componentId').join(',') + ")";
     } else {
-      data.componentName = component.get('componentName');
+      data.componentId = component.get('componentId');
       data.serviceName = component.get('service.serviceName');
     }
     App.ajax.send({
@@ -421,7 +421,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       name: 'common.host_component.getNnCheckPointTime',
       sender: this,
       data: {
-        host: hostName || this.get('content.hostName')
+        host: hostName || this.get('content.hostName'),
+        nameNodeId: App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('componentId')
       },
       success: 'parseNnCheckPointTime'
     });
@@ -602,11 +603,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method _doDeleteHostComponent
    */
   _doDeleteHostComponent: function (componentName) {
+    var hostComponent = App.HostComponent.find().findProperty('componentName', componentName);
     return App.ajax.send({
       name: (Em.isNone(componentName)) ? 'common.delete.host' : 'common.delete.host_component',
       sender: this,
       data: {
-        componentName: componentName || '',
+        componentId: hostComponent ? hostComponent.get('componentId') : '',
         hostName: this.get('content.hostName')
       },
       success: '_doDeleteHostComponentSuccessCallback',
@@ -1611,6 +1613,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var resource_filters = [
       {
         service_name: component.get('service.serviceName'),
+        service_group_name: component.get('service.serviceGroupName'),
         component_name: component.get('componentName'),
         hosts: component.get('host.hostName')
       }
@@ -1763,7 +1766,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   installComponent: function (event) {
     var self = this;
     var component = event.context;
-    var componentName = component.get('componentName');
     var displayName = component.get('displayName');
 
     return App.ModalPopup.show({
@@ -1785,7 +1787,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
               data: {
                 hostName: self.get('content.hostName'),
                 serviceName: component.get('service.serviceName'),
-                componentName: componentName,
+                componentId: component.get('componentId'),
                 component: component,
                 context: Em.I18n.t('requestInfo.installHostComponent') + " " + displayName,
                 HostRoles: {
@@ -2310,7 +2312,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       sender: this,
       data: {
         hostName: this.get('content.hostName'),
-        componentName: component.get('componentName'),
+        componentId: component.get('componentId'),
         component: component,
         passive_state: state,
         context: message

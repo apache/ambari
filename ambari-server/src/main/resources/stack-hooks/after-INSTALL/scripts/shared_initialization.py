@@ -29,6 +29,8 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.execution_command import execution_command
+from resource_management.libraries.execution_command import module_configs
 from resource_management.libraries.script import Script
 
 
@@ -81,8 +83,8 @@ def setup_config():
     # create core-site only if the hadoop config diretory exists
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
-              configurations=params.config['configurations']['core-site'],
-              configuration_attributes=params.config['configurationAttributes']['core-site'],
+              configurations=params.module_configs.get_all_properties(params.module_name, 'core-site'),
+              configuration_attributes=params.module_configs.get_all_attributes(params.module_name, 'core-site'),
               owner=params.hdfs_user,
               group=params.user_group,
               only_if=format("ls {hadoop_conf_dir}"))

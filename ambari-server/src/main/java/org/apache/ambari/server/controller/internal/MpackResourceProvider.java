@@ -48,7 +48,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.MpackDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -56,7 +55,6 @@ import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.registry.RegistryMpack;
 import org.apache.ambari.server.registry.RegistryMpackVersion;
 import org.apache.ambari.server.state.Module;
-import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.Validate;
 
 import com.google.inject.Inject;
@@ -101,9 +99,6 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   @Inject
   protected static StackDAO stackDAO;
-
-  @Inject
-  protected static RepositoryVersionDAO repositoryVersionDAO;
 
   static {
     // properties
@@ -353,8 +348,6 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
                 @Override
                 public DeleteStatusMetaData invoke() throws AmbariException {
                   if (stackEntity != null) {
-                    repositoryVersionDAO.removeByStack(new StackId(
-                        stackEntity.getStackName() + "-" + stackEntity.getStackVersion()));
                     stackDAO.removeByMpack(mpackId);
                     notifyDelete(Resource.Type.Stack, predicate);
                   }

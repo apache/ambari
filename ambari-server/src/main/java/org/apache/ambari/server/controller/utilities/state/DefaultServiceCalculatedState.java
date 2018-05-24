@@ -86,7 +86,7 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
         if (cluster != null && managementControllerProvider != null) {
           Service service = cluster.getService(serviceName);
           AmbariMetaInfo ambariMetaInfo = managementControllerProvider.get().getAmbariMetaInfo();
-          StackId stackId = service.getDesiredStackId();
+        StackId stackId = service.getStackId();
 
           ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName, service.getServiceGroupName(),
             serviceName, null, null, null, null, null);

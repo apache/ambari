@@ -26,7 +26,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -39,8 +38,8 @@ public class ServiceDesiredStateDAO {
   Provider<EntityManager> entityManagerProvider;
 
   @RequiresSession
-  public ServiceDesiredStateEntity findByPK(ServiceDesiredStateEntityPK primaryKey) {
-    return entityManagerProvider.get().find(ServiceDesiredStateEntity.class, primaryKey);
+  public ServiceDesiredStateEntity findByServiceId(Long serviceId) {
+    return entityManagerProvider.get().find(ServiceDesiredStateEntity.class, serviceId);
   }
 
   @RequiresSession
@@ -76,7 +75,8 @@ public class ServiceDesiredStateDAO {
   }
 
   @Transactional
-  public void removeByPK(ServiceDesiredStateEntityPK primaryKey) {
-    remove(findByPK(primaryKey));
+  public void removeByServiceId(Long serviceId) {
+    ServiceDesiredStateEntity entity = findByServiceId(serviceId);
+    entityManagerProvider.get().remove(entity);
   }
 }

@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 
@@ -53,9 +52,6 @@ import com.google.inject.persist.Transactional;
 public class RetryUpgradeActionService extends AbstractScheduledService {
 
   private final static Logger LOG = LoggerFactory.getLogger(RetryUpgradeActionService.class);
-
-  @Inject
-  private Injector m_injector;
 
   @Inject
   private Provider<Clusters> m_clustersProvider;

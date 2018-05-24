@@ -36,7 +36,6 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -357,13 +356,11 @@ public class HostTest {
 
   @Test
   public void testHostDesiredConfig() throws Exception {
-    AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
-
     StackId stackId = new StackId("HDP-0.1");
+    helper.createMpack(stackId);
+
     clusters.addCluster("c1", stackId);
     Cluster c1 = clusters.getCluster("c1");
-
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     Assert.assertEquals("c1", c1.getClusterName());
     clusters.addHost("h1");
@@ -413,9 +410,8 @@ public class HostTest {
 
   @Test
   public void testHostMaintenance() throws Exception {
-    AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
-
     StackId stackId = new StackId("HDP-0.1");
+    helper.createMpack(stackId);
     clusters.addCluster("c1", stackId);
     Cluster c1 = clusters.getCluster("c1");
     Assert.assertEquals("c1", c1.getClusterName());
@@ -429,7 +425,7 @@ public class HostTest {
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.createMpack(stackId);
     c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
 

@@ -108,14 +108,6 @@ App.MainSideMenuView = Em.CollectionView.extend({
             href: router.urlFor('main.admin.serviceGroups')
           });
         }
-        if (App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || upg) {
-          categories.push({
-            name: 'stackAndUpgrade',
-            url: 'stack',
-            label: Em.I18n.t('admin.stackUpgrade.title'),
-            href: router.urlFor('main.admin.stackAndUpgrade')
-          });
-        }
         if(App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS') || upg) {
           categories.push({
             name: 'adminServiceAccounts',

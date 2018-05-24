@@ -41,8 +41,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -80,9 +79,7 @@ public class JMXHostProviderTest {
   private static final String MAPREDUCE_HTTPS_PORT = "mapreduce.jobhistory.webapp.https.address";
 
   private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
   private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-  private RepositoryVersionEntity m_repositoryVersion;
 
   @Before
   public void setup() throws Exception {
@@ -93,8 +90,8 @@ public class JMXHostProviderTest {
     controller = injector.getInstance(AmbariManagementController.class);
     OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
 
-    m_repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
-    Assert.assertNotNull(m_repositoryVersion);
+    MpackEntity mpackEntity = ormTestHelper.createMpack(STACK_ID);
+    Assert.assertNotNull(mpackEntity);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -111,8 +108,8 @@ public class JMXHostProviderTest {
 
   private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
       throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
-    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, m_repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
-    ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(r));
+    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, desiredState != null ? desiredState.toString() : null, null);
+    ServiceResourceProviderTest.createServices(controller, Collections.singleton(r));
   }
 
   private void createServiceComponent(String clusterName, String serviceGroupName,
@@ -563,7 +560,6 @@ public class JMXHostProviderTest {
 
     Injector injector = createNiceMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
 
     {
       expect(injector.getInstance(Clusters.class)).andReturn(null);
@@ -571,7 +567,7 @@ public class JMXHostProviderTest {
     }
 
     ResourceProvider serviceResourceProvider = new ServiceResourceProvider(controller,
-        maintenanceStateHelper, repositoryVersionDAO);
+        maintenanceStateHelper);
 
     ResourceProvider hostCompResourceProvider = new
       HostComponentResourceProvider(controller, injector);

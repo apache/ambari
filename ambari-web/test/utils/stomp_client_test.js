@@ -102,6 +102,12 @@ describe('App.StompClient', function () {
       stomp.onConnectionError();
       expect(stomp.connect.calledOnce).to.be.true;
     });
+
+    it('connect should not be called when isConnected false and useSockJS true', function() {
+      stomp.set('isConnected', false);
+      stomp.onConnectionError(true);
+      expect(stomp.connect.called).to.be.false;
+    });
   });
 
   describe('#reconnect', function() {

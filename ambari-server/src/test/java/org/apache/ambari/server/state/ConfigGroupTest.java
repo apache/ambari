@@ -80,7 +80,7 @@ public class ConfigGroupTest {
 
     StackId stackId = new StackId("HDP-0.1");
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusterName = "foo";
     clusters.addCluster(clusterName, stackId);

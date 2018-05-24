@@ -88,16 +88,50 @@ App.showClusterCheckPopup = function (data, popup, configs) {
   });
 };
 
+/**
+ * Build table from configs list and open new window to show this table
+ * @param configs
+ */
+function openConfigsInNewWindow(configs) {
+  var newWindow;
+  var output = '';
+
+  output += '<table style="text-align: left;"><thead><tr>' +
+      '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+      '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
+      '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
+      '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
+      '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.resultingValue') + '</th>' +
+      '</tr></thead><tbody>';
+
+  configs.context.forEach(function (config) {
+    output += '<tr>' +
+        '<td>' + config.type + '</td>' +
+        '<td>' + config.name + '</td>' +
+        '<td>' + config.currentValue + '</td>' +
+        '<td>' + config.recommendedValue + '</td>' +
+        '<td>' + config.resultingValue + '</td>' +
+        '</tr>';
+  });
+
+  output += '</tbody></table>';
+  newWindow = window.open();
+  newWindow.document.write(output);
+  newWindow.focus();
+};
+
 App.getMergeConflictsView = function (configs) {
   return Em.View.extend({
     templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
-    configs: configs
+    configs: configs,
+    openConfigsInNewWindow: openConfigsInNewWindow
   });
 };
 
 App.getNewStackRecommendationsView = function (configs) {
   return Em.View.extend({
     templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_recommend_table'),
-    configs: configs
+    configs: configs,
+    openConfigsInNewWindow: openConfigsInNewWindow
   });
 };

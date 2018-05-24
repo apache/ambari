@@ -443,7 +443,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
               if (!existingGroup) {
                 groups.push(currentGroup);
                 Em.setProperties(currentGroup, {
-                  components: []
+                  components: [],
+                  componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
+                    nameSpace: name
+                  })
                 });
               }
               currentGroup.components.push(component);
