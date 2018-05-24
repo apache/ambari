@@ -2847,11 +2847,10 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
     List<Long> hostIds = hosts.stream().map(Host::getHostId).collect(Collectors.toList());
     List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities =
         hostIds.isEmpty() ? Collections.EMPTY_LIST : hostComponentDesiredStateDAO.findByHostsAndCluster(hostIds, clusterId);
-    Map<Long, Map<Long, Map<String, HostComponentDesiredStateEntity>>> mappedHostIds = hostComponentDesiredStateEntities.stream().collect(
-            Collectors.groupingBy(HostComponentDesiredStateEntity::getServiceGroupId,
+    Map<Long, Map<Long, HostComponentDesiredStateEntity>> mappedHostIds = hostComponentDesiredStateEntities.stream().collect(
         Collectors.groupingBy(HostComponentDesiredStateEntity::getHostId,
-            Collectors.toMap(HostComponentDesiredStateEntity::getComponentName, Function.identity())
-        ))
+            Collectors.toMap(HostComponentDesiredStateEntity::getId, Function.identity())
+        )
     );
     while (iterator.hasNext()) {
       Host host = iterator.next();
@@ -2891,11 +2890,10 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
       boolean maintenanceState = false;
 
       if (serviceComponentHostsByHost.containsKey(hostName)) {
-        for (Map<Long, Map<String, HostComponentDesiredStateEntity>> map : mappedHostIds.values()) {
-          Map<String, HostComponentDesiredStateEntity> componentsStates = map.get(host.getHostId());
+          Map<Long, HostComponentDesiredStateEntity> componentsStates = mappedHostIds.get(host.getHostId());
           for (ServiceComponentHost sch : serviceComponentHostsByHost.get(hostName)) {
             HostComponentDesiredStateEntity componentState = componentsStates == null ? null :
-                    componentsStates.get(sch.getServiceComponentName());
+                    componentsStates.get(sch.getHostComponentId());
             if (componentState != null) {
               staleConfig = staleConfig || configHelper.isStaleConfigs(sch, desiredConfigs, componentState);
             } else {
@@ -2904,7 +2902,7 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
             maintenanceState = maintenanceState ||
                     maintenanceStateHelper.getEffectiveState(sch) != MaintenanceState.OFF;
           }
-        }
+
 
       }
       if (staleConfig) {
