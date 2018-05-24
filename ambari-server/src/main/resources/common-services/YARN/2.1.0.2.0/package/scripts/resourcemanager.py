@@ -230,7 +230,7 @@ class ResourcemanagerDefault(Resourcemanager):
       nameservices = namenode_ha_utils.get_nameservices(params.hdfs_site)
       nameservice = None if not nameservices else nameservices[-1]
       
-      if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+      if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.dfs_type):
         # check with webhdfs is much faster than executing hdfs dfs -test
         util = WebHDFSUtil(params.hdfs_site, nameservice, params.hdfs_user, params.security_enabled)
         list_status = util.run_command(dir_path, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
