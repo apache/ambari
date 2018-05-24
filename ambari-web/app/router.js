@@ -950,6 +950,10 @@ App.Router = Em.Router.extend({
           } else {
             //key to parse URI for prefered path to route
             router.savePreferedPath(location, '?targetURI=');
+            //clear clusterData if user is not logged in
+            //so that it is requested when they log in,
+            //even if they don't refresh the browser
+            router.set('clusterData', null);
           }
         });
       },
