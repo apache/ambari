@@ -44,6 +44,7 @@ public class Resource {
   private String owner;
   private String group;
   private String mode;
+  private String nameservice;
   private boolean recursiveChown;
   private boolean recursiveChmod;
   private boolean changePermissionforParents;
@@ -103,6 +104,14 @@ public class Resource {
 
   public void setMode(String mode) {
     this.mode = mode;
+  }
+
+  public String getNameservice() {
+    return nameservice;
+  }
+
+  public void setNameservice(String nameservice) {
+    this.nameservice = nameservice;
   }
 
   public boolean isRecursiveChown() {

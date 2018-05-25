@@ -65,7 +65,7 @@ def setup_hadoop():
     # if WebHDFS is not enabled we need this jar to create hadoop folders and copy tarballs to HDFS.
     if params.sysprep_skip_copy_fast_jar_hdfs:
       print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
-    elif params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+    elif params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.dfs_type):
       # for source-code of jar goto contrib/fast-hdfs-resource
       File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
            mode=0644,
