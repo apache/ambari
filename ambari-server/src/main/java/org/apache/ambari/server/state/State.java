@@ -96,6 +96,7 @@ public enum State {
       case UNINSTALLED:
       case DISABLED:
       case RESOLVED:
+      case RESOLVE_FAILED:
         return true;
       default:
         return false;
@@ -240,6 +241,11 @@ public enum State {
             || startState == State.RESOLVE_FAILED) {
           return true;
         }
+      break;
+      case RESOLVE_FAILED:
+        if (startState == State.INIT) {
+          return true;
+      }
       break;
     }
     return false;
