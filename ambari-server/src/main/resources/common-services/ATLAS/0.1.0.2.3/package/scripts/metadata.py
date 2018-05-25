@@ -25,8 +25,6 @@ from resource_management import StackFeature
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.core.source import StaticFile, InlineTemplate, Template
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions import solr_cloud_util
@@ -247,10 +245,7 @@ def create_collection(collection, config_set, jaasFile):
       java64_home=params.ambari_java_home,
       jaas_file=jaasFile,
       shards=params.atlas_solr_shards,
-      replication_factor = params.infra_solr_replication_factor,
-      trust_store_password =  params.truststore_password if params.credential_provider else None,
-      trust_store_type = "JKS" if params.credential_provider else None,
-      trust_store_location = params.truststore_location if params.credential_provider else None)
+      replication_factor = params.infra_solr_replication_factor)
 
 def secure_znode(znode, jaasFile):
   import params
