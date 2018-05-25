@@ -1246,6 +1246,7 @@ public class UpgradeCatalog270Test {
 
     //there is HIVE -> WEBHCAT_SERVER -> configurations -> core-site -> hadoop.proxyuser.HTTP.hosts
     assertTrue(kerberosDescriptorJson.contains("${clusterHostInfo/webhcat_server_host|append(core-site/hadoop.proxyuser.HTTP.hosts, \\\\\\\\,, true)}"));
+    assertTrue(kerberosDescriptorJson.contains("${clusterHostInfo/rm_host}"));
 
     ArtifactEntity artifactEntity = new ArtifactEntity();
     artifactEntity.setArtifactName("kerberos_descriptor");
@@ -1266,6 +1267,7 @@ public class UpgradeCatalog270Test {
     assertThat(newCount, is(oldCount));
 
     assertTrue(newKerberosDescriptorJson.contains("${clusterHostInfo/webhcat_server_hosts|append(core-site/hadoop.proxyuser.HTTP.hosts, \\\\,, true)}"));
+    assertTrue(newKerberosDescriptorJson.contains("${clusterHostInfo/resourcemanager_hosts}"));
 
     verify(upgradeCatalog270);
   }

@@ -249,6 +249,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
+  static final String YARN_SERVICE = "YARN";
+
   @Inject
   DaoUtils daoUtils;
 
@@ -1066,6 +1068,76 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       return;
     }
 
+    final boolean updateInfraKerberosDescriptor = updateInfraKerberosDescriptor(kerberosDescriptor);
+    final boolean updateWebHCatHostKerberosDescriptor = updateWebHCatHostKerberosDescriptor(kerberosDescriptor);
+    final boolean updateYarnKerberosDescriptor = updateYarnKerberosDescriptor(kerberosDescriptor);
+
+    if (updateInfraKerberosDescriptor || updateWebHCatHostKerberosDescriptor || updateYarnKerberosDescriptor) {
+      artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+      artifactDAO.merge(artifactEntity);
+    }
+  }
+
+  /**
+   * Updates the Yarn Kerberos descriptor stored in the user-supplied Kerberos Descriptor.
+   * <p>
+   * Any updates will be performed on the supplied Kerberos Descriptor.
+   * <p>
+   * The following changes may be made:
+   * <ul>
+   * <li>Change the reference to rm_host to resourcemanager_hosts</li>
+   * </ul>
+   *
+   * @param kerberosDescriptor the user-supplied Kerberos descriptor used to perform the in-place update
+   * @return <code>true</code> if changes were made; otherwise <code>false</code>
+   */
+  private boolean updateYarnKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    boolean updated = false;
+    KerberosServiceDescriptor yarnServiceDescriptor = kerberosDescriptor.getServices().get(YARN_SERVICE);
+    if (yarnServiceDescriptor != null) {
+      KerberosConfigurationDescriptor coreSiteConfiguration = yarnServiceDescriptor.getConfiguration(CONFIGURATION_CORE_SITE);
+      if (coreSiteConfiguration != null) {
+        Map<String, String> coreSiteProperties = coreSiteConfiguration.getProperties();
+        if (coreSiteProperties != null) {
+          for (Map.Entry<String, String> entry : coreSiteProperties.entrySet()) {
+            String value = entry.getValue();
+            if (value.contains("rm_host")) {
+              // changing rm_host to resourcemanager_hosts
+              String newValue = value.replaceAll("rm_host", "resourcemanager_hosts");
+              if (!newValue.equals(value)) {
+                updated = true;
+                entry.setValue(newValue);
+              }
+            }
+          }
+
+          if (updated) {
+            // Ensure that the properties are being updated
+            coreSiteConfiguration.setProperties(coreSiteProperties);
+          }
+        }
+      }
+    }
+
+    return updated;
+  }
+
+  /**
+   * Updates the Infra Kerberos descriptor stored in the user-supplied Kerberos Descriptor.
+   * <p>
+   * Any updates will be performed on the supplied Kerberos Descriptor.
+   * <p>
+   * The following changes may be made:
+   * <ul>
+   * <li>Rename the AMBARI_INFRA service to AMBARI_INFRA_SOLR</li>
+   * </ul>
+   *
+   * @param kerberosDescriptor the user-supplied Kerberos descriptor used to perform the in-place update
+   * @return <code>true</code> if changes were made; otherwise <code>false</code>
+   */
+  private boolean updateInfraKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    boolean updated = false;
+
     Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
     KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
     if (ambariInfraService != null) {
@@ -1080,17 +1152,26 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           updateKerberosIdentities(componentDescriptor);
         }
       }
+
+      updated = true;
     }
 
-    final boolean updateWebHCatHostKerberosDescriptor = updateWebHCatHostKerberosDescriptor(kerberosDescriptor);
-
-    if (ambariInfraService != null || updateWebHCatHostKerberosDescriptor) {
-      artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-      artifactDAO.merge(artifactEntity);
-    }
+    return updated;
   }
 
-  // some command json elements were modified from ..._host to ..._hosts, kerberos related properties must be adjusted accordingly
+  /**
+   * Updates the Hive/WebHCat Kerberos descriptor stored in the user-supplied Kerberos Descriptor.
+   * <p>
+   * Any updates will be performed on the supplied Kerberos Descriptor.
+   * <p>
+   * The following changes may be made:
+   * <ul>
+   * <li>some command json elements were modified from ..._host to ..._hosts, kerberos related properties must be adjusted accordingly</li>
+   * </ul>
+   *
+   * @param kerberosDescriptor the user-supplied Kerberos descriptor used to perform the in-place update
+   * @return <code>true</code> if changes were made; otherwise <code>false</code>
+   */
   private boolean updateWebHCatHostKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
     boolean updated = false;
     final KerberosServiceDescriptor hiveService = kerberosDescriptor.getServices().get(HiveServiceValidator.HIVE_SERVICE);
