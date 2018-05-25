@@ -109,9 +109,9 @@ describe('App.HostComponentRecommendationMixin', function() {
   describe('#loadComponentsRecommedationsFromServer', function() {
     it('default request options checking', function() {
       mixedObject.loadComponentsRecommendationsFromServer('someData');
-      var args = helpers.findAjaxRequest('name', 'wizard.loadrecommendations');
+      var args = helpers.findAjaxRequest('name', 'config.recommendations');
       expect(args[0]).to.be.eql({
-        name: 'wizard.loadrecommendations',
+        name: 'config.recommendations',
         sender: mixedObject,
         data: 'someData',
         success: 'loadRecommendationsSuccessCallback',
@@ -136,22 +136,24 @@ describe('App.HostComponentRecommendationMixin', function() {
           blueprint: null
         },
         e: {
-          recommend: 'host_groups',
-          stackVersionUrl: '/stack/url',
-          hosts: ['h1'],
-          services: ['s1'],
-          recommendations: {
-            blueprint: {
-              host_groups: [
-                {name: 'host-group-1',components: [{name: 'c1'}]}
-              ]
-            },
-            blueprint_cluster_binding: {
-              host_groups: [
-                {name: 'host-group-1', hosts: [{fqdn: 'h1'}]}
-              ]
+          dataToSend: {
+            recommend: 'host_groups',
+            hosts: ['h1'],
+            services: ['s1'],
+            recommendations: {
+              blueprint: {
+                host_groups: [
+                  { name: 'host-group-1', components: [{ name: 'c1' }] }
+                ]
+              },
+              blueprint_cluster_binding: {
+                host_groups: [
+                  { name: 'host-group-1', hosts: [{ fqdn: 'h1' }] }
+                ]
+              }
             }
-          }
+          },
+          stackVersionUrl: '/stack/url'
         },
         m: 'when blueprint not passed it should be generated from components list'
       },
@@ -163,13 +165,15 @@ describe('App.HostComponentRecommendationMixin', function() {
           blueprint: { blueprint: {}}
         },
         e: {
-          recommend: 'host_groups',
-          stackVersionUrl: '/stack/url',
-          hosts: ['h1'],
-          services: ['s1'],
-          recommendations: {
-            blueprint: {}
-          }
+          dataToSend: {
+            recommend: 'host_groups',
+            hosts: ['h1'],
+            services: ['s1'],
+            recommendations: {
+              blueprint: {}
+            }
+          },
+          stackVersionUrl: '/stack/url'
         },
         m: 'when blueprint passed it should be used instead of generated blueprint'
       }

@@ -1573,7 +1573,7 @@ describe('App.WizardController', function () {
     });
   });
 
-  describe('#loadConfigThemes', function() {
+  describe('#loadConfigThemes', function () {
     beforeEach(function () {
       sinon.stub(wizardController, 'loadConfigThemeForServices').returns({
         always: Em.clb
@@ -1589,6 +1589,7 @@ describe('App.WizardController', function () {
         })
       ]));
       this.stub = sinon.stub(App, 'get');
+      wizardController.set('content.selectedMpacks', []);
     });
     afterEach(function () {
       App.get.restore();
