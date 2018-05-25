@@ -29,6 +29,7 @@ import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackAdvisorC
 import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackComponentLayoutRecommendationCommand;
 import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackComponentLayoutValidationCommand;
 import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackConfigurationRecommendationCommand;
+import org.apache.ambari.server.api.services.mpackadvisor.commands.MpackConfigurationValidationCommand;
 import org.apache.ambari.server.api.services.mpackadvisor.recommendations.MpackRecommendationResponse;
 import org.apache.ambari.server.api.services.mpackadvisor.validations.MpackValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
@@ -96,8 +97,10 @@ public class MpackAdvisorHelper {
     if (requestType == MpackAdvisorRequest.MpackAdvisorRequestType.HOST_GROUPS) {
           command = new MpackComponentLayoutValidationCommand(mpackRecommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
               requestId, maRunner, metaInfo, ambariServerConfigurationHandler);
+    } else if (requestType == MpackAdvisorRequest.MpackAdvisorRequestType.CONFIGURATIONS) {
+      command = new MpackConfigurationValidationCommand(mpackRecommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
+              requestId, maRunner, metaInfo, ambariServerConfigurationHandler);
     } else {
-      // TODO : for other MpackAdvisorRequestType's.
       throw new MpackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));
     }
@@ -129,7 +132,6 @@ public class MpackAdvisorHelper {
       command = new MpackConfigurationRecommendationCommand(mpackRecommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
           requestId, maRunner, metaInfo, ambariServerConfigurationHandler);
     } else {
-      // TODO : for other MpackAdvisorRequestType's.
       throw new MpackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));
     }

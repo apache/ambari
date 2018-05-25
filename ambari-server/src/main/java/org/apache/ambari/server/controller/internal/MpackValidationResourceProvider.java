@@ -60,10 +60,16 @@ public class MpackValidationResourceProvider extends MpackAdvisorResourceProvide
   protected static final String TYPE_PROPERTY_ID = "type";
   protected static final String LEVE_PROPERTY_ID = "level";
   protected static final String MESSAGE_PROPERTY_ID = "message";
-  protected static final String COMPONENT_NAME_PROPERTY_ID = "component-name";
+  protected static final String MPACK_INSTANCE_NAME_PROPERTY_ID = "mpack_instance_name";
+  protected static final String MPACK_INSTANCE_TYPE_PROPERTY_ID = "mpack_instance_type";
+  protected static final String MPACK_INSTANCE_VERSION_PROPERTY_ID = "mpack_version";
+  protected static final String SERVICE_INSTANCE_NAME_PROPERTY_ID = "service_instance_name";
+  protected static final String SERVICE_INSTANCE_TYPE_PROPERTY_ID = "service_instance_type";
+  protected static final String COMPONENT_INSTANCE_NAME_PROPERTY_ID = "component_instance_name";
+  protected static final String COMPONENT_INSTANCE_TYPE_PROPERTY_ID = "component_instance_type";
   protected static final String HOST_PROPERTY_ID = "host";
-  protected static final String CONFIG_TYPE_PROPERTY_ID = "config-type";
-  protected static final String CONFIG_NAME_PROPERTY_ID = "config-name";
+  protected static final String CONFIG_TYPE_PROPERTY_ID = "config_type";
+  protected static final String CONFIG_NAME_PROPERTY_ID = "config_name";
   protected static final String HOST_GROUP_PROPERTY_ID = "host-group";
   protected static final String HOSTS_PROPERTY_ID = "hosts";
   protected static final String SERVICES_PROPERTY_ID = "services";
@@ -72,7 +78,13 @@ public class MpackValidationResourceProvider extends MpackAdvisorResourceProvide
   protected static final String ITEMS_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, TYPE_PROPERTY_ID);
   protected static final String ITEMS_LEVE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, LEVE_PROPERTY_ID);
   protected static final String ITEMS_MESSAGE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, MESSAGE_PROPERTY_ID);
-  protected static final String ITEMS_COMPONENT_NAME_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID);
+  protected static final String ITEMS_MPACK_INSTANCE_NAME_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, MPACK_INSTANCE_NAME_PROPERTY_ID);
+  protected static final String ITEMS_MPACK_INSTANCE_TYPE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, MPACK_INSTANCE_TYPE_PROPERTY_ID);
+  protected static final String ITEMS_MPACK_INSTANCE_VERSION_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, MPACK_INSTANCE_VERSION_PROPERTY_ID);
+  protected static final String ITEMS_SERVICE_INSTANCE_NAME_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, SERVICE_INSTANCE_NAME_PROPERTY_ID);
+  protected static final String ITEMS_SERVICE_INSTANCE_TYPE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, SERVICE_INSTANCE_TYPE_PROPERTY_ID);
+  protected static final String ITEMS_COMPONENT_INSTANCE_NAME_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, COMPONENT_INSTANCE_NAME_PROPERTY_ID);
+  protected static final String ITEMS_COMPONENT_INSTANCE_TYPE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, COMPONENT_INSTANCE_TYPE_PROPERTY_ID);
   protected static final String ITEMS_HOST_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, HOST_PROPERTY_ID);
   protected static final String ITEMS_CONFIG_TYPE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, CONFIG_TYPE_PROPERTY_ID);
   protected static final String ITEMS_CONFIG_NAME_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, CONFIG_NAME_PROPERTY_ID);
@@ -95,7 +107,13 @@ public class MpackValidationResourceProvider extends MpackAdvisorResourceProvide
       ITEMS_TYPE_PROPERTY_ID,
       ITEMS_LEVE_PROPERTY_ID,
       ITEMS_MESSAGE_PROPERTY_ID,
-      ITEMS_COMPONENT_NAME_PROPERTY_ID,
+      ITEMS_MPACK_INSTANCE_NAME_PROPERTY_ID,
+      ITEMS_MPACK_INSTANCE_TYPE_PROPERTY_ID,
+      ITEMS_MPACK_INSTANCE_VERSION_PROPERTY_ID,
+      ITEMS_SERVICE_INSTANCE_NAME_PROPERTY_ID,
+      ITEMS_SERVICE_INSTANCE_TYPE_PROPERTY_ID,
+      ITEMS_COMPONENT_INSTANCE_NAME_PROPERTY_ID,
+      ITEMS_COMPONENT_INSTANCE_TYPE_PROPERTY_ID,
       ITEMS_HOST_PROPERTY_ID,
       ITEMS_CONFIG_TYPE_PROPERTY_ID,
       ITEMS_CONFIG_NAME_PROPERTY_ID,
@@ -145,8 +163,27 @@ public class MpackValidationResourceProvider extends MpackAdvisorResourceProvide
           mapItemProps.put(LEVE_PROPERTY_ID, item.getLevel());
           mapItemProps.put(MESSAGE_PROPERTY_ID, item.getMessage());
 
-          if (item.getComponentName() != null) {
-            mapItemProps.put(COMPONENT_NAME_PROPERTY_ID, item.getComponentName());
+          if (item.getMpackInstanceName() != null) {
+            mapItemProps.put(MPACK_INSTANCE_NAME_PROPERTY_ID, item.getMpackInstanceName());
+          }
+          if (item.getMpackInstanceType() != null) {
+            mapItemProps.put(MPACK_INSTANCE_TYPE_PROPERTY_ID, item.getMpackInstanceType());
+          }
+          if (item.getMpackVersion() != null) {
+            mapItemProps.put(MPACK_INSTANCE_VERSION_PROPERTY_ID, item.getMpackVersion());
+          }
+          if (item.getServiceInstanceName() != null) {
+            mapItemProps.put(SERVICE_INSTANCE_NAME_PROPERTY_ID, item.getServiceInstanceName());
+          }
+          if (item.getServiceInstanceType() != null) {
+            mapItemProps.put(SERVICE_INSTANCE_TYPE_PROPERTY_ID, item.getServiceInstanceType());
+          }
+
+          if (item.getComponentInstanceName() != null) {
+            mapItemProps.put(COMPONENT_INSTANCE_NAME_PROPERTY_ID, item.getComponentInstanceName());
+          }
+          if (item.getComponentInstanceType() != null) {
+            mapItemProps.put(COMPONENT_INSTANCE_TYPE_PROPERTY_ID, item.getComponentInstanceType());
           }
           if (item.getHost() != null) {
             mapItemProps.put(HOST_PROPERTY_ID, item.getHost());
