@@ -74,32 +74,6 @@ class HdfsResourceJar:
   while execute does all the expensive creating/deleting work executing the jar with the json as parameter.
   """
   def action_delayed(self, action_name, main_resource):
-    dfs_type = main_resource.resource.dfs_type
-
-    if main_resource.resource.nameservices is None: # all nameservices
-      nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
-    else:
-      nameservices = main_resource.resource.nameservices
-
-    # non-federated cluster
-    if not nameservices:
-      self.action_delayed_for_nameservice(None, action_name, main_resource)
-    else:
-      for nameservice in nameservices:
-        try:
-          if not dfs_type:
-            raise Fail("<serviceType> for fileSystem service should be set in metainfo.xml")
-          nameservice = dfs_type.lower() + "://" + nameservice
-
-          self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
-        except namenode_ha_utils.NoActiveNamenodeException as ex:
-          # one of ns can be down (during initial start forexample) no need to worry for federated cluster
-          if len(nameservices) > 1:
-            Logger.exception("Cannot run HdfsResource for nameservice {0}. Due to no active namenode present".format(nameservice))
-          else:
-            raise
-
-  def action_delayed_for_nameservice(self, nameservice, action_name, main_resource):
     resource = {}
     env = Environment.get_instance()
     if not 'hdfs_files' in env.config:
@@ -115,8 +89,6 @@ class HdfsResourceJar:
         resource[json_field_name] = main_resource.manage_if_exists
       elif getattr(main_resource.resource, field_name):
         resource[json_field_name] = getattr(main_resource.resource, field_name)
-
-    resource['nameservice'] = nameservice
 
     # Add resource to create
     env.config['hdfs_files'].append(resource)
@@ -187,9 +159,9 @@ class WebHDFSUtil:
     self.logoutput = logoutput
     
   @staticmethod
-  def is_webhdfs_available(is_webhdfs_enabled, dfs_type):
+  def is_webhdfs_available(is_webhdfs_enabled, default_fs):
     # only hdfs seems to support webHDFS
-    return (is_webhdfs_enabled and dfs_type == 'HDFS')
+    return (is_webhdfs_enabled and default_fs.startswith("hdfs"))
     
   def run_command(self, *args, **kwargs):
     """
@@ -590,17 +562,11 @@ class HdfsResourceWebHDFS:
 class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
-
-    self.assert_parameter_is_set('dfs_type')
     self.fsType = getattr(resource, 'dfs_type')
-
     self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
-
-    if self.fsType == 'HDFS':
+    if self.fsType != 'HCFS':
       self.assert_parameter_is_set('hdfs_site')
       self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
-    else:
-      self.webhdfs_enabled = False
       
   @staticmethod
   def parse_path(path):
@@ -663,7 +629,9 @@ class HdfsResourceProvider(Provider):
     self.get_hdfs_resource_executor().action_execute(self)
 
   def get_hdfs_resource_executor(self):
-    if WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.fsType):
+    if self.fsType == 'HCFS':
+      return HdfsResourceJar()
+    elif WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.resource.default_fs):
       return HdfsResourceWebHDFS()
     else:
       return HdfsResourceJar()

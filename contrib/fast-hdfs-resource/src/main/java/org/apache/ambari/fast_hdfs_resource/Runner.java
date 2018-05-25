@@ -22,10 +22,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -56,88 +52,52 @@ public class Runner {
 
     Gson gson = new Gson();
     Resource[] resources = null;
-    Map<String, FileSystem> fileSystemNameToInstance = new HashMap<String, FileSystem>();
-    Map<String, List<Resource>> fileSystemToResource = new HashMap<String, List<Resource>>();
-
+    FileSystem dfs = null;
 
     try {
+      Configuration conf = new Configuration();
+      dfs = FileSystem.get(conf);
+
       // 3 - Load data from JSON
       resources = (Resource[]) gson.fromJson(new FileReader(jsonFilePath),
           Resource[].class);
+
+      // 4 - Connect to HDFS
+      System.out.println("Using filesystem uri: " + FileSystem.getDefaultUri(conf).toString());
+      dfs.initialize(FileSystem.getDefaultUri(conf), conf);
       
-      Configuration conf = new Configuration();
-      FileSystem dfs = null;
-
-      // Creating connections
       for (Resource resource : resources) {
-        String nameservice = resource.getNameservice();
+        System.out.println("Creating: " + resource);
 
-        if(!fileSystemNameToInstance.containsKey(nameservice)) {
-          URI fileSystemUrl;
-          if(nameservice == null) {
-            fileSystemUrl = FileSystem.getDefaultUri(conf);
-          } else {
-            fileSystemUrl = new URI(nameservice);
+        Resource.checkResourceParameters(resource, dfs);
+
+        Path pathHadoop = null;
+
+        if (resource.getAction().equals("download")) {
+          pathHadoop = new Path(resource.getSource());
+        }
+        else {
+          String path = resource.getTarget();
+          pathHadoop = new Path(path);
+          if (!resource.isManageIfExists() && dfs.exists(pathHadoop)) {
+            System.out.println(
+                String.format("Skipping the operation for not managed DFS directory %s  since immutable_paths contains it.", path)
+            );
+            continue;
           }
-
-          dfs = FileSystem.get(fileSystemUrl, conf);
-
-          // 4 - Connect to DFS
-          System.out.println("Initializing filesystem uri: " + fileSystemUrl);
-          dfs.initialize(fileSystemUrl, conf);
-
-          fileSystemNameToInstance.put(nameservice, dfs);
         }
 
-        if(!fileSystemToResource.containsKey(nameservice)) {
-          fileSystemToResource.put(nameservice, new ArrayList<Resource>());
-        }
-        fileSystemToResource.get(nameservice).add(resource);
-      }
-
-      //for (Resource resource : resources) {
-      for (Map.Entry<String, List<Resource>> entry : fileSystemToResource.entrySet()) {
-        String nameservice = entry.getKey();
-        List<Resource> resourcesNameservice = entry.getValue();
-
-        for(Resource resource: resourcesNameservice) {
-          if (nameservice != null) {
-            System.out.println("Creating: " + resource + " in " + nameservice);
-          } else {
-            System.out.println("Creating: " + resource + " in default filesystem");
-          }
-
-          dfs = fileSystemNameToInstance.get(nameservice);
-
-          Resource.checkResourceParameters(resource, dfs);
-
-          Path pathHadoop = null;
-
-          if (resource.getAction().equals("download")) {
-            pathHadoop = new Path(resource.getSource());
-          } else {
-            String path = resource.getTarget();
-            pathHadoop = new Path(path);
-            if (!resource.isManageIfExists() && dfs.exists(pathHadoop)) {
-              System.out.println(
-                  String.format("Skipping the operation for not managed DFS directory %s  since immutable_paths contains it.", path)
-              );
-              continue;
-            }
-          }
-
-          if (resource.getAction().equals("create")) {
-            // 5 - Create
-            Resource.createResource(resource, dfs, pathHadoop);
-            Resource.setMode(resource, dfs, pathHadoop);
-            Resource.setOwner(resource, dfs, pathHadoop);
-          } else if (resource.getAction().equals("delete")) {
-            // 6 - Delete
-            dfs.delete(pathHadoop, true);
-          } else if (resource.getAction().equals("download")) {
-            // 7 - Download
-            dfs.copyToLocalFile(pathHadoop, new Path(resource.getTarget()));
-          }
+        if (resource.getAction().equals("create")) {
+          // 5 - Create
+          Resource.createResource(resource, dfs, pathHadoop);
+          Resource.setMode(resource, dfs, pathHadoop);
+          Resource.setOwner(resource, dfs, pathHadoop);
+        } else if (resource.getAction().equals("delete")) {
+          // 6 - Delete
+          dfs.delete(pathHadoop, true);
+        } else if (resource.getAction().equals("download")) {
+          // 7 - Download
+          dfs.copyToLocalFile(pathHadoop, new Path(resource.getTarget()));
         }
       }
     } 
@@ -146,9 +106,7 @@ public class Runner {
        e.printStackTrace();
     }
     finally {
-      for(FileSystem dfs:fileSystemNameToInstance.values()) {
-        dfs.close();
-      }
+      dfs.close();
     }
 
     System.out.println("All resources created.");
