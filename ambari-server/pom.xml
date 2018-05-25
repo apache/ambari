@@ -433,7 +433,7 @@
               <swaggerApiReader>org.apache.ambari.swagger.AmbariSwaggerReader</swaggerApiReader>
               <springmvc>false</springmvc>
               <locations>org.apache.ambari.server.api.services</locations>
-              <schemes>http,https</schemes>
+              <schemes></schemes>
               <basePath>/api/v1</basePath>
               <info>
                 <title>Swagger spec for Ambari REST API</title>
