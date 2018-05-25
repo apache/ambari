@@ -55,13 +55,13 @@ function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope
 
   $scope.downloadBlueprint = function () {
     if (window.navigator.msSaveOrOpenBlob) {
-      var blob = new Blob([decodeURIComponent(encodeURI($scope.blueprint))], {
+      var blob = new Blob([decodeURIComponent(encodeURIComponent($scope.blueprint))], {
         type: "text/csv;charset=utf-8;"
       });
       navigator.msSaveBlob(blob, 'blueprint.json');
     } else {
       var a = document.createElement('a');
-      a.href = 'data:attachment/csv;charset=utf-8,' + encodeURI($scope.blueprint);
+      a.href = 'data:attachment/json;charset=utf-8,' + encodeURIComponent($scope.blueprint);
       a.target = '_blank';
       a.download = 'blueprint.json';
       document.body.appendChild(a);
