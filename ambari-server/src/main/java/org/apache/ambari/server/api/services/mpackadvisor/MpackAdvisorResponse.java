@@ -28,7 +28,7 @@ public abstract class MpackAdvisorResponse {
 
   private int id;
 
-  @JsonProperty("Versions")
+  @JsonProperty("versions")
   private Version version;
 
   public int getId() {

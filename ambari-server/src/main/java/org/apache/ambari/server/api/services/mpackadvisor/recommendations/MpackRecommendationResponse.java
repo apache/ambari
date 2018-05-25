@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services.mpackadvisor.recommendations;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,12 +104,115 @@ public class MpackRecommendationResponse extends MpackAdvisorResponse {
     }
   }
 
+  /* TODO : Even though MpackInstance class exists at :
+   * ambari-server/src/main/java/org/apache/ambari/server/topology/MpackInstance.java,
+   * we need the MpackInstance -> ServiceInstance to have BlueprintConfigurations
+   * class to handle the read Configurations with ease.
+   * Need to look into using the existing classes.
+   */
+
+  public static class MpackInstance {
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("version")
+    private String version;
+
+    private String mpackType;
+
+    @JsonProperty("service_instances")
+    private Collection<ServiceInstance> serviceInstances = new ArrayList<>();
+
+    public String getName() {
+      return name;
+    }
+    public void setName(String mpackName) {
+      this.name = mpackName;
+    }
+    public String getVersion() {
+      return version;
+    }
+    public void setVersion(String mpackVersion) {
+      this.version = mpackVersion;
+    }
+    public Collection<ServiceInstance> getServiceInstances() {
+      return serviceInstances;
+    }
+
+    public void setServiceInstances(Collection<ServiceInstance> serviceInstances) {
+      this.serviceInstances = serviceInstances;
+      serviceInstances.forEach(si -> si.setMpackInstance(this));
+    }
+    public void addServiceInstance(ServiceInstance serviceInstance) {
+      serviceInstances.add(serviceInstance);
+      serviceInstance.setMpackInstance(this);
+    }
+  }
+
+  public static class ServiceInstance {
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("type")
+    private String type;
+    @JsonProperty("version")
+    private String version;
+    @JsonProperty
+    private Map<String, BlueprintConfigurations> configurations;
+
+    @JsonProperty("mpackInstance")
+    private MpackInstance mpackInstance;
+
+    public ServiceInstance() { }
+
+    public Map<String, BlueprintConfigurations> getConfigurations() {
+      return configurations;
+    }
+
+    public void setConfigurations(Map<String, BlueprintConfigurations> configurations) {
+      this.configurations = configurations;
+    }
+
+    public String getVersion() {
+      return version;
+    }
+
+    public void setVersion(String version) {
+      this.version = version;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    public void setType(String type) {
+      this.type = type;
+    }
+
+    public MpackInstance getMpackInstance() {
+      return mpackInstance;
+    }
+
+    void setMpackInstance(MpackInstance mpackInstance) {
+      this.mpackInstance = mpackInstance;
+    }
+  }
+
   public static class Blueprint {
     @JsonProperty
     private Map<String, BlueprintConfigurations> configurations;
 
     @JsonProperty("host_groups")
     private Set<HostGroup> hostGroups;
+
+    @JsonProperty("mpack_instances")
+    private Set<MpackInstance> mpackInstances;
 
     public Map<String, BlueprintConfigurations> getConfigurations() {
       return configurations;
@@ -123,6 +228,14 @@ public class MpackRecommendationResponse extends MpackAdvisorResponse {
 
     public void setHostGroups(Set<HostGroup> hostGroups) {
       this.hostGroups = hostGroups;
+    }
+
+    public void setMpackInstances(Set<MpackInstance> mpacks) {
+      this.mpackInstances = mpacks;
+    }
+
+    public Set<MpackInstance> getMpackInstances() {
+      return this.mpackInstances;
     }
   }
 

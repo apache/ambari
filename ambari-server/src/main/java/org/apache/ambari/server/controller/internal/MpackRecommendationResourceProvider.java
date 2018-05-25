@@ -71,6 +71,19 @@ public class MpackRecommendationResourceProvider extends MpackAdvisorResourcePro
   protected static final String BLUEPRINT_HOST_GROUPS_NAME_PROPERTY_ID = "name";
   protected static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY_ID = "components";
 
+  //MpackInstances
+  protected static final String BLUEPRINT_MPACK_INSTANCES_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "recommendations/blueprint", "mpack_instances");
+  protected static final String BLUEPRINT_MPACK_INSTANCES_NAME_PROPERTY_ID = "name";
+  protected static final String BLUEPRINT_MPACK_INSTANCES_VERSION_PROPERTY_ID = "version";
+
+  // Service Instances
+  protected static final String BLUEPRINT_MPACK_SERVICE_PROPERTY_ID = "service_instances";
+  protected static final String BLUEPRINT_MPACK_SERVICE_NAME_PROPERTY_ID = "name";
+  protected static final String BLUEPRINT_MPACK_SERVICE_TYPE_PROPERTY_ID = "type";
+  protected static final String BLUEPRINT_MPACK_SERVICE_CONFIG_PROPERTY_ID = "configurations";
+  protected static final String BLUEPRINT_MPACK_SERVICE_CONFIG_PROPERTIES_PROPERTY_ID = "properties";
+
   protected static final String BINDING_HOST_GROUPS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "recommendations/blueprint_cluster_binding", "host_groups");
   protected static final String BINDING_HOST_GROUPS_NAME_PROPERTY_ID = "name";
@@ -146,15 +159,54 @@ public class MpackRecommendationResourceProvider extends MpackAdvisorResourcePro
 
         Set<HostGroup> hostGroups = response.getRecommendations().getBlueprint().getHostGroups();
         List<Map<String, Object>> listGroupProps = new ArrayList<>();
-        for (HostGroup hostGroup : hostGroups) {
-          Map<String, Object> mapGroupProps = new HashMap<>();
-          mapGroupProps.put(BLUEPRINT_HOST_GROUPS_NAME_PROPERTY_ID, hostGroup.getName());
-          mapGroupProps
-              .put(BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY_ID, hostGroup.getComponents());
-          listGroupProps.add(mapGroupProps);
+        if (hostGroups != null) {
+          for (HostGroup hostGroup : hostGroups) {
+            Map<String, Object> mapGroupProps = new HashMap<>();
+            mapGroupProps.put(BLUEPRINT_HOST_GROUPS_NAME_PROPERTY_ID, hostGroup.getName());
+            mapGroupProps
+                .put(BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY_ID, hostGroup.getComponents());
+            listGroupProps.add(mapGroupProps);
+          }
         }
         setResourceProperty(resource, BLUEPRINT_HOST_GROUPS_PROPERTY_ID, listGroupProps,
             getPropertyIds());
+
+        // Update Mpack Instances
+        Set<MpackRecommendationResponse.MpackInstance> mpackInstances  = response.getRecommendations().getBlueprint().getMpackInstances();
+        List<Map<String, Object>> listMpackInstances = new ArrayList<>();
+        if (mpackInstances != null) {
+          for (MpackRecommendationResponse.MpackInstance mpackInstance : mpackInstances) {
+            Map<String, Object> mpackInstanceMap = new HashMap<>();
+            mpackInstanceMap.put(BLUEPRINT_MPACK_INSTANCES_NAME_PROPERTY_ID, mpackInstance.getName());
+            mpackInstanceMap.put(BLUEPRINT_MPACK_INSTANCES_VERSION_PROPERTY_ID, mpackInstance.getVersion());
+
+            // Service Instances
+            List<Map<String, Object>> listServiceInstances = new ArrayList<>();
+            for (MpackRecommendationResponse.ServiceInstance serviceInstance : mpackInstance.getServiceInstances()) {
+              Map<String, Object> serviceInstanceMap = new HashMap<>();
+              serviceInstanceMap.put(BLUEPRINT_MPACK_SERVICE_NAME_PROPERTY_ID, serviceInstance.getName());
+              serviceInstanceMap.put(BLUEPRINT_MPACK_SERVICE_TYPE_PROPERTY_ID, serviceInstance.getType());
+
+              // Service Instance Configs
+              Map<String, Object> serviceConfigsMap = new HashMap<>();
+              Map<String, MpackRecommendationResponse.BlueprintConfigurations> readServiceConfigs = serviceInstance.getConfigurations();
+              for (String configBag : readServiceConfigs.keySet()) {
+                MpackRecommendationResponse.BlueprintConfigurations bpConfig = readServiceConfigs.get(configBag);
+                Map<String, String> bpConfigProperties = bpConfig.getProperties();
+                Map<String, Object> propertiesMap = new HashMap<>();
+                propertiesMap.put(BLUEPRINT_MPACK_SERVICE_CONFIG_PROPERTIES_PROPERTY_ID, bpConfigProperties);
+                serviceConfigsMap.put(configBag, propertiesMap);
+              }
+              serviceInstanceMap.put(BLUEPRINT_MPACK_SERVICE_CONFIG_PROPERTY_ID, readServiceConfigs);
+              listServiceInstances.add(serviceInstanceMap);
+            }
+            mpackInstanceMap.put(BLUEPRINT_MPACK_SERVICE_PROPERTY_ID, listServiceInstances);
+            listMpackInstances.add(mpackInstanceMap);
+          }
+        }
+        setResourceProperty(resource, BLUEPRINT_MPACK_INSTANCES_PROPERTY_ID, listMpackInstances,
+            getPropertyIds());
+
 
         Set<BindingHostGroup> bindingHostGroups = response.getRecommendations()
             .getBlueprintClusterBinding().getHostGroups();
