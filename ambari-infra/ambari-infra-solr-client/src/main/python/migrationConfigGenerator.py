@@ -311,6 +311,15 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
   if security_enabled == 'true':
     config.set('infra_solr', 'keytab', infra_solr_kerberos_keytab)
     config.set('infra_solr', 'principal', infra_solr_kerberos_principal)
+    zookeeper_env_props = get_config_props(cluster_config, 'zookeeper-env')
+    zookeeper_principal_name = zookeeper_env_props['zookeeper_principal_name'] if 'zookeeper_principal_name' in zookeeper_env_props else "zookeeper/_HOST@EXAMPLE.COM"
+    zk_principal_user = zookeeper_principal_name.split("/")[0]
+    default_zk_quorum = "{zookeeper_quorum}"
+    external_zk_connection_string = infra_solr_env_props['infra_solr_zookeeper_quorum'] if 'infra_solr_zookeeper_quorum' in infra_solr_env_props else default_zk_quorum
+    if default_zk_quorum != external_zk_connection_string:
+      print "Found external zk connection string: {0}".format(external_zk_connection_string)
+      config.set('infra_solr', 'external_zk_connection_string', external_zk_connection_string)
+    config.set('infra_solr', 'zk_principal_user', zk_principal_user)
 
   state_json_map = retry(get_state_json_map, solr_urls, infra_solr_user, security_enabled, infra_solr_kerberos_keytab, infra_solr_kerberos_principal, count=options.retry, delay=options.delay, context="Get clusterstate.json")
   coll_shard_map=get_shard_numbers_per_collections(state_json_map)
