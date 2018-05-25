@@ -287,6 +287,8 @@ public class ClusterBlueprintRendererTest {
     serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_name", "HDP");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_version", "1.3.3");
     TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
     clusterTree.addChild(serviceGroupsTree);
 
@@ -710,6 +712,8 @@ public class ClusterBlueprintRendererTest {
     serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
     serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_name", "HDP");
+    serviceGroupResource.setProperty("ServiceGroupInfo/mpack_version", "1.3.3");
     TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
     clusterTree.addChild(serviceGroupsTree);
 

@@ -244,13 +244,13 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * Adds mpack instances to the exported blueprint resource.
    */
   private void addMpackInstances(Resource blueprintResource, TreeNode<Resource> clusterNode) {
-    List<Map<String, Object>> mpackInstances = clusterNode.getChild("stack_versions").getChildren().stream().map(
+    // TODO: find a way to add mpack uri
+    List<Map<String, Object>> mpackInstances = clusterNode.getChild("servicegroups").getChildren().stream().map(
       child -> {
-        Map<String, Object> stackVersionProps = child.getObject().getPropertiesMap().get("ClusterStackVersions");
+        Map<String, Object> serviceGroupProps = child.getObject().getPropertiesMap().get("ServiceGroupInfo");
         return ImmutableMap.of(
-          "name", stackVersionProps.get("stack"),
-          "version", stackVersionProps.get("version"),
-          "url", stackVersionProps.get("mpack_uri"));
+          "name", serviceGroupProps.get("mpack_name"),
+          "version", serviceGroupProps.get("mpack_version"));
       }).
       collect(toList());
     blueprintResource.setProperty(BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID, mpackInstances);

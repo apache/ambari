@@ -88,6 +88,7 @@ public class Component {
   public String getMpackInstance() {
     return this.mpackInstance;
   }
+
   /**
    * @return the service instance this component belongs to. Can be {@code null} if component does not belong to a service
    * instance (there is a single service of the component's service type)
@@ -99,7 +100,7 @@ public class Component {
   /**
    * Gets the provision action associated with this component.
    *
-   * @return the provision action for this component, whichRequest's Mpack instances isRequest's Mpack instances is
+   * @return the provision action for this component, which
    *         may be null if the default action is to be used
    */
   public ProvisionAction getProvisionAction() {

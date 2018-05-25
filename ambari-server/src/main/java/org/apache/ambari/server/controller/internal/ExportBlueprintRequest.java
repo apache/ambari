@@ -82,7 +82,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
     // create service group to mpack map
     serviceGroupToMpack = clusterNode.getChild("servicegroups").getChildren().stream().
       map(tn -> tn.getObject().getPropertiesMap().get(ServiceGroupResourceProvider.RESPONSE_KEY)).
-      collect(toMap(m -> m.get("service_group_name").toString(), m -> new StackId(m.get("version").toString())));
+      collect(toMap(m -> m.get("service_group_name").toString(), m -> new StackId(m.get("stack").toString())));
 
     createConfiguration(clusterNode);
     //todo: should be parsing Configuration from the beginning
