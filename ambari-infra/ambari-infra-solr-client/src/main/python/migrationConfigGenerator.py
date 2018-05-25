@@ -99,7 +99,7 @@ def get_random_solr_url(solr_urls):
   logger.debug("Use {0} for request ...".format(result))
   return result
 
-def retry (func, *args, **kwargs):
+def retry(func, *args, **kwargs):
   retry_count = kwargs.pop("count", 10)
   delay = kwargs.pop("delay", 5)
   context = kwargs.pop("context", "")
@@ -336,6 +336,14 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
         config.set('ranger_collection', 'backup_ranger_config_set', 'old_ranger_audits')
         config.set('ranger_collection', 'backup_ranger_collection_name', 'old_ranger_audits')
         print 'Ranger Solr collection: ' + ranger_collection_name
+        ranger_backup_path = None
+        if options.backup_base_path:
+          ranger_backup_path = "{0}/ranger".format(options.backup_base_path)
+        elif options.backup_ranger_base_path:
+          ranger_backup_path = options.backup_ranger_base_path
+        if ranger_backup_path is not None:
+          config.set('ranger_collection', 'backup_path', ranger_backup_path)
+          print 'Ranger backup path: ' + ranger_backup_path
     else:
       config.set('ranger_collection', 'enabled', 'false')
   else:
@@ -364,6 +372,14 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
     if 'vertex_index' in max_shards_map:
       config.set('atlas_collections', 'vertex_index_max_shards_per_node', max_shards_map['vertex_index'])
     print 'Atlas Solr collections: fulltext_index, edge_index, vertex_index'
+    atlas_backup_path = None
+    if options.backup_base_path:
+      atlas_backup_path = "{0}/atlas".format(options.backup_base_path)
+    elif options.backup_ranger_base_path:
+      atlas_backup_path = options.backup_atlas_base_path
+    if atlas_backup_path is not None:
+      config.set('atlas_collections', 'backup_path', atlas_backup_path)
+      print 'Atlas backup path: ' + atlas_backup_path
   else:
     config.set('atlas_collections', 'enabled', 'false')
 
@@ -425,6 +441,9 @@ if __name__=="__main__":
     parser.add_option("-p", "--password", dest="password", type="string", help="password for accessing ambari server")
     parser.add_option("-j", "--java-home", dest="java_home", type="string", help="local java_home location")
     parser.add_option("-i", "--ini-file", dest="ini_file", default="ambari_solr_migration.ini", type="string", help="Filename of the generated ini file for migration (default: ambari_solr_migration.ini)")
+    parser.add_option("--backup-base-path", dest="backup_base_path", default=None, type="string", help="base path for backup, e.g.: /tmp/backup, then /tmp/backup/ranger/ and /tmp/backup/atlas/ folders will be generated")
+    parser.add_option("--backup-ranger-base-path", dest="backup_ranger_base_path", default=None, type="string", help="base path for ranger backup, e.g.: /tmp/backup/ranger")
+    parser.add_option("--backup-atlas-base-path", dest="backup_atlas_base_path", default=None, type="string", help="base path for backup, e.g.: /tmp/backup/atlas")
     parser.add_option("--skip-atlas", dest="skip_atlas", action="store_true", default=False, help="skip to gather Atlas service details")
     parser.add_option("--skip-ranger", dest="skip_ranger", action="store_true", default=False, help="skip to gather Ranger service details")
     parser.add_option("--retry", dest="retry", type="int", default=10, help="number of retries during accessing random solr urls")
