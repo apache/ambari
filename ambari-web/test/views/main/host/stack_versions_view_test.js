@@ -44,27 +44,6 @@ describe('App.MainHostStackVersionsView', function() {
     });
   });
 
-  describe("#showInstallProgress()", function () {
-    var mock = {
-      showProgressPopup: Em.K
-    };
-
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns(mock);
-      sinon.stub(mock, 'showProgressPopup');
-    });
-
-    afterEach(function() {
-      App.router.get.restore();
-      mock.showProgressPopup.restore();
-    });
-
-    it("showProgressPopup should be called", function() {
-      view.showInstallProgress({context: {}});
-      expect(mock.showProgressPopup.calledWith({})).to.be.true;
-    });
-  });
-
   describe("#outOfSyncInfo", function () {
     var outOfSyncInfo;
 
