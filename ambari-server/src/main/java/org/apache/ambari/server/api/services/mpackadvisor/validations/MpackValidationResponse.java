@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services.mpackadvisor.validations;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorResponse;
+import org.apache.ambari.server.api.services.mpackadvisor.validations.MpackValidationResponse.ValidationItem;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -29,13 +30,13 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class MpackValidationResponse extends MpackAdvisorResponse {
 
   @JsonProperty
-  private Set<org.apache.ambari.server.api.services.mpackadvisor.validations.MpackValidationResponse.ValidationItem> items;
+  private Set<ValidationItem> items;
 
-  public Set<org.apache.ambari.server.api.services.mpackadvisor.validations.MpackValidationResponse.ValidationItem> getItems() {
+  public Set<ValidationItem> getItems() {
     return items;
   }
 
-  public void setItems(Set<org.apache.ambari.server.api.services.mpackadvisor.validations.MpackValidationResponse.ValidationItem> items) {
+  public void setItems(Set<ValidationItem> items) {
     this.items = items;
   }
 
@@ -49,22 +50,34 @@ public class MpackValidationResponse extends MpackAdvisorResponse {
     @JsonProperty
     private String message;
 
-    @JsonProperty("mpack-name")
-    private String mpackName;
+    @JsonProperty("mpack_instance_name")
+    private String mpackInstanceName;
 
-    @JsonProperty("mpack-version")
+    @JsonProperty("mpack_instance_type")
+    private String mpackInstanceType;
+
+    @JsonProperty("mpack_version")
     private String mpackVersion;
 
-    @JsonProperty("component-name")
-    private String componentName;
+    @JsonProperty("service_instance_name")
+    private String serviceInstanceName;
+
+    @JsonProperty("service_instance_type")
+    private String serviceInstanceType;
+
+    @JsonProperty("component_instance_name")
+    private String componentInstanceName;
+
+    @JsonProperty("component_instance_type")
+    private String componentInstanceType;
 
     @JsonProperty
     private String host;
 
-    @JsonProperty("config-type")
+    @JsonProperty("config_type")
     private String configType;
 
-    @JsonProperty("config-name")
+    @JsonProperty("config_name")
     private String configName;
 
     public String getType() {
@@ -91,12 +104,20 @@ public class MpackValidationResponse extends MpackAdvisorResponse {
       this.message = message;
     }
 
-    public String getMpackName() {
-      return mpackName;
+    public String getMpackInstanceName() {
+      return mpackInstanceName;
     }
 
-    public void setMpackName(String mpackName) {
-      this.mpackName = mpackName;
+    public void setMpackInstanceName(String mpackInstanceName) {
+      this.mpackInstanceName = mpackInstanceName;
+    }
+
+    public String getMpackInstanceType() {
+      return mpackInstanceType;
+    }
+
+    public void setMpackInstanceType(String mpackInstanceType) {
+      this.mpackInstanceType = mpackInstanceType;
     }
 
     public String getMpackVersion() {
@@ -107,12 +128,36 @@ public class MpackValidationResponse extends MpackAdvisorResponse {
       this.mpackVersion = mpackVersion;
     }
 
-    public String getComponentName() {
-      return componentName;
+    public String getServiceInstanceName() {
+      return serviceInstanceName;
     }
 
-    public void setComponentName(String componentName) {
-      this.componentName = componentName;
+    public void setServiceInstanceName(String serviceInstanceName) {
+      this.serviceInstanceName = serviceInstanceName;
+    }
+
+    public String getServiceInstanceType() {
+      return serviceInstanceType;
+    }
+
+    public void setServiceInstanceType(String serviceInstanceType) {
+      this.serviceInstanceType = serviceInstanceType;
+    }
+
+    public String getComponentInstanceName() {
+      return componentInstanceName;
+    }
+
+    public void setComponentInstanceName(String componentInstanceName) {
+      this.componentInstanceName = componentInstanceName;
+    }
+
+    public String getComponentInstanceType() {
+      return componentInstanceType;
+    }
+
+    public void setComponentInstanceType(String componentInstanceType) {
+      this.componentInstanceType = componentInstanceType;
     }
 
     public String getHost() {
