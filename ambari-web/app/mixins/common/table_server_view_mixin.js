@@ -65,9 +65,8 @@ App.TableServerViewMixin = Em.Mixin.create({
    * @param iColumn
    * @param value
    * @param type
-   * @param preserveSelection
    */
-  updateFilter: function (iColumn, value, type, preserveSelection) {
+  updateFilter: function (iColumn, value, type) {
     // Do not even trigger update flow if it's a blank update
     if (this.isBlankFilterUpdate(iColumn, value, type)) { return; }
 
@@ -83,7 +82,7 @@ App.TableServerViewMixin = Em.Mixin.create({
       this.set('controller.resetStartIndex', true);
       //save filter only when it's applied
       this.saveFilterConditions(iColumn, value, type, false);
-      this.refresh(preserveSelection);
+      this.refresh();
     }
     return true;
   },

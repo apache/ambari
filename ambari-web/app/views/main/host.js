@@ -79,14 +79,11 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * request latest data filtered by new parameters
    * called when trigger property(<code>refreshTriggers</code>) is changed
    */
-  refresh: function (preserveSelection) {
+  refresh: function () {
     App.loadTimer.start('Hosts Page');
     this.set('filteringComplete', false);
     var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
     this.get('updater')[updaterMethodName](this.updaterSuccessCb.bind(this), this.updaterErrorCb.bind(this), true);
-    if (!preserveSelection) {
-      this.clearSelection();
-    }
     return true;
   },
 
@@ -283,7 +280,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   filterSelected: function() {
     //10 is an index of selected column
-    this.updateFilter(10, this.get('selectedHosts'), 'multiple', true);
+    this.updateFilter(10, this.get('selectedHosts'), 'multiple');
   },
 
   /**
