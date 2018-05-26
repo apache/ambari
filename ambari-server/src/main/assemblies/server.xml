@@ -426,6 +426,11 @@
     </file>
     <file>
       <fileMode>755</fileMode>
+      <source>src/main/resources/stacks/mpack_advisor.py</source>
+      <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/stacks/service_advisor.py</source>
       <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
     </file>

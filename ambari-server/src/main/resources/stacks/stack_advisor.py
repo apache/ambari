@@ -648,7 +648,8 @@ class DefaultStackAdvisor(StackAdvisor):
 
           if hasattr(service_advisor, best_class_name):
             self.logger.info("ServiceAdvisor implementation for service {0} was loaded".format(service_name))
-            return getattr(service_advisor, best_class_name)(DefaultStackAdvisor)
+            sa = getattr(service_advisor, best_class_name)
+            return sa()
           else:
             self.logger.error("Failed to load or create ServiceAdvisor implementation for service {0}: " \
                   "Expecting class name {1} but it was not found.".format(service_name, best_class_name))
