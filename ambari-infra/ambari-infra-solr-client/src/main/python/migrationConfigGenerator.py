@@ -88,7 +88,7 @@ def create_solr_api_request_command(request_url, user='infra-solr', kerberos_ena
   curl_prefix = "curl -k"
   if output is not None:
     curl_prefix+=" -o {0}".format(output)
-  api_cmd = '{0} kinit -kt {1} {2} && {3} --negotiate -u : "{4}"'.format(use_infra_solr_user, keytab, principal, curl_prefix, request_url) \
+  api_cmd = '{0} kinit -kt {1} {2} && {3} {4} --negotiate -u : "{5}"'.format(use_infra_solr_user, keytab, principal, use_infra_solr_user, curl_prefix, request_url) \
     if kerberos_enabled == 'true' else '{0} {1} "{2}"'.format(use_infra_solr_user, curl_prefix, request_url)
   return api_cmd
 
@@ -96,7 +96,7 @@ def get_random_solr_url(solr_urls):
   splitted_solr_urls = solr_urls.split(',')
   random_index = randrange(0, len(splitted_solr_urls))
   result = splitted_solr_urls[random_index]
-  logger.debug("Use {0} for request ...".format(result))
+  logger.debug("Use {0} for request.".format(result))
   return result
 
 def retry(func, *args, **kwargs):
@@ -106,7 +106,7 @@ def retry(func, *args, **kwargs):
   for r in range(retry_count):
     try:
       result = func(*args, **kwargs)
-      if result: return result
+      if result is not None: return result
     except Exception as e:
       logger.debug("Error occurred during {0} operation: {1}".format(context, str(traceback.format_exc())))
     logger.info("{0}: waiting for {1} seconds before retyring again (retry count: {2})".format(context, delay, r+1))
@@ -318,7 +318,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
     external_zk_connection_string = infra_solr_env_props['infra_solr_zookeeper_quorum'] if 'infra_solr_zookeeper_quorum' in infra_solr_env_props else default_zk_quorum
     if default_zk_quorum != external_zk_connection_string:
       print "Found external zk connection string: {0}".format(external_zk_connection_string)
-      config.set('infra_solr', 'external_zk_connection_string', external_zk_connection_string)
+      config.set('infra_solr', 'external_zk_connect_string', external_zk_connection_string)
     config.set('infra_solr', 'zk_principal_user', zk_principal_user)
 
   state_json_map = retry(get_state_json_map, solr_urls, infra_solr_user, security_enabled, infra_solr_kerberos_keytab, infra_solr_kerberos_principal, count=options.retry, delay=options.delay, context="Get clusterstate.json")
@@ -342,7 +342,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
           config.set('ranger_collection', 'ranger_collection_shards', coll_shard_map[ranger_collection_name])
         if ranger_collection_name in max_shards_map:
            config.set('ranger_collection', 'ranger_collection_max_shards_per_node', max_shards_map[ranger_collection_name])
-        config.set('ranger_collection', 'backup_ranger_config_set', 'old_ranger_audits')
+        config.set('ranger_collection', 'backup_ranger_config_set_name', 'old_ranger_audits')
         config.set('ranger_collection', 'backup_ranger_collection_name', 'old_ranger_audits')
         print 'Ranger Solr collection: ' + ranger_collection_name
         ranger_backup_path = None
@@ -362,6 +362,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
   if "ATLAS_SERVER" in installed_components and not options.skip_atlas:
     print "Service detected: " + colors.OKGREEN + "ATLAS" + colors.ENDC
     config.set('atlas_collections', 'enabled', 'true')
+    config.set('atlas_collections', 'config_set', 'atlas_configs')
     config.set('atlas_collections', 'fulltext_index_name', 'fulltext_index')
     config.set('atlas_collections', 'backup_fulltext_index_name', 'old_fulltext_index')
     if 'fulltext_index' in coll_shard_map:
