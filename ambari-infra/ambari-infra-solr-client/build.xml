@@ -41,6 +41,7 @@
       <fileset file="target/migrate/*.jar"/>
       <fileset file="target/package/libs/lucene-core-${solr.version}.jar"/>
       <fileset file="target/package/libs/lucene-backward-codecs-${solr.version}.jar"/>
+      <fileset file="src/main/resources/managed-schema"/>
     </copy>
     <copy todir="target/package" includeEmptyDirs="no">
       <fileset file="src/main/resources/solrCloudCli.sh"/>
