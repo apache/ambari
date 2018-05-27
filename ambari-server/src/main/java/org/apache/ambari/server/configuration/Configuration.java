@@ -544,6 +544,13 @@ public class Configuration {
       "security.server.cert_name", "ca.crt");
 
   /**
+   * The name of the file that contains the CA certificate chain for certificate validation during 2-way SSL communication.
+   */
+  @Markdown(description = "The name of the file located in the `security.server.keys_dir` directory containing the CA certificate chain used to verify certificates during 2-way SSL communications.")
+  public static final ConfigurationProperty<String> SRVR_CRT_CHAIN_NAME = new ConfigurationProperty<>(
+      "security.server.cert_chain_name", "ca_chain.pem");
+
+  /**
    * The name of the certificate request file used when generating certificates.
    */
   @Markdown(description = "The name of the certificate request file used when generating certificates.")
@@ -2726,6 +2733,7 @@ public class Configuration {
     configsMap.put(SRVR_ONE_WAY_SSL_PORT.getKey(), getProperty(SRVR_ONE_WAY_SSL_PORT));
     configsMap.put(SRVR_KSTR_DIR.getKey(), getProperty(SRVR_KSTR_DIR));
     configsMap.put(SRVR_CRT_NAME.getKey(), getProperty(SRVR_CRT_NAME));
+    configsMap.put(SRVR_CRT_CHAIN_NAME.getKey(), getProperty(SRVR_CRT_CHAIN_NAME));
     configsMap.put(SRVR_KEY_NAME.getKey(), getProperty(SRVR_KEY_NAME));
     configsMap.put(SRVR_CSR_NAME.getKey(), getProperty(SRVR_CSR_NAME));
     configsMap.put(KSTR_NAME.getKey(), getProperty(KSTR_NAME));
