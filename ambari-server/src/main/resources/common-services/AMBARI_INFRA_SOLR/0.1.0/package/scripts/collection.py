@@ -34,6 +34,7 @@ def backup_collection(env):
   Directory(command_commons.index_location,
             mode=0755,
             cd_access='a',
+            create_parents=True,
             owner=params.infra_solr_user,
             group=params.user_group
             )
