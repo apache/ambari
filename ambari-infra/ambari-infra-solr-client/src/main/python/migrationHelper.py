@@ -46,6 +46,7 @@ CLUSTERS_URL = '/api/v1/clusters/{0}'
 GET_HOSTS_COMPONENTS_URL = '/services/{0}/components/{1}?fields=host_components'
 
 REQUESTS_API_URL = '/requests'
+BATCH_REQUEST_API_URL = "/api/v1/clusters/{0}/request_schedules"
 
 LIST_SOLR_COLLECTION_URL = '{0}/admin/collections?action=LIST&wt=json'
 CREATE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=CREATE&name={1}&collection.configName={2}&numShards={3}&replicationFactor={4}&maxShardsPerNode={5}&wt=json'
@@ -216,6 +217,54 @@ def get_component_hosts(host_components_json):
       if 'HostRoles' in host_component:
         hosts.append(host_component['HostRoles']['host_name'])
   return hosts
+
+def create_batch_command(command, hosts, cluster, service_name, component_name, interval_seconds, fault_tolerance, context):
+  request_schedules = []
+  request_schedule = {}
+  batch = []
+  requests = []
+  order_id = 1
+  all = len(hosts)
+  for host in hosts:
+    request = {}
+    request['order_id'] = order_id
+    request['type'] = 'POST'
+    request['uri'] = "/clusters/{0}/requests".format(cluster)
+    request_body_info = {}
+    request_info = {}
+    request_info["context"] = context + " ({0} of {1})".format(order_id, all)
+    request_info["command"] = command
+
+    order_id = order_id + 1
+
+    resource_filter = {}
+    resource_filter["service_name"] = service_name
+    resource_filter["component_name"] = component_name
+    resource_filter["hosts"] = host
+
+    resource_filters = []
+    resource_filters.append(resource_filter)
+    request_body_info["Requests/resource_filters"] = resource_filters
+    request_body_info['RequestInfo'] = request_info
+
+    request['RequestBodyInfo'] = request_body_info
+    requests.append(request)
+  batch_requests_item = {}
+  batch_requests_item['requests'] = requests
+  batch.append(batch_requests_item)
+  batch_settings_item = {}
+  batch_settings = {}
+  batch_settings['batch_separation_in_seconds'] = interval_seconds
+  batch_settings['task_failure_tolerance'] = fault_tolerance
+  batch_settings_item['batch_settings'] = batch_settings
+  batch.append(batch_settings_item)
+  request_schedule['batch'] = batch
+
+  request_schedule_item = {}
+  request_schedule_item['RequestSchedule'] = request_schedule
+  request_schedules.append(request_schedule_item)
+
+  return request_schedules
 
 def create_command_request(command, parameters, hosts, cluster, context):
   request = {}
@@ -854,10 +903,19 @@ def validate_ini_file(options, parser):
     print 'ini file ({0}) does not exist'.format(options.ini_file)
     sys.exit(1)
 
+def rolling_restart_solr(options, accessor, parser, config):
+  cluster = config.get('ambari_server', 'cluster')
+  component_hosts = get_solr_hosts(options, accessor, cluster)
+  interval_secs = options.batch_interval
+  fault_tolerance = options.batch_fault_tolerance
+  request_body = create_batch_command("RESTART", component_hosts, cluster, "AMBARI_INFRA_SOLR", "INFRA_SOLR", interval_secs, fault_tolerance, "Rolling restart Infra Solr Instances")
+  post_json(accessor, BATCH_REQUEST_API_URL.format(cluster), request_body)
+  print "Rolling Restart Infra Solr Instances request sent. (check Ambari UI about the requests)"
+
 if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
 
-  parser.add_option("-a", "--action", dest="action", type="string", help="delete-collections | backup | cleanup-znodes | backup-and-cleanup | restore | migrate ")
+  parser.add_option("-a", "--action", dest="action", type="string", help="delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore | rolling-restart-solr")
   parser.add_option("-i", "--ini-file", dest="ini_file", type="string", help="Config ini file to parse (required)")
   parser.add_option("-f", "--force", dest="force", default=False, action="store_true", help="force index upgrade even if it's the right version")
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="use for verbose logging")
@@ -880,7 +938,8 @@ if __name__=="__main__":
   parser.add_option("--skip-generate-restore-host-cores", dest="skip_generate_restore_host_cores", default=False, action="store_true", help="Skip the generation of restore_host_cores.json, just read the file itself, can be useful if command failed at some point.")
   parser.add_option("--solr-hdfs-path", dest="solr_hdfs_path", type="string", default=None, help="Base path of Solr (where collections are located) if HDFS is used (like /user/infra-solr)")
   parser.add_option("--solr-keep-backup", dest="solr_keep_backup", default=False, action="store_true", help="If it is turned on, Snapshot Solr data will not be deleted from the filesystem during restore.")
-
+  parser.add_option("--batch-interval", dest="batch_interval", type="int", default=60 ,help="batch time interval (seconds) between requests (for restarting INFRA SOLR, default: 60)")
+  parser.add_option("--batch-fault-tolerance", dest="batch_fault_tolerance", type="int", default=0 ,help="fault tolerance of tasks for batch request (for restarting INFRA SOLR, default: 0)")
   (options, args) = parser.parse_args()
 
   set_log_level(options.verbose)
@@ -927,9 +986,11 @@ if __name__=="__main__":
         reload_collections(options, accessor, parser, config, service_filter)
       elif options.action.lower() == 'migrate':
         migrate_snapshots(options, accessor, parser, config, service_filter)
+      elif options.action.lower() == 'rolling-restart-solr':
+        rolling_restart_solr(options, accessor, parser, config)
       else:
         parser.print_help()
-        print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | restore | migrate)'
+        print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore | rolling-restart-solr)'
         sys.exit(1)
 
       print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
