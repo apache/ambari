@@ -298,6 +298,10 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
   config.add_section('local')
   config.set('local', 'java_home', options.java_home)
   config.set('local', 'hostname', host)
+  if options.shared_drive:
+    config.set('local', 'shared_drive', 'true')
+  else:
+    config.set('local', 'shared_drive', 'false')
 
   config.add_section('cluster')
   config.set('cluster', 'kerberos_enabled', security_enabled)
@@ -347,12 +351,16 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
         print 'Ranger Solr collection: ' + ranger_collection_name
         ranger_backup_path = None
         if options.backup_base_path:
-          ranger_backup_path = "{0}/ranger".format(options.backup_base_path)
+          ranger_backup_path = os.path.join(options.backup_base_path, "ranger")
         elif options.backup_ranger_base_path:
           ranger_backup_path = options.backup_ranger_base_path
         if ranger_backup_path is not None:
           config.set('ranger_collection', 'backup_path', ranger_backup_path)
           print 'Ranger backup path: ' + ranger_backup_path
+        if options.ranger_hdfs_base_path:
+          config.set('ranger_collection', 'hdfs_base_path', options.ranger_hdfs_base_path)
+        elif options.hdfs_base_path:
+          config.set('ranger_collection', 'hdfs_base_path', options.hdfs_base_path)
     else:
       config.set('ranger_collection', 'enabled', 'false')
   else:
@@ -384,12 +392,16 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
     print 'Atlas Solr collections: fulltext_index, edge_index, vertex_index'
     atlas_backup_path = None
     if options.backup_base_path:
-      atlas_backup_path = "{0}/atlas".format(options.backup_base_path)
+      atlas_backup_path = os.path.join(options.backup_base_path, "atlas")
     elif options.backup_ranger_base_path:
       atlas_backup_path = options.backup_atlas_base_path
     if atlas_backup_path is not None:
       config.set('atlas_collections', 'backup_path', atlas_backup_path)
       print 'Atlas backup path: ' + atlas_backup_path
+    if options.atlas_hdfs_base_path:
+      config.set('atlas_collections', 'hdfs_base_path', options.atlas_hdfs_base_path)
+    elif options.hdfs_base_path:
+      config.set('atlas_collections', 'hdfs_base_path', options.hdfs_base_path)
   else:
     config.set('atlas_collections', 'enabled', 'false')
 
@@ -454,10 +466,14 @@ if __name__=="__main__":
     parser.add_option("--backup-base-path", dest="backup_base_path", default=None, type="string", help="base path for backup, e.g.: /tmp/backup, then /tmp/backup/ranger/ and /tmp/backup/atlas/ folders will be generated")
     parser.add_option("--backup-ranger-base-path", dest="backup_ranger_base_path", default=None, type="string", help="base path for ranger backup, e.g.: /tmp/backup/ranger")
     parser.add_option("--backup-atlas-base-path", dest="backup_atlas_base_path", default=None, type="string", help="base path for backup, e.g.: /tmp/backup/atlas")
+    parser.add_option("--hdfs-base-path", dest="hdfs_base_path", default=None, type="string", help="hdfs base path where the collections are located (e.g.: /user/infrasolr). Use if both atlas and ranger collections are on hdfs.")
+    parser.add_option("--ranger-hdfs-base-path", dest="ranger_hdfs_base_path", default=None, type="string", help="hdfs base path where the ranger collection is located (e.g.: /user/infra-solr). Use if only ranger collection is on hdfs.")
+    parser.add_option("--atlas-hdfs-base-path", dest="atlas_hdfs_base_path", default=None, type="string", help="hdfs base path where the atlas collections are located (e.g.: /user/infra-solr). Use if only atlas collections are on hdfs.")
     parser.add_option("--skip-atlas", dest="skip_atlas", action="store_true", default=False, help="skip to gather Atlas service details")
     parser.add_option("--skip-ranger", dest="skip_ranger", action="store_true", default=False, help="skip to gather Ranger service details")
     parser.add_option("--retry", dest="retry", type="int", default=10, help="number of retries during accessing random solr urls")
     parser.add_option("--delay", dest="delay", type="int", default=5, help="delay (seconds) between retries during accessing random solr urls")
+    parser.add_option("--shared-drive", dest="shared_drive", default=False, action="store_true", help="Use if the backup location is shared between hosts.")
 
     (options, args) = parser.parse_args()
 

@@ -309,7 +309,7 @@ def create_command_request(command, parameters, hosts, cluster, context):
   request["Requests/resource_filters"] = resource_filters
   return request
 
-def fill_parameters(options, collection, index_location, shards=None):
+def fill_parameters(options, config, collection, index_location, hdfs_path=None, shards=None):
   params = {}
   if collection:
     params['solr_collection'] = collection
@@ -334,9 +334,13 @@ def fill_parameters(options, collection, index_location, shards=None):
     params['solr_skip_cores'] = options.skip_cores
   if shards:
     params['solr_shards'] = shards
-  if options.solr_hdfs_path: # TODO get from ini file + had=ndle shared_fs value
-    params['solr_hdfs_path'] = options.solr_hdfs_path
-  if options.solr_keep_backup:
+  if options.shared_drive:
+    params['solr_shared_fs'] = True
+  elif config.has_section('local') and config.has_option('local', 'shared_drive') and config.get('local', 'shared_drive') == 'true':
+    params['solr_shared_fs'] = True
+  if hdfs_path:
+    params['solr_hdfs_path'] = hdfs_path
+  if options.keep_backup:
     params['solr_keep_backup'] = True
   if options.skip_generate_restore_host_cores:
     params['solr_skip_generate_restore_host_cores'] = True
@@ -371,14 +375,14 @@ def get_solr_hosts(options, accessor, cluster):
         component_hosts.remove(exclude_host)
   return component_hosts
 
-def restore(options, accessor, parser, config, collection, index_location, shards):
+def restore(options, accessor, parser, config, collection, index_location, hdfs_path, shards):
   """
   Send restore solr collection custom command request to ambari-server
   """
   cluster = config.get('ambari_server', 'cluster')
 
   component_hosts = get_solr_hosts(options, accessor, cluster)
-  parameters = fill_parameters(options, collection, index_location, shards)
+  parameters = fill_parameters(options, config, collection, index_location, hdfs_path, shards)
 
   cmd_request = create_command_request("RESTORE", parameters, component_hosts, cluster, 'Restore Solr Collection: ' + collection)
   return post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
@@ -390,7 +394,7 @@ def migrate(options, accessor, parser, config, collection, index_location):
   cluster = config.get('ambari_server', 'cluster')
 
   component_hosts = get_solr_hosts(options, accessor, cluster)
-  parameters = fill_parameters(options, collection, index_location)
+  parameters = fill_parameters(options, config, collection, index_location)
 
   cmd_request = create_command_request("MIGRATE", parameters, component_hosts, cluster, 'Migrating Solr Collection: ' + collection)
   return post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
@@ -402,7 +406,7 @@ def backup(options, accessor, parser, config, collection, index_location):
   cluster = config.get('ambari_server', 'cluster')
 
   component_hosts = get_solr_hosts(options, accessor, cluster)
-  parameters = fill_parameters(options, collection, index_location)
+  parameters = fill_parameters(options, config, collection, index_location)
 
   cmd_request = create_command_request("BACKUP", parameters, component_hosts, cluster, 'Backup Solr Collection: ' + collection)
   return post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
@@ -451,6 +455,18 @@ def get_solr_urls(config):
   if config.has_section('infra_solr') and config.has_option('infra_solr', 'urls'):
     return config.get('infra_solr', 'urls')
   return solr_urls
+
+def is_atlas_available(config, service_filter):
+  return 'ATLAS' in service_filter and config.has_section('atlas_collections') \
+    and config.has_option('atlas_collections', 'enabled') and config.get('atlas_collections', 'enabled') == 'true'
+
+def is_ranger_available(config, service_filter):
+  return 'RANGER' in service_filter and config.has_section('ranger_collection') \
+    and config.has_option('ranger_collection', 'enabled') and config.get('ranger_collection', 'enabled') == 'true'
+
+def is_logsearch_available(config, service_filter):
+  return 'LOGSEARCH' in service_filter and config.has_section('logsearch_collections') \
+    and config.has_option('logsearch_collections', 'enabled') and config.get('logsearch_collections', 'enabled') == 'true'
 
 def delete_collection(options, config, collection, solr_urls):
   request = DELETE_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls, options), collection)
@@ -683,11 +699,11 @@ def do_migrate_request(options, accessor, parser, config, collection, index_loca
     monitor_request(options, accessor, cluster, request_id, 'Migrate Solr collection index: ' + collection)
     print "Migrate index '{0}'... {1}DONE{2}".format(collection, colors.OKGREEN, colors.ENDC)
 
-def do_restore_request(options, accessor, parser, config, collection, index_location, shards):
+def do_restore_request(options, accessor, parser, config, collection, index_location, shards, hdfs_path):
   sys.stdout.write("Sending restore collection request ('{0}') to Ambari to process (backup location: '{1}')..."
                    .format(collection, index_location))
   sys.stdout.flush()
-  response = restore(options, accessor, parser, config, collection, index_location, shards)
+  response = restore(options, accessor, parser, config, collection, index_location, hdfs_path, shards)
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
@@ -856,22 +872,35 @@ def restore_collections(options, accessor, parser, config, service_filter):
     and config.get('ranger_collection', 'enabled') == 'true':
     collection_name = config.get('ranger_collection', 'ranger_collection_name')
     backup_ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name')
+
+    hdfs_base_path = None
+    if options.ranger_hdfs_base_path:
+      hdfs_base_path = options.ranger_hdfs_base_path
+    elif options.hdfs_base_path:
+      hdfs_base_path = options.hdfs_base_path
+    elif config.has_option('ranger_collection', 'hdfs_base_path'):
+      hdfs_base_path = config.get('ranger_collection', 'hdfs_base_path')
     if backup_ranger_collection in collections:
       backup_ranger_shards = config.get('ranger_collection', 'ranger_collection_shards')
       ranger_index_location=get_ranger_index_location(collection_name, config, options)
-      do_restore_request(options, accessor, parser, config, backup_ranger_collection, ranger_index_location, backup_ranger_shards)
+      do_restore_request(options, accessor, parser, config, backup_ranger_collection, ranger_index_location, backup_ranger_shards, hdfs_base_path)
     else:
       print "Collection ('{0}') does not exist or filtered out. Skipping restore operation.".format(backup_ranger_collection)
 
-  if 'ATLAS' in service_filter and config.has_section('atlas_collections') \
-    and config.has_option('atlas_collections', 'enabled') and config.get('atlas_collections', 'enabled') == 'true':
-
+  if is_atlas_available(config, service_filter):
+    hdfs_base_path = None
+    if options.ranger_hdfs_base_path:
+      hdfs_base_path = options.atlas_hdfs_base_path
+    elif options.hdfs_base_path:
+      hdfs_base_path = options.hdfs_base_path
+    elif config.has_option('atlas_collections', 'hdfs_base_path'):
+      hdfs_base_path = config.get('atlas_collections', 'hdfs_base_path')
     fulltext_index_collection = config.get('atlas_collections', 'fulltext_index_name')
     backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
     if backup_fulltext_index_name in collections:
       backup_fulltext_index_shards = config.get('atlas_collections', 'fulltext_index_shards')
       fulltext_index_location=get_atlas_index_location(fulltext_index_collection, config, options)
-      do_restore_request(options, accessor, parser, config, backup_fulltext_index_name, fulltext_index_location, backup_fulltext_index_shards)
+      do_restore_request(options, accessor, parser, config, backup_fulltext_index_name, fulltext_index_location, backup_fulltext_index_shards, hdfs_base_path)
     else:
       print "Collection ('{0}') does not exist or filtered out. Skipping restore operation.".format(fulltext_index_collection)
 
@@ -880,7 +909,7 @@ def restore_collections(options, accessor, parser, config, service_filter):
     if backup_edge_index_name in collections:
       backup_edge_index_shards = config.get('atlas_collections', 'edge_index_shards')
       edge_index_location=get_atlas_index_location(edge_index_collection, config, options)
-      do_restore_request(options, accessor, parser, config, backup_edge_index_name, edge_index_location, backup_edge_index_shards)
+      do_restore_request(options, accessor, parser, config, backup_edge_index_name, edge_index_location, backup_edge_index_shards, hdfs_base_path)
     else:
       print "Collection ('{0}') does not exist or filtered out. Skipping restore operation.".format(edge_index_collection)
 
@@ -889,7 +918,7 @@ def restore_collections(options, accessor, parser, config, service_filter):
     if backup_vertex_index_name in collections:
       backup_vertex_index_shards = config.get('atlas_collections', 'vertex_index_shards')
       vertex_index_location=get_atlas_index_location(vertex_index_collection, config, options)
-      do_restore_request(options, accessor, parser, config, backup_vertex_index_name, vertex_index_location, backup_vertex_index_shards)
+      do_restore_request(options, accessor, parser, config, backup_vertex_index_name, vertex_index_location, backup_vertex_index_shards, hdfs_base_path)
     else:
       print "Collection ('{0}') does not exist or filtered out. Skipping restore operation.".format(vertex_index_collection)
 
@@ -959,17 +988,19 @@ if __name__=="__main__":
   parser.add_option("--request-tries", dest="request_tries", type="int", help="number of tries for BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-time-interval", dest="request_time_interval", type="int", help="time interval between BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-async", dest="request_async", action="store_true", default=False, help="skip BACKUP/RESTORE status api calls from the command")
-  parser.add_option("--shared-fs", dest="shared_fs", action="store_true", default=False, help="shared fs for storing backup (will create index location to <path><hostname>)")
   parser.add_option("--include-solr-hosts", dest="include_solr_hosts", type="string", help="comma separated list of included solr hosts")
   parser.add_option("--exclude-solr-hosts", dest="exclude_solr_hosts", type="string", help="comma separated list of excluded solr hosts")
   parser.add_option("--disable-solr-host-check", dest="disable_solr_host_check", action="store_true", default=False, help="Disable to check solr hosts are good for the collection backups")
   parser.add_option("--core-filter", dest="core_filter", default=None, type="string", help="core filter for replica folders")
   parser.add_option("--skip-cores", dest="skip_cores", default=None, type="string", help="specific cores to skip (comma separated)")
   parser.add_option("--skip-generate-restore-host-cores", dest="skip_generate_restore_host_cores", default=False, action="store_true", help="Skip the generation of restore_host_cores.json, just read the file itself, can be useful if command failed at some point.")
-  parser.add_option("--solr-hdfs-path", dest="solr_hdfs_path", type="string", default=None, help="Base path of Solr (where collections are located) if HDFS is used (like /user/infra-solr)")
-  parser.add_option("--solr-keep-backup", dest="solr_keep_backup", default=False, action="store_true", help="If it is turned on, Snapshot Solr data will not be deleted from the filesystem during restore.")
+  parser.add_option("--hdfs-base-path", dest="hdfs_base_path", default=None, type="string", help="hdfs base path where the collections are located (e.g.: /user/infrasolr). Use if both atlas and ranger collections are on hdfs.")
+  parser.add_option("--ranger-hdfs-base-path", dest="ranger_hdfs_base_path", default=None, type="string", help="hdfs base path where the ranger collection is located (e.g.: /user/infra-solr). Use if only ranger collection is on hdfs.")
+  parser.add_option("--atlas-hdfs-base-path", dest="atlas_hdfs_base_path", default=None, type="string", help="hdfs base path where the atlas collections are located (e.g.: /user/infra-solr). Use if only atlas collections are on hdfs.")
+  parser.add_option("--keep-backup", dest="keep_backup", default=False, action="store_true", help="If it is turned on, Snapshot Solr data will not be deleted from the filesystem during restore.")
   parser.add_option("--batch-interval", dest="batch_interval", type="int", default=60 ,help="batch time interval (seconds) between requests (for restarting INFRA SOLR, default: 60)")
   parser.add_option("--batch-fault-tolerance", dest="batch_fault_tolerance", type="int", default=0 ,help="fault tolerance of tasks for batch request (for restarting INFRA SOLR, default: 0)")
+  parser.add_option("--shared-drive", dest="shared_drive", default=False, action="store_true", help="Use if the backup location is shared between hosts. (override config from config ini file)")
   (options, args) = parser.parse_args()
 
   set_log_level(options.verbose)
