@@ -302,7 +302,6 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var controller = router.get('reassignMasterController');
       controller.finish();
-      controller.get('popup').hide();
       App.clusterStatus.setClusterStatus({
         clusterName: router.get('reassignMasterController.content.cluster.name'),
         clusterState: 'DEFAULT',

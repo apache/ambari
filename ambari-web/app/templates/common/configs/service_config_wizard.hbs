@@ -80,7 +80,7 @@
 
 {{#if view.supportsConfigLayout}}
   {{#unless view.hideTabHeaders}}
-    <ul {{bindAttr class=":nav :nav-tabs :mbm view.supportsHostOverrides:with-overrides"}}>
+    <ul {{bindAttr class=":nav :nav-tabs :mbm view.supportsHostOverrides:with-overrides controller.isInstallWizard:clear"}}>
       {{#each tab in view.tabs}}
         {{#unless tab.isHidden}}
           <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>

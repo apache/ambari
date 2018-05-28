@@ -19,6 +19,10 @@ PIDFILE=/var/run/ambari-metrics-collector/ambari-metrics-collector.pid
 OUTFILE=/var/log/ambari-metrics-collector/ambari-metrics-collector.out
 STARTUPFILE=/var/log/ambari-metrics-collector/ambari-metrics-collector-startup.out
 
+
+UPGRADE_PIDFILE=/var/run/ambari-metrics-collector/ambari-metrics-collector_upgrade.pid
+UPGRADE_LOGFILE=ambari-metrics-migration.log
+
 HBASE_ZK_PID=/var/run/ams-hbase/hbase-${USER}-zookeeper.pid
 HBASE_MASTER_PID=/var/run/ams-hbase/hbase-${USER}-master.pid
 HBASE_RS_PID=/var/run/ams-hbase/hbase-${USER}-regionserver.pid
@@ -309,6 +313,60 @@ function start()
     fi
   }
 
+function start_upgrade()
+{
+  hadoop_java_setup
+
+	CLASS='org.apache.ambari.metrics.core.timeline.upgrade.core.MetricsDataMigrationLauncher'
+
+  daemon_status "${UPGRADE_PIDFILE}"
+  if [[ $? == 0  ]]; then
+    echo "Metrics data migration is already running as process $(cat "${UPGRADE_PIDFILE}"). Exiting"
+    exit 0
+  else
+    # stale pid file, so just remove it and continue on
+    rm -f "${UPGRADE_PIDFILE}" >/dev/null 2>&1
+  fi
+
+  #get rid of the first command argument and pass the rest to java
+  shift
+  nohup "${JAVA}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}:${COLLECTOR_ADDITIONAL_CLASSPATH}" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dams.log.file=${UPGRADE_LOGFILE}" "${CLASS}" "${AMS_COLLECTOR_LOG_DIR}/ambari-metrics-migration-state.txt" "$@" > $OUTFILE 2>&1 &
+  PID=$!
+  write_pidfile "${UPGRADE_PIDFILE}"
+  sleep 1
+
+  echo "Verifying metrics data migration process status..."
+  if [ -z "`ps ax | grep -w ${PID} | grep MetricsDataMigrationLauncher`" ]; then
+    echo "ERROR: metrics data migration start failed. For more details, see ${AMS_COLLECTOR_LOG_DIR}/${UPGRADE_LOGFILE}:"
+    exit -1
+  fi
+
+  echo "$(date) Metrics data migration successfully started."
+  }
+
+function stop_upgrade()
+{
+  pidfile=${UPGRADE_PIDFILE}
+
+  if [[ -f "${pidfile}" ]]; then
+    pid=$(cat "$pidfile")
+
+    kill "${pid}" >/dev/null 2>&1
+    sleep "${STOP_TIMEOUT}"
+
+    if kill -0 "${pid}" > /dev/null 2>&1; then
+      echo "WARNING: Metrics data migration did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
+      kill -9 "${pid}" >/dev/null 2>&1
+    fi
+
+    if ps -p "${pid}" > /dev/null 2>&1; then
+      echo "ERROR: Unable to kill ${pid}"
+    else
+      rm -f "${pidfile}" >/dev/null 2>&1
+    fi
+  fi
+}
+
 function stop()
 {
   pidfile=${PIDFILE}
@@ -402,6 +460,16 @@ case "$1" in
 
 	start)
     start
+
+    ;;
+
+    upgrade_start)
+    start_upgrade "$@"
+
+    ;;
+
+    upgrade_stop)
+    stop_upgrade
 
     ;;
 	stop)

@@ -174,10 +174,6 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
     }
     this.separateSelections();
     this.selectedItemChange.emit(item);
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
   }
 
   doItemsCheck() {

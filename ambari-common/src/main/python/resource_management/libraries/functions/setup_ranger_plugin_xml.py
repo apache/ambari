@@ -223,15 +223,26 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
     mode = 0640
   )
 
-def setup_configuration_file_for_required_plugins(component_user, component_group, create_core_site_path, configurations = {}, configuration_attributes = {}, file_name='core-site.xml'):
+def setup_configuration_file_for_required_plugins(component_user, component_group, create_core_site_path,
+                                                  configurations={}, configuration_attributes={}, file_name='core-site.xml',
+                                                  xml_include_file=None, xml_include_file_content=None):
   XmlConfig(file_name,
     conf_dir = create_core_site_path,
     configurations = configurations,
     configuration_attributes = configuration_attributes,
     owner = component_user,
     group = component_group,
-    mode = 0644
+    mode = 0644,
+    xml_include_file = xml_include_file
   )
+
+  if xml_include_file_content:
+    File(xml_include_file,
+         owner=component_user,
+         group=component_group,
+         content=xml_include_file_content
+         )
+
 
 def get_audit_configs(config):
   xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR'].lower()

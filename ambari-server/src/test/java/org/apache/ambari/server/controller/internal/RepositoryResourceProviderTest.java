@@ -59,7 +59,8 @@ public class RepositoryResourceProviderTest {
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, VAL_DISTRIBUTION, VAL_COMPONENT_NAME, null, null, Collections.<RepoTag>emptySet());
+        VAL_REPO_ID, VAL_REPO_NAME, VAL_DISTRIBUTION, VAL_COMPONENT_NAME, null, null,
+      Collections.<RepoTag>emptySet(), Collections.emptyList());
     rr.setStackName(VAL_STACK_NAME);
     rr.setStackVersion(VAL_STACK_VERSION);
     Set<RepositoryResponse> allResponse = new HashSet<>();
@@ -171,7 +172,8 @@ public class RepositoryResourceProviderTest {
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null, null, null, null , Collections.<RepoTag>emptySet());
+      VAL_REPO_ID, VAL_REPO_NAME, null, null, null, null ,
+      Collections.<RepoTag>emptySet(), Collections.emptyList());
     Set<RepositoryResponse> allResponse = new HashSet<>();
     allResponse.add(rr);
 

@@ -42,14 +42,21 @@ def migrate_index(env):
   if command_commons.core_filter is not None:
     index_migrate_cmd+=format(" -c {core_filter}")
 
+  deleted_write_locks=[]
   if command_commons.delete_lock_on_start:
     Logger.info(format("Remove write.lock files from folder '{index_location}'"))
     for write_lock_file in command_commons.get_files_by_pattern(format("{index_location}"), 'write.lock'):
       File(write_lock_file, action="delete")
+      deleted_write_locks.append(write_lock_file)
   else:
     Logger.info("Skip removing write.lock files")
 
   Logger.info(format("Migrate index at location: {index_location}"))
   # It can generate a write.lock file
   Execute(index_migrate_cmd, user=params.infra_solr_user, environment={'JAVA_HOME': params.java64_home}, logoutput=command_commons.log_output)
+
+  if command_commons.delete_lock_on_start:
+    for write_lock_file in deleted_write_locks:
+      Logger.info(format("Put '{write_lock_file}' file back"))
+      File(write_lock_file, action="create", mode = 0644, owner=params.infra_solr_user, group=params.user_group, not_if=format("test -f {write_lock_file}"))
 

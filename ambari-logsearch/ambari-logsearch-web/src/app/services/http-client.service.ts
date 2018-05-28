@@ -171,7 +171,7 @@ export class HttpClientService extends Http {
       }
       return handled;
     };
-    return super.request(this.generateUrl(url), options).first()
+    return super.request(this.generateUrl(url), options).first().share()
       .map(response => response)
       .catch((error: any) => {
         return handleResponseError(error) ? Observable.of(error) : Observable.throw(error);

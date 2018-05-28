@@ -27,6 +27,6 @@ import org.apache.ambari.metrics.core.timeline.discovery.TimelineMetricMetadataM
 
 public interface TimelineMetricDistributedCache {
   Map<TimelineClusterMetric, MetricClusterAggregate> evictMetricAggregates(Long startTime, Long endTime);
-  void putMetrics(Collection<TimelineMetric> elements, TimelineMetricMetadataManager metricMetadataManager);
+  void putMetrics(Collection<TimelineMetric> elements);
   Map<String, Double> getPointInTimeCacheMetrics();
 }

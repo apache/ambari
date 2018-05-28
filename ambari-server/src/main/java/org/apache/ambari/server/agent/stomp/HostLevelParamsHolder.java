@@ -18,6 +18,7 @@
 package org.apache.ambari.server.agent.stomp;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
@@ -30,6 +31,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.commons.collections.MapUtils;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -55,9 +57,16 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   @Override
   public HostLevelParamsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
+    return getCurrentDataExcludeCluster(hostId, null);
+  }
+
+  public HostLevelParamsUpdateEvent getCurrentDataExcludeCluster(Long hostId, Long clusterId) throws AmbariException {
     TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
     Host host = clusters.getHostById(hostId);
     for (Cluster cl : clusters.getClustersForHost(host.getHostName())) {
+      if (clusterId != null && cl.getClusterId() == clusterId) {
+        continue;
+      }
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
           m_ambariManagementController.get().retrieveHostRepositories(cl, host),
           recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()));
@@ -71,9 +80,36 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   }
 
   protected boolean handleUpdate(HostLevelParamsUpdateEvent update) throws AmbariException {
-    //TODO implement update host level params process
-    setData(update, update.getHostId());
-    return true;
+    boolean changed = false;
+    if (MapUtils.isNotEmpty(update.getHostLevelParamsClusters())) {
+      Long hostId = update.getHostId();
+      for (Map.Entry<String, HostLevelParamsCluster> hostLevelParamsClusterEntry : update.getHostLevelParamsClusters().entrySet()) {
+        HostLevelParamsCluster updatedCluster = hostLevelParamsClusterEntry.getValue();
+        String clusterId = hostLevelParamsClusterEntry.getKey();
+        Map<String, HostLevelParamsCluster> clusters = getData().get(hostId).getHostLevelParamsClusters();
+        if (clusters.containsKey(clusterId)) {
+          HostLevelParamsCluster cluster = clusters.get(clusterId);
+          if (!cluster.getRecoveryConfig().equals(updatedCluster.getRecoveryConfig())) {
+            cluster.setRecoveryConfig(updatedCluster.getRecoveryConfig());
+            changed = true;
+          }
+          if (!cluster.getHostRepositories().getRepositories()
+              .equals(updatedCluster.getHostRepositories().getRepositories())) {
+            cluster.getHostRepositories().setRepositories(updatedCluster.getHostRepositories().getRepositories());
+            changed = true;
+          }
+          if (!cluster.getHostRepositories().getComponentRepos()
+              .equals(updatedCluster.getHostRepositories().getComponentRepos())) {
+            cluster.getHostRepositories().setComponentRepos(updatedCluster.getHostRepositories().getComponentRepos());
+            changed = true;
+          }
+        } else {
+          clusters.put(clusterId, updatedCluster);
+          changed = true;
+        }
+      }
+    }
+    return changed;
   }
 
   @Override

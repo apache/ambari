@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,40 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.utils.hdfs;
+package org.apache.ambari.metrics.core.timeline.uuid;
 
-import org.apache.hadoop.fs.FileStatus;
+import java.util.Arrays;
 
-public abstract class DummyNonHdfsFileStatus extends FileStatus {
+public class TimelineMetricUuid {
+  public byte[] uuid;
+
+  public TimelineMetricUuid(byte[] uuid) {
+    this.uuid = uuid;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(uuid);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+
+    if (this == o) {
+      return false;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    TimelineMetricUuid that = (TimelineMetricUuid) o;
+
+    return Arrays.equals(this.uuid, that.uuid);
+  }
+
+  @Override
+  public String toString() {
+    return Arrays.toString(uuid);
+  }
 }

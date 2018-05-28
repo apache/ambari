@@ -47,6 +47,7 @@ import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
@@ -380,7 +381,7 @@ public class ClustersImpl implements Clusters {
     TopologyCluster addedCluster = new TopologyCluster();
     addedClusters.put(Long.toString(cluster.getClusterId()), addedCluster);
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedClusters,
-        TopologyUpdateEvent.EventType.UPDATE);
+        UpdateEventType.UPDATE);
     m_topologyHolder.get().updateData(topologyUpdateEvent);
     m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadata(cluster));
   }
@@ -528,6 +529,7 @@ public class ClustersImpl implements Clusters {
     // the hosts by ID map is updated separately since the host has not yet
     // been persisted yet - the below event is what causes the persist
     getHostsByName().put(hostname, host);
+    getHostsById().put(host.getHostId(), host);
 
     getHostClustersMap().put(hostname,
         Collections.newSetFromMap(new ConcurrentHashMap<>()));
@@ -830,10 +832,10 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames) throws AmbariException {
+  public void publishHostsDeletion(Set<Long> hostIds, Set<String> hostNames) throws AmbariException {
     // Publish the event, using the original list of clusters that the host
     // belonged to
-    HostsRemovedEvent event = new HostsRemovedEvent(hostNames, clusters);
+    HostsRemovedEvent event = new HostsRemovedEvent(hostNames, hostIds);
     eventPublisher.publish(event);
   }
 

@@ -695,6 +695,55 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertEquals(2, commandRepo.getRepositories().size());
   }
 
+  /**
+   * Tests that when {@link ActionExecutionContext#isFutureCommand()} is set, invalid
+   * hosts/components are still scheduled.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testFutureCommandsPassValidation() throws Exception {
+    // make sure the component isn't added to the cluster yet
+    String serviceName = "YARN";
+    String componentName = "YARN_FOO";
+    Cluster cluster = clusters.getCluster("c1");
+    Service service = cluster.getService(serviceName);
+    try {
+      service.getServiceComponent(componentName);
+      Assert.fail("For this test to work, the YARN_FOO component must not be in the cluster yet");
+    } catch (AmbariException ambariException) {
+      // expected
+    }
+
+    AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+
+    List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
+        add(new RequestResourceFilter(serviceName, componentName,
+            Collections.singletonList("c1-c6401")));
+    }};
+
+    ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "RESTART", requestResourceFilter);
+    actionExecutionContext.setIsFutureCommand(true);
+
+    Stage stage = EasyMock.niceMock(Stage.class);
+    ExecutionCommandWrapper execCmdWrapper = EasyMock.niceMock(ExecutionCommandWrapper.class);
+    ExecutionCommand execCmd = EasyMock.niceMock(ExecutionCommand.class);
+
+    EasyMock.expect(stage.getClusterName()).andReturn("c1");
+
+    EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6401"), EasyMock.anyString())).andReturn(execCmdWrapper);
+    EasyMock.expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
+    EasyMock.expectLastCall();
+
+    HashSet<String> localComponents = new HashSet<>();
+    EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
+    EasyMock.replay(configHelper, stage, execCmdWrapper, execCmd);
+
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
+
+    EasyMock.verify(configHelper, stage, execCmdWrapper, execCmd);
+  }
+
   private void createClusterFixture(String clusterName, StackId stackId,
     String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
 

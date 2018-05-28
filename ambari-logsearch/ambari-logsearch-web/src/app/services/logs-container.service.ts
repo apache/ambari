@@ -60,7 +60,7 @@ import {CommonEntry} from '@app/classes/models/common-entry';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
-import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsFilteringUtilsService, timeRangeFilterOptions} from '@app/services/logs-filtering-utils.service';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {LogLevelComponent} from '@app/components/log-level/log-level.component';
@@ -115,236 +115,19 @@ export class LogsContainerService {
     clusters: {
       label: 'filter.clusters',
       options: [],
-      defaultSelection: [],
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.clusters,
       fieldName: 'cluster'
     },
     timeRange: { // @ToDo remove duplication, this options are in the LogsFilteringUtilsService too
       label: 'logs.duration',
-      options: [
-        [
-          {
-            label: 'filter.timeRange.7d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 7
-            }
-          },
-          {
-            label: 'filter.timeRange.30d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 30
-            }
-          },
-          {
-            label: 'filter.timeRange.60d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 60
-            }
-          },
-          {
-            label: 'filter.timeRange.90d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 90
-            }
-          },
-          {
-            label: 'filter.timeRange.6m',
-            value: {
-              type: 'LAST',
-              unit: 'M',
-              interval: 6
-            }
-          },
-          {
-            label: 'filter.timeRange.1y',
-            value: {
-              type: 'LAST',
-              unit: 'y',
-              interval: 1
-            }
-          },
-          {
-            label: 'filter.timeRange.2y',
-            value: {
-              type: 'LAST',
-              unit: 'y',
-              interval: 2
-            }
-          },
-          {
-            label: 'filter.timeRange.5y',
-            value: {
-              type: 'LAST',
-              unit: 'y',
-              interval: 5
-            }
-          }
-        ],
-        [
-          {
-            label: 'filter.timeRange.yesterday',
-            value: {
-              type: 'PAST',
-              unit: 'd'
-            }
-          },
-          // TODO implement time range calculation
-          /*
-           {
-           label: 'filter.timeRange.beforeYesterday',
-           value: {
-           type: 'PAST',
-           unit: 'd'
-           }
-           },
-           {
-           label: 'filter.timeRange.thisDayLastWeek',
-           value: {
-           type: 'PAST',
-           unit: 'd'
-           }
-           },
-           */
-          {
-            label: 'filter.timeRange.previousWeek',
-            value: {
-              type: 'PAST',
-              unit: 'w'
-            }
-          },
-          {
-            label: 'filter.timeRange.previousMonth',
-            value: {
-              type: 'PAST',
-              unit: 'M'
-            }
-          },
-          {
-            label: 'filter.timeRange.previousYear',
-            value: {
-              type: 'PAST',
-              unit: 'y'
-            }
-          }
-        ],
-        [
-          {
-            label: 'filter.timeRange.today',
-            value: {
-              type: 'CURRENT',
-              unit: 'd'
-            }
-          },
-          {
-            label: 'filter.timeRange.thisWeek',
-            value: {
-              type: 'CURRENT',
-              unit: 'w'
-            }
-          },
-          {
-            label: 'filter.timeRange.thisMonth',
-            value: {
-              type: 'CURRENT',
-              unit: 'M'
-            }
-          },
-          {
-            label: 'filter.timeRange.thisYear',
-            value: {
-              type: 'CURRENT',
-              unit: 'y'
-            }
-          }
-        ],
-        [
-          {
-            label: 'filter.timeRange.5min',
-            value: {
-              type: 'LAST',
-              unit: 'm',
-              interval: 5
-            }
-          },
-          {
-            label: 'filter.timeRange.15min',
-            value: {
-              type: 'LAST',
-              unit: 'm',
-              interval: 15
-            }
-          },
-          {
-            label: 'filter.timeRange.30min',
-            value: {
-              type: 'LAST',
-              unit: 'm',
-              interval: 30
-            }
-          },
-          {
-            label: 'filter.timeRange.1hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 1
-            }
-          },
-          {
-            label: 'filter.timeRange.3hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 3
-            }
-          },
-          {
-            label: 'filter.timeRange.6hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 6
-            }
-          },
-          {
-            label: 'filter.timeRange.12hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 12
-            }
-          },
-          {
-            label: 'filter.timeRange.24hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 24
-            }
-          },
-        ]
-      ],
-      defaultSelection: {
-        value: {
-          type: 'LAST',
-          unit: 'h',
-          interval: 1
-        },
-        label: 'filter.timeRange.1hr'
-      }
+      options: this.logsFilteringUtilsService.getTimeRandeOptionsByGroup(),
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.timeRange
     },
     components: {
       label: 'filter.components',
       iconClass: 'fa fa-cubes',
       options: [],
-      defaultSelection: [],
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.components,
       fieldName: 'type'
     },
     levels: {
@@ -359,14 +142,14 @@ export class LogsContainerService {
           iconClass: `fa ${LogLevelComponent.classMap[cssClass]}`
         };
       }),
-      defaultSelection: [],
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.levels,
       fieldName: 'level'
     },
     hosts: {
       label: 'filter.hosts',
       iconClass: 'fa fa-server',
       options: [],
-      defaultSelection: [],
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.hosts,
       fieldName: 'host'
     },
     auditLogsSorting: {
@@ -387,15 +170,7 @@ export class LogsContainerService {
           }
         }
       ],
-      defaultSelection: [
-        {
-          label: 'sorting.time.desc',
-          value: {
-            key: 'evtTime',
-            type: 'desc'
-          }
-        }
-      ]
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.auditLogsSorting
     },
     serviceLogsSorting: {
       label: 'sorting.title',
@@ -415,15 +190,7 @@ export class LogsContainerService {
           }
         }
       ],
-      defaultSelection: [
-        {
-          label: 'sorting.time.desc',
-          value: {
-            key: 'logtime',
-            type: 'desc'
-          }
-        }
-      ]
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.serviceLogsSorting
     },
     pageSize: {
       label: 'pagination.title',
@@ -433,28 +200,23 @@ export class LogsContainerService {
           value: option
         };
       }),
-      defaultSelection: [
-        {
-          label: '10',
-          value: '10'
-        }
-      ]
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.pageSize
     },
     page: {
-      defaultSelection: 0
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.page
     },
     query: {
-      defaultSelection: []
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.query
     },
     users: {
       label: 'filter.users',
       iconClass: 'fa fa-server',
       options: [],
-      defaultSelection: [],
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.users,
       fieldName: 'reqUser'
     },
     isUndoOrRedo: {
-      defaultSelection: false
+      defaultSelection: this.logsFilteringUtilsService.defaultFilterSelections.isUndoOrRedo
     }
   };
 
@@ -628,7 +390,7 @@ export class LogsContainerService {
       const item = {
         [key]: formControl
       };
-      formControl.setValue(this.filters[key].defaultSelection);
+      formControl.setValue(this.logsFilteringUtilsService.defaultFilterSelections[key]);
       return Object.assign(currentObject, item);
     }, {});
     this.filtersForm = new FormGroup(formItems);
@@ -689,8 +451,12 @@ export class LogsContainerService {
       .first()
       .subscribe(() => {
         this.filtersFormSyncInProgress.next(true);
-        this.filtersForm.reset(filters, {emitEvent: false});
+        this.filtersForm.reset(
+          {...this.logsFilteringUtilsService.defaultFilterSelections, ...filters},
+          {emitEvent: false}
+        );
         this.filtersFormSyncInProgress.next(false);
+        this.onFiltersFormValueChange();
       });
   }
 
@@ -755,6 +521,7 @@ export class LogsContainerService {
    * Handle the filters form value changes in order to sync the current tab's filters and also to load the logs.
    */
   private onFiltersFormValueChange = (): void => {
+    const filters = this.filtersForm.getRawValue();
     this.syncFiltersToActiveTabFilters(this.filtersForm.getRawValue());
     this.loadLogs();
   }
@@ -925,13 +692,17 @@ export class LogsContainerService {
       paramNames.forEach((paramName: string): void => {
         let value;
         const valueGetter = this.valueGetters[paramName] || this.logsFilteringUtilsService.defaultValueGetterFromListItem;
-        if (paramName === 'from') {
-          value = valueGetter(inputValue, params['to']);
+        if (inputValue === null || inputValue === undefined) {
+
         } else {
-          value = valueGetter(inputValue);
-        }
-        if (value != null && value !== '') {
-          params[paramName] = value;
+          if (paramName === 'from') {
+            value = valueGetter(inputValue, params['to']);
+          } else {
+            value = valueGetter(inputValue);
+          }
+          if (value != null && value !== '') {
+            params[paramName] = value;
+          }
         }
       });
     }, this);
@@ -1094,7 +865,7 @@ export class LogsContainerService {
     const keys = Object.keys(this.filters).filter((key: string): boolean => itemsList.indexOf(key) > -1);
     return keys.reduce((currentObject: object, key: string): object => {
       return Object.assign(currentObject, {
-        [key]: this.filters[key].defaultSelection
+        [key]: this.logsFilteringUtilsService.defaultFilterSelections[key]
       });
     }, {});
   }

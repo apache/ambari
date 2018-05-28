@@ -29,8 +29,38 @@ App.ServicesConfigView = Em.View.extend({
       this.get('controller').loadStep();
     } else {
       this.get('controller').selectProperService();
+      this.set('controller.selectedService.isActive', true);
       this.get('controller').selectedServiceObserver();
     }
+  },
+
+  getScrollInterval: function () {
+    var INTERVAL = 300;
+    var container = $(this.get('element')).find('.tabs-container');
+    var content = container.find('ul');
+    var gap = content.width() - container.width();
+    var gapLeft = gap%INTERVAL;
+    var totalScrollsNamber = Math.floor(gap/INTERVAL) || 1;
+    return INTERVAL + Math.round(gapLeft/totalScrollsNamber) + 1;
+  },
+
+  scrollTabsLeft: function () {
+    if (!this.get('isLeftArrowDisabled')) this.scrollTabs('left');
+  },
+
+  scrollTabsRight: function () {
+    if (!this.get('isRightArrowDisabled')) this.scrollTabs('right');
+  },
+
+  scrollTabs: function (dir) {
+    var container = $(this.get('element')).find('.tabs-container');
+    var content = container.find('ul');
+    var interval = this.getScrollInterval();
+    this.set('isLeftArrowDisabled', dir === 'left' && interval >= container.scrollLeft());
+    this.set('isRightArrowDisabled', dir === 'right' && content.width() - container.width() <= container.scrollLeft() + interval);
+    container.animate({
+      scrollLeft: (dir === 'left' ?  '-' : '+') + '=' + interval + 'px'
+    });
   }
 
 });

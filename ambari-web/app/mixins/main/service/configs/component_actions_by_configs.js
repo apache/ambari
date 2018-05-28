@@ -229,18 +229,38 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         batches.push(this.getInstallHostComponentsRequest(hostName, componentName, context));
         batches.push(this.getDeleteHostComponentRequest(hostName, componentName));
         this.setOrderIdForBatches(batches);
-
         App.ajax.send({
           name: 'common.batch.request_schedules',
-          sender: this,
+          sender: {
+            checkIfComponentWasDeleted: this.checkIfComponentWasDeleted
+          },
           data: {
             intervalTimeSeconds: 60,
             tolerateSize: 0,
-            batches: batches
-          }
+            batches: batches,
+            displayName: displayName,
+            hostName: hostName
+          },
+          success: 'checkIfComponentWasDeleted'
         });
       });
     }
+  },
+
+  checkIfComponentWasDeleted: function (resp, req, data) {
+    var scheduleId = resp.resources[0].RequestSchedule.id;
+    var self = this;
+    setTimeout(function () {
+      batchUtils.getRequestSchedule(scheduleId, function (resp) {
+        var lastStatus = resp.RequestSchedule.last_execution_status;
+        var status = resp.RequestSchedule.status;
+        if (lastStatus === 'FAILED' || status === 'FAILED') {
+          App.showAlertPopup(
+            Em.I18n.t('hosts.bulkOperation.delete.component.failed.header'),
+            Em.I18n.t('hosts.bulkOperation.delete.component.failed.body').format(data.displayName, data.hostName));
+        }
+      }, function () {});
+    }, data.batches.length * 60000)
   },
 
   /**

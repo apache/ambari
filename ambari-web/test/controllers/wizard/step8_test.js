@@ -653,21 +653,16 @@ describe('App.WizardStep8Controller', function () {
   describe('#loadRepoInfo', function() {
 
     beforeEach(function () {
-      var stubForGet = sinon.stub(App, 'get');
-      stubForGet.withArgs('currentStackName').returns('HDP');
-      stubForGet.withArgs('currentStackVersionNumber').returns('2.3');
-      sinon.stub(App.StackVersion, 'find', function() {
-        return [
-          Em.Object.create({state: 'NOT_CURRENT', stack: 'HDP', version: '2.3', repositoryVersion: {repositoryVersion: '2.3.0.0-2208'}})
-        ];
-      });
+      var stubForGet = sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP');
+      this.mockRepo = sinon.stub(App.RepositoryVersion, 'find');
     });
 
     afterEach(function () {
       App.get.restore();
-      App.StackVersion.find.restore();
+      App.RepositoryVersion.find.restore();
     });
-    it('should use current StackVersion', function() {
+    it('should return repo', function() {
+      this.mockRepo.returns([Em.Object.create({stackVersionType: 'HDP', isCurrent: true, isStandard: true, repositoryVersion: '2.3.0.0-2208'})])
       installerStep8Controller.loadRepoInfo();
       var args = testHelpers.findAjaxRequest('name', 'cluster.load_repo_version');
       expect(args[0].data).to.eql({stackName: 'HDP', repositoryVersion: '2.3.0.0-2208'});

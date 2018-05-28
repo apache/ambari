@@ -36,6 +36,7 @@ App.Repository = DS.Model.extend({
   components: DS.attr('string'),
   distribution: DS.attr('string'),
   tags: DS.attr('array'),
+  applicable_services: DS.attr('array'),
 
   validation: DS.attr('string', {defaultValue: ''}),
   validationClassName: Em.computed.getByKey('validationClassNameMap', 'validation', ''),

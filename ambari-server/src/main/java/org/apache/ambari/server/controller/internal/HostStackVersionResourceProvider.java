@@ -446,9 +446,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             Collections.singletonList(filter),
             roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
-    actionContext.setRepositoryVersion(repoVersionEnt);
+    actionContext.setStackId(repoVersionEnt.getStackId());
 
-    repoVersionHelper.addCommandRepositoryToContext(actionContext, osEntity);
+    repoVersionHelper.addCommandRepositoryToContext(actionContext, repoVersionEnt, osEntity);
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);

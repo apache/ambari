@@ -22,6 +22,7 @@ import org.apache.ambari.infra.solr.commands.CheckConfigZkCommand;
 import org.apache.ambari.infra.solr.commands.CreateCollectionCommand;
 import org.apache.ambari.infra.solr.commands.CreateShardCommand;
 import org.apache.ambari.infra.solr.commands.CreateSolrZnodeZkCommand;
+import org.apache.ambari.infra.solr.commands.DeleteZnodeZkCommand;
 import org.apache.ambari.infra.solr.commands.DownloadConfigZkCommand;
 import org.apache.ambari.infra.solr.commands.EnableKerberosPluginSolrZkCommand;
 import org.apache.ambari.infra.solr.commands.GetShardsCommand;
@@ -277,6 +278,13 @@ public class AmbariSolrCloudClient {
    */
   public boolean transferZnode() throws Exception {
     return new TransferZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
+  }
+
+  /**
+   * Delete znode path (and all sub nodes)
+   */
+  public boolean deleteZnode() throws Exception {
+    return new DeleteZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
   }
 
   public String getZkConnectString() {

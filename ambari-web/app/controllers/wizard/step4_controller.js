@@ -192,6 +192,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     if (this.get('wizardController.name') === 'installerController') {
       this.serviceValidation(callback, 'AMBARI_METRICS', 'ambariMetricsCheck');
       this.serviceValidation(callback, 'SMARTSENSE', 'smartSenseCheck');
+      this.serviceValidation(callback, 'RANGER', 'rangerCheck');
+      this.serviceValidation(callback, 'ATLAS', 'atlasCheck');
     }
     this.dependentServiceValidation('ATLAS', 'AMBARI_INFRA_SOLR', 'ambariInfraCheck', callback);
     this.dependentServiceValidation('LOGSEARCH', 'AMBARI_INFRA_SOLR', 'ambariLogsearchCheck', callback);
@@ -542,7 +544,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.limitedFunctionality.popup.header'),
-      body: Em.I18n.t('installer.step4.' + id + '.popup.body'),
+      //body: Em.I18n.t('installer.step4.' + id + '.popup.body'),
+      bodyClass: Em.View.extend({
+        serviceHeader: Em.I18n.t('installer.step4.' + id + '.popup.header'),
+        serviceBody: Em.I18n.t('installer.step4.' + id + '.popup.body'),
+        templateName: require('templates/wizard/step4/step4_service_validation_popup')
+      }),
       primary: Em.I18n.t('common.proceedAnyway'),
       primaryClass: 'btn-warning',
       onPrimary: function () {

@@ -160,7 +160,8 @@ class TestStackSelect(TestCase):
         "direction":"UPGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
-        "orchestration":"STANDARD"
+        "orchestration":"STANDARD",
+        "isDowngradeAllowed": True
       }
     }
 
@@ -198,7 +199,8 @@ class TestStackSelect(TestCase):
         "direction":"UPGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
-        "orchestration":"STANDARD"
+        "orchestration":"STANDARD",
+        "isDowngradeAllowed": True
       }
     }
 

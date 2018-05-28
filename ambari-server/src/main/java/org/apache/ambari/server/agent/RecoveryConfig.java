@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.agent;
 
-import com.google.gson.annotations.SerializedName;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Recovery config to be sent to the agent
@@ -33,34 +35,34 @@ public class RecoveryConfig {
   }
 
   @SerializedName("type")
-  @com.fasterxml.jackson.annotation.JsonProperty("type")
+  @JsonProperty("type")
   private String type;
 
   @SerializedName("maxCount")
-  @com.fasterxml.jackson.annotation.JsonProperty("maxCount")
+  @JsonProperty("maxCount")
   private String maxCount;
 
   @SerializedName("windowInMinutes")
-  @com.fasterxml.jackson.annotation.JsonProperty("windowInMinutes")
+  @JsonProperty("windowInMinutes")
   private String windowInMinutes;
 
   @SerializedName("retryGap")
-  @com.fasterxml.jackson.annotation.JsonProperty("retryGap")
+  @JsonProperty("retryGap")
   private String retryGap;
 
   @SerializedName("maxLifetimeCount")
-  @com.fasterxml.jackson.annotation.JsonProperty("maxLifetimeCount")
+  @JsonProperty("maxLifetimeCount")
   private String maxLifetimeCount;
 
   @SerializedName("components")
-  @com.fasterxml.jackson.annotation.JsonProperty("components")
-  private String enabledComponents;
+  @JsonProperty("components")
+  private List<RecoveryConfigComponent> enabledComponents;
 
-  public String getEnabledComponents() {
+  public List<RecoveryConfigComponent> getEnabledComponents() {
     return enabledComponents;
   }
 
-  public void setEnabledComponents(String enabledComponents) {
+  public void setEnabledComponents(List<RecoveryConfigComponent> enabledComponents) {
     this.enabledComponents = enabledComponents;
   }
 
@@ -102,6 +104,34 @@ public class RecoveryConfig {
 
   public void setMaxLifetimeCount(String maxLifetimeCount) {
     this.maxLifetimeCount = maxLifetimeCount;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RecoveryConfig that = (RecoveryConfig) o;
+
+    if (type != null ? !type.equals(that.type) : that.type != null) return false;
+    if (maxCount != null ? !maxCount.equals(that.maxCount) : that.maxCount != null) return false;
+    if (windowInMinutes != null ? !windowInMinutes.equals(that.windowInMinutes) : that.windowInMinutes != null)
+      return false;
+    if (retryGap != null ? !retryGap.equals(that.retryGap) : that.retryGap != null) return false;
+    if (maxLifetimeCount != null ? !maxLifetimeCount.equals(that.maxLifetimeCount) : that.maxLifetimeCount != null)
+      return false;
+    return enabledComponents != null ? enabledComponents.equals(that.enabledComponents) : that.enabledComponents == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = type != null ? type.hashCode() : 0;
+    result = 31 * result + (maxCount != null ? maxCount.hashCode() : 0);
+    result = 31 * result + (windowInMinutes != null ? windowInMinutes.hashCode() : 0);
+    result = 31 * result + (retryGap != null ? retryGap.hashCode() : 0);
+    result = 31 * result + (maxLifetimeCount != null ? maxLifetimeCount.hashCode() : 0);
+    result = 31 * result + (enabledComponents != null ? enabledComponents.hashCode() : 0);
+    return result;
   }
 
   @Override

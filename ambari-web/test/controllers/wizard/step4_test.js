@@ -274,84 +274,88 @@ describe('App.WizardStep4Controller', function () {
     var tests = [
         {
           services: ['HDFS', 'ZOOKEEPER'],
-          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck']
+          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['ZOOKEEPER'],
-          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck']
+          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS'],
-          errorsExpected: ['serviceCheck_ZOOKEEPER', 'ambariMetricsCheck', 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_ZOOKEEPER', 'ambariMetricsCheck', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'TEZ', 'ZOOKEEPER'],
-          errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck' , 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck' , 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'ZOOKEEPER', 'FALCON'],
-          errorsExpected: ['serviceCheck_OOZIE', 'ambariMetricsCheck' , 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_OOZIE', 'ambariMetricsCheck' , 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'HIVE'],
-          errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck' , 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck' , 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE'],
-          errorsExpected: ['serviceCheck_YARN', 'multipleDFS', 'ambariMetricsCheck', 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_YARN', 'multipleDFS', 'ambariMetricsCheck', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS','ZOOKEEPER', 'GANGLIA'],
-          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck']
+          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS','ZOOKEEPER', 'AMBARI_METRICS'],
-          errorsExpected: ['smartSenseCheck']
+          errorsExpected: ['smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['ZOOKEEPER', 'AMBARI_METRICS'],
-          errorsExpected: ['smartSenseCheck']
+          errorsExpected: ['smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'AMBARI_METRICS'],
-          errorsExpected: ['serviceCheck_ZOOKEEPER', 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_ZOOKEEPER', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'TEZ', 'ZOOKEEPER', 'AMBARI_METRICS'],
-          errorsExpected: ['serviceCheck_YARN', 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_YARN', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'AMBARI_METRICS'],
-          errorsExpected: ['serviceCheck_OOZIE', 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_OOZIE', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'HIVE', 'AMBARI_METRICS'],
-          errorsExpected: ['serviceCheck_YARN', 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_YARN', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE', 'AMBARI_METRICS'],
-          errorsExpected: ['serviceCheck_YARN', 'multipleDFS', 'smartSenseCheck']
+          errorsExpected: ['serviceCheck_YARN', 'multipleDFS', 'smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['HDFS','ZOOKEEPER', 'GANGLIA', 'AMBARI_METRICS'],
-          errorsExpected: ['smartSenseCheck']
+          errorsExpected: ['smartSenseCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['RANGER'],
-          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck', 'rangerRequirements']
+          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck', 'atlasCheck', 'rangerRequirements']
         },
         {
           services: ['SMARTSENSE'],
-          errorsExpected: ['ambariMetricsCheck']
+          errorsExpected: ['ambariMetricsCheck', 'rangerCheck', 'atlasCheck']
         },
         {
           services: ['ATLAS', 'AMBARI_METRICS', 'SMARTSENSE'],
-          errorsExpected: ['ambariInfraCheck']
+          errorsExpected: ['rangerCheck', 'ambariInfraCheck', ]
         },
         {
           services: ['LOGSEARCH', 'AMBARI_METRICS', 'SMARTSENSE'],
-          errorsExpected: ['ambariLogsearchCheck']
-        }
+          errorsExpected: ['rangerCheck', 'atlasCheck', 'ambariLogsearchCheck']
+        },
+        {
+          services: ['ATLAS', 'AMBARI_METRICS', 'SMARTSENSE', 'RANGER'],
+          errorsExpected: ['ambariInfraCheck', 'rangerRequirements']
+        },
       ],
       controllerNames = ['installerController', 'addServiceController'],
       wizardNames = {
@@ -387,7 +391,7 @@ describe('App.WizardStep4Controller', function () {
       tests.forEach(function(test) {
         var errorsExpected = test.errorsExpected;
         if (name !== 'installerController') {
-          errorsExpected = test.errorsExpected.without('ambariMetricsCheck').without('smartSenseCheck');
+          errorsExpected = test.errorsExpected.without('ambariMetricsCheck').without('smartSenseCheck').without('rangerCheck').without('atlasCheck');
         }
         var message = '{0}, {1} selected validation should be {2}, errors: {3}'
           .format(wizardNames[name], test.services.join(','), errorsExpected.length ? 'passed' : 'failed',

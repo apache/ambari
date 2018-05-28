@@ -901,13 +901,22 @@ Em.I18n.translations = {
   'installer.step4.serviceCheck.popup.body.multiOptions':'You did not select {0}, but it is needed by other services you selected. Select a compatible service from the following list: {1}',
   'installer.step4.hcfs.displayName':'a Hadoop Compatible File System',
   'installer.step4.limitedFunctionality.popup.header':'Limited Functionality Warning',
+  'installer.step4.ambariMetricsCheck.popup.header': 'Ambari Metrics',
   'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
+  'installer.step4.ambariInfraCheck.popup.header': 'Ambari Infra',
   'installer.step4.ambariInfraCheck.popup.body':'Since Ambari Infra is not selected, you must supply your own Solr to make Atlas work. Are you sure you want to proceed?',
+  'installer.step4.ambariLogsearchCheck.popup.header': 'Ambari Logsearch',
   'installer.step4.ambariLogsearchCheck.popup.body':'Since Ambari Infra is not selected, you must supply your own Solr to make Log Search work. Are you sure you want to proceed?',
+  'installer.step4.smartSenseCheck.popup.header': 'Apache SmartSense',
   'installer.step4.smartSenseCheck.popup.body':'SmartSense securely collects cluster diagnostics in order to send you recommendations and automate analysis for ' +
   'troubleshooting support cases. If you choose not to install SmartSense, you will not receive any recommendations, and you ' +
   'will need to collect configuration and logs manually for troubleshooting support cases. ' +
   'Are you sure you want to proceed without SmartSense?',
+  'installer.step4.rangerCheck.popup.header': 'Apache Ranger',
+  'installer.step4.rangerCheck.popup.body':'Apache Ranger provides fine grained authorization and audit of access attempts for many Hadoop ecosystem services. If you do not install the Apache Ranger Service, the security of your cluster will be diminished. Are you sure you want to proceed without it? ',
+  'installer.step4.atlasCheck.popup.header': 'Apache Atlas',
+  'installer.step4.atlasCheck.popup.body':'Apache Atlas provides strong data governance, lineage and metadata management for many hadoop ecosystem services. If you do not install Apache Atlas service, the data governance capabilities of you cluster will be diminished. Are you sure you want to proceed without it? ',
+
   'installer.step4.rangerRequirements.popup.header': 'Ranger Requirements',
   'installer.step4.rangerRequirements.popup.body.requirements': '<ol><li>You must have an <strong>MySQL/Oracle/Postgres/MSSQL/SQL Anywhere Server</strong> database instance running to be used by Ranger.</li>' +
     '<li>In Assign Masters step of this wizard, you will be prompted to specify which host for the Ranger Admin. On that host, you <strong>must have DB Client installed</strong> for Ranger to access to the database. (Note: This is applicable for only Ranger 0.4.0)</li>' +
@@ -1012,6 +1021,7 @@ Em.I18n.translations = {
   'installer.step8.kerberors.warning': '<strong>Because Kerberos has been manually installed on the cluster, you will have to create/distribute principals and keytabs when this operation is finished.</strong>',
   'installer.step8.generateBlueprint.popup.msg': 'You will be <b>downloading</b> blueprint.json and clustertemplate.json to your local machine. <br/><br/> You can use them to deploy a cluster via AMBARI REST API. <br/> Update clustertemplate.json with a custom cluster name if you do not want to use name <b>{0}</b>. <br/><br/>If you want to use custom repo URLs, make sure to update them via Ambari REST API before deploying the cluster.',
   'installer.step8.deployPopup.message':'Preparing to Deploy: {0} of {1} tasks completed.',
+  'installer.step8.deployPopup.header':'Initializing Tasks',
   'installer.step8.hosts':' hosts',
   'installer.step8.host':' host',
   'installer.step8.other':'and {0} other hosts',
@@ -1363,10 +1373,9 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step2.header': 'Review',
   'admin.manageJournalNode.wizard.step3.header': 'Save Namespace',
   'admin.manageJournalNode.wizard.step4.header': 'Add/Remove JournalNodes',
-  'admin.manageJournalNode.wizard.step5.header': 'Format JournalNodes',
-  'admin.manageJournalNode.wizard.step6.header': 'Start Active NameNode',
-  'admin.manageJournalNode.wizard.step7.header': 'BootStrap Standby NameNode',
-  'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
+  'admin.manageJournalNode.wizard.step5.header': 'Copy JournalNode directories',
+  'admin.manageJournalNode.wizard.step6.header': 'Start JournalNodes',
+  'admin.manageJournalNode.wizard.step7.header': 'Start All Services',
 
   'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
   'admin.manageJournalNode.wizard.step3.confirm.hosts.body': '<b>Confirm your host selections.</b>',
@@ -1377,25 +1386,21 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step4.task1.title': 'Stop Services',
   'admin.manageJournalNode.wizard.step4.task2.title': 'Add JournalNodes',
   'admin.manageJournalNode.wizard.step4.task3.title': 'Delete JournalNodes',
-  'admin.manageJournalNode.wizard.step4.task4.title': 'Start JournalNodes',
-  'admin.manageJournalNode.wizard.step4.task5.title': 'Reconfigure HDFS',
-  'admin.manageJournalNode.wizard.step6.task0.title': 'Start Zookeeper Server',
-  'admin.manageJournalNode.wizard.step6.task1.title': 'Start Active NameNode',
-  'admin.manageJournalNode.wizard.step8.task0.title': 'Stop HDFS',
-  'admin.manageJournalNode.wizard.step8.task1.title': 'Start All Services',
+  'admin.manageJournalNode.wizard.step4.task4.title': 'Reconfigure HDFS',
+  'admin.manageJournalNode.wizard.step6.task0.title': 'Start JournalNodes',
+  'admin.manageJournalNode.wizard.step7.task0.title': 'Start All Services',
 
 
-  'admin.manageJournalNode.wizard.step5.bodyHeader': 'Manual Steps Required: Format JournalNodes',
-  'admin.manageJournalNode.wizard.step7.bodyHeader': 'Manual Steps Required: BootStrap Standby NameNode',
+  'admin.manageJournalNode.wizard.step5.bodyHeader': 'Manual Steps Required: Copy JournalNode directories',
 
 
   'admin.manageJournalNode.step4.save.configuration.note' : 'This configuration is created by Manage JournalNode Wizard',
 
-  'admin.manageJournalNode.wizard.step8.notice.inProgress': 'Please wait while services are started',
   'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait while JournalNodes are being deployed',
-  'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait for related services to be started',
   'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait while JournalNodes are being deployed',
-  'admin.manageJournalNode.wizard.step8.notice.completed':'Completed update to JournalNodes.',
+  'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait while JournalNodes are started',
+  'admin.manageJournalNode.wizard.step7.notice.inProgress': 'Please wait while services are started',
+  'admin.manageJournalNode.wizard.step7.notice.completed':'Completed update to JournalNodes.',
 
   'admin.manageJournalNode.wizard.step3.body':
   '<ol>' +
@@ -1410,26 +1415,10 @@ Em.I18n.translations = {
 
   'admin.manageJournalNode.wizard.step5.body':
   '<ol>' +
-  '<li>Login to the NameNode host <b>{1}</b>.</li>' +
-  '<li>Initialize the JournalNodes by running:' +
-  '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -initializeSharedEdits\'</div></li>' +
-  '<li>You will be able to proceed once Ambari detects that the JournalNodes have been initialized successfully.</li>' +
+  '<li>Login to the JournalNode host <b>{0}</b>.</li>' +
+  '<li>Create a tarball of the Journal directories: {1}.</li>' +
+  '<li>Copy the tarball on the new JournalNodes and untar at the respective locations as in Step 2.</li>' +
   '</ol>',
-
-  'admin.manageJournalNode.wizard.step7.body':
-  '<div class="alert alert-info">' +
-  '<ol start="1">' +
-  '<li>Login to the Additional NameNode host <b>{1}</b>.<br>' +
-  '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from previous steps.</div>' +
-  '</li>' +
-  '<li>Initialize the metadata for the Additional NameNode by running:' +
-  '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
-  '</ol>' +
-  '</div>' +
-  'Please proceed once you have completed the steps above.',
-
-
-
 
   'admin.highAvailability':' High Availability',
   'admin.highAvailability.button.enable':'Enable NameNode HA',
@@ -2727,6 +2716,8 @@ Em.I18n.translations = {
   'hosts.bulkOperation.confirmation.delete.component.notInstalled': '{0} not Installed',
   'hosts.bulkOperation.delete.component.result.body': ' was successfully removed from the following hosts:',
   'hosts.bulkOperation.delete.component.dryRun.message':'{0} could not be deleted from the following hosts(expand for reason)',
+  'hosts.bulkOperation.delete.component.failed.header': 'Delete Component failed',
+  'hosts.bulkOperation.delete.component.failed.body': 'Delete {0} component from {1} host failed',
 
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group. All hosts belonging to this group will have the same set of configurations.',
@@ -3210,6 +3201,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.view.button.disabled': 'You are currently viewing this version.',
   'dashboard.configHistory.info-bar.compare.button.disabled': 'You cannot compare against the same version.',
   'dashboard.configHistory.info-bar.revert.button.disabled': 'This is the current version.',
+  'dashboard.configHistory.info-bar.compare.tooltip': 'Compare this version with current',
 
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',

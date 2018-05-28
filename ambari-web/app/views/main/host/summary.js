@@ -255,7 +255,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @returns {boolean}
    */
   hasCardinalityConflict: function(componentName) {
-    var totalCount = App.SlaveComponent.find(componentName).get('totalCount');
+    var totalCount = App.HostComponent.getCount(componentName, 'totalCount');
     var maxToInstall = App.StackServiceComponent.find(componentName).get('maxToInstall');
     return !(totalCount < maxToInstall);
   },

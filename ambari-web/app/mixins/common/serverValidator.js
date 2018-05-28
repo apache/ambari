@@ -385,10 +385,14 @@ App.ServerValidatorMixin = Em.Mixin.create({
         if (self.get('validationRequest')) {
           self.get('validationRequest').abort();
         }
-        self.runServerSideValidation().done(function () {
-          self.set('validationRequest', null);
-          self.set('requestTimer', 0);
-        });
+        if (self.get('recommendationsInProgress')) {
+          self.valueObserver();
+        } else {
+          self.runServerSideValidation().done(function () {
+            self.set('validationRequest', null);
+            self.set('requestTimer', 0);
+          });
+        }
       }, 500));
     }
   }.observes('selectedService.configs.@each.value')

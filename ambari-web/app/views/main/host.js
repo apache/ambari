@@ -84,7 +84,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.set('filteringComplete', false);
     var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
     this.get('updater')[updaterMethodName](this.updaterSuccessCb.bind(this), this.updaterErrorCb.bind(this), true);
-    this.clearSelection();
     return true;
   },
 
@@ -255,7 +254,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       this.set('selectAllHosts', false);
     }
     this.combineSelectedFilter();
-    //10 is an index of selected column
     App.db.setSelectedHosts(this.get('selectedHosts'));
 
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);

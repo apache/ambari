@@ -125,6 +125,9 @@ if "infra-solr-env" in config['configurations']:
 
   zk_quorum = format(default('configurations/infra-solr-env/infra_solr_zookeeper_quorum', zookeeper_quorum))
 
+if 'infra-solr-security-json' in config['configurations']:
+  infra_solr_security_manually_managed = default("/configurations/infra-solr-security-json/infra_solr_security_manually_managed", False)
+
 default_ranger_audit_users = 'nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi'
 
 if security_enabled:

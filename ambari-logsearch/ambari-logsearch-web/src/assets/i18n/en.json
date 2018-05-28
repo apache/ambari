@@ -24,7 +24,9 @@
   "authorization.name": "Username",
   "authorization.password": "Password",
   "authorization.signIn": "Sign In",
-  "authorization.error": "<strong>Error!</strong> Invalid User credentials.<br>Please try again.",
+  "authorization.error.401": "Unable to sign in. Invalid username/password combination.",
+
+  "login.title": "Login",
 
   "topMenu.undo": "Undo",
   "topMenu.redo": "Redo",
@@ -217,8 +219,6 @@
   "logIndexFilter.update.title": "Log Index Filter Update",
   "logIndexFilter.update.success": "Log Index Filter for cluster <span class='cluster-name'>{{cluster}}</span> has been successfully updated.",
   "logIndexFilter.update.error": "Error at updating Log Index Filter for cluster <span class='cluster-name'>{{cluster}}</span>. {{message}}",
-
-  "login.title": "Login",
 
   "shipperConfiguration.title": "All Configuration",
   "shipperConfiguration.add": "Add",

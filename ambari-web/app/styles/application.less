@@ -378,7 +378,7 @@ footer {
 }
 
 .badge-warning {
-  background-color: #e98a41!important;
+  background-color: #666 !important;
 }
 
 table.diff {
@@ -1179,17 +1179,20 @@ a.services-menu-blocks{
     word-break:break-word;
   }
 
-  .glyphicon.glyphicon-refresh, .icon-medkit {
+  .glyphicon.glyphicon-refresh, .icon-medkit, .label {
     margin-left: 4px;
     margin-right: 4px;
-    top: 0px;
+  }
+
+  .glyphicon.glyphicon-refresh {
+    top: 1px;
   }
 
   .icon-medkit {
     color: @maintenance-grey;
   }
 
-  .menu-item-name.INSTALLED:not(.client-only-service) {
+  .menu-item-name.master-down:not(.client-only-service) {
     color: @health-status-red;
   }
   .menu-item-name.UNKNOWN {
@@ -2292,6 +2295,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 }
 
 .tab-content.service-config-tab-content {
+  clear: both;
   overflow: visible;
   .enhanced-config-tab-content {
     overflow: visible;

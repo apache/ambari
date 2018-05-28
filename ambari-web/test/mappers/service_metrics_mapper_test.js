@@ -17,6 +17,7 @@
 
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 describe('App.serviceMetricsMapper', function () {
 
@@ -227,6 +228,105 @@ describe('App.serviceMetricsMapper', function () {
       it(test.title, function () {
         expect(App.serviceMetricsMapper.isHostComponentPresent(test.data.component, test.data.name)).to.equal(test.result);
       });
+    });
+  });
+
+  var hostNames = ['hostName1', 'hostName2'];
+  var interactiveComponents = hostNames.map(function (hostName) {
+    return {host_name: hostName}
+  });
+  describe('#getHostNameIpMap', function () {
+    it ('should send ajax request with hostNames param and generate hostNameApiMap on success', function () {
+      App.ajax.send.restore();
+      sinon.stub(App.ajax, 'send', function () {
+        return {success: function (callback) {
+            callback({items: [{
+              Hosts: {
+                host_name: 'hostName1',
+                ip: '192.168.1.1'
+              }
+              }, {
+              Hosts: {
+                host_name: 'hostName2',
+                ip: '192.168.1.2'
+              }
+            }]});
+          }
+        };
+      });
+      App.serviceMetricsMapper.getHostNameIpMap(hostNames);
+      var args = testHelpers.findAjaxRequest('name', 'hosts.ips');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
+        hostNames: hostNames
+      });
+      expect(App.serviceMetricsMapper.get('hostNameIpMap')).to.be.eql({
+        'hostName1': '192.168.1.1',
+        'hostName2': '192.168.1.2'
+      });
+    });
+  });
+
+  describe('#loadInteractiveServerStatuses', function () {
+    var configurationController = App.router.get('configurationController');
+    beforeEach(function () {
+      sinon.stub(configurationController, 'getCurrentConfigsBySites', function () {
+        return {done: function (callback) {
+          return callback([
+            {type: 'hive-interactive-site', properties: {'hive.server2.webui.port': '1'}}
+          ]);
+        }};
+      });
+      sinon.stub(App.serviceMetricsMapper, 'getHostNameIpMap', function () {
+        return {
+          done: function () {
+          }
+        }
+      });
+    });
+
+    afterEach(function () {
+      configurationController.getCurrentConfigsBySites.restore();
+      App.serviceMetricsMapper.getHostNameIpMap.restore();
+    });
+
+    it('should not call load ips method', function () {
+      App.serviceMetricsMapper.loadInteractiveServerStatuses(interactiveComponents);
+      expect(App.serviceMetricsMapper.getHostNameIpMap.calledOnce).to.be.false;
+      expect(App.serviceMetricsMapper.getHostNameIpMap.calledWith(hostNames)).to.be.false;
+    });
+
+    it('should call load ips method', function () {
+      App.serviceMetricsMapper.set('hostNameIpMap', {});
+      App.serviceMetricsMapper.loadInteractiveServerStatuses(interactiveComponents);
+      expect(App.serviceMetricsMapper.getHostNameIpMap.calledOnce).to.be.true;
+      expect(App.serviceMetricsMapper.getHostNameIpMap.calledWith(interactiveComponents, '1')).to.be.false;
+    });
+  });
+
+  describe('#getHiveServersInteractiveStatus', function () {
+    beforeEach(function () {
+      App.ajax.send.restore();
+      sinon.stub(App.ajax, 'send', function () {
+        return {success: function (callback) {
+            callback(true);
+          }
+        };
+      });
+
+      sinon.stub(App.HostComponent, 'find', function () {
+        return hostNames.map(function (hostName) {
+          return Em.Object.create({hostName: hostName, componentName: 'HIVE_SERVER_INTERACTIVE'});
+        });
+      });
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
+    });
+
+    it('should do several ajax requests depends on count of components count', function () {
+      App.serviceMetricsMapper.getHiveServersInteractiveStatus(interactiveComponents, '1');
+      expect(App.ajax.send.calledTwice).to.be.true;
     });
   });
 });

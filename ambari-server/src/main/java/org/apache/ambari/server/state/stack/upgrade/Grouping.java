@@ -325,8 +325,10 @@ public class Grouping {
     private TaskBucket(Task initial) {
       switch (initial.getType()) {
         case CONFIGURE:
+        case CREATE_AND_CONFIGURE:
         case SERVER_ACTION:
         case MANUAL:
+        case ADD_COMPONENT:
           type = StageWrapper.Type.SERVER_SIDE_ACTION;
           break;
         case EXECUTE:
@@ -346,6 +348,9 @@ public class Grouping {
           break;
         case SERVICE_CHECK:
           type = StageWrapper.Type.SERVICE_CHECK;
+          break;
+        case REGENERATE_KEYTABS:
+          type = StageWrapper.Type.REGENERATE_KEYTABS;
           break;
       }
       tasks.add(initial);

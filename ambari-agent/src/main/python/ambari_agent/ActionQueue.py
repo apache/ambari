@@ -83,6 +83,7 @@ class ActionQueue(threading.Thread):
     self.tmpdir = self.config.get('agent', 'prefix')
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.parallel_execution = self.config.get_parallel_exec_option()
+    self.component_status_executor = initializer_module.component_status_executor
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
     self.lock = threading.Lock()
@@ -142,7 +143,7 @@ class ActionQueue(threading.Thread):
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
 
-            if command == None:
+            if command is None:
               break
 
             self.process_command(command)
@@ -152,17 +153,16 @@ class ActionQueue(threading.Thread):
             while not self.stop_event.is_set():
               command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
 
-              if command == None:
+              if command is None:
                 break
               # If command is not retry_enabled then do not start them in parallel
               # checking just one command is enough as all commands for a stage is sent
               # at the same time and retry is only enabled for initial start/install
-              retryAble = False
+              retry_able = False
               if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
-                retryAble = command['commandParams']['command_retry_enabled'] == "true"
-              if retryAble:
-                logger.info("Kicking off a thread for the command, id=" +
-                            str(command['commandId']) + " taskId=" + str(command['taskId']))
+                retry_able = command['commandParams']['command_retry_enabled'] == "true"
+              if retry_able:
+                logger.info("Kicking off a thread for the command, id={} taskId={}".format(command['commandId'], command['taskId']))
                 t = threading.Thread(target=self.process_command, args=(command,))
                 t.daemon = True
                 t.start()
@@ -171,14 +171,14 @@ class ActionQueue(threading.Thread):
                 break
               pass
             pass
-        except (Queue.Empty):
+        except Queue.Empty:
           pass
-      except:
+      except Exception:
         logger.exception("ActionQueue thread failed with exception. Re-running it")
     logger.info("ActionQueue thread has successfully finished")
 
   def fillRecoveryCommands(self):
-    if not self.tasks_in_progress_or_pending():
+    if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
       self.put(self.recovery_manager.get_recovery_commands())
 
   def processBackgroundQueueSafeEmpty(self):
@@ -420,6 +420,14 @@ class ActionQueue(threading.Thread):
 
     self.recovery_manager.process_execution_command_result(command, status)
     self.commandStatuses.put_command_status(command, roleResult)
+
+    cluster_id = str(command['clusterId'])
+
+    if cluster_id != '-1' and cluster_id != 'null':
+      service_name = command['serviceName']
+      if service_name != 'null':
+        component_name = command['role']
+        self.component_status_executor.check_component_status(clusterId, service_name, component_name, "STATUS", report=True)
 
   def log_command_output(self, text, taskId):
     """

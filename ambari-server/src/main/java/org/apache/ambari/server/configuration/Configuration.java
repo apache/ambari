@@ -1802,7 +1802,7 @@ public class Configuration {
    */
   @Markdown(description = "Thread pool size for spring messaging")
   public static final ConfigurationProperty<Integer> MESSAGING_THREAD_POOL_SIZE = new ConfigurationProperty<>(
-      "messaging.threadpool.size", 1);
+      "messaging.threadpool.size", 10);
 
   /**
    * The thread pool size for agents registration.
@@ -4512,7 +4512,7 @@ public class Configuration {
   }
 
   /**
-   * @return max thread pool size for clients, default 25
+   * @return max thread pool size for clients, default 10
    */
   public int getSpringMessagingThreadPoolSize() {
     return Integer.parseInt(getProperty(MESSAGING_THREAD_POOL_SIZE));

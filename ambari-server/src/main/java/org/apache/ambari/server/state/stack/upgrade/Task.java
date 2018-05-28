@@ -17,20 +17,41 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.util.EnumSet;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 
 /**
  * Base class to identify the items that could possibly occur during an upgrade
  */
-@XmlSeeAlso(value={ExecuteTask.class, CreateAndConfigureTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, StartTask.class, StopTask.class, ServerActionTask.class, ConfigureFunction.class})
+@XmlSeeAlso(
+    value = { ExecuteTask.class, CreateAndConfigureTask.class, ConfigureTask.class,
+        ManualTask.class, RestartTask.class, StartTask.class, StopTask.class,
+        ServerActionTask.class, ConfigureFunction.class, AddComponentTask.class,
+        RegenerateKeytabsTask.class })
 public abstract class Task {
+
+  /**
+   * A Gson instance to use when doing simple serialization along with
+   * {@link Expose}.
+   */
+  protected final static Gson GSON = new GsonBuilder()
+      .serializeNulls()
+      .setPrettyPrinting()
+      .excludeFieldsWithoutExposeAnnotation()
+      .create();
 
   /**
    * An optional brief description of what this task is doing.
    */
+  @Expose
   @XmlElement(name = "summary")
   public String summary;
 
@@ -38,12 +59,14 @@ public abstract class Task {
    * Whether the task needs to run sequentially, i.e., on its own stage.
    * If false, will be grouped with other tasks.
    */
+  @Expose
   @XmlAttribute(name = "sequential")
   public boolean isSequential = false;
 
   /**
    * The config property to check for timeout.
    */
+  @Expose
   @XmlAttribute(name="timeout-config")
   public String timeoutConfig = null;
 
@@ -72,6 +95,7 @@ public abstract class Task {
   /**
    * The scope for the task
    */
+  @Expose
   @XmlElement(name = "scope")
   public UpgradeScope scope = UpgradeScope.ANY;
 
@@ -133,20 +157,42 @@ public abstract class Task {
     /**
      * Task meant to run against Ambari server.
      */
-    SERVER_ACTION;
+    SERVER_ACTION,
+
+    /**
+     * A task which adds new components to the cluster during the upgrade.
+     */
+    ADD_COMPONENT,
+
+    /**
+     * Create keytab regeneration steps as part of the upgrade.
+     */
+    REGENERATE_KEYTABS;
+
+    /**
+     * Commands which run on the server.
+     */
+    public static final EnumSet<Type> SERVER_ACTIONS = EnumSet.of(MANUAL, CONFIGURE, SERVER_ACTION,
+        ADD_COMPONENT);
+
+    /**
+     * Commands which are run on agents.
+     */
+    public static final EnumSet<Type> COMMANDS = EnumSet.of(RESTART, START, CONFIGURE_FUNCTION,
+        STOP, SERVICE_CHECK, REGENERATE_KEYTABS);
 
     /**
      * @return {@code true} if the task is manual or automated.
      */
     public boolean isServerAction() {
-      return this == MANUAL || this == CONFIGURE || this == SERVER_ACTION;
+      return SERVER_ACTIONS.contains(this);
     }
 
     /**
      * @return {@code true} if the task is a command type (as opposed to an action)
      */
     public boolean isCommand() {
-      return this == RESTART || this == START || this == CONFIGURE_FUNCTION || this == STOP || this == SERVICE_CHECK;
+      return COMMANDS.contains(this);
     }
   }
 }

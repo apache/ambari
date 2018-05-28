@@ -108,12 +108,14 @@ public class MetricSource extends Source {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
   public static class JmxInfo {
+    @JsonProperty("property_list")
     @SerializedName("property_list")
     private List<String> propertyList;
 
     @SerializedName("value")
     private String value = "{0}";
 
+    @JsonProperty("url_suffix")
     @SerializedName("url_suffix")
     private String urlSuffix = "/jmx";
 

@@ -26,7 +26,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Aggregates all upgrade tasks for a HostComponent into one wrapper.
@@ -112,7 +112,7 @@ public class TaskWrapper {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("service", service)
+    return MoreObjects.toStringHelper(this).add("service", service)
         .add("component", component)
         .add("tasks", tasks)
         .add("hosts", hosts)

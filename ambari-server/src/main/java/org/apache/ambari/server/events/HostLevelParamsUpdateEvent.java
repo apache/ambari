@@ -82,6 +82,10 @@ public class HostLevelParamsUpdateEvent extends STOMPHostEvent implements Hashab
     return hostId;
   }
 
+  public Map<String, HostLevelParamsCluster> getHostLevelParamsClusters() {
+    return hostLevelParamsClusters;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

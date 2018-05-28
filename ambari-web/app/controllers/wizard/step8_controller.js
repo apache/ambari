@@ -331,9 +331,17 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   loadRepoInfo: function () {
     var stackName = App.get('currentStackName');
-    var currentStackVersionNumber = App.get('currentStackVersionNumber');
-    var currentStackVersion = App.StackVersion.find().filterProperty('stack', stackName).findProperty('version', currentStackVersionNumber);
-    var currentRepoVersion = currentStackVersion.get('repositoryVersion.repositoryVersion');
+
+    var currentRepoVersion;
+    App.RepositoryVersion.find().forEach(function (repoVersion) {
+      if (repoVersion.get('stackVersionType') === stackName && repoVersion.get('isCurrent') && repoVersion.get('isStandard')) {
+        currentRepoVersion = repoVersion.get('repositoryVersion');
+      }
+    });
+
+    if (!currentRepoVersion) {
+      console.error('Error while getting current stack repository version');
+    }
 
     return App.ajax.send({
       name: 'cluster.load_repo_version',
@@ -1709,7 +1717,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   showLoadingIndicator: function () {
     return App.ModalPopup.show({
 
-      header: '',
+      header: Em.I18n.t('installer.step8.deployPopup.header'),
 
       showFooter: false,
 

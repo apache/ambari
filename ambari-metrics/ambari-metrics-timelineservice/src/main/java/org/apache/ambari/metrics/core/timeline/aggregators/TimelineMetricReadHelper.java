@@ -59,7 +59,8 @@ public class TimelineMetricReadHelper {
   }
 
   public SingleValuedTimelineMetric getAggregatedTimelineMetricFromResultSet(ResultSet rs,
-                                                                             Function f) throws SQLException, IOException {
+                                                                             Function f,
+                                                                             boolean shouldSumMetricAcrossTime) throws SQLException, IOException {
 
     byte[] uuid = rs.getBytes("UUID");
     TimelineMetric timelineMetric = metadataManagerInstance.getMetricFromUuid(uuid);
@@ -73,6 +74,8 @@ public class TimelineMetricReadHelper {
     );
 
     double value;
+    // GET request for sum & avg is handled as the same since 'summing' of values across time does not make sense.
+    // If explicit sum downsampling is required across time, we have to use ams-site : timeline.metrics.downsampler.event.metric.patterns.
     switch(function.getReadFunction()){
       case AVG:
         value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
@@ -85,6 +88,9 @@ public class TimelineMetricReadHelper {
         break;
       case SUM:
         value = rs.getDouble("METRIC_SUM");
+        if (!shouldSumMetricAcrossTime) {
+          value = value / rs.getInt("METRIC_COUNT");
+        }
         break;
       default:
         value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");

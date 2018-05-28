@@ -507,10 +507,20 @@ public class UpgradeContext {
     m_cluster = cluster;
     m_type = upgradeEntity.getUpgradeType();
     m_direction = upgradeEntity.getDirection();
+    // !!! this is the overall target stack repo version, not the source repo
     m_repositoryVersion = upgradeEntity.getRepositoryVersion();
 
     m_autoSkipComponentFailures = upgradeEntity.isComponentFailureAutoSkipped();
     m_autoSkipServiceCheckFailures = upgradeEntity.isServiceCheckFailureAutoSkipped();
+
+    /*
+     * This feels wrong.  We need the upgrade pack used when creating the upgrade, as that
+     * is really the source, not the target.  Can NOT use upgradeEntity.getRepositoryVersion() here
+     * for the stack id. Consulting the service map should work out since full upgrades are all same source stack,
+     * and patches by definition are the same source stack (just different repos of that stack).
+     */
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+    StackId stackId = null;
 
     List<UpgradeHistoryEntity> allHistory = upgradeEntity.getHistory();
     for (UpgradeHistoryEntity history : allHistory) {
@@ -520,11 +530,14 @@ public class UpgradeContext {
       m_sourceRepositoryMap.put(serviceName, sourceRepositoryVersion);
       m_targetRepositoryMap.put(serviceName, targetRepositoryVersion);
       m_services.add(serviceName);
+
+      if (null == stackId) {
+        stackId = sourceRepositoryVersion.getStackId();
+      }
     }
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is wrong")
     String upgradePackage = upgradeEntity.getUpgradePackage();
-    StackId stackId = m_repositoryVersion.getStackId();
+    stackId = (null != stackId) ? stackId : m_repositoryVersion.getStackId(); // fallback to old value
     Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(stackId.getStackName(), stackId.getStackVersion());
     m_upgradePack = packs.get(upgradePackage);
 
@@ -956,6 +969,8 @@ public class UpgradeContext {
     summary.orchestration = m_orchestration;
     summary.isRevert = m_isRevert;
 
+    summary.isDowngradeAllowed = isDowngradeAllowed();
+
     summary.services = new HashMap<>();
 
     for (String serviceName : m_services) {
@@ -980,6 +995,33 @@ public class UpgradeContext {
     }
 
     return summary;
+  }
+
+  /**
+   * Gets the single target stack for the upgrade.  By definition, ALL the targets,
+   * despite the versions, should have the same stack.  The source stacks may be different
+   * from the target, but all the source stacks must also be the same.
+   * <p/>
+   *
+   * @return the target stack for this upgrade (never {@code null}).
+   */
+  public StackId getTargetStack() {
+    RepositoryVersionEntity repo = m_targetRepositoryMap.values().iterator().next();
+    return repo.getStackId();
+  }
+
+  /**
+   * Gets the single source stack for the upgrade depending on the
+   * direction.  By definition, ALL the source stacks, despite the versions, should have
+   * the same stack.  The target stacks may be different from the source, but all the target
+   * stacks must also be the same.
+   * <p/>
+   *
+   * @return the source stack for this upgrade (never {@code null}).
+   */
+  public StackId getSourceStack() {
+    RepositoryVersionEntity repo = m_sourceRepositoryMap.values().iterator().next();
+    return repo.getStackId();
   }
 
   /**
@@ -1387,6 +1429,9 @@ public class UpgradeContext {
 
     @SerializedName("isRevert")
     public boolean isRevert = false;
+
+    @SerializedName("downgradeAllowed")
+    public boolean isDowngradeAllowed = true;
 
     @SerializedName("services")
     public Map<String, UpgradeServiceSummary> services;

@@ -109,16 +109,12 @@ App.Decommissionable = Em.Mixin.create({
    * @type {String}
    */
   componentTextStatus: function () {
-    var componentTextStatus = this.get('content.componentTextStatus');
-    var hostComponent = this.get('hostComponent');
-    if (hostComponent) {
-      componentTextStatus = hostComponent.get('componentTextStatus');
-      if (this.get('isComponentRecommissionAvailable')) {
-        if (this.get('isComponentDecommissioning')) {
-          componentTextStatus = Em.I18n.t('hosts.host.decommissioning');
-        } else {
-          componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
-        }
+    let componentTextStatus = this.get('content.componentTextStatus');
+    if (this.get('isComponentRecommissionAvailable')) {
+      if (this.get('isComponentDecommissioning')) {
+        componentTextStatus = Em.I18n.t('hosts.host.decommissioning');
+      } else {
+        componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
       }
     }
     return componentTextStatus;

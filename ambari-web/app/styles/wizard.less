@@ -123,6 +123,9 @@
 
     .compact-panel-heading {
       padding: 10px;
+      .button-section {
+        min-height: 34px;
+      }
     }
     .hosts-panel {
       padding-left: 0;
@@ -189,7 +192,10 @@
     }
     #confirm-hosts-table {
       th:first-of-type {
-        width: 25px;
+        width: 20px;
+        label {
+          top: 2px;
+        }
       }
       th:nth-of-type(2) {
         width: 42%;
@@ -215,10 +221,8 @@
       #display-action {
         visibility:visible;
       }
-      .step3-table-checkbox {
-        label {
-          top: 1px;
-        }
+      .step3-table-checkbox label {
+        top: 1px;
       }
     }
     #warningsSection {
@@ -250,10 +254,10 @@
       max-height: 440px;
       position: relative;
       display: flex;
-      overflow-y: scroll;
+      overflow-y: auto;
       #component_assign_table {
         display: inline-block;
-        overflow-x: scroll;
+        overflow-x: auto;
         margin-left: 190px;
         margin-bottom: 10px;
         height: 100%;
@@ -275,11 +279,11 @@
         .host-component-checkbox {
           line-height: 17px;
           font-size: 12px;
-          top: 0px;
+          top: 0;
         }
         .freeze {
           position: absolute;
-          left: 0px;
+          left: 0;
           width: 210px;
           border-top-color: #eee;
           border-bottom: 1px solid #eee;
@@ -294,7 +298,7 @@
         }
         .static-pagination {
           position: absolute;
-          right: 0px;
+          right: 10px;
         }
       }
     }
@@ -320,6 +324,23 @@
     }
     table {
       margin-bottom: 0;
+    }
+    .overall-progress {
+      margin-top: 10px;
+      .progress {
+        margin-bottom: 0;
+        width: calc(~"100% - 100px");
+        display: inline-block;
+      }
+      .progress-message {
+        display: inline-block;
+        vertical-align: top;
+        float: right;
+        line-height: 20px;
+      }
+    }
+    .panel.panel-default {
+      margin-top: 0;
     }
     #host-filter {
       margin-top: 1px;
@@ -532,6 +553,12 @@
       font-size: 0.9em;
       display: inline-block;
       margin: 2px;
+    }
+    .assigned-service {
+      background-color: @maintenance-grey;
+      &:hover {
+        background-color: @maintenance-grey;
+      }
     }
     .new-service {
       background-color: @green;
@@ -855,6 +882,10 @@
     }
   }
 
+  .installer-all-configs-notifications {
+    float: right;
+    margin-top: 25px;
+  }
   .notifications-group {
     #notifications-dropdown {
       padding: 10px;
@@ -933,7 +964,10 @@
   }
 }
 
-#directories {
+.one-row-tabs-container {
+  padding: 5px 10px;
+  width: 95%;
+  float: left;
   .left-arrow, .right-arrow {
     float: left;
     text-align: center;
@@ -953,6 +987,9 @@
     }
     overflow: hidden;
   }
+}
+
+#directories {
   .config-actions {
     margin-right: 10px;
   }
@@ -982,17 +1019,8 @@
   }
 }
 
-#databases, #all-configurations {
-  .config-section {
-    border: none;
-  }
-}
-
 #all-configurations {
   min-height: 650px;
-  .config-section {
-    background-color: #F2F2F2;
-  }
   @-webkit-keyframes ring {
     0% {
       -webkit-transform: rotate(-15deg);
@@ -1141,7 +1169,7 @@
       color: #B94A48;
     }
     &.warning {
-      color: #e98a41;
+      color: #666;
     }
     &.animated {
       -webkit-animation: ring 2s ease;

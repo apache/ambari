@@ -21,6 +21,7 @@ limitations under the License.
 import grp
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import RMFTestCase, Template, InlineTemplate
+from resource_management.libraries.functions.default import default
 
 class TestLogFeeder(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "LOGSEARCH/0.5.0/package"
@@ -104,6 +105,15 @@ class TestLogFeeder(RMFTestCase):
                               content=InlineTemplate('output-grok-filter'),
                               encoding='utf-8'
                               )
+    self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-logfeeder/conf',
+                              create_parents = True,
+                              cd_access = 'a',
+                              mode = 0755
+                              )
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-logfeeder/conf/input.config-logsearch.json',
+                            mode=0644,
+                            content = Template('input.config-logsearch.json.j2', extra_imports=[default])
+                            )
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logfeeder.py",

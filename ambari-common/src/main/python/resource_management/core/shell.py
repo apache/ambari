@@ -115,7 +115,7 @@ def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=s
                               tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy, returns=returns)
 
 @log_function_call
-def non_blocking_call(command, quiet=False, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
+def non_blocking_call(command, quiet=False, stdout=None, stderr=None,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, timeout=None, path=None, sudo=False):
   """
   Execute the shell command and don't wait until it's completion
@@ -212,7 +212,13 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
 
   # --noprofile is used to preserve PATH set for ambari-agent
   subprocess32_command = ["/bin/bash","--login","--noprofile","-c", command]
-  
+
+  # don't create stdout and stderr pipes, because forked process will not be able to use them if current process dies
+  # creating pipes may lead to the forked process silent crash
+  if not wait_for_finish:
+    stdout = None
+    stderr = None
+
   files_to_close = []
   if isinstance(stdout, basestring):
     stdout = open(stdout, 'wb')

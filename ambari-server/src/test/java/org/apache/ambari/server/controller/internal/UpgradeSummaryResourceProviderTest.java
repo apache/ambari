@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,6 +60,7 @@ import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -147,9 +149,15 @@ public class UpgradeSummaryResourceProviderTest {
   public void createCluster() throws Exception {
     StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
 
+    List<RepoOsEntity> osRedhat6 = new ArrayList<>();
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
+    repoOsEntity.setFamily("redhat6");
+    repoOsEntity.setAmbariManaged(true);
+    osRedhat6.add(repoOsEntity);
+
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
-    repoVersionEntity.addRepoOsEntities(new ArrayList<>());
+    repoVersionEntity.addRepoOsEntities(osRedhat6);
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setVersion("2.2.0.0");
     repoVersionDAO.create(repoVersionEntity);

@@ -78,7 +78,9 @@ class HeartbeatThread(threading.Thread):
     self.responseId = 0
     self.file_cache = initializer_module.file_cache
     self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
-    self.post_registration_actions = [self.file_cache.reset]
+    self.post_registration_actions = [self.file_cache.reset, initializer_module.component_status_executor.clean_not_existing_clusters_info,
+                                      initializer_module.alert_status_reporter.clean_not_existing_clusters_info, initializer_module.host_status_reporter.clean_cache]
+
 
 
   def run(self):

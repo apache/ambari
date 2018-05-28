@@ -200,6 +200,11 @@ public class AmbariCustomCommandExecutionHelper {
   private Boolean isValidCustomCommand(ActionExecutionContext
       actionExecutionContext, RequestResourceFilter resourceFilter)
       throws AmbariException {
+
+    if (actionExecutionContext.isFutureCommand()) {
+      return true;
+    }
+
     String clusterName = actionExecutionContext.getClusterName();
     String serviceName = resourceFilter.getServiceName();
     String componentName = resourceFilter.getComponentName();
@@ -271,15 +276,19 @@ public class AmbariCustomCommandExecutionHelper {
 
     // Filter hosts that are in MS
     Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
-        candidateHosts, new MaintenanceStateHelper.HostPredicate() {
-          @Override
-          public boolean shouldHostBeRemoved(final String hostname)
-              throws AmbariException {
-            return !maintenanceStateHelper.isOperationAllowed(
-                cluster, actionExecutionContext.getOperationLevel(),
-                resourceFilter, serviceName, componentName, hostname);
+      candidateHosts, new MaintenanceStateHelper.HostPredicate() {
+        @Override
+        public boolean shouldHostBeRemoved(final String hostname)
+            throws AmbariException {
+          if (actionExecutionContext.isFutureCommand()) {
+            return false;
           }
+
+          return !maintenanceStateHelper.isOperationAllowed(
+              cluster, actionExecutionContext.getOperationLevel(),
+              resourceFilter, serviceName, componentName, hostname);
         }
+      }
     );
 
     // Filter unhealthy hosts
@@ -309,7 +318,12 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     Service service = cluster.getService(serviceName);
+
+    // grab the stack ID from the service first, and use the context's if it's set
     StackId stackId = service.getDesiredStackId();
+    if (null != actionExecutionContext.getStackId()) {
+      stackId = actionExecutionContext.getStackId();
+    }
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
@@ -493,6 +507,11 @@ public class AmbariCustomCommandExecutionHelper {
 
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
+
+      // skip anything else
+      if (actionExecutionContext.isFutureCommand()) {
+        continue;
+      }
 
       // perform any server side command related logic - eg - set desired states on restart
       applyCustomCommandBackendLogic(cluster, serviceName, componentName, commandName, hostName);

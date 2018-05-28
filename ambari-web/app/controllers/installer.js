@@ -848,7 +848,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
                 "repo_name": repository.get('repoName'),
                 "components": repository.get('components'),
                 "tags": repository.get('tags'),
-                "distribution": repository.get('distribution')
+                "distribution": repository.get('distribution'),
+                "applicable_services" : repository.get('applicable_services')
               }
             });
           }

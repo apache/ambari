@@ -20,6 +20,8 @@ package org.apache.ambari.server.stack;
 
 import java.util.List;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -47,6 +49,8 @@ import com.google.inject.persist.Transactional;
  * cluster, the cluster's repository version entity must be updated with the custom repos provided by the
  * management pack. The class takes care of this.
  */
+@Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+  comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
 public class UpdateActiveRepoVersionOnStartup {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpdateActiveRepoVersionOnStartup.class);

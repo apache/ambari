@@ -19,7 +19,7 @@
 
 package org.apache.ambari.server.agent.stomp.dto;
 
-import java.util.Map;
+import java.util.SortedMap;
 
 import org.apache.ambari.server.agent.CommandRepository;
 
@@ -30,29 +30,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class HostRepositories {
 
   @JsonProperty("commandRepos")
-  private Map<Long, CommandRepository> repositories;
+  private SortedMap<Long, CommandRepository> repositories;
 
   @JsonProperty("componentRepos")
-  private Map<String, Long> componentRepos;
+  private SortedMap<String, Long> componentRepos;
 
-  public HostRepositories(Map<Long, CommandRepository> repositories, Map<String, Long> componentRepos) {
+  public HostRepositories(SortedMap<Long, CommandRepository> repositories, SortedMap<String, Long> componentRepos) {
     this.repositories = repositories;
     this.componentRepos = componentRepos;
   }
 
-  public Map<Long, CommandRepository> getRepositories() {
+  public SortedMap<Long, CommandRepository> getRepositories() {
     return repositories;
   }
 
-  public void setRepositories(Map<Long, CommandRepository> repositories) {
+  public void setRepositories(SortedMap<Long, CommandRepository> repositories) {
     this.repositories = repositories;
   }
 
-  public Map<String, Long> getComponentRepos() {
+  public SortedMap<String, Long> getComponentRepos() {
     return componentRepos;
   }
 
-  public void setComponentRepos(Map<String, Long> componentRepos) {
+  public void setComponentRepos(SortedMap<String, Long> componentRepos) {
     this.componentRepos = componentRepos;
   }
 }

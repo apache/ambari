@@ -369,7 +369,28 @@ public class CheckDescription {
       new ImmutableMap.Builder<String, String>()
         .put(AbstractCheckDescriptor.DEFAULT,
             "The following services are included in the upgrade but the repository is missing their dependencies:\n%s").build());
-  
+
+
+  public static CheckDescription ATLAS_MIGRATION_PROPERTY_CHECK = new CheckDescription("ATLAS_MIGRATION_PROPERTY_CHECK",
+    PrereqCheckType.SERVICE, "Check for Atlas Migration Property before upgrade.",
+      new ImmutableMap.Builder<String,String>().put(AbstractCheckDescriptor.DEFAULT,
+        "The property atlas.migration.data.filename is missing from application-properties. Do not use atlas conf path ie /etc/atlas/conf as the value." +
+        "After upgrading Atlas will no longer support TitanDB, instead it will support JanusGraph." +
+        "Hence need to migrate existing data to newer formats post upgrade. " +
+        "To migrate existing data, Kindly refer and follow Apache Atlas documentation for 1.0 release.").build());
+
+  public static CheckDescription KERBEROS_ADMIN_CREDENTIAL_CHECK = new CheckDescription("KERBEROS_ADMIN_CREDENTIAL_CHECK",
+      PrereqCheckType.CLUSTER,
+      "The KDC administrator credentials need to be stored in Ambari persisted credential store.",
+      new ImmutableMap.Builder<String, String>()
+          .put(KerberosAdminPersistedCredentialCheck.KEY_PERSISTED_STORE_NOT_CONFIGURED,
+              "Ambari's credential store has not been configured.  " +
+                  "This is needed so the KDC administrator credential may be stored long enough to ensure it will be around if needed during the upgrade process.")
+          .put(KerberosAdminPersistedCredentialCheck.KEY_CREDENTIAL_NOT_STORED,
+              "The KDC administrator credential has not been stored in the persisted credential store. " +
+                  "Visit the Kerberos administrator page to set the credential. " +
+                  "This is needed so the KDC administrator credential may be stored long enough to ensure it will be around if needed during the upgrade process.")
+          .build());
 
   private String m_name;
   private PrereqCheckType m_type;

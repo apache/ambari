@@ -588,12 +588,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
       }
     }
+
+    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    var isRangerServicePresent = rangerService && (rangerService.get('isInstalled') || rangerService.get('isSelected'));
+    if(isRangerServicePresent && (this.get('wizardController.name') === 'installerController' || this.get('wizardController.name') === 'addServiceController')) {
+      this.setRangerPluginsEnabled(serviceConfigs);
+    }
     this.set('stepConfigs', serviceConfigs);
     this.set('stepConfigsCreated', true);
     this.checkHostOverrideInstaller();
     this.selectProperService();
     var isInstallerWizard = (this.get("content.controllerName") === 'installerController');
-    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
     var isRangerServiceAbsent =  rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected');
     if (isRangerServiceAbsent) {
       var isExternalRangerSetup;
@@ -625,6 +630,29 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
     }
 
+  },
+
+  /**
+  * Sets the value of ranger-<service_name>-plugin-enabled to "Yes" if ranger authorization /
+  * is supported for that service.
+  * @param stepConfigs Object[]
+  */
+  setRangerPluginsEnabled: function(stepConfigs) {
+    var rangerServiceConfigs = stepConfigs.findProperty('serviceName', 'RANGER').get('configs');
+    var services = this.get('selectedServiceNames').filter(service => service != 'RANGER');
+
+    services.forEach(function(serviceName) {
+      var pluginEnabledPropertyName = 'ranger-' + serviceName.toLowerCase() + '-plugin-enabled';
+      var pluginEnabledProperty = rangerServiceConfigs.findProperty('name', pluginEnabledPropertyName);
+      //Kafka and Storm plugins need to be enabled only if cluster is kerberized
+      if (pluginEnabledProperty && (serviceName === 'STORM' || serviceName === 'KAFKA')) {
+        if (App.get('isKerberosEnabled')) {
+          Em.set(pluginEnabledProperty, 'value', 'Yes');
+        }
+      } else if (pluginEnabledProperty) {
+        Em.set(pluginEnabledProperty, 'value', 'Yes');
+      }
+    });
   },
 
   /**
@@ -2043,7 +2071,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var validations = this.get('stepConfigs').mapProperty('configsWithErrors.length').reduce(Em.sum, 0);
     var configErrorList = this.get('configErrorList');
     this.set('issuesCounter', recommendations + validations + configErrorList.get('issues.length') + configErrorList.get('criticalIssues.length'));
-    if (validations > this.get('validationsCounter')) {
+    if (validations !== this.get('validationsCounter')) {
       this.ringBell();
     }
     this.set('hasErrors', !!validations);

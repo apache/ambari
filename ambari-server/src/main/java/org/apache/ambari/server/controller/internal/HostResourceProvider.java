@@ -62,6 +62,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -582,7 +583,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       hostLevelParamsHolder.updateData(hostLevelParamsUpdateEvent);
     }
     TopologyUpdateEvent topologyUpdateEvent =
-        new TopologyUpdateEvent(addedTopologies, TopologyUpdateEvent.EventType.UPDATE);
+        new TopologyUpdateEvent(addedTopologies, UpdateEventType.UPDATE);
     topologyHolder.updateData(topologyUpdateEvent);
   }
 
@@ -934,7 +935,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
       topologyUpdates.get(clusterId.toString()).addTopologyHost(topologyHost);
       TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
-          TopologyUpdateEvent.EventType.UPDATE);
+          UpdateEventType.UPDATE);
       topologyHolder.updateData(topologyUpdateEvent);
       //todo: if attempt was made to update a property other than those
       //todo: that are allowed above, should throw exception
@@ -998,6 +999,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private void processDeleteHostRequests(List<HostRequest> requests,  Clusters clusters, DeleteStatusMetaData deleteStatusMetaData) throws AmbariException {
     Set<String> hostsClusters = new HashSet<>();
     Set<String> hostNames = new HashSet<>();
+    Set<Long> hostIds = new HashSet<>();
     Set<Cluster> allClustersWithHosts = new HashSet<>();
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     for (HostRequest hostRequest : requests) {
@@ -1005,6 +1007,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       String hostname = hostRequest.getHostname();
       Long hostId = clusters.getHost(hostname).getHostId();
       hostNames.add(hostname);
+      hostIds.add(hostId);
 
       if (hostRequest.getClusterName() != null) {
         hostsClusters.add(hostRequest.getClusterName());
@@ -1065,9 +1068,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
     }
-    clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
+    clusters.publishHostsDeletion(hostIds, hostNames);
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
-        TopologyUpdateEvent.EventType.DELETE);
+        UpdateEventType.DELETE);
     topologyHolder.updateData(topologyUpdateEvent);
   }
 

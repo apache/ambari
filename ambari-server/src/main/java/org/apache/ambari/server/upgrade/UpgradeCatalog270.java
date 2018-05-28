@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Clob;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -221,6 +220,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String REPO_TAGS_TAG_COLUMN = "tag";
   protected static final String REPO_TAGS_FOREIGN_KEY = "FK_repo_tag_definition_id";
 
+  protected static final String REPO_APPLICABLE_SERVICES_TABLE = "repo_applicable_services";
+  protected static final String REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN = "repo_definition_id";
+  protected static final String REPO_APPLICABLE_SERVICES_SERVICE_NAME_COLUMN = "service_name";
+  protected static final String REPO_APPLICABLE_SERVICES_FOREIGN_KEY = "FK_repo_app_service_def_id";
+
   protected static final String REPO_VERSION_TABLE = "repo_version";
   protected static final String REPO_VERSION_REPO_VERSION_ID_COLUMN = "repo_version_id";
   protected static final String REPO_VERSION_REPOSITORIES_COLUMN = "repositories";
@@ -239,9 +243,13 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
   protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
   protected static final String CONFIGURATION_CORE_SITE = "core-site";
+  protected static final String CONFIGURATION_WEBHCAT_SITE = "webhcat-site";
   protected static final String PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS = "hadoop.proxyuser.HTTP.hosts";
+  protected static final String PROPERTY_TEMPLETON_HIVE_PROPERTIES = "templeton.hive.properties";
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
+
+  static final String YARN_SERVICE = "YARN";
 
   @Inject
   DaoUtils daoUtils;
@@ -325,6 +333,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     createRepoOsTable();
     createRepoDefinitionTable();
     createRepoTagsTable();
+    createRepoApplicableServicesTable();
     migrateRepoData();
     updateRepoVersionTable();
   }
@@ -409,6 +418,26 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable(REPO_TAGS_TABLE, columns);
     dbAccessor.addFKConstraint(REPO_TAGS_TABLE, REPO_TAGS_FOREIGN_KEY, REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
+  }
+
+  /**
+   * Adds the repo_applicable_services table to the Ambari database.
+   * <pre>
+   *   CREATE TABLE repo_applicable_services (
+   *     repo_definition_id BIGINT NOT NULL,
+   *     service_name VARCHAR(255) NOT NULL,
+   *     CONSTRAINT FK_repo_applicable_service_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+   * </pre>
+   *
+   * @throws SQLException
+   */
+  private void createRepoApplicableServicesTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_APPLICABLE_SERVICES_SERVICE_NAME_COLUMN, String.class, 255, null, false));
+
+    dbAccessor.createTable(REPO_APPLICABLE_SERVICES_TABLE, columns);
+    dbAccessor.addFKConstraint(REPO_APPLICABLE_SERVICES_TABLE, REPO_APPLICABLE_SERVICES_FOREIGN_KEY, REPO_APPLICABLE_SERVICES_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
   }
 
   /**
@@ -540,7 +569,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN, Long.class, null, null, false));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_ID_COLUMN, Integer.class, null, null, false));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN, String.class, 50, null, false));
-      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN, Clob.class, null, null, true));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN, String.class, 2048, null, true));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Timestamp.class, null, null, true));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_UPDATE_TIME_COLUMN, Timestamp.class, null, null, true));
 
@@ -964,16 +993,15 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
       dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
       dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-    }
-    finally {
+    } finally {
       dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
       dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
       dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
       dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+        COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
     }
 
 
@@ -1040,6 +1068,76 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       return;
     }
 
+    final boolean updateInfraKerberosDescriptor = updateInfraKerberosDescriptor(kerberosDescriptor);
+    final boolean updateWebHCatHostKerberosDescriptor = updateWebHCatHostKerberosDescriptor(kerberosDescriptor);
+    final boolean updateYarnKerberosDescriptor = updateYarnKerberosDescriptor(kerberosDescriptor);
+
+    if (updateInfraKerberosDescriptor || updateWebHCatHostKerberosDescriptor || updateYarnKerberosDescriptor) {
+      artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+      artifactDAO.merge(artifactEntity);
+    }
+  }
+
+  /**
+   * Updates the Yarn Kerberos descriptor stored in the user-supplied Kerberos Descriptor.
+   * <p>
+   * Any updates will be performed on the supplied Kerberos Descriptor.
+   * <p>
+   * The following changes may be made:
+   * <ul>
+   * <li>Change the reference to rm_host to resourcemanager_hosts</li>
+   * </ul>
+   *
+   * @param kerberosDescriptor the user-supplied Kerberos descriptor used to perform the in-place update
+   * @return <code>true</code> if changes were made; otherwise <code>false</code>
+   */
+  private boolean updateYarnKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    boolean updated = false;
+    KerberosServiceDescriptor yarnServiceDescriptor = kerberosDescriptor.getServices().get(YARN_SERVICE);
+    if (yarnServiceDescriptor != null) {
+      KerberosConfigurationDescriptor coreSiteConfiguration = yarnServiceDescriptor.getConfiguration(CONFIGURATION_CORE_SITE);
+      if (coreSiteConfiguration != null) {
+        Map<String, String> coreSiteProperties = coreSiteConfiguration.getProperties();
+        if (coreSiteProperties != null) {
+          for (Map.Entry<String, String> entry : coreSiteProperties.entrySet()) {
+            String value = entry.getValue();
+            if (value.contains("rm_host")) {
+              // changing rm_host to resourcemanager_hosts
+              String newValue = value.replaceAll("rm_host", "resourcemanager_hosts");
+              if (!newValue.equals(value)) {
+                updated = true;
+                entry.setValue(newValue);
+              }
+            }
+          }
+
+          if (updated) {
+            // Ensure that the properties are being updated
+            coreSiteConfiguration.setProperties(coreSiteProperties);
+          }
+        }
+      }
+    }
+
+    return updated;
+  }
+
+  /**
+   * Updates the Infra Kerberos descriptor stored in the user-supplied Kerberos Descriptor.
+   * <p>
+   * Any updates will be performed on the supplied Kerberos Descriptor.
+   * <p>
+   * The following changes may be made:
+   * <ul>
+   * <li>Rename the AMBARI_INFRA service to AMBARI_INFRA_SOLR</li>
+   * </ul>
+   *
+   * @param kerberosDescriptor the user-supplied Kerberos descriptor used to perform the in-place update
+   * @return <code>true</code> if changes were made; otherwise <code>false</code>
+   */
+  private boolean updateInfraKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    boolean updated = false;
+
     Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
     KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
     if (ambariInfraService != null) {
@@ -1054,17 +1152,27 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           updateKerberosIdentities(componentDescriptor);
         }
       }
+
+      updated = true;
     }
 
-    final boolean updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive = updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(kerberosDescriptor);
-
-    if (ambariInfraService != null || updatedWebHCatHostsInHadoopProxyuserHttpHostsForHive) {
-      artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-      artifactDAO.merge(artifactEntity);
-    }
+    return updated;
   }
 
-  private boolean updateWebHCatHostsInHadoopProxyuserHttpHostsForHive(KerberosDescriptor kerberosDescriptor) {
+  /**
+   * Updates the Hive/WebHCat Kerberos descriptor stored in the user-supplied Kerberos Descriptor.
+   * <p>
+   * Any updates will be performed on the supplied Kerberos Descriptor.
+   * <p>
+   * The following changes may be made:
+   * <ul>
+   * <li>some command json elements were modified from ..._host to ..._hosts, kerberos related properties must be adjusted accordingly</li>
+   * </ul>
+   *
+   * @param kerberosDescriptor the user-supplied Kerberos descriptor used to perform the in-place update
+   * @return <code>true</code> if changes were made; otherwise <code>false</code>
+   */
+  private boolean updateWebHCatHostKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
     boolean updated = false;
     final KerberosServiceDescriptor hiveService = kerberosDescriptor.getServices().get(HiveServiceValidator.HIVE_SERVICE);
     if (hiveService != null) {
@@ -1078,6 +1186,17 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             String newValue = currentHadoopProxyuserHttpHosts.replace("webhcat_server_host|", "webhcat_server_hosts|"); // replacing webhcat_server_host to webhcat_server_hosts
             newValue = newValue.replace("\\\\,", "\\,"); // Replacing the concatDelimiter in 'append' variable replacement function
             coreSiteConfiguration.putProperty(PROPERTY_HADOOP_PROXYUSER_HTTP_HOSTS, newValue);
+            updated = true;
+          }
+        }
+        final KerberosConfigurationDescriptor webhcatSiteConfiguration = webhcatServer.getConfiguration(CONFIGURATION_WEBHCAT_SITE);
+        if (webhcatSiteConfiguration != null) {
+          final String currentTempletonHiveProperties = webhcatSiteConfiguration.getProperty(PROPERTY_TEMPLETON_HIVE_PROPERTIES);
+          if (StringUtils.isNotBlank(currentTempletonHiveProperties)) {
+            LOG.info("Updating " + PROPERTY_TEMPLETON_HIVE_PROPERTIES + "...");
+            String newValue = currentTempletonHiveProperties.replace("hive_metastore_host|", "hive_metastore_hosts|");
+            newValue = newValue.replace("\\\\,", "\\,"); // Replacing the concatDelimiter in 'append' variable replacement function
+            webhcatSiteConfiguration.putProperty(PROPERTY_TEMPLETON_HIVE_PROPERTIES, newValue);
             updated = true;
           }
         }
@@ -1541,11 +1660,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
     for (final Cluster cluster : clusterMap.values()) {
       updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content, "7.3.0");
+        content = updateLuceneMatchVersion(content, "7.3.1");
         return updateMergeFactor(content, "logsearch_service_logs_merge_factor");
       });
       updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content,"7.3.0");
+        content = updateLuceneMatchVersion(content,"7.3.1");
         return updateMergeFactor(content, "logsearch_audit_logs_merge_factor");
       });
       updateConfig(cluster, "ranger-solr-configuration", (content) -> {
@@ -1601,10 +1720,55 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
 
-      ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          updateConfigurationPropertiesForCluster(cluster, "ams-site", Collections.singletonMap("timeline.metrics.service.default.result.limit", "5760"), true, true);
+          Map<String, String> newProperties = new HashMap<>();
+          LOG.info("Updating ams-site:timeline.metrics.service.default.result.limit to 5760");
+          newProperties.put("timeline.metrics.service.default.result.limit", "5760");
+
+          Config config = cluster.getDesiredConfigByType("ams-site");
+          if (config != null) {
+            Map<String, String> oldAmsSite = config.getProperties();
+            if (MapUtils.isNotEmpty(oldAmsSite)) {
+              if (oldAmsSite.containsKey("timeline.container-metrics.ttl")) {
+                try {
+                  int oldTtl = Integer.parseInt(oldAmsSite.get("timeline.container-metrics.ttl"));
+                  if (oldTtl > 14 * 86400) {
+                    LOG.info("Updating ams-site:timeline.container-metrics.ttl to 1209600");
+                    newProperties.put("timeline.container-metrics.ttl", "1209600");
+                  }
+                } catch (Exception e) {
+                  LOG.warn("Error updating Container metrics TTL for ams-site (AMBARI_METRICS)");
+                }
+              }
+            }
+          }
+          LOG.info("Removing ams-site host and aggregate cluster split points.");
+          Set<String> removeProperties = Sets.newHashSet("timeline.metrics.host.aggregate.splitpoints",
+            "timeline.metrics.cluster.aggregate.splitpoints");
+          updateConfigurationPropertiesForCluster(cluster, "ams-site", newProperties, removeProperties, true, true);
+
+
+          Map<String, String> newAmsHbaseSiteProperties = new HashMap<>();
+          Config amsHBasiteSiteConfig = cluster.getDesiredConfigByType("ams-hbase-site");
+          if (amsHBasiteSiteConfig != null) {
+            Map<String, String> oldAmsHBaseSite = amsHBasiteSiteConfig.getProperties();
+            if (MapUtils.isNotEmpty(oldAmsHBaseSite)) {
+              if (oldAmsHBaseSite.containsKey("hbase.snapshot.enabled")) {
+                try {
+                  Boolean hbaseSnapshotEnabled = Boolean.valueOf(oldAmsHBaseSite.get("hbase.snapshot.enabled"));
+                  if (!hbaseSnapshotEnabled) {
+                    LOG.info("Updating ams-hbase-site:hbase.snapshot.enabled to true");
+                    newAmsHbaseSiteProperties.put("hbase.snapshot.enabled", "true");
+                  }
+                } catch (Exception e) {
+                  LOG.warn("Error updating ams-hbase-site:hbase.snapshot.enabled (AMBARI_METRICS)");
+                }
+              }
+            }
+            updateConfigurationPropertiesForCluster(cluster, "ams-hbase-site", newAmsHbaseSiteProperties, true, true);
+          }
+
         }
       }
     }

@@ -20,10 +20,8 @@ package org.apache.ambari.server.state.svccomphost;
 
 import java.text.MessageFormat;
 import java.util.Collections;
-import java.util.HashSet;
- import java.util.List;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,9 +32,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
-import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
-import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
@@ -148,6 +146,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    */
   @Inject
   private AlertDefinitionHash alertDefinitionHash;
+
+  /**
+   * Used for topology event creation updates
+   */
+  @Inject
+  private Provider<AmbariManagementController> controller;
 
   /**
    * Used to publish events relating to service CRUD operations.
@@ -965,19 +969,15 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     if (stateEntity != null) {
       stateEntity.setVersion(version);
       stateEntity = hostComponentStateDAO.merge(stateEntity);
-      TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
-      topologyUpdates.put(Long.toString(getClusterId()), new TopologyCluster());
-      Long hostId = getHost().getHostId();
-      topologyUpdates.get(Long.toString(getClusterId())).addTopologyComponent(TopologyComponent.newBuilder()
-          .setComponentName(getServiceComponentName())
-          .setServiceName(getServiceName())
-          .setVersion(stateEntity.getVersion())
-          .setHostIds(new HashSet<>(Collections.singletonList(hostId)))
-          .setHostNames(new HashSet<>(Collections.singletonList(hostName)))
-          .build());
-      TopologyUpdateEvent hostComponentVersionUpdate = new TopologyUpdateEvent(topologyUpdates,
-          TopologyUpdateEvent.EventType.UPDATE);
-      m_topologyHolder.get().updateData(hostComponentVersionUpdate);
+
+      ServiceComponentHostRequest serviceComponentHostRequest = new ServiceComponentHostRequest(
+          serviceComponent.getClusterName(), serviceComponent.getServiceName(),
+          serviceComponent.getName(), hostName, getDesiredState().name());
+
+      TopologyUpdateEvent updateEvent = controller.get().getAddedComponentsTopologyEvent(
+          Collections.singleton(serviceComponentHostRequest));
+
+      m_topologyHolder.get().updateData(updateEvent);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "

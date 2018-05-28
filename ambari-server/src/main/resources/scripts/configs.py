@@ -21,7 +21,7 @@ limitations under the License.
 import optparse
 from optparse import OptionGroup
 import sys
-import urllib2
+import urllib2, ssl
 import time
 import json
 import base64
@@ -74,7 +74,8 @@ FILE_FORMAT = \
 class UsageException(Exception):
   pass
 
-def api_accessor(host, login, password, protocol, port):
+
+def api_accessor(host, login, password, protocol, port, unsafe=None):
   def do_request(api_url, request_type=GET_REQUEST_TYPE, request_body=''):
     try:
       url = '{0}://{1}:{2}{3}'.format(protocol, host, port, api_url)
@@ -84,7 +85,15 @@ def api_accessor(host, login, password, protocol, port):
       request.add_header('X-Requested-By', 'ambari')
       request.add_data(request_body)
       request.get_method = lambda: request_type
-      response = urllib2.urlopen(request)
+
+      if unsafe:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        response = urllib2.urlopen(request, context=ctx)
+      else:
+        response = urllib2.urlopen(request)
+
       response_body = response.read()
     except Exception as exc:
       raise Exception('Problem with accessing api. Reason: {0}'.format(exc))
@@ -274,6 +283,7 @@ def main():
 
   parser.add_option("-t", "--port", dest="port", default="8080", help="Optional port number for Ambari server. Default is '8080'. Provide empty string to not use port.")
   parser.add_option("-s", "--protocol", dest="protocol", default="http", help="Optional support of SSL. Default protocol is 'http'")
+  parser.add_option("--unsafe", action="store_true", dest="unsafe", help="Skip SSL certificate verification.")
   parser.add_option("-a", "--action", dest="action", help="Script action: <get>, <set>, <delete>")
   parser.add_option("-l", "--host", dest="host", help="Server external host name")
   parser.add_option("-n", "--cluster", dest="cluster", help="Name given to cluster. Ex: 'c1'")
@@ -335,7 +345,7 @@ def main():
   config_type = options.config_type
   version_note = options.version_note
 
-  accessor = api_accessor(host, user, password, protocol, port)
+  accessor = api_accessor(host, user, password, protocol, port, options.unsafe)
   if action == SET_ACTION:
 
     if not options.file and (not options.key or not options.value):

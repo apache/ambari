@@ -870,6 +870,12 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
+      // !!! the services map is from the stack, which may not contain services in the cluster.
+      // This is the case for upgrades where the target stack may remove services
+      if (!servicesMap.containsKey(service.getName())) {
+        continue;
+      }
+
       Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
@@ -1476,7 +1482,7 @@ public class ConfigHelper {
       }
       stale = stale | staleEntry;
     }
-    
+
     String refreshCommand = calculateRefreshCommand(stackInfo.getRefreshCommandConfiguration(), sch, changedProperties);
 
     if (STALE_CONFIGS_CACHE_ENABLED) {
@@ -2025,10 +2031,17 @@ public class ConfigHelper {
    * @throws AmbariException
    */
   public AgentConfigsUpdateEvent getHostActualConfigs(Long hostId) throws AmbariException {
+    return getHostActualConfigsExcludeCluster(hostId, null);
+  }
+
+  public AgentConfigsUpdateEvent getHostActualConfigsExcludeCluster(Long hostId, Long clusterId) throws AmbariException {
     TreeMap<String, ClusterConfigs> clustersConfigs = new TreeMap<>();
 
     Host host = clusters.getHostById(hostId);
     for (Cluster cl : clusters.getClusters().values()) {
+      if (clusterId != null && cl.getClusterId() == clusterId) {
+        continue;
+      }
       Map<String, Map<String, String>> configurations = new HashMap<>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new HashMap<>();
       if (LOG.isInfoEnabled()) {

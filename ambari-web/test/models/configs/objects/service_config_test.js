@@ -123,7 +123,7 @@ describe('App.ServiceConfig', function () {
     it('returns collection of properties with errors', function() {
       serviceConfig.set('activeProperties', configs);
       serviceConfig.setConfigsWithErrorsOnce();
-      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5', 'p6']);
+      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5', 'p6', 'p7']);
     });
   });
 

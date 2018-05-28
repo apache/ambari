@@ -75,7 +75,8 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     repo_name : 'Repositories.repo_name',
     stack_name : 'Repositories.stack_name',
     stack_version : 'Repositories.stack_version',
-    tags: 'Repositories.tags'
+    tags: 'Repositories.tags',
+    applicable_services: 'Repositories.applicable_services'
   },
 
   map: function (json, loadAll, isCurrentStackOnly) {

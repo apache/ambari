@@ -129,6 +129,9 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
     super.unsuccessfulAuthentication(request, response, failed);
     String ajaxRequestHeader = request.getHeader("X-Requested-With");
     String loginUrl = constructLoginURL(request);
+    if (loginUrl.endsWith("?doAs=anonymous")) { // HACK! - use proper solution, investigate which filter changes ? to &
+      loginUrl = StringUtils.removeEnd(loginUrl, "?doAs=anonymous");
+    }
     if (!isWebUserAgent(request.getHeader("User-Agent")) || "XMLHttpRequest".equals(ajaxRequestHeader)) {
       Map<String, String> mapObj = new HashMap<>();
       mapObj.put("knoxssoredirectURL", URLEncoder.encode(loginUrl, "UTF-8"));

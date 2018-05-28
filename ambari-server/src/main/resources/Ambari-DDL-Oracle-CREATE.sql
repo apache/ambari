@@ -198,6 +198,11 @@ CREATE TABLE repo_tags (
   tag VARCHAR(255) NOT NULL,
   CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
+CREATE TABLE repo_applicable_services (
+  repo_definition_id NUMBER(19) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  CONSTRAINT FK_repo_app_service_def_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+
 CREATE TABLE servicecomponentdesiredstate (
   id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
@@ -306,7 +311,7 @@ CREATE TABLE user_authentication (
   user_authentication_id NUMBER(10),
   user_id NUMBER(10) NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
-  authentication_key CLOB,
+  authentication_key VARCHAR(2048),
   create_time TIMESTAMP NULL,
   update_time TIMESTAMP NULL,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),

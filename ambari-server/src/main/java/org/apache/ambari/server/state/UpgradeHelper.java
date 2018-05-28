@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -64,6 +65,7 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
@@ -309,6 +311,7 @@ public class UpgradeHelper {
 
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
+    Map<String, AddComponentTask> addedComponentsDuringUpgrade = upgradePack.getAddComponentTasks();
 
     // Note, only a Rolling Upgrade uses processing tasks.
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
@@ -382,16 +385,36 @@ public class UpgradeHelper {
 
         for (String component : service.components) {
           // Rolling Upgrade has exactly one task for a Component.
+          // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
+          // other tasks, and then Start on that Component.
+
           if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.get(service.serviceName).containsKey(component)) {
             continue;
           }
 
-          // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
-          // other tasks, and then Start on that Component.
-
           HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
           if (null == hostsType) {
-            continue;
+            // a null hosts type usually means that the component is not
+            // installed in the cluster - but it's possible that it's going to
+            // be added as part of the upgrade. If this is the case, then we
+            // need to schedule tasks assuming the add works
+            String id = service.serviceName + "/" + component;
+            if (addedComponentsDuringUpgrade.containsKey(id)) {
+              AddComponentTask task = addedComponentsDuringUpgrade.get(id);
+              Collection<Host> candidateHosts = MasterHostResolver.getCandidateHosts(cluster,
+                  task.hosts, task.hostService, task.hostComponent);
+
+              if (!candidateHosts.isEmpty()) {
+                hostsType = HostsType.normal(
+                    candidateHosts.stream().map(host -> host.getHostName()).collect(
+                        Collectors.toCollection(LinkedHashSet::new)));
+              }
+            }
+
+            // if we still have no hosts, then truly skip this component
+            if (null == hostsType) {
+              continue;
+            }
           }
 
           if (!hostsType.unhealthy.isEmpty()) {
@@ -804,13 +827,32 @@ public class UpgradeHelper {
    * @param component the component name
    */
   private void setDisplayNames(UpgradeContext context, String service, String component) {
-    StackId stackId = context.getCluster().getDesiredStackVersion();
+    StackId currentStackId = context.getCluster().getCurrentStackVersion();
+    StackId stackId = context.getRepositoryVersion().getStackId();
+
     try {
       ServiceInfo serviceInfo = m_ambariMetaInfoProvider.get().getService(stackId.getStackName(),
           stackId.getStackVersion(), service);
+
+      // if the service doesn't exist in the new stack, try the old one
+      if (null == serviceInfo) {
+        serviceInfo = m_ambariMetaInfoProvider.get().getService(currentStackId.getStackName(),
+            currentStackId.getStackVersion(), service);
+      }
+
+      if (null == serviceInfo) {
+        LOG.debug("Unable to lookup service display name information for {}", service);
+        return;
+      }
+
       context.setServiceDisplay(service, serviceInfo.getDisplayName());
 
       ComponentInfo compInfo = serviceInfo.getComponentByName(component);
+      if (null == compInfo) {
+        LOG.debug("Unable to lookup component display name information for {}", component);
+        return;
+      }
+
       context.setComponentDisplay(service, component, compInfo.getDisplayName());
 
     } catch (AmbariException e) {

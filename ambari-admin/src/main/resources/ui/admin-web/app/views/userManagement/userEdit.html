@@ -26,9 +26,9 @@
   <hr>
   <form class="form-horizontal" role="form" >
     <div class="form-group">
-      <label class="col-sm-2 ">{{'common.type' | translate}}</label>
+      <label class="col-sm-2 one-row-value">{{'common.type' | translate}}</label>
       <div class="col-sm-10">
-        <label>{{user.userTypeName}}</label>
+        <label class="one-row-value">{{user.userTypeName}}</label>
       </div>
     </div>
     <div class="form-group">
@@ -58,7 +58,7 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="col-sm-2 ">{{getUserMembership(user.user_type)}}</label>
+      <label class="col-sm-2 one-row-value">{{getUserMembership(user.user_type)}}</label>
       <div class="col-sm-10">
         <editable-list items-source="editingGroupsList" resource-type="Group" editable="user.user_type == 'LOCAL'"></editable-list>
       </div>

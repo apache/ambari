@@ -16,30 +16,32 @@
 * limitations under the License.
 }}
 {{#if controller.isInstallWizard}}
-  <span class="service-name">{{t common.service}}&nbsp;</span>
-  <span class="btn-group">
-    <button class="btn btn-default dropdown-toggle first select-service-dropdown" data-toggle="dropdown">
-      {{controller.selectedService.displayName}}
-      {{#if selectedService.configsWithErrors.length}}
-        <span class="badge badge-important">{{selectedService.configsWithErrors.length}}</span>
-      {{/if}}
-    </button>
-    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-      <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-      {{#each service in controller.stepConfigs}}
-        <li>
-          <a href="#" {{action selectService service target="controller"}}>
-            {{service.displayName}}
-            {{#if service.configsWithErrors.length}}
-              <span class="badge badge-important">{{service.configsWithErrors.length}}</span>
-            {{/if}}
-          </a>
-        </li>
-      {{/each}}
-    </ul>
-  </span>
+  <div class="row one-row-tabs-container">
+    <div class="left-arrow">
+      <a href="#"{{bindAttr class="view.isLeftArrowDisabled:disabled"}} {{action "scrollTabsLeft" target="view"}}> <i class="icon-angle-left"></i>
+      </a>
+    </div>
+    <div class="tabs-container">
+      <ul class="nav nav-tabs mbm">
+        {{#each tab in controller.stepConfigs}}
+          <li rel='tooltip' {{bindAttr class="tab.isActive:active" data-original-title="tab.tooltipMsg"}}>
+            <a href="#" {{action selectService tab target="controller"}} {{bindAttr data-target="tab.headingClass"}}
+               data-toggle="tab">
+              {{formatRole tab.serviceName}}
+              {{#if tab.errorsCount}}
+                <span class="badge badge-important">{{tab.errorsCount}}</span>
+              {{/if}}
+            </a>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+    <div class="right-arrow">
+      <a href="#" {{bindAttr class="view.isRightArrowDisabled:disabled"}} {{action "scrollTabsRight" target="view"}}>
+        <i class="icon-angle-right"></i>
+      </a>
+    </div>
+  </div>
 {{else}}
   {{#if controller.isRecommendedLoaded}}
     <ul class="nav nav-tabs" {{QAAttr "config-tabs"}}>
@@ -60,7 +62,7 @@
 {{/if}}
 {{#if controller.isInstallWizard}}
   {{#if issuesCounter}}
-    <span class="notifications-group pull-right">
+    <div class="notifications-group align-right installer-all-configs-notifications">
       <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <span id="issues-bell" {{bindAttr class=":glyphicon :glyphicon-bell controller.hasErrors:important:warning"}}></span>
         <span id="issues-counter" {{bindAttr class=":badge controller.hasErrors:badge-important:badge-warning"}}>
@@ -73,7 +75,7 @@
           {{view App.DependentConfigsListView recommendationsBinding="controller.recommendations" requiredChangesBinding="controller.requiredChanges"}}
         </div>
       </div>
-    </span>
+    </div>
   {{/if}}
 {{/if}}
 {{#if hasChangedDependencies}}

@@ -590,7 +590,7 @@ App.UpdateController = Em.Controller.extend({
     } else if (/^2.2/.test(App.get('currentStackVersionNumber'))) {
       serviceSpecificParams.STORM = 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary';
     }
-    serviceSpecificParams.ONEFS = 'metrics/dfs/*,';
+    serviceSpecificParams.ONEFS = 'metrics/*,';
 
     App.cache.services.forEach(function (service) {
       var urlParams = serviceSpecificParams[service.ServiceInfo.service_name];

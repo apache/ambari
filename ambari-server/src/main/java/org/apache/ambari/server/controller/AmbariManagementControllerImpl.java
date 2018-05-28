@@ -107,9 +107,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
-import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
@@ -137,6 +135,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -229,8 +228,8 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceede
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.ambari.server.topology.Setting;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -358,14 +357,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   protected OsFamily osFamily;
 
   @Inject
-  private TopologyDeleteFormer topologyDeleteFormer;
+  private STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler;
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
-
-  private Provider<MetadataHolder> m_metadataHolder;
-
-  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   @Inject
   private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
@@ -425,8 +420,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
     maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
     kerberosHelper = injector.getInstance(KerberosHelper.class);
-    m_metadataHolder = injector.getProvider(MetadataHolder.class);
-    m_agentConfigsHolder = injector.getProvider(AgentConfigsHolder.class);
     if(configs != null)
     {
       if (configs.getApiSSLAuthentication()) {
@@ -755,7 +748,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
+  /**
+   * {@inheritDoc}
+   */
+  public TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     Set<String> hostsToUpdate = new HashSet<>();
@@ -778,8 +774,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       hostNames.add(hostName);
       ServiceComponentHost sch = sc.getServiceComponentHost(request.getHostname());
 
-      StackId stackId = cluster.getDesiredStackVersion();
-
       TopologyComponent newComponent = TopologyComponent.newBuilder()
           .setComponentName(sch.getServiceComponentName())
           .setServiceName(sch.getServiceName())
@@ -800,7 +794,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         Set<TopologyComponent> newComponents = new HashSet<>();
         newComponents.add(newComponent);
         topologyUpdates.get(clusterId).update(newComponents, Collections.emptySet(),
-            TopologyUpdateEvent.EventType.UPDATE);
+            UpdateEventType.UPDATE);
       } else {
         topologyUpdates.get(clusterId).addTopologyComponent(newComponent);
       }
@@ -809,7 +803,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Host host = clusters.getHost(hostName);
       m_hostLevelParamsHolder.get().updateData(m_hostLevelParamsHolder.get().getCurrentData(host.getHostId()));
     }
-    return new TopologyUpdateEvent(topologyUpdates, TopologyUpdateEvent.EventType.UPDATE);
+    return new TopologyUpdateEvent(topologyUpdates, UpdateEventType.UPDATE);
   }
 
   private void setMonitoringServicesRestartRequired(
@@ -3665,7 +3659,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     //Response for these requests will have empty body with appropriate error code.
     if (deleteMetaData.getDeletedKeys().size() + deleteMetaData.getExceptionForKeys().size() == 1) {
       if (deleteMetaData.getDeletedKeys().size() == 1) {
-        topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
+        STOMPComponentsDeleteHandler.processDeleteByMetaData(deleteMetaData);
         return null;
       }
       Exception ex = deleteMetaData.getExceptionForKeys().values().iterator().next();
@@ -3680,7 +3674,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (!safeToRemoveSCHs.isEmpty()) {
       setMonitoringServicesRestartRequired(requests);
     }
-    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
+    STOMPComponentsDeleteHandler.processDeleteByMetaData(deleteMetaData);
     return deleteMetaData;
   }
 
@@ -4334,6 +4328,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return response;
   }
 
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   private Set<RepositoryResponse> getRepositories(RepositoryRequest request) throws AmbariException {
 
     String stackName = request.getStackName();
@@ -4363,7 +4359,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
               final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepoID(),
                   repository.getRepoName(), repository.getDistribution(), repository.getComponents(), "", "",
-                      repository.getTags());
+                      repository.getTags(), repository.getApplicableServices());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4393,7 +4389,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl(), repo.getTags());
+              repo.getBaseUrl(), repo.getTags(), Collections.EMPTY_LIST);
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());
@@ -5575,7 +5571,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   /**
-   * Collects metadata info about clusters for agent.
+   * Collects full metadata info about clusters for agent.
    * @return metadata info about clusters
    * @throws AmbariException
    */
@@ -5595,7 +5591,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        getMetadataAmbariLevelParams(), getMetadataAgentConfigs());
+        getMetadataAmbariLevelParams(), getMetadataAgentConfigs(), UpdateEventType.CREATE);
     return metadataUpdateEvent;
   }
 
@@ -5612,7 +5608,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs());
+        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
     return metadataUpdateEvent;
   }
 
@@ -5628,7 +5624,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs());
+        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
     return metadataUpdateEvent;
   }
 
@@ -5642,22 +5638,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs());
+        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
     return metadataUpdateEvent;
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceName) throws AmbariException {
-    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-
-    MetadataCluster metadataCluster = new MetadataCluster(null,
-        getMetadataServiceLevelParams(cl.getService(serviceName)),
-        new TreeMap<>(),
-        null);
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs());
-    return metadataUpdateEvent;
+    return getClusterMetadataOnServiceCredentialStoreUpdate(cl, serviceName);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceName) throws AmbariException {
@@ -5670,7 +5656,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
     MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs());
+        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
     return metadataUpdateEvent;
   }
 
@@ -5786,31 +5772,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(STACK_NAME, stackId.getStackName());
     clusterLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    if (MapUtils.isNotEmpty(desiredConfigs)) {
-
-      Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
-      String userList = gson.toJson(userSet);
-      clusterLevelParams.put(USER_LIST, userList);
-
-      //Create a user_group mapping and send it as part of the hostLevelParams
-      Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
-          stackId, cluster, desiredConfigs);
-      String userGroups = gson.toJson(userGroupsMap);
-      clusterLevelParams.put(USER_GROUPS, userGroups);
-
-      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredConfigs);
-      String groupList = gson.toJson(groupSet);
-      clusterLevelParams.put(GROUP_LIST, groupList);
-    }
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId,
-        PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
-    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-    clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
+    clusterLevelParams.putAll(getMetadataClusterLevelConfigsParams(cluster, stackId));
     clusterLevelParams.put(CLUSTER_NAME, cluster.getClusterName());
-
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     clusterLevelParams.put(HOOKS_FOLDER, configs.getProperty(Configuration.HOOKS_FOLDER));
 
     return clusterLevelParams;
@@ -5819,7 +5782,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public TreeMap<String, String> getMetadataClusterLevelConfigsParams(Cluster cluster, StackId stackId) throws AmbariException {
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
 
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs(false);
     if (MapUtils.isNotEmpty(desiredConfigs)) {
 
       Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
@@ -5926,7 +5889,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, Map<String,String>> agentConfigsMap = configs.getAgentConfigsMap();
 
     for (String key : agentConfigsMap.keySet()) {
-      agentConfigs.put(key, new TreeMap<String, String>(agentConfigsMap.get(key)));
+      agentConfigs.put(key, new TreeMap<>(agentConfigsMap.get(key)));
     }
 
     return agentConfigs;
@@ -5935,8 +5898,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException {
     List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(host.getHostName());
-    Map<Long, CommandRepository> hostRepositories = new HashMap<>();
-    Map<String, Long> componentsRepos = new HashMap<>();
+    SortedMap<Long, CommandRepository> hostRepositories = new TreeMap<>();
+    SortedMap<String, Long> componentsRepos = new TreeMap<>();
     for (ServiceComponentHost serviceComponentHost : hostComponents) {
 
       CommandRepository commandRepository;

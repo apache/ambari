@@ -279,6 +279,12 @@ public class KerberosHelperImpl implements KerberosHelper {
                 throw new AmbariException(String.format("Custom operation %s can only be requested with the security type cluster property: %s", operation.name(), SecurityType.KERBEROS.name()));
               }
 
+              boolean retryAllowed = false;
+              if (requestProperties.containsKey(ALLOW_RETRY)) {
+                String allowRetryString = requestProperties.get(ALLOW_RETRY);
+                retryAllowed = Boolean.parseBoolean(allowRetryString);
+              }
+
               CreatePrincipalsAndKeytabsHandler handler = null;
 
               Set<String> hostFilter = parseHostFilter(requestProperties);
@@ -296,6 +302,8 @@ public class KerberosHelperImpl implements KerberosHelper {
               }
 
               if (handler != null) {
+                handler.setRetryAllowed(retryAllowed);
+
                 requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities),
                   serviceComponentFilter, hostFilter, null, null, requestStageContainer, handler);
               } else {
@@ -473,7 +481,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     // If Ambari is managing it own identities then add AMBARI to the set of installed service so
     // that its Kerberos descriptor entries will be included.
     if (createAmbariIdentities(existingConfigurations.get(KERBEROS_ENV))) {
-      installedServices = new HashMap<String, Set<String>>(installedServices);
+      installedServices = new HashMap<>(installedServices);
       installedServices.put(RootService.AMBARI.name(), Collections.singleton(RootComponent.AMBARI_SERVER.name()));
     }
 
@@ -2533,6 +2541,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @return a File pointing to the new temporary directory, or null if one was not created
    * @throws AmbariException if a new temporary directory cannot be created
    */
+  @Override
   public File createTemporaryDirectory() throws AmbariException {
     try {
       File temporaryDirectory = getConfiguredTemporaryDirectory();
@@ -2717,41 +2726,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       hostParams);
 
     stage.setStageId(id);
-    return stage;
-  }
-
-  /**
-   * Creates a new stage with a single task describing the ServerAction class to invoke and the other
-   * task-related information.
-   *
-   * @param id                the new stage's id
-   * @param cluster           the relevant Cluster
-   * @param requestId         the relevant request Id
-   * @param requestContext    a String describing the stage
-   * @param commandParams     JSON-encoded command parameters
-   * @param hostParams        JSON-encoded host parameters
-   * @param actionClass       The ServeAction class that implements the action to invoke
-   * @param event             The relevant ServiceComponentHostServerActionEvent
-   * @param commandParameters a Map of command parameters to attach to the task added to the new
-   *                          stage
-   * @param commandDetail     a String declaring a descriptive name to pass to the action - null or an
-   *                          empty string indicates no value is to be set
-   * @param timeout           the timeout for the task/action  @return a newly created Stage
-   */
-  private Stage createServerActionStage(long id, Cluster cluster, long requestId,
-                                        String requestContext,
-                                        String commandParams, String hostParams,
-                                        Class<? extends ServerAction> actionClass,
-                                        ServiceComponentHostServerActionEvent event,
-                                        Map<String, String> commandParameters, String commandDetail,
-                                        Integer timeout) throws AmbariException {
-
-    Stage stage = createNewStage(id, cluster, requestId, requestContext, commandParams, hostParams);
-    stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
-      RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
-      ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
-      false, false);
-
     return stage;
   }
 
@@ -3330,6 +3304,23 @@ public class KerberosHelperImpl implements KerberosHelper {
    */
   private abstract class Handler {
 
+    /**
+     * If (@code true}, allows stages and tasks created with the handler to be
+     * retried instead of outright failing a task.
+     *
+     * @see KerberosHelper#ALLOW_RETRY
+     */
+    protected boolean retryAllowed = false;
+
+    /**
+     * Sets whether tasks created as part of this handler can be retry if they fail. If a task
+     * cannot be retried it will fail the entire request.
+     *
+     * @param retryAllowed
+     */
+    void setRetryAllowed(boolean retryAllowed) {
+      this.retryAllowed = retryAllowed;
+    }
 
     /**
      * Creates the necessary stages to complete the relevant task and stores them in the supplied
@@ -3551,12 +3542,14 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (!hosts.isEmpty()) {
         Map<String, String> requestParams = new HashMap<>();
+       
+        ActionExecutionContext actionExecContext = createActionExecutionContext(
+            cluster.getClusterName(), 
+            SET_KEYTAB, 
+            createRequestResourceFilters(hosts),
+            requestParams, 
+            retryAllowed);        
 
-        ActionExecutionContext actionExecContext = new ActionExecutionContext(
-          cluster.getClusterName(),
-          SET_KEYTAB,
-          createRequestResourceFilters(hosts),
-          requestParams);
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
           requestParams, null);
       }
@@ -3586,11 +3579,13 @@ public class KerberosHelperImpl implements KerberosHelper {
       if (!hostsToInclude.isEmpty()) {
         Map<String, String> requestParams = new HashMap<>();
 
-        ActionExecutionContext actionExecContext = new ActionExecutionContext(
-          cluster.getClusterName(),
-          CHECK_KEYTABS,
-          createRequestResourceFilters(hostsToInclude),
-          requestParams);
+        ActionExecutionContext actionExecContext = createActionExecutionContext(
+            cluster.getClusterName(), 
+            CHECK_KEYTABS, 
+            createRequestResourceFilters(hostsToInclude),
+            requestParams, 
+            retryAllowed);        
+
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
       }
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
@@ -3796,6 +3791,63 @@ public class KerberosHelperImpl implements KerberosHelper {
       RequestResourceFilter reqResFilter = new RequestResourceFilter(Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToInclude);
       requestResourceFilters.add(reqResFilter);
       return requestResourceFilters;
+    }
+
+    /**
+     * Creates a new stage with a single task describing the ServerAction class to invoke and the other
+     * task-related information.
+     *
+     * @param id                the new stage's id
+     * @param cluster           the relevant Cluster
+     * @param requestId         the relevant request Id
+     * @param requestContext    a String describing the stage
+     * @param commandParams     JSON-encoded command parameters
+     * @param hostParams        JSON-encoded host parameters
+     * @param actionClass       The ServeAction class that implements the action to invoke
+     * @param event             The relevant ServiceComponentHostServerActionEvent
+     * @param commandParameters a Map of command parameters to attach to the task added to the new
+     *                          stage
+     * @param commandDetail     a String declaring a descriptive name to pass to the action - null or an
+     *                          empty string indicates no value is to be set
+     * @param timeout           the timeout for the task/action  @return a newly created Stage
+     */
+    private Stage createServerActionStage(long id, Cluster cluster, long requestId,
+                                          String requestContext,
+                                          String commandParams, String hostParams,
+                                          Class<? extends ServerAction> actionClass,
+                                          ServiceComponentHostServerActionEvent event,
+                                          Map<String, String> commandParameters, String commandDetail,
+                                          Integer timeout) throws AmbariException {
+
+      Stage stage = createNewStage(id, cluster, requestId, requestContext, commandParams, hostParams);
+      stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
+        ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
+          retryAllowed, false);
+
+      return stage;
+    }
+
+    /**
+     * Creates an {@link ActionExecutionContext} where some of the common values are pre-initialized.
+     * 
+     * @param clusterName
+     * @param commandName
+     * @param resourceFilters
+     * @param parameters
+     * @param retryAllowed
+     * @return
+     */
+    private ActionExecutionContext createActionExecutionContext(String clusterName,
+        String commandName, List<RequestResourceFilter> resourceFilters,
+        Map<String, String> parameters, boolean retryAllowed) {
+
+      ActionExecutionContext actionExecContext = new ActionExecutionContext(clusterName, SET_KEYTAB,
+          resourceFilters, parameters);
+
+      actionExecContext.setRetryAllowed(retryAllowed);
+
+      return actionExecContext;
     }
   }
 

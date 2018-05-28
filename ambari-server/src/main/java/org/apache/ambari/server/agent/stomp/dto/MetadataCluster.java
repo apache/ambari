@@ -24,6 +24,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -50,6 +51,10 @@ public class MetadataCluster {
     this.agentConfigs = agentConfigs;
   }
 
+  public static MetadataCluster emptyMetadataCluster() {
+    return new MetadataCluster(null, null, null, null);
+  }
+
   public Set<String> getStatusCommandsToRun() {
     return statusCommandsToRun;
   }
@@ -72,6 +77,34 @@ public class MetadataCluster {
 
   public void setAgentConfigs(SortedMap<String, SortedMap<String, String>> agentConfigs) {
     this.agentConfigs = agentConfigs;
+  }
+
+  public boolean updateServiceLevelParams(SortedMap<String, MetadataServiceInfo> update) {
+    boolean changed = false;
+    for (String key : update.keySet()) {
+      if (!serviceLevelParams.containsKey(key) || !serviceLevelParams.get(key).equals(update.get(key))) {
+        changed = true;
+        break;
+      }
+    }
+    if (changed) {
+      serviceLevelParams.putAll(update);
+    }
+    return changed;
+  }
+
+  public boolean updateClusterLevelParams(SortedMap<String, String> update) {
+    boolean changed = false;
+    for (String key : update.keySet()) {
+      if (!clusterLevelParams.containsKey(key) || !StringUtils.equals(clusterLevelParams.get(key), update.get(key))) {
+        changed = true;
+        break;
+      }
+    }
+    if (changed) {
+      clusterLevelParams.putAll(update);
+    }
+    return changed;
   }
 
   @Override

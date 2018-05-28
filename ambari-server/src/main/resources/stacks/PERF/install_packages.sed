@@ -14,12 +14,25 @@
 # limitations under the License.
 /actionexecute/{i\
   def actionexecute(self, env):\
+    from resource_management.core.resources.system import Execute\
     # Parse parameters\
     config = Script.get_config()\
-    repository_version = config['roleParams']['repository_version']\
+    try:\
+      command_repository = CommandRepository(config['repositoryFile'])\
+    except KeyError:\
+      raise Fail("The command repository indicated by 'repositoryFile' was not found")\
+    self.repository_version = command_repository.version_string\
+    if self.repository_version is None:\
+      raise Fail("Cannot determine the repository version to install")\
+    self.repository_version = self.repository_version.strip()\
     (stack_selector_name, stack_selector_path, stack_selector_package) = stack_tools.get_stack_tool(stack_tools.STACK_SELECTOR_NAME)\
-    command = 'ambari-python-wrap {0} install {1}'.format(stack_selector_path, repository_version)\
+    command = 'ambari-python-wrap {0} install {1}'.format(stack_selector_path, self.repository_version)\
     Execute(command)\
+    self.structured_output = {\
+      'package_installation_result': 'SUCCESS',\
+      'repository_version_id': command_repository.version_id\
+    }\
+    self.put_structured_out(self.structured_output)\
   def actionexecute_old(self, env):
 d
 }
