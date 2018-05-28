@@ -170,8 +170,27 @@ def create_infra_solr_client_command(options, config, command):
 
   return solr_cli_cmd
 
-def get_random_solr_url(solr_urls): # TODO: use Solr host filter
+def get_random_solr_url(solr_urls, options):
   splitted_solr_urls = solr_urls.split(',')
+
+  if options.include_solr_hosts:
+    # keep only included ones, do not override any
+    include_solr_hosts_list = options.include_solr_hosts.split(',')
+    new_splitted_urls = []
+    for url in splitted_solr_urls:
+      if any(inc_solr_host in url for inc_solr_host in include_solr_hosts_list):
+        new_splitted_urls.append(url)
+    splitted_solr_urls = new_splitted_urls
+
+  if options.exclude_solr_hosts:
+    exclude_solr_hosts_list = options.exclude_solr_hosts.split(',')
+    urls_to_exclude = []
+    for url in splitted_solr_urls:
+      if any(exc_solr_host in url for exc_solr_host in exclude_solr_hosts_list):
+        urls_to_exclude.append(url)
+    for excluded_url in urls_to_exclude:
+      splitted_solr_urls.remove(excluded_url)
+
   random_index = randrange(0, len(splitted_solr_urls))
   result = splitted_solr_urls[random_index]
   logger.debug("Use {0} solr address for next request.".format(result))
@@ -335,11 +354,21 @@ def validte_common_options(options, parser, config):
     sys.exit(1)
 
 def get_solr_hosts(options, accessor, cluster):
-  if options.solr_hosts:
-    component_hosts = options.solr_hosts.split(",")
-  else:
-    host_components_json = get_json(accessor, CLUSTERS_URL.format(cluster) + GET_HOSTS_COMPONENTS_URL.format(SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME))
-    component_hosts = get_component_hosts(host_components_json)
+  host_components_json = get_json(accessor, CLUSTERS_URL.format(cluster) + GET_HOSTS_COMPONENTS_URL.format(SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME))
+  component_hosts = get_component_hosts(host_components_json)
+
+  if options.include_solr_hosts:
+    new_component_hosts = []
+    include_solr_hosts_list = options.include_solr_hosts.split(',')
+    for include_host in include_solr_hosts_list:
+      if include_host in component_hosts:
+        new_component_hosts.append(include_host)
+    component_hosts = new_component_hosts
+  if options.exclude_solr_hosts:
+    exclude_solr_hosts_list = options.exclude_solr_hosts.split(',')
+    for exclude_host in exclude_solr_hosts_list:
+      if exclude_host in component_hosts:
+        component_hosts.remove(exclude_host)
   return component_hosts
 
 def restore(options, accessor, parser, config, collection, index_location, shards):
@@ -424,7 +453,7 @@ def get_solr_urls(config):
   return solr_urls
 
 def delete_collection(options, config, collection, solr_urls):
-  request = DELETE_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls), collection)
+  request = DELETE_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls, options), collection)
   logger.debug("Solr request: {0}".format(request))
   delete_collection_json_cmd=create_solr_api_request_command(request, config)
   process = Popen(delete_collection_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
@@ -439,7 +468,7 @@ def delete_collection(options, config, collection, solr_urls):
     raise Exception("DELETE collection ('{0}') failed. Response: {1}".format(collection, str(out)))
 
 def list_collections(options, config, solr_urls):
-  request = LIST_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls))
+  request = LIST_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls, options))
   logger.debug("Solr request: {0}".format(request))
   list_collection_json_cmd=create_solr_api_request_command(request, config)
   process = Popen(list_collection_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
@@ -453,7 +482,7 @@ def list_collections(options, config, solr_urls):
     raise Exception("LIST collections failed ({0}). Response: {1}".format(request, str(out)))
 
 def create_collection(options, config, solr_urls, collection, config_set, shards, replica, max_shards_per_node):
-  request = CREATE_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls), collection, config_set, shards, replica, max_shards_per_node)
+  request = CREATE_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls, options), collection, config_set, shards, replica, max_shards_per_node)
   logger.debug("Solr request: {0}".format(request))
   create_collection_json_cmd=create_solr_api_request_command(request, config)
   process = Popen(create_collection_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
@@ -468,7 +497,7 @@ def create_collection(options, config, solr_urls, collection, config_set, shards
     raise Exception("CREATE collection ('{0}') failed. ({1}) Response: {1}".format(collection, str(out)))
 
 def reload_collection(options, config, solr_urls, collection):
-  request = RELOAD_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls), collection)
+  request = RELOAD_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls, options), collection)
   logger.debug("Solr request: {0}".format(request))
   reload_collection_json_cmd=create_solr_api_request_command(request, config)
   process = Popen(reload_collection_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
@@ -931,7 +960,8 @@ if __name__=="__main__":
   parser.add_option("--request-time-interval", dest="request_time_interval", type="int", help="time interval between BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-async", dest="request_async", action="store_true", default=False, help="skip BACKUP/RESTORE status api calls from the command")
   parser.add_option("--shared-fs", dest="shared_fs", action="store_true", default=False, help="shared fs for storing backup (will create index location to <path><hostname>)")
-  parser.add_option("--solr-hosts", dest="solr_hosts", type="string", help="comma separated list of solr hosts")
+  parser.add_option("--include-solr-hosts", dest="include_solr_hosts", type="string", help="comma separated list of included solr hosts")
+  parser.add_option("--exclude-solr-hosts", dest="exclude_solr_hosts", type="string", help="comma separated list of excluded solr hosts")
   parser.add_option("--disable-solr-host-check", dest="disable_solr_host_check", action="store_true", default=False, help="Disable to check solr hosts are good for the collection backups")
   parser.add_option("--core-filter", dest="core_filter", default=None, type="string", help="core filter for replica folders")
   parser.add_option("--skip-cores", dest="skip_cores", default=None, type="string", help="specific cores to skip (comma separated)")
