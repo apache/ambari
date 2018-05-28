@@ -31,7 +31,7 @@ credential_util_jar = 'CredentialUtil.jar'
 
 def removeloglines(lines):
     regex = re.compile(r'^(([0-1][0-9])|([2][0-3])):([0-5][0-9])(:[0-5][0-9])[,]\d{1,3}')
-    cleanlines = filter(regex.search, lines)
+    cleanlines = [x for x in lines if not regex.match(x)]
     return(cleanlines)
 
 def downloadjar(cs_lib_path, jdk_location):
@@ -52,7 +52,7 @@ def get_password_from_credential_store(alias, provider_path, cs_lib_path, java_h
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'get', alias, '-provider', provider_path)
     cmd_result, std_out_msg  = checked_call(cmd)
     std_out_lines = std_out_msg.split('\n')
-    return(removeloglines(std_out_lines)) # Get the last line of the output, to skip warnings if any.
+    return(removeloglines(std_out_lines)[0]) # Get the last line of the output, to skip warnings if any.
 
 
 def list_aliases_from_credential_store(provider_path, cs_lib_path, java_home, jdk_location):
@@ -63,7 +63,7 @@ def list_aliases_from_credential_store(provider_path, cs_lib_path, java_home, jd
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'list', '-provider', provider_path)
     cmd_result, std_out_msg  = checked_call(cmd)
     std_out_lines = std_out_msg.split('\n')
-    return(removeloglines(std_out_lines)) # Get the last line of the output, to skip warnings if any.
+    return(removeloglines(std_out_lines)[1:]) # Get the last line of the output, to skip warnings if any.
 
 
 def delete_alias_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location):
