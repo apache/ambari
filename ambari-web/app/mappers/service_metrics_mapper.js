@@ -497,7 +497,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var hiveInteractiveServerComponent = App.HostComponent.find().find(function (component) {
             return component.get('hostName') === hostComponent.host_name && component.get('componentName') === 'HIVE_SERVER_INTERACTIVE';
           });
-          hostComponent.display_name_advanced = hiveInteractiveServerComponent.get('displayNameAdvanced');
+          if (hiveInteractiveServerComponent) {
+            hostComponent.display_name_advanced = hiveInteractiveServerComponent.get('displayNameAdvanced');
+          }
         }
         if (service) {
           if (hostComponent.display_name_advanced) {
