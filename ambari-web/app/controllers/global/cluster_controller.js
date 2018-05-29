@@ -226,18 +226,15 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadStackServices: function (data) {
-    var stacks = [];
+    var stackUrls = [];
     var self = this;
     data.items.forEach((servicegroup) => {
       var serviceStackName = servicegroup.ServiceGroupInfo.mpack_name;
       var serviceStackVersion = servicegroup.ServiceGroupInfo.mpack_version;
-      stacks.push({
-        stackUrl: App.getStackVersionUrl(serviceStackName, serviceStackVersion),
-        stackVersion: serviceStackVersion
-      })
+      stackUrls.push(App.getStackVersionUrl(serviceStackName, serviceStackVersion));
     });
-    if (stacks.length) {
-      this.loadStackServiceComponents(stacks, function (stacksData) {
+    if (stackUrls.length) {
+      this.loadStackServiceComponents(stackUrls, function (stacksData) {
         stacksData.forEach(function (data) {
           data.items.forEach(function (service) {
             service.StackServices.is_selected = true;
@@ -368,23 +365,22 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * @returns {?object}
    */
 
-  loadStackServiceComponents: function (stacks, callback, stackPosition) {
+  loadStackServiceComponents: function (stackUrls, callback, stackPosition) {
     var self = this;
     App.ajax.send({
       name: 'wizard.service_components',
       data: {
-        stackUrl: stacks[stackPosition].stackUrl,
-        stackVersion: stacks[stackPosition].stackVersion
+        stackUrl: stackUrls[stackPosition]
       },
       sender: this
     }).then(data => {
       var stacksData = self.get('stacksData') || [];
       stacksData.push(data);
       self.set('stacksData', stacksData);
-      if (stacksData.length === stacks.length) {
+      if (stacksData.length === stackUrls.length) {
         callback(stacksData);
       } else {
-        self.loadStackServiceComponents(stacks, callback, stacksData.length);
+        self.loadStackServiceComponents(stackUrls, callback, stacksData.length);
       }
     });
   },
