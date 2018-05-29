@@ -36,7 +36,7 @@ def removeloglines(lines):
 
 def downloadjar(cs_lib_path, jdk_location):
     # Try to download CredentialUtil.jar from ambari-server resources
-    credential_util_dir = cs_lib_path.split('*')[0].split(":")[1:] # Remove the trailing '*' and get the last directory if an entire path is passed
+    credential_util_dir = cs_lib_path.split('*')[0].split(":")[-1] # Remove the trailing '*' and get the last directory if an entire path is passed
     credential_util_path = os.path.join(credential_util_dir, credential_util_jar)
     credential_util_url =  jdk_location + '/' + credential_util_jar
     File(credential_util_path,
