@@ -2692,6 +2692,11 @@ var urls = {
     }
   },
 
+  'cluster.service.groups.get': {
+    'real': '/clusters/{clusterName}/servicegroups?fields=ServiceGroupInfo/mpack_name,ServiceGroupInfo/mpack_version&minimal_response=true',
+    'mock': '',
+  },
+
   'custom_action.request': {
     'real': '/requests/{requestId}/tasks/{taskId}',
     'mock': '/data/requests/1.json',
