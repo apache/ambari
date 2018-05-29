@@ -1172,6 +1172,18 @@
             </organization>
         </developer>
         <developer>
+            <id>tobiasistvan</id>
+            <name>Istvan Tobias</name>
+            <email>tobiasistvan@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>vbrodetskyi</id>
             <name>Vitaly Brodetskyi</name>
             <email>vbrodetskyi@apache.org</email>
