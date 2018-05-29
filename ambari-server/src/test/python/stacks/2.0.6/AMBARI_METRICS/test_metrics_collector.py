@@ -364,6 +364,7 @@ class TestMetricsCollector(RMFTestCase):
                                   hdfs_site=self.getConfig()['configurations']['hdfs-site'],
                                   principal_name=UnknownConfigurationMock(),
                                   default_fs='hdfs://c6401.ambari.apache.org:8020',
+                                  dfs_type = '',
                                   )
         self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode', action=["create"],
                                   mode=0644, owner='ams')
