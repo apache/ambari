@@ -619,6 +619,7 @@ CREATE TABLE mpack_instance(
   blueprint_name VARCHAR2(255),
   topology_request_id NUMBER(19),
   mpack_name VARCHAR2(255) NOT NULL,
+  mpack_type VARCHAR(255) NOT NULL,
   mpack_version VARCHAR2(255) NOT NULL,
   mpack_uri VARCHAR2(255),
   mpack_id NUMBER(19),

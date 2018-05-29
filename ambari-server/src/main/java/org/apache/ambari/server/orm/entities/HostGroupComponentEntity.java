@@ -211,7 +211,7 @@ public class HostGroupComponentEntity {
 
   /**
    * @return the name of the service instance defining this component
-   *         (only needs to be set if component resolution would be ambigous otherwise)
+   *         (only needs to be set if component resolution would be ambiguous otherwise)
    */
   public String getServiceName() {
     return serviceName;

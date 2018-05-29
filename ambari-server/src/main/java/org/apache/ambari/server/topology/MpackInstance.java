@@ -21,7 +21,6 @@ package org.apache.ambari.server.topology;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.MpackInstanceConfigEntity;
@@ -43,19 +42,23 @@ public class MpackInstance implements Configurable {
   @JsonProperty("url")
   private String url;
 
+  @JsonProperty("type")
   private String mpackType;
 
-  private Stack stack;
   private Configuration configuration = new Configuration();
 
   @JsonProperty("service_instances")
   private Collection<ServiceInstance> serviceInstances = new ArrayList<>();
 
-  public MpackInstance(String mpackName, String mpackVersion, String url, Stack stack, Configuration configuration) {
+  public MpackInstance(StackId stackId) {
+    this(null, stackId.getStackName(), stackId.getStackVersion(), null, Configuration.createEmpty());
+  }
+
+  public MpackInstance(String mpackName, String mpackType, String mpackVersion, String url, Configuration configuration) {
     this.mpackName = mpackName;
+    this.mpackType = mpackType;
     this.mpackVersion = mpackVersion;
     this.url = url;
-    this.stack = stack;
     this.configuration = configuration;
   }
 
@@ -69,42 +72,20 @@ public class MpackInstance implements Configurable {
   public MpackInstance() { }
 
   public String getMpackName() {
-    return mpackName;
-  }
-
-  public void setMpackName(String mpackName) {
-    this.mpackName = mpackName;
+    return mpackName != null ? mpackName : mpackType;
   }
 
   public String getMpackType() {
-    return mpackType;
+    return mpackType != null ? mpackType : mpackName;
   }
-
-  public void setMpackType(String mpackType) {
-    this.mpackType = mpackType;
-  }
-
 
   public String getMpackVersion() {
     return mpackVersion;
   }
 
-  public void setMpackVersion(String mpackVersion) {
-    this.mpackVersion = mpackVersion;
-  }
-
   @JsonIgnore
   public StackId getStackId() {
-    return new StackId(getMpackName(), getMpackVersion());
-  }
-
-  @JsonIgnore
-  public Stack getStack() {
-    return stack;
-  }
-
-  public void setStack(Stack stack) {
-    this.stack = stack;
+    return new StackId(getMpackType(), getMpackVersion());
   }
 
   @JsonIgnore
@@ -171,7 +152,8 @@ public class MpackInstance implements Configurable {
    */
   private void setCommonProperties(MpackInstanceEntity mpackInstanceEntity) {
     mpackInstanceEntity.setMpackUri(url);
-    mpackInstanceEntity.setMpackName(mpackName);
+    mpackInstanceEntity.setMpackName(getMpackName());
+    mpackInstanceEntity.setMpackType(getMpackType());
     mpackInstanceEntity.setMpackVersion(mpackVersion);
     Collection<MpackInstanceConfigEntity> mpackConfigEntities =
       BlueprintImpl.toConfigEntities(configuration, MpackInstanceConfigEntity::new);
@@ -192,11 +174,7 @@ public class MpackInstance implements Configurable {
   }
 
   public static MpackInstance fromEntity(MpackInstanceEntity entity) {
-    MpackInstance mpack = new MpackInstance();
-    mpack.setUrl(entity.getMpackUri());
-    mpack.setMpackName(entity.getMpackName());
-    mpack.setMpackVersion(entity.getMpackVersion());
-    mpack.setConfiguration(BlueprintImpl.fromConfigEntities(entity.getConfigurations()));
+    MpackInstance mpack = new MpackInstance(entity.getMpackName(), entity.getMpackType(), entity.getMpackVersion(), entity.getMpackUri(), BlueprintImpl.fromConfigEntities(entity.getConfigurations()));
     for (MpackInstanceServiceEntity serviceEntity: entity.getServiceInstances()) {
       ServiceInstance serviceInstance = new ServiceInstance();
       serviceInstance.setName(serviceEntity.getName());

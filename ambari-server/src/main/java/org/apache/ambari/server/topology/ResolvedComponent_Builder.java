@@ -34,7 +34,7 @@ import com.google.common.base.Preconditions;
  * Auto-generated superclass of {@link ResolvedComponent.Builder}, derived from the API of {@link
  * ResolvedComponent}.
  */
-abstract class ResolvedComponent_Builder {
+abstract class ResolvedComponent_Builder implements ResolvedComponent {
 
   /** Creates a new builder using {@code value} as a template. */
   public static ResolvedComponent.Builder from(ResolvedComponent value) {

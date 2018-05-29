@@ -59,6 +59,9 @@ public abstract class MpackInstanceEntity {
   @Column(name = "mpack_name", nullable = false)
   private String mpackName;
 
+  @Column(name = "mpack_type", nullable = false)
+  private String mpackType;
+
   @Column(name = "mpack_version", nullable = false)
   private String mpackVersion;
 
@@ -90,17 +93,31 @@ public abstract class MpackInstanceEntity {
   }
 
   /**
-   * @return the name of the mpack
+   * @return the name of the mpack instance
    */
   public String getMpackName() {
     return mpackName;
   }
 
   /**
-   * @param mpackName the name of the mpack
+   * @param mpackName the name of the mpack instance
    */
   public void setMpackName(String mpackName) {
     this.mpackName = mpackName;
+  }
+
+  /**
+   * @return the name (type) of the mpack
+   */
+  public String getMpackType() {
+    return mpackType;
+  }
+
+  /**
+   * @param mpackType the name (type) of the mpack
+   */
+  public void setMpackType(String mpackType) {
+    this.mpackType = mpackType;
   }
 
   /**
