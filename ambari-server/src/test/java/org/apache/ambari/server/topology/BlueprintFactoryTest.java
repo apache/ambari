@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProviderTest;
@@ -248,47 +247,6 @@ public class BlueprintFactoryTest {
 
     replay(stack, dao, entity, configEntity);
     testFactory.createBlueprint(props, null);
-  }
-
-  @Test(expected = IllegalArgumentException.class) // THEN
-  public void verifyDefinitionsDisjointShouldRejectDuplication() {
-    // GIVEN
-    final String service1 = "unique service";
-    final String service2 = "duplicated service";
-    StackId stack1 = new StackId("a_stack", "1.0");
-    StackId stack2 = new StackId("another_stack", "0.9");
-    Stream<String> stream = ImmutableSet.of(service1, service2).stream();
-
-    // WHEN
-    BlueprintFactory.verifyStackDefinitionsAreDisjoint(stream, "Services", service -> {
-      switch (service) {
-        case service1: return ImmutableSet.of(stack1);
-        case service2: return ImmutableSet.of(stack1, stack2);
-        default: return null;
-      }
-    });
-  }
-
-  @Test
-  public void verifyStackDefinitionsAreDisjointShouldAllowDisjointStacks() {
-    // GIVEN
-    final String service1 = "unique service";
-    final String service2 = "another service";
-    StackId stack1 = new StackId("a_stack", "1.0");
-    StackId stack2 = new StackId("another_stack", "0.9");
-    Stream<String> stream = ImmutableSet.of(service1, service2).stream();
-
-    // WHEN
-    BlueprintFactory.verifyStackDefinitionsAreDisjoint(stream, "Services", service -> {
-      switch (service) {
-        case service1: return ImmutableSet.of(stack1);
-        case service2: return ImmutableSet.of(stack2);
-        default: return null;
-      }
-    });
-
-    // THEN
-    // no exception expected
   }
 
 }
