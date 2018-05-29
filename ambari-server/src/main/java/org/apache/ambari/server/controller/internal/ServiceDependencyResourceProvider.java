@@ -20,11 +20,13 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -414,20 +416,15 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
 
     Set<ServiceDependencyResponse> responses = new HashSet<>();
     if (request.getServiceName() != null) {
-      Collection<Service> services = cluster.getServices().values();
-      Service currentService = null;
+      Collection<Service> services = cluster.getServicesById().values();
       for (Service service : services) {
-        if (service.getServiceGroupId() == serviceGroup.getServiceGroupId() &&
+        if (Objects.equals(service.getServiceGroupId(), serviceGroup.getServiceGroupId()) &&
                 service.getName().equals(request.getServiceName())) {
-          currentService = service;
-          break;
+          return new HashSet<>(service.getServiceDependencyResponses());
         }
       }
-
-      responses.addAll(currentService.getServiceDependencyResponses());
-      return responses;
     }
-    return responses;
+    return Collections.emptySet();
   }
 
 
@@ -509,7 +506,7 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
       //throws service group not found exception
       ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
       //throws service not found exception
-      Service service = cluster.getService(serviceName);
+      Service service = cluster.getService(serviceGroupName, serviceName);
 
       Cluster dependencyCluster = cluster;
       if (StringUtils.isNotEmpty(dependentClusterName)) {

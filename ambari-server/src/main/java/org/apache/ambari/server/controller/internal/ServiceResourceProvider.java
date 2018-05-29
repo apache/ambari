@@ -545,7 +545,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     Set<ServiceResponse> response = new HashSet<>();
     if (request.getServiceName() != null) {
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       response.add(s.convertToResponse());
       return response;
     }
@@ -947,9 +947,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           throw new AuthorizationException("The user is not authorized to delete services");
         }
 
-        Service service = clusters.getCluster(
-            serviceRequest.getClusterName()).getService(
-          serviceRequest.getServiceName());
+        Service service = clusters.getCluster(serviceRequest.getClusterName())
+          .getService(serviceRequest.getServiceGroupName(), serviceRequest.getServiceName());
 
         //
         // Run through the list of service component hosts. If all host components are in removable state,
@@ -1114,8 +1113,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         throw new ParentObjectNotFoundException("Attempted to add a service to a cluster which doesn't exist", e);
       }
       try {
-        Service s = cluster.getService(serviceName);
-        if (s != null && (s.getServiceGroupName().equals(serviceGroupName))) {
+        Service s = cluster.getService(serviceGroupName, serviceName);
+        if (s != null) {
           // throw error later for dup
           duplicates.add(serviceID);
           continue;

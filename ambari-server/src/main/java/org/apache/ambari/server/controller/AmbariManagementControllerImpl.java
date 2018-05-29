@@ -761,7 +761,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
       serviceComponentNames.computeIfAbsent(sc.getClusterId(), c -> new HashMap<>())
@@ -1325,7 +1325,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     List<Service> services;
     if (!Strings.isNullOrEmpty(request.getServiceName())) {
-      services = ImmutableList.of(cluster.getService(request.getServiceName()));
+      services = ImmutableList.of(cluster.getService(request.getServiceGroupName(), request.getServiceName()));
     } else if (!Strings.isNullOrEmpty(request.getServiceGroupName())) {
       services = ImmutableList.copyOf(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
     } else {
@@ -3300,7 +3300,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private boolean hostComponentAlreadyExists(Cluster cluster, ServiceComponentHost sch) throws AmbariException {
-    Service service = cluster.getService(sch.getServiceName());
+    Service service = cluster.getService(sch.getServiceGroupName(), sch.getServiceName());
     if (service != null) {
       ServiceComponent serviceComponent = service.getServiceComponent(sch.getServiceComponentName());
       if (serviceComponent != null) {
@@ -3319,7 +3319,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private boolean skipInstallTaskForComponent(Map<String, String> requestProperties, Cluster cluster,
                                               ServiceComponentHost sch) throws AmbariException {
     boolean isClientComponent = false;
-    Service service = cluster.getService(sch.getServiceName());
+    Service service = cluster.getService(sch.getServiceGroupName(), sch.getServiceName());
     if (service != null) {
       ServiceComponent serviceComponent = service.getServiceComponent(sch.getServiceComponentName());
       if (serviceComponent != null) {

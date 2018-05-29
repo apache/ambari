@@ -659,7 +659,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       }
       componentNames.get(clusterName).get(serviceName).add(componentName);
 
-      Service s = cluster.getService(serviceName);
+      Service s = cluster.getService(serviceGroupName, serviceName);
       ServiceComponent sc = s.getServiceComponent(componentName);
       State newState = getValidDesiredState(request);
 
