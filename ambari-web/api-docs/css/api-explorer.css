@@ -806,50 +806,6 @@
     margin-left: 5px
 }
 
-.swagger-section .token-generator .scope-selector {
-    padding: 15px 0
-}
-
-.swagger-section .token-generator .scope-selector:after {
-    clear: both
-}
-
-.swagger-section .token-generator .scope-selector:after, .swagger-section .token-generator .scope-selector:before {
-    content: "";
-    display: table
-}
-
-.swagger-section .token-generator .scope-selector > .area {
-    float: left
-}
-
-.swagger-section .token-generator .scope-selector label {
-    display: none
-}
-
-@media (min-width: 992px) {
-    .swagger-section .token-generator .scope-selector label {
-        display: block
-    }
-}
-
-.swagger-section .token-generator .scope-selector .controls {
-    width: calc(100% - 55px)
-}
-
-.swagger-section .token-generator .scope-selector .cta {
-    width: 55px
-}
-
-.swagger-section .token-generator .scope-selector .cta:after {
-    clear: both
-}
-
-.swagger-section .token-generator .scope-selector .cta:after, .swagger-section .token-generator .scope-selector .cta:before {
-    content: "";
-    display: table
-}
-
 .swagger-section .token-generator label {
     text-transform: uppercase;
     letter-spacing: .08em;
