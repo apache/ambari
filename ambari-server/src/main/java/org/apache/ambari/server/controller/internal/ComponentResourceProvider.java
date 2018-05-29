@@ -68,6 +68,7 @@ import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -393,7 +394,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     ServiceComponentFactory serviceComponentFactory = getManagementController().getServiceComponentFactory();
 
     // do all validation checks
-    Map<String, Map<String, Set<String>>> componentNames = new HashMap<>();
+    Map<String, Set<Set<String>>> componentNames = new HashMap<>();
     Set<String> duplicates = new HashSet<>();
 
     for (ServiceComponentRequest request : requests) {
@@ -413,21 +414,16 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       debug("Received a createComponent request: {}", request);
 
-      if (!componentNames.containsKey(request.getClusterName())) {
-        componentNames.put(request.getClusterName(), new HashMap<>());
-      }
+      Set<String> componentID = ImmutableSet.of(request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
+      boolean added = componentNames
+        .computeIfAbsent(request.getClusterName(), __ -> new HashSet<>())
+        .add(componentID);
 
-      Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
-      if (!serviceComponents.containsKey(request.getServiceName())) {
-        serviceComponents.put(request.getServiceName(), new HashSet<String>());
-      }
-
-      if (serviceComponents.get(request.getServiceName()).contains(request.getComponentName())) {
+      if (!added) {
         // throw error later for dup
         duplicates.add(request.toString());
         continue;
       }
-      serviceComponents.get(request.getServiceName()).add(request.getComponentName());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         Validate.isTrue(State.INIT == State.valueOf(request.getDesiredState()),
@@ -462,9 +458,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
     // Validate dups
     if (!duplicates.isEmpty()) {
-      //Java8 has StringJoiner library but ambari is not on Java8 yet.
       throw new DuplicateResourceException("Attempted to create one or more components which already exist:"
-                            + StringUtils.join(duplicates, ","));
+                            + String.join(", ", duplicates));
     }
 
     // now doing actual work
