@@ -32,7 +32,8 @@ SUPPORTED_PROCESSES = [BACKUP_PROCESS, RESTORE_PROCESS]
 AMBARI_FILESYSTEM_STATE = [AmbariPath.get("/etc/ambari-server/conf"),
                            AmbariPath.get("/var/lib/ambari-server/resources"),
                            AmbariPath.get("/var/run/ambari-server/bootstrap/"),
-                           AmbariPath.get("/var/run/ambari-server/stack-recommendations")]
+                           AmbariPath.get("/var/run/ambari-server/stack-recommendations"),
+                           AmbariPath.get("/var/run/ambari-server/mpack-recommendations")]
 
 # What to use when no path/archive is specified
 DEFAULT_ARCHIVE = AmbariPath.get("/var/lib/ambari-server/Ambari_State_Backup.zip")
