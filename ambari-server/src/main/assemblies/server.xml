@@ -94,6 +94,14 @@
     <fileSet>
       <directoryMode>755</directoryMode>
       <directory>${empty.dir}</directory>
+      <outputDirectory>/var/run/ambari-server/mpack-recommendations</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directoryMode>755</directoryMode>
+      <directory>${empty.dir}</directory>
       <outputDirectory>/var/log/ambari-server</outputDirectory>
 	  <excludes>
 	    <exclude>*/**</exclude>
@@ -428,6 +436,11 @@
       <fileMode>755</fileMode>
       <source>src/main/resources/stacks/mpack_advisor.py</source>
       <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
+      <source>src/main/resources/scripts/mpack_advisor_wrapper.py</source>
+      <outputDirectory>/var/lib/ambari-server/resources/scripts</outputDirectory>
     </file>
     <file>
       <fileMode>755</fileMode>

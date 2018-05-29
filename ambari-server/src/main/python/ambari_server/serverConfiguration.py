@@ -62,6 +62,7 @@ OS_TYPE_PROPERTY = "server.os_type"
 
 BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
 RECOMMENDATIONS_DIR_PROPERTY = 'recommendations.dir'
+MPACK_RECOMMENDATIONS_DIR_PROPERTY = 'mpackrecommendations.dir'
 
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
@@ -387,10 +388,12 @@ class ServerConfigDefaults(object):
       self.PID_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server"))
       self.BOOTSTRAP_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server", "bootstrap"))
       self.RECOMMENDATIONS_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server", "stack-recommendations"))
+      self.MPACK_RECOMMENDATIONS_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server", "mpack-recommendations"))
     else:
       self.PID_DIR = properties.get_property(PID_DIR_PROPERTY)
       self.BOOTSTRAP_DIR = properties.get_property(BOOTSTRAP_DIR_PROPERTY)
       self.RECOMMENDATIONS_DIR = properties.get_property(RECOMMENDATIONS_DIR_PROPERTY)
+      self.MPACK_RECOMMENDATIONS_DIR = properties.get_property(MPACK_RECOMMENDATIONS_DIR_PROPERTY)
     
     # this directories should be pre-created by user and be writable.
     self.check_if_directories_writable([self.OUT_DIR, self.PID_DIR])
@@ -557,6 +560,8 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       (AmbariPath.get("/etc/ambari-server/conf/ldap-password.dat"), "640", "{0}", False),
       (self.RECOMMENDATIONS_DIR, "744", "{0}", True),
       (self.RECOMMENDATIONS_DIR, "755", "{0}", False),
+      (self.MPACK_RECOMMENDATIONS_DIR, "744", "{0}", True),
+      (self.MPACK_RECOMMENDATIONS_DIR, "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "644", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/data/tmp/*"), "644", "{0}", True),
