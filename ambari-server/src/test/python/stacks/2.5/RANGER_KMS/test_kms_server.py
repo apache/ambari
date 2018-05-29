@@ -175,7 +175,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = None,
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', '/ranger/audit/kms',
@@ -193,7 +194,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = None,
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', None,
@@ -206,7 +208,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = None,
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
@@ -616,7 +619,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = 'hdfs-cl1@EXAMPLE.COM',
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', '/ranger/audit/kms',
@@ -634,7 +638,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = 'hdfs-cl1@EXAMPLE.COM',
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', None,
@@ -647,7 +652,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = 'hdfs-cl1@EXAMPLE.COM',
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',

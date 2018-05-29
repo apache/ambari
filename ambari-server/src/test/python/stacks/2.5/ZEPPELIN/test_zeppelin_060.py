@@ -252,6 +252,7 @@ class TestZeppelin060(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'],
         recursive_chmod = True,
+        dfs_type='',
     )
     self.assertResourceCalled('HdfsResource', '/user/zeppelin/test',
         security_enabled = True,
@@ -269,6 +270,7 @@ class TestZeppelin060(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'],
         recursive_chmod = True,
+        dfs_type='',
     )
     self.assertResourceCalled('HdfsResource', '/apps/zeppelin',
         security_enabled = True,
@@ -286,6 +288,7 @@ class TestZeppelin060(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'],
         recursive_chmod = True,
+        dfs_type='',
     )
     self.assertResourceCalled('HdfsResource', '/apps/zeppelin/tmp',
         security_enabled = True,
@@ -305,6 +308,7 @@ class TestZeppelin060(RMFTestCase):
         type = 'file',
         action = ['create_on_execute'],
         mode = 0444,
+        dfs_type='',
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = True,
@@ -318,6 +322,7 @@ class TestZeppelin060(RMFTestCase):
         user = 'hdfs',
         action = ['execute'],
         hadoop_conf_dir = '/usr/hdp/2.2.1.0-2067/hadoop/conf',
+        dfs_type='',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
         content=interpreter_json_generated.template_after_base,
