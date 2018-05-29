@@ -31,7 +31,7 @@ class ZypperManagerProperties(GenericManagerProperties):
   repo_error = "Failure when receiving data from the peer"
 
   repo_manager_bin = "/usr/bin/zypper"
-  pkg_manager_bin = "/usr/bin/rpm"
+  pkg_manager_bin = "/bin/rpm"
   repo_update_cmd = [repo_manager_bin, "clean"]
 
   available_packages_cmd = [repo_manager_bin, "--no-gpg-checks", "search", "--uninstalled-only", "--details"]
@@ -52,7 +52,7 @@ class ZypperManagerProperties(GenericManagerProperties):
 
   verify_dependency_cmd = [repo_manager_bin, "--quiet", "--non-interactive", "verify", "--dry-run"]
   list_active_repos_cmd = ['/usr/bin/zypper', 'repos']
-  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{{version}}-%{{release}}"]
+  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{version}-%{release}\n"]
 
 
 class ZypperManager(GenericManager):
@@ -263,7 +263,7 @@ class ZypperManager(GenericManager):
 
   def get_installed_package_version(self, package_name):
     version = None
-    cmd = list(self.properties.installed_package_version_command) + ["\"{0}\"".format(package_name)]
+    cmd = list(self.properties.installed_package_version_command) + [package_name]
     result = shell.subprocess_executor(cmd)
     try:
       if result.code == 0:
