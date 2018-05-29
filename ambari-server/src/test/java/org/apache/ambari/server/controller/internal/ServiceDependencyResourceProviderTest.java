@@ -241,7 +241,7 @@ public class ServiceDependencyResourceProviderTest {
             mapRequestProps, runSmokeTests, reconfigureClients, maintenanceStateHelper);
 
     Assert.assertEquals(State.INSTALLED,
-            clusters.getCluster(clusterName).getService(serviceName)
+            clusters.getCluster(clusterName).getService(serviceGroupName, serviceName)
                     .getDesiredState());
 
     if (resp != null) {
