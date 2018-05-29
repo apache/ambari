@@ -482,7 +482,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           App.router.get('updateController').set('isWorking', false);
           router.get('mainController').dataLoading().done(function () {
             App.ModalPopup.show({
-              classNames: ['wizard-modal-wrapper'],
+              classNames: ['wizard-modal-wrapper', 'disable-security-modal'],
               modalDialogClasses: ['modal-xlg'],
               header: Em.I18n.t('admin.removeSecurity.header'),
               bodyClass: App.KerberosDisableView.extend({
