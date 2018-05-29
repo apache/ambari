@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -55,6 +57,7 @@ import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -86,6 +89,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * ServiceResourceProvider tests.
@@ -183,6 +187,111 @@ public class ServiceResourceProviderTest {
     // verify
     verify(managementController, clusters, serviceGroup, cluster, service,
         ambariMetaInfo, serviceFactory, serviceInfo);
+  }
+
+  @Test
+  public void createServicesInDifferentServiceGroups() throws Exception {
+    String clusterName = "cl1";
+    String serviceName = "HADOOP_CLIENTS";
+    StackId hdpcoreStackId = new StackId("HDPCORE", "1.0.0-b123");
+    StackId odsStackId = new StackId("ODS", "1.0.0-b111");
+
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    expect(cluster.getService(anyString())).andReturn(null);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    Set<Map<String, Object>> propertySet = new HashSet<>();
+    long serviceGroupId = 1;
+    for (StackId stackId : asList(hdpcoreStackId, odsStackId)) {
+      ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
+      Service service = createNiceMock(Service.class);
+      ServiceResponse response = createNiceMock(ServiceResponse.class);
+
+      expect(cluster.addService(eq(serviceGroup), eq(serviceName), eq(serviceName))).andReturn(service).anyTimes();
+      expect(cluster.getServiceGroup(stackId.getStackName())).andReturn(serviceGroup).anyTimes();
+      expect(cluster.getServiceGroup(serviceGroupId)).andReturn(serviceGroup).anyTimes();
+      expect(serviceGroup.getStackId()).andReturn(hdpcoreStackId).anyTimes();
+      expect(service.getServiceGroupId()).andReturn(serviceGroupId).anyTimes();
+      expect(service.convertToResponse()).andReturn(response).anyTimes();
+
+      replay(serviceGroup, service, response);
+      ++serviceGroupId;
+
+      propertySet.add(ImmutableMap.of(
+        ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName,
+        ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, serviceName,
+        ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, stackId.getStackName()
+      ));
+    }
+
+    expect(ambariMetaInfo.isValidService(anyString(), anyString(), anyString())).andReturn(true).anyTimes();
+    expect(ambariMetaInfo.getService(anyString(), anyString(), anyString())).andReturn(serviceInfo).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, serviceInfo);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+    ResourceProvider provider = getServiceProvider(managementController);
+    provider.createResources(request);
+  }
+
+  @Test(expected = ResourceAlreadyExistsException.class)
+  public void createDuplicateServices() throws Exception {
+    String clusterName = "cl1";
+    String serviceName = "SOME_SERVICE";
+    StackId stackId = new StackId("HDPCORE", "1.0.0-b123");
+
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    expect(cluster.getService(anyString())).andReturn(null);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
+    Service service = createNiceMock(Service.class);
+
+    expect(cluster.getServiceGroup(stackId.getStackName())).andReturn(serviceGroup).anyTimes();
+    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup).anyTimes();
+    expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
+    expect(service.getServiceGroupId()).andReturn(1L).anyTimes();
+
+    Map<String, Object> serviceRequestProperties = ImmutableMap.of(
+      ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName,
+      ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, serviceName,
+      ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, stackId.getStackName()
+    );
+    Map<String, Object> almostIdenticalCopy = ImmutableMap.<String, Object>builder().putAll(serviceRequestProperties).put(ServiceResourceProvider.SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID, "false").build();
+    Set<Map<String, Object>> propertySet = ImmutableSet.of(almostIdenticalCopy, serviceRequestProperties);
+
+    expect(ambariMetaInfo.isValidService(anyString(), anyString(), anyString())).andReturn(true).anyTimes();
+    expect(ambariMetaInfo.getService(anyString(), anyString(), anyString())).andReturn(serviceInfo).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, serviceInfo, serviceGroup, service);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+    ResourceProvider provider = getServiceProvider(managementController);
+    provider.createResources(request);
   }
 
   @Test
@@ -891,7 +1000,7 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
-    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService("SERVICE_GROUP", serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
@@ -1152,7 +1261,6 @@ public class ServiceResourceProviderTest {
   @Test
   public void testCheckPropertyIds() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
     AbstractResourceProvider provider = getServiceProvider(managementController);
 
     Set<String> unsupported = provider.checkPropertyIds(
