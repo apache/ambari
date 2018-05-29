@@ -76,6 +76,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,8 +179,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    */
   @AssistedInject
   public ServiceResourceProvider(
-      @Assisted AmbariManagementController managementController,
-      MaintenanceStateHelper maintenanceStateHelper, TopologyDeleteFormer topologyDeleteFormer) {
+    @Assisted AmbariManagementController managementController,
+    MaintenanceStateHelper maintenanceStateHelper,
+    TopologyDeleteFormer topologyDeleteFormer
+  ) {
     super(Resource.Type.Service, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
     this.topologyDeleteFormer = topologyDeleteFormer;
@@ -565,7 +568,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     if(request.getServiceGroupName() != null){
      clusterServices = cluster.getServicesByServiceGroup(serviceGroupName);
     }else{
-      clusterServices = cluster.getServicesById().values();
+      clusterServices = cluster.getServices().values();
     }
     for (Service s : clusterServices) {
       if (checkDesiredState
@@ -1067,8 +1070,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           throws AuthorizationException, AmbariException {
 
     AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
-    Map<String, Set<String>> serviceNames = new HashMap<>();
-    Set<String> duplicates = new HashSet<>();
+    Map<String, Set<Pair<String, String>>> serviceNames = new HashMap<>();
+    Set<Pair<String, String>> duplicates = new HashSet<>();
 
     for (ServiceRequest request : requests) {
       final String clusterName = request.getClusterName();
@@ -1079,24 +1082,21 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       Validate.notNull(serviceGroupName, "Service group name should be provided when creating a service");
       Validate.notEmpty(serviceName, "Service name should be provided when creating a service");
 
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createService request, clusterId={}, serviceName={}, request={}", clusterName, serviceName, request);
-      }
+      LOG.debug("Received a createService request, clusterId={}, serviceGroupName={}, serviceName={}, request={}",
+        clusterName, serviceGroupName, serviceName, request);
 
       if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
         throw new AuthorizationException("The user is not authorized to create services");
       }
 
-      if (!serviceNames.containsKey(clusterName)) {
-        serviceNames.put(clusterName, new HashSet<String>());
-      }
+      Pair<String, String> serviceID = Pair.of(serviceGroupName, serviceName);
+      Set<Pair<String, String>> services = serviceNames.computeIfAbsent(clusterName, __ -> new HashSet<>());
 
-      if (serviceNames.get(clusterName).contains(serviceName)) {
+      if (!services.add(serviceID)) {
         // throw error later for dup
-        duplicates.add(serviceName);
+        duplicates.add(serviceID);
         continue;
       }
-      serviceNames.get(clusterName).add(serviceName);
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
@@ -1117,7 +1117,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         Service s = cluster.getService(serviceName);
         if (s != null && (s.getServiceGroupName().equals(serviceGroupName))) {
           // throw error later for dup
-          duplicates.add(serviceName);
+          duplicates.add(serviceID);
           continue;
         }
       } catch (ServiceNotFoundException e) {
@@ -1139,10 +1139,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       // validate the credential store input provided
-      ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+      if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
+        ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), stackServiceName);
 
-      if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
         boolean credentialStoreEnabled = Boolean.parseBoolean(request.getCredentialStoreEnabled());
         if (!serviceInfo.isCredentialStoreSupported() && credentialStoreEnabled) {
           throw new IllegalArgumentException("Invalid arguments, cannot enable credential store " +
@@ -1159,8 +1159,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     // Validate dups
     if (!duplicates.isEmpty()) {
       String clusterName = requests.iterator().next().getClusterName();
-      String msg = "Attempted to create a service which already exists: "
-              + ", clusterName=" + clusterName  + " serviceName=" + StringUtils.join(duplicates, ",");
+      String msg = "Attempted to create services which already exist: "
+              + ", clusterName=" + clusterName  + " " + StringUtils.join(duplicates, ", ");
 
       throw new DuplicateResourceException(msg);
     }
