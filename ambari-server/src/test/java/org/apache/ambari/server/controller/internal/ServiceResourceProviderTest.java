@@ -143,11 +143,12 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getServicesById()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(cluster.getService("Service100")).andReturn(null);
+    String serviceGroupName = "SERVICE_GROUP";
+    expect(cluster.getService(serviceGroupName, "Service100")).andReturn(null);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
-    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup);
+    expect(cluster.getServiceGroup(serviceGroupName)).andReturn(serviceGroup);
     expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
     expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
     expect(service.getServiceGroupId()).andReturn(1L).anyTimes();
@@ -174,7 +175,7 @@ public class ServiceResourceProviderTest {
     // add properties to the request map
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, "SERVICE_GROUP");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, serviceGroupName);
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
 
     propertySet.add(properties);
@@ -206,7 +207,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
-    expect(cluster.getService(anyString())).andReturn(null);
+    expect(cluster.getService(anyString(), anyString())).andReturn(null);
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     Set<Map<String, Object>> propertySet = new HashSet<>();
@@ -262,7 +263,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
-    expect(cluster.getService(anyString())).andReturn(null);
+    expect(cluster.getService(stackId.getStackName(), serviceName)).andReturn(null);
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
@@ -346,7 +347,6 @@ public class ServiceResourceProviderTest {
     Map<Long, Service> servicesById = ImmutableMap.of(1L, service0, 2L, service1, 3L, service2, 4L, service3, 5L, service4);
     expect(cluster.getServicesById()).andReturn(servicesById).anyTimes();
     expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service2).anyTimes();
     expect(cluster.getService(null, "Service102")).andReturn(service2).anyTimes();
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
@@ -465,7 +465,7 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -533,7 +533,7 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -600,7 +600,7 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -669,7 +669,7 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -754,7 +754,6 @@ public class ServiceResourceProviderTest {
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getServicesById()).andReturn(ImmutableMap.of(1L, service0)).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
     expect(cluster.getService(null, "Service102")).andReturn(service0).anyTimes();
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -876,7 +875,6 @@ public class ServiceResourceProviderTest {
     expect(managementController2.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
     expect(cluster.getService(null, "Service102")).andReturn(service0).anyTimes();
 
     expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
@@ -999,8 +997,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
-    expect(cluster.getService("SERVICE_GROUP", serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
@@ -1053,7 +1050,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
@@ -1108,7 +1105,7 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(scMap);
@@ -1197,7 +1194,7 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();  // Service is in a non-removable state
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(scMap).anyTimes();
