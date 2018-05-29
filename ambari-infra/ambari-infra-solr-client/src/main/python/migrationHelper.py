@@ -441,7 +441,7 @@ def get_request_id(json_response):
       return json_response['Requests']['id']
   raise Exception("Cannot access request id from Ambari response: {0}".format(json_response))
 
-def filter_collection(options, collections):
+def filter_collections(options, collections):
   if options.collection is not None:
     filtered_collections = []
     if options.collection in collections:
@@ -562,67 +562,60 @@ def copy_znode(options, config, copy_src, copy_dest, copy_from_local=False, copy
   logger.debug(str(out))
 
 def delete_logsearch_collections(options, config, solr_urls, collections):
-  if config.has_section('logsearch_collections'):
-    if config.has_option('logsearch_collections', 'enabled') and config.get('logsearch_collections', 'enabled') == 'true':
-      service_logs_collection = config.get('logsearch_collections', 'hadoop_logs_collection_name')
-      audit_logs_collection = config.get('logsearch_collections', 'audit_logs_collection_name')
-      history_collection = config.get('logsearch_collections', 'history_collection_name')
-      if service_logs_collection in collections:
-        retry(delete_collection, options, config, service_logs_collection, solr_urls, context='[Delete {0} collection]'.format(service_logs_collection))
-      else:
-        print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(service_logs_collection)
-      if audit_logs_collection in collections:
-        retry(delete_collection, options, config, audit_logs_collection, solr_urls, context='[Delete {0} collection]'.format(audit_logs_collection))
-      else:
-        print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(audit_logs_collection)
-      if history_collection in collections:
-        retry(delete_collection, options, config, history_collection, solr_urls, context='[Delete {0} collection]'.format(history_collection))
-      else:
-        print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(history_collection)
+  service_logs_collection = config.get('logsearch_collections', 'hadoop_logs_collection_name')
+  audit_logs_collection = config.get('logsearch_collections', 'audit_logs_collection_name')
+  history_collection = config.get('logsearch_collections', 'history_collection_name')
+  if service_logs_collection in collections:
+    retry(delete_collection, options, config, service_logs_collection, solr_urls, context='[Delete {0} collection]'.format(service_logs_collection))
+  else:
+    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(service_logs_collection)
+  if audit_logs_collection in collections:
+    retry(delete_collection, options, config, audit_logs_collection, solr_urls, context='[Delete {0} collection]'.format(audit_logs_collection))
+  else:
+    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(audit_logs_collection)
+  if history_collection in collections:
+    retry(delete_collection, options, config, history_collection, solr_urls, context='[Delete {0} collection]'.format(history_collection))
+  else:
+    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(history_collection)
 
 def delete_atlas_collections(options, config, solr_urls, collections):
-  if config.has_section('atlas_collections'):
-    if config.has_option('atlas_collections', 'enabled') and config.get('atlas_collections', 'enabled') == 'true':
-      fulltext_collection = config.get('atlas_collections', 'fulltext_index_name')
-      edge_index_collection = config.get('atlas_collections', 'edge_index_name')
-      vertex_index_collection = config.get('atlas_collections', 'vertex_index_name')
-      if fulltext_collection in collections:
-        retry(delete_collection, options, config, fulltext_collection, solr_urls, context='[Delete {0} collection]'.format(fulltext_collection))
-      else:
-        print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(fulltext_collection)
-      if edge_index_collection in collections:
-        retry(delete_collection, options, config, edge_index_collection, solr_urls, context='[Delete {0} collection]'.format(edge_index_collection))
-      else:
-        print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(edge_index_collection)
-      if vertex_index_collection in collections:
-        retry(delete_collection, options, config, vertex_index_collection, solr_urls, context='[Delete {0} collection]'.format(vertex_index_collection))
-      else:
-        print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(vertex_index_collection)
+  fulltext_collection = config.get('atlas_collections', 'fulltext_index_name')
+  edge_index_collection = config.get('atlas_collections', 'edge_index_name')
+  vertex_index_collection = config.get('atlas_collections', 'vertex_index_name')
+  if fulltext_collection in collections:
+    retry(delete_collection, options, config, fulltext_collection, solr_urls, context='[Delete {0} collection]'.format(fulltext_collection))
+  else:
+    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(fulltext_collection)
+  if edge_index_collection in collections:
+    retry(delete_collection, options, config, edge_index_collection, solr_urls, context='[Delete {0} collection]'.format(edge_index_collection))
+  else:
+    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(edge_index_collection)
+  if vertex_index_collection in collections:
+    retry(delete_collection, options, config, vertex_index_collection, solr_urls, context='[Delete {0} collection]'.format(vertex_index_collection))
+  else:
+    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(vertex_index_collection)
 
 def delete_ranger_collection(options, config, solr_urls, collections):
-  if config.has_section('ranger_collection'):
-    if config.has_option('ranger_collection', 'enabled') and config.get('ranger_collection', 'enabled') == 'true':
-      ranger_collection_name = config.get('ranger_collection', 'ranger_collection_name')
-      if ranger_collection_name in collections:
-        retry(delete_collection, options, config, ranger_collection_name, solr_urls, context='[Delete {0} collection]'.format(ranger_collection_name))
-      else:
-        print 'Collection {0} does not exist or filtered out. Skipping delete operation'.format(ranger_collection_name)
+  ranger_collection_name = config.get('ranger_collection', 'ranger_collection_name')
+  if ranger_collection_name in collections:
+    retry(delete_collection, options, config, ranger_collection_name, solr_urls, context='[Delete {0} collection]'.format(ranger_collection_name))
+  else:
+    print 'Collection {0} does not exist or filtered out. Skipping delete operation'.format(ranger_collection_name)
 
 def delete_collections(options, config, service_filter):
   solr_urls = get_solr_urls(config)
   collections=retry(list_collections, options, config, solr_urls, context="[List Solr Collections]")
-  collections=filter_collection(options, collections)
-  if 'RANGER' in service_filter:
+  collections=filter_collections(options, collections)
+  if is_ranger_available(config, service_filter):
     delete_ranger_collection(options, config, solr_urls, collections)
-  if 'ATLAS' in service_filter:
+  if is_atlas_available(config, service_filter):
     delete_atlas_collections(options, config, solr_urls, collections)
-  if 'LOGSEARCH' in service_filter:
+  if is_logsearch_available(config, service_filter):
     delete_logsearch_collections(options, config, solr_urls, collections)
 
 def upgrade_ranger_schema(options, config, service_filter):
   solr_znode='/infra-solr'
-  if 'RANGER' in service_filter and config.has_option('ranger_collection', 'enabled') \
-    and config.get('ranger_collection', 'enabled') == 'true':
+  if is_ranger_available(config, service_filter):
     if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
       solr_znode=config.get('infra_solr', 'znode')
     ranger_config_set_name = config.get('ranger_collection', 'ranger_config_set_name')
@@ -631,8 +624,7 @@ def upgrade_ranger_schema(options, config, service_filter):
 
 def backup_ranger_configs(options, config, service_filter):
   solr_znode='/infra-solr'
-  if 'RANGER' in service_filter and config.has_option('ranger_collection', 'enabled') \
-    and config.get('ranger_collection', 'enabled') == 'true':
+  if is_ranger_available(config, service_filter):
     if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
       solr_znode=config.get('infra_solr', 'znode')
     ranger_config_set_name = config.get('ranger_collection', 'ranger_config_set_name')
@@ -642,8 +634,7 @@ def backup_ranger_configs(options, config, service_filter):
 
 def upgrade_ranger_solrconfig_xml(options, config, service_filter):
   solr_znode='/infra-solr'
-  if 'RANGER' in service_filter and config.has_option('ranger_collection', 'enabled') \
-    and config.get('ranger_collection', 'enabled') == 'true':
+  if is_ranger_available(config, service_filter):
     if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
       solr_znode=config.get('infra_solr', 'znode')
     ranger_config_set_name = config.get('ranger_collection', 'ranger_config_set_name')
@@ -653,8 +644,7 @@ def upgrade_ranger_solrconfig_xml(options, config, service_filter):
 
 def delete_znodes(options, config, service_filter):
   solr_znode='/infra-solr'
-  if 'LOGSEARCH' in service_filter and config.has_option('logsearch_collections', 'enabled') \
-    and config.get('logsearch_collections', 'enabled') == 'true':
+  if is_logsearch_available(config, service_filter):
     if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
       solr_znode=config.get('infra_solr', 'znode')
     delete_znode(options, config, "{0}/configs/hadoop_logs".format(solr_znode))
@@ -749,17 +739,15 @@ def get_atlas_index_location(collection, config, options):
 def backup_collections(options, accessor, parser, config, service_filter):
   solr_urls = get_solr_urls(config)
   collections=retry(list_collections, options, config, solr_urls, context="[List Solr Collections]")
-  collections=filter_collection(options, collections)
-  if 'RANGER' in service_filter and config.has_section('ranger_collection') and config.has_option('ranger_collection', 'enabled') \
-    and config.get('ranger_collection', 'enabled') == 'true':
+  collections=filter_collections(options, collections)
+  if is_ranger_available(config, service_filter):
     collection_name = config.get('ranger_collection', 'ranger_collection_name')
     if collection_name in collections:
       ranger_index_location=get_ranger_index_location(collection_name, config, options)
       do_backup_request(options, accessor, parser, config, collection_name, ranger_index_location)
     else:
       print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(collection_name)
-  if 'ATLAS' in service_filter and config.has_section('atlas_collections') \
-    and config.has_option('atlas_collections', 'enabled') and config.get('atlas_collections', 'enabled') == 'true':
+  if is_atlas_available(config, service_filter):
     fulltext_index_collection = config.get('atlas_collections', 'fulltext_index_name')
     if fulltext_index_collection in collections:
       fulltext_index_location = get_atlas_index_location(fulltext_index_collection, config, options)
@@ -780,16 +768,14 @@ def backup_collections(options, accessor, parser, config, service_filter):
       print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(edge_index_collection)
 
 def migrate_snapshots(options, accessor, parser, config, service_filter):
-  if 'RANGER' in service_filter and config.has_section('ranger_collection') and config.has_option('ranger_collection', 'enabled') \
-    and config.get('ranger_collection', 'enabled') == 'true':
+  if is_ranger_available(config, service_filter):
     collection_name = config.get('ranger_collection', 'ranger_collection_name')
     if options.collection is None or options.collection == collection_name:
       ranger_index_location=get_ranger_index_location(collection_name, config, options)
       do_migrate_request(options, accessor, parser, config, collection_name, ranger_index_location)
     else:
       print "Collection ('{0}') backup index has filtered out. Skipping migrate operation.".format(collection_name)
-  if 'ATLAS' in service_filter and config.has_section('atlas_collections') \
-    and config.has_option('atlas_collections', 'enabled') and config.get('atlas_collections', 'enabled') == 'true':
+  if is_atlas_available(config, service_filter):
     fulltext_index_collection = config.get('atlas_collections', 'fulltext_index_name')
     if options.collection is None or options.collection == fulltext_index_collection:
       fulltext_index_location=get_atlas_index_location(fulltext_index_collection, config, options)
@@ -813,8 +799,7 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
   solr_urls = get_solr_urls(config)
   collections=retry(list_collections, options, config, solr_urls, context="[List Solr Collections]")
   replica_number = "1" # hard coded
-  if 'RANGER' in service_filter and config.has_section('ranger_collection') and config.has_option('ranger_collection', 'enabled') \
-    and config.get('ranger_collection', 'enabled') == 'true':
+  if is_ranger_available(config, service_filter):
     backup_ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name')
     if backup_ranger_collection not in collections:
       if options.collection is not None and options.collection != backup_ranger_collection:
@@ -827,8 +812,7 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
                         backup_ranger_shards, replica_number, backup_ranger_max_shards, context="[Create Solr Collections]")
     else:
       print "Collection {0} has already exist. Skipping create operation.".format(backup_ranger_collection)
-  if 'ATLAS' in service_filter and config.has_section('atlas_collections') \
-    and config.has_option('atlas_collections', 'enabled') and config.get('atlas_collections', 'enabled') == 'true':
+  if is_atlas_available(config, service_filter):
     backup_atlas_config_set = config.get('atlas_collections', 'config_set')
     backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
     if backup_fulltext_index_name not in collections:
@@ -867,7 +851,7 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
 def restore_collections(options, accessor, parser, config, service_filter):
   solr_urls = get_solr_urls(config)
   collections=retry(list_collections, options, config, solr_urls, context="[List Solr Collections]")
-  collections=filter_collection(options, collections)
+  collections=filter_collections(options, collections)
   if 'RANGER' in service_filter and config.has_section('ranger_collection') and config.has_option('ranger_collection', 'enabled') \
     and config.get('ranger_collection', 'enabled') == 'true':
     collection_name = config.get('ranger_collection', 'ranger_collection_name')
@@ -925,16 +909,14 @@ def restore_collections(options, accessor, parser, config, service_filter):
 def reload_collections(options, accessor, parser, config, service_filter):
   solr_urls = get_solr_urls(config)
   collections=retry(list_collections, options, config, solr_urls, context="[List Solr Collections]")
-  collections=filter_collection(options, collections)
-  if 'RANGER' in service_filter and config.has_section('ranger_collection') and config.has_option('ranger_collection', 'enabled') \
-    and config.get('ranger_collection', 'enabled') == 'true':
+  collections=filter_collections(options, collections)
+  if is_ranger_available(config, service_filter):
     backup_ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name')
     if backup_ranger_collection in collections:
       retry(reload_collection, options, config, solr_urls, backup_ranger_collection, context="[Reload Solr Collections]")
     else:
       print "Collection ('{0}') does not exist or filtered out. Skipping reload operation.".format(backup_ranger_collection)
-  if 'ATLAS' in service_filter and config.has_section('atlas_collections') \
-    and config.has_option('atlas_collections', 'enabled') and config.get('atlas_collections', 'enabled') == 'true':
+  if is_atlas_available(config, service_filter):
     backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
     if backup_fulltext_index_name in collections:
       retry(reload_collection, options, config, solr_urls, backup_fulltext_index_name, context="[Reload Solr Collections]")
