@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -103,6 +105,7 @@ public class BlueprintImpl implements Blueprint {
     return stackIds;
   }
 
+  @Nonnull
   @Override
   public SecurityConfiguration getSecurity() {
     return security;
@@ -185,12 +188,8 @@ public class BlueprintImpl implements Blueprint {
 
   private Collection<MpackInstance> parseMpacks(BlueprintEntity blueprintEntity) throws NoSuchStackException {
     Collection<MpackInstance> mpackInstances = new ArrayList<>();
-    for (BlueprintMpackInstanceEntity mpack: blueprintEntity.getMpackInstances()) {
-      MpackInstance mpackInstance = new MpackInstance();
-      mpackInstance.setMpackName(mpack.getMpackName());
-      mpackInstance.setMpackVersion(mpack.getMpackVersion());
-      mpackInstance.setUrl(mpack.getMpackUri());
-      mpackInstance.setConfiguration(processConfiguration(mpack.getConfigurations()));
+    for (BlueprintMpackInstanceEntity mpack : blueprintEntity.getMpackInstances()) {
+      MpackInstance mpackInstance = new MpackInstance(mpack.getMpackName(), mpack.getMpackType(), mpack.getMpackVersion(), mpack.getMpackUri(), BlueprintImpl.fromConfigEntities(mpack.getConfigurations()));
       // TODO: come up with proper mpack -> stack resolution
       for(MpackInstanceServiceEntity serviceEntity: mpack.getServiceInstances()) {
         ServiceInstance serviceInstance = new ServiceInstance(
@@ -329,10 +328,7 @@ public class BlueprintImpl implements Blueprint {
       componentEntity.setHostGroupEntity(group);
       componentEntity.setHostGroupName(group.getName());
       componentEntity.setServiceName(component.getServiceInstance());
-      if (null != component.getStackId()) {
-        componentEntity.setMpackName(component.getStackId().getStackName());
-        componentEntity.setMpackVersion(component.getStackId().getStackVersion());
-      }
+      componentEntity.setMpackName(component.getMpackInstance());
 
       // add provision action (if specified) to entity type
       // otherwise, just leave this column null (provision_action)

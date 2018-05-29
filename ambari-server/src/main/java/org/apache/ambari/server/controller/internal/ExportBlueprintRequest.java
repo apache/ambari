@@ -272,8 +272,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
           String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID));
         String serviceGroupName =
           String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID));
-        StackId stackId = serviceGroupToMpack.get(serviceGroupName);
-        getComponents().add(new Component(componentName, stackId, serviceName, null));
+        getComponents().add(new Component(componentName, serviceGroupName, serviceName, null));
       }
       addAmbariComponentIfLocalhost((String) host.getObject().getPropertyValue(
           PropertyHelper.getPropertyId("Hosts", "host_name")));

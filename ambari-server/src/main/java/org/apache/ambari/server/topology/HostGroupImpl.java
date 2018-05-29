@@ -140,7 +140,7 @@ public class HostGroupImpl implements HostGroup {
 
       Component component = new Component(
         componentEntity.getName(),
-        stackId,
+        componentEntity.getMpackName(),
         componentEntity.getServiceName(),
         null == componentEntity.getProvisionAction() ? null : ProvisionAction.valueOf(componentEntity.getProvisionAction()));
 

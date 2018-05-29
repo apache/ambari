@@ -124,11 +124,7 @@ public class DownloadMpacksTaskTest {
   }
 
   private static MpackInstance mpack(String stackName, String stackVersion) {
-    MpackInstance mpack = new MpackInstance();
-    mpack.setMpackName(stackName);
-    mpack.setMpackVersion(stackVersion);
-    mpack.setUrl(createUri(stackName, stackVersion));
-    return mpack;
+    return new MpackInstance(stackName, stackName, stackVersion, createUri(stackName, stackVersion), Configuration.createEmpty());
   }
 
   private static String createUri(String stackName, String stackVersion) {
