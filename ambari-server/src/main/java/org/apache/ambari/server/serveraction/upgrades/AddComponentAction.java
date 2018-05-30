@@ -39,7 +39,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
 
 import com.google.gson.Gson;
@@ -127,7 +126,6 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
       ServiceComponentHost sch = serviceComponent.addServiceComponentHost(host.getHostName());
       sch.setDesiredState(State.INSTALLED);
       sch.setState(State.INSTALLED);
-      sch.setUpgradeState(UpgradeState.IN_PROGRESS);
 
       // for now, this is the easiest way to fire a topology event which
       // refreshes the information about the cluster (needed for restart

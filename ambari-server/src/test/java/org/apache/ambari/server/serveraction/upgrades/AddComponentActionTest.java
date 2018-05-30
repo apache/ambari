@@ -38,7 +38,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
 import org.apache.ambari.server.state.stack.upgrade.ExecuteHostType;
 import org.easymock.EasyMockSupport;
@@ -149,9 +148,6 @@ public class AddComponentActionTest extends EasyMockSupport {
     mockServiceComponentHost.setDesiredState(State.INSTALLED);
     expectLastCall().once();
 
-    mockServiceComponentHost.setUpgradeState(UpgradeState.IN_PROGRESS);
-    expectLastCall().once();
-
     mockServiceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
     expectLastCall().once();
 
@@ -181,7 +177,8 @@ public class AddComponentActionTest extends EasyMockSupport {
   }
 
   /**
-   * Tests that we fail without any candidates.
+   * Tests that we fail when the candidateg service isn't installed in the
+   * cluster.
    *
    * @throws Exception
    */
