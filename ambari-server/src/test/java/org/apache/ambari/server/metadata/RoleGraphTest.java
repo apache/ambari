@@ -82,7 +82,7 @@ public class RoleGraphTest {
 
     Service hdfsService = mock(Service.class);
     when(hdfsService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
-    when (cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when (cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build());
 
@@ -182,7 +182,7 @@ public class RoleGraphTest {
     Service hbaseService = mock(Service.class);
     when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .put("ZOOKEEPER", zkService)
         .put("HBASE", hbaseService)

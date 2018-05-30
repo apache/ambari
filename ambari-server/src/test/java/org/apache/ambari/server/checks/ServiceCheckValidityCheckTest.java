@@ -106,7 +106,7 @@ public class ServiceCheckValidityCheckTest {
     Cluster cluster = mock(Cluster.class);
     when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
     when(cluster.getClusterId()).thenReturn(CLUSTER_ID);
-    when(cluster.getServices()).thenReturn(ImmutableMap.of(SERVICE_NAME, service));
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.of(SERVICE_NAME, service));
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     when(service.getName()).thenReturn(SERVICE_NAME);
     when(service.getServiceId()).thenReturn(SERVICE_ID);

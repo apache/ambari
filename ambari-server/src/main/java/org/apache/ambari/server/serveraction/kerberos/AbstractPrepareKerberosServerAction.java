@@ -112,7 +112,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
       // Create the context to use for filtering Kerberos Identities based on the state of the cluster
       Map<String, Object> filterContext = new HashMap<>();
       filterContext.put("configurations", currentConfigurations);
-      filterContext.put("services", cluster.getServices().keySet());
+      filterContext.put("services", cluster.getServicesByName().keySet());
 
       actionLog.writeStdOut(String.format("Writing Kerberos identity data metadata file to %s", identityDataFile.getAbsolutePath()));
       try {

@@ -408,7 +408,7 @@ public class AlertDefinitionHash {
     }
 
     // get the service that this alert definition is associated with
-    Map<String, Service> services = cluster.getServices();
+    Map<String, Service> services = cluster.getServicesByName();
     Service service = services.get(definitionServiceName);
     if (null == service) {
       LOG.warn("The alert definition {} has an unknown service of {}",
@@ -643,7 +643,7 @@ public class AlertDefinitionHash {
         // for every service, get the master components and see if the host
         // is a master
         Set<String> services = new HashSet<>();
-        for (Entry<String, Service> entry : cluster.getServices().entrySet()) {
+        for (Entry<String, Service> entry : cluster.getServicesByName().entrySet()) {
           Service service = entry.getValue();
           Map<String, ServiceComponent> components = service.getServiceComponents();
           for (Entry<String, ServiceComponent> component : components.entrySet()) {

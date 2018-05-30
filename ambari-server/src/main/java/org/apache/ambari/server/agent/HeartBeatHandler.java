@@ -428,7 +428,7 @@ public class HeartBeatHandler {
 
     Map<String, Map<String, String>> componentsMap = new HashMap<>();
 
-    for (org.apache.ambari.server.state.Service service : cluster.getServices().values()) {
+    for (org.apache.ambari.server.state.Service service : cluster.getServicesByName().values()) {
       componentsMap.put(service.getName(), new HashMap<>());
 
       for (ServiceComponent component : service.getServiceComponents().values()) {

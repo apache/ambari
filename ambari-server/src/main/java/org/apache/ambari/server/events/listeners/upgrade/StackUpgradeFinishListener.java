@@ -72,7 +72,7 @@ public class StackUpgradeFinishListener {
 
     Cluster cluster = event.getCluster();
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServicesByName().values()) {
       try {
         //update service info due to new stack
         service.updateServiceInfo();

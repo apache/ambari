@@ -185,7 +185,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
    */
   private Map<String, Set<String>> calculateInstalledServices(Cluster cluster) {
     Map<String, Set<String>> installedServices = new HashMap<>();
-    Map<String, Service> services = cluster.getServices();
+    Map<String, Service> services = cluster.getServicesByName();
 
     for (Service service : services.values()) {
       installedServices.put(service.getName(), service.getServiceComponents().keySet());
@@ -270,7 +270,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
     // !!! FIXME in a per-service view, what does this become?
     Set<StackId> stackIds = new HashSet<>();
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServicesByName().values()) {
       RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(service.getName());
       StackId targetStackId = targetRepoVersion.getStackId();
       stackIds.add(targetStackId);
@@ -305,7 +305,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
       // Create the context to use for filtering Kerberos Identities based on the state of the cluster
       Map<String, Object> filterContext = new HashMap<>();
       filterContext.put("configurations", currentConfigurations);
-      filterContext.put("services", cluster.getServices().keySet());
+      filterContext.put("services", cluster.getServicesByName().keySet());
 
       try {
         Map<String, Set<String>> propertiesToIgnore = null;
@@ -447,7 +447,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
     actionLog.writeStdOut("Determining configuration changes");
 
     if (!kerberosConfigurations.isEmpty()) {
-      Map<String, Service> installedServices = cluster.getServices();
+      Map<String, Service> installedServices = cluster.getServicesByName();
 
       // Build a map of configuration types to properties that indicate which properties should be altered
       // This map should contain only properties defined in service-level Kerberos descriptors that

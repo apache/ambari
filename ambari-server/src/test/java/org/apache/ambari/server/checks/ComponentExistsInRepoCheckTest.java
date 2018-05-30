@@ -120,7 +120,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
       }
     };
 
-    expect(m_cluster.getServices()).andReturn(CLUSTER_SERVICES).atLeastOnce();
+    expect(m_cluster.getServicesByName()).andReturn(CLUSTER_SERVICES).atLeastOnce();
     expect(m_cluster.getService("ZOOKEEPER")).andReturn(m_zookeeperService).anyTimes();
     expect(m_cluster.getService("FOO_SERVICE")).andReturn(m_fooService).anyTimes();
 

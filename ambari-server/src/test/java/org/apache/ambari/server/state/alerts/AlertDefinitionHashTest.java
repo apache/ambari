@@ -152,7 +152,7 @@ public class AlertDefinitionHashTest extends TestCase {
     // cluster mock
     expect(m_mockCluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(m_mockCluster.getClusterName()).andReturn(CLUSTERNAME).anyTimes();
-    expect(m_mockCluster.getServices()).andReturn(services).anyTimes();
+    expect(m_mockCluster.getServicesByName()).andReturn(services).anyTimes();
     expect(
         m_mockCluster.getServiceComponentHosts(EasyMock.anyObject(String.class))).andReturn(
         serviceComponentHosts).anyTimes();

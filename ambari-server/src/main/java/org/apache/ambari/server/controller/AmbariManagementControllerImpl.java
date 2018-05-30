@@ -861,7 +861,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
-      for (Service service : cluster.getServices().values()) {
+      for (Service service : cluster.getServicesByName().values()) {
         ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
 
         if (!BooleanUtils.toBoolean(serviceInfo.isMonitoringService())) {
@@ -915,7 +915,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public void registerRackChange(String clusterName) throws AmbariException {
     Cluster cluster = clusters.getCluster(clusterName);
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServicesByName().values()) {
       ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
 
       if (!BooleanUtils.toBoolean(serviceInfo.isRestartRequiredAfterRackChange())) {
@@ -1053,7 +1053,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Set<StackId> visitedStacks = new HashSet<>();
 
-    for (Service clusterService : cluster.getServices().values()) {
+    for (Service clusterService : cluster.getServicesByName().values()) {
       StackId stackId = clusterService.getStackId();
       StackInfo stackInfo = ambariMetaInfo.getStack(clusterService.getStackId());
 
@@ -1329,7 +1329,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } else if (!Strings.isNullOrEmpty(request.getServiceGroupName())) {
       services = ImmutableList.copyOf(cluster.getServicesByServiceGroup(request.getServiceGroupName()));
     } else {
-      services = ImmutableList.copyOf(cluster.getServices().values());
+      services = ImmutableList.copyOf(cluster.getServicesByName().values());
     }
 
     Set<ServiceComponentHostResponse> response =
@@ -2503,7 +2503,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     HostEntity hostEntity = host.getHostEntity();
     Map<String, String> hostAttributes = gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
     String osFamily = host.getOSFamilyFromHostAttributes(hostAttributes);
-    Map<String, Service> services = cluster.getServices();
+    Map<String, Service> services = cluster.getServicesByName();
     Map<String, ServiceInfo> servicesMap = new HashMap<>();
     for(String clusterServiceName : services.keySet() ){
       //TODO fix matainfo
@@ -2550,7 +2550,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     // Propagate HCFS service type info
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServicesByName().values()) {
       ServiceInfo serviceInfoInstance = servicesMap.get(service.getName());
       if(serviceInfoInstance != null){
         LOG.debug("Iterating service type Instance in createHostAction: {}", serviceInfoInstance.getName());

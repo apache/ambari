@@ -495,7 +495,7 @@ public class StageUtilsTest extends EasyMockSupport {
 
     Cluster cluster = createMock(Cluster.class);
     expect(cluster.getHosts()).andReturn(hosts).anyTimes();
-    expect(cluster.getServices()).andReturn(new HashMap<String, Service>() {{
+    expect(cluster.getServicesByName()).andReturn(new HashMap<String, Service>() {{
       put("HDFS", hdfsService);
       put("HBASE", hbaseService);
       put("MAPREDUCE", mrService);

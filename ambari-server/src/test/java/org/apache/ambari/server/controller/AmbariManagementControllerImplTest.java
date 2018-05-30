@@ -1967,7 +1967,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getHostsForCluster("cluster1")).andReturn(ImmutableMap.of("host1", createNiceMock(Host.class))).anyTimes();
 
     expect(cluster.getClusterName()).andReturn("cluster1").anyTimes();
-    expect(cluster.getServices()).andReturn(mapServices).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(mapServices).anyTimes();
     expect(cluster.getServicesByServiceGroup("CORE")).andReturn(ImmutableList.of(service1, service2)).anyTimes();
     expect(service1.getServiceComponents()).andReturn(Collections.singletonMap("foo", component1));
     expect(service2.getServiceComponents()).andReturn(Collections.singletonMap("bar", component2));
@@ -2218,7 +2218,7 @@ public class AmbariManagementControllerImplTest {
     Map<String, Service> serviceMap = new HashMap<>();
 
     serviceMap.put("HDFS", service);
-    expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(serviceMap).anyTimes();
 
     // replay mocks
     replay(injector, cluster, clusters, ambariMetaInfo, service, serviceComponent, serviceComponentHost, stackId);

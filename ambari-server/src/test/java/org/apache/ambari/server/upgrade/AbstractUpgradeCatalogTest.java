@@ -88,7 +88,7 @@ public class AbstractUpgradeCatalogTest {
 
     HashMap<String, Service> serviceMap = new HashMap<>();
     serviceMap.put(SERVICE_NAME, null);
-    expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(serviceMap).anyTimes();
     expect(cluster.getServiceByConfigType("hdfs-site")).andReturn(hdfsMock).atLeastOnce();
     expect(hdfsMock.getName()).andReturn("HDFS").atLeastOnce();
 

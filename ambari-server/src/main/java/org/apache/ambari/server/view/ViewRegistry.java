@@ -966,7 +966,7 @@ public class ViewRegistry {
       String clusterName = cluster.getClusterName();
 
       Set<StackId> stackIds = new HashSet<>();
-      Set<String> serviceNames = cluster.getServices().keySet();
+      Set<String> serviceNames = cluster.getServicesByName().keySet();
 
       for (String serviceName : serviceNames) {
         Service service = cluster.getService(serviceName);
@@ -1942,7 +1942,7 @@ public class ViewRegistry {
 
       String clusterName = cluster.getClusterName();
       Long clusterId = cluster.getClusterId();
-      Set<String> serviceNames = cluster.getServices().keySet();
+      Set<String> serviceNames = cluster.getServicesByName().keySet();
 
       for (String service : services) {
         try {

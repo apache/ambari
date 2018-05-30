@@ -532,7 +532,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
     expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getHosts()).andReturn(hosts).anyTimes();
-    expect(cluster.getServices()).andReturn(services).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(services).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(currentStackId).anyTimes();
 
     for (Map.Entry<String, List<ServiceComponentHost>> entry : serviceComponentHosts.entrySet()) {

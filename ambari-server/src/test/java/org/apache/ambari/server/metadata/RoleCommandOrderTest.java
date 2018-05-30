@@ -103,7 +103,7 @@ public class RoleCommandOrderTest {
     expect(cluster.getService("HDFS")).andReturn(null);
     expect(cluster.getService("YARN")).andReturn(null);
 
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.<String, Service>builder()
         .put("GLUSTERFS", service)
         .build()).atLeastOnce();
 
@@ -154,7 +154,7 @@ public class RoleCommandOrderTest {
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
     expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.0.6"));
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build()).anyTimes();
 
@@ -202,7 +202,7 @@ public class RoleCommandOrderTest {
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(journalnodeSC);
     expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.0.6"));
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build()).anyTimes();
 
@@ -253,7 +253,7 @@ public class RoleCommandOrderTest {
     expect(resourcemanagerSC.getServiceComponentHosts()).andReturn(hostComponents).anyTimes();
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
     expect(yarnService.getStackId()).andReturn(new StackId("HDP", "2.0.6"));
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.<String, Service>builder()
         .put("YARN", yarnService)
         .build()).anyTimes();
 
@@ -310,7 +310,7 @@ public class RoleCommandOrderTest {
     expect(yarnService.getStackId()).andReturn(new StackId("HDP", "2.0.6")).anyTimes();
     expect(resourcemanagerSC.getServiceComponentHosts()).andReturn(hostComponents).anyTimes();
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.<String, Service>builder()
         .put("YARN", yarnService)
         .build()).anyTimes();
 
@@ -408,7 +408,7 @@ public class RoleCommandOrderTest {
     //There is no rco file in this stack, should use default
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.5"));
     expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.0.5"));
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build()).anyTimes();
 
@@ -448,7 +448,7 @@ public class RoleCommandOrderTest {
     Map<String, Service> installedServices = new HashMap<>();
     installedServices.put("HDFS", hdfsService);
     installedServices.put("HBASE", hbaseService);
-    expect(cluster.getServices()).andReturn(installedServices).atLeastOnce();
+    expect(cluster.getServicesByName()).andReturn(installedServices).atLeastOnce();
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
     expect(cluster.getService("GLUSTERFS")).andReturn(null);
@@ -499,7 +499,7 @@ public class RoleCommandOrderTest {
     expect(hdfsService.getServiceComponents()).andReturn(Collections.emptyMap()).anyTimes();
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
     expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.2.0")).anyTimes();
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build()).anyTimes();
 

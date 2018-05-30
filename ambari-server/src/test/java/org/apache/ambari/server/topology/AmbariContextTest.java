@@ -305,7 +305,7 @@ public class AmbariContextTest {
     controller.createCluster(capture(clusterRequestCapture));
     expectLastCall().once();
     expect(cluster.getServiceGroups()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(clusterServices).anyTimes();
 
     Capture<Set<ServiceGroupRequest>> serviceGroupRequestCapture = EasyMock.newCapture();
     Capture<Set<ServiceRequest>> serviceRequestCapture = EasyMock.newCapture();
@@ -395,7 +395,7 @@ public class AmbariContextTest {
   @Test
   public void testCreateAmbariHostResources() throws Exception {
     // expectations
-    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(clusterServices).anyTimes();
 
     hostResourceProvider.createHosts(anyObject(Request.class));
     expectLastCall().once();

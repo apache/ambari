@@ -313,7 +313,7 @@ public class CreateAndConfigureActionTest {
     upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
 
-    Map<String, Service> services = cluster.getServices();
+    Map<String, Service> services = cluster.getServicesByName();
     for (String serviceName : services.keySet()) {
       Service service = services.get(serviceName);
       Map<String, ServiceComponent> components = service.getServiceComponents();

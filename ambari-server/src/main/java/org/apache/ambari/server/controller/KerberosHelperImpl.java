@@ -716,7 +716,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
 
       Set<StackId> visitedStacks = new HashSet<>();
-      Map<String, Service> installedServices = cluster.getServices();
+      Map<String, Service> installedServices = cluster.getServicesByName();
 
       for (String serviceName : services) {
         Service service = installedServices.get(serviceName);
@@ -1383,7 +1383,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     // !!! FIXME in a per-service view, what does this become?
     Set<StackId> stackIds = new HashSet<>();
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServicesByName().values()) {
       stackIds.add(service.getStackId());
     }
 
@@ -1396,7 +1396,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(kerberosDescriptorType, cluster, stackId, includePreconfigureData);
 
     if (evaluateWhenClauses) {
-      Set<String> services = new HashSet<>(cluster.getServices().keySet());
+      Set<String> services = new HashSet<>(cluster.getServicesByName().keySet());
 
       if (additionalServices != null) {
         services.addAll(additionalServices);
@@ -1507,7 +1507,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       // configurations may be needed while calculating the auth-to-local rules.
       Map<String, Map<String, String>> replacementsWithDefaults = addConfigurationsForPreProcessedServices(deepCopy(replacements), cluster, kerberosDescriptor, true);
 
-      Map<String, Service> existingServices = cluster.getServices();
+      Map<String, Service> existingServices = cluster.getServicesByName();
 
       for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors.values()) {
         String serviceName = serviceDescriptor.getName();
@@ -1785,7 +1785,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster, false);
 
         if (kerberosDescriptor != null) {
-          Set<String> existingServices = cluster.getServices().keySet();
+          Set<String> existingServices = cluster.getServicesByName().keySet();
 
           for (String hostname : hosts) {
             // Calculate the current host-specific configurations. These will be used to replace
@@ -3215,7 +3215,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     Map<String, KerberosServiceDescriptor> serviceDescriptorMap = kerberosDescriptor.getServices();
 
     if (serviceDescriptorMap != null) {
-      Map<String, Service> existingServices = cluster.getServices();
+      Map<String, Service> existingServices = cluster.getServicesByName();
       Set<String> allServices = new HashSet<>(existingServices.keySet());
       Set<String> componentFilter = new HashSet<>();
       StackId stackVersion = cluster.getCurrentStackVersion();
@@ -3639,7 +3639,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     private void addDisableSecurityCommandToAllServices(Cluster cluster, Stage stage) throws AmbariException {
-      for (Service service : cluster.getServices().values()) {
+      for (Service service : cluster.getServicesByName().values()) {
         for (ServiceComponent component : service.getServiceComponents().values()) {
           if (!component.getServiceComponentHosts().isEmpty()) {
             String firstHost = component.getServiceComponentHosts().keySet().iterator().next(); // it is only necessary to send it to one host

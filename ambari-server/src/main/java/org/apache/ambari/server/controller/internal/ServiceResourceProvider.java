@@ -568,7 +568,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     if(request.getServiceGroupName() != null){
      clusterServices = cluster.getServicesByServiceGroup(serviceGroupName);
     }else{
-      clusterServices = cluster.getServices().values();
+      clusterServices = cluster.getServicesByName().values();
     }
     for (Service s : clusterServices) {
       if (checkDesiredState

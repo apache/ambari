@@ -110,7 +110,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
         .put("ZOOKEEPER", zkService)
         .build());
@@ -148,7 +148,7 @@ public class TestStagePlanner {
     Service yarnService = mock(Service.class);
     when(yarnService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
         .put("ZOOKEEPER", zkService)
         .put("YARN", yarnService)
@@ -189,7 +189,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
         .put("ZOOKEEPER", zkService)
         .build());
@@ -229,7 +229,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
         .put("ZOOKEEPER", zkService)
         .build());
@@ -268,7 +268,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
         .put("ZOOKEEPER", zkService)
         .build());
@@ -303,7 +303,7 @@ public class TestStagePlanner {
     Service hiveService = mock(Service.class);
     when(hiveService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HIVE", hiveService)
         .build());
 
@@ -358,7 +358,7 @@ public class TestStagePlanner {
     Service gangliaService = mock(Service.class);
     when(gangliaService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .put("HBASE", hbaseService)
         .put("ZOOKEEPER", zkService)

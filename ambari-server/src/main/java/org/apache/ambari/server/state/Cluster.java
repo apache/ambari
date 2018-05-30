@@ -180,12 +180,8 @@ public interface Cluster {
 
   ServiceComponentHost getHostComponentById(Long hostComponentId);
 
-  /**
-   * Get all services
-   *
-   * @return
-   */
-  Map<String, Service> getServices();
+  @Deprecated
+  Map<String, Service> getServicesByName();
 
   Map<Long, Service> getServicesById();
 

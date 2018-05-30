@@ -72,7 +72,7 @@ public class ConfigurationMergeCheckTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
 
     Service hdfs = EasyMock.createMock(Service.class);
-    expect(cluster.getServices()).andReturn(ImmutableMap.of("HDFS", hdfs)).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.of("HDFS", hdfs)).anyTimes();
     expect(cluster.getService("HDFS")).andReturn(hdfs).anyTimes();
     expect(hdfs.getServiceType()).andReturn("HDFS").anyTimes();
     expect(hdfs.getStackId()).andReturn(stackId_1_0).anyTimes();

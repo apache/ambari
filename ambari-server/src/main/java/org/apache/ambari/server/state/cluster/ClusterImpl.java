@@ -1186,7 +1186,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, Service> getServices() {
+  public Map<String, Service> getServicesByName() {
     return new HashMap<>(services);
   }
 
@@ -2747,7 +2747,7 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Set<String> getHosts(String serviceName, String componentName) {
-    Map<String, Service> clusterServices = getServices();
+    Map<String, Service> clusterServices = getServicesByName();
 
     if (!clusterServices.containsKey(serviceName)) {
       return Collections.emptySet();
@@ -3392,7 +3392,7 @@ public class ClusterImpl implements Cluster {
   public Map<String, Map<String, String>> getComponentVersionMap() {
     Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
 
-    for (Service service : getServices().values()) {
+    for (Service service : getServicesByName().values()) {
       Map<String, String> componentMap = new HashMap<>();
       for (ServiceComponent component : service.getServiceComponents().values()) {
         // skip components which don't advertise a version

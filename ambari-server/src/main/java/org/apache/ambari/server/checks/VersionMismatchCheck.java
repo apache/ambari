@@ -54,7 +54,7 @@ public class VersionMismatchCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    Map<String, Service> services = cluster.getServices();
+    Map<String, Service> services = cluster.getServicesByName();
     List<String> errorMessages = new ArrayList<>();
     for (Service service : services.values()) {
       validateService(service, prerequisiteCheck, errorMessages);

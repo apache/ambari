@@ -59,7 +59,7 @@ public class ConfigMergeHelper {
     Map<String, Map<String, String>> newMap = new HashMap<>();
 
     // Collect service-level properties for old and new stack
-    for (String serviceName : cluster.getServices().keySet()) {
+    for (String serviceName : cluster.getServicesByName().keySet()) {
       Service service = cluster.getService(serviceName);
       oldStack = service.getStackId();
       Set<PropertyInfo> oldStackProperties = m_ambariMetaInfo.get().getServiceProperties(

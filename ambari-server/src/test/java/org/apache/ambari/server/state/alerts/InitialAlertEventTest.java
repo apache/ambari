@@ -113,7 +113,7 @@ public class InitialAlertEventTest {
 
     // install HDFS to get 6 definitions
     installHdfsService();
-    Assert.assertEquals(1, m_cluster.getServices().size());
+    Assert.assertEquals(1, m_cluster.getServicesByName().size());
     Assert.assertEquals(6, m_definitionDao.findAll().size());
   }
 

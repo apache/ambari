@@ -67,7 +67,7 @@ public class VersionMismatchCheckTest {
 
     Service firstService = mock(Service.class);
     Map<String, Service> services = ImmutableMap.of(FIRST_SERVICE_NAME, firstService);
-    when(cluster.getServices()).thenReturn(services);
+    when(cluster.getServicesByName()).thenReturn(services);
 
     ServiceComponent firstServiceComponent = mock(ServiceComponent.class);
     Map<String, ServiceComponent> components = ImmutableMap.of(FIRST_SERVICE_COMPONENT_NAME, firstServiceComponent);

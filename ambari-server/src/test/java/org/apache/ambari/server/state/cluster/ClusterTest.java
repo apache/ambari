@@ -392,7 +392,7 @@ public class ClusterTest {
       // Expected
     }
 
-    Map<String, Service> services = c1.getServices();
+    Map<String, Service> services = c1.getServicesByName();
     Assert.assertEquals(2, services.size());
     Assert.assertTrue(services.containsKey("HDFS"));
     Assert.assertTrue(services.containsKey("MAPREDUCE"));
@@ -838,13 +838,13 @@ public class ClusterTest {
     Service hdfs = c1.addService(serviceGroup, "HDFS", "HDFS");
     hdfs.addServiceComponent("NAMENODE", "NAMENODE");
 
-    assertEquals(2, c1.getServices().size());
+    assertEquals(2, c1.getServicesByName().size());
     assertEquals(2, injector.getProvider(EntityManager.class).get().
         createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
 
     c1.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
 
-    assertEquals(1, c1.getServices().size());
+    assertEquals(1, c1.getServicesByName().size());
     assertEquals(1, injector.getProvider(EntityManager.class).get().
         createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
   }
@@ -881,7 +881,7 @@ public class ClusterTest {
 
     c1.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
 
-    Assert.assertEquals(0, c1.getServices().size());
+    Assert.assertEquals(0, c1.getServicesByName().size());
     Assert.assertEquals(0, c1.getServiceConfigVersions().size());
 
     EntityManager em = injector.getProvider(EntityManager.class).get();

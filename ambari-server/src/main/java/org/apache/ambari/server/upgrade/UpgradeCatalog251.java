@@ -126,7 +126,7 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
       Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
+          Set<String> installedServices = cluster.getServicesByName().keySet();
 
           if (installedServices.contains("KAFKA") && cluster.getSecurityType() == SecurityType.KERBEROS) {
             Config kafkaBroker = cluster.getDesiredConfigByType(KAFKA_BROKER_CONFIG);
@@ -182,7 +182,7 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
       Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
+          Set<String> installedServices = cluster.getServicesByName().keySet();
 
           // Technically, this should be added when the cluster is Kerberized on HDP 2.6.1, but is safe to add even
           // without security or on an older stack version (such as HDP 2.5)
