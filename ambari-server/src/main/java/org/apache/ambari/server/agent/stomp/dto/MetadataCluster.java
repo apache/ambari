@@ -92,48 +92,54 @@ public class MetadataCluster {
 
   public boolean updateServiceLevelParams(SortedMap<String, MetadataServiceInfo> update, boolean fullMetadataInUpdatedMap) {
     if (update != null) {
-      if (this.serviceLevelParams == null) {
-        this.serviceLevelParams = new TreeMap<>();
+      try {
+        lock.lock();
+        if (this.serviceLevelParams == null) {
+          this.serviceLevelParams = new TreeMap<>();
+        }
+        return updateMapIfNeeded(this.serviceLevelParams, update, fullMetadataInUpdatedMap);
+      } finally {
+        lock.unlock();
       }
-      return updateMapIfNeeded(this.serviceLevelParams, update, fullMetadataInUpdatedMap);
     }
+
     return false;
   }
 
   public boolean updateClusterLevelParams(SortedMap<String, String> update) {
     if (update != null) {
-      if (this.clusterLevelParams == null) {
-        this.clusterLevelParams = new TreeMap<>();
+      try {
+        lock.lock();
+        if (this.clusterLevelParams == null) {
+          this.clusterLevelParams = new TreeMap<>();
+        }
+        return updateMapIfNeeded(this.clusterLevelParams, update, true);
+      } finally {
+        lock.unlock();
       }
-      return updateMapIfNeeded(this.clusterLevelParams, update, true);
     }
+
     return false;
   }
 
   private <T> boolean updateMapIfNeeded(Map<String, T> currentMap, Map<String, T> updatedMap, boolean fullMetadataInUpdatedMap) {
-    try {
-      lock.lock();
-      boolean changed = false;
-
-      if (fullMetadataInUpdatedMap) { // we have full metadata in updatedMap (i.e. in case of service removal we have full metadata in updatedMap)
-        changed = !Objects.equals(currentMap, updatedMap);
-        if (changed) {
-          currentMap.clear();
-          currentMap.putAll(updatedMap);
-        }
-      } else { // to support backward compatibility we fall back to previous version where we only added non-existing services/properties in current metadata
-        for (String key : updatedMap.keySet()) {
-          if (!currentMap.containsKey(key) || !currentMap.get(key).equals(updatedMap.get(key))) {
-            currentMap.put(key, updatedMap.get(key));
-            changed = true;
-          }
+    boolean changed = false;
+    if (fullMetadataInUpdatedMap) { // we have full metadata in updatedMap (i.e. in case of service removal we have full metadata in updatedMap)
+      changed = !Objects.equals(currentMap, updatedMap);
+      if (changed) {
+        currentMap.clear();
+        currentMap.putAll(updatedMap);
+      }
+    } else { // to support backward compatibility we fall back to previous version where we only added non-existing services/properties in current metadata
+      for (String key : updatedMap.keySet()) {
+        if (!currentMap.containsKey(key) || !currentMap.get(key).equals(updatedMap.get(key))) {
+          currentMap.put(key, updatedMap.get(key));
+          changed = true;
         }
       }
-
-      return changed;
-    } finally {
-      lock.unlock();
     }
+
+    return changed;
   }
 
   @Override
