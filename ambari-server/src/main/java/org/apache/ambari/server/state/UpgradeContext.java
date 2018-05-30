@@ -971,6 +971,10 @@ public class UpgradeContext {
 
     summary.isDowngradeAllowed = isDowngradeAllowed();
 
+    // !!! a) if we are reverting, that can only happen via PATCH or MAINT
+    //     b) if orchestration is a revertible type (on upgrade)
+    summary.isSwitchBits = m_isRevert || m_orchestration.isRevertable();
+
     summary.services = new HashMap<>();
 
     for (String serviceName : m_services) {
@@ -1435,6 +1439,13 @@ public class UpgradeContext {
 
     @SerializedName("services")
     public Map<String, UpgradeServiceSummary> services;
+
+    /**
+     * MAINT or PATCH upgrades are meant to just be switching the bits and no other
+     * incompatible changes.
+     */
+    @SerializedName("isSwitchBits")
+    public boolean isSwitchBits = false;
   }
 
   /**

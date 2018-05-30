@@ -196,7 +196,8 @@ class TestStackFeature(TestCase):
         "type":"rolling_upgrade",
         "isRevert":False,
         "orchestration":"STANDARD",
-        "isDowngradeAllowed": True
+        "isDowngradeAllowed": True,
+        "isSwitchBits": False
       }
     }
 
@@ -234,7 +235,8 @@ class TestStackFeature(TestCase):
         "type":"rolling_upgrade",
         "isRevert":False,
         "orchestration":"STANDARD",
-        "isDowngradeAllowed": True
+        "isDowngradeAllowed": True,
+        "isSwitchBits": False
       }
     }
 
@@ -273,7 +275,8 @@ class TestStackFeature(TestCase):
         "type":"rolling_upgrade",
         "isRevert":False,
         "orchestration":"STANDARD",
-        "isDowngradeAllowed": True
+        "isDowngradeAllowed": True,
+        "isSwitchBits": False
       }
     }
 

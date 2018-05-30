@@ -161,7 +161,8 @@ class TestStackSelect(TestCase):
         "type":"rolling_upgrade",
         "isRevert":False,
         "orchestration":"STANDARD",
-        "isDowngradeAllowed": True
+        "isDowngradeAllowed": True,
+        "isSwitchBits": False
       }
     }
 
@@ -200,7 +201,8 @@ class TestStackSelect(TestCase):
         "type":"rolling_upgrade",
         "isRevert":False,
         "orchestration":"STANDARD",
-        "isDowngradeAllowed": True
+        "isDowngradeAllowed": True,
+        "isSwitchBits": False
       }
     }
 

@@ -127,8 +127,11 @@ public class UpgradeContextTest extends EasyMockSupport {
 
     expect(m_sourceRepositoryVersion.getId()).andReturn(1L).anyTimes();
     expect(m_sourceRepositoryVersion.getStackId()).andReturn(new StackId("HDP", "2.6")).anyTimes();
+    expect(m_sourceRepositoryVersion.getVersion()).andReturn("2.6.0.0").anyTimes();
+
     expect(m_targetRepositoryVersion.getId()).andReturn(99L).anyTimes();
     expect(m_targetRepositoryVersion.getStackId()).andReturn(new StackId("HDP", "2.6")).anyTimes();
+    expect(m_targetRepositoryVersion.getVersion()).andReturn("2.6.0.2").anyTimes();
 
     UpgradeHistoryEntity upgradeHistoryEntity = createNiceMock(UpgradeHistoryEntity.class);
     expect(upgradeHistoryEntity.getServiceName()).andReturn(HDFS_SERVICE_NAME).anyTimes();
@@ -153,7 +156,8 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(m_completedRevertableUpgrade.getUpgradePackage()).andReturn(null).anyTimes();
 
     RepositoryVersionEntity hdfsRepositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-
+    expect(hdfsRepositoryVersion.getId()).andReturn(1L).anyTimes();
+    expect(hdfsRepositoryVersion.getStackId()).andReturn(new StackId("HDP-2.6")).anyTimes();
     expect(m_hdfsService.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).anyTimes();
     expect(m_zookeeperService.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).anyTimes();
     expect(m_cluster.getService(HDFS_SERVICE_NAME)).andReturn(m_hdfsService).anyTimes();
@@ -202,6 +206,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     assertEquals(RepositoryType.STANDARD, context.getOrchestrationType());
     assertEquals(1, context.getSupportedServices().size());
     assertFalse(context.isPatchRevert());
+    assertFalse(context.getUpgradeSummary().isSwitchBits);
 
     verifyAll();
   }
@@ -248,6 +253,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
     assertEquals(1, context.getSupportedServices().size());
     assertFalse(context.isPatchRevert());
+    assertTrue(context.getUpgradeSummary().isSwitchBits);
 
     verifyAll();
   }
@@ -332,6 +338,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
     assertEquals(1, context.getSupportedServices().size());
     assertTrue(context.isPatchRevert());
+    assertTrue(context.getUpgradeSummary().isSwitchBits);
 
     verifyAll();
   }
