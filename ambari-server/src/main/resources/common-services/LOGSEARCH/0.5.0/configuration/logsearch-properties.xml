@@ -43,7 +43,7 @@
   </property>
   <property>
     <name>logsearch.collection.service.logs.numshards</name>
-    <value>5</value>
+    <value>4</value>
     <display-name>Log Search Solr Service Logs Shards</display-name>
     <description>Number of shards for Service Logs collection</description>
     <value-attributes>
@@ -57,7 +57,7 @@
   </property>
   <property>
     <name>logsearch.collection.service.logs.replication.factor</name>
-    <value>1</value>
+    <value>2</value>
     <display-name>Log Search Solr Service Logs Replication Factor</display-name>
     <description>Replication factor for Service Logs Solr collection</description>
     <value-attributes>
@@ -71,7 +71,7 @@
   </property>
   <property>
     <name>logsearch.collection.audit.logs.numshards</name>
-    <value>5</value>
+    <value>4</value>
     <display-name>Log Search Solr Audit Logs Shards</display-name>
     <description>Number of shards for Audit Logs collection</description>
     <value-attributes>
@@ -85,7 +85,7 @@
   </property>
   <property>
     <name>logsearch.collection.audit.logs.replication.factor</name>
-    <value>1</value>
+    <value>2</value>
     <display-name>Log Search Solr Audit Logs Replication Factor</display-name>
     <description>Replication factor for Audit Logs Solr collection</description>
     <value-attributes>
