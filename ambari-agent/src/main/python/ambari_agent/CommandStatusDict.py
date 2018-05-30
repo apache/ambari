@@ -22,6 +22,9 @@ import os
 import logging
 import threading
 import copy
+
+import ambari_simplejson as json
+
 from collections import defaultdict
 from Grep import Grep
 
@@ -38,6 +41,9 @@ class CommandStatusDict():
     task_id -> (command, cmd_report)
   """
 
+  # 2MB is a max message size on the server side
+  MAX_REPORT_SIZE = 1950000
+
   def __init__(self, initializer_module):
     """
     callback_action is called every time when status of some command is
@@ -48,6 +54,7 @@ class CommandStatusDict():
     self.initializer_module = initializer_module
     self.command_update_output = initializer_module.config.command_update_output
     self.server_responses_listener = initializer_module.server_responses_listener
+    self.log_max_symbols_size = initializer_module.config.log_max_symbols_size
     self.reported_reports = set()
 
 
@@ -91,10 +98,31 @@ class CommandStatusDict():
     report = self.generate_report()
 
     if report:
-      success, correlation_id = self.force_update_to_server(report)
+      for splitted_report in self.split_reports(report, CommandStatusDict.MAX_REPORT_SIZE):
+        success, correlation_id = self.force_update_to_server(splitted_report)
+  
+        if success:
+          self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.clear_reported_reports(splitted_report)
 
-      if success:
-        self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.clear_reported_reports()
+  def split_reports(self, result_reports, size):
+    part = defaultdict(lambda:[])
+    prev_part = defaultdict(lambda:[])
+    for cluster_id, cluster_reports in result_reports.items():
+      for report in cluster_reports:
+        prev_part[cluster_id].append(report)
+        if self.size_approved(prev_part, size):
+          part[cluster_id].append(report)
+        else:
+          yield part
+          part = defaultdict(lambda:[])
+          prev_part = defaultdict(lambda:[])
+          prev_part[cluster_id].append(report)
+          part[cluster_id].append(report)
+    yield part
+
+  def size_approved(self, report, size):
+    report_json = json.dumps(report)
+    return len(report_json) <= size
 
   def get_command_status(self, taskId):
     with self.lock:
@@ -128,11 +156,22 @@ class CommandStatusDict():
           pass
       return resultReports
 
-  def clear_reported_reports(self):
+  def clear_reported_reports(self, result_reports):
     with self.lock:
+      keys_to_remove = set()
       for key in self.reported_reports:
-        del self.current_state[key]
-      self.reported_reports = set()
+        if self.has_report_with_taskid(key, result_reports):
+          del self.current_state[key]
+          keys_to_remove.add(key)
+
+      self.reported_reports = self.reported_reports.difference(keys_to_remove)
+
+  def has_report_with_taskid(self, task_id, result_reports):
+    for cluster_reports in result_reports.values():
+      for report in cluster_reports:
+        if report['taskId'] == task_id:
+          return True
+    return False
 
   def generate_in_progress_report(self, command, report):
     """
@@ -153,11 +192,12 @@ class CommandStatusDict():
     tmpout, tmperr, tmpstructuredout = files_content
 
     grep = Grep()
-    output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
+    output = grep.tail_by_symbols(grep.tail(tmpout, Grep.OUTPUT_LAST_LINES), self.log_max_symbols_size)
+    err = grep.tail_by_symbols(grep.tail(tmperr, Grep.OUTPUT_LAST_LINES), self.log_max_symbols_size)
     inprogress = self.generate_report_template(command)
     inprogress.update({
       'stdout': output,
-      'stderr': tmperr,
+      'stderr': err,
       'structuredOut': tmpstructuredout,
       'exitCode': 777,
       'status': ActionQueue.IN_PROGRESS_STATUS,

@@ -95,6 +95,37 @@ debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
     desired = ''
     self.assertEquals(fragment, desired, 'Grep tail function contains bug in index arithmetics')
 
+
+  def test_tail_by_symbols_many_lines(self):
+    desired_size = len(self.string_good.strip())
+    fragment = self.grep.tail_by_symbols(self.string_good, desired_size)
+    desired = self.string_good.strip()
+    self.assertEquals(fragment, desired, "Grep tail function should return all symbols if there are less symbols than n")
+    self.assertEquals(len(fragment), desired_size, "Grep tail function should return all symbols if there are less symbols than n")
+
+  def test_tail_by_symbols_few_lines(self):
+    original = """
+debug: Finishing transaction 70060456663980
+debug: Received report to process from ambari-dmi
+debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
+"""
+    desired = original.replace("\n", os.linesep).strip()
+    desired_size = len(original)
+
+    fragment = self.grep.tail_by_symbols(self.string_good, desired_size)
+    self.assertEquals(fragment, desired, "Grep tail function should return only last 3 lines of file")
+
+    fragment = self.grep.tail_by_symbols(self.string_good, desired_size - 1)
+    self.assertEquals(fragment, desired, "Grep tail function should return only last 2 lines of file")
+
+    fragment = self.grep.tail_by_symbols(self.string_good, desired_size + 1)
+    self.assertEquals(fragment, desired, "Grep tail function should return only last 3 lines of file")
+
+  def test_tail_by_symbols_no_lines(self):
+    fragment = self.grep.tail_by_symbols("", 3)
+    desired = ''
+    self.assertEquals(fragment, desired, 'Grep tail function should return "" for empty string')
+
   def tearDown(self):
     pass
 
