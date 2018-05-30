@@ -529,7 +529,7 @@ public class AmbariManagementControllerTest {
         if (!scName.endsWith("CHECK")) {
           Cluster cluster = clusters.getCluster(clusterName);
           String hostname = cmd.getHostName();
-          for (Service s : cluster.getServicesByName().values()) {
+          for (Service s : cluster.getServices()) {
             if (s.getServiceComponents().containsKey(scName) &&
               !s.getServiceComponent(scName).isClientComponent()) {
               s.getServiceComponent(scName).getServiceComponentHost(hostname).
@@ -791,7 +791,7 @@ public class AmbariManagementControllerTest {
     }
 
     Assert.assertNotNull(clusters.getCluster(cluster1));
-    Assert.assertEquals(0, clusters.getCluster(cluster1).getServicesByName().size());
+    Assert.assertEquals(0, clusters.getCluster(cluster1).getServices().size());
 
     set1.clear();
     ServiceRequest valid = new ServiceRequest(cluster1, serviceGroupName, "HDFS", null, null, null);
@@ -810,7 +810,7 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    Assert.assertEquals(1, clusters.getCluster(cluster1).getServicesByName().size());
+    Assert.assertEquals(1, clusters.getCluster(cluster1).getServices().size());
 
   }
 
@@ -886,7 +886,7 @@ public class AmbariManagementControllerTest {
     }
 
     Assert.assertNotNull(clusters.getCluster(cluster1));
-    Assert.assertEquals(2, clusters.getCluster(cluster1).getServicesByName().size());
+    Assert.assertEquals(2, clusters.getCluster(cluster1).getServices().size());
     Assert.assertNotNull(clusters.getCluster(cluster1).getService("HDFS"));
     Assert.assertNotNull(clusters.getCluster(cluster1).getService("MAPREDUCE"));
   }
@@ -8509,11 +8509,11 @@ public class AmbariManagementControllerTest {
 
     Cluster cluster = clusters.getCluster(CLUSTER_NAME);
 
-    for (String serviceName : cluster.getServicesByName().keySet() ) {
+    for (Service service : cluster.getServices()) {
 
-      for(String componentName: cluster.getService(serviceName).getServiceComponents().keySet()) {
+      for(String componentName : service.getServiceComponents().keySet()) {
 
-        Map<String, ServiceComponentHost> serviceComponentHosts = cluster.getService(serviceName).getServiceComponent(componentName).getServiceComponentHosts();
+        Map<String, ServiceComponentHost> serviceComponentHosts = service.getServiceComponent(componentName).getServiceComponentHosts();
 
         for (Map.Entry<String, ServiceComponentHost> entry : serviceComponentHosts.entrySet()) {
           ServiceComponentHost cHost = entry.getValue();
@@ -9382,7 +9382,7 @@ public class AmbariManagementControllerTest {
 
     Cluster cluster = clusters.getCluster(cluster1);
 
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       Assert.assertEquals(State.STARTED, service.getDesiredState());
     }
 
@@ -9401,7 +9401,7 @@ public class AmbariManagementControllerTest {
       Assert.assertFalse(role.equals(componentName2_2));
     }
 
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       if (service.getName().equals(serviceName2)) {
         Assert.assertEquals(State.STARTED, service.getDesiredState());
       } else {
@@ -9412,7 +9412,7 @@ public class AmbariManagementControllerTest {
     service2.setMaintenanceState(MaintenanceState.OFF);
     ServiceResourceProviderTest.updateServices(controller, srs, requestProperties,
             false, false, maintenanceStateHelper);
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       Assert.assertEquals(State.INSTALLED, service.getDesiredState());
     }
 

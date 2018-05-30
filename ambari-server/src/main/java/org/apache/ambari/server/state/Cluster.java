@@ -185,6 +185,8 @@ public interface Cluster {
 
   Map<Long, Service> getServicesById();
 
+  Collection<Service> getServices();
+
   /**
    * Get a service group
    *

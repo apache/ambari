@@ -52,7 +52,7 @@ public class UsedIdentities {
     List<KerberosIdentityDescriptor> result = new ArrayList<>();
     KerberosDescriptor root = kerberosHelper.getKerberosDescriptor(cluster, false);
     result.addAll(nullToEmpty(root.getIdentities()));
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       if (serviceExclude.shouldExclude(service.getName())) {
         continue;
       }

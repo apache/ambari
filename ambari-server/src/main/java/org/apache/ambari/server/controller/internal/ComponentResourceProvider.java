@@ -557,7 +557,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     if (StringUtils.isNotEmpty(request.getServiceName())) {
       services.add(getServiceFromCluster(request, cluster));
     } else {
-      services.addAll(cluster.getServicesByName().values());
+      services.addAll(cluster.getServices());
     }
 
     final State desiredStateToCheck = getValidDesiredState(request);

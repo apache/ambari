@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provider;
 
 /**
@@ -66,8 +67,7 @@ public class VersionMismatchCheckTest {
     when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
 
     Service firstService = mock(Service.class);
-    Map<String, Service> services = ImmutableMap.of(FIRST_SERVICE_NAME, firstService);
-    when(cluster.getServicesByName()).thenReturn(services);
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(firstService));
 
     ServiceComponent firstServiceComponent = mock(ServiceComponent.class);
     Map<String, ServiceComponent> components = ImmutableMap.of(FIRST_SERVICE_COMPONENT_NAME, firstServiceComponent);

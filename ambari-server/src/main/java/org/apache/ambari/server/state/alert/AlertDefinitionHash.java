@@ -643,8 +643,7 @@ public class AlertDefinitionHash {
         // for every service, get the master components and see if the host
         // is a master
         Set<String> services = new HashSet<>();
-        for (Entry<String, Service> entry : cluster.getServicesByName().entrySet()) {
-          Service service = entry.getValue();
+        for (Service service : cluster.getServices()) {
           Map<String, ServiceComponent> components = service.getServiceComponents();
           for (Entry<String, ServiceComponent> component : components.entrySet()) {
             if (component.getValue().isMasterComponent()) {

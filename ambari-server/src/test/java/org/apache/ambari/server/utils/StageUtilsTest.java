@@ -77,6 +77,7 @@ import org.junit.Test;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.gson.Gson;
@@ -495,12 +496,7 @@ public class StageUtilsTest extends EasyMockSupport {
 
     Cluster cluster = createMock(Cluster.class);
     expect(cluster.getHosts()).andReturn(hosts).anyTimes();
-    expect(cluster.getServicesByName()).andReturn(new HashMap<String, Service>() {{
-      put("HDFS", hdfsService);
-      put("HBASE", hbaseService);
-      put("MAPREDUCE", mrService);
-      put("NONAME", nnService);
-    }}).anyTimes();
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(hdfsService, hbaseService, mrService, nnService)).anyTimes();
 
 
     final TopologyManager topologyManager = injector.getInstance(TopologyManager.class);

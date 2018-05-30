@@ -418,8 +418,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
 
         Set<PropertyInfo> stackProperties = configHelper.getStackProperties(cluster);
-        for(String serviceName: cluster.getServicesByName().keySet()) {
-          Set<PropertyInfo> properties = configHelper.getServiceProperties(cluster, serviceName);
+        for (Service service : cluster.getServices()) {
+          Set<PropertyInfo> properties = configHelper.getServiceProperties(cluster, service);
 
           if (properties == null) {
             continue;
@@ -1196,7 +1196,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
       comment = "can only take the first stack we find until we can support multiple with Kerberos")
   private StackId getStackId(Cluster cluster) throws AmbariException {
-    return cluster.getServicesByName().values().iterator().next().getStackId();
+    return cluster.getServices().iterator().next().getStackId();
   }
 
   protected void setConfiguration(Configuration configuration) {

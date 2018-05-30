@@ -311,7 +311,7 @@ public class MaintenanceStateHelper {
 
     Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
 
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       for (ServiceComponent sc : service.getServiceComponents().values()) {
         if (sc.isClientComponent()) {
           continue;

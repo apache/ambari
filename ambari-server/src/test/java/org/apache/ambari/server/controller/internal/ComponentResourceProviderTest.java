@@ -248,7 +248,7 @@ public class ComponentResourceProviderTest {
     expect(serviceComponent3.getType()).andReturn("Component102");
     expect(serviceComponent3.getStackId()).andReturn(stackId).anyTimes();
 
-    expect(cluster.getServicesByName()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
+    expect(cluster.getServices()).andReturn(Collections.singleton(service)).anyTimes();
 
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
@@ -416,7 +416,7 @@ public class ComponentResourceProviderTest {
     expect(serviceComponent3.getType()).andReturn("Component103").anyTimes();
     expect(serviceComponent3.getStackId()).andReturn(stackId).anyTimes();
 
-    expect(cluster.getServicesByName()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
+    expect(cluster.getServices()).andReturn(Collections.singleton(service)).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
@@ -736,7 +736,7 @@ public class ComponentResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getResourceId()).andReturn(4l).atLeastOnce();
-    expect(cluster.getServicesByName()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
+    expect(cluster.getServices()).andReturn(Collections.singleton(service)).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     String serviceGroupName = "CORE";

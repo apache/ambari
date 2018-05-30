@@ -1135,7 +1135,6 @@ public class ConfigHelperTest {
 
       List<PropertyInfo> serviceProperties = Arrays.asList(mockPropertyInfo1, mockPropertyInfo2);
 
-      expect(mockCluster.getService("SERVICE")).andReturn(mockService).once();
       expect(mockService.getStackId()).andReturn(mockStackVersion).once();
       expect(mockService.getServiceType()).andReturn("SERVICE").once();
       expect(mockStackVersion.getStackName()).andReturn("HDP").once();
@@ -1150,7 +1149,7 @@ public class ConfigHelperTest {
       mockAmbariMetaInfo.init();
 
       Set<PropertyInfo> result = injector.getInstance(ConfigHelper.class)
-          .getServiceProperties(mockCluster, "SERVICE");
+          .getServiceProperties(mockCluster, mockService);
 
       Assert.assertNotNull(result);
       Assert.assertEquals(2, result.size());

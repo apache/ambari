@@ -47,7 +47,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -110,10 +110,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HBASE", hbaseService)
-        .put("ZOOKEEPER", zkService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hbaseService, zkService));
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
@@ -148,11 +145,7 @@ public class TestStagePlanner {
     Service yarnService = mock(Service.class);
     when(yarnService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HBASE", hbaseService)
-        .put("ZOOKEEPER", zkService)
-        .put("YARN", yarnService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hbaseService, zkService, yarnService));
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
@@ -189,10 +182,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HBASE", hbaseService)
-        .put("ZOOKEEPER", zkService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hbaseService, zkService));
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
@@ -229,10 +219,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HBASE", hbaseService)
-        .put("ZOOKEEPER", zkService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hbaseService, zkService));
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
@@ -268,10 +255,7 @@ public class TestStagePlanner {
     Service zkService = mock(Service.class);
     when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HBASE", hbaseService)
-        .put("ZOOKEEPER", zkService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hbaseService, zkService));
 
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
@@ -303,9 +287,7 @@ public class TestStagePlanner {
     Service hiveService = mock(Service.class);
     when(hiveService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HIVE", hiveService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hiveService));
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
@@ -358,15 +340,7 @@ public class TestStagePlanner {
     Service gangliaService = mock(Service.class);
     when(gangliaService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HDFS", hdfsService)
-        .put("HBASE", hbaseService)
-        .put("ZOOKEEPER", zkService)
-        .put("MAPREDUCE", mrService)
-        .put("OOZIE", oozieService)
-        .put("WEBHCAT", webhcatService)
-        .put("GANGLIA", gangliaService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hdfsService, hbaseService, zkService, mrService, oozieService, webhcatService, gangliaService));
 
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);

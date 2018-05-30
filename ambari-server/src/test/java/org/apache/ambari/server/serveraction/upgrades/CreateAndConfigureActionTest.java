@@ -313,14 +313,12 @@ public class CreateAndConfigureActionTest {
     upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
 
-    Map<String, Service> services = cluster.getServicesByName();
-    for (String serviceName : services.keySet()) {
-      Service service = services.get(serviceName);
+    for (Service service : cluster.getServices()) {
       Map<String, ServiceComponent> components = service.getServiceComponents();
       for (String componentName : components.keySet()) {
         UpgradeHistoryEntity history = new UpgradeHistoryEntity();
         history.setUpgrade(upgradeEntity);
-        history.setServiceName(serviceName);
+        history.setServiceName(service.getName());
         history.setComponentName(componentName);
         upgradeEntity.addHistory(history);
       }

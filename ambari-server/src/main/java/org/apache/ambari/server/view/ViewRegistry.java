@@ -968,8 +968,7 @@ public class ViewRegistry {
       Set<StackId> stackIds = new HashSet<>();
       Set<String> serviceNames = cluster.getServicesByName().keySet();
 
-      for (String serviceName : serviceNames) {
-        Service service = cluster.getService(serviceName);
+      for (Service service : cluster.getServices()) {
         stackIds.add(service.getStackId());
       }
 

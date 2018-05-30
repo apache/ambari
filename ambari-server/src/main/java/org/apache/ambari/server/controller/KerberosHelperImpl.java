@@ -1383,7 +1383,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     // !!! FIXME in a per-service view, what does this become?
     Set<StackId> stackIds = new HashSet<>();
 
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       stackIds.add(service.getStackId());
     }
 
@@ -3639,7 +3639,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     private void addDisableSecurityCommandToAllServices(Cluster cluster, Stage stage) throws AmbariException {
-      for (Service service : cluster.getServicesByName().values()) {
+      for (Service service : cluster.getServices()) {
         for (ServiceComponent component : service.getServiceComponents().values()) {
           if (!component.getServiceComponentHosts().isEmpty()) {
             String firstHost = component.getServiceComponentHosts().keySet().iterator().next(); // it is only necessary to send it to one host

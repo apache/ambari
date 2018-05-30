@@ -971,7 +971,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public Service addDependencyToService(String  serviceGroupName, String serviceName, Long dependencyServiceId) throws AmbariException {
     Service currentService = null;
-    for (Service service : getServicesById().values()) {
+    for (Service service : getServices()) {
       if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
         currentService = service;
       }
@@ -1004,7 +1004,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
 
-      for (Service service : getServicesById().values()) {
+      for (Service service : getServices()) {
 
         if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
           currentService = service;
@@ -1193,6 +1193,11 @@ public class ClusterImpl implements Cluster {
   @Override
   public Map<Long, Service> getServicesById() {
     return new HashMap<>(servicesById);
+  }
+
+  @Override
+  public Collection<Service> getServices() {
+    return ImmutableList.copyOf(servicesById.values());
   }
 
   @Override
@@ -3392,7 +3397,7 @@ public class ClusterImpl implements Cluster {
   public Map<String, Map<String, String>> getComponentVersionMap() {
     Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
 
-    for (Service service : getServicesByName().values()) {
+    for (Service service : getServices()) {
       Map<String, String> componentMap = new HashMap<>();
       for (ServiceComponent component : service.getServiceComponents().values()) {
         // skip components which don't advertise a version

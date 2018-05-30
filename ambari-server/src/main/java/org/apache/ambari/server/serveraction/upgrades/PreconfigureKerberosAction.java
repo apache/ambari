@@ -270,7 +270,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
     // !!! FIXME in a per-service view, what does this become?
     Set<StackId> stackIds = new HashSet<>();
 
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(service.getName());
       StackId targetStackId = targetRepoVersion.getStackId();
       stackIds.add(targetStackId);

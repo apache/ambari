@@ -86,9 +86,6 @@ public class AbstractUpgradeCatalogTest {
     HashSet<PropertyInfo> stackProperties = new HashSet<>();
     expect(configHelper.getStackProperties(cluster)).andReturn(stackProperties).anyTimes();
 
-    HashMap<String, Service> serviceMap = new HashMap<>();
-    serviceMap.put(SERVICE_NAME, null);
-    expect(cluster.getServicesByName()).andReturn(serviceMap).anyTimes();
     expect(cluster.getServiceByConfigType("hdfs-site")).andReturn(hdfsMock).atLeastOnce();
     expect(hdfsMock.getName()).andReturn("HDFS").atLeastOnce();
 
@@ -98,7 +95,7 @@ public class AbstractUpgradeCatalogTest {
     serviceProperties.add(createProperty(CONFIG_TYPE, "prop3", false, false, true));
     serviceProperties.add(createProperty(CONFIG_TYPE, "prop4", true, false, false));
 
-    expect(configHelper.getServiceProperties(cluster, SERVICE_NAME)).andReturn(serviceProperties).anyTimes();
+    expect(configHelper.getServiceProperties(anyObject(), anyObject())).andReturn(serviceProperties).anyTimes();
 
     expect(configHelper.getPropertyValueFromStackDefinitions(cluster, "hdfs-site", "prop1")).andReturn("v1").anyTimes();
     expect(configHelper.getPropertyValueFromStackDefinitions(cluster, "hdfs-site", "prop2")).andReturn("v2").anyTimes();

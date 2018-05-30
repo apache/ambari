@@ -138,10 +138,10 @@ public class RoleCommandOrder implements Cloneable {
     dependencies.clear();
 
     Set<StackId> stackIds = new HashSet<>();
-    for (Service service : cluster.getServicesByName().values()) {
+    for (Service service : cluster.getServices()) {
       stackIds.add(service.getStackId());
     }
-    Set<String> components = cluster.getServicesByName().values().stream()
+    Set<String> components = cluster.getServices().stream()
       .flatMap(s -> s.getServiceComponents().values().stream())
       .map(ServiceComponent::getName)
       .collect(toSet());
@@ -242,7 +242,7 @@ public class RoleCommandOrder implements Cloneable {
       }
     }
 
-    for (Service s : cluster.getServicesByName().values()) {
+    for (Service s : cluster.getServices()) {
       for (RoleCommandPair rcp : allDeps) {
         ServiceComponent sc = s.getServiceComponents().get(rcp.getRole().toString());
         if (sc != null) {
