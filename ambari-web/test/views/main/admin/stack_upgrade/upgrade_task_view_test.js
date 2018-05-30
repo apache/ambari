@@ -23,6 +23,11 @@ require('views/main/admin/stack_upgrade/upgrade_task_view');
 describe('App.upgradeTaskView', function () {
   var view = App.upgradeTaskView.create({
     content: Em.Object.create(),
+    controller: Em.Object.create({
+      getUpgradeTask: sinon.stub().returns({
+        complete: Em.clb
+      })
+    }),
     taskDetailsProperties: ['prop1']
   });
   view.removeObserver('content.isExpanded', view, 'doPolling');
@@ -166,6 +171,35 @@ describe('App.upgradeTaskView', function () {
     });
     it("document is closed", function () {
       expect(mockWindow.document.close.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#toggleExpanded', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'doPolling');
+    });
+    afterEach(function() {
+      view.doPolling.restore();
+    });
+
+    it('doPolling should be called', function() {
+      var event = {
+        context: Em.Object.create({
+          isExpanded: false
+        })
+      };
+      view.toggleExpanded(event);
+      expect(event.context.get('isExpanded')).to.be.true;
+      expect(view.doPolling.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#doPolling', function() {
+
+    it('getUpgradeTask should be called', function() {
+      view.doPolling(Em.Object.create({isExpanded: true}));
+      expect(view.get('controller').getUpgradeTask.calledOnce).to.be.true;
+      expect(view.get('isContentLoaded')).to.be.true;
     });
   });
 
