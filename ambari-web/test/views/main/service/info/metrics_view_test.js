@@ -206,7 +206,6 @@ describe('App.MainServiceInfoMetricsView', function() {
       sinon.spy(mock, 'on');
       sinon.spy(mock, 'off');
       sinon.spy(mock, 'sortable');
-      view.makeSortable();
     });
     afterEach(function() {
       window.$.restore();
@@ -216,14 +215,17 @@ describe('App.MainServiceInfoMetricsView', function() {
     });
 
     it("on() should be called", function() {
+      view.makeSortable('#widget_layout');
       expect(mock.on.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
     });
 
     it("sortable() should be called", function() {
+      view.makeSortable('#widget_layout');
       expect(mock.sortable.called).to.be.true;
     });
 
     it("off() should be called", function() {
+      view.makeSortable('#widget_layout');
       expect(mock.off.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
     });
   });
@@ -261,7 +263,7 @@ describe('App.MainServiceInfoMetricsView', function() {
     });
     it("makeSortable should be called", function() {
       view.didInsertElement();
-      expect(view.makeSortable.calledOnce).to.be.true;
+      expect(view.makeSortable.called).to.be.true;
     });
     it("loadActiveWidgetLayout should be called", function() {
       view.didInsertElement();
