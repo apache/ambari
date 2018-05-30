@@ -52,7 +52,7 @@ def get_password_from_credential_store(alias, provider_path, cs_lib_path, java_h
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'get', alias, '-provider', provider_path)
     cmd_result, std_out_msg  = checked_call(cmd)
     std_out_lines = std_out_msg.split('\n')
-    return(removeloglines(std_out_lines)[0]) # Get the last line of the output, to skip warnings if any.
+    return(std_out_lines[-1]) # Get the last line of the output, to skip warnings if any.
 
 
 def list_aliases_from_credential_store(provider_path, cs_lib_path, java_home, jdk_location):
