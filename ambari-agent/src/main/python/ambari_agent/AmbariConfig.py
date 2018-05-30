@@ -69,7 +69,7 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 [heartbeat]
 state_interval = 1
 dirs={ps}etc{ps}hadoop,{ps}etc{ps}hadoop{ps}conf,{ps}var{ps}run{ps}hadoop,{ps}var{ps}log{ps}hadoop
-log_lines_count=300
+log_max_symbols_size=900000
 iddle_interval_min=1
 iddle_interval_max=10
 
@@ -178,6 +178,10 @@ class AmbariConfig:
   @property
   def host_status_report_interval(self):
     return int(self.get('heartbeat', 'state_interval_seconds', '60'))
+
+  @property
+  def log_max_symbols_size(self):
+    return int(self.get('heartbeat', 'log_max_symbols_size', '900000'))
 
   @property
   def cache_dir(self):

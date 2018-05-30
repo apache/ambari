@@ -579,7 +579,7 @@ class TestActionQueue(TestCase):
     config.set('agent', 'prefix', tempdir)
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
-    
+    config.set('heartbeat', 'log_symbols_count', "900000")
     initializer_module = InitializerModule()
     initializer_module.init()
     initializer_module.config = config
@@ -661,7 +661,7 @@ class TestActionQueue(TestCase):
       self.assertEqual(reports[0], expected)
   
       # now should not have reports (read complete/failed reports are deleted)
-      actionQueue.commandStatuses.clear_reported_reports()
+      actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       self.assertEqual(len(reports), 0)
   
@@ -680,7 +680,7 @@ class TestActionQueue(TestCase):
                       reports[0]['status'] == 'IN_PROGRESS':
         time.sleep(0.1)
         reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-        actionQueue.commandStatuses.clear_reported_reports()
+        actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
         
         # check report
       expected = {'status': 'FAILED',
@@ -698,7 +698,7 @@ class TestActionQueue(TestCase):
       self.assertEqual(reports[0], expected)
   
       # now should not have reports (read complete/failed reports are deleted)
-      actionQueue.commandStatuses.clear_reported_reports()
+      actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       self.assertEqual(len(reports), 0)
   
@@ -715,7 +715,7 @@ class TestActionQueue(TestCase):
                       reports[0]['status'] == 'IN_PROGRESS':
         time.sleep(0.1)
         reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-        actionQueue.commandStatuses.clear_reported_reports()
+        actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       # check report
       expected = {'status': 'COMPLETED',
                   'stderr': 'stderr',
@@ -732,7 +732,7 @@ class TestActionQueue(TestCase):
       self.assertEqual(reports[0], expected)
   
       # now should not have reports (read complete/failed reports are deleted)
-      actionQueue.commandStatuses.clear_reported_reports()
+      actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       self.assertEqual(len(reports), 0)
 
