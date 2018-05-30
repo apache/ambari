@@ -199,5 +199,4 @@ public abstract class AbstractServerAction implements ServerAction {
   protected void auditLog(AuditEvent ae) {
     auditLogger.log(ae);
   }
-
 }

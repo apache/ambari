@@ -865,7 +865,7 @@ public class UpgradeHelper {
    * participating in the upgrade or downgrade. The following actions are
    * performed in order:
    * <ul>
-   * <li>The desired repository for every service and component is changed<
+   * <li>The desired repository for every service and component is changed
    * <li>The {@link UpgradeState} of every component host is moved to either
    * {@link UpgradeState#IN_PROGRESS} or {@link UpgradeState#NONE}.
    * <li>In the case of an upgrade, new configurations and service

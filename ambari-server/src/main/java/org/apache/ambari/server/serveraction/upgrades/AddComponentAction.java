@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
@@ -38,7 +39,10 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
+
+import com.google.gson.Gson;
 
 /**
  * The {@link AddComponentAction} is used to add a component during an upgrade.
@@ -72,6 +76,7 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
     String serializedJson = commandParameters.get(
         AddComponentTask.PARAMETER_SERIALIZED_ADD_COMPONENT_TASK);
 
+    Gson gson = getGson();
     AddComponentTask task = gson.fromJson(serializedJson, AddComponentTask.class);
 
     // build the list of candidate hosts
@@ -84,8 +89,10 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
           task.hostService, task.hostComponent));
     }
 
-    Service service = cluster.getService(task.service);
-    if (null == service) {
+    final Service service;
+    try {
+      service = cluster.getService(task.service);
+    } catch (ServiceNotFoundException snfe) {
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "",
           String.format("Unable to add %s since %s is not installed in this cluster.",
               task.component, task.service));
@@ -97,6 +104,7 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
        serviceComponent = service.getServiceComponent(task.component);
     } catch( ServiceComponentNotFoundException scnfe ) {
       serviceComponent = service.addServiceComponent(task.component);
+      serviceComponent.setDesiredState(State.INSTALLED);
     }
 
     StringBuilder buffer = new StringBuilder(String.format(
@@ -119,6 +127,7 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
       ServiceComponentHost sch = serviceComponent.addServiceComponentHost(host.getHostName());
       sch.setDesiredState(State.INSTALLED);
       sch.setState(State.INSTALLED);
+      sch.setUpgradeState(UpgradeState.IN_PROGRESS);
 
       // for now, this is the easiest way to fire a topology event which
       // refreshes the information about the cluster (needed for restart
