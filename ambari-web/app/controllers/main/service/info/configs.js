@@ -403,12 +403,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   },
 
   parseConfigData: function(data) {
-    var self = this;
-    this.loadKerberosIdentitiesConfigs().done(function(identityConfigs) {
-      self.prepareConfigObjects(data, identityConfigs);
-      self.loadCompareVersionConfigs(self.get('allConfigs')).done(function() {
-        self.addOverrides(data, self.get('allConfigs'));
-        self.onLoadOverrides(self.get('allConfigs'));
+    this.loadKerberosIdentitiesConfigs().done(identityConfigs => {
+      this.prepareConfigObjects(data, identityConfigs);
+      this.loadCompareVersionConfigs(this.get('allConfigs')).done(() => {
+        this.addOverrides(data, this.get('allConfigs'));
+        this.onLoadOverrides(this.get('allConfigs'));
+        this.updateAttributesFromTheme(this.get('content.serviceName'));
       });
     });
   },

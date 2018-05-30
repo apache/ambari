@@ -383,8 +383,6 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     }
 
     if (configConditions && configConditions.length) {
-      this.configValueObserverForAttributes();
-
       //Add Observer to configCondition that depends on another config value
       var isConditionConfigDependent = configConditions.filterProperty('resource', 'config').length;
       if (isConditionConfigDependent) {
@@ -413,32 +411,10 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   },
 
   configValueObserverForAttributes: function() {
-    var configConditions = this.get('config.configConditions');
-    var serviceName = this.get('config.serviceName');
-    var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
-    var isConditionTrue;
-    configConditions.forEach(function(configCondition){
-      var ifStatement = configCondition.get("if");
-      if (configCondition.get("resource") === 'config') {
-        isConditionTrue = App.configTheme.calculateConfigCondition(ifStatement, serviceConfigs);
-        if (configCondition.get("type") === 'subsection' || configCondition.get("type") === 'subsectionTab') {
-          this.changeSubsectionAttribute(configCondition, isConditionTrue);
-        } else {
-          this.changeConfigAttribute(configCondition, isConditionTrue);
-        }
-      } else if (configCondition.get("resource") === 'service') {
-        var service = App.Service.find().findProperty('serviceName', ifStatement);
-        var serviceName;
-        if (service) {
-          isConditionTrue = true;
-        } else if (!service && this.get('controller.allSelectedServiceNames') && this.get('controller.allSelectedServiceNames').length) {
-          isConditionTrue = this.get('controller.allSelectedServiceNames').contains(ifStatement);
-        } else {
-          isConditionTrue = false;
-        }
-        this.changeConfigAttribute(configCondition, isConditionTrue);
-      }
-    }, this);
+    const configConditions = this.get('config.configConditions'),
+      serviceName = this.get('config.serviceName'),
+      serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
+    this.get('controller').updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
   },
 
   /**
@@ -518,61 +494,6 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       description:description
     });
   },
-
-
-  /**
-   *
-   * @param configCondition {App.ThemeCondition}
-   * @param isConditionTrue {boolean}
-   */
-  changeConfigAttribute: function(configCondition, isConditionTrue) {
-    var conditionalConfigName = configCondition.get("configName");
-    var conditionalConfigFileName = configCondition.get("fileName");
-    var serviceName = this.get('config.serviceName');
-    var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
-    var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
-    var valueAttributes = action.property_value_attributes;
-    this.set('controller.isChangingConfigAttributes', true);
-    for (var key in valueAttributes) {
-      if (valueAttributes.hasOwnProperty(key)) {
-        var valueAttribute = App.StackConfigValAttributesMap[key] || key;
-        var conditionalConfig = serviceConfigs.filterProperty('filename',conditionalConfigFileName).findProperty('name', conditionalConfigName);
-        if (conditionalConfig) {
-          if (key === 'visible') {
-            conditionalConfig.set('hiddenBySection', !valueAttributes[key]);
-          }
-          conditionalConfig.set(valueAttribute, valueAttributes[key]);
-        }
-      }
-    }
-    this.set('controller.isChangingConfigAttributes', false);
-  },
-
-  /**
-   *
-   * @param subsectionCondition {App.ThemeCondition}
-   * @param isConditionTrue {boolean}
-   */
-  changeSubsectionAttribute: function(subsectionCondition, isConditionTrue) {
-    var subsectionConditionName = subsectionCondition.get('name');
-    var action = isConditionTrue ? subsectionCondition.get("then") : subsectionCondition.get("else");
-    if (subsectionCondition.get('id')) {
-      var valueAttributes = action.property_value_attributes;
-      if (valueAttributes && !Em.none(valueAttributes.visible)) {
-        var themeResource;
-        if (subsectionCondition.get('type') === 'subsection') {
-          themeResource = App.SubSection.find().findProperty('name', subsectionConditionName);
-        } else if (subsectionCondition.get('type') === 'subsectionTab') {
-          themeResource = App.SubSectionTab.find().findProperty('name', subsectionConditionName);
-        }
-        themeResource.set('isHiddenByConfig', !valueAttributes.visible);
-        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes.visible);
-        themeResource.get('configs').setEach('hiddenBySubSection', !valueAttributes.visible);
-      }
-    }
-  },
-
-
 
   /**
    * set widget value same as config value

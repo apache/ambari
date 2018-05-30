@@ -608,5 +608,99 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   removeCurrentFromDependentList: function (config, saveRecommended) {
     var recommendation = this.getRecommendation(config.get('name'), config.get('filename'), config.get('group.name'));
     if (recommendation) this.saveRecommendation(recommendation, saveRecommended);
+  },
+
+  updateAttributesFromTheme: function (serviceName) {
+    const serviceConfigs = this.get('stepConfigs').findProperty('serviceName', serviceName).get('configs'),
+      configConditions = App.ThemeCondition.find().filter(condition => {
+        const dependentConfigName = condition.get('configName'),
+          dependentConfigFileName = condition.get('fileName'),
+          configsToDependOn = condition.getWithDefault('configs', []);
+        return serviceConfigs.some(serviceConfig => {
+          const serviceConfigName = Em.get(serviceConfig, 'name'),
+            serviceConfigFileName = Em.get(serviceConfig, 'filename');
+          return (serviceConfigName === dependentConfigName && serviceConfigFileName === dependentConfigFileName)
+            || configsToDependOn.some(config => {
+              const {configName, fileName} = config;
+              return serviceConfigName === configName && serviceConfigFileName === fileName;
+            });
+        });
+      });
+    this.updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
+  },
+
+  updateAttributesFromConditions: function (configConditions, serviceConfigs, serviceName) {
+    let isConditionTrue;
+    configConditions.forEach(configCondition => {
+      const ifStatement = configCondition.get('if');
+      if (configCondition.get('resource') === 'config') {
+        isConditionTrue = App.configTheme.calculateConfigCondition(ifStatement, serviceConfigs);
+        if (configCondition.get('type') === 'subsection' || configCondition.get('type') === 'subsectionTab') {
+          this.changeSubsectionAttribute(configCondition, isConditionTrue);
+        } else {
+          this.changeConfigAttribute(configCondition, isConditionTrue, serviceName);
+        }
+      } else if (configCondition.get('resource') === 'service') {
+        const service = App.Service.find().findProperty('serviceName', ifStatement);
+        if (service) {
+          isConditionTrue = true;
+        } else if (!service && this.get('allSelectedServiceNames') && this.get('allSelectedServiceNames').length) {
+          isConditionTrue = this.get('allSelectedServiceNames').contains(ifStatement);
+        } else {
+          isConditionTrue = false;
+        }
+        this.changeConfigAttribute(configCondition, isConditionTrue, serviceName);
+      }
+    });
+  },
+
+  /**
+   *
+   * @param configCondition {App.ThemeCondition}
+   * @param isConditionTrue {boolean}
+   */
+  changeConfigAttribute: function (configCondition, isConditionTrue, serviceName) {
+    const conditionalConfigName = configCondition.get('configName'),
+      conditionalConfigFileName = configCondition.get('fileName'),
+      serviceConfigs = this.get('stepConfigs').findProperty('serviceName', serviceName).get('configs'),
+      action = isConditionTrue ? configCondition.get('then') : configCondition.get('else'),
+      valueAttributes = action.property_value_attributes;
+    this.set('isChangingConfigAttributes', true);
+    for (let key in valueAttributes) {
+      if (valueAttributes.hasOwnProperty(key)) {
+        const valueAttribute = App.StackConfigValAttributesMap[key] || key,
+          conditionalConfig = serviceConfigs.filterProperty('filename', conditionalConfigFileName).findProperty('name', conditionalConfigName);
+        if (conditionalConfig) {
+          if (key === 'visible') {
+            conditionalConfig.set('hiddenBySection', !valueAttributes[key]);
+          }
+          conditionalConfig.set(valueAttribute, valueAttributes[key]);
+        }
+      }
+    }
+    this.set('isChangingConfigAttributes', false);
+  },
+  /**
+   *
+   * @param subsectionCondition {App.ThemeCondition}
+   * @param isConditionTrue {boolean}
+   */
+  changeSubsectionAttribute: function (subsectionCondition, isConditionTrue) {
+    var subsectionConditionName = subsectionCondition.get('name');
+    var action = isConditionTrue ? subsectionCondition.get('then') : subsectionCondition.get('else');
+    if (subsectionCondition.get('id')) {
+      const valueAttributes = action.property_value_attributes;
+      if (valueAttributes && !Em.none(valueAttributes.visible)) {
+        let themeResource;
+        if (subsectionCondition.get('type') === 'subsection') {
+          themeResource = App.SubSection.find().findProperty('name', subsectionConditionName);
+        } else if (subsectionCondition.get('type') === 'subsectionTab') {
+          themeResource = App.SubSectionTab.find().findProperty('name', subsectionConditionName);
+        }
+        themeResource.set('isHiddenByConfig', !valueAttributes.visible);
+        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes.visible);
+        themeResource.get('configs').setEach('hiddenBySubSection', !valueAttributes.visible);
+      }
+    }
   }
 });
