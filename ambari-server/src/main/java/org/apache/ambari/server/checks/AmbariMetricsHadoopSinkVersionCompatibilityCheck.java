@@ -62,10 +62,10 @@ import com.google.inject.Singleton;
 public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCheckDescriptor  {
 
   @Inject
-  RequestDAO requestDAO;
+  private RequestDAO requestDAO;
 
   @Inject
-  HostRoleCommandDAO hostRoleCommandDAO;
+  private HostRoleCommandDAO hostRoleCommandDAO;
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariMetricsHadoopSinkVersionCompatibilityCheck.class);
 
