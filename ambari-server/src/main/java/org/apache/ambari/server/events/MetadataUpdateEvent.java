@@ -19,7 +19,6 @@ package org.apache.ambari.server.events;
 
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
@@ -64,7 +63,7 @@ public class MetadataUpdateEvent extends STOMPEvent implements Hashable {
     super(Type.METADATA);
     this.metadataClusters = metadataClusters;
     if (ambariLevelParams != null) {
-      this.metadataClusters.put(AMBARI_LEVEL_CLUSTER_ID, new MetadataCluster(null, new TreeMap<>(), ambariLevelParams, metadataAgentConfigs));
+      this.metadataClusters.put(AMBARI_LEVEL_CLUSTER_ID, new MetadataCluster(null, null, false, ambariLevelParams, metadataAgentConfigs));
     }
     this.eventType = eventType;
   }

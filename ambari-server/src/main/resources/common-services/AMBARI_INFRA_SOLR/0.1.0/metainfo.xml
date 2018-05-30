@@ -72,6 +72,15 @@
                 <background>true</background>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>UPGRADE_SOLR_INSTANCE</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
           <dependencies>
             <dependency>
@@ -109,6 +118,17 @@
             <script>scripts/infra_solr_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>UPGRADE_SOLR_CLIENT</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/infra_solr_client.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>3600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <configFiles>
             <configFile>
               <type>env</type>

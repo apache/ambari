@@ -54,8 +54,7 @@ SERVICE_CHECK_DIRECTORY_MAP = {
   "OOZIE_SERVICE_CHECK" : "hadoop-client",
   "MAHOUT_SERVICE_CHECK" : "mahout-client",
   "MAPREDUCE2_SERVICE_CHECK" : "hadoop-client",
-  "YARN_SERVICE_CHECK" : "hadoop-client",
-  "SLIDER_SERVICE_CHECK" : "slider-client"
+  "YARN_SERVICE_CHECK" : "hadoop-client"
 }
 
 # <stack-root>/current/hadoop-client/[bin|sbin|libexec|lib]

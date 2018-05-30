@@ -209,6 +209,11 @@ TARBALL_MAP = {
               "/{0}/apps/{1}/slider/slider.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "SLIDER"
   },
+  "yarn": {
+    "dirs": ("{0}/{1}/hadoop-yarn/lib/service-dep.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+             "/{0}/apps/{1}/yarn/service-dep.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "service": "YARN"
+  },
 
   "tez": {
     "dirs": ("{0}/{1}/tez/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
@@ -269,6 +274,7 @@ TARBALL_MAP = {
 
 SERVICE_TO_CONFIG_MAP = {
   "slider": "slider-env",
+  "yarn": "yarn-env",
   "tez": "tez-env",
   "pig": "pig-env",
   "sqoop": "sqoop-env",

@@ -1969,9 +1969,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("yarn-site zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
       yarnSiteProperties.get("hadoop.registry.zk.quorum"));
-    assertEquals("slider-client zookeeper config not properly exported",
-      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
-      sliderClientProperties.get("slider.zookeeper.quorum"));
     assertEquals("kafka zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
       kafkaBrokerProperties.get("zookeeper.connect"));

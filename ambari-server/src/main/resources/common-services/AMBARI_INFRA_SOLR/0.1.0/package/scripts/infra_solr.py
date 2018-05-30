@@ -18,6 +18,9 @@ limitations under the License.
 """
 
 import sys
+from ambari_commons.repo_manager import ManagerFactory
+from ambari_commons.shell import RepoCallContext
+from ambari_commons.os_utils import get_ambari_repo_file_full_name
 from resource_management.core.logger import Logger
 from resource_management.core.source import Template
 from resource_management.core.resources.system import Execute, File
@@ -142,6 +145,16 @@ class InfraSolr(Script):
 
   def migrate(self, env):
     migrate_index(env)
+
+  def upgrade_solr_instance(self, env):
+    pkg_provider = ManagerFactory.get()
+    context = RepoCallContext()
+    context.is_upgrade=True
+    context.log_output = True
+    context.use_repos = {}
+    context.use_repos['ambari']=get_ambari_repo_file_full_name()
+    pkg_provider.remove_package('ambari-infra-solr', context, ignore_dependencies=True)
+    pkg_provider.upgrade_package('ambari-infra-solr', context)
 
 if __name__ == "__main__":
   InfraSolr().execute()

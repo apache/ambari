@@ -97,7 +97,8 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
       var allServices = require('data/service_graph_config');
       this.constructGraphObjects(allServices[svcName.toLowerCase()]);
     }
-    this.makeSortable();
+    this.makeSortable('#widget_layout');
+    this.makeSortable('#ns_widget_layout', true);
     this.addWidgetTooltip();
   },
 
@@ -275,19 +276,21 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
   /**
    * Make widgets' list sortable on New Dashboard style
    */
-  makeSortable: function () {
+  makeSortable: function (selector, isNSLayout) {
     var self = this;
-    $('html').on('DOMNodeInserted', '#widget_layout', function () {
+    var controller = this.get('controller');
+    $('html').on('DOMNodeInserted', selector, function () {
       $(this).sortable({
         items: "> div",
         cursor: "move",
         tolerance: "pointer",
         scroll: false,
         update: function () {
-          var widgets = misc.sortByOrder($("#widget_layout .widget").map(function () {
+          var layout = isNSLayout ? controller.get('selectedNSWidgetLayout') : controller.get('activeWidgetLayout');
+          var widgets = misc.sortByOrder($(selector + " .widget").map(function () {
             return this.id;
-          }), self.get('controller.widgets'));
-          self.get('controller').saveWidgetLayout(widgets);
+          }), layout.get('widgets').toArray());
+          controller.saveWidgetLayout(widgets, layout);
         },
         activate: function () {
           self.set('isMoving', true);
@@ -296,28 +299,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
           self.set('isMoving', false);
         }
       }).disableSelection();
-      $('html').off('DOMNodeInserted', '#widget_layout');
-    });
-    $('html').on('DOMNodeInserted', '#ns_widget_layout', function () {
-      $(this).sortable({
-        items: "> div",
-        cursor: "move",
-        tolerance: "pointer",
-        scroll: false,
-        update: function () {
-          var widgets = misc.sortByOrder($("#ns_widget_layout .widget").map(function () {
-            return this.id;
-          }), self.get('controller.widgets'));
-          self.get('controller').saveWidgetLayout(widgets);
-        },
-        activate: function () {
-          self.set('isMoving', true);
-        },
-        deactivate: function () {
-          self.set('isMoving', false);
-        }
-      }).disableSelection();
-      $('html').off('DOMNodeInserted', '#ns_widget_layout');
+      $('html').off('DOMNodeInserted', selector);
     });
   }
 });

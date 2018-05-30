@@ -273,7 +273,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   /**
    * Parse the user contex for the call. Typical structure
    * { "operation" : "createCluster" }
-   * { "operation" : "addService", "services" : "Atlas,Slider" }
+   * { "operation" : "addService", "services" : "Atlas,Ranger" }
    * @param request
    * @return
    */
