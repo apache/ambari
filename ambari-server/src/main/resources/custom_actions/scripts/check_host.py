@@ -83,7 +83,7 @@ class CheckHost(Script):
   PACKAGES = [
     "^hadoop.*$", "^zookeeper.*$", "^webhcat.*$", "^oozie.*$", "^ambari.*$", "^.+-manager-server-db.*$",
     "^.+-manager-daemons.*$", "^mahout[_\-]\d.*$", "^spark.*$", "^falcon.*$", "^hbase.*$", "^kafka.*$", "^knox.*$",
-    "^slider.*$", "^sqoop.*$", "^storm.*$", "^flume.*$","^hcatalog.*$", "^phoenix.*$", "^ranger.*$", "^accumulo.*$", "^hive_.*$",
+    "^sqoop.*$", "^storm.*$", "^flume.*$","^hcatalog.*$", "^phoenix.*$", "^ranger.*$", "^accumulo.*$", "^hive_.*$",
     "^pig[_\-.].*$" # there's a default 'pigz' package which we should avoid
   ]
   

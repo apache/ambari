@@ -204,10 +204,10 @@ def _prepare_mapreduce_tarball():
 # especially since it is an attribute of a stack and becomes
 # complicated to change during a Rolling/Express upgrade.
 TARBALL_MAP = {
-  "slider": {
-    "dirs": ("{0}/{1}/slider/lib/slider.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
-              "/{0}/apps/{1}/slider/slider.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-    "service": "SLIDER"
+  "yarn": {
+    "dirs": ("{0}/{1}/hadoop-yarn/lib/service-dep.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+             "/{0}/apps/{1}/yarn/service-dep.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "service": "YARN"
   },
 
   "tez": {
@@ -268,7 +268,7 @@ TARBALL_MAP = {
 }
 
 SERVICE_TO_CONFIG_MAP = {
-  "slider": "slider-env",
+  "yarn": "yarn-env",
   "tez": "tez-env",
   "pig": "pig-env",
   "sqoop": "sqoop-env",

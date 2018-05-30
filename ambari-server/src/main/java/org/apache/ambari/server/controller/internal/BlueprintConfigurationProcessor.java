@@ -2818,7 +2818,6 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiHdfsSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> multiHiveSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> multiKafkaBrokerMap = new HashMap<>();
-    Map<String, PropertyUpdater> multiSliderClientMap = new HashMap<>();
     Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<>();
@@ -2883,7 +2882,6 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("hive-site", multiHiveSiteMap);
     multiHostTopologyUpdaters.put("hive-interactive-site", hiveInteractiveSiteMap);
     multiHostTopologyUpdaters.put("kafka-broker", multiKafkaBrokerMap);
-    multiHostTopologyUpdaters.put("slider-client", multiSliderClientMap);
     multiHostTopologyUpdaters.put("yarn-site", multiYarnSiteMap);
     multiHostTopologyUpdaters.put("oozie-site", multiOozieSiteMap);
     multiHostTopologyUpdaters.put("accumulo-site", multiAccumuloSiteMap);
@@ -3085,7 +3083,6 @@ public class BlueprintConfigurationProcessor {
     multiCoreSiteMap.put("ha.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiYarnSiteMap.put("hadoop.registry.zk.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiYarnSiteMap.put("yarn.resourcemanager.zk-address", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
-    multiSliderClientMap.put("slider.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiKafkaBrokerMap.put("zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiAccumuloSiteMap.put("instance.zookeeper.host", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 

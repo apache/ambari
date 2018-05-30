@@ -402,11 +402,6 @@
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
-      <fileMode>644</fileMode>
-      <source>src/main/resources/slider_resources/README.txt</source>
-      <outputDirectory>/var/lib/ambari-server/resources/apps</outputDirectory>
-    </file>
-    <file>
       <fileMode>755</fileMode>
       <source>src/main/resources/stacks/stack_advisor.py</source>
       <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
