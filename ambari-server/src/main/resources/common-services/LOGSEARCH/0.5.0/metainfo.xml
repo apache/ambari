@@ -54,6 +54,17 @@
               <logId>logsearch_perf</logId>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>UPGRADE_LOGSEARCH_PORTAL</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/logsearch.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <dependencies>
             <dependency>
               <name>AMBARI_INFRA_SOLR/INFRA_SOLR_CLIENT</name>
@@ -92,6 +103,18 @@
               <primary>true</primary>
             </log>
           </logs>
+
+          <customCommands>
+            <customCommand>
+              <name>UPGRADE_LOGFEEDER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/logfeeder.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
 
           <configuration-dependencies>
             <config-type>infra-solr-env</config-type>

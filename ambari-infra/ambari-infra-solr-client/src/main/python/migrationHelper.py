@@ -25,6 +25,7 @@ import urllib2
 import json
 import base64
 import optparse
+import socket
 import time
 import traceback
 import ConfigParser
@@ -40,6 +41,12 @@ AMBARI_SUDO = "/var/lib/ambari-agent/ambari-sudo.sh"
 SOLR_SERVICE_NAME = 'AMBARI_INFRA_SOLR'
 
 SOLR_COMPONENT_NAME ='INFRA_SOLR'
+
+LOGSEARCH_SERVICE_NAME = 'LOGSEARCH'
+
+LOGSEARCH_SERVER_COMPONENT_NAME ='LOGSEARCH_SERVER'
+LOGSEARCH_LOGFEEDER_COMPONENT_NAME ='LOGSEARCH_LOGFEEDER'
+
 
 CLUSTERS_URL = '/api/v1/clusters/{0}'
 
@@ -285,7 +292,8 @@ def create_batch_command(command, hosts, cluster, service_name, component_name, 
 
   return request_schedules
 
-def create_command_request(command, parameters, hosts, cluster, context):
+
+def create_command_request(command, parameters, hosts, cluster, context, service=SOLR_SERVICE_NAME, component=SOLR_COMPONENT_NAME):
   request = {}
   request_info = {}
   request_info["context"] = context
@@ -300,8 +308,8 @@ def create_command_request(command, parameters, hosts, cluster, context):
   request["RequestInfo"] = request_info
 
   resource_filter = {}
-  resource_filter["service_name"] = SOLR_SERVICE_NAME
-  resource_filter["component_name"] = SOLR_COMPONENT_NAME
+  resource_filter["service_name"] = service
+  resource_filter["component_name"] = component
   resource_filter["hosts"] = ','.join(hosts)
 
   resource_filters = []
@@ -357,9 +365,13 @@ def validte_common_options(options, parser, config):
     print 'collection option is required'
     sys.exit(1)
 
-def get_solr_hosts(options, accessor, cluster):
-  host_components_json = get_json(accessor, CLUSTERS_URL.format(cluster) + GET_HOSTS_COMPONENTS_URL.format(SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME))
+def get_service_components(options, accessor, cluster, service, component):
+  host_components_json = get_json(accessor, CLUSTERS_URL.format(cluster) + GET_HOSTS_COMPONENTS_URL.format(service, component))
   component_hosts = get_component_hosts(host_components_json)
+  return component_hosts
+
+def get_solr_hosts(options, accessor, cluster):
+  component_hosts = get_service_components(options, accessor, cluster, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME)
 
   if options.include_solr_hosts:
     new_component_hosts = []
@@ -410,6 +422,148 @@ def backup(options, accessor, parser, config, collection, index_location):
 
   cmd_request = create_command_request("BACKUP", parameters, component_hosts, cluster, 'Backup Solr Collection: ' + collection)
   return post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
+
+
+def upgrade_solr_instances(options, accessor, parser, config):
+  """
+  Upgrade (remove & re-install) infra solr instances
+  """
+  cluster = config.get('ambari_server', 'cluster')
+  solr_instance_hosts = get_service_components(options, accessor, cluster, "AMBARI_INFRA_SOLR", "INFRA_SOLR")
+
+  context = "Upgrade Solr Instances"
+  sys.stdout.write("Sending upgrade request: [{0}] ".format(context))
+  sys.stdout.flush()
+
+  cmd_request = create_command_request("UPGRADE_SOLR_INSTANCE", {}, solr_instance_hosts, cluster, context)
+  response = post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
+  request_id = get_request_id(response)
+  sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
+  sys.stdout.flush()
+  print 'Upgrade command request id: {0}'.format(request_id)
+  if options.async:
+    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    sys.exit(0)
+  else:
+    sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
+    sys.stdout.flush()
+    cluster = config.get('ambari_server', 'cluster')
+    monitor_request(options, accessor, cluster, request_id, context)
+    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+
+def upgrade_solr_clients(options, accessor, parser, config):
+  """
+  Upgrade (remove & re-install) infra solr clients
+  """
+  cluster = config.get('ambari_server', 'cluster')
+  solr_client_hosts = get_service_components(options, accessor, cluster, "AMBARI_INFRA_SOLR", "INFRA_SOLR_CLIENT")
+
+  fqdn = socket.getfqdn()
+  if fqdn in solr_client_hosts:
+    solr_client_hosts.remove(fqdn)
+  host = socket.gethostname()
+  if host in solr_client_hosts:
+    solr_client_hosts.remove(host)
+  context = "Upgrade Solr Clients"
+  sys.stdout.write("Sending upgrade request: [{0}] ".format(context))
+  sys.stdout.flush()
+
+  cmd_request = create_command_request("UPGRADE_SOLR_CLIENT", {}, solr_client_hosts, cluster, context, component="INFRA_SOLR_CLIENT")
+  response = post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
+  request_id = get_request_id(response)
+  sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
+  sys.stdout.flush()
+  print 'Upgrade command request id: {0}'.format(request_id)
+  if options.async:
+    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    sys.exit(0)
+  else:
+    sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
+    sys.stdout.flush()
+    cluster = config.get('ambari_server', 'cluster')
+    monitor_request(options, accessor, cluster, request_id, context)
+    print "{0}... {1}DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+
+def upgrade_logfeeders(options, accessor, parser, config):
+  """
+  Upgrade (remove & re-install) logfeeders
+  """
+  cluster = config.get('ambari_server', 'cluster')
+  logfeeder_hosts = get_service_components(options, accessor, cluster, "LOGSEARCH", "LOGSEARCH_SERVER")
+
+  context = "Upgrade Log Feeders"
+  sys.stdout.write("Sending upgrade request: [{0}] ".format(context))
+  sys.stdout.flush()
+
+  cmd_request = create_command_request("UPGRADE_LOGFEEDER", {}, logfeeder_hosts, cluster, context, service="LOGSEARCH", component="LOGSEARCH_LOGFEEDER")
+  response = post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
+  request_id = get_request_id(response)
+  sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
+  sys.stdout.flush()
+  print 'Upgrade command request id: {0}'.format(request_id)
+  if options.async:
+    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    sys.exit(0)
+  else:
+    sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
+    sys.stdout.flush()
+    cluster = config.get('ambari_server', 'cluster')
+    monitor_request(options, accessor, cluster, request_id, context)
+    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+
+def upgrade_logsearch_portal(options, accessor, parser, config):
+  """
+  Upgrade (remove & re-install) logsearch server instances
+  """
+  cluster = config.get('ambari_server', 'cluster')
+  logsearch_portal_hosts = get_service_components(options, accessor, cluster, "LOGSEARCH", "LOGSEARCH_SERVER")
+
+  context = "Upgrade Log Search Portal"
+  sys.stdout.write("Sending upgrade request: [{0}] ".format(context))
+  sys.stdout.flush()
+
+  cmd_request = create_command_request("UPGRADE_LOGSEARCH_PORTAL", {}, logsearch_portal_hosts, cluster, context, service="LOGSEARCH", component="LOGSEARCH_SERVER")
+  response = post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
+  request_id = get_request_id(response)
+  sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
+  sys.stdout.flush()
+  print 'Upgrade command request id: {0}'.format(request_id)
+  if options.async:
+    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    sys.exit(0)
+  else:
+    sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
+    sys.stdout.flush()
+    cluster = config.get('ambari_server', 'cluster')
+    monitor_request(options, accessor, cluster, request_id, context)
+    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+
+def service_components_command(options, accessor, parser, config, service, component, command, command_str):
+  """
+  Run command on service components
+  """
+  cluster = config.get('ambari_server', 'cluster')
+  service_components = get_service_components(options, accessor, cluster, service, component)
+
+  context = "{0} {1}".format(command_str, component)
+  sys.stdout.write("Sending '{0}' request: [{1}] ".format(command, context))
+  sys.stdout.flush()
+
+  cmd_request = create_command_request(command, {}, service_components, cluster, context, service=service, component=component)
+  response = post_json(accessor, CLUSTERS_URL.format(cluster) + REQUESTS_API_URL, cmd_request)
+  request_id = get_request_id(response)
+  sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
+  sys.stdout.flush()
+  print '{0} command request id: {1}'.format(command_str, request_id)
+  if options.async:
+    print "{0} request sent to Ambari server. Check Ambari UI about the results.".format(command_str)
+    sys.exit(0)
+  else:
+    sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
+    sys.stdout.flush()
+    cluster = config.get('ambari_server', 'cluster')
+    monitor_request(options, accessor, cluster, request_id, context)
+    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
 
 def monitor_request(options, accessor, cluster, request_id, context):
   while True:
@@ -1029,6 +1183,20 @@ if __name__=="__main__":
         reload_collections(options, accessor, parser, config, service_filter)
       elif options.action.lower() == 'migrate':
         migrate_snapshots(options, accessor, parser, config, service_filter)
+      elif options.action.lower() == 'upgrade-solr-clients':
+        upgrade_solr_clients(options, accessor, parser, config)
+      elif options.action.lower() == 'upgrade-solr-instances':
+        upgrade_solr_instances(options, accessor, parser, config)
+      elif options.action.lower() == 'upgrade-logsearch-portal':
+        upgrade_logsearch_portal(options, accessor, parser, config)
+      elif options.action.lower() == 'upgrade-logfeeders':
+        upgrade_logfeeders(options, accessor, parser, config)
+      elif options.action.lower() == 'stop-logsearch':
+        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "STOP", "Stop")
+        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "STOP", "Stop")
+      elif options.action.lower() == 'restart-logsearch':
+        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "RESTART", "Restart")
+        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "RESTART", "Restart")
       elif options.action.lower() == 'rolling-restart-solr':
         rolling_restart_solr(options, accessor, parser, config)
       else:

@@ -17,6 +17,9 @@ limitations under the License.
 
 """
 
+from ambari_commons.repo_manager import ManagerFactory
+from ambari_commons.shell import RepoCallContext
+from ambari_commons.os_utils import get_ambari_repo_file_full_name
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
@@ -57,6 +60,16 @@ class LogSearch(Script):
     env.set_params(status_params)
 
     check_process_status(status_params.logsearch_pid_file)
+
+  def upgrade_logsearch_portal(self, env):
+    pkg_provider = ManagerFactory.get()
+    context = RepoCallContext()
+    context.is_upgrade=True
+    context.log_output = True
+    context.use_repos = {}
+    context.use_repos['ambari']=get_ambari_repo_file_full_name()
+    pkg_provider.remove_package('ambari-logsearch-portal', context, ignore_dependencies=True)
+    pkg_provider.upgrade_package('ambari-logsearch-portal', context)
 
 if __name__ == "__main__":
   LogSearch().execute()
