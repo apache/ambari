@@ -68,7 +68,7 @@ import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -394,7 +394,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     ServiceComponentFactory serviceComponentFactory = getManagementController().getServiceComponentFactory();
 
     // do all validation checks
-    Map<String, Set<Set<String>>> componentNames = new HashMap<>();
+    Map<String, Set<List<String>>> componentNames = new HashMap<>();
     Set<String> duplicates = new HashSet<>();
 
     for (ServiceComponentRequest request : requests) {
@@ -414,7 +414,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       debug("Received a createComponent request: {}", request);
 
-      Set<String> componentID = ImmutableSet.of(request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
+      List<String> componentID = ImmutableList.of(request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
       boolean added = componentNames
         .computeIfAbsent(request.getClusterName(), __ -> new HashSet<>())
         .add(componentID);
