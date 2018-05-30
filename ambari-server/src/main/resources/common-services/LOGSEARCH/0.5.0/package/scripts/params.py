@@ -259,7 +259,7 @@ logsearch_properties['logsearch.solr.audit.logs.zk_connect_string'] = logsearch_
 
 logsearch_properties['logsearch.solr.collection.history'] = 'history'
 logsearch_properties['logsearch.solr.history.config.name'] = 'history'
-logsearch_properties['logsearch.collection.history.replication.factor'] = '1'
+logsearch_properties['logsearch.collection.history.replication.factor'] = '2'
 
 logsearch_properties['logsearch.solr.jmx.port'] = infra_solr_jmx_port
 

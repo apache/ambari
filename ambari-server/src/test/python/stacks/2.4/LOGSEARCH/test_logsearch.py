@@ -95,7 +95,7 @@ class TestLogSearch(RMFTestCase):
                                             'logsearch.auth.simple.enabled': 'false',
                                             'logsearch.collection.audit.logs.numshards': '10',
                                             'logsearch.collection.audit.logs.replication.factor': '1',
-                                            'logsearch.collection.history.replication.factor': '1',
+                                            'logsearch.collection.history.replication.factor': '2',
                                             'logsearch.collection.service.logs.numshards': '10',
                                             'logsearch.collection.service.logs.replication.factor': '1',
                                             'logsearch.config.zk_connect_string': 'c6401.ambari.apache.org:2181',
