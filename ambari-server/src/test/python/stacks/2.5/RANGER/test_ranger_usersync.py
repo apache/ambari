@@ -177,6 +177,14 @@ class TestRangerUsersync(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/conf/ugsync.jceks',
       owner = 'ranger',
       group = 'ranger',
+      only_if = 'test -e /usr/hdp/current/ranger-usersync/conf/ugsync.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/conf/.ugsync.jceks.crc',
+      owner = 'ranger',
+      group = 'ranger',
+      only_if = 'test -e /usr/hdp/current/ranger-usersync/conf/.ugsync.jceks.crc',
       mode = 0640
     )
 

@@ -125,6 +125,16 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
     File(cred_provider_path,
       owner = params.kms_user,
       group = params.kms_group,
+      only_if = format('test -e {cred_provider_path}'),
+      mode = 0640
+    )
+
+    dot_jceks_crc_file_path = os.path.join(os.path.dirname(cred_provider_path), "." + os.path.basename(cred_provider_path) + ".crc")
+
+    File(dot_jceks_crc_file_path,
+      owner = params.kms_user,
+      group = params.kms_group,
+      only_if = format("test -e {dot_jceks_crc_file_path}"),
       mode = 0640
     )
 
@@ -498,8 +508,18 @@ def enable_kms_plugin():
     File(params.credential_file,
       owner = params.kms_user,
       group = params.kms_group,
+      only_if = format("test -e {credential_file}"),
       mode = 0640
-      )
+    )
+
+    dot_jceks_crc_file_path = os.path.join(os.path.dirname(params.credential_file), "." + os.path.basename(params.credential_file) + ".crc")
+
+    File(dot_jceks_crc_file_path,
+      owner = params.kms_user,
+      group = params.kms_group,
+      only_if = format("test -e {dot_jceks_crc_file_path}"),
+      mode = 0640
+    )
 
     # create ranger kms audit directory
     if params.xa_audit_hdfs_is_enabled and params.has_namenode and params.has_hdfs_client_on_node:

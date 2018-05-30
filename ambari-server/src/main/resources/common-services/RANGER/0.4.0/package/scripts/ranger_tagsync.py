@@ -27,7 +27,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
-from setup_ranger_xml import ranger, ranger_credential_helper
+from setup_ranger_xml import ranger, ranger_credential_helper, update_dot_jceks_crc_ownership
 from resource_management.core.exceptions import Fail
 
 class RangerTagsync(Script):
@@ -39,10 +39,14 @@ class RangerTagsync(Script):
 
     ranger_credential_helper(params.tagsync_cred_lib, 'tagadmin.user.password', 'rangertagsync', params.tagsync_jceks_path)
     File(params.tagsync_jceks_path,
-       owner = params.unix_user,
-       group = params.unix_group,
-       mode = 0640
+      owner = params.unix_user,
+      group = params.unix_group,
+      only_if = format("test -e {tagsync_jceks_path}"),
+      mode = 0640
     )
+
+    update_dot_jceks_crc_ownership(credential_provider_path = params.tagsync_jceks_path, user = params.unix_user, group = params.unix_group)
+
     if params.stack_supports_ranger_tagsync_ssl_xml_support:
       Logger.info("Stack support Atlas user for Tagsync, creating keystore for same.")
       self.create_atlas_user_keystore(env)
@@ -136,10 +140,13 @@ class RangerTagsync(Script):
     env.set_params(params)
     ranger_credential_helper(params.tagsync_cred_lib, 'atlas.user.password', 'admin', params.atlas_tagsync_jceks_path)
     File(params.atlas_tagsync_jceks_path,
-         owner = params.unix_user,
-         group = params.unix_group,
-         mode = 0640
+      owner = params.unix_user,
+      group = params.unix_group,
+      only_if = format("test -e {atlas_tagsync_jceks_path}"),
+      mode = 0640
     )
+
+    update_dot_jceks_crc_ownership(credential_provider_path = params.atlas_tagsync_jceks_path, user = params.unix_user, group = params.unix_group)
 
 if __name__ == "__main__":
   RangerTagsync().execute()
