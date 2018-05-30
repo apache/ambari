@@ -5583,10 +5583,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       SecurityType securityType = cl.getSecurityType();
 
-      MetadataCluster metadataCluster = new MetadataCluster(securityType,
-          getMetadataServiceLevelParams(cl),
-          getMetadataClusterLevelParams(cl, stackId),
-          null);
+      MetadataCluster metadataCluster = new MetadataCluster(securityType, getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl, stackId), null);
       metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
     }
 
@@ -5596,50 +5593,23 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   public MetadataUpdateEvent getClusterMetadata(Cluster cl) throws AmbariException {
-    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-    StackId stackId = cl.getDesiredStackVersion();
-
-    SecurityType securityType = cl.getSecurityType();
-
-    MetadataCluster metadataCluster = new MetadataCluster(securityType,
-        getMetadataServiceLevelParams(cl),
-        getMetadataClusterLevelParams(cl, stackId),
-        null);
+    final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    MetadataCluster metadataCluster = new MetadataCluster(cl.getSecurityType(), getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl, cl.getDesiredStackVersion()), null);
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
-    return metadataUpdateEvent;
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   @Override
   public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) throws AmbariException {
-    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-    StackId stackId = cl.getDesiredStackVersion();
-
-    MetadataCluster metadataCluster = new MetadataCluster(null,
-        new TreeMap<>(),
-        getMetadataClusterLevelConfigsParams(cl, stackId),
-        null);
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
-    return metadataUpdateEvent;
+    final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.clusterLevelParamsMetadataCluster(null, getMetadataClusterLevelParams(cl, cl.getDesiredStackVersion())));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnRepoUpdate(Cluster cl) throws AmbariException {
     TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-
-    MetadataCluster metadataCluster = new MetadataCluster(null,
-        getMetadataServiceLevelParams(cl),
-        new TreeMap<>(),
-        null);
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
-    return metadataUpdateEvent;
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(cl), true));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceName) throws AmbariException {
@@ -5647,17 +5617,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceName) throws AmbariException {
-    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-
-    MetadataCluster metadataCluster = new MetadataCluster(null,
-        getMetadataServiceLevelParams(cl.getService(serviceName)),
-        new TreeMap<>(),
-        null);
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
-    return metadataUpdateEvent;
+    final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(cl), false));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   private String getClientsToUpdateConfigs(ComponentInfo componentInfo) {
@@ -5779,7 +5741,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return clusterLevelParams;
   }
 
-  public TreeMap<String, String> getMetadataClusterLevelConfigsParams(Cluster cluster, StackId stackId) throws AmbariException {
+  private TreeMap<String, String> getMetadataClusterLevelConfigsParams(Cluster cluster, StackId stackId) throws AmbariException {
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs(false);
