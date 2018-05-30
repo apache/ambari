@@ -78,6 +78,17 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
     Gson gson = getGson();
     AddComponentTask task = gson.fromJson(serializedJson, AddComponentTask.class);
 
+    final Service service;
+    try {
+      service = cluster.getService(task.service);
+    } catch (ServiceNotFoundException snfe) {
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", "",
+          String.format(
+              "%s was not installed in this cluster since %s is not an installed service.",
+              task.component, task.service));
+    }
+
+
     // build the list of candidate hosts
     Collection<Host> candidates = MasterHostResolver.getCandidateHosts(cluster, task.hosts,
         task.hostService, task.hostComponent);
@@ -88,20 +99,11 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
           task.hostService, task.hostComponent));
     }
 
-    final Service service;
-    try {
-      service = cluster.getService(task.service);
-    } catch (ServiceNotFoundException snfe) {
-      return createCommandReport(0, HostRoleStatus.FAILED, "{}", "",
-          String.format("Unable to add %s since %s is not installed in this cluster.",
-              task.component, task.service));
-    }
-
     // create the component if it doesn't exist in the service yet
     ServiceComponent serviceComponent;
     try {
-       serviceComponent = service.getServiceComponent(task.component);
-    } catch( ServiceComponentNotFoundException scnfe ) {
+      serviceComponent = service.getServiceComponent(task.component);
+    } catch (ServiceComponentNotFoundException scnfe) {
       serviceComponent = service.addServiceComponent(task.component);
       serviceComponent.setDesiredState(State.INSTALLED);
     }
