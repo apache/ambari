@@ -1695,9 +1695,18 @@ var urls = {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}?fields=' +
     'UpgradeItem/group_id,' +
     'UpgradeItem/stage_id,' +
-    'tasks/Tasks/*&' +
+    'tasks/Tasks/command_detail,' +
+    'tasks/Tasks/host_name,' +
+    'tasks/Tasks/role,' +
+    'tasks/Tasks/request_id,' +
+    'tasks/Tasks/stage_id,' +
+    'tasks/Tasks/status&' +
     'minimal_response=true',
     'mock': '/data/stack_versions/upgrade_item.json'
+  },
+  'admin.upgrade.upgrade_task': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}/tasks/{taskId}',
+    'mock': ''
   },
   'admin.upgrade.service_checks': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status&minimal_response=true'

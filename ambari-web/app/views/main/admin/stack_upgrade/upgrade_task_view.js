@@ -75,6 +75,45 @@ App.upgradeTaskView = Em.View.extend({
   errorTabIdLInk: Em.computed.format('#{0}','errorTabId'),
 
   /**
+   * @type {boolean}
+   */
+  isContentLoaded: false,
+
+  toggleExpanded: function (event) {
+    var isExpanded = event.context.get('isExpanded');
+    event.context.toggleProperty('isExpanded', !isExpanded);
+    if (!isExpanded) {
+      event.context.set('isContentLoaded', false);
+      this.doPolling(event.context);
+    }
+  },
+
+  /**
+   *
+   * @param task
+   */
+  doPolling: function (task) {
+    var self = this;
+
+    if (task && task.get('isExpanded')) {
+      this.get('controller').getUpgradeTask(task).complete(function () {
+        self.set('isContentLoaded', true);
+        if (!task.get('isCompleted')) {
+          self.set('timer', setTimeout(function () {
+            self.doPolling(task);
+          }, App.bgOperationsUpdateInterval));
+        }
+      });
+    } else {
+      clearTimeout(this.get('timer'));
+    }
+  },
+
+  willDestroyElement: function () {
+    clearTimeout(this.get('timer'));
+  },
+
+  /**
    * open error log in textarea to give ability to cope content
    * @param {object} event
    */

@@ -75,9 +75,11 @@ App.upgradeGroupView = Em.View.extend({
 
     if (item && item.get('isExpanded')) {
       this.get('controller').getUpgradeItem(item).complete(function () {
-        self.set('timer', setTimeout(function () {
-          self.doPolling(item);
-        }, App.bgOperationsUpdateInterval));
+        if (!item.get('isCompleted')) {
+          self.set('timer', setTimeout(function () {
+            self.doPolling(item);
+          }, App.bgOperationsUpdateInterval));
+        }
       });
     } else {
       clearTimeout(this.get('timer'));
