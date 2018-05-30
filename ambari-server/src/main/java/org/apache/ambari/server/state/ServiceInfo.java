@@ -191,6 +191,9 @@ public class ServiceInfo implements Validable {
   private StackRoleCommandOrder roleCommandOrder;
 
   @XmlTransient
+  private boolean hidden = false;
+
+  @XmlTransient
   private boolean valid = true;
 
   @XmlElementWrapper(name = "properties")
@@ -199,6 +202,20 @@ public class ServiceInfo implements Validable {
 
   @XmlTransient
   private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.newHashMap()));
+
+  /**
+   * @return hidden xml flag
+   */
+  public boolean isHidden() {
+    return hidden;
+  }
+
+  /**
+   * @param hidden hidden xml flag
+   */
+  public void setHidden(boolean hidden) {
+    this.hidden = hidden;
+  }
 
   /**
    * @return valid xml flag

@@ -458,7 +458,7 @@ public class ServiceImpl implements Service {
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
         getServiceId(), getName(), getServiceType(), serviceGroup.getStackId(), module.getVersion(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
-        ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled());
+        ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled(), module.isHidden());
 
     r.setMaintenanceState(getMaintenanceState().name());
     return r;

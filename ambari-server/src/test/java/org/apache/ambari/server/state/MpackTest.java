@@ -63,6 +63,7 @@ public class MpackTest {
           "    \"min-ambari-version\": \"3.0.0.0\"\n" +
           "  },\n" +
           "  \"version\": \"1.0.0-b16\"\n" +
+          "  \"hidden\": \"False\"\n" +
           "}";
 
   @Test
@@ -89,21 +90,22 @@ public class MpackTest {
     expectedPrereq.put("min-ambari-version","3.0.0.0");
     expectedPrereq.put("max-ambari-version","3.1.0.0");
     ArrayList<Module> expectedModules = new ArrayList<>();
-    Module zkfc = new Module();
-    zkfc.setVersion("3.4.0.0-b17");
-    zkfc.setDefinition("zookeeper-3.4.0.0-b17-definition.tar.gz");
-    zkfc.setName("ZOOKEEPER");
-    zkfc.setId("zookeeper");
-    zkfc.setDisplayName("ZooKeeper");
-    zkfc.setDescription("Centralized service which provides highly reliable distributed coordination");
-    zkfc.setCategory(Module.Category.SERVER);
+    Module zk = new Module();
+    zk.setVersion("3.4.0.0-b17");
+    zk.setDefinition("zookeeper-3.4.0.0-b17-definition.tar.gz");
+    zk.setName("ZOOKEEPER");
+    zk.setId("zookeeper");
+    zk.setDisplayName("ZooKeeper");
+    zk.setHidden(Boolean.FALSE);
+    zk.setDescription("Centralized service which provides highly reliable distributed coordination");
+    zk.setCategory(Module.Category.SERVER);
     ModuleDependency moduleDependency = new ModuleDependency();
     moduleDependency.setId("zookeeper_clients");
     moduleDependency.setName("ZOOKEEPER_CLIENTS");
     moduleDependency.setDependencyType(ModuleDependency.DependencyType.INSTALL);
     ArrayList moduleDepList = new ArrayList();
     moduleDepList.add(moduleDependency);
-    zkfc.setDependencies(moduleDepList);
+    zk.setDependencies(moduleDepList);
     ArrayList compList = new ArrayList();
     ModuleComponent zk_server = new ModuleComponent();
     zk_server.setId("zookeeper_server");
@@ -112,8 +114,8 @@ public class MpackTest {
     zk_server.setIsExternal(Boolean.FALSE);
     zk_server.setVersion("3.4.0.0-b17");
     compList.add(zk_server);
-    zkfc.setComponents(compList);
-    expectedModules.add(zkfc);
+    zk.setComponents(compList);
+    expectedModules.add(zk);
 
     Gson gson = new Gson();
     Mpack mpack = gson.fromJson(mpackJsonContents, Mpack.class);

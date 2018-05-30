@@ -78,6 +78,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "service_version");
 
+  private static final String HIDDEN_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "StackServices", "hidden");
+
   private static final String CONFIG_TYPES = PropertyHelper.getPropertyId(
       "StackServices", "config_types");
 
@@ -131,6 +134,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       COMMENTS_PROPERTY_ID,
       SELECTION_PROPERTY_ID,
       VERSION_PROPERTY_ID,
+      HIDDEN_PROPERTY_ID,
       CONFIG_TYPES,
       REQUIRED_SERVICES_ID,
       SERVICE_CHECK_SUPPORTED_PROPERTY_ID,
@@ -219,6 +223,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
     setResourceProperty(resource, VERSION_PROPERTY_ID,
         response.getServiceVersion(), requestedIds);
+
+    setResourceProperty(resource, HIDDEN_PROPERTY_ID,
+      response.isHidden(), requestedIds);
 
     setResourceProperty(resource, SELECTION_PROPERTY_ID,
         response.getSelection(), requestedIds);

@@ -68,6 +68,8 @@ public class StackServiceResponse {
    */
   private boolean credentialStoreSupported;
 
+  private boolean hidden;
+
   /**
    * Indicates if the stack definition says this service is enabled
    * for credential store use. If not specified, this will be false.
@@ -121,6 +123,7 @@ public class StackServiceResponse {
     credentialStoreEnabled = service.isCredentialStoreEnabled();
     isSupportDeleteViaUI = service.isSupportDeleteViaUI();
     ssoIntegrationSupported = service.isSingleSignOnSupported();
+    hidden = service.isHidden();
   }
 
   @ApiModelProperty(name = "selection")
@@ -341,6 +344,10 @@ public class StackServiceResponse {
    */
   public void setCredentialStoreRequired(boolean credentialStoreRequired) {
     this.credentialStoreRequired = credentialStoreRequired;
+  }
+
+  public boolean isHidden() {
+    return hidden;
   }
 
   @ApiModelProperty(hidden = true)

@@ -34,6 +34,7 @@ public class ServiceResponse {
   private StackId desiredStackId;
   private String desiredState;
   private String maintenanceState;
+  private final boolean hidden;
   private boolean credentialStoreSupported;
   private boolean credentialStoreEnabled;
   private final boolean ssoIntegrationSupported;
@@ -45,7 +46,7 @@ public class ServiceResponse {
       StackId desiredStackId, String desiredRepositoryVersion, String desiredState,
       boolean credentialStoreSupported, boolean credentialStoreEnabled,
       boolean ssoIntegrationSupported, boolean ssoIntegrationDesired,
-      boolean ssoIntegrationEnabled) {
+      boolean ssoIntegrationEnabled, boolean hidden) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceGroupId = serviceGroupId;
@@ -60,6 +61,7 @@ public class ServiceResponse {
     setDesiredState(desiredState);
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
+    this.hidden = hidden;
   }
 
   /**
@@ -170,6 +172,11 @@ public class ServiceResponse {
   public String getDesiredStackId() {
     return desiredStackId.getStackId();
 
+  }
+
+  @ApiModelProperty(name = "hidden")
+  public boolean isHidden() {
+    return hidden;
   }
 
   @Override

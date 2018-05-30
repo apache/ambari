@@ -4284,6 +4284,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     try {
       // Refresh stacks API endpoint and refresh archives
       ambariMetaInfo.init();
+
+      // Update service info from corresponding module info
+      for(StackInfo stackInfo: ambariMetaInfo.getStacks()) {
+        StackEntity stackEntity = stackDAO.find(stackInfo.getName(), stackInfo.getVersion());
+        if(stackEntity.getMpackId() != null) {
+          Mpack mpack = ambariMetaInfo.getMpack(stackEntity.getMpackId());
+          for (ServiceInfo serviceInfo : stackInfo.getServices()) {
+            Module module = mpack.getModule(serviceInfo.getName());
+            serviceInfo.setHidden(module.isHidden());
+          }
+        }
+      }
       // Add "refreshCache" command in the next agent hearbeat for all hosts
       AgentResource.addRefreshCacheForHosts(clusters.getHosts());
     } catch (AmbariException e) {

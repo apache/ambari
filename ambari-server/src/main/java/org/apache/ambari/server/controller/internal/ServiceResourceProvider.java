@@ -100,6 +100,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
   public static final String SERVICE_SERVICE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
   public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "maintenance_state";
+  public static final String SERVICE_HIDDEN_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "hidden";
   public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_supported";
   public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_enabled";
   public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = "Services" + PropertyHelper.EXTERNAL_PATH_SEP + "attributes";
@@ -141,6 +142,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(SERVICE_SERVICE_TYPE_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_SERVICE_STATE_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_HIDDEN_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_ATTRIBUTES_PROPERTY_ID);
@@ -226,6 +228,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         resource.setProperty(SERVICE_SERVICE_TYPE_PROPERTY_ID, response.getServiceType());
         resource.setProperty(SERVICE_SERVICE_STATE_PROPERTY_ID, response.getDesiredState());
         resource.setProperty(SERVICE_MAINTENANCE_STATE_PROPERTY_ID, response.getMaintenanceState());
+        resource.setProperty(SERVICE_HIDDEN_PROPERTY_ID, response.isHidden());
         resource.setProperty(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID, response.isCredentialStoreSupported());
         resource.setProperty(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID, response.isCredentialStoreEnabled());
 
@@ -276,6 +279,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           calculateServiceState(response.getClusterName(), response.getServiceType(), response.getServiceName()), requestedIds);
       setResourceProperty(resource, SERVICE_MAINTENANCE_STATE_PROPERTY_ID,
           response.getMaintenanceState(), requestedIds);
+      setResourceProperty(resource, SERVICE_HIDDEN_PROPERTY_ID,
+        String.valueOf(response.isHidden()), requestedIds);
       setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID,
           String.valueOf(response.isCredentialStoreSupported()), requestedIds);
       setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID,

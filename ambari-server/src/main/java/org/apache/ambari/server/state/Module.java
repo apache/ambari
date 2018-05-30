@@ -47,6 +47,8 @@ public class Module {
   private String name;
   @SerializedName("version")
   private String version;
+  @SerializedName("hidden")
+  private Boolean hidden = false;
   @SerializedName("definition")
   private String definition;
   @SerializedName("dependencies")
@@ -78,6 +80,14 @@ public class Module {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public Boolean isHidden() {
+    return hidden;
+  }
+
+  public void setHidden(Boolean hidden) {
+    this.hidden = hidden;
   }
 
   public String getDefinition() {
@@ -154,13 +164,14 @@ public class Module {
 
     return Objects.equals(id, module.id) && Objects.equals(displayName, module.displayName) &&
             Objects.equals(description, module.description) && Objects.equals(category, module.category) &&
-            Objects.equals(name, module.name) && Objects.equals(version, module.version) && Objects.equals(definition, module.definition)
+            Objects.equals(name, module.name) && Objects.equals(version, module.version) &&
+            Objects.equals(hidden, module.hidden) && Objects.equals(definition, module.definition)
             && Objects.equals(dependencies, module.dependencies) && Objects.equals(components, module.components);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, displayName, description, category, name, version, definition, dependencies, components);
+    return Objects.hash(id, displayName, description, category, name, version, hidden, definition, dependencies, components);
   }
 
   @Override
@@ -172,6 +183,7 @@ public class Module {
             ", category=" + category +
             ", name='" + name + '\'' +
             ", version='" + version + '\'' +
+            ", hidden=" + hidden +
             ", definition='" + definition + '\'' +
             ", dependencies=" + dependencies +
             ", components=" + components +
