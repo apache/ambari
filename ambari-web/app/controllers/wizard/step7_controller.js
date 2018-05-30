@@ -596,6 +596,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }
     this.set('stepConfigs', serviceConfigs);
     this.set('stepConfigsCreated', true);
+    this.updateConfigAttributesFromThemes();
     this.checkHostOverrideInstaller();
     this.selectProperService();
     var isInstallerWizard = (this.get("content.controllerName") === 'installerController');
@@ -2112,6 +2113,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     } else {
       App.router.send('back');
     }
+  },
+
+  updateConfigAttributesFromThemes: function () {
+    this.get('allSelectedServiceNames').forEach(serviceName => this.updateAttributesFromTheme(serviceName));
   }
 
 });
