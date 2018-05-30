@@ -62,7 +62,7 @@ public class MpackTest {
           "    \"max-ambari-version\": \"3.1.0.0\",\n" +
           "    \"min-ambari-version\": \"3.0.0.0\"\n" +
           "  },\n" +
-          "  \"version\": \"1.0.0-b16\"\n" +
+          "  \"version\": \"1.0.0-b16\",\n" +
           "  \"hidden\": \"False\"\n" +
           "}";
 
