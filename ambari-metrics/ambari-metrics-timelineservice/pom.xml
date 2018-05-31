@@ -217,9 +217,7 @@
                   <location>conf/unix/amshbase_metrics_whitelist</location>
                 </source>
                 <source>
-                  <location>
-                    target/embedded/${hbase.folder}/conf/hbase-site.xml
-                  </location>
+                  <location>conf/unix/hbase-site.xml</location>
                 </source>
               </sources>
             </mapping>
