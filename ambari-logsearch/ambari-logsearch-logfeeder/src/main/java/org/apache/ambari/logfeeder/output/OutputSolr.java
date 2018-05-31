@@ -486,7 +486,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
               Level.ERROR);
         }
       }
-      latestInputMarkers.put(outputData.inputMarker.getAllProperties().get("base64_file_key").toString(),
+      latestInputMarkers.put(outputData.inputMarker.getAllProperties().get("file_key").toString(),
         outputData.inputMarker);
       localBuffer.add(document);
     }

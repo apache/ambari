@@ -121,7 +121,7 @@ public class FileUtil {
             return files;
           }
         } catch (Exception e) {
-          LOG.warn("Input file was not found by pattern (exception thrown); {}, message: {}", searchPath, e.getMessage());
+          LOG.info("Input file was not found by pattern (exception thrown); {}, message: {}", searchPath, e.getMessage());
         }
 
       } else {
