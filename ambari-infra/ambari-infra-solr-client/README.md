@@ -52,12 +52,12 @@ Ambari Infra Solr uses Solr 7 from Ambari 2.7.0, therefore it is required migrat
         - [1. Restore old Ranger collection](#vi/1.-restore-old-ranger-collection)
     - b.) If you have Atlas Ambari service:
         - [4. Restore old Atlas collections](#vi/4.-restore-old-atlas-collections)
-- [VIII. Restart Solr Instances](#vii.-restart-infra-solr-instances">viii.-restart-infra-solr-instances)
-- [IX. Transport old data to new collections](#viii.-transport-old-data-to-new-collections">ix.-transport-old-data-to-new-collections)
+- [VIII. Restart Solr Instances](#vii.-restart-infra-solr-instances)
+- [IX. Transport old data to new collections](#viii.-transport-old-data-to-new-collections)
     - a.) If you have Ranger Ambari service with Solr audits:
-        - [1. Transport old data to Ranger collection](#vi/3.-transport-old-data-to-ranger-collection)
+        - [1. Transport old data to Ranger collection](#viii/1.-transport-old-data-to-ranger-collection)
     - b.) If you have Atlas Ambari service:
-        - [2. Transport old data to Atlas collections](#vi/6.-transport-old-data-to-atlas-collections)
+        - [2. Transport old data to Atlas collections](#viii/2.-transport-old-data-to-atlas-collections)
 - [Happy Path](#happy-path)
 - [APPENDIX](#appendix)
 
@@ -476,7 +476,7 @@ curl --negotiate -k -u : "$SOLR_URL/$OLD_BACKUP_COLLECTION_CORE/replication?comm
 
 Or use simple `cp` or `hdfs dfs -put` commands to copy the migrated cores to the right places.
 
-#### <a id="vi/2.-restore-old-atlas-collections">VII/2. Restore Old Atlas collections</a>
+#### <a id="vi/4.-restore-old-atlas-collections">VII/2. Restore Old Atlas collections</a>
 
 For Atlas, use `old_` prefix for all 3 collections that you need to create  and use `atlas_configs` config set, then use those for restore the backups;
 
