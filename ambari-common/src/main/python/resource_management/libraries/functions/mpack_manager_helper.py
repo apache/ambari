@@ -50,7 +50,7 @@ def get_component_log_path(mpack_name, instance_name, module_name, components_in
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  log_json = get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
+  log_json = get_log_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
   return log_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
@@ -63,10 +63,10 @@ def get_component_rundir_path(mpack_name, instance_name, module_name, components
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  pid_prefix_json = get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
+  run_json = get_run_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
-  return pid_prefix_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
+  return run_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
     component_instance_name][RUN_DIR_KEY_NAME]
 
 def get_component_target_path(mpack_name, instance_name, module_name, components_instance_type,

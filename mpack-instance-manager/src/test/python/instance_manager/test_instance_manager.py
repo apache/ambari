@@ -183,9 +183,7 @@ class TestInstanceManager(TestCase):
                           "component-instances": {
                             "server1": {
                               "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/conf",
-                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/log",
-                              "name": "server1",
-                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/run",
+                              "name": "server1"
                             }
                           }
                         }
@@ -198,9 +196,7 @@ class TestInstanceManager(TestCase):
                           "component-instances": {
                             "default": {
                               "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf",
-                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/log",
-                              "name": "default",
-                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/run",
+                              "name": "default"
                             }
                           }
                         }
@@ -216,6 +212,114 @@ class TestInstanceManager(TestCase):
       }
     }
     self.assertEqual(conf_dir_json, expected_json)
+
+  def test_get_log_dir_all(self):
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
+    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
+                               components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
+
+    log_dir_json = instance_manager.get_log_dir()
+
+    expected_json = {
+      "mpacks": {
+        "hdpcore": {
+          "mpack-instances": {
+            "Production": {
+              "name": "Production",
+              "subgroups": {
+                "default": {
+                  "modules": {
+                    "hdfs": {
+                      "category": "SERVER",
+                      "name": "hdfs",
+                      "components": {
+                        "hdfs_server": {
+                          "component-instances": {
+                            "server1": {
+                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/log",
+                              "name": "server1"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "hdfs-clients": {
+                      "category": "CLIENT",
+                      "components": {
+                        "hdfs_client": {
+                          "component-instances": {
+                            "default": {
+                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/log",
+                              "name": "default"
+                            }
+                          }
+                        }
+                      },
+                      "name": "hdfs-clients"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    self.assertEqual(log_dir_json, expected_json)
+
+  def test_get_run_dir_all(self):
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
+    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
+                               components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
+
+    run_dir_json = instance_manager.get_run_dir()
+
+    expected_json = {
+      "mpacks": {
+        "hdpcore": {
+          "mpack-instances": {
+            "Production": {
+              "name": "Production",
+              "subgroups": {
+                "default": {
+                  "modules": {
+                    "hdfs": {
+                      "category": "SERVER",
+                      "name": "hdfs",
+                      "components": {
+                        "hdfs_server": {
+                          "component-instances": {
+                            "server1": {
+                              "name": "server1",
+                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/run"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "hdfs-clients": {
+                      "category": "CLIENT",
+                      "components": {
+                        "hdfs_client": {
+                          "component-instances": {
+                            "default": {
+                              "name": "default",
+                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/run"
+                            }
+                          }
+                        }
+                      },
+                      "name": "hdfs-clients"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    self.assertEqual(run_dir_json, expected_json)
 
   def test_list_instances_all(self):
     create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
