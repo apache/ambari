@@ -19,16 +19,16 @@
 var App = require('app');
 var numberUtils = require('utils/number_utils');
 
-App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNodeWidgetMixin, {
+App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  modelValueMax: Em.computed.getByKey('model.capacityTotalValues', 'hostName'),
+  modelValueMax: Em.computed.alias('model.capacityTotal'),
   /**
    * HDFS model has 'remaining' value, but not 'used'
    */
-  modelValueUsed: Em.computed.getByKey('model.capacityRemainingValues', 'hostName'),
-  modelValueCapacityUsed: Em.computed.getByKey('model.capacityUsedValues', 'hostName'),
-  modelValueNonDfsUsed: Em.computed.getByKey('model.capacityNonDfsUsedValues', 'hostName'),
-  widgetHtmlId: Em.computed.format('widget-nn-capacity-{0}', 'subGroupId'),
+  modelValueUsed: Em.computed.alias('model.capacityRemaining'),
+  modelValueCapacityUsed: Em.computed.alias('model.capacityUsed'),
+  modelValueNonDfsUsed: Em.computed.alias('model.capacityNonDfsUsed'),
+  widgetHtmlId: Em.computed.format('widget-nn-capacity'),
   hiddenInfoClass: "hidden-info-six-line",
 
   didInsertElement: function() {

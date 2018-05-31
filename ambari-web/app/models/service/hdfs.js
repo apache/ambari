@@ -50,18 +50,10 @@ App.HDFSService = App.Service.extend({
   decommissionDataNodes: DS.hasMany('App.HostComponent'),
   liveDataNodes: DS.hasMany('App.HostComponent'),
   deadDataNodes: DS.hasMany('App.HostComponent'),
-  capacityUsedValues: DS.attr('object', {
-    defaultValue: {}
-  }),
-  capacityTotalValues: DS.attr('object', {
-    defaultValue: {}
-  }),
-  capacityRemainingValues: DS.attr('object', {
-    defaultValue: {}
-  }),
-  capacityNonDfsUsedValues: DS.attr('object', {
-    defaultValue: {}
-  }),
+  capacityUsed: DS.attr('number'),
+  capacityTotal: DS.attr('number'),
+  capacityRemaining: DS.attr('number'),
+  capacityNonDfsUsed: DS.attr('number'),
   dfsTotalBlocksValues: DS.attr('object', {
     defaultValue: {}
   }),

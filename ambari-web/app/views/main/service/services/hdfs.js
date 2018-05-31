@@ -18,12 +18,15 @@
 var App = require('app');
 var date = require('utils/date/date');
 require('views/main/service/info/summary/hdfs/slaves');
+require('views/main/service/info/summary/hdfs/common_widgets');
 
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hdfs'),
   serviceName: 'HDFS',
 
   slaveComponentsView: App.HDFSSlaveComponentsView.extend(),
+
+  componentCommonWidgetsView: App.HDFSSummaryCommonWidgetsView.extend(),
 
   metricsNotAvailableObserver: function () {
     if(!this.get("service.metricsNotAvailable")) {

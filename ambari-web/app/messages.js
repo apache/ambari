@@ -2011,7 +2011,7 @@ Em.I18n.translations = {
   'services.service.summary.safeModeStatus.notInSafeMode':'Not in safe mode',
   'services.service.summary.dataNodes':'DataNodes',
   'services.service.summary.diskCapacity':'HDFS Disk Capacity',
-  'services.service.summary.blocksTotal':'Blocks (total)',
+  'services.service.summary.blocks':'Blocks',
   'services.service.summary.blockErrors':'Block Errors',
   'services.service.summary.totalFiles':'Total Files + Dirs',
   'services.service.summary.jobTracker':'JobTracker',
@@ -3057,6 +3057,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1}',
 
   'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
+  'dashboard.services.hdfs.blockErrors.total': 'total',
   'dashboard.services.hdfs.blockErrors.corrupt': 'corrupt replica',
   'dashboard.services.hdfs.blockErrors.replicated': 'under replicated',
   'dashboard.services.hdfs.blockErrors.missing': 'missing',

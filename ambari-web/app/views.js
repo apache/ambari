@@ -312,6 +312,7 @@ require('views/main/service/reconfigure');
 require('views/main/service/info/components_list_view');
 require('views/main/service/info/menu');
 require('views/main/service/info/summary');
+require('views/main/service/info/summary/hdfs/common_widgets');
 require('views/main/service/info/summary/hdfs/slaves');
 require('views/main/service/info/summary/hdfs/widgets');
 require('views/main/service/info/configs');

@@ -17,39 +17,15 @@
  */
 
 const date = require('utils/date/date');
-const numberUtils = require('utils/number_utils');
 
-function diskPart(i18nKey, totalKey, usedKey) {
-  return Em.computed(totalKey, usedKey, function () {
-    const text = Em.I18n.t(i18nKey),
-      total = this.get(totalKey),
-      used = this.get(usedKey);
-    return text.format(numberUtils.bytesToSize(used, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'));
-  });
-}
-
-function diskPartPercent(i18nKey, totalKey, usedKey) {
-  return Em.computed(totalKey, usedKey, function () {
-    const text = Em.I18n.t(i18nKey),
-      total = this.get(totalKey),
-      used = this.get(usedKey);
-    let percent = total > 0 ? ((used * 100) / total).toFixed(2) : 0;
-    if (percent == 'NaN' || percent < 0) {
-      percent = Em.I18n.t('services.service.summary.notAvailable') + ' ';
-    }
-    return text.format(percent);
-  });
-}
-
-App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, {
+/**
+ * Metric widgets which are specific for different namespaces
+ */
+App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, App.HDFSSummaryWidgetsMixin, {
 
   templateName: require('templates/main/service/info/summary/hdfs/widgets'),
 
   nameSpace: 'default',
-
-  model: function () {
-    return App.HDFSService.find().objectAt(0);
-  }.property('controller.content.serviceName'),
 
   subGroupId: Em.computed.alias('nameSpace'),
 
@@ -82,33 +58,6 @@ App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, {
   nodeHeap: App.MainDashboardServiceView.formattedHeap(
     'dashboard.services.hdfs.nodes.heapUsed', 'jvmMemoryHeapUsed', 'jvmMemoryHeapMax'
   ),
-
-  capacityTotal: Em.computed.getByKey('model.capacityTotalValues', 'hostName'),
-
-  capacityUsed: Em.computed.getByKey('model.capacityUsedValues', 'hostName'),
-
-  capacityRemaining: Em.computed.getByKey('model.capacityRemainingValues', 'hostName'),
-
-  dfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'capacityTotal', 'capacityUsed'),
-
-  dfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'capacityTotal', 'capacityUsed'),
-
-  nonDfsUsed: function () {
-    const total = this.get('capacityTotal'),
-      remaining = this.get('capacityRemaining'),
-      dfsUsed = this.get('capacityUsed');
-    return (Em.isNone(total) || Em.isNone(remaining) || Em.isNone(dfsUsed)) ? null : total - remaining - dfsUsed;
-  }.property('capacityTotal', 'capacityRemaining', 'capacityUsed'),
-
-  nonDfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'capacityTotal', 'nonDfsUsed'),
-
-  nonDfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'capacityTotal', 'nonDfsUsed'),
-
-  remainingDiskPercent: diskPartPercent(
-    'dashboard.services.hdfs.capacityUsedPercent', 'capacityTotal', 'capacityRemaining'
-  ),
-
-  remainingDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'capacityTotal', 'capacityRemaining'),
 
   dfsTotalBlocksValue: Em.computed.getByKey('model.dfsTotalBlocksValues', 'hostName'),
 
@@ -162,8 +111,6 @@ App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, {
     } else {
       return Em.I18n.t('services.service.summary.safeModeStatus.inSafeMode');
     }
-  }.property('safeModeStatusValue'),
-
-  isNonFederatedHDFS: Em.computed.lt('model.masterComponentGroups.length', 2)
+  }.property('safeModeStatusValue')
 
 });
