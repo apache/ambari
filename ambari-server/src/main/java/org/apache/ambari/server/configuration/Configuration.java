@@ -5174,7 +5174,12 @@ public class Configuration {
   }
 
   public Boolean getGplLicenseAccepted(){
-    return Boolean.valueOf(getProperty(GPL_LICENSE_ACCEPTED));
+    Properties actualProps = readConfigFile();
+    String defaultGPLAcceptedValue = null;
+    if (null != GPL_LICENSE_ACCEPTED.getDefaultValue()) {
+      defaultGPLAcceptedValue = String.valueOf(GPL_LICENSE_ACCEPTED.getDefaultValue());
+    }
+    return Boolean.valueOf(actualProps.getProperty(GPL_LICENSE_ACCEPTED.getKey(), defaultGPLAcceptedValue));
   }
 
   public String getAgentStackRetryOnInstallCount(){
