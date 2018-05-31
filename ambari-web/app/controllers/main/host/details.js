@@ -1829,12 +1829,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Send command to server to run decommission on DATANODE, TASKTRACKER, NODEMANAGER, REGIONSERVER
    * @param {App.HostComponent} component
+   * @param {callback} callback
    * @method decommission
    */
-  decommission: function (component) {
+  decommission: function (component, callback) {
     var self = this;
     return App.showConfirmationPopup(function () {
       self.runDecommission.call(self, self.get('content.hostName'), component.get('service.serviceName'));
+      if (callback) {
+        callback()
+      }
     }, Em.I18n.t('question.sure.decommission').format(component.get('service.serviceName')));
   },
   /**
@@ -1859,12 +1863,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Send command to server to run recommission on DATANODE, TASKTRACKER, NODEMANAGER
    * @param {App.HostComponent} component
+   * @param {callback} callback
    * @method recommission
    */
-  recommission: function (component) {
+  recommission: function (component, callback) {
     var self = this;
     return App.showConfirmationPopup(function () {
       self.runRecommission.call(self, self.get('content.hostName'), component.get('service.serviceName'));
+      if (callback) {
+        callback()
+      }
     }, Em.I18n.t('question.sure.recommission').format(component.get('service.serviceName')));
   },
   /**
