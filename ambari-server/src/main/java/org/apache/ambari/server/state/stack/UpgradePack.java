@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.Unmarshaller;
@@ -779,4 +780,14 @@ public class UpgradePack {
     private List<Task> tasks = new ArrayList<>();
   }
 
+  /**
+   * @return true if this upgrade pack contains a group with a task that matches the given predicate
+   */
+  public boolean anyGroupTaskMatch(Predicate<Task> taskPredicate) {
+    return getAllGroups().stream()
+      .filter(ClusterGrouping.class::isInstance)
+      .flatMap(group -> ((ClusterGrouping) group).executionStages.stream())
+      .map(executeStage -> executeStage.task)
+      .anyMatch(taskPredicate);
+  }
 }

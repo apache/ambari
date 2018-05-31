@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ServerActionTask;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
@@ -113,7 +114,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
       "cluster",
       request.getSourceStackId(),
       request.getTargetRepositoryVersion().getStackId(),
-      request.getDirection(),
+      Direction.UPGRADE,
       request.getUpgradeType(),
       null)).andReturn(upgradePack).anyTimes();
   }
