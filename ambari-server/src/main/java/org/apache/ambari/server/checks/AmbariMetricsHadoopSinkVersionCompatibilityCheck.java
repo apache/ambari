@@ -77,10 +77,6 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
   static final String RETRY_INTERVAL_PROPERTY_NAME = "request-status-check-retry-interval";
   static final String NUM_TRIES_PROPERTY_NAME = "request-status-check-num-retries";
 
-/*
-        <property name="retry-interval">2.7.0.0</property>
-        <property name="num-retries">2.7.0.0</property>
- */
   /**
    * Total wait time for Ambari Server request time to finish => 2 mins.
    */
