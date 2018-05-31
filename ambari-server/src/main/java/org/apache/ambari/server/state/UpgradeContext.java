@@ -971,6 +971,10 @@ public class UpgradeContext {
 
     summary.isDowngradeAllowed = isDowngradeAllowed();
 
+    summary.associatedRepositoryId = m_repositoryVersion.getId();
+    summary.associatedStackId = m_repositoryVersion.getStackId().getStackId();
+    summary.associatedVersion = m_repositoryVersion.getVersion();
+
     // !!! a) if we are reverting, that can only happen via PATCH or MAINT
     //     b) if orchestration is a revertible type (on upgrade)
     summary.isSwitchBits = m_isRevert || m_orchestration.isRevertable();
@@ -1439,6 +1443,33 @@ public class UpgradeContext {
 
     @SerializedName("services")
     public Map<String, UpgradeServiceSummary> services;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target repository, for a
+     * {@link Direction#DOWNGRADE} this was the repository being downgraded
+     * from.
+     */
+    @SerializedName("associatedRepositoryId")
+    public long associatedRepositoryId;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target stack, for a
+     * {@link Direction#DOWNGRADE} this was the stack that is being downgraded
+     * from.
+     */
+    @SerializedName("associatedStackId")
+    public String associatedStackId;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target versopm, for a
+     * {@link Direction#DOWNGRADE} this was the version that is being downgraded
+     * from.
+     */
+    @SerializedName("associatedVersion")
+    public String associatedVersion;
 
     /**
      * MAINT or PATCH upgrades are meant to just be switching the bits and no other

@@ -230,7 +230,7 @@
       <direction>DOWNGRADE</direction>
       <execute-stage title="Restore configuration directories and remove HDP 2.3 symlinks">
         <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
+          <script>scripts/stack_select_set_all.py</script>
           <function>foo_function</function>
         </task>
       </execute-stage>
@@ -574,7 +574,7 @@
 
       <execute-stage title="Update stack to {{version}}">
         <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
+          <script>scripts/stack_select_set_all.py</script>
           <function>actionexecute</function>
         </task>
       </execute-stage>
