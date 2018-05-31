@@ -121,7 +121,7 @@
   <dynamicField name="ngram_*" type="n_gram" multiValued="false" stored="true"/>
   <dynamicField name="std_*" type="text_std_token_lower_case" multiValued="false" stored="true"/>
   <dynamicField name="key_*" type="key_lower_case" multiValued="false" stored="true"/>
-  <dynamicField name="ws_*" type="text_ws" omitNorms="false" multiValued="false" stored="true"/>
+  <dynamicField name="ws_*" type="string" indexed="true" multiValued="false" stored="true"/>
 
   <dynamicField name="*_i"  type="tint" indexed="true"  stored="true"/>
   <dynamicField name="*_is" type="tints" indexed="true"  stored="true"/>
