@@ -345,7 +345,7 @@
                           <location>${collector.dir}/conf/unix/amshbase_metrics_whitelist</location>
                         </source>
                         <source>
-                          <location>${collector.dir}/target/embedded/${hbase.folder}/conf/hbase-site.xml</location>
+                          <location>${collector.dir}/conf/unix/hbase-site.xml</location>
                         </source>
                       </sources>
                     </mapping>
@@ -911,7 +911,7 @@
                   </mapper>
                 </data>
                 <data>
-                  <src>${collector.dir}/target/embedded/${hbase.folder}/conf/hbase-site.xml</src>
+                  <src>${collector.dir}/conf/unix/hbase-site.xml</src>
                   <type>file</type>
                   <mapper>
                     <type>perm</type>
