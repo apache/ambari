@@ -46,7 +46,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +57,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 @UpgradeCheck(
-  group = UpgradeCheckGroup.DEFAULT,
-  required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING })
+  group = UpgradeCheckGroup.DEFAULT)
 public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCheckDescriptor  {
 
   @Inject
@@ -71,14 +70,22 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
 
   private enum PreUpgradeCheckStatus {SUCCESS, FAILED, RUNNING}
 
-  private final String FAILED_REASON = "Hadoop Sink version check for 2.7.0.0 failed. " +
-    "To fix this, please upgrade 'ambari-metrics-hadoop-sink' package to 2.7.0.0 on all the failed hosts";
+  private final String FAILED_REASON = "Hadoop Sink version check failed. " +
+    "To fix this, please upgrade 'ambari-metrics-hadoop-sink' package to %s on all the failed hosts";
 
+  static final String MIN_HADOOP_SINK_VERSION_PROPERTY_NAME = "min-hadoop-sink-version";
+  static final String RETRY_INTERVAL_PROPERTY_NAME = "request-status-check-retry-interval";
+  static final String NUM_TRIES_PROPERTY_NAME = "request-status-check-num-retries";
+
+/*
+        <property name="retry-interval">2.7.0.0</property>
+        <property name="num-retries">2.7.0.0</property>
+ */
   /**
    * Total wait time for Ambari Server request time to finish => 2 mins.
    */
-  private final long RETRY_INTERVAL = 6000l; // 6 seconds sleep interval per retry.
-  private final int NUM_TRIES = 20; // 20 times the check will try to see if request finished.
+  private long retryInterval = 6000l; // 6 seconds sleep interval per retry.
+  private int numTries = 20; // 20 times the check will try to see if request finished.
 
   /**
    * Constructor.
@@ -92,12 +99,27 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
    */
   @Override
   public Set<String> getApplicableServices() {
-    return Sets.newHashSet("AMBARI_METRICS");
+    return Sets.newHashSet("AMBARI_METRICS", "HDFS");
   }
 
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest prereqCheckRequest) throws AmbariException {
 
+    String minHadoopSinkVersion = null;
+
+    UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = prereqCheckRequest.getPrerequisiteCheckConfig();
+    Map<String, String> checkProperties = null;
+    if(prerequisiteCheckConfig != null) {
+      checkProperties = prerequisiteCheckConfig.getCheckProperties(this.getClass().getName());
+    }
+
+    if(checkProperties != null) {
+      minHadoopSinkVersion = checkProperties.getOrDefault(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME, "2.7.0.0");
+      retryInterval = Long.valueOf(checkProperties.getOrDefault(RETRY_INTERVAL_PROPERTY_NAME, "6000"));
+      numTries = Integer.valueOf(checkProperties.getOrDefault(NUM_TRIES_PROPERTY_NAME, "20"));
+    }
+
+    LOG.info("Properties : " + minHadoopSinkVersion + ", " + retryInterval + ", " + numTries);
     AmbariManagementController ambariManagementController = AmbariServer.getController();
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -137,14 +159,14 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
       long requestId = (long) responseResource.getPropertyValue(requestIdProp);
       LOG.debug("RequestId for AMS Hadoop Sink version compatibility pre check : " + requestId);
 
-      Thread.sleep(RETRY_INTERVAL);
+      Thread.sleep(retryInterval);
       PreUpgradeCheckStatus status;
       int retry = 0;
       LinkedHashSet<String> failedHosts = new LinkedHashSet<>();
       while ((status = pollRequestStatus(requestId, failedHosts)).equals(PreUpgradeCheckStatus.RUNNING)
-        && retry++ < NUM_TRIES) {
-        if (retry != NUM_TRIES) {
-          Thread.sleep(RETRY_INTERVAL);
+        && retry++ < numTries) {
+        if (retry != numTries) {
+          Thread.sleep(retryInterval);
         }
       }
 
@@ -152,7 +174,7 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
         prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
       } else {
         prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-        prerequisiteCheck.setFailReason(FAILED_REASON);
+        prerequisiteCheck.setFailReason(String.format(FAILED_REASON, minHadoopSinkVersion));
         prerequisiteCheck.setFailedOn(failedHosts);
       }
     } catch (Exception e) {

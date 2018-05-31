@@ -220,7 +220,7 @@ public class CheckDescription {
           "The hive-site.xml property hive.server2.zookeeper.namespace should be set to the value for the root namespace on ZooKeeper.").build());
 
   public static CheckDescription AMS_HADOOP_SINK_VERSION_COMPATIBILITY = new CheckDescription("AMS_HADOOP_SINK_VERSION_COMPATIBILITY",
-    PrereqCheckType.SERVICE,
+    PrereqCheckType.HOST,
     "Ambari Metrics Hadoop Sink Version Compatibility",
     new ImmutableMap.Builder<String, String>().put(AbstractCheckDescriptor.DEFAULT,
       "Ambari Metrics Hadoop Sinks need to be in compatible version with respect to HDP 3.0. This check ensures that compatibility.").build());

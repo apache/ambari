@@ -69,7 +69,9 @@ class AmsMonitor(Script):
     return params.ams_user
 
   def check_hadoop_sink_version(self, env):
-    check_installed_metrics_hadoop_sink_version(less_valid=False,
+    import params
+    check_installed_metrics_hadoop_sink_version(checked_version=params.min_hadoop_sink_version,
+                                                less_valid=False,
                                                 equal_valid=True)
 
 if __name__ == "__main__":
