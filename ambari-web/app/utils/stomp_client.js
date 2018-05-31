@@ -155,14 +155,14 @@ module.exports = Em.Object.extend({
   },
 
   reconnect: function(useSockJS) {
-    const subscriptions = this.get('subscriptions');
+    const subscriptions = Object.assign({}, this.get('subscriptions'));
     setTimeout(() => {
       console.debug('Reconnecting to WebSocket...');
       this.connect(useSockJS).done(() => {
-        for (var i in subscriptions) {
-          subscriptions[i].unsubscribe();
+        this.set('subscriptions', {});
+        for (let i in subscriptions) {
           this.subscribe(subscriptions[i].destination, subscriptions[i].handlers['default']);
-          for (var key in subscriptions[i].handlers) {
+          for (let key in subscriptions[i].handlers) {
             key !== 'default' && this.addHandler(subscriptions[i].destination, key, subscriptions[i].handlers[key]);
           }
         }

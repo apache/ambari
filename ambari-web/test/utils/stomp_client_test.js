@@ -121,13 +121,11 @@ describe('App.StompClient', function () {
   describe('#reconnect', function() {
     beforeEach(function() {
       sinon.stub(stomp, 'connect').returns({done: Em.clb});
-      sinon.stub(stomp, 'unsubscribe');
       sinon.stub(stomp, 'subscribe');
       this.clock = sinon.useFakeTimers();
     });
     afterEach(function() {
       stomp.connect.restore();
-      stomp.unsubscribe.restore();
       stomp.subscribe.restore();
       this.clock.restore();
     });
@@ -136,14 +134,12 @@ describe('App.StompClient', function () {
       var subscriptions = {
         'foo': {
           destination: 'foo',
-          handlers: { default: Em.K },
-          unsubscribe: sinon.spy()
+          handlers: { default: Em.K }
         }
       };
       stomp.set('subscriptions', subscriptions);
       stomp.reconnect();
       this.clock.tick(stomp.RECONNECT_TIMEOUT);
-      expect(subscriptions['foo'].unsubscribe.calledOnce).to.be.true;
       expect(stomp.subscribe.calledWith('foo', Em.K)).to.be.true;
     });
   });

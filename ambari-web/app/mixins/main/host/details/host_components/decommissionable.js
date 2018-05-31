@@ -51,6 +51,18 @@ App.Decommissionable = Em.Mixin.create({
   isComponentRecommissionAvailable: false,
 
   /**
+   * Timer id for decommission status polling
+   * @type {number}
+   */
+  decommissionStatusPollingTimer: null,
+
+  /**
+   * Interval for decommission status polling
+   * @type {number}
+   */
+  POLLING_INTERVAL: 6000,
+
+  /**
    * Component with stopped masters can't be docommissioned
    * @type {bool}
    */
@@ -301,6 +313,15 @@ App.Decommissionable = Em.Mixin.create({
     });
   },
 
+  willDestroyElement: function () {
+    this._super();
+    var timer = this.get('decommissionStatusPollingTimer');
+    if (timer) {
+      clearInterval(timer);
+      this.set('decommissionStatusPollingTimer', null);
+    }
+  },
+
   /**
    * Update Decommission status only one time when component was changed
    */
@@ -311,6 +332,26 @@ App.Decommissionable = Em.Mixin.create({
     });
   }.observes('content.workStatus', 'content.passiveState'),
 
+  /**
+   * Update Decommission status periodically
+   */
+  decommissionStatusPolling: function () {
+    var self = this;
+    this.set('decommissionStatusPollingTimer', setTimeout(function () {
+      self.loadComponentDecommissionStatus().done(function() {
+        self.decommissionStatusPolling();
+      });
+    }, this.POLLING_INTERVAL));
+  },
+
+  /**
+   * Start Decommission status polling if it is not started yet
+   */
+  startDecommissionStatusPolling: function () {
+    if (!this.get('decommissionStatusPollingTimer')) {
+      this.decommissionStatusPolling();
+    }
+  },
 
   decommissionView: Em.View.extend({
     classNameBindings: ['parentView.noActionAvailable'],
@@ -327,9 +368,9 @@ App.Decommissionable = Em.Mixin.create({
     click: function () {
       if (!this.get('parentView.isComponentDecommissionDisable')) {
         if (this.get('parentView.isComponentDecommissionAvailable')) {
-          this.get('controller').decommission(this.get('parentView.content'));
+          this.get('controller').decommission(this.get('parentView.content'), this.get('parentView.startDecommissionStatusPolling').bind(this.get('parentView')));
         } else {
-          this.get('controller').recommission(this.get('parentView.content'));
+          this.get('controller').recommission(this.get('parentView.content'), this.get('parentView.startDecommissionStatusPolling').bind(this.get('parentView')));
         }
       }
     }
