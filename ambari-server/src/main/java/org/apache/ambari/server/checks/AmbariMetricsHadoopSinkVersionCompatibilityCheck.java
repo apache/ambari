@@ -70,9 +70,6 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
 
   private enum PreUpgradeCheckStatus {SUCCESS, FAILED, RUNNING}
 
-  private final String FAILED_REASON = "Hadoop Sink version check failed. " +
-    "To fix this, please upgrade 'ambari-metrics-hadoop-sink' package to %s on all the failed hosts";
-
   static final String MIN_HADOOP_SINK_VERSION_PROPERTY_NAME = "min-hadoop-sink-version";
   static final String RETRY_INTERVAL_PROPERTY_NAME = "request-status-check-retry-interval";
   static final String NUM_TRIES_PROPERTY_NAME = "request-status-check-num-retries";
@@ -170,7 +167,7 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
         prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
       } else {
         prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-        prerequisiteCheck.setFailReason(String.format(FAILED_REASON, minHadoopSinkVersion));
+        prerequisiteCheck.setFailReason(String.format(getFailReason(prerequisiteCheck, prereqCheckRequest), minHadoopSinkVersion));
         prerequisiteCheck.setFailedOn(failedHosts);
       }
     } catch (Exception e) {
