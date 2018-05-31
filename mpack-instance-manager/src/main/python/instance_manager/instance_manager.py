@@ -26,6 +26,8 @@ import json
 MPACK_JSON_FILE_NAME = 'mpack.json'
 CURRENT_SOFTLINK_NAME = 'current'
 CONFIGS_DIRECTORY_NAME = 'conf'
+LOG_DIRECTORY_NAME = 'log'
+RUN_DIRECTORY_NAME = 'run'
 
 ROOT_FOLDER_PATH = "/usr/hwx/"
 
@@ -631,12 +633,16 @@ class ComponentInstance(Instance):
     os.symlink(mpack_path, os.path.join(component_path, CURRENT_SOFTLINK_NAME))
 
     os.makedirs(os.path.join(component_path, CONFIGS_DIRECTORY_NAME))
+    os.makedirs(os.path.join(component_path, LOG_DIRECTORY_NAME))
+    os.makedirs(os.path.join(component_path, RUN_DIRECTORY_NAME))
     print "\n Created " + component_path
 
   def build_json_output(self, output_conf_dir, output_path):
     result = {'name': self.name}
     if output_conf_dir:
       result['config_dir'] = os.path.join(self.component_path, CONFIGS_DIRECTORY_NAME)
+      result['log_dir'] = os.path.join(self.component_path, LOG_DIRECTORY_NAME)
+      result['run_dir'] = os.path.join(self.component_path, RUN_DIRECTORY_NAME)
     if output_path:
       result['path'] = self.path_exec
     return result
