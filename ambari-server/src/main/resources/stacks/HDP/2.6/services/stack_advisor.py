@@ -682,51 +682,38 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     # druid is not in list of services to be installed
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'DRUID' in servicesList:
-        putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
-        if 'druid-coordinator' in services['configurations']:
-            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_COORDINATOR', services, hosts)
-            if component_hosts is not None and len(component_hosts) > 0:
-                # pick the first
-                host = component_hosts[0]
-            druid_coordinator_host_port = str(host['Hosts']['host_name']) + ":" + str(
-                services['configurations']['druid-coordinator']['properties']['druid.port'])
+      putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
+
+      druid_coordinator_host_port = self.druid_host('DRUID_COORDINATOR', 'druid-coordinator', services, hosts, default_host='localhost:8081')
+      druid_broker_host_port = self.druid_host('DRUID_ROUTER', 'druid-router', services, hosts)
+      if druid_broker_host_port is None:
+        druid_broker_host_port = self.druid_host('DRUID_BROKER', 'druid-broker', services, hosts, default_host='localhost:8083')
+
+      druid_metadata_uri = ""
+      druid_metadata_user = ""
+      druid_metadata_type = ""
+      if 'druid-common' in services['configurations']:
+        druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
+        druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']
+        if 'druid.metadata.storage.connector.user' in services['configurations']['druid-common']['properties']:
+          druid_metadata_user = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.user']
         else:
-            druid_coordinator_host_port = "localhost:8081"
+          druid_metadata_user = ""
 
-        if 'druid-router' in services['configurations']:
-            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_ROUTER', services, hosts)
-            if component_hosts is not None and len(component_hosts) > 0:
-                # pick the first
-                host = component_hosts[0]
-            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
-                services['configurations']['druid-router']['properties']['druid.port'])
-        elif 'druid-broker' in services['configurations']:
-            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_BROKER', services, hosts)
-            if component_hosts is not None and len(component_hosts) > 0:
-                # pick the first
-                host = component_hosts[0]
-            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
-                services['configurations']['druid-broker']['properties']['druid.port'])
-        else:
-            druid_broker_host_port = "localhost:8083"
+      putHiveInteractiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
+      putHiveInteractiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
+      putHiveInteractiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
+      putHiveInteractiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
+      putHiveInteractiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
 
-        druid_metadata_uri = ""
-        druid_metadata_user = ""
-        druid_metadata_type = ""
-        if 'druid-common' in services['configurations']:
-            druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
-            druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']
-            if 'druid.metadata.storage.connector.user' in services['configurations']['druid-common']['properties']:
-                druid_metadata_user = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.user']
-            else:
-                druid_metadata_user = ""
-
-        putHiveInteractiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
-        putHiveInteractiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
-
+  def druid_host(self, component_name, config_type, services, hosts, default_host=None):
+    hosts = self.getHostsWithComponent('DRUID', component_name, services, hosts)
+    if hosts and config_type in services['configurations']:
+      host = hosts[0]['Hosts']['host_name']
+      port = services['configurations'][config_type]['properties']['druid.port']
+      return "%s:%s" % (host, port)
+    else:
+      return default_host
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
