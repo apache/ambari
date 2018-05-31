@@ -30,8 +30,7 @@ module.exports = [
     viewName: 'NameNodeCapacityPieChartView',
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
-    threshold: [85, 95],
-    groupName: 'nn'
+    threshold: [85, 95]
   },
   {
     id: 3,

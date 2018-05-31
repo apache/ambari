@@ -73,8 +73,8 @@ App.UpdateController = Em.Controller.extend({
   },
 
   nameNodeMetricsModelProperties: [
-    'jvm_memory_heap_max_values', 'jvm_memory_heap_used_values', 'capacity_used_values', 'capacity_total_values',
-    'capacity_remaining_values', 'capacity_non_dfs_used_values', 'name_node_rpc_values', 'name_node_start_time_values'
+    'jvm_memory_heap_max_values', 'jvm_memory_heap_used_values', 'capacity_used', 'capacity_total',
+    'capacity_remaining', 'capacity_non_dfs_used', 'name_node_rpc_values', 'name_node_start_time_values'
   ],
 
   /**

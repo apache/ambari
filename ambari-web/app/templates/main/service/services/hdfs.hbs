@@ -19,9 +19,11 @@
 <div class="row">
   {{! Component Section }}
   <div class="component-summary">
-    {{view view.dashboardMasterComponentView slaveComponentsViewBinding="view.slaveComponentsView" summaryViewBinding="view"}}
+    {{view view.dashboardMasterComponentView slaveComponentsViewBinding="view.slaveComponentsView"
+      summaryViewBinding="view" componentCommonWidgetsViewBinding="view.componentCommonWidgetsView"}}
     {{#if view.hasMultipleMasterGroups}}
-      {{view view.slaveComponentsView slaveComponentsViewBinding="view.slaveComponentsView" summaryViewBinding="view" showTitle=true}}
+      {{view view.slaveComponentsView slaveComponentsViewBinding="view.slaveComponentsView" summaryViewBinding="view"
+        showTitle=true}}
     {{/if}}
   </div>
 </div>
