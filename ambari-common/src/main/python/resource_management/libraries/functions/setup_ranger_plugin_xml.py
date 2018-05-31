@@ -223,6 +223,15 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
     mode = 0640
   )
 
+  dot_jceks_crc_file_path = os.path.join(os.path.dirname(credential_file), "." + os.path.basename(credential_file) + ".crc")
+
+  File(dot_jceks_crc_file_path,
+    owner = component_user,
+    group = component_group,
+    only_if = format("test -e {dot_jceks_crc_file_path}"),
+    mode = 0640
+  )
+
 def setup_configuration_file_for_required_plugins(component_user, component_group, create_core_site_path,
                                                   configurations={}, configuration_attributes={}, file_name='core-site.xml',
                                                   xml_include_file=None, xml_include_file_content=None):

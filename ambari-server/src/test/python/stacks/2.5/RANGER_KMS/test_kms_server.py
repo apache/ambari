@@ -157,6 +157,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/cred.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = "test -e /etc/ranger/c1_kms/cred.jceks",
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/c1_kms/.cred.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = "test -e /etc/ranger/c1_kms/.cred.jceks.crc",
       mode = 0640
     )
     
@@ -427,6 +435,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 
@@ -439,6 +455,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 
@@ -601,6 +625,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/cred.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/c1_kms/cred.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/c1_kms/.cred.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/c1_kms/.cred.jceks.crc',
       mode = 0640
     )
 
@@ -854,6 +886,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 
@@ -866,6 +906,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 
