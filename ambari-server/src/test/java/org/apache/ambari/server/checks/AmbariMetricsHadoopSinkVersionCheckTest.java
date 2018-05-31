@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.checks;
 
+import static org.apache.ambari.server.checks.AmbariMetricsHadoopSinkVersionCompatibilityCheck.MIN_HADOOP_SINK_VERSION_PROPERTY_NAME;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -55,6 +56,7 @@ import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -196,6 +198,15 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("c1");
+    UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = new UpgradePack.PrerequisiteCheckConfig();
+    UpgradePack.PrerequisiteProperty prerequisiteProperty = new UpgradePack.PrerequisiteProperty();
+    prerequisiteProperty.name = MIN_HADOOP_SINK_VERSION_PROPERTY_NAME;
+    prerequisiteProperty.value = "2.7.0.0";
+    UpgradePack.PrerequisiteCheckProperties prerequisiteCheckProperties = new UpgradePack.PrerequisiteCheckProperties();
+    prerequisiteCheckProperties.name = "org.apache.ambari.server.checks.AmbariMetricsHadoopSinkVersionCompatibilityCheck";
+    prerequisiteCheckProperties.properties = Collections.singletonList(prerequisiteProperty);
+    prerequisiteCheckConfig.prerequisiteCheckProperties = Collections.singletonList(prerequisiteCheckProperties);
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
     request.setTargetRepositoryVersion(m_repositoryVersion);
     m_check.perform(check, request);
 
@@ -252,14 +263,20 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("c1");
+    UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = new UpgradePack.PrerequisiteCheckConfig();
+    UpgradePack.PrerequisiteProperty prerequisiteProperty = new UpgradePack.PrerequisiteProperty();
+    prerequisiteProperty.name = MIN_HADOOP_SINK_VERSION_PROPERTY_NAME;
+    prerequisiteProperty.value = "2.7.0.0";
+    UpgradePack.PrerequisiteCheckProperties prerequisiteCheckProperties = new UpgradePack.PrerequisiteCheckProperties();
+    prerequisiteCheckProperties.name = "org.apache.ambari.server.checks.AmbariMetricsHadoopSinkVersionCompatibilityCheck";
+    prerequisiteCheckProperties.properties = Collections.singletonList(prerequisiteProperty);
+    prerequisiteCheckConfig.prerequisiteCheckProperties = Collections.singletonList(prerequisiteCheckProperties);
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
     request.setTargetRepositoryVersion(m_repositoryVersion);
     m_check.perform(check, request);
 
-    String failedReason = "Hadoop Sink version check for 2.7.0.0 failed. " +
-      "To fix this, please upgrade 'ambari-metrics-hadoop-sink' package to 2.7.0.0 on all the failed hosts";
-
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertTrue(failedReason.contains("upgrade 'ambari-metrics-hadoop-sink'"));
+    Assert.assertTrue(check.getFailReason().contains("upgrade 'ambari-metrics-hadoop-sink'"));
     Assert.assertEquals(check.getFailedOn().size(), 1);
     Assert.assertTrue(check.getFailedOn().iterator().next().contains("h1_fail"));
   }

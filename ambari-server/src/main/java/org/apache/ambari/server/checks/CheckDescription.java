@@ -223,7 +223,9 @@ public class CheckDescription {
     PrereqCheckType.HOST,
     "Ambari Metrics Hadoop Sinks need to be compatible with the stack version. This check ensures that compatibility.",
     new ImmutableMap.Builder<String, String>().put(AbstractCheckDescriptor.DEFAULT,"Hadoop Sink version check failed. " +
-      "To fix this, please upgrade 'ambari-metrics-hadoop-sink' package to %s on all the failed hosts").build());
+      "To fix this, please upgrade 'ambari-metrics-hadoop-sink' package to %s on all the failed hosts")
+      .put(AmbariMetricsHadoopSinkVersionCompatibilityCheck.HADOOP_SINK_VERSION_NOT_SPECIFIED, "Hadoop Sink version for pre-check not specified. " +
+        "Please use 'min-hadoop-sink-version' property in upgrade pack to specify min hadoop sink version").build());
 
   public static CheckDescription CONFIG_MERGE = new CheckDescription("CONFIG_MERGE",
     PrereqCheckType.CLUSTER,

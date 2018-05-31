@@ -494,21 +494,19 @@ public class HostRoleCommandDAO {
 
   @RequiresSession
   public List<HostRoleCommandEntity> findByRequest(long requestId) {
-    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
-      "FROM HostRoleCommandEntity command " +
-      "WHERE command.requestId=?1 ORDER BY command.taskId", HostRoleCommandEntity.class);
-    return daoUtils.selectList(query, requestId);
+    return findByRequest(requestId, false);
   }
 
   @RequiresSession
   public List<HostRoleCommandEntity> findByRequest(long requestId, boolean refreshHint) {
-    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
-      "FROM HostRoleCommandEntity command " +
-      "WHERE command.requestId=?1 ORDER BY command.taskId", HostRoleCommandEntity.class);
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+      "HostRoleCommandEntity.findByRequestId",
+      HostRoleCommandEntity.class);
     if (refreshHint) {
       query.setHint(QueryHints.REFRESH, HintValues.TRUE);
     }
-    return daoUtils.selectList(query, requestId);
+    query.setParameter("requestId", requestId);
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession

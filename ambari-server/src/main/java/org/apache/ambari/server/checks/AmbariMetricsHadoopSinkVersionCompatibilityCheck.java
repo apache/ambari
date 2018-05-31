@@ -47,6 +47,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +56,14 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * This pre upgrade check verifies if the Ambari Metrics Hadoop Sink package version on all hosts is the expected one
+ * corresponding to the stack version. For example, in HDP 3.0, the corresponding ambari-metrics-hadoop-sink version should
+ * be 2.7.0.0.
+ */
 @Singleton
 @UpgradeCheck(
-  group = UpgradeCheckGroup.DEFAULT)
+  group = UpgradeCheckGroup.REPOSITORY_VERSION)
 public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCheckDescriptor  {
 
   @Inject
@@ -69,6 +75,8 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
   private static final Logger LOG = LoggerFactory.getLogger(AmbariMetricsHadoopSinkVersionCompatibilityCheck.class);
 
   private enum PreUpgradeCheckStatus {SUCCESS, FAILED, RUNNING}
+
+  static final String HADOOP_SINK_VERSION_NOT_SPECIFIED = "hadoop-sink-version-not-specified";
 
   static final String MIN_HADOOP_SINK_VERSION_PROPERTY_NAME = "min-hadoop-sink-version";
   static final String RETRY_INTERVAL_PROPERTY_NAME = "request-status-check-retry-interval";
@@ -107,12 +115,20 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
     }
 
     if(checkProperties != null) {
-      minHadoopSinkVersion = checkProperties.getOrDefault(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME, "2.7.0.0");
+      minHadoopSinkVersion = checkProperties.get(MIN_HADOOP_SINK_VERSION_PROPERTY_NAME);
       retryInterval = Long.valueOf(checkProperties.getOrDefault(RETRY_INTERVAL_PROPERTY_NAME, "6000"));
       numTries = Integer.valueOf(checkProperties.getOrDefault(NUM_TRIES_PROPERTY_NAME, "20"));
     }
 
-    LOG.debug("Properties : " + minHadoopSinkVersion + ", " + retryInterval + ", " + numTries);
+    if (StringUtils.isEmpty(minHadoopSinkVersion)) {
+      LOG.debug("Hadoop Sink version for pre-check not specified.");
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(getFailReason(HADOOP_SINK_VERSION_NOT_SPECIFIED, prerequisiteCheck, prereqCheckRequest));
+      return;
+    }
+
+    LOG.debug("Properties : Hadoop Sink Version = {} , retryInterval = {}, numTries = {}", minHadoopSinkVersion, retryInterval, numTries);
+
     AmbariManagementController ambariManagementController = AmbariServer.getController();
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -124,6 +140,12 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
 
     Set<String> hosts = ambariManagementController.getClusters()
       .getCluster(clusterName).getHosts("AMBARI_METRICS", "METRICS_MONITOR");
+
+    if (CollectionUtils.isEmpty(hosts)) {
+      LOG.warn("No hosts have the component METRICS_MONITOR.");
+      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+      return;
+    }
 
     Set<Map<String, Object>> propertiesSet = new HashSet<>();
     Map<String, Object> properties = new LinkedHashMap<>();
