@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 
 import java.util.Collections;
@@ -46,6 +48,7 @@ import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -60,16 +63,22 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.AbstractModule;
@@ -77,7 +86,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 
+@RunWith(EasyMockRunner.class)
 public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
+  @Mock
+  private UpgradeHelper upgradeHelper;
 
   @Test
   public void testMissingCredentialStoreKerberosEnabledManagingIdentities() throws Exception {
@@ -146,7 +158,13 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
 
     PrerequisiteCheck prerequisiteCheck = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest(clusterName);
+
+    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
+    request.setTargetRepositoryVersion(repositoryVersion);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
+
+    expect(upgradeHelper.suggestUpgradePack(eq(clusterName), anyObject(), anyObject(), eq(Direction.UPGRADE), eq(UpgradeType.ROLLING), anyObject()))
+      .andReturn(upgradePackWithRegenKeytab()).anyTimes();
 
     DesiredConfig desiredKerberosEnv = createMock(DesiredConfig.class);
     expect(desiredKerberosEnv.getTag()).andReturn("tag").anyTimes();
@@ -188,6 +206,11 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
     return prerequisiteCheck;
   }
 
+  private UpgradePack upgradePackWithRegenKeytab() {
+    UpgradePack upgradePack = createMock(UpgradePack.class);
+    expect(upgradePack.anyGroupTaskMatch(anyObject())).andReturn(true).anyTimes();
+    return upgradePack;
+  }
 
   Injector getInjector() {
     return Guice.createInjector(new AbstractModule() {
@@ -221,6 +244,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(ArtifactDAO.class).toInstance(createNiceMock(ArtifactDAO.class));
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+        bind(UpgradeHelper.class).toInstance(upgradeHelper);
 
         bind(CredentialStoreService.class).toInstance(createMock(CredentialStoreService.class));
       }
