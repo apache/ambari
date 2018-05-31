@@ -115,7 +115,7 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
       numTries = Integer.valueOf(checkProperties.getOrDefault(NUM_TRIES_PROPERTY_NAME, "20"));
     }
 
-    LOG.info("Properties : " + minHadoopSinkVersion + ", " + retryInterval + ", " + numTries);
+    LOG.debug("Properties : " + minHadoopSinkVersion + ", " + retryInterval + ", " + numTries);
     AmbariManagementController ambariManagementController = AmbariServer.getController();
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
