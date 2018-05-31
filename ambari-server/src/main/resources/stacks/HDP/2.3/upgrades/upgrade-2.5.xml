@@ -494,16 +494,6 @@
       </service>
     </group>
 
-    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
-      <scope>COMPLETE</scope>
-      <execute-stage title="Update remaining HDP stack to {{version}}">
-        <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
-          <function>actionexecute</function>
-        </task>
-      </execute-stage>
-    </group>
-
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
 

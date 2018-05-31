@@ -105,7 +105,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String COMPONENT_NAME_PROPERTY_ID = "name";
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
-  protected static final String STACK_SELECT_ACTION = "ru_set_all";
+  protected static final String STACK_SELECT_ACTION = "stack_select_set_all";
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install Version";
 
 
