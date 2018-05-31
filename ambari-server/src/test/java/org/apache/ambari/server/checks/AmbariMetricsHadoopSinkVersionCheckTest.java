@@ -59,7 +59,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
@@ -84,8 +83,6 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
   final Map<String, Service> m_services = new HashMap<>();
 
-  @Mock
-  RequestDAO requestDAO;
   /**
    *
    */
@@ -132,14 +129,14 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
     when(m_clusters.getCluster("cluster")).thenReturn(cluster);
     when(cluster.getServices()).thenReturn(m_services);
 
-    m_services.put("HDFS", Mockito.mock(Service.class));
+    m_services.put("HIVE", Mockito.mock(Service.class));
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setTargetRepositoryVersion(m_repositoryVersion);
 
     Assert.assertFalse(m_check.isApplicable(request));
 
-    m_services.put("AMBARI_METRICS", Mockito.mock(Service.class));
+    m_services.put("HDFS", Mockito.mock(Service.class));
 
     m_check.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
       @Override
