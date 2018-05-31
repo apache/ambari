@@ -23,6 +23,8 @@ import os
 from instance_manager import create_mpack, set_mpack_instance, get_conf_dir, list_instances
 
 CONFIG_DIR_KEY_NAME = 'config_dir'
+LOG_DIR_KEY_NAME = 'log_dir'
+RUN_DIR_KEY_NAME = 'run_dir'
 PATH_KEY_NAME = 'path'
 COMPONENTS_PLURAL_KEY_NAME = 'components'
 COMPONENT_INSTANCES_PLURAL_KEY_NAME = 'component-instances'
@@ -41,6 +43,31 @@ def get_component_conf_path(mpack_name, instance_name, module_name, components_i
   return conf_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
     component_instance_name][CONFIG_DIR_KEY_NAME]
 
+def get_component_log_path(mpack_name, instance_name, module_name, components_instance_type,
+                            subgroup_name='default', component_instance_name='default'):
+  """
+  :returns the single string that contains the path to the log folder of given component instance
+  :raises ValueError if the parameters doesn't match the mpack or instances structure
+  """
+
+  log_json = get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
+                           {components_instance_type: [component_instance_name]})
+
+  return log_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
+    component_instance_name][LOG_DIR_KEY_NAME]
+
+def get_component_pid_prefix_path(mpack_name, instance_name, module_name, components_instance_type,
+                            subgroup_name='default', component_instance_name='default'):
+  """
+  :returns the single string that contains the path to the pid_prefix folder of given component instance
+  :raises ValueError if the parameters doesn't match the mpack or instances structure
+  """
+
+  pid_prefix_json = get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
+                           {components_instance_type: [component_instance_name]})
+
+  return pid_prefix_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
+    component_instance_name][RUN_DIR_KEY_NAME]
 
 def get_component_target_path(mpack_name, instance_name, module_name, components_instance_type,
                               subgroup_name='default', component_instance_name='default'):

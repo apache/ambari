@@ -183,7 +183,9 @@ class TestInstanceManager(TestCase):
                           "component-instances": {
                             "server1": {
                               "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/conf",
-                              "name": "server1"
+                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/log",
+                              "name": "server1",
+                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/run",
                             }
                           }
                         }
@@ -196,7 +198,9 @@ class TestInstanceManager(TestCase):
                           "component-instances": {
                             "default": {
                               "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf",
-                              "name": "default"
+                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/log",
+                              "name": "default",
+                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/run",
                             }
                           }
                         }
