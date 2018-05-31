@@ -76,6 +76,11 @@ public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> ex
       regenerateHash();
       update.setHash(getData().getHash());
       STOMPUpdatePublisher.publish(update);
+    } else {
+      // in case update does not have changes empty identifiers should be populated anyway
+      if (!isIdentifierValid(data)) {
+        regenerateHash();
+      }
     }
     return changed;
   }
