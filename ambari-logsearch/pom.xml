@@ -244,6 +244,7 @@
             <exclude>**/*.txt</exclude>
             <exclude>**/*.story</exclude>
             <exclude>**/*.editorconfig</exclude>
+            <exclude>**/*.iml</exclude>
             <exclude>**/src/vendor/**</exclude>
             <exclude>**/yarn.lock</exclude>
             <exclude>**/docker/Profile</exclude>

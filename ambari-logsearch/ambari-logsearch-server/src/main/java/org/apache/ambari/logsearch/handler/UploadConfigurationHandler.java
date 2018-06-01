@@ -18,6 +18,14 @@
  */
 package org.apache.ambari.logsearch.handler;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileSystems;
+import java.util.Arrays;
+
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -26,12 +34,6 @@ import org.apache.solr.common.cloud.ZkConfigManager;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.FileSystems;
 
 public class UploadConfigurationHandler extends AbstractSolrConfigHandler {
 
@@ -51,18 +53,17 @@ public class UploadConfigurationHandler extends AbstractSolrConfigHandler {
 
   @Override
   public boolean updateConfigIfNeeded(SolrPropsConfig solrPropsConfig, SolrZkClient zkClient, File file,
-                                      String separator, String downloadFolderLocation) throws IOException {
-    boolean result = false;
-    if (!FileUtils.contentEquals(file, new File(String.format("%s%s%s", downloadFolderLocation, separator, file.getName())))) {
-      LOG.info("Solr config file differs ('{}'), upload config set to zookeeper", file.getName());
-      ZkConfigManager zkConfigManager = new ZkConfigManager(zkClient);
-      zkConfigManager.uploadConfigDir(getConfigSetFolder().toPath(), solrPropsConfig.getConfigName());
-      String filePath = String.format("%s%s%s", getConfigSetFolder(), separator, getConfigFileName());
-      String configsPath = String.format("/%s/%s/%s", "configs", solrPropsConfig.getConfigName(), getConfigFileName());
-      uploadFileToZk(zkClient, filePath, configsPath);
-      result = true;
-    }
-    return result;
+                                      String separator, byte[] content) throws IOException {
+    if (Arrays.equals(FileUtils.readFileToByteArray(file), content))
+      return false;
+
+    LOG.info("Solr config file differs ('{}'), upload config set to zookeeper", file.getName());
+    ZkConfigManager zkConfigManager = new ZkConfigManager(zkClient);
+    zkConfigManager.uploadConfigDir(getConfigSetFolder().toPath(), solrPropsConfig.getConfigName());
+    String filePath = String.format("%s%s%s", getConfigSetFolder(), separator, getConfigFileName());
+    String configsPath = String.format("/%s/%s/%s", "configs", solrPropsConfig.getConfigName(), getConfigFileName());
+    uploadFileToZk(zkClient, filePath, configsPath);
+    return true;
   }
 
   @Override
