@@ -24,6 +24,6 @@ import org.apache.ambari.server.events.STOMPEvent;
 public class MessageDestinationIsNotDefinedException extends ObjectNotFoundException {
 
   public MessageDestinationIsNotDefinedException(STOMPEvent.Type eventType) {
-    super(String.format("No destination defined for message with {} type", eventType));
+    super(String.format("No destination defined for message with %s type", eventType));
   }
 }
