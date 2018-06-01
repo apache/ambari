@@ -248,7 +248,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       // broadcast the change
       ServiceComponentRecoveryChangedEvent event = new ServiceComponentRecoveryChangedEvent(
-          getClusterName(), getServiceName(), getName(), isRecoveryEnabled());
+              getClusterId(), getClusterName(), getServiceName(), getName(), isRecoveryEnabled());
       eventPublisher.publish(event);
 
     } else {
