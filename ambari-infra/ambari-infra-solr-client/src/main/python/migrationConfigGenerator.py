@@ -24,7 +24,7 @@ import signal
 import sys
 import time
 import traceback
-import urllib2
+import urllib2, ssl
 import logging
 import json
 import base64
@@ -76,7 +76,14 @@ def api_accessor(host, username, password, protocol, port):
       request.add_header('X-Requested-By', 'ambari')
       request.add_data(request_body)
       request.get_method = lambda: request_type
-      response = urllib2.urlopen(request)
+      response = None
+      if protocol == 'https':
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        response = urllib2.urlopen(request, context=ctx)
+      else:
+        response = urllib2.urlopen(request)
       response_body = response.read()
     except Exception as exc:
       raise Exception('Problem with accessing api. Reason: {0}'.format(exc))
@@ -479,6 +486,8 @@ if __name__=="__main__":
 
     set_log_level(options.verbose)
     errors = validate_inputs(options)
+
+    os.popen('PYTHONHTTPSVERIFY=0')
 
     if errors:
       print 'Errors'
