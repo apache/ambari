@@ -44,6 +44,7 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorException;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorRequest;
+import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorRequestException;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorResponse;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorRunner;
 import org.apache.ambari.server.controller.RootComponent;
@@ -180,7 +181,7 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
       return root;
     } catch (Exception e) {
       // should not happen
-      String message = "Error parsing services.json file content: " + e.getMessage();
+      String message = "Error parsing created services object for Mpack Advisor Python Code. " + e.getMessage();
       LOG.warn(message, e);
       throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(message).build());
     }
@@ -275,8 +276,27 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
     }
   }
 
-  private void populateComponentHostsMap(ObjectNode root, Map<String, Map<String, Set<String>>> mpacksToComponentsHostsMap) {
+  private void populateComponentHostsMap(ObjectNode root, Map<String, Map<String, Set<String>>> mpacksToComponentsHostsMap) throws MpackAdvisorRequestException {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
+    if (services == null) {
+      String mpackName = null;
+      String mpackversion = null;
+      String href = root.get("href").getTextValue();
+      if (href != null && !href.isEmpty()) {
+        // Expected href is of form : /api/v1/stacks/HDPCORE/versions/1.0.0-b412/?fields=[fields ...]
+        String[] splits = href.split("\\?");
+        if (splits.length >= 1) {
+          String[] newSplits = splits[0].split("/");
+          if (newSplits.length == 7) {
+            mpackName = newSplits[4];
+            mpackversion = newSplits[6];
+          }
+        }
+      }
+      throw new MpackAdvisorRequestException("Attempt to read services information for passed-in Mpack : \""
+          +mpackName+"\" and version : \""+mpackversion+"\" is NULL. Check passed-in Mpack Name, Version " +
+          "and corresponding stack's existence in cluster.");
+    }
     Iterator<JsonNode> servicesIter = services.getElements();
 
     while (servicesIter.hasNext()) {
