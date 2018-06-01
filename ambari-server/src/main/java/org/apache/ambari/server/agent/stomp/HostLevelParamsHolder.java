@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -27,6 +26,7 @@ import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
+import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -79,7 +79,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     return hostLevelParamsUpdateEvent;
   }
 
-  protected boolean handleUpdate(HostLevelParamsUpdateEvent update) throws AmbariException {
+  protected boolean handleUpdate(HostLevelParamsUpdateEvent update) {
     boolean changed = false;
     if (MapUtils.isNotEmpty(update.getHostLevelParamsClusters())) {
       Long hostId = update.getHostId();
@@ -119,15 +119,21 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   @Subscribe
   public void onClusterComponentsRepoUpdate(ClusterComponentsRepoChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
-    Long clusterId = clusterComponentsRepoChangedEvent.getClusterId();
+    updateDataOfCluster(clusterComponentsRepoChangedEvent.getClusterId());
+  }
 
+  @Subscribe
+  public void onServiceComponentRecoveryChanged(ServiceComponentRecoveryChangedEvent event) throws AmbariException {
+    updateDataOfCluster(event.getClusterId());
+  }
+
+  private void updateDataOfCluster(long clusterId) throws AmbariException {
     Cluster cluster = clusters.getCluster(clusterId);
-    Collection<Host> hosts = clusters.getCluster(clusterId).getHosts();
-    for (Host host : hosts) {
+    for (Host host : cluster.getHosts()) {
       HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(Long.toString(clusterId),
-          new HostLevelParamsCluster(
-            m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
-            recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName())));
+              new HostLevelParamsCluster(
+                      m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
+                      recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName())));
       hostLevelParamsUpdateEvent.setHostId(host.getHostId());
       updateData(hostLevelParamsUpdateEvent);
     }
