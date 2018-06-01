@@ -87,6 +87,16 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+            <customCommands>
+              <customCommand>
+                <name>CHECK_HADOOP_SINK_VERSION</name>
+                <commandScript>
+                  <script>scripts/metrics_monitor.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+                </commandScript>
+              </customCommand>
+            </customCommands>
           <logs>
             <log>
               <logId>ams_monitor</logId>

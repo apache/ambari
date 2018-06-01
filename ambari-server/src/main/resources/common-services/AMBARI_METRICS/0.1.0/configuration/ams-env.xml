@@ -144,6 +144,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>min_ambari_metrics_hadoop_sink_version</name>
+    <value>2.7.0.0</value>
+    <description>
+      Minimum version of ambari metrics hadoop sink that is compatible with this version of AMS.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>ams-env template</display-name>
     <value>
