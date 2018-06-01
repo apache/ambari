@@ -870,7 +870,8 @@ class MpackAdvisorImpl(MpackAdvisor):
 
     recommendations = {
       "blueprint": {
-        "host_groups": [ ]
+        "host_groups": [ ],
+        "mpack_instances": []
       },
       "blueprint_cluster_binding": {
         "host_groups": [ ]
@@ -949,6 +950,22 @@ class MpackAdvisorImpl(MpackAdvisor):
       host_group_name = "host-group-{0}".format(index)
       host_groups.append({"name": host_group_name, "components": hostsComponentsMap[key]})
       bindings.append({"name": host_group_name, "hosts": [{"fqdn": key}]})
+
+    """
+        Add mpack_instances block
+        """
+    mpackInstances = recommendations["blueprint"]["mpack_instances"]
+    for mpackInstanceName, serviceInstances in self.mpackServiceInstancesDict.items():
+      mpackInstance = {}
+      mpackInstance["name"] = mpackInstanceName
+      mpackInstance["version"] = serviceInstances[0].getMpackVersion()
+      mpackInstance["service_instances"] = []
+      mpackInstances.append(mpackInstance)
+      for serviceInstance in serviceInstances:
+        serviceName = serviceInstance.getType()
+        serviceInstanceConfigurations = {"name": serviceName, "type": serviceInstance.getType(), \
+                                         "version": serviceInstance.getVersion(), "configurations": {}}
+        mpackInstance.get("service_instances").append(serviceInstanceConfigurations)
 
     return recommendations
 
