@@ -388,7 +388,7 @@ public class AmbariContext {
 
   public RequestStatusResponse installHost(String hostName, String clusterName, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, boolean skipFailure) {
     try {
-      return getHostResourceProvider().install(clusterName, hostName, skipInstallForComponents,
+      return getHostComponentResourceProvider().install(clusterName, hostName, skipInstallForComponents,
         dontSkipInstallForComponents, skipFailure);
     } catch (Exception e) {
       LOG.error("INSTALL Host request submission failed:", e);

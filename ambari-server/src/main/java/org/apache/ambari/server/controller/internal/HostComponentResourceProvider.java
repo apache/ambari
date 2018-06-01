@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -412,15 +411,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
     return requestStages.getRequestStatusResponse();
-  }
-
-
-  // TODO, revisit this extra method, that appears to be used during Add Hosts
-  // TODO, How do we determine the component list for INSTALL_ONLY during an Add Hosts operation? rwn
-  public RequestStatusResponse start(String cluster, String hostName) throws  SystemException,
-    UnsupportedPropertyException, NoSuchParentResourceException {
-
-    return this.start(cluster, hostName, Collections.emptySet(), false);
   }
 
   public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents, boolean skipFailure) throws  SystemException,
