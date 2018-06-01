@@ -78,6 +78,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.StageHelper;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.rest.AgentResource;
@@ -2817,7 +2818,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  protected RequestStageContainer doStageCreation(RequestStageContainer requestStages,
+  private RequestStageContainer doStageCreation(RequestStageContainer requestStages,
       Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
@@ -2837,8 +2838,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // verify all required components
 
     if ((changedServices == null || changedServices.isEmpty())
-        && (changedComps == null || changedComps.isEmpty())
-        && (changedScHosts == null || changedScHosts.isEmpty())) {
+      && (changedComps == null || changedComps.isEmpty())
+      && (changedScHosts == null || changedScHosts.isEmpty())) {
       LOG.info("Created 0 stages");
       return requestStages;
     }
@@ -2846,15 +2847,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // check all stack configs are present in desired configs
     configHelper.checkAllStageConfigsPresentInDesiredConfigs(cluster);
 
-    // caching upgrade suspended
-    boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
-
-    // caching database type
-    DatabaseType databaseType = configs.getDatabaseType();
-
     // smoke test any service that goes from installed to started
     Set<Service> smokeTestServices = getServicesForSmokeTests(cluster,
-      changedServices, changedScHosts, runSmokeTest);
+      changedServices, changedScHosts, runSmokeTest
+    );
 
     if (reconfigureClients) {
       // Re-install client only hosts to reattach changed configs on service
@@ -2862,8 +2858,28 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       addClientSchForReinstall(cluster, changedServices, changedScHosts);
     }
 
+    for (Map<String, Map<State, List<ServiceComponentHost>>> clientsForSingleStage : StageHelper.deduplicateClients(changedScHosts)) {
+      requestStages = doStageCreation(requestStages, cluster, clientsForSingleStage, requestParameters, requestProperties, Collections.emptySet());
+    }
+
+    return doStageCreation(requestStages, cluster, changedScHosts, requestParameters, requestProperties, smokeTestServices);
+  }
+
+  private RequestStageContainer doStageCreation(RequestStageContainer requestStages,
+    Cluster cluster,
+    Map<String, ? extends Map<State, ? extends List<ServiceComponentHost>>> changedScHosts,
+    Map<String, String> requestParameters,
+    Map<String, String> requestProperties,
+    Set<Service> smokeTestServices
+  ) throws AmbariException {
     if (!changedScHosts.isEmpty()
         || !smokeTestServices.isEmpty()) {
+      // caching upgrade suspended
+      boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
+
+      // caching database type
+      DatabaseType databaseType = configs.getDatabaseType();
+
       long nowTimestamp = System.currentTimeMillis();
 
       // FIXME cannot work with a single stage
@@ -2899,10 +2915,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if(kerberosHelper.isClusterKerberosEnabled(cluster)) {
         Collection<ServiceComponentHost> componentsToConfigureForKerberos = new ArrayList<>();
 
-        for (Map<State, List<ServiceComponentHost>> changedScHostStates : changedScHosts.values()) {
+        for (Map<State, ? extends List<ServiceComponentHost>> changedScHostStates : changedScHosts.values()) {
 
           if (changedScHostStates != null) {
-            for (Map.Entry<State, List<ServiceComponentHost>> changedScHostState : changedScHostStates.entrySet()) {
+            for (Map.Entry<State, ? extends List<ServiceComponentHost>> changedScHostState : changedScHostStates.entrySet()) {
               State newState = changedScHostState.getKey();
 
               if (newState == State.INSTALLED) {
