@@ -172,7 +172,7 @@ kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configura
 
 
 kafka_other_sasl_enabled = not kerberos_security_enabled and check_stack_feature(StackFeature.KAFKA_LISTENERS, stack_version_formatted) and \
-                          check_stack_feature(StackFeature.KAFKA_EXTENDED_SASL_SUPPORT, stack_version_formatted) and \
+                          check_stack_feature(StackFeature.KAFKA_EXTENDED_SASL_SUPPORT, format_stack_version(version_for_stack_feature_checks)) and \
                           (("SASL_PLAINTEXT" in config['configurations']['kafka-broker']['listeners']) or
                           ("PLAINTEXTSASL" in config['configurations']['kafka-broker']['listeners']) or
                           ("SASL_SSL" in config['configurations']['kafka-broker']['listeners']))
