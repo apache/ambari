@@ -35,7 +35,7 @@
     <jbehave.version>4.0.5</jbehave.version>
     <jbehave-selenium>3.5.5</jbehave-selenium>
     <jersey.version>2.23.1</jersey.version>
-    <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
+    <jackson-jaxrs.version>2.9.4</jackson-jaxrs.version>
     <failsafe-plugin.version>2.20</failsafe-plugin.version>
     <forkCount>1</forkCount>
     <docker.host>localhost</docker.host>
@@ -97,12 +97,22 @@
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-logsearch-server</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
@@ -113,6 +123,12 @@
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-logsearch-logfeeder</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
