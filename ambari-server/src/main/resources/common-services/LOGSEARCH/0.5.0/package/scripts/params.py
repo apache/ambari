@@ -115,6 +115,7 @@ infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_sol
 infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
 
 _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
+logsearch_jaas_file = None
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
