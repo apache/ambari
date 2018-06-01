@@ -158,4 +158,5 @@ def check_znode():
     solr_znode=params.logsearch_solr_zk_znode,
     java64_home=params.java64_home,
     retry=30, interval=5,
-    java_opts=params.zk_security_opts if params.security_enabled else None)
+    java_opts=params.zk_security_opts if params.security_enabled else None,
+    jaas_file=params.logsearch_jaas_file)

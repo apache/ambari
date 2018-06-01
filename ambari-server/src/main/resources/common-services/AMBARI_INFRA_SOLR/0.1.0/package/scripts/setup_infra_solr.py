@@ -120,7 +120,7 @@ def setup_solr_znode_env():
     if params.infra_solr_security_json_content and str(params.infra_solr_security_json_content).strip() \
     else format("{infra_solr_conf}/security.json") # security.json file to upload
 
-  create_ambari_solr_znode(java_opts)
+  create_ambari_solr_znode(java_opts, jaas_file)
 
   solr_cloud_util.set_cluster_prop(
     zookeeper_quorum=params.zk_quorum,
@@ -154,10 +154,10 @@ def setup_solr_znode_env():
 
 
 @retry(times=30, sleep_time=5, err_class=Fail)
-def create_ambari_solr_znode(java_opts):
+def create_ambari_solr_znode(java_opts, jaas_file):
   import params
   solr_cloud_util.create_znode(
     zookeeper_quorum=params.zk_quorum,
     solr_znode=params.infra_solr_znode,
     java64_home=params.java64_home,
-    retry=30, interval=5, java_opts=java_opts)
+    retry=30, interval=5, java_opts=java_opts, jaas_file=jaas_file)
