@@ -46,7 +46,7 @@ import com.google.gson.GsonBuilder;
 public class LogSearchConfigZK implements LogSearchConfig {
   private static final Logger LOG = LoggerFactory.getLogger(LogSearchConfigZK.class);
 
-  private static final int SESSION_TIMEOUT = 15000;
+  private static final int SESSION_TIMEOUT = 60000;
   private static final int CONNECTION_TIMEOUT = 30000;
   private static final String DEFAULT_ZK_ROOT = "/logsearch";
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
