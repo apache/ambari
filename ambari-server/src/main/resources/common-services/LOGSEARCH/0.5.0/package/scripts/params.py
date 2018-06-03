@@ -237,7 +237,7 @@ logsearch_admin_content = config['configurations']['logsearch-admin-json']['cont
 if 'ambari_server_host' in config['ambariLevelParams']:
   ambari_server_host = config['ambariLevelParams']['ambari_server_host']
   ambari_server_port = config['ambariLevelParams']['ambari_server_port']
-  ambari_server_use_ssl = config['ambariLevelParams']['ambari_server_use_ssl'] == 'true'
+  ambari_server_use_ssl = config['ambariLevelParams']['ambari_server_use_ssl']
   
   ambari_server_protocol = 'https' if ambari_server_use_ssl else 'http'
 
