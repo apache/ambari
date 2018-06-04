@@ -182,13 +182,18 @@ App.MainAdminStackUpgradeHistoryController = Em.ArrayController.extend({
               data.tasks.forEach(function (task) {
                 var currentTask = item.get('tasks').findProperty('id', task.Tasks.id);
                 this.get('taskDetailsProperties').forEach(function (property) {
-                  currentTask.set(property, task.Tasks[property]);
+                  if (!Em.isNone(task.Tasks[property])) {
+                    currentTask.set(property, task.Tasks[property]);
+                  }
                 }, this);
               }, this);
             } else {
               var tasks = [];
               data.tasks.forEach(function (task) {
-                tasks.pushObject(App.finishedUpgradeEntity.create({type: 'TASK'}, task.Tasks));
+                tasks.pushObject(App.finishedUpgradeEntity.create({
+                  type: 'TASK',
+                  group_id: data.UpgradeItem.group_id
+                }, task.Tasks));
               });
               item.set('tasks', tasks);
             }
@@ -196,6 +201,32 @@ App.MainAdminStackUpgradeHistoryController = Em.ArrayController.extend({
           }
         }, this);
       }
+    }, this);
+  },
+
+  /**
+   * request Upgrade Task
+   * @param {Em.Object} task
+   * @return {$.ajax}
+   */
+  getUpgradeTask: function (task) {
+    return App.ajax.send({
+      name: 'admin.upgrade.upgrade_task',
+      sender: this,
+      data: {
+        upgradeId: task.get('request_id'),
+        groupId: task.get('group_id'),
+        stageId: task.get('stage_id'),
+        taskId: task.get('id'),
+        task: task
+      },
+      success: 'getUpgradeTaskSuccessCallback'
+    });
+  },
+
+  getUpgradeTaskSuccessCallback: function (data, xhr, params) {
+    this.get('taskDetailsProperties').forEach(function (property) {
+      params.task.set(property, data.Tasks[property]);
     }, this);
   },
 
