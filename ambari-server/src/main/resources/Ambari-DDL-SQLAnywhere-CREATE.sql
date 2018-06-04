@@ -299,7 +299,7 @@ CREATE TABLE users (
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
   display_name VARCHAR(255) NOT NULL,
   local_username VARCHAR(255) NOT NULL,
-  create_time TIMESTAMP DEFAULT NOW(),
+  create_time NUMERIC(19) NOT NULL,
   version NUMERIC(19) NOT NULL DEFAULT 0,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
@@ -310,8 +310,8 @@ CREATE TABLE user_authentication (
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
   authentication_key VARCHAR(2048),
-  create_time TIMESTAMP DEFAULT NOW(),
-  update_time TIMESTAMP DEFAULT NOW(),
+  create_time NUMERIC(19) NOT NULL,
+  update_time NUMERIC(19) NOT NULL,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
   CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
@@ -1208,12 +1208,12 @@ insert into adminprincipal (principal_id, principal_type_id)
 
 -- Insert the default administrator user.
 insert into users(user_id, principal_id, user_name, display_name, local_username, create_time)
-  SELECT 1, 1, 'admin', 'Administrator', 'admin', NOW();
+  SELECT 1, 1, 'admin', 'Administrator', 'admin', 0;
 
 -- Insert the LOCAL authentication data for the default administrator user.
 -- The authentication_key value is the salted digest of the password: admin
 insert into user_authentication(user_authentication_id, user_id, authentication_type, authentication_key, create_time, update_time)
-  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', NOW(), NOW();
+  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', 0, 0;
 
 
 insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
