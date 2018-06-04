@@ -153,9 +153,9 @@
             {{/if}}
             {{#if view.hasNameNode}}
               <div class="namenode-metrics dashboard-widgets">
-                <h5 class="text-uppercase">
+                <h5>
                   {{#if App.isHaEnabled}}
-                    {{t dashboard.widgets.nameSpace}}{{#if view.nameNodeComponent.haNameSpace}}: {{view.nameNodeComponent.haNameSpace}}{{/if}}
+                    <span class="text-uppercase">{{t dashboard.widgets.nameSpace}}</span>{{#if view.nameNodeComponent.haNameSpace}}: {{view.nameNodeComponent.haNameSpace}}{{/if}}
                   {{/if}}
                 </h5>
                 <div class="thumbnails">

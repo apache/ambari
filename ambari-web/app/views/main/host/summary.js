@@ -80,16 +80,6 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
             threshold: widgetsDefinitions.NameNodeHeapPieChartView.threshold,
           }
         }),
-        App.NameNodeCapacityPieChartView.extend({
-          model,
-          hostName,
-          widgetHtmlId: 'nn-capacity',
-          title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
-          showActions: false,
-          widget: {
-            threshold: widgetsDefinitions.NameNodeCapacityPieChartView.threshold
-          }
-        }),
         App.NameNodeCpuPieChartView.extend({
           widgetHtmlId: 'nn-cpu',
           title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
