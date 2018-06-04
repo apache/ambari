@@ -27,7 +27,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,12 +46,14 @@ import org.apache.ambari.server.state.StackId;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Injector;
 
 public class AbstractUpgradeCatalogTest {
   private static final String CONFIG_TYPE = "hdfs-site.xml";
-  private final String CLUSTER_NAME = "c1";
-  private final String SERVICE_NAME = "HDFS";
+  private static final String CLUSTER_NAME = "c1";
+  private static final String SERVICE_NAME = "HDFS";
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
   private Injector injector;
@@ -87,7 +88,9 @@ public class AbstractUpgradeCatalogTest {
     expect(configHelper.getStackProperties(cluster)).andReturn(stackProperties).anyTimes();
 
     expect(cluster.getServiceByConfigType("hdfs-site")).andReturn(hdfsMock).atLeastOnce();
-    expect(hdfsMock.getName()).andReturn("HDFS").atLeastOnce();
+    expect(cluster.getServicesByName()).andReturn(ImmutableMap.of(SERVICE_NAME, hdfsMock)).anyTimes();
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(hdfsMock)).anyTimes();
+    expect(hdfsMock.getName()).andReturn(SERVICE_NAME).atLeastOnce();
 
     HashSet<PropertyInfo> serviceProperties = new HashSet<>();
     serviceProperties.add(createProperty(CONFIG_TYPE, "prop1", true, false, false));
@@ -110,13 +113,13 @@ public class AbstractUpgradeCatalogTest {
 
     upgradeCatalog = new AbstractUpgradeCatalog(injector) {
       @Override
-      protected void executeDDLUpdates() throws AmbariException, SQLException { }
+      protected void executeDDLUpdates() { }
 
       @Override
-      protected void executePreDMLUpdates() throws AmbariException, SQLException { }
+      protected void executePreDMLUpdates() { }
 
       @Override
-      protected void executeDMLUpdates() throws AmbariException, SQLException { }
+      protected void executeDMLUpdates() { }
 
       @Override
       public String getTargetVersion() { return null; }

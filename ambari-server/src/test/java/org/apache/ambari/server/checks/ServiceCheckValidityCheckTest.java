@@ -49,6 +49,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provider;
 
 public class ServiceCheckValidityCheckTest {
@@ -106,7 +107,7 @@ public class ServiceCheckValidityCheckTest {
     Cluster cluster = mock(Cluster.class);
     when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
     when(cluster.getClusterId()).thenReturn(CLUSTER_ID);
-    when(cluster.getServicesByName()).thenReturn(ImmutableMap.of(SERVICE_NAME, service));
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(service));
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     when(service.getName()).thenReturn(SERVICE_NAME);
     when(service.getServiceId()).thenReturn(SERVICE_ID);
@@ -192,7 +193,7 @@ public class ServiceCheckValidityCheckTest {
     serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
 
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_ID))).thenReturn(serviceConfigEntity);
-    when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(Collections.<LastServiceCheckDTO>emptyList());
+    when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(Collections.emptyList());
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
@@ -230,8 +231,6 @@ public class ServiceCheckValidityCheckTest {
    * The specific test case here is that the FOO2 service was added a long time
    * ago and then removed. We don't want old service checks for FOO2 to match
    * when querying for FOO.
-   *
-   * @throws AmbariException
    */
   @Test
   public void testPassWhenSimilarlyNamedServiceIsOutdated() throws AmbariException {
