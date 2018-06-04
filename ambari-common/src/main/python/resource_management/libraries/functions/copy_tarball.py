@@ -269,6 +269,13 @@ TARBALL_MAP = {
     "dirs": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN),
              "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "SPARK2"
+  },
+
+  "spark2hive": {
+    "dirs":  ("/tmp/spark2/spark2-{0}-hive-archive.tar.gz".format(STACK_NAME_PATTERN),
+              "/{0}/apps/{1}/spark2/spark2-{0}-hive-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+
+    "service": "SPARK2"
   }
 }
 
@@ -283,7 +290,8 @@ SERVICE_TO_CONFIG_MAP = {
   "hadoop_streaming": "mapred-env",
   "tez_hive2": "hive-env",
   "spark": "spark-env",
-  "spark2": "spark2-env"
+  "spark2": "spark2-env",
+  "spark2hive": "spark2-env"
 }
 
 def get_sysprep_skip_copy_tarballs_hdfs():
