@@ -377,6 +377,7 @@ Em.I18n.translations = {
   'common.with': 'with',
   'common.zookeeper':'ZooKeeper',
   'common.critical.error': 'Critical',
+  'common.mpack': 'Mpack',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
