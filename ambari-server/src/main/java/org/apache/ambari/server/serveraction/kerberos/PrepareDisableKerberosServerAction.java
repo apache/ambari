@@ -98,7 +98,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    Set<String> services = cluster.getServices().keySet();
+    Set<String> services = cluster.getServicesByName().keySet();
     boolean includeAmbariIdentity = "true".equalsIgnoreCase(getCommandParameterValue(commandParameters, KerberosServerAction.INCLUDE_AMBARI_IDENTITY));
     Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
 

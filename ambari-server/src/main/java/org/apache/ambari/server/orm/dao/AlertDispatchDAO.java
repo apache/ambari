@@ -487,7 +487,7 @@ public class AlertDispatchDAO {
     String ambariServiceName = RootService.AMBARI.name();
     if (!ambariServiceName.equals(serviceName)) {
       Cluster cluster = m_clusters.get().getClusterById(clusterId);
-      Map<String, Service> services = cluster.getServices();
+      Map<String, Service> services = cluster.getServicesByName();
 
       if (!services.containsKey(serviceName)) {
         String message = MessageFormat.format(

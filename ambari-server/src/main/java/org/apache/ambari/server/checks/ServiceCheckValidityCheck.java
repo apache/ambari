@@ -101,7 +101,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
     // build a mapping of the last config changes by service
     Map<String, Long> lastServiceConfigUpdates = new HashMap<>();
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServices()) {
       if (service.getMaintenanceState() != MaintenanceState.OFF || !hasAtLeastOneComponentVersionAdvertised(service)) {
         continue;
       }

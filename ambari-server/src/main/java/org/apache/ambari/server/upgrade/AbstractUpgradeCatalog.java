@@ -418,8 +418,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
 
         Set<PropertyInfo> stackProperties = configHelper.getStackProperties(cluster);
-        for(String serviceName: cluster.getServices().keySet()) {
-          Set<PropertyInfo> properties = configHelper.getServiceProperties(cluster, serviceName);
+        for (Service service : cluster.getServices()) {
+          Set<PropertyInfo> properties = configHelper.getServiceProperties(cluster, service);
 
           if (properties == null) {
             continue;
@@ -544,7 +544,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           }
 
           ServiceInfo propertyService = configHelper.getPropertyOwnerService(cluster, configType, propertyName);
-          if(propertyService != null && !cluster.getServices().containsKey(propertyService.getName())) {
+          if(propertyService != null && !cluster.getServicesByName().containsKey(propertyService.getName())) {
             LOG.info("Config " + propertyName + " from " + configType + " with value = " + propertyValue + " " +
                 "Is not added due to service " + propertyService.getName() + " is not in the cluster.");
             continue;
@@ -1118,7 +1118,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     for (final Cluster cluster : clusterMap.values()) {
       long clusterID = cluster.getClusterId();
 
-      Service service = cluster.getServices().get(serviceName);
+      Service service = cluster.getServicesByName().get(serviceName);
       if (null == service) {
         continue;
       }
@@ -1196,7 +1196,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
       comment = "can only take the first stack we find until we can support multiple with Kerberos")
   private StackId getStackId(Cluster cluster) throws AmbariException {
-    return cluster.getServices().values().iterator().next().getStackId();
+    return cluster.getServices().iterator().next().getStackId();
   }
 
   protected void setConfiguration(Configuration configuration) {

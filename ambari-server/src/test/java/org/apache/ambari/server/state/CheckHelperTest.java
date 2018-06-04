@@ -111,7 +111,7 @@ public class CheckHelperTest {
 
     m_services.put("KAFKA", service);
 
-    Mockito.when(cluster.getServices()).thenReturn(new HashMap<>());
+    Mockito.when(cluster.getServicesByName()).thenReturn(new HashMap<>());
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
@@ -184,7 +184,7 @@ public class CheckHelperTest {
 
     m_services.put("KAFKA", service);
 
-    Mockito.when(cluster.getServices()).thenReturn(new HashMap<>());
+    Mockito.when(cluster.getServicesByName()).thenReturn(new HashMap<>());
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
 
     Mockito.when(clusters.getCluster(Mockito.anyString())).thenReturn(cluster);

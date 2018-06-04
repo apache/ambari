@@ -135,7 +135,7 @@ public class ServiceCheckGrouping extends Grouping {
         return result;
       }
 
-      Map<String, Service> serviceMap = m_cluster.getServices();
+      Map<String, Service> serviceMap = m_cluster.getServicesByName();
 
       Set<String> clusterServices = new LinkedHashSet<>(serviceMap.keySet());
 

@@ -416,7 +416,7 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
 
     Set<ServiceDependencyResponse> responses = new HashSet<>();
     if (request.getServiceName() != null) {
-      Collection<Service> services = cluster.getServicesById().values();
+      Collection<Service> services = cluster.getServices();
       for (Service service : services) {
         if (Objects.equals(service.getServiceGroupId(), serviceGroup.getServiceGroupId()) &&
                 service.getName().equals(request.getServiceName())) {
@@ -449,7 +449,7 @@ public class ServiceDependencyResourceProvider extends AbstractControllerResourc
         Cluster cluster = clusters.getCluster(serviceDependencyRequest.getClusterName());
         Service service = null;
 
-        for (Service srv : cluster.getServicesById().values()) {
+        for (Service srv : cluster.getServices()) {
           if (srv.getName().equals(serviceDependencyRequest.getServiceName()) &&
                   srv.getServiceGroupName().equals(serviceDependencyRequest.getServiceGroupName())) {
             service = srv;

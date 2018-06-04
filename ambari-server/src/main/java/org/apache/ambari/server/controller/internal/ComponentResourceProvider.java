@@ -557,7 +557,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     if (StringUtils.isNotEmpty(request.getServiceName())) {
       services.add(getServiceFromCluster(request, cluster));
     } else {
-      services.addAll(cluster.getServices().values());
+      services.addAll(cluster.getServices());
     }
 
     final State desiredStateToCheck = getValidDesiredState(request);
@@ -612,7 +612,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     Collection<ServiceComponentHost> ignoredScHosts = new ArrayList<>();
 
     Set<String> clusterNames = new HashSet<>();
-    Map<String, Map<String, Set<String>>> componentNames = new HashMap<>();
+    Map<String, Set<List<String>>> componentNames = new HashMap<>();
     Set<State> seenNewStates = new HashSet<>();
 
     Collection<ServiceComponent> recoveryEnabledComponents = new ArrayList<>();
@@ -647,17 +647,14 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       Validate.isTrue(clusterNames.size() == 1, "Updates to multiple clusters is not supported");
 
-      if (!componentNames.containsKey(clusterName)) {
-        componentNames.put(clusterName, new HashMap<>());
-      }
-      if (!componentNames.get(clusterName).containsKey(serviceName)) {
-        componentNames.get(clusterName).put(serviceName, new HashSet<>());
-      }
-      if (componentNames.get(clusterName).get(serviceName).contains(componentName)){
-        // throw error later for dup
+      List<String> componentID = ImmutableList.of(request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
+      boolean added = componentNames
+        .computeIfAbsent(request.getClusterName(), __ -> new HashSet<>())
+        .add(componentID);
+
+      if (!added) {
         throw new IllegalArgumentException("Invalid request contains duplicate service components");
       }
-      componentNames.get(clusterName).get(serviceName).add(componentName);
 
       Service s = cluster.getService(serviceGroupName, serviceName);
       ServiceComponent sc = s.getServiceComponent(componentName);

@@ -104,7 +104,7 @@ public class ServicesMaintenanceModeCheckTest {
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     final Service service = Mockito.mock(Service.class);
-    Mockito.when(cluster.getServices()).thenReturn(Collections.singletonMap("service", service));
+    Mockito.when(cluster.getServicesByName()).thenReturn(Collections.singletonMap("service", service));
     Mockito.when(service.isClientOnlyService()).thenReturn(false);
 
     // We don't bother checking service desired state as it's performed by a separate check

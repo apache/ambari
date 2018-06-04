@@ -91,7 +91,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
       componentsFromUpgradePack.addAll(task.keySet());
     }
 
-    for (Service service: cluster.getServices().values()) {
+    for (Service service: cluster.getServices()) {
       for (ServiceComponent serviceComponent: service.getServiceComponents().values()) {
         if (serviceComponent.isMasterComponent() && componentsFromUpgradePack.contains(serviceComponent.getName())) {
           hostsWithMasterComponent.addAll(serviceComponent.getServiceComponentHosts().keySet());

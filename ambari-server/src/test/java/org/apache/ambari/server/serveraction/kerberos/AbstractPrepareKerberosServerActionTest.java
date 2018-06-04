@@ -133,7 +133,7 @@ public class AbstractPrepareKerberosServerActionTest {
     expect(kerberosDescriptor.getProperties()).andReturn(descriptorProperties).atLeastOnce();
     expect(kerberosIdentityDataFileWriterFactory.createKerberosIdentityDataFileWriter((File)anyObject())).andReturn(kerberosIdentityDataFileWriter);
     // it's important to pass a copy of clusterServices
-    expect(cluster.getServices()).andReturn(new HashMap<>(clusterServices)).atLeastOnce();
+    expect(cluster.getServicesByName()).andReturn(new HashMap<>(clusterServices)).atLeastOnce();
 
     expect(serviceComponentHostHDFS.getHostName()).andReturn(hostName).atLeastOnce();
     expect(serviceComponentHostHDFS.getServiceName()).andReturn(hdfsService).atLeastOnce();
