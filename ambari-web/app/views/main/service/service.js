@@ -121,7 +121,12 @@ App.ComponentLiveTextView = Em.View.extend({
 });
 
 App.MainDashboardServiceViewWrapper = Em.Mixin.create({
-  layoutName: require('templates/main/service/service')
+  layoutName: require('templates/main/service/service'),
+
+  mpackVersion: function() {
+    const stackService = App.StackService.find(this.get('controller.content.serviceName'));
+    return `${stackService.get('stackName')} (${stackService.get('stackVersion')})`;
+  }.property('controller.content.serviceName'),
 });
 
 App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrapper, {
@@ -134,11 +139,6 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
   dashboardMasterComponentView: App.SummaryMasterComponentsView.extend({
     mastersComp: Em.computed.alias('parentView.parentView.mastersObj')
   }),
-
-  mpackVersion: function() {
-    const stackService = App.StackService.find(this.get('service.serviceName'));
-    return `${stackService.get('stackName')} (${stackService.get('stackVersion')})`;
-  }.property('service.serviceName'),
 
   alertsCount: Em.computed.alias('service.alertsCount'),
 
