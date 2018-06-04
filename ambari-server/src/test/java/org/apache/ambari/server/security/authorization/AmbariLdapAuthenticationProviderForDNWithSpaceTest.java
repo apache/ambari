@@ -179,6 +179,7 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
     properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), "src/test/resources/mpacks-v2");
     return properties;
   }
 }

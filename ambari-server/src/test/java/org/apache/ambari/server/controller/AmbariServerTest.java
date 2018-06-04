@@ -106,6 +106,7 @@ public class AmbariServerTest {
     Configuration configuration = createNiceMock(Configuration.class);
     SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
     SessionCookieConfig sessionCookieConfig = createNiceMock(SessionCookieConfig.class);
+    expect(sessionHandler.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
 
     sessionHandlerConfigurer.configuration = configuration;
 
@@ -241,8 +242,6 @@ public class AmbariServerTest {
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
-    final MpackManagerFactory mpackManagerFactory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
-    final RootLevelSettingsManagerFactory rootLevelSettingsManagerFactory = easyMockSupport.createNiceMock(RootLevelSettingsManagerFactory.class);
     AmbariServer ambariServer = new AmbariServer();
 
 
@@ -258,7 +257,8 @@ public class AmbariServerTest {
 
 
     final Injector mockInjector = createMockInjector(mockAmbariMetainfo,
-        mockDBDbAccessor, mockOSFamily, mockEntityManager, mockClusters, mockConfiguration, rootLevelSettingsManagerFactory, mpackManagerFactory);
+        mockDBDbAccessor, mockOSFamily, mockEntityManager, mockClusters, mockConfiguration
+    );
 
 
     expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection).atLeastOnce();
@@ -321,7 +321,8 @@ public class AmbariServerTest {
     replay(mockConfiguration);
 
     final Injector mockInjector = createMockInjector(mockAmbariMetainfo,
-        mockDBDbAccessor, mockOSFamily, mockEntityManager, mockClusters, mockConfiguration, rootLevelSettingsManagerFactory, mpackManagerFactory);
+        mockDBDbAccessor, mockOSFamily, mockEntityManager, mockClusters, mockConfiguration
+    );
 
 
     expect(mockDBDbAccessor.getConnection()).andReturn(null);
@@ -346,11 +347,12 @@ public class AmbariServerTest {
   }
 
   private Injector createMockInjector(final AmbariMetaInfo mockAmbariMetainfo,
-                                      final DBAccessor mockDBDbAccessor,
-                                      final OsFamily mockOSFamily,
-                                      final EntityManager mockEntityManager,
-                                      final Clusters mockClusters,
-                                      final Configuration mockConfiguration, final RootLevelSettingsManagerFactory mockRootLevelSettingsManagerFactory, MpackManagerFactory mockMpackManagerFactory) {
+    final DBAccessor mockDBDbAccessor,
+    final OsFamily mockOSFamily,
+    final EntityManager mockEntityManager,
+    final Clusters mockClusters,
+    final Configuration mockConfiguration
+  ) {
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -363,8 +365,6 @@ public class AmbariServerTest {
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(Clusters.class).toInstance(mockClusters);
         bind(Configuration.class).toInstance(mockConfiguration);
-        bind(RootLevelSettingsManagerFactory.class).toInstance(mockRootLevelSettingsManagerFactory);
-        bind(MpackManagerFactory.class).toInstance(mockMpackManagerFactory);
       }
     });
   }

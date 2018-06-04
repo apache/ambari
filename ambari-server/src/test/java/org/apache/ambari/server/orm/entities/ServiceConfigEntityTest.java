@@ -29,19 +29,19 @@ public class ServiceConfigEntityTest {
   @Test
   public void testSettersGetters() {
     ServiceConfigEntity entity = new ServiceConfigEntity();
-    //entity.setServiceName("foo");
+    entity.setServiceId(1L);
     entity.setUser("bar");
     entity.setNote("note");
-    entity.setVersion(1L);
-    entity.setServiceConfigId(1L);
-    entity.setClusterId(1L);
+    entity.setVersion(2L);
+    entity.setServiceConfigId(3L);
+    entity.setClusterId(4L);
     entity.setCreateTimestamp(1111L);
-    assertEquals("foo", entity.getServiceName());
+    assertEquals(Long.valueOf(1L), entity.getServiceId());
     assertEquals("bar", entity.getUser());
     assertEquals("note", entity.getNote());
-    assertEquals(Long.valueOf(1), entity.getVersion());
-    assertEquals(Long.valueOf(1), entity.getServiceConfigId());
-    assertEquals(Long.valueOf(1), entity.getClusterId());
+    assertEquals(Long.valueOf(2), entity.getVersion());
+    assertEquals(Long.valueOf(3), entity.getServiceConfigId());
+    assertEquals(Long.valueOf(4), entity.getClusterId());
     assertEquals(Long.valueOf(1111), entity.getCreateTimestamp());
   }
 

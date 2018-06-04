@@ -87,6 +87,7 @@ import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -94,11 +95,14 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -110,6 +114,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -135,8 +140,10 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
@@ -809,7 +816,7 @@ public class UpgradeCatalog260Test {
     final ClusterMetadataGenerator metadataGenerator = createMock(ClusterMetadataGenerator.class);
     expect(metadataGenerator.getClusterMetadataOnConfigsUpdate(eq(cluster)))
         .andReturn(createNiceMock(MetadataUpdateEvent.class))
-        .once();
+        .anyTimes();
 
     replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller, stackId, metadataGenerator);
 
@@ -915,7 +922,7 @@ public class UpgradeCatalog260Test {
         .addMockedMethod("createConfiguration")
         .addMockedMethod("getClusters", new Class[] { })
         .addMockedMethod("createConfig")
-        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .withConstructor(createNiceMock(ActionManager.class), clusters, createNiceMock(ClusterMetadataGenerator.class), injector)
         .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -971,13 +978,16 @@ public class UpgradeCatalog260Test {
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
 
-    replay(injector, clusters, mockHsiConfigs);
+    AgentConfigsHolder agentConfigsHolder = createNiceMock(AgentConfigsHolder.class);
+    MetadataHolder metadataHolder = createNiceMock(MetadataHolder.class);
+    ClusterMetadataGenerator metadataGenerator = easyMockSupport.createNiceMock(ClusterMetadataGenerator.class);
+    replay(injector, clusters, mockHsiConfigs, agentConfigsHolder, metadataGenerator, metadataHolder);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
             .addMockedMethod("createConfiguration")
             .addMockedMethod("getClusters", new Class[] { })
             .addMockedMethod("createConfig")
-            .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+            .withConstructor(createNiceMock(ActionManager.class), clusters, metadataGenerator, injector)
             .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -989,6 +999,9 @@ public class UpgradeCatalog260Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
             anyObject(Map.class), anyLong())).andReturn(config).once();
     expect(cluster.getConfig(anyString(), anyString())).andReturn(config);
+    expect(injector2.getInstance(ClusterMetadataGenerator.class)).andReturn(metadataGenerator).anyTimes();
+    expect(injector2.getInstance(MetadataHolder.class)).andReturn(metadataHolder).anyTimes();
+    expect(injector2.getInstance(AgentConfigsHolder.class)).andReturn(agentConfigsHolder).anyTimes();
     replay(controller, injector2, config, cluster);
 
     // This tests the update of HSI config 'hive.llap.daemon.keytab.file'.
@@ -1069,7 +1082,16 @@ public class UpgradeCatalog260Test {
         bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(StateUpdateEventPublisher.class).toInstance(createNiceMock(StateUpdateEventPublisher.class));
+        bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
+        bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+        bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+        bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
+        bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+        bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+        bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
       }
     });
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -1129,6 +1151,13 @@ public class UpgradeCatalog260Test {
         binder.bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
         binder.bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
+        binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        binder.bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+        binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+        binder.bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
+        binder.bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+        binder.bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+        binder.bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
 
         binder.install(new FactoryModuleBuilder().build(RequestFactory.class));
         binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));

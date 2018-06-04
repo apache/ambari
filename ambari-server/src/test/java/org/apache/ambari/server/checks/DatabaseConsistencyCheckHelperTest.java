@@ -494,23 +494,11 @@ public class DatabaseConsistencyCheckHelperTest {
     final ServiceInfo mockHDFSServiceInfo = easyMockSupport.createNiceMock(ServiceInfo.class);
 
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
-    final MpackManagerFactory mockMpackManagerFacgtory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
+    final MpackManagerFactory mockMpackManagerFactory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(RootLevelSettingsManagerFactory.class).toInstance(rootLevelSettingsManagerFactoryMock);
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
-        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
-        bind(EntityManager.class).toInstance(mockEntityManager);
-        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(OsFamily.class).toInstance(mockOSFamily);
-        bind(MpackManagerFactory.class).toInstance(mockMpackManagerFacgtory);
-      }
-    });
+    final Injector mockInjector = createInjectorWithAmbariMetaInfo(mockAmbariMetainfo, mockDBDbAccessor, rootLevelSettingsManagerFactoryMock, mockStackManagerFactory, mockEntityManager, mockClusters, mockOSFamily, mockMpackManagerFactory);
 
     Map<String, ServiceInfo> services = new HashMap<>();
     services.put("HDFS", mockHDFSServiceInfo);

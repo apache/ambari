@@ -23,6 +23,7 @@
     <actionName>customAction1</actionName>
     <actionType>USER</actionType>
     <inputs>threshold</inputs>
+    <targetServiceGroup>HDPCORE</targetServiceGroup>
     <targetService>MAPREDUCE</targetService>
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>
@@ -32,6 +33,7 @@
   <actionDefinition>
     <actionName>customAction2</actionName>
     <actionType>USER</actionType>
+    <targetServiceGroup>HDPCORE</targetServiceGroup>
     <targetService>MAPREDUCE</targetService>
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>
@@ -40,6 +42,7 @@
   <actionDefinition>
     <actionName>customAction3</actionName>
     <actionType>USER</actionType>
+    <targetServiceGroup>HDPCORE</targetServiceGroup>
     <targetService>MAPREDUCE</targetService>
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>
@@ -47,6 +50,7 @@
   <actionDefinition>
     <actionName>customAction4</actionName>
     <actionType>USERS_OWN</actionType>
+    <targetServiceGroup>HDPCORE</targetServiceGroup>
     <targetService>MAPREDUCE</targetService>
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>
