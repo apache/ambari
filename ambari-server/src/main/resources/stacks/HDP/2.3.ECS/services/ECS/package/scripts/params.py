@@ -63,7 +63,7 @@ hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 

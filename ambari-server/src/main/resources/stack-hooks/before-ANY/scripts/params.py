@@ -48,7 +48,7 @@ stack_root = Script.get_stack_root()
 
 architecture = get_architecture()
 
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = default("/ambariLevelParams/jdk_name", None)

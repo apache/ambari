@@ -109,7 +109,7 @@ if solr_hdfs_path:
   hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
   hdfs_user_keytab = params.config['configurations']['hadoop-env']['hdfs_user_keytab']
 
-  dfs_type = default("/commandParams/dfs_type", "")
+  dfs_type = default("/clusterLevelParams/dfs_type", "")
 
   hdfs_site = params.config['configurations']['hdfs-site']
   default_fs = params.config['configurations']['core-site']['fs.defaultFS']

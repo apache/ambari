@@ -558,6 +558,7 @@ public class ExecutionCommand extends AgentCommand {
     String AGENT_STACK_RETRY_ON_UNAVAILABILITY = "agent_stack_retry_on_unavailability";
     String AGENT_STACK_RETRY_COUNT = "agent_stack_retry_count";
     String LOG_OUTPUT = "log_output";
+    String DFS_TYPE = "dfs_type";
 
     /**
      * A boolean indicating whether configuration tags should be refreshed

@@ -180,7 +180,7 @@ if falcon_atlas_support:
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 bdb_jar_name = "je-5.0.73.jar"
 bdb_resource_name = format("{jdk_location}/{bdb_jar_name}")

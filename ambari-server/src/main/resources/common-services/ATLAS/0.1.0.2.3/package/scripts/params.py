@@ -325,7 +325,7 @@ if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
   hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None
   hdfs_site = config['configurations']['hdfs-site']
   default_fs = config['configurations']['core-site']['fs.defaultFS']
-  dfs_type = default("/commandParams/dfs_type", "")
+  dfs_type = default("/clusterLevelParams/dfs_type", "")
 
   import functools
   from resource_management.libraries.resources.hdfs_resource import HdfsResource

@@ -253,7 +253,7 @@ hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 # create partial functions with common arguments for every HdfsResource call
 # to create hdfs directory we need to call params.HdfsResource in code

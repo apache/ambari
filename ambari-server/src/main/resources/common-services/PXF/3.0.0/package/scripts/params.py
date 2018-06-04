@@ -78,7 +78,7 @@ hdfs_user_keytab = default('configurations/hadoop-env/hdfs_user_keytab', None)
 hdfs_principal_name = default('configurations/hadoop-env/hdfs_principal_name', None)
 hbase_user_keytab = default('configurations/hbase-env/hbase_user_keytab', None)
 hbase_principal_name = default('configurations/hbase-env/hbase_principal_name', None)
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,

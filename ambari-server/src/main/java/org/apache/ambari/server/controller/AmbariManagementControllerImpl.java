@@ -31,6 +31,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DFS_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
@@ -5765,6 +5766,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
+
+    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
+    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
+      if (serviceInfoInstance.getServiceType() != null) {
+        LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
+            serviceInfoInstance.getName());
+
+        clusterLevelParams.put(DFS_TYPE, serviceInfoInstance.getServiceType());
+        break;
+      }
+    }
 
     return clusterLevelParams;
   }
