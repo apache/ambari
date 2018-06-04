@@ -138,6 +138,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String INPUTS_ID = "parameters";
   public static final String EXCLUSIVE_ID = "exclusive";
   public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
+  public static final String CONTEXT = "context";
 
   private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(REQUEST_ID_PROPERTY_ID);
 

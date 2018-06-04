@@ -163,8 +163,7 @@ public class AmbariMetricsHadoopSinkVersionCompatibilityCheck extends AbstractCh
 
     Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "CHECK_HADOOP_SINK_VERSION");
-    requestInfoProperties.put(RequestResourceProvider.REQUEST_CONTEXT_ID, "Pre Upgrade check for compatible Hadoop Metric " +
-      "Sink version on all hosts.");
+    requestInfoProperties.put(RequestResourceProvider.CONTEXT, "Pre Upgrade check for Hadoop Metric Sink version");
 
     Request request = PropertyHelper.getCreateRequest(propertiesSet, requestInfoProperties);
     try {
