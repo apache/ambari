@@ -135,6 +135,11 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
     mastersComp: Em.computed.alias('parentView.parentView.mastersObj')
   }),
 
+  mpackVersion: function() {
+    const stackService = App.StackService.find(this.get('service.serviceName'));
+    return `${stackService.get('stackName')} (${stackService.get('stackVersion')})`;
+  }.property('service.serviceName'),
+
   alertsCount: Em.computed.alias('service.alertsCount'),
 
   hasCriticalAlerts: Em.computed.alias('service.hasCriticalAlerts'),
