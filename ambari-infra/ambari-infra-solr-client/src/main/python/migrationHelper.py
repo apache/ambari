@@ -923,7 +923,7 @@ def backup_collections(options, accessor, parser, config, service_filter):
       print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(vertex_index_collection)
     edge_index_collection = config.get('atlas_collections', 'edge_index_name')
     if edge_index_collection in collections:
-      edge_index_location = get_atlas_index_location(vertex_index_collection, config, options)
+      edge_index_location = get_atlas_index_location(edge_index_collection, config, options)
       do_backup_request(options, accessor, parser, config, edge_index_collection, edge_index_location)
     else:
       print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(edge_index_collection)
