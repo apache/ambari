@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.state.Cluster;
@@ -117,6 +118,8 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityWhenClusterIsNotKerberized() throws Exception {
     reset(cluster);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
+    expect(cluster.getUpgradeInProgress()).andReturn(null).once();
+
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
     verifyAll();
@@ -137,6 +140,24 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
     expectLastCall().once();
     replayAll();
     uninstallService(HDFS, hdfsComponents());
+    verifyAll();
+  }
+
+  /**
+   * Ensures that when an upgrade is in progress, new requests are not created
+   * to remove identities since it would interfere with the long running
+   * upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void skipsRemovingIdentityWhenClusterIsUpgrading() throws Exception {
+    installComponent(OOZIE, OOZIE_SERVER, HOST);
+    reset(cluster);
+    expect(cluster.getUpgradeInProgress()).andReturn(createNiceMock(UpgradeEntity.class)).once();
+
+    replayAll();
+    uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
     verifyAll();
   }
 
@@ -280,5 +301,6 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
     expect(cluster.getServices()).andReturn(installedServices).anyTimes();
+    expect(cluster.getUpgradeInProgress()).andReturn(null).once();
   }
 }
