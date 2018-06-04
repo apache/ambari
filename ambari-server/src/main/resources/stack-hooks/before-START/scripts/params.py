@@ -58,7 +58,7 @@ stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
 component_list = default("/localComponents", [])
 

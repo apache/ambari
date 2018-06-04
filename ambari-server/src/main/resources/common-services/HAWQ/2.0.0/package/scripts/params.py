@@ -74,7 +74,7 @@ if dfs_nameservice is None:
  dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
 
 hawq_global_rm_type = default('/configurations/hawq-site/hawq_global_rm_type', None)
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,

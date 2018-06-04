@@ -33,7 +33,7 @@ from string import lower
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 is_parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
 host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
