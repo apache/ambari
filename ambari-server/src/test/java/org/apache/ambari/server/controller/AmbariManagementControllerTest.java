@@ -757,8 +757,8 @@ public class AmbariManagementControllerTest {
 
     try {
       set1.clear();
-      ServiceRequest valid1 = new ServiceRequest(cluster1, serviceGroupName, "HDFS", null, null, null);
-      ServiceRequest valid2 = new ServiceRequest(cluster1, serviceGroupName, "HDFS", null, null, null);
+      ServiceRequest valid1 = new ServiceRequest(cluster1, serviceGroupName, "HDFS", null, null, "true");
+      ServiceRequest valid2 = new ServiceRequest(cluster1, serviceGroupName, "HDFS", null, null, "false");
       set1.add(valid1);
       set1.add(valid2);
       ServiceResourceProviderTest.createServices(controller, set1);
@@ -1032,9 +1032,9 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       ServiceComponentRequest rInvalid1 =
-          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", "HDFS_CLIENT", null);
+          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", "HDFS_CLIENT", State.INSTALLED.name());
       ServiceComponentRequest rInvalid2 =
-          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", "HDFS_CLIENT", null);
+          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", "HDFS_CLIENT", State.STARTED.name());
       set1.add(rInvalid1);
       set1.add(rInvalid2);
       ComponentResourceProviderTest.createComponents(controller, set1);
@@ -8571,7 +8571,7 @@ public class AmbariManagementControllerTest {
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getService(null, "service1")).andReturn(service);
 
     HostComponentStateDAO hostComponentStateDAO = createMock(HostComponentStateDAO.class);
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = createMock(ServiceComponentDesiredStateDAO.class);
@@ -8621,7 +8621,7 @@ public class AmbariManagementControllerTest {
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andThrow(new ServiceNotFoundException("custer1", "service1"));
+    expect(cluster.getService(null, "service1")).andThrow(new ServiceNotFoundException("custer1", "service1"));
 
     HostComponentStateDAO hostComponentStateDAO = createMock(HostComponentStateDAO.class);
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = createMock(ServiceComponentDesiredStateDAO.class);
@@ -8685,10 +8685,10 @@ public class AmbariManagementControllerTest {
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
-    expect(cluster.getService("service1")).andReturn(service1);
-    expect(cluster.getService("service2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));
-    expect(cluster.getService("service3")).andThrow(new ServiceNotFoundException("cluster1", "service3"));
-    expect(cluster.getService("service4")).andReturn(service2);
+    expect(cluster.getService(null, "service1")).andReturn(service1);
+    expect(cluster.getService(null, "service2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));
+    expect(cluster.getService(null, "service3")).andThrow(new ServiceNotFoundException("cluster1", "service3"));
+    expect(cluster.getService(null, "service4")).andReturn(service2);
 
     expect(service1.convertToResponse()).andReturn(response);
     expect(service2.convertToResponse()).andReturn(response2);

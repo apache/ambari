@@ -427,7 +427,7 @@ public class ViewRegistryTest {
       Map<String, Cluster> allClusters = new HashMap<>();
       expect(cluster.getClusterName()).andReturn("c1").anyTimes();
       expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
-      expect(cluster.getServicesByName()).andReturn(serviceMap).anyTimes();
+      expect(cluster.getServices()).andReturn(serviceMap.values()).anyTimes();
       allClusters.put("c1", cluster);
       expect(clusters.getClusters()).andReturn(allClusters);
 
@@ -1896,13 +1896,14 @@ public class ViewRegistryTest {
     Map<String, Service> serviceMap = new HashMap<>();
     for (String serviceName : serviceNames) {
       serviceMap.put(serviceName, service);
-      expect(cluster.getService(serviceName)).andReturn(service);
+      expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
     }
 
     expect(clusters.getClusterById(99L)).andReturn(cluster);
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getServicesByName()).andReturn(serviceMap).anyTimes();
+    expect(cluster.getServices()).andReturn(serviceMap.values()).anyTimes();
     expect(service.getStackId()).andReturn(stackId).anyTimes();
 
     Capture<ViewInstanceEntity> viewInstanceCapture = EasyMock.newCapture();
