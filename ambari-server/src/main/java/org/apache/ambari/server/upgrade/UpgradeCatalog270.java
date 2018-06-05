@@ -22,8 +22,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -323,6 +326,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    * @see #updateUsersTable()
    */
   protected void upgradeUserTables() throws SQLException {
+    convertUserCreationTimeToLong();
     createUserAuthenticationTable();
     updateGroupMembershipRecords();
     updateAdminPrivilegeRecords();
@@ -550,6 +554,65 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   }
 
   /**
+   * In order to save the epoch equivalent of users.create_time we need to convert data in this column as follows:
+   * <ol>
+   * <li>creating a temporary column where we store the numeric representation of
+   * the timestamp
+   * <li>populating data in the temporary column
+   * <li>removing original column column
+   * <li>renaming the temporary column to the original column
+   * </ol>
+   *
+   * @throws SQLException
+   *           if an error occurs while executing SQL statements
+   *
+   */
+  private void convertUserCreationTimeToLong() throws SQLException {
+    if (!isUserCreationTimeMigrated()) {
+      LOG.info("Converting user creation times...");
+      final String temporaryColumnName = USERS_CREATE_TIME_COLUMN + "_numeric";
+      if (!dbAccessor.tableHasColumn(USERS_TABLE, temporaryColumnName)) {
+        final DBAccessor.DBColumnInfo tempColumnInfo = new DBAccessor.DBColumnInfo(temporaryColumnName, Long.class);
+        dbAccessor.addColumn(USERS_TABLE, tempColumnInfo);
+      }
+
+      if (dbAccessor.tableHasColumn(USERS_TABLE, USERS_CREATE_TIME_COLUMN)) {
+        final Map<Integer, Timestamp> currentUserCreateTimes = fetchCurrentUserCreateTimesNotYetMigrated(temporaryColumnName);
+        for (Map.Entry<Integer, Timestamp> currentUserCreateTime : currentUserCreateTimes.entrySet()) {
+          dbAccessor.updateTable(USERS_TABLE, temporaryColumnName, currentUserCreateTime.getValue().getTime(),
+              "WHERE " + USERS_USER_ID_COLUMN + "=" + currentUserCreateTime.getKey());
+        }
+
+        dbAccessor.dropColumn(USERS_TABLE, USERS_CREATE_TIME_COLUMN);
+      }
+
+      final DBAccessor.DBColumnInfo usersCreateTimeColumnInfo = new DBAccessor.DBColumnInfo(USERS_CREATE_TIME_COLUMN, Long.class, null, null, false);
+      dbAccessor.renameColumn(USERS_TABLE, temporaryColumnName, usersCreateTimeColumnInfo);
+      LOG.info("Converted user creation times");
+    } else {
+      LOG.info("Already converted user creation timestamps to EPOCH representation");
+    }
+  }
+
+  private boolean isUserCreationTimeMigrated() throws SQLException {
+    final int columnType = dbAccessor.getColumnType(USERS_TABLE, USERS_CREATE_TIME_COLUMN);
+    LOG.info(USERS_TABLE + "." + USERS_CREATE_TIME_COLUMN + "'s type = " + columnType);
+    return columnType != Types.DATE && columnType != Types.TIMESTAMP;
+  }
+
+  private Map<Integer, Timestamp> fetchCurrentUserCreateTimesNotYetMigrated(String temporaryColumnName) throws SQLException {
+    final Map<Integer, Timestamp> currentUserCreateTimes = new HashMap<>();
+    try (
+        PreparedStatement pstmt = dbAccessor.getConnection().prepareStatement("SELECT " + USERS_USER_ID_COLUMN + ", " + USERS_CREATE_TIME_COLUMN + " FROM " + USERS_TABLE + " WHERE " + temporaryColumnName + " IS NULL ORDER BY " + USERS_USER_ID_COLUMN);
+        ResultSet rs = pstmt.executeQuery()) {
+      while (rs.next()) {
+        currentUserCreateTimes.put(rs.getInt(1), rs.getTimestamp(2));
+      }
+    }
+    return currentUserCreateTimes;
+  }
+
+  /**
    * If the <code>users</code> table has not yet been migrated, create the <code>user_authentication</code>
    * table and generate relevant records for that table based on data in the <code>users</code> table.
    * <p>
@@ -570,8 +633,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_ID_COLUMN, Integer.class, null, null, false));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN, String.class, 50, null, false));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN, String.class, 2048, null, true));
-      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Timestamp.class, null, null, true));
-      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_UPDATE_TIME_COLUMN, Timestamp.class, null, null, true));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Long.class, null, null, true));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_UPDATE_TIME_COLUMN, Long.class, null, null, true));
 
       // Make sure the temporary table does not exist
       dbAccessor.dropTable(temporaryTable);

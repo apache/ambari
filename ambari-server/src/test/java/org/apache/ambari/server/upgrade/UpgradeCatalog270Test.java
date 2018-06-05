@@ -96,6 +96,7 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.STAGE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.UNIQUE_USERS_0_INDEX;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.UNI_KKP;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_CONSECUTIVE_FAILURES_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_CREATE_TIME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_DISPLAY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_LDAP_USER_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_LOCAL_USERNAME_COLUMN;
@@ -136,14 +137,18 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -424,6 +429,10 @@ public class UpgradeCatalog270Test {
     dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
     expectLastCall().once();
 
+    //upgradeUserTable - converting users.create_time to long
+    Capture<DBAccessor.DBColumnInfo> temporaryColumnCreationCapture = newCapture(CaptureType.ALL);
+    Capture<DBAccessor.DBColumnInfo> temporaryColumnRenameCapture = newCapture(CaptureType.ALL);
+
     // upgradeUserTable - create user_authentication table
     Capture<List<DBAccessor.DBColumnInfo>> createUserAuthenticationTableCaptures = newCapture(CaptureType.ALL);
     Capture<List<DBAccessor.DBColumnInfo>> createMembersTableCaptures = newCapture(CaptureType.ALL);
@@ -443,6 +452,7 @@ public class UpgradeCatalog270Test {
     // Any return value will work here as long as a SQLException is not thrown.
     expect(dbAccessor.getColumnType(USERS_TABLE, USERS_USER_TYPE_COLUMN)).andReturn(0).anyTimes();
 
+    prepareConvertingUsersCreationTime(dbAccessor, temporaryColumnCreationCapture, temporaryColumnRenameCapture);
     prepareCreateUserAuthenticationTable(dbAccessor, createUserAuthenticationTableCaptures);
     prepareUpdateGroupMembershipRecords(dbAccessor, createMembersTableCaptures);
     prepareUpdateAdminPrivilegeRecords(dbAccessor, createAdminPrincipalTableCaptures);
@@ -555,6 +565,7 @@ public class UpgradeCatalog270Test {
     Assert.assertEquals(State.UNKNOWN, capturedLastValidColumn.getDefaultValue());
     Assert.assertEquals(String.class, capturedLastValidColumn.getType());
 
+    validateConvertingUserCreationTime(temporaryColumnCreationCapture,temporaryColumnRenameCapture);
     validateCreateUserAuthenticationTable(createUserAuthenticationTableCaptures);
     validateUpdateGroupMembershipRecords(createMembersTableCaptures);
     validateUpdateAdminPrivilegeRecords(createAdminPrincipalTableCaptures);
@@ -609,6 +620,33 @@ public class UpgradeCatalog270Test {
     return module;
   }
 
+  private void prepareConvertingUsersCreationTime(DBAccessor dbAccessor, Capture<DBAccessor.DBColumnInfo> temporaryColumnCreationCapture,
+      Capture<DBAccessor.DBColumnInfo> temporaryColumnRenameCapture) throws SQLException {
+    expect(dbAccessor.getColumnType(USERS_TABLE, USERS_CREATE_TIME_COLUMN)).andReturn(Types.TIMESTAMP).once();
+    final String temporaryColumnName = USERS_CREATE_TIME_COLUMN + "_numeric";
+    expect(dbAccessor.tableHasColumn(USERS_TABLE, temporaryColumnName)).andReturn(Boolean.FALSE);
+    dbAccessor.addColumn(eq(USERS_TABLE), capture(temporaryColumnCreationCapture));
+    expect(dbAccessor.tableHasColumn(USERS_TABLE, USERS_CREATE_TIME_COLUMN)).andReturn(Boolean.TRUE);
+
+    final Connection connectionMock = niceMock(Connection.class);
+    expect(dbAccessor.getConnection()).andReturn(connectionMock).once();
+    final PreparedStatement preparedStatementMock = niceMock(PreparedStatement.class);
+    expect(connectionMock.prepareStatement(anyString())).andReturn(preparedStatementMock);
+    final ResultSet resultSetMock = niceMock(ResultSet.class);
+    expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+    expect(resultSetMock.next()).andReturn(Boolean.TRUE).once();
+    expect(resultSetMock.getInt(1)).andReturn(1);
+    expect(resultSetMock.getTimestamp(2)).andReturn(new Timestamp(1l));
+    replay(connectionMock, preparedStatementMock, resultSetMock);
+
+    expect(dbAccessor.updateTable(eq(USERS_TABLE), eq(temporaryColumnName), eq(1l), anyString())).andReturn(anyInt());
+
+    dbAccessor.dropColumn(USERS_TABLE, USERS_CREATE_TIME_COLUMN);
+    expectLastCall().once();
+
+    dbAccessor.renameColumn(eq(USERS_TABLE), eq(temporaryColumnName), capture(temporaryColumnRenameCapture));
+  }
+
   private void prepareCreateUserAuthenticationTable(DBAccessor dbAccessor, Capture<List<DBAccessor.DBColumnInfo>> capturedData)
       throws SQLException {
 
@@ -632,6 +670,12 @@ public class UpgradeCatalog270Test {
     expect(dbAccessor.executeUpdate(startsWith("insert into " + USER_AUTHENTICATION_TABLE))).andReturn(1).once();
   }
 
+  private void validateConvertingUserCreationTime(Capture<DBAccessor.DBColumnInfo> temporaryColumnCreationCapture, Capture<DBAccessor.DBColumnInfo> temporaryColumnRenameCapture) {
+    Assert.assertTrue(temporaryColumnCreationCapture.hasCaptured());
+    Assert.assertTrue(temporaryColumnRenameCapture.hasCaptured());
+    assertEquals(new DBAccessor.DBColumnInfo(USERS_CREATE_TIME_COLUMN, Long.class, null, null, false), temporaryColumnRenameCapture.getValue());
+  }
+
   private void validateCreateUserAuthenticationTable(Capture<List<DBAccessor.DBColumnInfo>> capturedData) {
     Assert.assertTrue(capturedData.hasCaptured());
     List<List<DBAccessor.DBColumnInfo>> capturedValues = capturedData.getValues();
@@ -643,8 +687,8 @@ public class UpgradeCatalog270Test {
               new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_ID_COLUMN, Integer.class, null, null, false),
               new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN, String.class, 50, null, false),
               new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN, String.class, 2048, null, true),
-              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Timestamp.class, null, null, true),
-              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_UPDATE_TIME_COLUMN, Timestamp.class, null, null, true)
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Long.class, null, null, true),
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_UPDATE_TIME_COLUMN, Long.class, null, null, true)
           )
       );
     }
