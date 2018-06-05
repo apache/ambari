@@ -25,6 +25,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.source import Template
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.resources.zkmigrator import ZkMigrator
+from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
@@ -59,11 +60,15 @@ class InfraSolr(Script):
     setup_solr_znode_env()
     start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' 2>&1') \
             if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} 2>&1')
+
+    check_process = format("{sudo} test -f {infra_solr_pidfile} && {sudo} pgrep -F {infra_solr_pidfile}")
+
     piped_start_cmd = format('{start_cmd} | tee {infra_solr_log}') + '; (exit "${PIPESTATUS[0]}")'
     Execute(
       piped_start_cmd,
       environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
       user=params.infra_solr_user,
+      not_if=check_process,
       logoutput=True
     )
 
@@ -77,7 +82,6 @@ class InfraSolr(Script):
       Execute(piped_stop_cmd,
               environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
               user=params.infra_solr_user,
-              only_if=format("test -f {prev_infra_solr_pidfile}"),
               logoutput=True
               )
 
@@ -155,6 +159,18 @@ class InfraSolr(Script):
     context.use_repos['ambari']=get_ambari_repo_file_full_name()
     pkg_provider.remove_package('ambari-infra-solr', context, ignore_dependencies=True)
     pkg_provider.upgrade_package('ambari-infra-solr', context)
+
+  def get_log_folder(self):
+    import params
+    return params.infra_solr_log_dir
+
+  def get_user(self):
+    import params
+    return params.infra_solr_user
+
+  def get_pid_files(self):
+    import status_params
+    return [status_params.infra_solr_pidfile]
 
 if __name__ == "__main__":
   InfraSolr().execute()
