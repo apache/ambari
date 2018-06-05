@@ -146,15 +146,15 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   }
 
   @Subscribe
-  public void onServiceComponentRecoveryChanged(MaintenanceModeEvent event) throws AmbariException {
+  public void onMaintenanceModeChanged(MaintenanceModeEvent event) throws AmbariException {
     long clusterId = event.getClusterId();
     Cluster cluster = clusters.getCluster(clusterId);
     if (event.getHost() != null || event.getServiceComponentHost() != null) {
-      Host host = event.getHost() != null ? event.getHost() : cluster.getHost(event.getServiceComponentHost().getHostName());
+      Host host = event.getHost() != null ? event.getHost() : event.getServiceComponentHost().getHost();
       updateDataOfHost(clusterId, cluster, host);
     }
     else if (event.getService() != null) {
-      for (String hostName : cluster.getService(event.getService().getName()).getServiceHosts()) {
+      for (String hostName : event.getService().getServiceHosts()) {
         updateDataOfHost(clusterId, cluster, cluster.getHost(hostName));
       }
     }
