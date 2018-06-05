@@ -47,9 +47,6 @@ public class MetadataCluster {
     this.statusCommandsToRun  = new HashSet<>();
     if (securityType != null) {
       this.statusCommandsToRun.add("STATUS");
-      if (SecurityType.KERBEROS.equals(securityType)) {
-        this.statusCommandsToRun.add("SECURITY_STATUS");
-      }
     }
     this.fullServiceLevelMetadata = fullServiceLevelMetadata;
     this.serviceLevelParams = serviceLevelParams;
