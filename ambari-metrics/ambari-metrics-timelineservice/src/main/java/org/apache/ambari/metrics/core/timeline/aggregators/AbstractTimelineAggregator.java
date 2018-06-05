@@ -271,6 +271,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
       LOG.debug("Query issued @: " + new Date());
       if (condition.doUpdate()) {
+        conn.setAutoCommit(true);
         int rows = stmt.executeUpdate();
         conn.commit();
         LOG.info(rows + " row(s) updated in aggregation.");

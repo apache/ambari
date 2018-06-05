@@ -316,6 +316,7 @@ public class PhoenixHBaseAccessor {
     Connection conn = null;
     PreparedStatement metricRecordStmt = null;
     List<TimelineMetric> transientMetrics = new ArrayList<>();
+    int rowCount = 0;
 
     try {
       conn = getConnection();
@@ -339,6 +340,7 @@ public class PhoenixHBaseAccessor {
                   metric.getMetricValues());
 
           if (aggregates[3] != 0.0) {
+            rowCount++;
             byte[] uuid = metadataManagerInstance.getUuid(metric, true);
             if (uuid == null) {
               LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
@@ -358,6 +360,12 @@ public class PhoenixHBaseAccessor {
             } catch (SQLException sql) {
               LOG.error("Failed on insert records to store.", sql);
             }
+
+            if (rowCount >= PHOENIX_MAX_MUTATION_STATE_SIZE - 1) {
+              conn.commit();
+              rowCount = 0;
+            }
+
           } else {
             LOG.debug("Discarding empty metric record for : [" + metric.getMetricName() + "," +
               metric.getAppId() + "," +
