@@ -65,7 +65,7 @@ public class MpackDAO extends CrudDAO<MpackEntity, Long> {
    * @return the mpack or {@code null} if none exists.
    */
   @RequiresSession
-  public MpackEntity findById(long id) {
+  public MpackEntity findById(Long id) {
     return m_entityManagerProvider.get().find(MpackEntity.class, id);
   }
 

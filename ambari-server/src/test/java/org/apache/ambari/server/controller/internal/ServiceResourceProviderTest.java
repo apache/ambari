@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -55,6 +57,7 @@ import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -86,6 +89,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * ServiceResourceProvider tests.
@@ -138,11 +142,13 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getService("Service100")).andReturn(null);
+    expect(cluster.getServices()).andReturn(Collections.emptySet()).anyTimes();
+    String serviceGroupName = "SERVICE_GROUP";
+    expect(cluster.getService(serviceGroupName, "Service100")).andReturn(null);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
-    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup);
+    expect(cluster.getServiceGroup(serviceGroupName)).andReturn(serviceGroup);
     expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
     expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
     expect(service.getServiceGroupId()).andReturn(1L).anyTimes();
@@ -169,7 +175,7 @@ public class ServiceResourceProviderTest {
     // add properties to the request map
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, "SERVICE_GROUP");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, serviceGroupName);
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
 
     propertySet.add(properties);
@@ -182,6 +188,111 @@ public class ServiceResourceProviderTest {
     // verify
     verify(managementController, clusters, serviceGroup, cluster, service,
         ambariMetaInfo, serviceFactory, serviceInfo);
+  }
+
+  @Test
+  public void createServicesInDifferentServiceGroups() throws Exception {
+    String clusterName = "cl1";
+    String serviceName = "HADOOP_CLIENTS";
+    StackId hdpcoreStackId = new StackId("HDPCORE", "1.0.0-b123");
+    StackId odsStackId = new StackId("ODS", "1.0.0-b111");
+
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    expect(cluster.getService(anyString(), anyString())).andReturn(null);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    Set<Map<String, Object>> propertySet = new HashSet<>();
+    long serviceGroupId = 1;
+    for (StackId stackId : asList(hdpcoreStackId, odsStackId)) {
+      ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
+      Service service = createNiceMock(Service.class);
+      ServiceResponse response = createNiceMock(ServiceResponse.class);
+
+      expect(cluster.addService(eq(serviceGroup), eq(serviceName), eq(serviceName))).andReturn(service).anyTimes();
+      expect(cluster.getServiceGroup(stackId.getStackName())).andReturn(serviceGroup).anyTimes();
+      expect(cluster.getServiceGroup(serviceGroupId)).andReturn(serviceGroup).anyTimes();
+      expect(serviceGroup.getStackId()).andReturn(hdpcoreStackId).anyTimes();
+      expect(service.getServiceGroupId()).andReturn(serviceGroupId).anyTimes();
+      expect(service.convertToResponse()).andReturn(response).anyTimes();
+
+      replay(serviceGroup, service, response);
+      ++serviceGroupId;
+
+      propertySet.add(ImmutableMap.of(
+        ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName,
+        ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, serviceName,
+        ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, stackId.getStackName()
+      ));
+    }
+
+    expect(ambariMetaInfo.isValidService(anyString(), anyString(), anyString())).andReturn(true).anyTimes();
+    expect(ambariMetaInfo.getService(anyString(), anyString(), anyString())).andReturn(serviceInfo).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, serviceInfo);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+    ResourceProvider provider = getServiceProvider(managementController);
+    provider.createResources(request);
+  }
+
+  @Test(expected = ResourceAlreadyExistsException.class)
+  public void createDuplicateServices() throws Exception {
+    String clusterName = "cl1";
+    String serviceName = "SOME_SERVICE";
+    StackId stackId = new StackId("HDPCORE", "1.0.0-b123");
+
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    expect(cluster.getService(stackId.getStackName(), serviceName)).andReturn(null);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
+    Service service = createNiceMock(Service.class);
+
+    expect(cluster.getServiceGroup(stackId.getStackName())).andReturn(serviceGroup).anyTimes();
+    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup).anyTimes();
+    expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
+    expect(service.getServiceGroupId()).andReturn(1L).anyTimes();
+
+    Map<String, Object> serviceRequestProperties = ImmutableMap.of(
+      ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName,
+      ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, serviceName,
+      ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, stackId.getStackName()
+    );
+    Map<String, Object> almostIdenticalCopy = ImmutableMap.<String, Object>builder().putAll(serviceRequestProperties).put(ServiceResourceProvider.SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID, "false").build();
+    Set<Map<String, Object>> propertySet = ImmutableSet.of(almostIdenticalCopy, serviceRequestProperties);
+
+    expect(ambariMetaInfo.isValidService(anyString(), anyString(), anyString())).andReturn(true).anyTimes();
+    expect(ambariMetaInfo.getService(anyString(), anyString(), anyString())).andReturn(serviceInfo).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, serviceInfo, serviceGroup, service);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+    ResourceProvider provider = getServiceProvider(managementController);
+    provider.createResources(request);
   }
 
   @Test
@@ -233,8 +344,10 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service2);
+    Map<Long, Service> servicesById = ImmutableMap.of(1L, service0, 2L, service1, 3L, service2, 4L, service3, 5L, service4);
+    expect(cluster.getServicesById()).andReturn(servicesById).anyTimes();
+    expect(cluster.getServices()).andReturn(servicesById.values()).anyTimes();
+    expect(cluster.getService(null, "Service102")).andReturn(service2).anyTimes();
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
     expect(service1.convertToResponse()).andReturn(serviceResponse1).anyTimes();
@@ -340,9 +453,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -351,8 +461,7 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -408,9 +517,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -419,8 +525,7 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -475,9 +580,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -486,8 +588,7 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -544,9 +645,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -555,8 +653,7 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
-    expect(cluster.getService("KERBEROS")).andReturn(service0);
+    expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
 
@@ -640,7 +737,9 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
+    expect(cluster.getServicesById()).andReturn(ImmutableMap.of(1L, service0)).anyTimes();
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(service0)).anyTimes();
+    expect(cluster.getService(null, "Service102")).andReturn(service0).anyTimes();
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service0.getServiceComponents()).andReturn(Collections.emptyMap()).anyTimes();
@@ -687,8 +786,7 @@ public class ServiceResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    ServiceResourceProvider provider = getServiceProvider(managementController,
-        maintenanceStateHelper);
+    ServiceResourceProvider provider = getServiceProvider(managementController);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -762,7 +860,7 @@ public class ServiceResourceProviderTest {
     expect(managementController2.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
+    expect(cluster.getService(null, "Service102")).andReturn(service0).anyTimes();
 
     expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
     expect(stackId.getStackName()).andReturn("HDP").anyTimes();
@@ -821,11 +919,9 @@ public class ServiceResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    ServiceResourceProvider provider1 = getServiceProvider(managementController1,
-        maintenanceStateHelper);
+    ServiceResourceProvider provider1 = getServiceProvider(managementController1, maintenanceStateHelper, null);
 
-    ServiceResourceProvider provider2 = getServiceProvider(managementController2,
-        maintenanceStateHelper);
+    ServiceResourceProvider provider2 = getServiceProvider(managementController2, maintenanceStateHelper, null);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -886,13 +982,13 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
     expect(service.getCluster()).andReturn(cluster);
-    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup);
-    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
+    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup).anyTimes();
+    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup).anyTimes();
     //expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
     expect(service.getServiceGroupId()).andReturn(1L).anyTimes();
 
@@ -939,7 +1035,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
@@ -994,7 +1090,7 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(scMap);
@@ -1083,7 +1179,7 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
-    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(cluster.getService(null, serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();  // Service is in a non-removable state
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(scMap).anyTimes();
@@ -1147,12 +1243,7 @@ public class ServiceResourceProviderTest {
   @Test
   public void testCheckPropertyIds() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
-    MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
-    replay(maintenanceStateHelperMock);
-
-    AbstractResourceProvider provider = new ServiceResourceProvider(managementController,
-        maintenanceStateHelperMock);
+    AbstractResourceProvider provider = getServiceProvider(managementController);
 
     Set<String> unsupported = provider.checkPropertyIds(
         Collections.singleton(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
@@ -1266,11 +1357,6 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(
-        ImmutableMap.<String, Service>builder()
-          .put("Service100", service1)
-          .put("Service200", service2).build()).anyTimes();
-
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
@@ -1322,8 +1408,11 @@ public class ServiceResourceProviderTest {
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(ServiceComponentHost.class))).andReturn(true).anyTimes();
 
-    replay(maintenanceStateHelperMock);
-    return getServiceProvider(managementController, maintenanceStateHelperMock);
+    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
+
+    replay(maintenanceStateHelperMock, topologyDeleteFormer);
+
+    return getServiceProvider(managementController, maintenanceStateHelperMock, topologyDeleteFormer);
   }
 
   /**
@@ -1331,15 +1420,16 @@ public class ServiceResourceProviderTest {
    */
   public static ServiceResourceProvider getServiceProvider(
       AmbariManagementController managementController,
-      MaintenanceStateHelper maintenanceStateHelper) {
-    return new ServiceResourceProvider(managementController, maintenanceStateHelper);
+      MaintenanceStateHelper maintenanceStateHelper, TopologyDeleteFormer topologyDeleteFormer) {
+    return new ServiceResourceProvider(managementController, maintenanceStateHelper, topologyDeleteFormer);
 
   }
 
   public static void createServices(AmbariManagementController controller,Set<ServiceRequest> requests)
       throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
-    ServiceResourceProvider provider = getServiceProvider(controller, maintenanceStateHelperMock);
+    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
+    ServiceResourceProvider provider = getServiceProvider(controller, maintenanceStateHelperMock, topologyDeleteFormer);
     provider.createServices(requests);
   }
 
@@ -1370,7 +1460,7 @@ public class ServiceResourceProviderTest {
       throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     ServiceResourceProvider provider;
     if (maintenanceStateHelper != null) {
-      provider = getServiceProvider(controller, maintenanceStateHelper);
+      provider = getServiceProvider(controller, maintenanceStateHelper, null);
     } else {
       provider = getServiceProvider(controller);
     }

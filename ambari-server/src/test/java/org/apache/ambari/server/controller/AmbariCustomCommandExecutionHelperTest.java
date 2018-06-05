@@ -23,7 +23,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERS
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -152,10 +151,10 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariManagementController = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
 
-    expect(configHelper.getPropertyValuesWithPropertyType(EasyMock.anyObject(StackId.class),
+    expect(configHelper.getPropertiesWithPropertyType(EasyMock.anyObject(StackId.class),
         EasyMock.anyObject(PropertyInfo.PropertyType.class),
         EasyMock.anyObject(Cluster.class),
-        EasyMock.anyObject(Map.class))).andReturn(Collections.EMPTY_SET);
+        EasyMock.anyObject(Map.class))).andReturn(Collections.emptyMap());
 
     replay(configHelper);
 
@@ -165,7 +164,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     createClusterFixture("c1", new StackId("HDP-2.0.6"), "2.0.6-1234", "c1");
 
-    EasyMock.verify(configHelper);
     EasyMock.reset(configHelper);
 
     expect(hostRoleCommand.getTaskId()).andReturn(1L);
@@ -571,7 +569,6 @@ public class AmbariCustomCommandExecutionHelperTest {
    * This should cause Ambari to execute service check on dependent service client component.
    *
    * Also assures that service check doesn't works without dependency defined
-   * @throws Exception
    */
   @Test
   public void testServiceCheckRunsOnDependentClientService() throws Exception {
@@ -599,6 +596,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     //add host with client only
     addHost("c1-c6403", "c1");
+    clusters.updateHostMappings(clusters.getHost("c1-c6403"));
 
     createService("c1", "CORE", "HADOOP_CLIENTS");
     createServiceComponent("c1", "CORE", "HADOOP_CLIENTS", "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", State.INIT);
@@ -740,7 +738,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Gson gson = new Gson();
 
     ActionManager manager = createNiceMock(ActionManager.class);
-    StackId stackId = createNiceMock(StackId.class);
+    StackId stackId = new StackId(SOME_STACK_NAME, SOME_STACK_VERSION);
     Cluster cluster = createNiceMock(Cluster.class);
     Injector injector = createNiceMock(Injector.class);
     Configuration configuration = createNiceMock(Configuration.class);
@@ -752,9 +750,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigs);
-    expect(stackId.getStackName()).andReturn(SOME_STACK_NAME).anyTimes();
-    expect(stackId.getStackVersion()).andReturn(SOME_STACK_VERSION).anyTimes();
-    expect(configuration.getMySQLJarName()).andReturn(MYSQL_JAR);
+    expect(configuration.getApiSSLAuthentication()).andReturn(false);
+    expect(configuration.getMySQLJarName()).andReturn(MYSQL_JAR).anyTimes();
     expect(configuration.getJavaHome()).andReturn(JAVA_HOME);
     expect(configuration.getJDKName()).andReturn(JDK_NAME);
     expect(configuration.getJCEName()).andReturn(JCE_NAME);
@@ -770,16 +767,14 @@ public class AmbariCustomCommandExecutionHelperTest {
     expect(configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST))
       .andReturn(notManagedHdfsPathSet);
 
+    replay(configuration);
+
     AmbariConfig ambariConfig = new AmbariConfig(configuration);
-    expect(metadataGenerator.getAmbariConfig()).andReturn(ambariConfig);
+    expect(metadataGenerator.getAmbariConfig()).andReturn(ambariConfig).anyTimes();
 
-    replay(manager, clusters, cluster, injector, stackId, configuration, configHelper, metadataGenerator);
+    replay(manager, cluster, injector, configHelper, metadataGenerator);
 
-    AmbariManagementControllerImpl ambariManagementControllerImpl = createMockBuilder(AmbariManagementControllerImpl.class)
-      .withConstructor(manager, clusters, metadataGenerator, injector)
-      .createNiceMock();
-
-    replay(ambariManagementControllerImpl);
+    AmbariManagementControllerImpl ambariManagementControllerImpl = new AmbariManagementControllerImpl(manager, clusters, metadataGenerator, injector);
 
     // Inject configuration manually
     Class<?> amciClass = AmbariManagementControllerImpl.class;

@@ -220,8 +220,8 @@ public class TopologyManagerTest {
   private final Collection<Component> group2Components = Arrays.asList(new Component("component3"), new Component("component4"));
   private final Collection<String> group2ComponentNames = group2Components.stream().map(Component::getName).collect(toSet());
 
-  private final MpackInstance mpack1 = new MpackInstance("HDPCORE", "1.0.0.0", "http://mpacks.org/hdpcore", null, new Configuration());
-  private final MpackInstance mpack2 = new MpackInstance("HDF", "3.3.0", "http://mpacks.org/hdf", null, new Configuration());
+  private final MpackInstance mpack1 = new MpackInstance("HDPCORE", "HDPCORE", "1.0.0.0", "http://mpacks.org/hdpcore", new Configuration());
+  private final MpackInstance mpack2 = new MpackInstance("HDF", "HDF", "3.3.0", "http://mpacks.org/hdf", new Configuration());
 
   private Map<String, Collection<String>> group1ServiceComponents = new HashMap<>();
   private Map<String, Collection<String>> group2ServiceComponents = new HashMap<>();

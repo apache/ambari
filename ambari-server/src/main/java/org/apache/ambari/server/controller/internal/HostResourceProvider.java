@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -697,27 +696,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             + " clusterName=" + request.getClusterName());
       }
     }
-  }
-
-  public RequestStatusResponse install(final String cluster, final String hostname, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, final boolean skipFailure)
-      throws ResourceAlreadyExistsException,
-      SystemException,
-      NoSuchParentResourceException,
-      UnsupportedPropertyException {
-
-
-    return ((HostComponentResourceProvider) getResourceProvider(Resource.Type.HostComponent)).
-        install(cluster, hostname, skipInstallForComponents, dontSkipInstallForComponents, skipFailure);
-  }
-
-  public RequestStatusResponse start(final String cluster, final String hostname)
-      throws ResourceAlreadyExistsException,
-      SystemException,
-      NoSuchParentResourceException,
-      UnsupportedPropertyException {
-
-    return ((HostComponentResourceProvider) getResourceProvider(Resource.Type.HostComponent)).
-        start(cluster, hostname);
   }
 
   protected Set<HostResponse> getHosts(Set<HostRequest> requests) throws AmbariException {

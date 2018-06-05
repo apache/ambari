@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_MPACK_INSTANCE_PROPERTY;
@@ -44,9 +42,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -56,14 +51,12 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
 
 /**
  * Create a Blueprint instance.
@@ -84,7 +77,7 @@ public class BlueprintFactory {
     BlueprintEntity entity = blueprintDAO.get().findByName(blueprintName);
     if (entity != null) {
       Set<StackId> stackIds = entity.getMpackInstances().stream()
-        .map(m -> new StackId(m.getMpackName(), m.getMpackVersion()))
+        .map(m -> new StackId(m.getMpackType(), m.getMpackVersion()))
         .collect(toSet());
       return new BlueprintImpl(entity, stackIds);
     }
@@ -113,7 +106,7 @@ public class BlueprintFactory {
       if (stackId.isPresent()) {
         String stackName = stackId.get().getStackName();
         String stackVersion = stackId.get().getStackVersion();
-        mpackInstances = Collections.singleton(new MpackInstance(stackName, stackVersion, null, null, Configuration.createEmpty()));
+        mpackInstances = Collections.singleton(new MpackInstance(stackName, stackName, stackVersion, null, Configuration.createEmpty()));
       }
     }
     Set<StackId> stackIds = mpackInstances.stream()
@@ -149,29 +142,6 @@ public class BlueprintFactory {
     return stackName != null && stackVersion != null
       ? Optional.of(new StackId(stackName.toString(), stackVersion.toString()))
       : Optional.empty();
-  }
-
-  /**
-   * Verify that each item in <code>items</code> is defined by only one stack.
-   *
-   * @param items the items to check
-   * @param type string description of the type of items (eg. "Service", or "Component")
-   * @param lookup a function to find the set of stacks that an item belongs to
-   * @throws IllegalArgumentException if some items are defined in multiple stacks
-   */
-  static void verifyStackDefinitionsAreDisjoint(Stream<String> items, String type, Function<String, Set<StackId>> lookup) {
-    Set<Pair<String, Set<StackId>>> definedInMultipleStacks = items
-      .map(s -> Pair.of(s, lookup.apply(s)))
-      .filter(p -> p.getRight().size() > 1)
-      .collect(toCollection(TreeSet::new));
-
-    if (!definedInMultipleStacks.isEmpty()) {
-      String msg = definedInMultipleStacks.stream()
-        .map(p -> String.format("%s %s is defined in multiple stacks: %s", type, p.getLeft(), Joiner.on(", ").join(p.getRight())))
-        .collect(joining("\n"));
-      LOG.error(msg);
-      throw new IllegalArgumentException(msg);
-    }
   }
 
   //todo: Move logic to HostGroupImpl
@@ -227,7 +197,7 @@ public class BlueprintFactory {
       //TODO, might want to add some validation here, to only accept value enum types, rwn
       ProvisionAction provisionAction = componentProperties.containsKey(COMPONENT_PROVISION_ACTION_PROPERTY_ID) ?
         ProvisionAction.valueOf(componentProperties.get(COMPONENT_PROVISION_ACTION_PROPERTY_ID)) : null;
-      components.add(new Component(componentName, new StackId(mpackInstance), serviceInstance, provisionAction));
+      components.add(new Component(componentName, mpackInstance, serviceInstance, provisionAction));
     }
 
     return components;

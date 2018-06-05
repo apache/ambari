@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -164,16 +163,6 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
 
   public StackDefinition getStack() {
     return stack;
-  }
-
-  public Map<String, Map<String, ServiceInstance>> getServicesByMpack() {
-    Map<String, Map<String, ServiceInstance>> result = new HashMap<>();
-    for (MpackInstance mpack : mpacks) {
-      Map<String, ServiceInstance> services = mpack.getServiceInstances().stream()
-        .collect(toMap(ServiceInstance::getName, Function.identity()));
-      result.put(mpack.getMpackName(), services);
-    }
-    return result;
   }
 
   /**

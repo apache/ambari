@@ -234,7 +234,7 @@ public abstract class AbstractCheckDescriptor {
         AmbariMetaInfo metaInfo = ambariMetaInfo.get();
 
         Cluster c = clusters.getCluster(request.getClusterName());
-        Map<String, Service> services = c.getServices();
+        Map<String, Service> services = c.getServicesByName();
 
         LinkedHashSet<String> displays = new LinkedHashSet<>();
         for (String name : names) {

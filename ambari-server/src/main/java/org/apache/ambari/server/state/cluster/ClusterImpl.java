@@ -159,6 +159,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
@@ -439,9 +440,8 @@ public class ClusterImpl implements Cluster {
    * We need this for live status checks.
    */
   private void loadServiceHostComponents() {
-    for (Entry<String, Service> serviceKV : services.entrySet()) {
+    for (Service service : servicesById.values()) {
       /* get all the service component hosts **/
-      Service service = serviceKV.getValue();
       if (!serviceComponentHosts.containsKey(service.getName())) {
         serviceComponentHosts.put(service.getName(), new ConcurrentHashMap<>());
       }
@@ -486,11 +486,9 @@ public class ClusterImpl implements Cluster {
       ServiceGroupEntity serviceGroupEntity = serviceEntity.getClusterServiceGroupEntity();
       StackId stackId = new StackId(serviceGroupEntity.getStack());
       try {
-        if (ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), serviceEntity.getServiceType()) != null) {
+        if (ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), serviceEntity.getServiceType()) != null) {
           Service service = serviceFactory.createExisting(this, getServiceGroup(serviceEntity.getServiceGroupId()), serviceEntity);
           services.put(serviceEntity.getServiceName(), service);
-          stackId = getService(serviceEntity.getServiceName()).getStackId();
           servicesById.put(serviceEntity.getServiceId(), service);
         }
 
@@ -705,7 +703,7 @@ public class ClusterImpl implements Cluster {
     Set<ServiceComponentHostResponse> createdSvcHostCmpnt = new HashSet<>();
     Cluster cluster = null;
     for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
-      Service service = getService(serviceComponentHost.getServiceName());
+      Service service = getService(serviceComponentHost.getServiceGroupName(), serviceComponentHost.getServiceName());
       cluster = service.getCluster();
       ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentHost.getServiceComponentName());
       serviceComponent.addServiceComponentHost(serviceComponentHost);
@@ -931,13 +929,13 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding a new Service, clusterName={}, clusterId={}, serviceName={} serviceType={}",
-            getClusterName(), getClusterId(), service.getName(), service.getServiceType());
+        LOG.debug("Adding a new Service, clusterName={}, clusterId={} serviceGroup={} serviceName={} serviceType={}",
+            getClusterName(), getClusterId(), service.getServiceGroupName(), service.getName(), service.getServiceType());
       }
       //TODO get rid of services map
       services.put(service.getName(), service);
-
       servicesById.put(service.getServiceId(), service);
+
       try {
         loadServiceConfigTypes(service);
       } catch (AmbariException e) {
@@ -973,7 +971,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public Service addDependencyToService(String  serviceGroupName, String serviceName, Long dependencyServiceId) throws AmbariException {
     Service currentService = null;
-    for (Service service : getServicesById().values()) {
+    for (Service service : getServices()) {
       if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
         currentService = service;
       }
@@ -1006,7 +1004,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
 
-      for (Service service : getServicesById().values()) {
+      for (Service service : getServices()) {
 
         if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
           currentService = service;
@@ -1188,13 +1186,18 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, Service> getServices() {
+  public Map<String, Service> getServicesByName() {
     return new HashMap<>(services);
   }
 
   @Override
   public Map<Long, Service> getServicesById() {
     return new HashMap<>(servicesById);
+  }
+
+  @Override
+  public Collection<Service> getServices() {
+    return ImmutableList.copyOf(servicesById.values());
   }
 
   @Override
@@ -1210,7 +1213,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Service getServiceByComponentName(String componentName) throws AmbariException {
-    for (Service service : services.values()) {
+    for (Service service : servicesById.values()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {
         if (component.getName().equals(componentName)) {
           return service;
@@ -1223,7 +1226,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Service getServiceByComponentId(Long componentId) throws AmbariException {
-    for (Service service : services.values()) {
+    for (Service service : servicesById.values()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {
         if (component.getId().equals(componentId)) {
           return service;
@@ -1241,7 +1244,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public String getComponentName(Long componentId) throws AmbariException {
-    for (Service service : services.values()) {
+    for (Service service : servicesById.values()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {
         if (component.getId().equals(componentId)) {
           return component.getName();
@@ -1255,7 +1258,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public String getComponentType(Long componentId) throws AmbariException {
-    for (Service service : services.values()) {
+    for (Service service : servicesById.values()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {
         if (component.getId().equals(componentId)) {
           return component.getType();
@@ -1268,7 +1271,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Long getComponentId(String componentName) throws AmbariException {
-    for (Service service : services.values()) {
+    for (Service service : servicesById.values()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {
         if (component.getName().equals(componentName)) {
           return component.getId();
@@ -1654,7 +1657,7 @@ public class ClusterImpl implements Cluster {
       getClusterId()).append(", desiredStackVersion=").append(
       desiredStackVersion.getStackId()).append(", services=[ ");
     boolean first = true;
-    for (Service s : services.values()) {
+    for (Service s : servicesById.values()) {
       if (!first) {
         sb.append(" , ");
       }
@@ -1686,7 +1689,7 @@ public class ClusterImpl implements Cluster {
     try {
       LOG.info("Deleting all services for cluster" + ", clusterName="
         + getClusterName());
-      for (Service service : services.values()) {
+      for (Service service : servicesById.values()) {
         if (!service.canBeRemoved()) {
           throw new AmbariException(
             "Found non removable service when trying to"
@@ -1696,7 +1699,7 @@ public class ClusterImpl implements Cluster {
       }
 
       DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
-      for (Service service : services.values()) {
+      for (Service service : ImmutableList.copyOf(servicesById.values())) {
         deleteService(service, deleteMetaData);
         topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
       }
@@ -1887,7 +1890,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.readLock().lock();
     try {
       boolean safeToRemove = true;
-      for (Service service : services.values()) {
+      for (Service service : servicesById.values()) {
         if (!service.canBeRemoved()) {
           safeToRemove = false;
           LOG.warn("Found non removable service" + ", clusterName="
@@ -2207,10 +2210,6 @@ public class ClusterImpl implements Cluster {
     return getServiceOrNull(resultingServiceIds.get(0));
   }
 
-  private boolean isServiceInstalled(String serviceName) {
-    return services.get(serviceName) != null;
-  }
-
   @Override
   public ServiceConfigVersionResponse setServiceConfigVersion(Long serviceId, Long version, String user, String note) throws AmbariException {
     if (null == user) {
@@ -2497,10 +2496,9 @@ public class ClusterImpl implements Cluster {
 
   //TODO this needs to be reworked to support multiple instance of same service
   @Transactional
-  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException{
-
-List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
-Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getType).collect(toList()));
+  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException {
+    List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
+    Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getType).collect(toList()));
     Long resultingServiceId = null;
     for (Config config : configs) {
       for (Long serviceId : serviceConfigTypes.keySet()) {
@@ -2754,7 +2752,7 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
    */
   @Override
   public Set<String> getHosts(String serviceName, String componentName) {
-    Map<String, Service> clusterServices = getServices();
+    Map<String, Service> clusterServices = getServicesByName();
 
     if (!clusterServices.containsKey(serviceName)) {
       return Collections.emptySet();
@@ -3399,7 +3397,7 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
   public Map<String, Map<String, String>> getComponentVersionMap() {
     Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
 
-    for (Service service : getServices().values()) {
+    for (Service service : getServices()) {
       Map<String, String> componentMap = new HashMap<>();
       for (ServiceComponent component : service.getServiceComponents().values()) {
         // skip components which don't advertise a version

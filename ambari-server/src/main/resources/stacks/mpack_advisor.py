@@ -870,7 +870,8 @@ class MpackAdvisorImpl(MpackAdvisor):
 
     recommendations = {
       "blueprint": {
-        "host_groups": [ ]
+        "host_groups": [ ],
+        "mpack_instances": []
       },
       "blueprint_cluster_binding": {
         "host_groups": [ ]
@@ -949,6 +950,22 @@ class MpackAdvisorImpl(MpackAdvisor):
       host_group_name = "host-group-{0}".format(index)
       host_groups.append({"name": host_group_name, "components": hostsComponentsMap[key]})
       bindings.append({"name": host_group_name, "hosts": [{"fqdn": key}]})
+
+    """
+        Add mpack_instances block
+        """
+    mpackInstances = recommendations["blueprint"]["mpack_instances"]
+    for mpackInstanceName, serviceInstances in self.mpackServiceInstancesDict.items():
+      mpackInstance = {}
+      mpackInstance["name"] = mpackInstanceName
+      mpackInstance["version"] = serviceInstances[0].getMpackVersion()
+      mpackInstance["service_instances"] = []
+      mpackInstances.append(mpackInstance)
+      for serviceInstance in serviceInstances:
+        serviceName = serviceInstance.getType()
+        serviceInstanceConfigurations = {"name": serviceName, "type": serviceInstance.getType(), \
+                                         "version": serviceInstance.getVersion(), "configurations": {}}
+        mpackInstance.get("service_instances").append(serviceInstanceConfigurations)
 
     return recommendations
 
@@ -1283,9 +1300,9 @@ class MpackAdvisorImpl(MpackAdvisor):
       if nodeManagerHosts:
         nodeManagerHost = nodeManagerHosts[0];
         for nmHost in nodeManagerHosts:
-          if nmHost[0]["Hosts"]["total_mem"]/nmHost[1] < nodeManagerHost[0]["Hosts"]["total_mem"]/nodeManagerHost[1]:
+          if nmHost["Hosts"]["total_mem"] < nodeManagerHost["Hosts"]["total_mem"]:
             nodeManagerHost = nmHost
-        host = nodeManagerHost[0]["Hosts"]
+        host = nodeManagerHost["Hosts"]
         cluster["referenceNodeManagerHost"] = host
       else:
         host = hosts["items"][0]["Hosts"]
@@ -1878,9 +1895,10 @@ class MpackAdvisorImpl(MpackAdvisor):
     else:
       return {"min": 1, "max": 1}
 
-  def isServiceDeployed(self, serviceInstances, serviceName):
-    servicesInstancesList = [serviceInstance.getType() for serviceInstance in se]
-    return serviceName in servicesList
+  # TODO : Uncomment the below function after fixing it. AMBARI-24031 tracks it.
+  #def isServiceDeployed(self, serviceInstances, serviceName):
+  #  servicesInstancesList = [serviceInstance.getType() for serviceInstance in se]
+  #  return serviceName in servicesList
 
   def getHostForComponent(self, component, hostsList):
     if len(hostsList) == 0:

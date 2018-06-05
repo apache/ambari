@@ -1076,7 +1076,7 @@ public class UpgradeCatalog260Test {
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
     }}).anyTimes();
-    expect(cluster.getServices()).andReturn(Collections.singletonMap("HDFS", service)).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(Collections.singletonMap("HDFS", service)).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(service.getStackId()).andReturn(stackId).anyTimes();
     expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);

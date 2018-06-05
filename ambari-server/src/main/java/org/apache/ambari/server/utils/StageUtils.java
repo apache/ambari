@@ -316,9 +316,7 @@ public class StageUtils {
 
     // Fill hosts for services
     Map<String, SortedSet<Integer>> hostRolesInfo = new HashMap<>();
-    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
-
-      Service service = serviceEntry.getValue();
+    for (Service service : cluster.getServices()) {
 
       for (Map.Entry<String, ServiceComponent> serviceComponentEntry : service.getServiceComponents().entrySet()) {
 
@@ -387,7 +385,7 @@ public class StageUtils {
         if (null == roleName) {
           // even though all mappings are being added, componentToClusterInfoKeyMap is
           // a higher priority lookup
-          for (Service service : cluster.getServices().values()) {
+          for (Service service : cluster.getServices()) {
             for (ServiceComponent sc : service.getServiceComponents().values()) {
               if (!sc.isClientComponent() && sc.getName().equals(hostComponent)) {
                 roleName = hostComponent.toLowerCase() + "_hosts";

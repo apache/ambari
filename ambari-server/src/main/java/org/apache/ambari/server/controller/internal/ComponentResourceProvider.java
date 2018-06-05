@@ -68,6 +68,7 @@ import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -393,7 +394,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     ServiceComponentFactory serviceComponentFactory = getManagementController().getServiceComponentFactory();
 
     // do all validation checks
-    Map<String, Map<String, Set<String>>> componentNames = new HashMap<>();
+    Map<String, Set<List<String>>> componentNames = new HashMap<>();
     Set<String> duplicates = new HashSet<>();
 
     for (ServiceComponentRequest request : requests) {
@@ -413,21 +414,16 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       debug("Received a createComponent request: {}", request);
 
-      if (!componentNames.containsKey(request.getClusterName())) {
-        componentNames.put(request.getClusterName(), new HashMap<>());
-      }
+      List<String> componentID = ImmutableList.of(request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
+      boolean added = componentNames
+        .computeIfAbsent(request.getClusterName(), __ -> new HashSet<>())
+        .add(componentID);
 
-      Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
-      if (!serviceComponents.containsKey(request.getServiceName())) {
-        serviceComponents.put(request.getServiceName(), new HashSet<String>());
-      }
-
-      if (serviceComponents.get(request.getServiceName()).contains(request.getComponentName())) {
+      if (!added) {
         // throw error later for dup
         duplicates.add(request.toString());
         continue;
       }
-      serviceComponents.get(request.getServiceName()).add(request.getComponentName());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         Validate.isTrue(State.INIT == State.valueOf(request.getDesiredState()),
@@ -462,9 +458,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
     // Validate dups
     if (!duplicates.isEmpty()) {
-      //Java8 has StringJoiner library but ambari is not on Java8 yet.
       throw new DuplicateResourceException("Attempted to create one or more components which already exist:"
-                            + StringUtils.join(duplicates, ","));
+                            + String.join(", ", duplicates));
     }
 
     // now doing actual work
@@ -562,7 +557,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     if (StringUtils.isNotEmpty(request.getServiceName())) {
       services.add(getServiceFromCluster(request, cluster));
     } else {
-      services.addAll(cluster.getServices().values());
+      services.addAll(cluster.getServices());
     }
 
     final State desiredStateToCheck = getValidDesiredState(request);
@@ -617,7 +612,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     Collection<ServiceComponentHost> ignoredScHosts = new ArrayList<>();
 
     Set<String> clusterNames = new HashSet<>();
-    Map<String, Map<String, Set<String>>> componentNames = new HashMap<>();
+    Map<String, Set<List<String>>> componentNames = new HashMap<>();
     Set<State> seenNewStates = new HashSet<>();
 
     Collection<ServiceComponent> recoveryEnabledComponents = new ArrayList<>();
@@ -652,19 +647,16 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       Validate.isTrue(clusterNames.size() == 1, "Updates to multiple clusters is not supported");
 
-      if (!componentNames.containsKey(clusterName)) {
-        componentNames.put(clusterName, new HashMap<>());
-      }
-      if (!componentNames.get(clusterName).containsKey(serviceName)) {
-        componentNames.get(clusterName).put(serviceName, new HashSet<>());
-      }
-      if (componentNames.get(clusterName).get(serviceName).contains(componentName)){
-        // throw error later for dup
+      List<String> componentID = ImmutableList.of(request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
+      boolean added = componentNames
+        .computeIfAbsent(request.getClusterName(), __ -> new HashSet<>())
+        .add(componentID);
+
+      if (!added) {
         throw new IllegalArgumentException("Invalid request contains duplicate service components");
       }
-      componentNames.get(clusterName).get(serviceName).add(componentName);
 
-      Service s = cluster.getService(serviceName);
+      Service s = cluster.getService(serviceGroupName, serviceName);
       ServiceComponent sc = s.getServiceComponent(componentName);
       State newState = getValidDesiredState(request);
 

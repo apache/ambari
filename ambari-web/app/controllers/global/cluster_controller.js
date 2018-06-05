@@ -218,16 +218,36 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   loadClusterDataToModel: function() {
     var self = this;
 
-    this.loadStackServiceComponents(function (data) {
-      data.items.forEach(function (service) {
-        service.StackServices.is_selected = true;
-        service.StackServices.is_installed = false;
-      }, self);
-      App.stackServiceMapper.mapStackServices(data);
-      App.config.setPreDefinedServiceConfigs(true);
-      self.updateLoadStatus('stackComponents');
-      self.loadServicesAndComponents();
+    App.ajax.send({
+      name: 'cluster.service.groups.get',
+      sender: this,
+      success: 'loadStackServices'
     });
+  },
+
+  loadStackServices: function (data) {
+    var stackUrls = [];
+    var self = this;
+    data.items.forEach((servicegroup) => {
+      var serviceStackName = servicegroup.ServiceGroupInfo.mpack_name;
+      var serviceStackVersion = servicegroup.ServiceGroupInfo.mpack_version;
+      stackUrls.push(App.getStackVersionUrl(serviceStackName, serviceStackVersion));
+    });
+    if (stackUrls.length) {
+      this.loadStackServiceComponents(stackUrls, function (stacksData) {
+        stacksData.forEach(function (data) {
+          data.items.forEach(function (service) {
+            service.StackServices.is_selected = true;
+            service.StackServices.is_installed = false;
+          }, self);
+        });
+
+        App.stackServiceMapper.mapStackServices(stacksData);
+        App.config.setPreDefinedServiceConfigs(true);
+        self.updateLoadStatus('stackComponents');
+        self.loadServicesAndComponents();
+      }, 0);
+    }
   },
 
   loadServicesAndComponents: function() {
@@ -344,18 +364,24 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * @param callback
    * @returns {?object}
    */
-  loadStackServiceComponents: function (callback) {
-    var callbackObj = {
-      loadStackServiceComponentsSuccess: callback
-    };
-    return App.ajax.send({
+
+  loadStackServiceComponents: function (stackUrls, callback, stackPosition) {
+    var self = this;
+    App.ajax.send({
       name: 'wizard.service_components',
       data: {
-        stackUrl: App.get('stackVersionURL'),
-        stackVersion: App.get('currentStackVersionNumber')
+        stackUrl: stackUrls[stackPosition]
       },
-      sender: callbackObj,
-      success: 'loadStackServiceComponentsSuccess'
+      sender: this
+    }).then(data => {
+      var stacksData = self.get('stacksData') || [];
+      stacksData.push(data);
+      self.set('stacksData', stacksData);
+      if (stacksData.length === stackUrls.length) {
+        callback(stacksData);
+      } else {
+        self.loadStackServiceComponents(stackUrls, callback, stacksData.length);
+      }
     });
   },
 

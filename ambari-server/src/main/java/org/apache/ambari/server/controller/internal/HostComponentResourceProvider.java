@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -68,6 +67,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -413,15 +413,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return requestStages.getRequestStatusResponse();
   }
 
-
-  // TODO, revisit this extra method, that appears to be used during Add Hosts
-  // TODO, How do we determine the component list for INSTALL_ONLY during an Add Hosts operation? rwn
-  public RequestStatusResponse start(String cluster, String hostName) throws  SystemException,
-    UnsupportedPropertyException, NoSuchParentResourceException {
-
-    return this.start(cluster, hostName, Collections.emptySet(), false);
-  }
-
   public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents, boolean skipFailure) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
@@ -519,7 +510,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts = new HashMap<>();
     Collection<ServiceComponentHost> ignoredScHosts = new ArrayList<>();
     Set<String> clusterNames = new HashSet<>();
-    Map<String, Map<String, Map<String, Set<String>>>> requestClusters = new HashMap<>();
+    Map<String, Set<List<String>>> requestClusters = new HashMap<>();
     Map<ServiceComponentHost, State> directTransitionScHosts = new HashMap<>();
 
     Resource.Type reqOpLvl = determineOperationLevel(requestProperties);
@@ -560,31 +551,14 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
             + " supported");
       }
 
-      // maps of cluster->services, services->components, components->hosts
-      Map<String, Map<String, Set<String>>> clusterServices = requestClusters.get(request.getClusterName());
-      if (clusterServices == null) {
-        clusterServices = new HashMap<>();
-        requestClusters.put(request.getClusterName(), clusterServices);
-      }
+      List<String> hostComponentID = ImmutableList.of(request.getServiceGroupName(), request.getServiceName(), request.getComponentName(), request.getHostname());
+      boolean added = requestClusters
+        .computeIfAbsent(request.getClusterName(), __ -> new HashSet<>())
+        .add(hostComponentID);
 
-      Map<String, Set<String>> serviceComponents = clusterServices.get(request.getServiceName());
-      if (serviceComponents == null) {
-        serviceComponents = new HashMap<>();
-        clusterServices.put(request.getServiceName(), serviceComponents);
-      }
-
-      Set<String> componentHosts = serviceComponents.get(request.getComponentName());
-      if (componentHosts == null) {
-        componentHosts = new HashSet<>();
-        serviceComponents.put(request.getComponentName(), componentHosts) ;
-      }
-
-      if (componentHosts.contains(request.getHostname())) {
+      if (!added) {
         throw new IllegalArgumentException("Invalid request contains duplicate hostcomponents");
       }
-
-      componentHosts.add(request.getHostname());
-
 
       ServiceComponentHost sch = sc.getServiceComponentHost(request.getHostname());
       State oldState = sch.getState();

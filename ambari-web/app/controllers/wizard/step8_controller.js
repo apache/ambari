@@ -162,9 +162,8 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   }.property(),
 
   getSelectedStack: function() {
-    const selectedStack = this.get('content.selectedStack');
-    const stack = this.get('wizardController').getStack(selectedStack.name, selectedStack.version);
-    return stack;    
+    //TODO Remove when cluster don't need stack version, until use version of any mpack
+    return App.Stack.find().objectAt(0);
   },
 
   installedServices: function() {
@@ -926,7 +925,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   createCluster: function () {
     if (!this.get('isInstaller')) return;
-    const selectedStack = this.getSelectedStack()
+    const selectedStack = this.getSelectedStack();
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
@@ -972,6 +971,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       const serviceGroups = mpacks.map(mpack => ({
           "ServiceGroupInfo": {
             "service_group_name": mpack.name,
+            "version": mpack.id
           }
         })
       );

@@ -26,6 +26,8 @@ import ast
 CREATE_MPACK_INSTANCE_ACTION = 'create-mpack-instance'
 SET_MPACK_INSTANCE_ACTION = 'set-mpack-instance'
 GET_CONF_DIR_ACTION = 'get-conf-dir'
+GET_LOG_DIR_ACTION = 'get-log-dir'
+GET_RUN_DIR_ACTION = 'get-run-dir'
 LIST_INSTANCES_ACTION = 'list-instances'
 
 
@@ -34,6 +36,8 @@ def init_action_parser(action, parser):
     CREATE_MPACK_INSTANCE_ACTION: init_create_parser_options,
     SET_MPACK_INSTANCE_ACTION: init_set_parser_options,
     GET_CONF_DIR_ACTION: init_get_parser_options,
+    GET_LOG_DIR_ACTION: init_get_parser_options,
+    GET_RUN_DIR_ACTION: init_get_parser_options,
     LIST_INSTANCES_ACTION: init_get_parser_options
   }
   try:
@@ -152,6 +156,16 @@ def main(options, args):
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
                        components_map=parsed_components_map)
 
+  elif action == GET_LOG_DIR_ACTION:
+    print get_log_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
+                       subgroup_name=options.subgroup_name, module_name=options.module_name,
+                       components_map=parsed_components_map)
+
+  elif action == GET_RUN_DIR_ACTION:
+    print get_run_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
+                       subgroup_name=options.subgroup_name, module_name=options.module_name,
+                       components_map=parsed_components_map)
+
   elif action == LIST_INSTANCES_ACTION:
     print list_instances(mpack=options.mpack, mpack_instance=options.mpack_instance,
                          subgroup_name=options.subgroup_name, module_name=options.module_name,
@@ -161,10 +175,10 @@ def main(options, args):
 if __name__ == "__main__":
   if len(sys.argv) < 2:
     print(
-      "Missing the command. Possible options are: create-mpack-instance|set-mpack-instance|get-conf-dir|list-instances")
+      "Missing the command. Possible options are: create-mpack-instance|set-mpack-instance|get-conf-dir|get-log-dir|get-run-dir|list-instances")
     sys.exit(1)
 
-  usage = "Usage: %prog create-mpack-instance|set-mpack-instance|get-conf-dir|list-instances [options]"
+  usage = "Usage: %prog create-mpack-instance|set-mpack-instance|get-conf-dir|get-log-dir|get-run-dir|list-instances [options]"
   parser = optparse.OptionParser(usage=usage)
   action = sys.argv[1]
   init_action_parser(action, parser)

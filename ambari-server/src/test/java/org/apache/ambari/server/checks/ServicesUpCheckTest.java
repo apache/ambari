@@ -158,7 +158,7 @@ public class ServicesUpCheckTest {
     Mockito.when(tezService.isClientOnlyService()).thenReturn(true);
     Mockito.when(amsService.isClientOnlyService()).thenReturn(false);
 
-    Mockito.when(cluster.getServices()).thenReturn(m_services);
+    Mockito.when(cluster.getServicesByName()).thenReturn(m_services);
 
     Mockito.when(cluster.getService("HDFS")).thenReturn(hdfsService);
     Mockito.when(cluster.getService("TEZ")).thenReturn(tezService);

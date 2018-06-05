@@ -24,41 +24,25 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.state.StackId;
+
+import com.google.common.base.MoreObjects;
 
 public class Component {
 
   private final String name;
-
-  @Nullable
   private final String mpackInstance;
-
-  @Nullable
-  private final StackId stackId;
-
-  @Nullable
   private final String serviceInstance;
   private final ProvisionAction provisionAction;
 
-  @Deprecated
   public Component(String name) {
     this(name, null, null, null);
   }
 
-  public Component(String name, @Nullable String mpackInstance, @Nullable String serviceInstance) {
+  public Component(String name, @Nullable String mpackInstance, @Nullable String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
-    this.stackId = null;
     this.mpackInstance = mpackInstance;
     this.serviceInstance = serviceInstance;
-    this.provisionAction = null;
-  }
-
-  public Component(String name, @Nullable StackId stackId, @Nullable String serviceInstance, ProvisionAction provisionAction) {
-    this.name = name;
-    this.stackId = stackId;
-    this.mpackInstance = null;
-    this.serviceInstance = serviceInstance;
-    this.provisionAction = provisionAction;
+    this.provisionAction = provisionAction != null ? provisionAction : ProvisionAction.INSTALL_AND_START;
   }
 
   /**
@@ -70,21 +54,7 @@ public class Component {
     return this.name;
   }
 
-  /**
-   * @return the mpack associated with this component as {@link String} (can be {@code null} if component -> mpack mapping is unambiguous)
-   */
-  public String getStackIdAsString() {
-    return stackId != null ? stackId.toString() : null;
-  }
-
-  /**
-   * @return the mpack associated with this component as {@link StackId} (can be {@code null} if component -> mpack mapping is unambiguous)
-   */
-  public StackId getStackId() {
-    return stackId;
-  }
-
-
+  @Nullable
   public String getMpackInstance() {
     return this.mpackInstance;
   }
@@ -93,6 +63,7 @@ public class Component {
    * @return the service instance this component belongs to. Can be {@code null} if component does not belong to a service
    * instance (there is a single service of the component's service type)
    */
+  @Nullable
   public String getServiceInstance() {
     return serviceInstance;
   }
@@ -109,9 +80,8 @@ public class Component {
 
   @Override
   public String toString() {
-    return com.google.common.base.Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("name", name)
-      .add("stackId", stackId)
       .add("mpackInstance", mpackInstance)
       .add("serviceInstance", serviceInstance)
       .add("provisionAction", provisionAction)
@@ -125,7 +95,6 @@ public class Component {
     if (o == null || getClass() != o.getClass()) return false;
     Component component = (Component) o;
     return Objects.equals(name, component.name) &&
-      Objects.equals(stackId, component.stackId) &&
       Objects.equals(mpackInstance, component.mpackInstance) &&
       Objects.equals(serviceInstance, component.serviceInstance) &&
       provisionAction == component.provisionAction;
@@ -133,6 +102,6 @@ public class Component {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, stackId, mpackInstance, serviceInstance, provisionAction);
+    return Objects.hash(name, mpackInstance, serviceInstance, provisionAction);
   }
 }

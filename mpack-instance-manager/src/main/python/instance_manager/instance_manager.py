@@ -17,7 +17,7 @@ limitations under the License.
 
 """
 
-__all__ = ["create_mpack", "set_mpack_instance", "get_conf_dir", "list_instances"]
+__all__ = ["create_mpack", "set_mpack_instance", "get_conf_dir", "get_log_dir", "get_run_dir", "list_instances"]
 
 import sys
 import os
@@ -26,6 +26,8 @@ import json
 MPACK_JSON_FILE_NAME = 'mpack.json'
 CURRENT_SOFTLINK_NAME = 'current'
 CONFIGS_DIRECTORY_NAME = 'conf'
+LOG_DIRECTORY_NAME = 'log'
+RUN_DIRECTORY_NAME = 'run'
 
 ROOT_FOLDER_PATH = "/usr/hwx/"
 
@@ -110,6 +112,46 @@ def get_conf_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP
   return build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
                                             output_conf_dir=True)
 
+def get_log_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
+                 components_map=None):
+  """
+  Use case: retrieve log directory paths for a given component instances based on the granularity specified
+            ranging from: mpack, mpack-instance, subgroup-name, module-name and map of component instance
+            AND with a filtering on each level
+
+  Granularity works only while names for all consecutive levels are specified.
+  Note that subgroup has default value of 'default'
+  Levels: mpack/instance/subgroup/module
+  E.g If only mpack and subgroup names are specified, the granularity will work only on mpack level,
+      though the subgroup fitler will be applied. But if the instance name is specified also, than only granular output
+      of subgroup will be returned.
+
+  Components are provided as map with key as 'component type' and value as 'list of individual component instances
+  names' OR empty map for all component instances present
+  """
+  return build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
+                                            output_log_dir=True)
+
+def get_run_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
+                 components_map=None):
+  """
+  Use case: retrieve run directory paths for a given component instances based on the granularity specified
+            ranging from: mpack, mpack-instance, subgroup-name, module-name and map of component instance
+            AND with a filtering on each level
+
+  Granularity works only while names for all consecutive levels are specified.
+  Note that subgroup has default value of 'default'
+  Levels: mpack/instance/subgroup/module
+  E.g If only mpack and subgroup names are specified, the granularity will work only on mpack level,
+      though the subgroup fitler will be applied. But if the instance name is specified also, than only granular output
+      of subgroup will be returned.
+
+  Components are provided as map with key as 'component type' and value as 'list of individual component instances
+  names' OR empty map for all component instances present
+  """
+  return build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
+                                            output_run_dir=True)
+
 
 def list_instances(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
                    components_map=None):
@@ -134,7 +176,7 @@ def list_instances(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGRO
 
 def build_granular_json_with_filtering(mpack_name_filter, instance_name_filter, subgroup_name_filter,
                                        module_name_filter, components_name_filter_map, output_conf_dir=False,
-                                       output_path=False):
+                                       output_log_dir=False, output_run_dir=False, output_path=False):
   """
   Builds the json that contains all instances specified in filters or all instances if filters are not specified.
   The level of granularity depends on the consecutive levels of specified filters
@@ -160,7 +202,7 @@ def build_granular_json_with_filtering(mpack_name_filter, instance_name_filter, 
                      format(mpack_name_filter, instance_name_filter, subgroup_name_filter,
                             module_name_filter, components_name_filter_map))
 
-  full_json_output = build_json_output(instances, output_conf_dir=output_conf_dir, output_path=output_path)
+  full_json_output = build_json_output(instances, output_conf_dir=output_conf_dir, output_log_dir=output_log_dir, output_run_dir=output_run_dir, output_path=output_path)
 
   granular_json_output = build_granular_output(full_json_output, mpack_name_filter, instance_name_filter,
                                                subgroup_name_filter,
@@ -190,14 +232,14 @@ def build_granular_output(json_output, mpack_name_filter, instance_name_filter, 
   return json_output
 
 
-def build_json_output_from_instances_dict(instances_dict, plural_name, output_conf_dir, output_path):
+def build_json_output_from_instances_dict(instances_dict, plural_name, output_conf_dir, output_log_dir, output_run_dir, output_path):
   """
   Build the json from the dictionary of Instance objects.
   The plural_name is used to form the upper level of the json output.
   """
   result = {}
   for instance_name in instances_dict:
-    result[instance_name] = instances_dict[instance_name].build_json_output(output_conf_dir, output_path)
+    result[instance_name] = instances_dict[instance_name].build_json_output(output_conf_dir, output_log_dir, output_run_dir, output_path)
 
   return {plural_name: result}
 
@@ -224,11 +266,11 @@ def get_module_meta_mpack(path, module_name):
   return MetaMpack.parse_mpack(os.path.dirname(current_target))
 
 
-def build_json_output(instances, output_conf_dir=False, output_path=False):
+def build_json_output(instances, output_conf_dir=False, output_log_dir=False, output_run_dir=False, output_path=False):
   result = {}
   for mpack_name in instances.keys():
     result[mpack_name] = build_json_output_from_instances_dict(instances[mpack_name], MpackInstance.plural_name,
-                                                               output_conf_dir, output_path)
+                                                               output_conf_dir, output_log_dir, output_run_dir, output_path)
   return {'mpacks': result}
 
 
@@ -365,7 +407,7 @@ class MetaMpack:
 
 
 class Instance:
-  def build_json_output(self, output_conf_dir, output_path):
+  def build_json_output(self, output_conf_dir, output_log_dir, output_run_dir, output_path):
     raise NotImplementedError("Should have implemented this")
 
 
@@ -377,11 +419,11 @@ class MpackInstance(Instance):
     self.instance_name = instance_name
     self.groups_dict = groups_dict
 
-  def build_json_output(self, output_conf_dir, output_path):
+  def build_json_output(self, output_conf_dir, output_log_dir, output_run_dir, output_path):
     result = {}
     for group in self.groups_dict.keys():
       result[group] = build_json_output_from_instances_dict(self.groups_dict[group], ModuleInstance.plural_name,
-                                                            output_conf_dir, output_path)
+                                                            output_conf_dir, output_log_dir, output_run_dir, output_path)
     return {"subgroups": result, 'name': self.instance_name}
 
   def set_new_version(self, mpack_name, mpack_version):
@@ -536,12 +578,12 @@ class ModuleInstance(Instance):
         print("\nSetting new version for component : " + component_instance.component_path)
         component_instance.set_new_version(mpack_name, mpack_version, component_type)
 
-  def build_json_output(self, output_conf_dir, output_path):
+  def build_json_output(self, output_conf_dir, output_log_dir, output_run_dir, output_path):
     result = {}
     for component_type in self.components_map.keys():
       result[component_type] = build_json_output_from_instances_dict(self.components_map[component_type],
                                                                      ComponentInstance.plural_name,
-                                                                     output_conf_dir, output_path)
+                                                                     output_conf_dir, output_log_dir, output_run_dir, output_path)
     result = {'components': result}
     result['category'] = self.category
     result['name'] = self.module_name
@@ -631,12 +673,18 @@ class ComponentInstance(Instance):
     os.symlink(mpack_path, os.path.join(component_path, CURRENT_SOFTLINK_NAME))
 
     os.makedirs(os.path.join(component_path, CONFIGS_DIRECTORY_NAME))
+    os.makedirs(os.path.join(component_path, LOG_DIRECTORY_NAME))
+    os.makedirs(os.path.join(component_path, RUN_DIRECTORY_NAME))
     print "\n Created " + component_path
 
-  def build_json_output(self, output_conf_dir, output_path):
+  def build_json_output(self, output_conf_dir, output_log_dir, output_run_dir, output_path):
     result = {'name': self.name}
     if output_conf_dir:
       result['config_dir'] = os.path.join(self.component_path, CONFIGS_DIRECTORY_NAME)
+    if output_log_dir:
+      result['log_dir'] = os.path.join(self.component_path, LOG_DIRECTORY_NAME)
+    if output_run_dir:
+      result['run_dir'] = os.path.join(self.component_path, RUN_DIRECTORY_NAME)
     if output_path:
       result['path'] = self.path_exec
     return result

@@ -113,7 +113,7 @@ public class PreUpgradeCheckResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-    expect(cluster.getServices()).andReturn(allServiceMap).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(allServiceMap).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(currentStackId).anyTimes();
 

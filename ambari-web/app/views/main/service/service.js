@@ -121,7 +121,12 @@ App.ComponentLiveTextView = Em.View.extend({
 });
 
 App.MainDashboardServiceViewWrapper = Em.Mixin.create({
-  layoutName: require('templates/main/service/service')
+  layoutName: require('templates/main/service/service'),
+
+  mpackVersion: function() {
+    const stackService = App.StackService.find(this.get('controller.content.serviceName'));
+    return `${stackService.get('stackName')} (${stackService.get('stackVersion')})`;
+  }.property('controller.content.serviceName'),
 });
 
 App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrapper, {
