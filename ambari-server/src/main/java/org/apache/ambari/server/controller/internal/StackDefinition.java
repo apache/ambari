@@ -100,9 +100,9 @@ public interface StackDefinition {
    *
    * @param service  service name
    *
-   * @return collection of all configuration types for the specified service
+   * @return set of all configuration types for the specified service
    */
-  Collection<String> getAllConfigurationTypes(String service);
+  Set<String> getAllConfigurationTypes(String service);
 
   /**
    * Get configuration types for the specified service.

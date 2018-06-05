@@ -60,6 +60,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final Set<StackId> stackIds;
   private final StackDefinition stack;
   private Long clusterId;
+  private String clusterName;
   private final Blueprint blueprint;
   private final Configuration configuration;
   private final ConfigRecommendationStrategy configRecommendationStrategy;
@@ -103,6 +104,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.configuration = request.getConfiguration();
     this.provisionRequest = request;
     this.resolvedComponents = resolvedComponents;
+    clusterName = request.getClusterName();
     configRecommendationStrategy = request.getConfigRecommendationStrategy();
     provisionAction = request.getProvisionAction();
 
@@ -122,6 +124,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Long getClusterId() {
     return clusterId;
+  }
+
+  @Override
+  public String getClusterName() {
+    return clusterName;
   }
 
   public void setClusterId(Long clusterId) {
@@ -374,6 +381,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
   public boolean isComponentHadoopCompatible(String component) {
     return getStack().getServicesForComponent(component)
       .anyMatch(stackIdService -> HADOOP_COMPATIBLE_FS.equals(stackIdService.getRight().getServiceType()));
+  }
+
+  @Override
+  public Set<String> getHostNames() {
+    synchronized(hostGroupInfoMap) {
+      return hostGroupInfoMap.values().stream().flatMap(
+        hg -> hg.getHostNames().stream()
+      ).collect(toSet());
+    }
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {

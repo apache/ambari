@@ -240,7 +240,7 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getServiceForConfigType("testConfigType")).andReturn("KERBEROS").anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(ImmutableSet.of("testConfigType")
     ).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
@@ -324,7 +324,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")).anyTimes();
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(ImmutableSet.of("testConfigType")).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
 

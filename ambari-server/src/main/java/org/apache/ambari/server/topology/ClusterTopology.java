@@ -44,6 +44,11 @@ public interface ClusterTopology {
   Long getClusterId();
 
   /**
+   * @return the cluster name
+   */
+  String getClusterName();
+
+  /**
    * Get the blueprint associated with the cluster.
    *
    * @return associated blueprint
@@ -231,4 +236,6 @@ public interface ClusterTopology {
    * @return true if the given component belongs to a service that has serviceType=HCFS
    */
   boolean isComponentHadoopCompatible(String component);
+
+  Set<String> getHostNames();
 }

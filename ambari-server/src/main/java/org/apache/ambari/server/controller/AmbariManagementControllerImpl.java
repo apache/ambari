@@ -1838,82 +1838,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     //check if desired configs are available in request and they were changed
-    boolean isConfigurationCreationNeeded = false;
-    if (desiredConfigs != null) {
-      for (ConfigurationRequest desiredConfig : desiredConfigs) {
-        Map<String, String> requestConfigProperties = desiredConfig.getProperties();
-        Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
-
-        // processing password properties
-        if(requestConfigProperties != null && !requestConfigProperties.isEmpty()) {
-          Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(
-              desiredConfig.getType()
-          );
-          for (Entry<String, String> property : requestConfigProperties.entrySet()) {
-            String propertyName = property.getKey();
-            String propertyValue = property.getValue();
-            if ((propertiesTypes.containsKey(PropertyType.PASSWORD) &&
-                propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) ||
-                (requestConfigAttributes != null && requestConfigAttributes.containsKey(PASSWORD) &&
-                requestConfigAttributes.get(PASSWORD).containsKey(propertyName) &&
-                requestConfigAttributes.get(PASSWORD).get(propertyName).equals("true"))) {
-              if (SecretReference.isSecret(propertyValue)) {
-                SecretReference ref = new SecretReference(propertyValue, cluster);
-                requestConfigProperties.put(propertyName, ref.getValue());
-              }
-            }
-          }
-        }
-
-        Config clusterConfig = cluster.getDesiredConfigByType(desiredConfig.getType());
-        Map<String, String> clusterConfigProperties = null;
-        Map<String,Map<String,String>> clusterConfigAttributes = null;
-        if (clusterConfig != null) {
-          clusterConfigProperties = clusterConfig.getProperties();
-          clusterConfigAttributes = clusterConfig.getPropertiesAttributes();
-          if (!isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes)){
-            isConfigurationCreationNeeded = true;
-            break;
-          }
-        } else {
-          isConfigurationCreationNeeded = true;
-          break;
-        }
-
-        if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
-          Config existingConfig = cluster.getConfig(desiredConfig.getType(), desiredConfig.getVersionTag());
-          if (existingConfig != null) {
-            if (!StringUtils.equals(existingConfig.getTag(), clusterConfig.getTag())) {
-              isConfigurationCreationNeeded = true;
-              break;
-            }
-          }
-        }
-        if (requestConfigProperties != null && clusterConfigProperties != null) {
-          if (requestConfigProperties.size() != clusterConfigProperties.size()) {
-            isConfigurationCreationNeeded = true;
-            break;
-          } else {
-            if ( cluster.getServiceByConfigType(clusterConfig.getType()) != null &&  clusterConfig.getServiceConfigVersions().isEmpty() ) {
-
-              //If there's no service config versions containing this config (except cluster configs), recreate it even if exactly equal
-              LOG.warn("Existing desired config doesn't belong to any service config version, " +
-                  "forcing config recreation, " +
-                  "clusterName={}, type = {}, tag={}", cluster.getClusterName(), clusterConfig.getType(),
-                  clusterConfig.getTag());
-              isConfigurationCreationNeeded = true;
-              break;
-            }
-            for (Entry<String, String> property : requestConfigProperties.entrySet()) {
-              if (!StringUtils.equals(property.getValue(), clusterConfigProperties.get(property.getKey()))) {
-                isConfigurationCreationNeeded = true;
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
+    boolean isConfigurationCreationNeeded = updateClusterConfiguration(cluster, desiredConfigs);
 
     // set or create configuration mapping (and optionally create the map of properties)
     if (isConfigurationCreationNeeded) {
@@ -1949,7 +1874,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
         if (!configs.isEmpty()) {
-          Map<String, Config> existingConfigTypeToConfig = new HashMap();
+          Map<String, Config> existingConfigTypeToConfig = new HashMap<>();
           for (Config config : configs) {
             Config existingConfig = cluster.getDesiredConfigByType(config.getType());
             existingConfigTypeToConfig.put(config.getType(), existingConfig);
@@ -2136,6 +2061,88 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } else {
       return null;
     }
+  }
+
+
+  private boolean updateClusterConfiguration(Cluster cluster, List<ConfigurationRequest> desiredConfigs) throws AmbariException {
+    //check if desired configs are available in request and they were changed
+    boolean isConfigurationCreationNeeded = false;
+    if (desiredConfigs != null) {
+      for (ConfigurationRequest configurationRequest: desiredConfigs) {
+        Map<String, String> requestConfigProperties = configurationRequest.getProperties();
+        Map<String,Map<String,String>> requestConfigAttributes = configurationRequest.getPropertiesAttributes();
+
+        // processing password properties
+        if(requestConfigProperties != null && !requestConfigProperties.isEmpty()) {
+          Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(
+            configurationRequest.getType()
+          );
+          for (Entry<String, String> property : requestConfigProperties.entrySet()) {
+            String propertyName = property.getKey();
+            String propertyValue = property.getValue();
+            if ((propertiesTypes.containsKey(PropertyType.PASSWORD) &&
+              propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) ||
+              (requestConfigAttributes != null && requestConfigAttributes.containsKey(PASSWORD) &&
+                requestConfigAttributes.get(PASSWORD).containsKey(propertyName) &&
+                requestConfigAttributes.get(PASSWORD).get(propertyName).equals("true"))) {
+              if (SecretReference.isSecret(propertyValue)) {
+                SecretReference ref = new SecretReference(propertyValue, cluster);
+                requestConfigProperties.put(propertyName, ref.getValue());
+              }
+            }
+          }
+        }
+
+        Config clusterConfig = cluster.getDesiredConfigByType(configurationRequest.getType());
+        Map<String, String> clusterConfigProperties = null;
+        Map<String,Map<String,String>> clusterConfigAttributes = null;
+        if (clusterConfig != null) {
+          clusterConfigProperties = clusterConfig.getProperties();
+          clusterConfigAttributes = clusterConfig.getPropertiesAttributes();
+          if (!isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes)){
+            isConfigurationCreationNeeded = true;
+            break;
+          }
+        } else {
+          isConfigurationCreationNeeded = true;
+          break;
+        }
+
+        if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
+          Config existingConfig = cluster.getConfig(configurationRequest.getType(), configurationRequest.getVersionTag());
+          if (existingConfig != null) {
+            if (!StringUtils.equals(existingConfig.getTag(), clusterConfig.getTag())) {
+              isConfigurationCreationNeeded = true;
+              break;
+            }
+          }
+        }
+        if (requestConfigProperties != null && clusterConfigProperties != null) {
+          if (requestConfigProperties.size() != clusterConfigProperties.size()) {
+            isConfigurationCreationNeeded = true;
+            break;
+          } else {
+            if ( cluster.getServiceByConfigType(clusterConfig.getType()) != null &&  clusterConfig.getServiceConfigVersions().isEmpty() ) {
+
+              //If there's no service config versions containing this config (except cluster configs), recreate it even if exactly equal
+              LOG.warn("Existing desired config doesn't belong to any service config version, " +
+                  "forcing config recreation, " +
+                  "clusterName={}, type = {}, tag={}", cluster.getClusterName(), clusterConfig.getType(),
+                clusterConfig.getTag());
+              isConfigurationCreationNeeded = true;
+              break;
+            }
+            for (Entry<String, String> property : requestConfigProperties.entrySet()) {
+              if (!StringUtils.equals(property.getValue(), clusterConfigProperties.get(property.getKey()))) {
+                isConfigurationCreationNeeded = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    return isConfigurationCreationNeeded;
   }
 
   /**
@@ -5432,6 +5439,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
 
+  // TODO: synchronization?
   @Override
   public Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException {
 
@@ -5452,81 +5460,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       //check if desired configs are available in request and they were changed
-      boolean isConfigurationCreationNeeded = false;
-      if (desiredConfigs != null) {
-        for (ConfigurationRequest configurationRequest : desiredConfigs) {
-          Map<String, String> requestConfigProperties = configurationRequest.getProperties();
-          Map<String, Map<String, String>> requestConfigAttributes = configurationRequest.getPropertiesAttributes();
-
-          // processing password properties
-          if (requestConfigProperties != null && !requestConfigProperties.isEmpty()) {
-            Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(
-                    configurationRequest.getType()
-            );
-            for (Entry<String, String> property : requestConfigProperties.entrySet()) {
-              String propertyName = property.getKey();
-              String propertyValue = property.getValue();
-              if ((propertiesTypes.containsKey(PropertyType.PASSWORD) &&
-                      propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) ||
-                      (requestConfigAttributes != null && requestConfigAttributes.containsKey(PASSWORD) &&
-                              requestConfigAttributes.get(PASSWORD).containsKey(propertyName) &&
-                              requestConfigAttributes.get(PASSWORD).get(propertyName).equals("true"))) {
-                if (SecretReference.isSecret(propertyValue)) {
-                  SecretReference ref = new SecretReference(propertyValue, cluster);
-                  requestConfigProperties.put(propertyName, ref.getValue());
-                }
-              }
-            }
-          }
-
-          Config clusterConfig = cluster.getDesiredConfigByType(configurationRequest.getType());
-          Map<String, String> clusterConfigProperties = null;
-          Map<String, Map<String, String>> clusterConfigAttributes = null;
-          if (clusterConfig != null) {
-            clusterConfigProperties = clusterConfig.getProperties();
-            clusterConfigAttributes = clusterConfig.getPropertiesAttributes();
-            if (!isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes)) {
-              isConfigurationCreationNeeded = true;
-              break;
-            }
-          } else {
-            isConfigurationCreationNeeded = true;
-            break;
-          }
-
-          if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
-            Config existingConfig = cluster.getConfig(configurationRequest.getType(), configurationRequest.getVersionTag());
-            if (existingConfig != null) {
-              if (!StringUtils.equals(existingConfig.getTag(), clusterConfig.getTag())) {
-                isConfigurationCreationNeeded = true;
-                break;
-              }
-            }
-          }
-          if (requestConfigProperties != null && clusterConfigProperties != null) {
-            if (requestConfigProperties.size() != clusterConfigProperties.size()) {
-              isConfigurationCreationNeeded = true;
-              break;
-            } else {
-              if (cluster.getServiceByConfigType(clusterConfig.getType()) != null && clusterConfig.getServiceConfigVersions().isEmpty()) {
-                //If there's no service config versions containing this config (except cluster configs), recreate it even if exactly equal
-                LOG.warn("Existing desired config doesn't belong to any service config version, " +
-                                "forcing config recreation, " +
-                                "clusterName={}, type = {}, tag={}", cluster.getClusterName(), clusterConfig.getType(),
-                        clusterConfig.getTag());
-                isConfigurationCreationNeeded = true;
-                break;
-              }
-              for (Entry<String, String> property : requestConfigProperties.entrySet()) {
-                if (!StringUtils.equals(property.getValue(), clusterConfigProperties.get(property.getKey()))) {
-                  isConfigurationCreationNeeded = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
+      boolean isConfigurationCreationNeeded = updateClusterConfiguration(cluster, desiredConfigs);
 
       // set or create configuration mapping (and optionally create the map of properties)
       if (isConfigurationCreationNeeded) {

@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,18 +39,22 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Responsible for cluster configuration.
@@ -70,7 +76,8 @@ public class ClusterConfigurationRequest {
   private StackDefinition stack;
   private boolean configureSecurity = false;
 
-  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial, StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {
+  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial,
+                                     StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {
     this(ambariContext, topology, setInitial, stackAdvisorBlueprintProcessor);
     this.configureSecurity = configureSecurity;
   }
@@ -334,45 +341,80 @@ public class ClusterConfigurationRequest {
    * @param clusterTopology  cluster topology
    * @param tag              config tag
    */
-  public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes)  {
+  public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes) {
     //todo: also handle setting of host group scoped configuration which is updated by config processor
-    List<BlueprintServiceConfigRequest> configurationRequests = new LinkedList<>();
+    List<Pair<String, ClusterRequest>> serviceNamesAndConfigurationRequests = new ArrayList<>();
 
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
 
-    for (String service : clusterTopology.getServices()) {
-      //todo: remove intermediate request type
-      // one bp config request per service
-      BlueprintServiceConfigRequest blueprintConfigRequest = new BlueprintServiceConfigRequest(service);
+    final Set<String> clusterConfigTypes = clusterConfiguration.getFullProperties().keySet();
+    final Set<String> globalConfigTypes = ImmutableSet.of("cluster-env");
 
-      for (String serviceConfigType : stack.getAllConfigurationTypes(service)) {
-        Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(service);
-        if (!excludedConfigTypes.contains(serviceConfigType)) {
-          // skip handling of cluster-env here
-          if (! serviceConfigType.equals("cluster-env")) {
-            if (clusterConfiguration.getFullProperties().containsKey(serviceConfigType)) {
-              blueprintConfigRequest.addConfigElement(serviceConfigType,
-                  clusterConfiguration.getFullProperties().get(serviceConfigType),
-                  clusterConfiguration.getFullAttributes().get(serviceConfigType));
-            }
-          }
-        }
+    // TODO: do we need to handle security type? In the previous version it was handled but in a broken (ineffective) way
+    for (ServiceResponse service : ambariContext.getServices(clusterTopology.getClusterName())) {
+      ClusterRequest clusterRequest =
+        new ClusterRequest(clusterTopology.getClusterId(), clusterTopology.getClusterName(), null, null, null, null);
+      clusterRequest.setDesiredConfig(new ArrayList<>());
+
+      Set<String> configTypes =
+        Sets.difference(
+          Sets.intersection(stack.getAllConfigurationTypes(service.getServiceName()), clusterConfigTypes),
+          Sets.union(stack.getExcludedConfigurationTypes(service.getServiceName()), globalConfigTypes)
+        );
+
+      for (String serviceConfigType: configTypes) {
+        Map<String, String> properties = clusterConfiguration.getFullProperties().get(serviceConfigType);
+        Map<String, Map<String, String>> attributes = clusterConfiguration.getFullAttributes().get(serviceConfigType);
+
+        removeNullValues(properties, attributes);
+
+        ConfigurationRequest configurationRequest = new ConfigurationRequest(clusterTopology.getClusterName(),
+          serviceConfigType,
+          tag,
+          properties,
+          attributes,
+          service.getServiceId(),
+          service.getServiceGroupId());
+        clusterRequest.getDesiredConfig().add(configurationRequest);
       }
-
-      configurationRequests.add(blueprintConfigRequest);
+      serviceNamesAndConfigurationRequests.add(Pair.of(service.getServiceName(), clusterRequest));
     }
 
     // since the stack returns "cluster-env" with each service's config ensure that only one
     // ClusterRequest occurs for the global cluster-env configuration
-    BlueprintServiceConfigRequest globalConfigRequest = new BlueprintServiceConfigRequest("GLOBAL-CONFIG");
+    ClusterRequest globalConfigClusterRequest =
+      new ClusterRequest(clusterTopology.getClusterId(), clusterTopology.getClusterName(), null, null, null, null);
+
     Map<String, String> clusterEnvProps = clusterConfiguration.getFullProperties().get("cluster-env");
     Map<String, Map<String, String>> clusterEnvAttributes = clusterConfiguration.getFullAttributes().get("cluster-env");
 
-    globalConfigRequest.addConfigElement("cluster-env", clusterEnvProps,clusterEnvAttributes);
-    configurationRequests.add(globalConfigRequest);
+    removeNullValues(clusterEnvProps, clusterEnvAttributes);
 
-    setConfigurationsOnCluster(configurationRequests, tag, updatedConfigTypes);
+    ConfigurationRequest globalConfigurationRequest = new ConfigurationRequest(clusterTopology.getClusterName(),
+      "cluster-env",
+      tag,
+      clusterEnvProps,
+      clusterEnvAttributes,
+      null,
+      null);
+    globalConfigClusterRequest.setDesiredConfig(Lists.newArrayList(globalConfigurationRequest));
+    serviceNamesAndConfigurationRequests.add(Pair.of("GLOBAL-CONFIG", globalConfigClusterRequest));
+
+    // send configurations
+    setConfigurationsOnCluster(serviceNamesAndConfigurationRequests, tag, updatedConfigTypes);
   }
+
+  private void removeNullValues(Map<String, String> configProperties, Map<String, Map<String, String>> configAttributes) {
+    if (null != configProperties) {
+      configProperties.values().removeIf(Objects::isNull);
+    }
+    if (null != configAttributes) {
+      configAttributes.values().removeIf(Objects::isNull);
+      configAttributes.values().forEach(map -> map.values().removeIf(Objects::isNull));
+      configAttributes.entrySet().removeIf(e -> e.getValue().isEmpty());
+    }
+  }
+
 
   /**
    * Creates a ClusterRequest for each service that
@@ -382,86 +424,21 @@ public class ClusterConfigurationRequest {
    *
    * This method will also send these requests to the management controller.
    *
-   * @param configurationRequests a list of requests to send to the AmbariManagementController.
+   * @param serviceNamesAndRequests a list of requests to send to the AmbariManagementController.
    */
-  private void setConfigurationsOnCluster(List<BlueprintServiceConfigRequest> configurationRequests,
+  private void  setConfigurationsOnCluster(List<Pair<String, ClusterRequest>> serviceNamesAndRequests,
                                          String tag, Set<String> updatedConfigTypes)  {
-    String clusterName = null;
-    try {
-      clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
-    } catch (AmbariException e) {
-      LOG.error("Cannot get cluster name for clusterId = " + clusterTopology.getClusterId(), e);
-      throw new RuntimeException(e);
-    }
     // iterate over services to deploy
-    for (BlueprintServiceConfigRequest blueprintConfigRequest : configurationRequests) {
-      ClusterRequest clusterRequest = null;
-      // iterate over the config types associated with this service
-      List<ConfigurationRequest> requestsPerService = new LinkedList<>();
-      for (BlueprintServiceConfigElement blueprintElement : blueprintConfigRequest.getConfigElements()) {
-        Map<String, Object> clusterProperties = new HashMap<>();
-        clusterProperties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-        clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/type", blueprintElement.getTypeName());
-        clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/tag", tag);
-        for (Map.Entry<String, String> entry : blueprintElement.getConfiguration().entrySet()) {
-          clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID +
-              "/properties/" + entry.getKey(), entry.getValue());
-        }
-        if (blueprintElement.getAttributes() != null) {
-          for (Map.Entry<String, Map<String, String>> attribute : blueprintElement.getAttributes().entrySet()) {
-            String attributeName = attribute.getKey();
-            for (Map.Entry<String, String> attributeOccurrence : attribute.getValue().entrySet()) {
-              clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/properties_attributes/"
-                  + attributeName + "/" + attributeOccurrence.getKey(), attributeOccurrence.getValue());
-            }
-          }
-        }
-
-        // only create one cluster request per service, which includes
-        // all the configuration types for that service
-        if (clusterRequest == null) {
-          SecurityType securityType;
-          String requestedSecurityType = (String) clusterProperties.get(
-              ClusterResourceProvider.CLUSTER_SECURITY_TYPE_PROPERTY_ID);
-          if(requestedSecurityType == null)
-            securityType = null;
-          else {
-            try {
-              securityType = SecurityType.valueOf(requestedSecurityType.toUpperCase());
-            } catch (IllegalArgumentException e) {
-              throw new IllegalArgumentException(String.format(
-                  "Cannot set cluster security type to invalid value: %s", requestedSecurityType));
-            }
-          }
-
-          clusterRequest = new ClusterRequest(
-              (Long) clusterProperties.get(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID),
-              (String) clusterProperties.get(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID),
-              (String) clusterProperties.get(ClusterResourceProvider.CLUSTER_PROVISIONING_STATE_PROPERTY_ID),
-              securityType,
-              (String) clusterProperties.get(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID),
-              null);
-        }
-
-        List<ConfigurationRequest> listOfRequests = ambariContext.createConfigurationRequests(clusterProperties);
-        requestsPerService.addAll(listOfRequests);
-      }
-
-      // set total list of config requests, including all config types for this service
-      if (clusterRequest != null) {
-        clusterRequest.setDesiredConfig(requestsPerService);
-        LOG.info("Sending cluster config update request for service = " + blueprintConfigRequest.getServiceName());
-        ambariContext.setConfigurationOnCluster(clusterRequest);
-      } else {
-        LOG.error("ClusterRequest should not be null for service = " + blueprintConfigRequest.getServiceName());
-      }
+    for (Pair<String, ClusterRequest> serviceNameAndRequest: serviceNamesAndRequests) {
+      LOG.info("Sending cluster config update request for service = " + serviceNameAndRequest.getLeft());
+      ambariContext.setConfigurationOnCluster(serviceNameAndRequest.getRight());
     }
 
     if (tag.equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {
       // if this is a request to resolve config, then wait until resolution is completed
       try {
         // wait until the cluster topology configuration is set/resolved
-        ambariContext.waitForConfigurationResolution(clusterName, updatedConfigTypes);
+        ambariContext.waitForConfigurationResolution(clusterTopology.getClusterName(), updatedConfigTypes);
       } catch (AmbariException e) {
         LOG.error("Error while attempting to wait for the cluster configuration to reach TOPOLOGY_RESOLVED state.", e);
       }
@@ -478,12 +455,16 @@ public class ClusterConfigurationRequest {
   private static class BlueprintServiceConfigRequest {
 
     private final String serviceName;
+    private final Long serviceId;
+    private final Long serviceGroupId;
 
     private List<BlueprintServiceConfigElement> configElements =
       new LinkedList<>();
 
-    BlueprintServiceConfigRequest(String serviceName) {
+    BlueprintServiceConfigRequest(String serviceName, Long serviceId, Long serviceGroupId) {
       this.serviceName = serviceName;
+      this.serviceId = serviceId;
+      this.serviceGroupId = serviceGroupId;
     }
 
     void addConfigElement(String type, Map<String, String> props, Map<String, Map<String, String>> attributes) {
@@ -499,6 +480,14 @@ public class ClusterConfigurationRequest {
 
     public String getServiceName() {
       return serviceName;
+    }
+
+    public Long getServiceId() {
+      return serviceId;
+    }
+
+    public Long getServiceGroupId() {
+      return serviceGroupId;
     }
 
     List<BlueprintServiceConfigElement> getConfigElements() {

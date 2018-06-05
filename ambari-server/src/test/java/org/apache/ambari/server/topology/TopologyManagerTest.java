@@ -302,8 +302,8 @@ public class TopologyManagerTest {
     expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     // don't expect toEntity()
 
-    expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
-    expect(stack.getAllConfigurationTypes("service2")).andReturn(Arrays.asList("service2-site", "service2-env")).anyTimes();
+    expect(stack.getAllConfigurationTypes("service1")).andReturn(ImmutableSet.of("service1-site", "service1-env")).anyTimes();
+    expect(stack.getAllConfigurationTypes("service2")).andReturn(ImmutableSet.of("service2-site", "service2-env")).anyTimes();
     expect(stack.getAutoDeployInfo("component1")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component2")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component3")).andReturn(null).anyTimes();
