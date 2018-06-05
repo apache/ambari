@@ -1300,9 +1300,9 @@ class MpackAdvisorImpl(MpackAdvisor):
       if nodeManagerHosts:
         nodeManagerHost = nodeManagerHosts[0];
         for nmHost in nodeManagerHosts:
-          if nmHost[0]["Hosts"]["total_mem"]/nmHost[1] < nodeManagerHost[0]["Hosts"]["total_mem"]/nodeManagerHost[1]:
+          if nmHost["Hosts"]["total_mem"] < nodeManagerHost["Hosts"]["total_mem"]:
             nodeManagerHost = nmHost
-        host = nodeManagerHost[0]["Hosts"]
+        host = nodeManagerHost["Hosts"]
         cluster["referenceNodeManagerHost"] = host
       else:
         host = hosts["items"][0]["Hosts"]
@@ -1895,9 +1895,10 @@ class MpackAdvisorImpl(MpackAdvisor):
     else:
       return {"min": 1, "max": 1}
 
-  def isServiceDeployed(self, serviceInstances, serviceName):
-    servicesInstancesList = [serviceInstance.getType() for serviceInstance in se]
-    return serviceName in servicesList
+  # TODO : Uncomment the below function after fixing it. AMBARI-24031 tracks it.
+  #def isServiceDeployed(self, serviceInstances, serviceName):
+  #  servicesInstancesList = [serviceInstance.getType() for serviceInstance in se]
+  #  return serviceName in servicesList
 
   def getHostForComponent(self, component, hostsList):
     if len(hostsList) == 0:
