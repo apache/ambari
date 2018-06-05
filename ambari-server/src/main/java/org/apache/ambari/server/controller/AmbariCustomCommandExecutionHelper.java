@@ -758,19 +758,6 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     Map<String, String> commandParams = new TreeMap<>();
-
-    //Propagate HCFS service type info
-    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-      if (serviceInfoInstance.getServiceType() != null) {
-        LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
-            serviceInfoInstance.getName());
-
-        commandParams.put("dfs_type", serviceInfoInstance.getServiceType());
-        break;
-      }
-    }
-
     String commandTimeout = getStatusCommandTimeout(serviceInfo);
 
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
@@ -1259,22 +1246,6 @@ public class AmbariCustomCommandExecutionHelper {
 
       if (null == stackId && null != cluster) {
         stackId = cluster.getDesiredStackVersion();
-      }
-
-      //Propogate HCFS service type info to command params
-      if (null != stackId) {
-        Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(),
-            stackId.getStackVersion());
-
-        for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-          if (serviceInfoInstance.getServiceType() != null) {
-            LOG.debug("Adding {} to command parameters for {}",
-                serviceInfoInstance.getServiceType(), serviceInfoInstance.getName());
-
-            commandParamsStage.put("dfs_type", serviceInfoInstance.getServiceType());
-            break;
-          }
-        }
       }
     }
 

@@ -2422,18 +2422,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       commandParams.putAll(commandParamsInp);
     }
 
-    // Propagate HCFS service type info
-    for (Service service : cluster.getServices().values()) {
-      ServiceInfo serviceInfoInstance = servicesMap.get(service.getName());
-      LOG.debug("Iterating service type Instance in createHostAction: {}", serviceInfoInstance.getName());
-      String serviceType = serviceInfoInstance.getServiceType();
-      if (serviceType != null) {
-        LOG.info("Adding service type info in createHostAction: {}", serviceType);
-        commandParams.put("dfs_type", serviceType);
-        break;
-      }
-    }
-
     boolean isInstallCommand = roleCommand.equals(RoleCommand.INSTALL);
     String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
     String scriptCommandTimeout = "";
