@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
@@ -32,6 +34,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
+@Experimental(
+    feature = ExperimentalFeature.ORPHAN_KERBEROS_IDENTITY_REMOVAL,
+    comment = "This might need to have a switch so that it can be turned off if it is found to be desctructive to certain clusters")
 public class KerberosIdentityCleaner {
   private final static Logger LOG = LoggerFactory.getLogger(KerberosIdentityCleaner.class);
   private final AmbariEventPublisher eventPublisher;

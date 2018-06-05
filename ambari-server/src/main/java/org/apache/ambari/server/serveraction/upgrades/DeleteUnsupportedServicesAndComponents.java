@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -46,9 +48,18 @@ import org.apache.commons.lang.StringUtils;
 import com.google.inject.Inject;
 
 /**
- * Upgrade Server Action that deletes the components and services which are no longer supported in the target stack.
- * The deletable component or service should be in deletable state (stopped) before executing this.
+ * Upgrade Server Action that deletes the components and services which are no
+ * longer supported in the target stack. The deletable component or service
+ * should be in deletable state (stopped) before executing this.
+ * <p/>
+ * This will orphan Kerberos keytabs and identities that belonged to the removed
+ * services and components. Since removing these automatically is a new and
+ * untested feature, its best to leave this type of cleanup to a future
+ * implementation.
  */
+@Experimental(
+    feature = ExperimentalFeature.ORPHAN_KERBEROS_IDENTITY_REMOVAL,
+    comment = "Not removing identities yet")
 public class DeleteUnsupportedServicesAndComponents extends AbstractUpgradeServerAction {
   @Inject
   private ServiceComponentSupport serviceComponentSupport;
