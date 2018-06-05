@@ -544,7 +544,7 @@ App.UpdateController = Em.Controller.extend({
 
   updateServices: function (callback) {
     var testUrl = '/data/services/HDP2/services.json';
-    var componentConfigUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,components');
+    var componentConfigUrl = this.getUrl(testUrl, '/servicegroups?fields=services/ServiceInfo/state,services/ServiceInfo/maintenance_state,services/components');
     App.HttpClient.get(componentConfigUrl, App.serviceMapper, {
       complete: callback
     });
