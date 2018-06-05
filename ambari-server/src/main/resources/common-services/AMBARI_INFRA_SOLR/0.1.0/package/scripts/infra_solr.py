@@ -25,7 +25,6 @@ from resource_management.core.logger import Logger
 from resource_management.core.source import Template
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.resources.zkmigrator import ZkMigrator
-from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
