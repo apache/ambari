@@ -63,7 +63,7 @@ App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, App.HDFSSum
 
   dfsTotalBlocks: Em.computed.formatUnavailable('dfsTotalBlocksValue'),
 
-  dfsCorruptBlocksValue: Em.computed.getByKey('model.dfsTotalBlocksValues', 'hostName'),
+  dfsCorruptBlocksValue: Em.computed.getByKey('model.dfsCorruptBlocksValues', 'hostName'),
 
   dfsCorruptBlocks: Em.computed.formatUnavailable('dfsCorruptBlocksValue'),
 
