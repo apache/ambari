@@ -23,7 +23,6 @@ import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -73,8 +72,8 @@ import com.google.inject.Injector;
  */
 public class UserAuthenticationSourceResourceProviderTest extends EasyMockSupport {
 
-  private static final Date CREATE_TIME = Calendar.getInstance().getTime();
-  private static final Date UPDATE_TIME = Calendar.getInstance().getTime();
+  private static final long CREATE_TIME = Calendar.getInstance().getTime().getTime();
+  private static final long UPDATE_TIME = Calendar.getInstance().getTime().getTime();
 
   @Before
   public void resetMocks() {

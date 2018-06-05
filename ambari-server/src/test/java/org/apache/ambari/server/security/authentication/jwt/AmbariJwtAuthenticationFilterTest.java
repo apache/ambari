@@ -409,7 +409,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     expect(userEntity.getActive()).andReturn(true).atLeastOnce();
     expect(userEntity.getUserId()).andReturn(1).atLeastOnce();
     expect(userEntity.getUserName()).andReturn("username").atLeastOnce();
-    expect(userEntity.getCreateTime()).andReturn(new Date()).atLeastOnce();
+    expect(userEntity.getCreateTime()).andReturn(new Date().getTime()).atLeastOnce();
     expect(userEntity.getMemberEntities()).andReturn(Collections.emptySet()).atLeastOnce();
     expect(userEntity.getAuthenticationEntities()).andReturn(Collections.singletonList(userAuthenticationEntity)).atLeastOnce();
     expect(userEntity.getPrincipal()).andReturn(principal).atLeastOnce();
