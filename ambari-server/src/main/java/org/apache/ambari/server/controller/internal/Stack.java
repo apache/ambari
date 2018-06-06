@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -205,6 +207,22 @@ public class Stack implements StackDefinition {
   @Override
   public Collection<String> getServices() {
     return serviceComponents.keySet();
+  }
+
+  @Override
+  public Stream<Pair<StackId, ServiceInfo>> getServices(String serviceName) {
+    ServiceInfo serviceInfo = stackInfo.getService(serviceName);
+    return serviceInfo != null
+      ? Stream.of(Pair.of(getStackId(), serviceInfo))
+      : Stream.empty();
+  }
+
+  @Override
+  public Optional<ServiceInfo> getService(StackId stackId, String serviceName) {
+    ServiceInfo serviceInfo = stackInfo.getService(serviceName);
+    return Objects.equals(stackId, getStackId())
+      ? Optional.ofNullable(serviceInfo)
+      : Optional.empty();
   }
 
   @Override

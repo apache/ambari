@@ -290,11 +290,11 @@ public class TopologyManager {
     BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
     Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
 
-    final ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
+    ClusterTopology initialTopology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
     final String clusterName = request.getClusterName();
     final SecurityConfiguration securityConfiguration = provisionRequest.getSecurity();
 
-    topologyValidatorService.validateTopologyConfiguration(topology); // FIXME known stacks validation is too late here
+    final ClusterTopology topology = topologyValidatorService.validate(initialTopology); // FIXME known stacks validation is too late here
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();

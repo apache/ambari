@@ -17,17 +17,13 @@
  */
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.toMap;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.SecurityType;
@@ -39,20 +35,20 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
- * I am the Blueprint and ProvisionClusterRequest combined.
+ * I am the Blueprint and ProvisionRequest combined.
  */
 public class BlueprintBasedClusterProvisionRequest implements Blueprint, ProvisionRequest {
 
   private static final Logger LOG = LoggerFactory.getLogger(BlueprintBasedClusterProvisionRequest.class);
 
   private final Blueprint blueprint;
-  private final ProvisionClusterRequest request;
+  private final ProvisionRequest request;
   private final Set<StackId> stackIds;
   private final StackDefinition stack;
   private final Set<MpackInstance> mpacks;
   private final SecurityConfiguration securityConfiguration;
 
-  public BlueprintBasedClusterProvisionRequest(AmbariContext ambariContext, SecurityConfigurationFactory securityConfigurationFactory, Blueprint blueprint, ProvisionClusterRequest request) {
+  public BlueprintBasedClusterProvisionRequest(AmbariContext ambariContext, SecurityConfigurationFactory securityConfigurationFactory, Blueprint blueprint, ProvisionRequest request) {
     this.blueprint = blueprint;
     this.request = request;
 
@@ -105,6 +101,11 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   }
 
   @Override
+  public SecurityConfiguration getSecurityConfiguration() {
+    return securityConfiguration;
+  }
+
+  @Override
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
     return blueprint.getHostGroupsForComponent(component);
   }
@@ -145,32 +146,23 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
     return request.getDescription();
   }
 
+  @Override
   public String getDefaultPassword() {
     return request.getDefaultPassword();
   }
 
+  @Override
   public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
     return request.getConfigRecommendationStrategy();
   }
 
+  @Override
   public ProvisionAction getProvisionAction() {
     return request.getProvisionAction();
   }
 
   public StackDefinition getStack() {
     return stack;
-  }
-
-  /**
-   * @return service instances defined in the topology, mapped by service name,
-   * whose name is unique across all mpacks.
-   */
-  public Map<String, ServiceInstance> getUniqueServices() {
-    Map<String, ServiceInstance> map = mpacks.stream()
-      .flatMap(mpack -> mpack.getServiceInstances().stream())
-      .collect(toMap(ServiceInstance::getName, Function.identity(), (s1, s2) -> null));
-    map.entrySet().removeIf(e -> e.getValue() == null); // remove non-unique names mapped to null
-    return map;
   }
 
   /**

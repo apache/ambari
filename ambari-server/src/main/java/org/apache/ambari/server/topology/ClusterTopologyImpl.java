@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -88,6 +89,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     stack = ambariContext.composeStacks(stackIds);
     resolvedComponents = ImmutableMap.of();
 
+    checkForDuplicateHosts(topologyRequest.getHostGroupInfo());
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
   }
 
@@ -111,11 +113,42 @@ public class ClusterTopologyImpl implements ClusterTopology {
     stack = request.getStack();
     setting = request.getSetting();
     blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServices()));
+
+    checkForDuplicateHosts(request.getHostGroupInfo());
     registerHostGroupInfo(request.getHostGroupInfo());
+  }
+
+  ClusterTopologyImpl copy() {
+    try {
+      return new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
+    } catch (InvalidTopologyException e) {
+      // cannot happen, since already validated
+      LOG.error("Failed to copy cluster topology {}", this);
+      return null;
+    }
+  }
+
+  public ClusterTopologyImpl withAdditionalComponents(Map<String, Set<ResolvedComponent>> additionalComponents) throws InvalidTopologyException {
+    if (additionalComponents.isEmpty()) {
+      return this;
+    }
+
+    Map<String, Set<ResolvedComponent>> allComponents = new HashMap<>(resolvedComponents);
+    for (Map.Entry<String, Set<ResolvedComponent>> entry : additionalComponents.entrySet()) {
+      allComponents.computeIfAbsent(entry.getKey(), __ -> new HashSet<>())
+        .addAll(entry.getValue());
+    }
+    return withComponents(allComponents);
+  }
+
+  public ClusterTopologyImpl withComponents(Map<String, Set<ResolvedComponent>> resolvedComponents) throws InvalidTopologyException {
+    return new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
   }
 
   @Override
   public void update(TopologyRequest topologyRequest) throws InvalidTopologyException {
+    checkForDuplicateHosts(topologyRequest.getHostGroupInfo());
+    verifyHostGroupsExist(topologyRequest.getHostGroupInfo());
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
   }
 
@@ -124,7 +157,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
     return clusterId;
   }
 
+  @Override
   public void setClusterId(Long clusterId) {
+    if (this.clusterId != null) {
+      throw new IllegalStateException(String.format("ClusterID %s already set in topology, cannot set %s ", this.clusterId, clusterId));
+    }
     this.clusterId = clusterId;
   }
 
@@ -164,14 +201,23 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public Collection<HostGroup> getHostGroups() {
-    return blueprint.getHostGroups().values();
+  public Set<String> getHostGroups() {
+    return blueprint.getHostGroups().keySet();
   }
 
   @Override
   public Collection<String> getHostGroupsForComponent(String component) {
     return resolvedComponents.entrySet().stream()
       .filter(e -> e.getValue().stream().anyMatch(c -> component.equals(c.componentName())))
+      .map(Map.Entry::getKey)
+      .collect(toSet());
+  }
+
+  @Override
+  public Set<String> getHostGroupsForComponent(ResolvedComponent component) {
+    return resolvedComponents.entrySet().stream()
+      .filter(e -> e.getValue().stream()
+        .anyMatch(each -> Objects.equals(each, component)))
       .map(Map.Entry::getKey)
       .collect(toSet());
   }
@@ -219,7 +265,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   @Override
   public Collection<String> getHostAssignmentsForComponent(String component) {
-    //todo: ordering requirements?
     Collection<String> hosts = new ArrayList<>();
     Collection<String> hostGroups = getHostGroupsForComponent(component);
     for (String group : hostGroups) {
@@ -377,8 +422,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {
-    LOG.debug("Registering requested host group information for {} hostgroups", requestedHostGroupInfoMap.size());
-    checkForDuplicateHosts(requestedHostGroupInfoMap);
+    LOG.debug("Registering requested host group information for {} host groups", requestedHostGroupInfoMap.size());
 
     for (HostGroupInfo requestedHostGroupInfo : requestedHostGroupInfoMap.values()) {
       String hostGroupName = requestedHostGroupInfo.getHostGroupName();
@@ -436,11 +480,17 @@ public class ClusterTopologyImpl implements ClusterTopology {
     }
   }
 
+  private void verifyHostGroupsExist(Map<String, HostGroupInfo> hostGroupUpdates) throws InvalidTopologyException {
+    Set<String> unknownGroups = Sets.difference(hostGroupUpdates.keySet(), hostGroupInfoMap.keySet());
+    if (!unknownGroups.isEmpty()) {
+      throw new InvalidTopologyException("Attempted to add hosts to unknown host groups: " + unknownGroups);
+    }
+  }
 
-  private void checkForDuplicateHosts(Map<String, HostGroupInfo> groupInfoMap) throws InvalidTopologyException {
+  private void checkForDuplicateHosts(Map<String, HostGroupInfo> hostGroupUpdates) throws InvalidTopologyException {
     Set<String> hosts = new HashSet<>();
     Set<String> duplicates = new HashSet<>();
-    for (HostGroupInfo group : groupInfoMap.values()) {
+    for (HostGroupInfo group : hostGroupUpdates.values()) {
       // check for duplicates within the new groups
       Collection<String> groupHosts = group.getHostNames();
       Collection<String> groupHostsCopy = new HashSet<>(group.getHostNames());
@@ -457,7 +507,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     }
     if (! duplicates.isEmpty()) {
       throw new InvalidTopologyException("The following hosts are mapped to multiple host groups: " + duplicates + "." +
-        " Be aware that host names are converted to lowercase, case differences do not matter in Ambari deployments.");
+        " Be aware that host names are converted to lowercase, case differences are ignored in Ambari deployments.");
     }
   }
 }

@@ -37,7 +37,7 @@ public class RejectUnknownStacks implements TopologyValidator {
   }
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
     String unknownStacks = topology.getStackIds().stream()
       .filter(stackId -> !metaInfo.get().isKnownStack(stackId))
       .sorted()
@@ -47,5 +47,6 @@ public class RejectUnknownStacks implements TopologyValidator {
     if (!unknownStacks.isEmpty()) {
       throw new InvalidTopologyException("Unknown stacks found in cluster creation request: " + unknownStacks);
     }
+    return topology;
   }
 }

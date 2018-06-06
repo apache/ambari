@@ -19,6 +19,8 @@ package org.apache.ambari.server.topology;
 
 import java.util.Optional;
 
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 
 /**
@@ -29,15 +31,25 @@ public interface ResolvedComponent {
 
   StackId stackId();
   Optional<String> serviceGroupName();
-  String serviceType();
   Optional<String> serviceName();
   String componentName();
-  boolean masterComponent();
+  ServiceInfo serviceInfo();
+  ComponentInfo componentInfo();
 
   /**
    * @return the component as specified in the blueprint
    */
   Component component();
+
+  Builder toBuilder();
+
+  default String serviceType() {
+    return serviceInfo().getName();
+  }
+
+  default boolean masterComponent() {
+    return componentInfo().isMaster();
+  }
 
   /**
    * @return service group name if it set, otherwise defaults to the stack name
@@ -72,8 +84,9 @@ public interface ResolvedComponent {
   }
 
   class Builder extends ResolvedComponent_Builder {
-    protected Builder() {
-      masterComponent(false);
+    @Override
+    public Builder toBuilder() {
+      return this;
     }
   }
 

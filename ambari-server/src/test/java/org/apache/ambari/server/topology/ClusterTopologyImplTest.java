@@ -19,14 +19,14 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
-import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -45,6 +46,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -67,6 +69,18 @@ public class ClusterTopologyImplTest {
   private final StackDefinition stack = createNiceMock(StackDefinition.class);
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
+  private final Map<String, Set<ResolvedComponent>> resolvedComponents = ImmutableMap.of(
+    "group1", ImmutableSet.of(
+      builderFor("any_service", "component1"),
+      builderFor("any_service", "component2")),
+    "group2", ImmutableSet.of(
+      builderFor("any_service", "component3")),
+    "group3", ImmutableSet.of(
+      builderFor("any_service", "component4")),
+    "group4", ImmutableSet.of(
+      builderFor("any_service", "component5"))
+  );
+  private BlueprintBasedClusterProvisionRequest provisionRequest;
 
   private Configuration configuration;
   private Configuration bpconfiguration;
@@ -110,6 +124,7 @@ public class ClusterTopologyImplTest {
     group4Info.setPredicate(predicate);
 
     expect(blueprint.getConfiguration()).andReturn(bpconfiguration).anyTimes();
+    expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     expect(blueprint.getStackIds()).andReturn(STACK_IDS).anyTimes();
 
     hostGroupMap.put("group1", group1);
@@ -117,50 +132,33 @@ public class ClusterTopologyImplTest {
     hostGroupMap.put("group3", group3);
     hostGroupMap.put("group4", group4);
 
-    Set<Component> group1Components = new HashSet<>();
-    group1Components.add(new Component("component1"));
-    group1Components.add(new Component("component2"));
-
-    Set<String> group1ComponentNames = new HashSet<>();
-    group1ComponentNames.add("component1");
-    group1ComponentNames.add("component2");
-
-    Set<Component> group2Components = new HashSet<>();
-    group2Components.add(new Component("component3"));
-    Set<Component> group3Components = new HashSet<>();
-    group3Components.add(new Component("component4"));
-    Set<Component> group4Components = new HashSet<>();
-    group4Components.add(new Component("component5"));
+    expect(stack.getServicesForComponent("ONEFS_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aHCFSWith(aComponent("ONEFS_CLIENT"))))).anyTimes();
+    expect(stack.getServicesForComponent("ZOOKEEPER_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aServiceWith(aComponent("ZOOKEEPER_CLIENT"))))).anyTimes();
 
     expect(ambariContext.composeStacks(STACK_IDS)).andReturn(stack).anyTimes();
 
+    expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
-    expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
-    expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
-    expect(blueprint.getHostGroup("group3")).andReturn(group3).anyTimes();
-    expect(blueprint.getHostGroup("group4")).andReturn(group4).anyTimes();
+    for (Map.Entry<String, HostGroup> entry : hostGroupMap.entrySet()) {
+      String name = entry.getKey();
+      HostGroup hostGroup = entry.getValue();
+      expect(hostGroup.getName()).andReturn(name).anyTimes();
+      expect(blueprint.getHostGroup(name)).andReturn(hostGroup).anyTimes();
+    }
 
     expect(group1.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group2.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group3.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group4.getConfiguration()).andReturn(configuration).anyTimes();
 
-    expect(group1.getComponents()).andReturn(group1Components).anyTimes();
-    expect(group2.getComponents()).andReturn(group2Components).anyTimes();
-    expect(group3.getComponents()).andReturn(group3Components).anyTimes();
-    expect(group4.getComponents()).andReturn(group4Components).anyTimes();
+    replayAll();
 
-    expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
-    expect(group2.getComponentNames()).andReturn(singletonList("component3")).anyTimes();
-    expect(group3.getComponentNames()).andReturn(singletonList("component4")).anyTimes();
-    expect(group4.getComponentNames()).andReturn(singletonList("NAMENODE")).anyTimes();
+    provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, null, blueprint, new TestTopologyRequest());
   }
 
   @After
   public void tearDown() {
-    verify(ambariContext, stack, blueprint, group1, group2, group3, group4);
     reset(ambariContext, stack, blueprint, group1, group2, group3, group4);
-
 
     hostGroupInfoMap.clear();
     hostGroupMap.clear();
@@ -177,76 +175,71 @@ public class ClusterTopologyImplTest {
     // add a duplicate host
     hostGroupInfoMap.get("group2").addHost("host1");
 
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
+    new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
+  }
 
-    replayAll();
+  @Test(expected = InvalidTopologyException.class)
+  public void testUpdate_duplicateHosts() throws Exception {
+    ClusterTopology topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
+    // add a duplicate host
+    hostGroupInfoMap.get("group2").addHost("host1");
+
     // should throw exception due to duplicate host
-    new ClusterTopologyImpl(ambariContext, request);
+    topology.update(provisionRequest);
   }
 
   @Test
-  public void test_GetHostAssigmentForComponents() throws Exception {
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
+  public void test_GetHostAssignmentForComponents() throws Exception {
+    ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
 
-    replayAll();
-
-    new ClusterTopologyImpl(ambariContext, request).getHostAssignmentsForComponent("component1");
+    Collection<String> assignments = topology.getHostAssignmentsForComponent("component1");
+    assertEquals(ImmutableSet.of("host1", "host2"), ImmutableSet.copyOf(assignments));
   }
 
   @Ignore
   @Test(expected = InvalidTopologyException.class)
   public void testCreate_NNHAInvaid() throws Exception {
     bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
-    expect(group4.getName()).andReturn("group4");
     hostGroupInfoMap.get("group4").removeHost("host5");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
-    new ClusterTopologyImpl(ambariContext, request);
-    hostGroupInfoMap.get("group4").addHost("host5");
+
+    new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
   }
 
   @Ignore
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForStandby() throws Exception {
-    expect(group4.getName()).andReturn("group4");
     bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", "host4");
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "val");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-    replayAll();
-    new ClusterTopologyImpl(ambariContext, request);
+
+    new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
   }
 
   @Ignore
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForActive() throws Exception {
-    expect(group4.getName()).andReturn("group4");
     bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", "val");
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "host5");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-    replayAll();
-    new ClusterTopologyImpl(ambariContext, request);
+
+    new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
   }
 
   @Ignore
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForStandbyWithActiveAsVariable() throws Exception {
-    expect(group4.getName()).andReturn("group4");
     bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", "%HOSTGROUP::group4%");
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "host6");
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-    replayAll();
-    new ClusterTopologyImpl(ambariContext, request);
+
+    new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
   }
 
   @Test
   public void testDecidingIfComponentIsHadoopCompatible() throws Exception {
-    expect(stack.getServicesForComponent("ONEFS_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aHCFSWith(aComponent("ONEFS_CLIENT"))))).anyTimes();
-    expect(stack.getServicesForComponent("ZOOKEEPER_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aServiceWith(aComponent("ZOOKEEPER_CLIENT"))))).anyTimes();
-    replayAll();
-    ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, new TestTopologyRequest(TopologyRequest.Type.PROVISION));
+    ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
+
     assertTrue(topology.isComponentHadoopCompatible("ONEFS_CLIENT"));
     assertFalse(topology.isComponentHadoopCompatible("ZOOKEEPER_CLIENT"));
   }
@@ -269,12 +262,7 @@ public class ClusterTopologyImplTest {
     return component;
   }
 
-  private class TestTopologyRequest implements TopologyRequest {
-    private Type type;
-
-    public TestTopologyRequest(Type type) {
-      this.type = type;
-    }
+  private class TestTopologyRequest implements ProvisionRequest {
 
     public String getClusterName() {
       return CLUSTER_NAME;
@@ -287,7 +275,7 @@ public class ClusterTopologyImplTest {
 
     @Override
     public Type getType() {
-      return type;
+      return Type.PROVISION;
     }
 
     @Override
@@ -308,6 +296,36 @@ public class ClusterTopologyImplTest {
     @Override
     public String getDescription() {
       return "Test Request";
+    }
+
+    @Override
+    public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
+      return ConfigRecommendationStrategy.NEVER_APPLY;
+    }
+
+    @Override
+    public ProvisionAction getProvisionAction() {
+      return ProvisionAction.INSTALL_AND_START;
+    }
+
+    @Override
+    public String getDefaultPassword() {
+      return "password";
+    }
+
+    @Override
+    public Set<StackId> getStackIds() {
+      return ImmutableSet.of();
+    }
+
+    @Override
+    public Collection<MpackInstance> getMpacks() {
+      return ImmutableSet.of();
+    }
+
+    @Override
+    public SecurityConfiguration getSecurityConfiguration() {
+      return SecurityConfiguration.NONE;
     }
   }
 }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -250,9 +251,9 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getConfiguration(services)).andReturn(stackDefaultConfig).once();
 
     expect(topology.getComponents()).andAnswer(() -> Stream.of(
-      ResolvedComponent.builder(new Component("NAMENODE")).serviceType("HDFS").buildPartial(),
-      ResolvedComponent.builder(new Component("KERBEROS")).serviceType("KERBEROS_CLIENT").buildPartial(),
-      ResolvedComponent.builder(new Component("ZOOKEEPER_SERVER")).serviceType("ZOOKEEPER").buildPartial()
+      builderFor("HDFS", "NAMENODE").buildPartial(),
+      builderFor("KERBEROS_CLIENT", "KERBEROS").buildPartial(),
+      builderFor("ZOOKEEPER", "ZOOKEEPER_SERVER").buildPartial()
     )).anyTimes();
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();

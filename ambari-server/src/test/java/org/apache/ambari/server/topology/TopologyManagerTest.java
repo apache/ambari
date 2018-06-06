@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -119,6 +120,13 @@ public class TopologyManagerTest {
   private static final String SAMPLE_QUICKLINKS_PROFILE_2 =
       "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}";
 
+  static final TopologyValidatorService NO_VALIDATION = new TopologyValidatorService() {
+    @Override
+    public ClusterTopology validate(ClusterTopology clusterTopology) {
+      return clusterTopology;
+    }
+  };
+
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
 
@@ -188,9 +196,6 @@ public class TopologyManagerTest {
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
-
-  @Mock
-  private TopologyValidatorService topologyValidatorService;
 
   @Mock
   private ComponentResolver componentResolver;
@@ -283,10 +288,10 @@ public class TopologyManagerTest {
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(clusterTopologyMock.getComponents()).andReturn(Stream.of(
-      ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("component2")).serviceType("service2").buildPartial(),
-      ResolvedComponent.builder(new Component("component3")).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("component4")).serviceType("service2").buildPartial()
+      builderFor("service1", "component1").buildPartial(),
+      builderFor("service2", "component2").buildPartial(),
+      builderFor("service1", "component3").buildPartial(),
+      builderFor("service2", "component4").buildPartial()
     )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
@@ -421,6 +426,7 @@ public class TopologyManagerTest {
     PowerMock.replay(AmbariContext.class);
 
     Whitebox.setInternalState(topologyManager, "executor", executor);
+    Whitebox.setInternalState(topologyManager, "topologyValidatorService", NO_VALIDATION);
     EasyMockSupport.injectMocks(topologyManager);
 
     Whitebox.setInternalState(topologyManagerReplay, "executor", executor);

@@ -24,6 +24,8 @@ import java.util.function.UnaryOperator;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -45,8 +47,9 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
 
   private enum Property {
     STACK_ID("stackId"),
-    SERVICE_TYPE("serviceType"),
     COMPONENT_NAME("componentName"),
+    SERVICE_INFO("serviceInfo"),
+    COMPONENT_INFO("componentInfo"),
     COMPONENT("component"),
     ;
 
@@ -67,15 +70,15 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
   // allows the JVM to optimize away the Optional objects created by and
   // passed to our API.
   private String serviceGroupName = null;
-  private String serviceType;
   // Store a nullable object instead of an Optional. Escape analysis then
   // allows the JVM to optimize away the Optional objects created by and
   // passed to our API.
   private String serviceName = null;
   private String componentName;
-  private boolean masterComponent;
+  private ServiceInfo serviceInfo;
+  private ComponentInfo componentInfo;
   private Component component;
-  private final EnumSet<Property> _unsetProperties =
+  private final EnumSet<ResolvedComponent_Builder.Property> _unsetProperties =
       EnumSet.allOf(ResolvedComponent_Builder.Property.class);
 
   /**
@@ -178,43 +181,6 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
   /** Returns the value that will be returned by {@link ResolvedComponent#serviceGroupName()}. */
   public Optional<String> serviceGroupName() {
     return Optional.ofNullable(serviceGroupName);
-  }
-
-  /**
-   * Sets the value to be returned by {@link ResolvedComponent#serviceType()}.
-   *
-   * @return this {@code Builder} object
-   * @throws NullPointerException if {@code serviceType} is null
-   */
-  public ResolvedComponent.Builder serviceType(String serviceType) {
-    this.serviceType = Preconditions.checkNotNull(serviceType);
-    _unsetProperties.remove(ResolvedComponent_Builder.Property.SERVICE_TYPE);
-    return (ResolvedComponent.Builder) this;
-  }
-
-  /**
-   * Replaces the value to be returned by {@link ResolvedComponent#serviceType()} by applying {@code
-   * mapper} to it and using the result.
-   *
-   * @return this {@code Builder} object
-   * @throws NullPointerException if {@code mapper} is null or returns null
-   * @throws IllegalStateException if the field has not been set
-   */
-  public ResolvedComponent.Builder mapServiceType(UnaryOperator<String> mapper) {
-    Preconditions.checkNotNull(mapper);
-    return serviceType(mapper.apply(serviceType()));
-  }
-
-  /**
-   * Returns the value that will be returned by {@link ResolvedComponent#serviceType()}.
-   *
-   * @throws IllegalStateException if the field has not been set
-   */
-  public String serviceType() {
-    Preconditions.checkState(
-        !_unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_TYPE),
-        "serviceType not set");
-    return serviceType;
   }
 
   /**
@@ -321,29 +287,77 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
   }
 
   /**
-   * Sets the value to be returned by {@link ResolvedComponent#masterComponent()}.
+   * Sets the value to be returned by {@link ResolvedComponent#serviceInfo()}.
    *
    * @return this {@code Builder} object
+   * @throws NullPointerException if {@code serviceInfo} is null
    */
-  public ResolvedComponent.Builder masterComponent(boolean masterComponent) {
-    this.masterComponent = masterComponent;
+  public ResolvedComponent.Builder serviceInfo(ServiceInfo serviceInfo) {
+    this.serviceInfo = Preconditions.checkNotNull(serviceInfo);
+    _unsetProperties.remove(ResolvedComponent_Builder.Property.SERVICE_INFO);
     return (ResolvedComponent.Builder) this;
   }
 
   /**
-   * Replaces the value to be returned by {@link ResolvedComponent#masterComponent()} by applying
+   * Replaces the value to be returned by {@link ResolvedComponent#serviceInfo()} by applying {@code
+   * mapper} to it and using the result.
+   *
+   * @return this {@code Builder} object
+   * @throws NullPointerException if {@code mapper} is null or returns null
+   * @throws IllegalStateException if the field has not been set
+   */
+  public ResolvedComponent.Builder mapServiceInfo(UnaryOperator<ServiceInfo> mapper) {
+    Preconditions.checkNotNull(mapper);
+    return serviceInfo(mapper.apply(serviceInfo()));
+  }
+
+  /**
+   * Returns the value that will be returned by {@link ResolvedComponent#serviceInfo()}.
+   *
+   * @throws IllegalStateException if the field has not been set
+   */
+  public ServiceInfo serviceInfo() {
+    Preconditions.checkState(
+        !_unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_INFO),
+        "serviceInfo not set");
+    return serviceInfo;
+  }
+
+  /**
+   * Sets the value to be returned by {@link ResolvedComponent#componentInfo()}.
+   *
+   * @return this {@code Builder} object
+   * @throws NullPointerException if {@code componentInfo} is null
+   */
+  public ResolvedComponent.Builder componentInfo(ComponentInfo componentInfo) {
+    this.componentInfo = Preconditions.checkNotNull(componentInfo);
+    _unsetProperties.remove(ResolvedComponent_Builder.Property.COMPONENT_INFO);
+    return (ResolvedComponent.Builder) this;
+  }
+
+  /**
+   * Replaces the value to be returned by {@link ResolvedComponent#componentInfo()} by applying
    * {@code mapper} to it and using the result.
    *
    * @return this {@code Builder} object
    * @throws NullPointerException if {@code mapper} is null or returns null
+   * @throws IllegalStateException if the field has not been set
    */
-  public ResolvedComponent.Builder mapMasterComponent(UnaryOperator<Boolean> mapper) {
-    return masterComponent(mapper.apply(masterComponent()));
+  public ResolvedComponent.Builder mapComponentInfo(UnaryOperator<ComponentInfo> mapper) {
+    Preconditions.checkNotNull(mapper);
+    return componentInfo(mapper.apply(componentInfo()));
   }
 
-  /** Returns the value that will be returned by {@link ResolvedComponent#masterComponent()}. */
-  public boolean masterComponent() {
-    return masterComponent;
+  /**
+   * Returns the value that will be returned by {@link ResolvedComponent#componentInfo()}.
+   *
+   * @throws IllegalStateException if the field has not been set
+   */
+  public ComponentInfo componentInfo() {
+    Preconditions.checkState(
+        !_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_INFO),
+        "componentInfo not set");
+    return componentInfo;
   }
 
   /**
@@ -391,17 +405,18 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       stackId(value.stackId());
     }
     value.serviceGroupName().ifPresent(this::serviceGroupName);
-    if (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_TYPE)
-        || !Objects.equals(value.serviceType(), _defaults.serviceType())) {
-      serviceType(value.serviceType());
-    }
     value.serviceName().ifPresent(this::serviceName);
     if (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_NAME)
         || !Objects.equals(value.componentName(), _defaults.componentName())) {
       componentName(value.componentName());
     }
-    if (!Objects.equals(value.masterComponent(), _defaults.masterComponent())) {
-      masterComponent(value.masterComponent());
+    if (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_INFO)
+        || !Objects.equals(value.serviceInfo(), _defaults.serviceInfo())) {
+      serviceInfo(value.serviceInfo());
+    }
+    if (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_INFO)
+        || !Objects.equals(value.componentInfo(), _defaults.componentInfo())) {
+      componentInfo(value.componentInfo());
     }
     if (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT)
         || !Objects.equals(value.component(), _defaults.component())) {
@@ -424,19 +439,21 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       stackId(template.stackId());
     }
     template.serviceGroupName().ifPresent(this::serviceGroupName);
-    if (!base._unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_TYPE)
-        && (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_TYPE)
-            || !Objects.equals(template.serviceType(), _defaults.serviceType()))) {
-      serviceType(template.serviceType());
-    }
     template.serviceName().ifPresent(this::serviceName);
     if (!base._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_NAME)
         && (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_NAME)
             || !Objects.equals(template.componentName(), _defaults.componentName()))) {
       componentName(template.componentName());
     }
-    if (!Objects.equals(template.masterComponent(), _defaults.masterComponent())) {
-      masterComponent(template.masterComponent());
+    if (!base._unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_INFO)
+        && (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_INFO)
+            || !Objects.equals(template.serviceInfo(), _defaults.serviceInfo()))) {
+      serviceInfo(template.serviceInfo());
+    }
+    if (!base._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_INFO)
+        && (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_INFO)
+            || !Objects.equals(template.componentInfo(), _defaults.componentInfo()))) {
+      componentInfo(template.componentInfo());
     }
     if (!base._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT)
         && (_defaults._unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT)
@@ -451,10 +468,10 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     ResolvedComponent_Builder _defaults = new ResolvedComponent.Builder();
     stackId = _defaults.stackId;
     serviceGroupName = _defaults.serviceGroupName;
-    serviceType = _defaults.serviceType;
     serviceName = _defaults.serviceName;
     componentName = _defaults.componentName;
-    masterComponent = _defaults.masterComponent;
+    serviceInfo = _defaults.serviceInfo;
+    componentInfo = _defaults.componentInfo;
     component = _defaults.component;
     _unsetProperties.clear();
     _unsetProperties.addAll(_defaults._unsetProperties);
@@ -491,22 +508,22 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     // allows the JVM to optimize away the Optional objects created by our
     // getter method.
     private final String serviceGroupName;
-    private final String serviceType;
     // Store a nullable object instead of an Optional. Escape analysis then
     // allows the JVM to optimize away the Optional objects created by our
     // getter method.
     private final String serviceName;
     private final String componentName;
-    private final boolean masterComponent;
+    private final ServiceInfo serviceInfo;
+    private final ComponentInfo componentInfo;
     private final Component component;
 
     private Value(ResolvedComponent_Builder builder) {
       this.stackId = builder.stackId;
       this.serviceGroupName = builder.serviceGroupName;
-      this.serviceType = builder.serviceType;
       this.serviceName = builder.serviceName;
       this.componentName = builder.componentName;
-      this.masterComponent = builder.masterComponent;
+      this.serviceInfo = builder.serviceInfo;
+      this.componentInfo = builder.componentInfo;
       this.component = builder.component;
     }
 
@@ -521,11 +538,6 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     }
 
     @Override
-    public String serviceType() {
-      return serviceType;
-    }
-
-    @Override
     public Optional<String> serviceName() {
       return Optional.ofNullable(serviceName);
     }
@@ -536,13 +548,23 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     }
 
     @Override
-    public boolean masterComponent() {
-      return masterComponent;
+    public ServiceInfo serviceInfo() {
+      return serviceInfo;
+    }
+
+    @Override
+    public ComponentInfo componentInfo() {
+      return componentInfo;
     }
 
     @Override
     public Component component() {
       return component;
+    }
+
+    @Override
+    public ResolvedComponent.Builder toBuilder() {
+      return new ResolvedComponent.Builder().mergeFrom(this);
     }
 
     @Override
@@ -552,24 +574,26 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       }
       ResolvedComponent_Builder.Value other = (ResolvedComponent_Builder.Value) obj;
       return Objects.equals(stackId, other.stackId)
-          && Objects.equals(serviceGroupName, other.serviceGroupName)
-          && Objects.equals(serviceType, other.serviceType)
-          && Objects.equals(serviceName, other.serviceName)
+          //&& Objects.equals(serviceGroupName, other.serviceGroupName)
+          //&& Objects.equals(serviceName, other.serviceName)
           && Objects.equals(componentName, other.componentName)
-          && Objects.equals(masterComponent, other.masterComponent)
-          && Objects.equals(component, other.component);
+          && Objects.equals(serviceInfo, other.serviceInfo)
+          //&& Objects.equals(componentInfo, other.componentInfo)
+          //&& Objects.equals(component, other.component)
+        ;
     }
 
     @Override
     public int hashCode() {
       return Objects.hash(
           stackId,
-          serviceGroupName,
-          serviceType,
-          serviceName,
+          //serviceGroupName,
+          //serviceName,
           componentName,
-          masterComponent,
-          component);
+          serviceInfo
+          //componentInfo,
+          //component
+      );
     }
 
     @Override
@@ -578,11 +602,11 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
           + COMMA_JOINER.join(
               "stackId=" + stackId,
               (serviceGroupName != null ? "serviceGroupName=" + serviceGroupName : null),
-              "serviceType=" + serviceType,
               (serviceName != null ? "serviceName=" + serviceName : null),
-              "componentName=" + componentName,
-              "masterComponent=" + masterComponent,
-              "component=" + component)
+              //"componentName=" + componentName,
+              "service=" + serviceInfo.getName(),
+              "component=" + componentInfo.getName(),
+              "input=" + component)
           + "}";
     }
   }
@@ -593,23 +617,23 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     // allows the JVM to optimize away the Optional objects created by our
     // getter method.
     private final String serviceGroupName;
-    private final String serviceType;
     // Store a nullable object instead of an Optional. Escape analysis then
     // allows the JVM to optimize away the Optional objects created by our
     // getter method.
     private final String serviceName;
     private final String componentName;
-    private final boolean masterComponent;
+    private final ServiceInfo serviceInfo;
+    private final ComponentInfo componentInfo;
     private final Component component;
     private final EnumSet<ResolvedComponent_Builder.Property> _unsetProperties;
 
     Partial(ResolvedComponent_Builder builder) {
       this.stackId = builder.stackId;
       this.serviceGroupName = builder.serviceGroupName;
-      this.serviceType = builder.serviceType;
       this.serviceName = builder.serviceName;
       this.componentName = builder.componentName;
-      this.masterComponent = builder.masterComponent;
+      this.serviceInfo = builder.serviceInfo;
+      this.componentInfo = builder.componentInfo;
       this.component = builder.component;
       this._unsetProperties = builder._unsetProperties.clone();
     }
@@ -628,14 +652,6 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     }
 
     @Override
-    public String serviceType() {
-      if (_unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_TYPE)) {
-        throw new UnsupportedOperationException("serviceType not set");
-      }
-      return serviceType;
-    }
-
-    @Override
     public Optional<String> serviceName() {
       return Optional.ofNullable(serviceName);
     }
@@ -649,8 +665,19 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     }
 
     @Override
-    public boolean masterComponent() {
-      return masterComponent;
+    public ServiceInfo serviceInfo() {
+      if (_unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_INFO)) {
+        throw new UnsupportedOperationException("serviceInfo not set");
+      }
+      return serviceInfo;
+    }
+
+    @Override
+    public ComponentInfo componentInfo() {
+      if (_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_INFO)) {
+        throw new UnsupportedOperationException("componentInfo not set");
+      }
+      return componentInfo;
     }
 
     @Override
@@ -661,6 +688,36 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       return component;
     }
 
+    private static class PartialBuilder extends ResolvedComponent.Builder {
+      @Override
+      public ResolvedComponent build() {
+        return buildPartial();
+      }
+    }
+
+    @Override
+    public ResolvedComponent.Builder toBuilder() {
+      ResolvedComponent.Builder builder = new PartialBuilder();
+      if (!_unsetProperties.contains(ResolvedComponent_Builder.Property.STACK_ID)) {
+        builder.stackId(stackId);
+      }
+      builder.nullableServiceGroupName(serviceGroupName);
+      builder.nullableServiceName(serviceName);
+      if (!_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_NAME)) {
+        builder.componentName(componentName);
+      }
+      if (!_unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_INFO)) {
+        builder.serviceInfo(serviceInfo);
+      }
+      if (!_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_INFO)) {
+        builder.componentInfo(componentInfo);
+      }
+      if (!_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT)) {
+        builder.component(component);
+      }
+      return builder;
+    }
+
     @Override
     public boolean equals(Object obj) {
       if (!(obj instanceof ResolvedComponent_Builder.Partial)) {
@@ -669,10 +726,10 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       ResolvedComponent_Builder.Partial other = (ResolvedComponent_Builder.Partial) obj;
       return Objects.equals(stackId, other.stackId)
           && Objects.equals(serviceGroupName, other.serviceGroupName)
-          && Objects.equals(serviceType, other.serviceType)
           && Objects.equals(serviceName, other.serviceName)
           && Objects.equals(componentName, other.componentName)
-          && Objects.equals(masterComponent, other.masterComponent)
+          && Objects.equals(serviceInfo, other.serviceInfo)
+          && Objects.equals(componentInfo, other.componentInfo)
           && Objects.equals(component, other.component)
           && Objects.equals(_unsetProperties, other._unsetProperties);
     }
@@ -682,10 +739,10 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       return Objects.hash(
           stackId,
           serviceGroupName,
-          serviceType,
           serviceName,
           componentName,
-          masterComponent,
+          serviceInfo,
+          componentInfo,
           component,
           _unsetProperties);
     }
@@ -698,14 +755,16 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
                   ? "stackId=" + stackId
                   : null),
               (serviceGroupName != null ? "serviceGroupName=" + serviceGroupName : null),
-              (!_unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_TYPE)
-                  ? "serviceType=" + serviceType
-                  : null),
               (serviceName != null ? "serviceName=" + serviceName : null),
               (!_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_NAME)
                   ? "componentName=" + componentName
                   : null),
-              "masterComponent=" + masterComponent,
+              (!_unsetProperties.contains(ResolvedComponent_Builder.Property.SERVICE_INFO)
+                  ? "serviceInfo=" + serviceInfo
+                  : null),
+              (!_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT_INFO)
+                  ? "componentInfo=" + componentInfo
+                  : null),
               (!_unsetProperties.contains(ResolvedComponent_Builder.Property.COMPONENT)
                   ? "component=" + component
                   : null))

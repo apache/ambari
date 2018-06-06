@@ -44,6 +44,11 @@ public interface ClusterTopology {
   Long getClusterId();
 
   /**
+   * @throws IllegalStateException if the topology already has a clusterId associated with it
+   */
+  void setClusterId(Long clusterId);
+
+  /**
    * Get the blueprint associated with the cluster.
    *
    * @return associated blueprint
@@ -106,6 +111,7 @@ public interface ClusterTopology {
    */
   @Deprecated // 1. component name is not enough, 2. only used for stack-specific checks/updates
   Collection<String> getHostGroupsForComponent(String component);
+  Set<String> getHostGroupsForComponent(ResolvedComponent component);
 
   /**
    * Get the name of the host group which is mapped to the specified host.
@@ -225,10 +231,13 @@ public interface ClusterTopology {
    */
   boolean containsMasterComponent(String hostGroup);
 
-  Collection<HostGroup> getHostGroups();
+  Set<String> getHostGroups();
 
   /*
    * @return true if the given component belongs to a service that has serviceType=HCFS
    */
   boolean isComponentHadoopCompatible(String component);
+
+  ClusterTopology withAdditionalComponents(Map<String, Set<ResolvedComponent>> additionalComponents) throws InvalidTopologyException;
+
 }

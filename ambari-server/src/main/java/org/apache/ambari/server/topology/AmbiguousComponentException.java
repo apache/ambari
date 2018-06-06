@@ -17,24 +17,24 @@
  */
 package org.apache.ambari.server.topology;
 
-import java.util.Collection;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang3.tuple.Pair;
 
-/**
- * Request for provisioning the cluster.  This interface is extracted
- * from ProvisionClusterRequest so that we can have a unified view of the
- * blueprint and the request in BlueprintBasedClusterProvisionRequest.
- */
-public interface ProvisionRequest extends TopologyRequest {
+public class AmbiguousComponentException extends IllegalStateException {
 
-  ConfigRecommendationStrategy getConfigRecommendationStrategy();
-  ProvisionAction getProvisionAction();
-  String getDefaultPassword();
-  Set<StackId> getStackIds();
-  Collection<MpackInstance> getMpacks();
-  SecurityConfiguration getSecurityConfiguration();
+  AmbiguousComponentException(Set<Pair<StackId, ServiceInfo>> serviceMatches) {
+    super(formatResolutionProblemMessage(serviceMatches));
+  }
+
+  private static String formatResolutionProblemMessage(Set<Pair<StackId, ServiceInfo>> serviceMatches) {
+    if (serviceMatches.isEmpty()) {
+      return "No service found";
+    }
+
+    return "Multiple services found: " + serviceMatches;
+  }
 
 }

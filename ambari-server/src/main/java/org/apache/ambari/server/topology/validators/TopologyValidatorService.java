@@ -28,19 +28,17 @@ import org.slf4j.LoggerFactory;
  *
  * Ideally this service should be used as instead of directly use validator implementations.
  */
-public class TopologyValidatorService {
+public class TopologyValidatorService implements TopologyValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TopologyValidatorService.class);
 
   @Inject
   private TopologyValidatorFactory topologyValidatorFactory;
 
-  public TopologyValidatorService() {
-  }
-
-  public void validateTopologyConfiguration(ClusterTopology clusterTopology) throws InvalidTopologyException {
+  @Override
+  public ClusterTopology validate(ClusterTopology clusterTopology) throws InvalidTopologyException {
     LOGGER.info("Validating cluster topology: {}", clusterTopology);
-    topologyValidatorFactory.createConfigurationValidatorChain().validate(clusterTopology);
+    return topologyValidatorFactory.createConfigurationValidatorChain().validate(clusterTopology);
   }
 
 }
