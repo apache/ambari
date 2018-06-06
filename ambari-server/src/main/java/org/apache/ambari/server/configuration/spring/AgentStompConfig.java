@@ -55,7 +55,7 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
   public DefaultHandshakeHandler getHandshakeHandler() {
     WebSocketServerFactory webSocketServerFactory = new WebSocketServerFactory(servletContext);
-    webSocketServerFactory.getPolicy().setMaxTextMessageSize(configuration.getStompMaxMessageSize());
+    webSocketServerFactory.getPolicy().setMaxTextMessageSize(configuration.getStompMaxIncomingMessageSize());
 
     return new DefaultHandshakeHandler(
         new JettyRequestUpgradeStrategy(webSocketServerFactory));
@@ -81,6 +81,7 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
   @Override
   public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-    registration.setMessageSizeLimit(configuration.getStompMaxMessageSize());
+    registration.setMessageSizeLimit(configuration.getStompMaxIncomingMessageSize());
+    registration.setSendBufferSizeLimit(configuration.getStompMaxBufferMessageSize());
   }
 }
