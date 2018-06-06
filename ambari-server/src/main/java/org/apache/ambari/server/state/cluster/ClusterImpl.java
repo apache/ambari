@@ -1610,14 +1610,9 @@ public class ClusterImpl implements Cluster {
     }
     clusterGlobalLock.writeLock().lock();
     try {
-      if (!serviceConfigs.containsKey(serviceId)) {
-        ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = new ConcurrentHashMap<>();
-        serviceConfigs.put(serviceId, allServiceConfigs);
-      }
-      ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(serviceId);
-      allServiceConfigs.put(config.getType(), new ConcurrentHashMap<>());
-      allServiceConfigs.get(config.getType()).put(config.getTag(), config);
-      serviceConfigs.put(serviceId,allServiceConfigs);
+      serviceConfigs.computeIfAbsent(serviceId, __ -> new ConcurrentHashMap<>()).
+        computeIfAbsent(config.getType(), __ -> new ConcurrentHashMap<>()).
+        put(config.getTag(), config);
     } finally {
         clusterGlobalLock.writeLock().unlock();
     }
