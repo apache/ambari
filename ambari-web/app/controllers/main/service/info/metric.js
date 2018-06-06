@@ -92,6 +92,7 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
    */
   loadAllSharedWidgetsSuccessCallback: function (data) {
     var widgetIds = this.get('widgets').mapProperty('id');
+    var activeNSWidgetLayouts = this.get('activeNSWidgetLayouts');
     if (data.items[0] && data.items.length) {
       this.set("allSharedWidgets",
         data.items.filter(function (widget) {
@@ -99,17 +100,23 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
         }).map(function (widget) {
           var widgetType = widget.WidgetInfo.widget_type;
           var widgetName = widget.WidgetInfo.widget_name;
-          var widgetId =  widget.WidgetInfo.id;
+          var widgetId = widget.WidgetInfo.id;
+          var widgetTag = widget.WidgetInfo.tag;
+          var inNSLayouts = false;
+          if (widgetTag) {
+            inNSLayouts = activeNSWidgetLayouts.findProperty('nameServiceId', widgetTag).get('widgets').someProperty('id', widgetId) &&
+              activeNSWidgetLayouts.findProperty('nameServiceId', 'all').get('widgets').someProperty('id', widgetId);
+          }
           return Em.Object.create({
             id: widgetId,
             widgetName: widgetName,
-            tag: widget.WidgetInfo.tag,
+            tag: widgetTag,
             metrics: widget.WidgetInfo.metrics,
             description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
             serviceName: JSON.parse(widget.WidgetInfo.metrics).mapProperty('service_name').uniq().join('-'),
-            added: widgetIds.contains(widgetId),
+            added: widgetTag ? inNSLayouts : widgetIds.contains(widgetId),
             isShared: widget.WidgetInfo.scope == "CLUSTER"
           });
         })
@@ -143,6 +150,7 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
    */
   loadMineWidgetsSuccessCallback: function (data) {
     var widgetIds = this.get('widgets').mapProperty('id');
+    var activeNSWidgetLayouts = this.get('activeNSWidgetLayouts');
     if (data.items[0] && data.items.length) {
       this.set("mineWidgets",
         data.items.filter(function (widget) {
@@ -150,17 +158,23 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
         }).map(function (widget) {
           var widgetType = widget.WidgetInfo.widget_type;
           var widgetName = widget.WidgetInfo.widget_name;
-          var widgetId =  widget.WidgetInfo.id;
+          var widgetId = widget.WidgetInfo.id;
+          var widgetTag = widget.WidgetInfo.tag;
+          var inNSLayouts = false;
+          if (widgetTag) {
+            inNSLayouts = activeNSWidgetLayouts.findProperty('nameServiceId', widgetTag).get('widgets').someProperty('id', widgetId) &&
+              activeNSWidgetLayouts.findProperty('nameServiceId', 'all').get('widgets').someProperty('id', widgetId);
+          }
           return Em.Object.create({
             id: widget.WidgetInfo.id,
             widgetName: widgetName,
-            tag: widget.WidgetInfo.tag,
+            tag: widgetTag,
             metrics: widget.WidgetInfo.metrics,
             description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
             serviceName: JSON.parse(widget.WidgetInfo.metrics).mapProperty('service_name').uniq().join('-'),
-            added: widgetIds.contains(widgetId),
+            added: widgetTag ? inNSLayouts : widgetIds.contains(widgetId),
             isShared: widget.WidgetInfo.scope == "CLUSTER"
           });
         })
@@ -175,37 +189,59 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
    * add widgets, on click handler for "Add"
    */
   addWidget: function (event) {
+    var self = this;
     var widgetToAdd = event.context;
-    var activeLayout = this.get('activeWidgetLayout');
-    var widgetIds = activeLayout.get('widgets').map(function(widget) {
-      return {
-        "id": widget.get("id")
-      }
-    });
-    widgetIds.pushObject({
-      "id": widgetToAdd.id
-    });
-    var data = {
-      "WidgetLayoutInfo": {
-        "display_name": activeLayout.get("displayName"),
-        "id": activeLayout.get("id"),
-        "layout_name": activeLayout.get("layoutName"),
-        "scope": activeLayout.get("scope"),
-        "section_name": activeLayout.get("sectionName"),
-        "widgets": widgetIds
-      }
-    };
+    var activeLayouts = widgetToAdd.tag ? this.get('activeNSWidgetLayouts').filter(function (l) {
+      return ['all', widgetToAdd.tag].contains(l.get('nameServiceId'));
+    }) : [this.get('activeWidgetLayout')];
+    activeLayouts.forEach(function (activeLayout) {
+      var widgetIds = activeLayout.get('widgets').map(function(widget) {
+        return {
+          "id": widget.get("id")
+        }
+      });
+      if (!widgetIds.mapProperty('id').contains(widgetToAdd.id)) {
+        widgetIds.pushObject({
+          "id": widgetToAdd.id
+        });
+        var data = {
+          "WidgetLayoutInfo": {
+            "display_name": activeLayout.get("displayName"),
+            "id": activeLayout.get("id"),
+            "layout_name": activeLayout.get("layoutName"),
+            "scope": activeLayout.get("scope"),
+            "section_name": activeLayout.get("sectionName"),
+            "widgets": widgetIds
+          }
+        };
 
-    widgetToAdd.set('added', !widgetToAdd.added);
-    return App.ajax.send({
-      name: 'widget.layout.edit',
-      sender: this,
-      data: {
-        layoutId: activeLayout.get("id"),
-        data: data
-      },
-      success: 'updateActiveLayout'
+        return App.ajax.send({
+          name: 'widget.layout.edit',
+          sender: self,
+          data: {
+            layoutId: activeLayout.get("id"),
+            data: data
+          },
+          success: 'updateActiveLayout'
+        });
+      }
     });
+
+    widgetToAdd.set('added', true);
+  },
+
+  /**
+   * find and hide widgets from all layouts
+   * @param event
+   */
+  hideWidgetBrowser: function (event) {
+    var activeLayouts = event.context.tag ? this.get('activeNSWidgetLayouts').filter(function (l) {
+      return l.get('widgets').mapProperty('id').contains(event.context.id);
+    }) : [this.get('activeWidgetLayout')];
+    activeLayouts.forEach(function(layout) {
+      event.context.nsLayout = layout;
+      this.hideWidget(event)
+    }, this);
   },
 
   /**
@@ -233,7 +269,7 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
       }
     };
 
-    widgetToHide.set('added', !widgetToHide.added);
+    widgetToHide.set('added', false);
     return App.ajax.send({
       name: 'widget.layout.edit',
       sender: this,
