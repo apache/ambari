@@ -273,8 +273,8 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
       if (condition.doUpdate()) {
         conn.setAutoCommit(true);
         int rows = stmt.executeUpdate();
-        conn.setAutoCommit(false);
         conn.commit();
+        conn.setAutoCommit(false);
         LOG.info(rows + " row(s) updated in aggregation.");
 
         //TODO : Fix downsampling after UUID change.
