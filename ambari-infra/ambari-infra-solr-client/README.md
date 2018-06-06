@@ -77,7 +77,7 @@ CONFIG_INI_LOCATION=ambari_solr_migration.ini # output of the script with requir
 # note 1: use -s if ambari-server uses https
 # note 2: use --shared-driver if the backup location is shared for different hosts
 # note 3: use --hdfs-base-path if the index data is located on hdfs (or --ranger-hdfs-base-path if only ranger collection is located there), e.g.: /user/infra-solr
-/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org -port 8080 --cluster cl1 --username admin --password admin --backup-base-path=/my/path --java-home /usr/jdk64/jdk1.8.0_112
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org --port 8080 --cluster cl1 --username admin --password admin --backup-base-path=/my/path --java-home /usr/jdk64/jdk1.8.0_112
 ```
 
 The generated config file output could be something like that:
