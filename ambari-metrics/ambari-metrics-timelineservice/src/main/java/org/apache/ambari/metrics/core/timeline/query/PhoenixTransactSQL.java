@@ -508,6 +508,8 @@ public class PhoenixTransactSQL {
       String query;
       if (condition.getPrecision() == null) {
         condition.setPrecision(getBestPrecisionForCondition(condition));
+      } else {
+        condition.setNoLimit();
       }
       switch (condition.getPrecision()) {
         case DAYS:
@@ -703,6 +705,8 @@ public class PhoenixTransactSQL {
     String queryStmt;
     if (condition.getPrecision() == null) {
       condition.setPrecision(getBestPrecisionForCondition(condition));
+    } else {
+      condition.setNoLimit();
     }
     switch (condition.getPrecision()) {
       case DAYS:

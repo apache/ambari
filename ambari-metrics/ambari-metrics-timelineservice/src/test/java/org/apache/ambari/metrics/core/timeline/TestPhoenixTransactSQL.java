@@ -155,6 +155,7 @@ public class TestPhoenixTransactSQL {
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_MINUTE_UUID"));
+    Assert.assertNull(condition.getLimit());
     verify(connection, preparedStatement);
   }
 
@@ -220,6 +221,7 @@ public class TestPhoenixTransactSQL {
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY_UUID"));
+    Assert.assertNotNull(condition.getLimit());
     Assert.assertEquals(Precision.HOURS, condition.getPrecision());
     verify(connection, preparedStatement);
 
@@ -257,6 +259,7 @@ public class TestPhoenixTransactSQL {
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY_UUID"));
+    Assert.assertNull(condition.getLimit());
     verify(connection, preparedStatement);
   }
 
@@ -275,6 +278,7 @@ public class TestPhoenixTransactSQL {
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE_UUID"));
+    Assert.assertNull(condition.getLimit());
     verify(connection, preparedStatement);
   }
 
@@ -322,6 +326,7 @@ public class TestPhoenixTransactSQL {
     stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_UUID"));
     Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
+    Assert.assertNotNull(condition.getLimit());
     verify(connection, preparedStatement);
 
     // MINUTES precision
@@ -340,6 +345,7 @@ public class TestPhoenixTransactSQL {
     stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE_UUID"));
     Assert.assertEquals(Precision.MINUTES, condition.getPrecision());
+    Assert.assertNotNull(condition.getLimit());
     verify(connection, preparedStatement);
 
     // HOURS precision
@@ -357,6 +363,7 @@ public class TestPhoenixTransactSQL {
     stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY_UUID"));
     Assert.assertEquals(Precision.HOURS, condition.getPrecision());
+    Assert.assertNotNull(condition.getLimit());
     verify(connection, preparedStatement);
 
     // DAYS precision
@@ -374,6 +381,7 @@ public class TestPhoenixTransactSQL {
     stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_DAILY_UUID"));
     Assert.assertEquals(Precision.DAYS, condition.getPrecision());
+    Assert.assertNotNull(condition.getLimit());
     verify(connection, preparedStatement);
 
   }
