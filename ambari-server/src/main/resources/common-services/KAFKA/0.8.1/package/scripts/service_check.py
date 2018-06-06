@@ -44,6 +44,9 @@ class ServiceCheck(Script):
     if topic_exists_cmd_code > 0:
       raise Fail("Error encountered when attempting to list topics: {0}".format(topic_exists_cmd_out))
 
+    if not params.kafka_delete_topic_enable:
+      Logger.info('Kafka delete.topic.enable is not enabled. Skipping topic creation: %s' % topic)
+      return
 
   # run create topic command only if the topic doesn't exists
     
