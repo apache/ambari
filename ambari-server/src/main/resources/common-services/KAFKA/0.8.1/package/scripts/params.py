@@ -71,6 +71,8 @@ zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", No
 kafka_user_nofile_limit = default('/configurations/kafka-env/kafka_user_nofile_limit', 128000)
 kafka_user_nproc_limit = default('/configurations/kafka-env/kafka_user_nproc_limit', 65536)
 
+kafka_delete_topic_enable = default('/configurations/kafka-broker/delete.topic.enable', True)
+
 # parameters for 2.2+
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
   kafka_home = os.path.join(stack_root,  "current", "kafka-broker")
