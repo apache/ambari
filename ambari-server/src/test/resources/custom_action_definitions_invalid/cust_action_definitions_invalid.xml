@@ -24,6 +24,7 @@
     <actionName>invalidCustomAction1</actionName>
     <actionType>USER</actionType>
     <inputs>threshold</inputs>
+    <targetServiceGroup>HDPCORE</targetServiceGroup>
     <targetService>MAPREDUCE</targetService>
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>

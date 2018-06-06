@@ -52,6 +52,7 @@ import org.junit.Test;
 
 public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Rule public EasyMockRule mocks = new EasyMockRule(this);
+  private static final long HOST_ID = -1;
   private static final String HOST = "c6401";
   private static final String HOST2 = "c6402";
   private static final String OOZIE = "OOZIE";
@@ -77,7 +78,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Test
   public void removesAllKerberosIdentitesOfComponentAfterComponentWasUninstalled() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1", "/OOZIE/OOZIE_SERVER/oozie_server2"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, HOST_ID)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1", "/OOZIE/OOZIE_SERVER/oozie_server2"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -95,7 +96,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityThatIsSharedByPrincipalName() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
     installComponent(OOZIE_2, OOZIE_SERVER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, HOST_ID)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -106,7 +107,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityThatIsSharedByKeyTabFilePath() throws Exception {
     installComponent(YARN, RESOURCE_MANAGER, HOST);
     installComponent(YARN_2, RESOURCE_MANAGER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER, -1l)), newHashSet("/YARN/RESOURCE_MANAGER/rm_unique"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER, HOST_ID)), newHashSet("/YARN/RESOURCE_MANAGER/rm_unique"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(YARN, RESOURCE_MANAGER, HOST);
@@ -141,7 +142,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   }
 
   private ArrayList<Component> hdfsComponents() {
-    return newArrayList(new Component(HOST, HDFS, NAMENODE, 0l), new Component(HOST, HDFS, DATANODE, 0l));
+    return newArrayList(new Component(HOST, HDFS, NAMENODE, HOST_ID), new Component(HOST, HDFS, DATANODE, HOST_ID));
   }
 
   private void installComponent(String serviceName, String componentName, String... hostNames) {
@@ -163,7 +164,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   }
 
   private void uninstallComponent(String service, String component, String host) throws KerberosMissingAdminCredentialsException {
-    kerberosIdentityCleaner.componentRemoved(new ServiceComponentUninstalledEvent(CLUSTER_ID, "any", "any", service, "", "", component, host, false, false, 1L));
+    kerberosIdentityCleaner.componentRemoved(new ServiceComponentUninstalledEvent(CLUSTER_ID, "any", "any", service, "", "", component, host, false, false, HOST_ID));
   }
 
   private void uninstallService(String service, List<Component> components) throws KerberosMissingAdminCredentialsException {
@@ -279,6 +280,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
     expect(clusters.getCluster(CLUSTER_ID)).andReturn(cluster).anyTimes();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
-    expect(cluster.getServices()).andReturn(installedServices).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(installedServices).anyTimes();
+    expect(cluster.getServices()).andReturn(installedServices.values()).anyTimes();
   }
 }

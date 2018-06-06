@@ -612,7 +612,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     // has the correct config type (ie oozie-site or hdfs-site) then add it to
     // the list of original stack propertiess
     Set<String> stackPropertiesForType = new HashSet<>(50);
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServices()) {
       Set<PropertyInfo> serviceProperties = m_ambariMetaInfo.get().getServiceProperties(
           oldStack.getStackName(), oldStack.getStackVersion(), service.getServiceType());
 

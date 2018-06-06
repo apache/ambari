@@ -85,7 +85,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("HostRoles/actual_configs"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_stack_id"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/version"));
-    Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_repository_version"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_state"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/state"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/component_name"));

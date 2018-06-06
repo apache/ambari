@@ -971,7 +971,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public Service addDependencyToService(String  serviceGroupName, String serviceName, Long dependencyServiceId) throws AmbariException {
     Service currentService = null;
-    for (Service service : getServicesById().values()) {
+    for (Service service : getServices()) {
       if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
         currentService = service;
       }
@@ -1004,7 +1004,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
 
-      for (Service service : getServicesById().values()) {
+      for (Service service : getServices()) {
 
         if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
           currentService = service;
@@ -1186,13 +1186,18 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, Service> getServices() {
+  public Map<String, Service> getServicesByName() {
     return new HashMap<>(services);
   }
 
   @Override
   public Map<Long, Service> getServicesById() {
     return new HashMap<>(servicesById);
+  }
+
+  @Override
+  public Collection<Service> getServices() {
+    return ImmutableList.copyOf(servicesById.values());
   }
 
   @Override
@@ -2747,7 +2752,7 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Set<String> getHosts(String serviceName, String componentName) {
-    Map<String, Service> clusterServices = getServices();
+    Map<String, Service> clusterServices = getServicesByName();
 
     if (!clusterServices.containsKey(serviceName)) {
       return Collections.emptySet();
@@ -3392,7 +3397,7 @@ public class ClusterImpl implements Cluster {
   public Map<String, Map<String, String>> getComponentVersionMap() {
     Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
 
-    for (Service service : getServices().values()) {
+    for (Service service : getServices()) {
       Map<String, String> componentMap = new HashMap<>();
       for (ServiceComponent component : service.getServiceComponents().values()) {
         // skip components which don't advertise a version

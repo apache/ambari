@@ -806,7 +806,7 @@ public class Stage {
   /**
    * This method should be used only in stage planner. To add
    * a new execution command use
-   * {@link #addHostRoleExecutionCommand(String, Role, RoleCommand, ServiceComponentHostEvent, String, String, boolean, boolean)}
+   * {@link #addHostRoleExecutionCommand(String, Role, RoleCommand, ServiceComponentHostEvent, String, Long, String, String, boolean, boolean)}
    * @param origStage the stage
    * @param hostname  the hostname; {@code null} for a server-side stage
    * @param r         the role

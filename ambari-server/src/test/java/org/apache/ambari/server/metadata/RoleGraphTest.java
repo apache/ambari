@@ -46,7 +46,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -82,9 +82,7 @@ public class RoleGraphTest {
 
     Service hdfsService = mock(Service.class);
     when(hdfsService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
-    when (cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HDFS", hdfsService)
-        .build());
+    when (cluster.getServices()).thenReturn(ImmutableSet.of(hdfsService));
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
@@ -182,11 +180,7 @@ public class RoleGraphTest {
     Service hbaseService = mock(Service.class);
     when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
-        .put("HDFS", hdfsService)
-        .put("ZOOKEEPER", zkService)
-        .put("HBASE", hbaseService)
-        .build());
+    when(cluster.getServices()).thenReturn(ImmutableSet.of(hdfsService, zkService, hbaseService));
 
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);

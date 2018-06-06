@@ -342,7 +342,7 @@ public class UpgradeContext {
 
       // !!! build all service-specific reversions
       Set<RepositoryVersionEntity> priors = new HashSet<>();
-      Map<String, Service> clusterServices = cluster.getServices();
+      Map<String, Service> clusterServices = cluster.getServicesByName();
       for (UpgradeHistoryEntity history : revertUpgrade.getHistory()) {
         String serviceName = history.getServiceName();
         String componentName = history.getComponentName();

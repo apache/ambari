@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.api.resources;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
@@ -28,6 +28,8 @@ import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.query.render.HostSummaryRenderer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * HostResourceDefinition unit tests.
@@ -49,10 +51,10 @@ public class HostResourceDefinitionTest {
     final ResourceDefinition resource = new HostResourceDefinition();
     Set<SubResourceDefinition> subResources = resource.getSubResourceDefinitions();
 
-    assertEquals(4, subResources.size());
-    assertTrue(includesType(subResources, Resource.Type.HostComponent));
-    assertTrue(includesType(subResources, Resource.Type.Alert));
-    assertTrue(includesType(subResources, Resource.Type.HostKerberosIdentity));
+    assertEquals(
+      ImmutableSet.of(Resource.Type.Alert, Resource.Type.HostComponent, Resource.Type.HostKerberosIdentity),
+      subResources.stream().map(SubResourceDefinition::getType).collect(toSet())
+    );
   }
 
   @Test
@@ -60,14 +62,5 @@ public class HostResourceDefinitionTest {
     ResourceDefinition resource = new HostResourceDefinition();
     assertSame(HostSummaryRenderer.class, resource.getRenderer("summary").getClass());
     assertSame(DefaultRenderer.class, resource.getRenderer(null).getClass());
-  }
-
-  private boolean includesType(Set<SubResourceDefinition> resources, Resource.Type type) {
-    for (SubResourceDefinition subResource : resources) {
-      if (subResource.getType() == type) {
-        return true;
-      }
-    }
-    return false;
   }
 }

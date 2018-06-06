@@ -64,7 +64,7 @@ import javax.persistence.UniqueConstraint;
 )
 public class ClusterServiceEntity {
 
-  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false, length = 10)
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 
   @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
@@ -87,7 +87,7 @@ public class ClusterServiceEntity {
 
 
   @ManyToOne
-  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false)
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
   @ManyToOne

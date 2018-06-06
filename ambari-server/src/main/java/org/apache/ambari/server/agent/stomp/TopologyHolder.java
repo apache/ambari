@@ -83,7 +83,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         topologyHosts.add(new TopologyHost(host.getHostId(), host.getHostName(),
             host.getRackInfo(), host.getIPv4()));
       }
-      for (Service service : cl.getServices().values()) {
+      for (Service service : cl.getServices()) {
         for (ServiceComponent component : service.getServiceComponents().values()) {
           Map<String, ServiceComponentHost> componentsMap = component.getServiceComponentHosts();
           if (!componentsMap.isEmpty()) {
@@ -206,7 +206,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
   private Set<TopologyComponent> getTopologyComponentRepos(Long clusterId) throws AmbariException {
     Set<TopologyComponent> topologyComponents = new HashSet<>();
     Cluster cl = clusters.getCluster(clusterId);
-    for (Service service : cl.getServices().values()) {
+    for (Service service : cl.getServices()) {
       for (ServiceComponent component : service.getServiceComponents().values()) {
         Map<String, ServiceComponentHost> componentsMap = component.getServiceComponentHosts();
         if (!componentsMap.isEmpty()) {

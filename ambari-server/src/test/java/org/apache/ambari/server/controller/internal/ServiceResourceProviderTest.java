@@ -142,7 +142,7 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServicesById()).andReturn(Collections.emptyMap()).anyTimes();
+    expect(cluster.getServices()).andReturn(Collections.emptySet()).anyTimes();
     String serviceGroupName = "SERVICE_GROUP";
     expect(cluster.getService(serviceGroupName, "Service100")).andReturn(null);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
@@ -346,7 +346,7 @@ public class ServiceResourceProviderTest {
 
     Map<Long, Service> servicesById = ImmutableMap.of(1L, service0, 2L, service1, 3L, service2, 4L, service3, 5L, service4);
     expect(cluster.getServicesById()).andReturn(servicesById).anyTimes();
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
+    expect(cluster.getServices()).andReturn(servicesById.values()).anyTimes();
     expect(cluster.getService(null, "Service102")).andReturn(service2).anyTimes();
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
@@ -453,9 +453,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -464,7 +461,6 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
     expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
@@ -521,9 +517,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -532,7 +525,6 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
     expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
@@ -588,9 +580,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -599,7 +588,6 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
     expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
@@ -657,9 +645,6 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<>();
-    allResponseMap.put("KERBEROS", service0);
-
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -668,7 +653,6 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
     expect(cluster.getService(null, "KERBEROS")).andReturn(service0);
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
@@ -754,6 +738,7 @@ public class ServiceResourceProviderTest {
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getServicesById()).andReturn(ImmutableMap.of(1L, service0)).anyTimes();
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(service0)).anyTimes();
     expect(cluster.getService(null, "Service102")).andReturn(service0).anyTimes();
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -1371,11 +1356,6 @@ public class ServiceResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-
-    expect(cluster.getServices()).andReturn(
-        ImmutableMap.<String, Service>builder()
-          .put("Service100", service1)
-          .put("Service200", service2).build()).anyTimes();
 
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();

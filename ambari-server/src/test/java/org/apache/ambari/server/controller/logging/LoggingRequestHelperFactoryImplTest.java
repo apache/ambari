@@ -84,7 +84,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     expect(clusterMock.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.singletonList(serviceComponentHostMock)).atLeastOnce();
-    expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service) null)).atLeastOnce();
+    expect(clusterMock.getServicesByName()).andReturn(Collections.singletonMap("LOGSEARCH", (Service) null)).atLeastOnce();
     expect(logSearchEnvConfig.getProperties()).andReturn(testProperties).atLeastOnce();
     expect(serviceComponentHostMock.getHostName()).andReturn(expectedHostName).atLeastOnce();
     expect(serviceComponentHostMock.getState()).andReturn(State.STARTED).atLeastOnce();
@@ -152,7 +152,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     expect(clusterMock.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.singletonList(serviceComponentHostMock)).atLeastOnce();
-    expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service) null)).atLeastOnce();
+    expect(clusterMock.getServicesByName()).andReturn(Collections.singletonMap("LOGSEARCH", (Service) null)).atLeastOnce();
     expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("");
 
     // set the LOGSEARCH_SERVER's state to INSTALLED, to simulate the case where
@@ -202,7 +202,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     expect(clusterMock.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.emptyList()).atLeastOnce();
-    expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service)null)).atLeastOnce();
+    expect(clusterMock.getServicesByName()).andReturn(Collections.singletonMap("LOGSEARCH", (Service)null)).atLeastOnce();
     expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("");
 
     mockSupport.replayAll();
@@ -243,7 +243,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     // do not include LOGSEARCH in this map, to simulate the case when LogSearch is not deployed
-    expect(clusterMock.getServices()).andReturn(Collections.singletonMap("HDFS", (Service)null)).atLeastOnce();
+    expect(clusterMock.getServicesByName()).andReturn(Collections.singletonMap("HDFS", (Service)null)).atLeastOnce();
     expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("");
 
     mockSupport.replayAll();
