@@ -239,7 +239,7 @@ public class MasterHostResolver {
    * @return true if has NameNode HA, otherwise, false.
    */
   public boolean isNameNodeHA() throws AmbariException {
-    Map<String, org.apache.ambari.server.state.Service> services = m_cluster.getServices();
+    Map<String, org.apache.ambari.server.state.Service> services = m_cluster.getServicesByName();
     if (services != null && services.containsKey("HDFS")) {
 
       Set<String> secondaryNameNodeHosts = m_cluster.getHosts("HDFS", "SECONDARY_NAMENODE");

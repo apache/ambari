@@ -80,6 +80,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -568,7 +569,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     if(request.getServiceGroupName() != null){
      clusterServices = cluster.getServicesByServiceGroup(serviceGroupName);
     }else{
-      clusterServices = cluster.getServices().values();
+      clusterServices = cluster.getServices();
     }
     for (Service s : clusterServices) {
       if (checkDesiredState
@@ -617,7 +618,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       new ArrayList<>();
 
     Set<String> clusterIds = new HashSet<>();
-    Map<String, Set<String>> serviceNames = new HashMap<>();
+    Map<String, Set<Pair<String, String>>> serviceNames = new HashMap<>();
     Set<State> seenNewStates = new HashSet<>();
     Map<Service, Boolean> serviceCredentialStoreEnabledMap = new HashMap<>();
 
@@ -639,41 +640,39 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     // We don't expect batch requests for different clusters, that's why
     // nothing bad should happen if value is overwritten few times
     for (ServiceRequest request : requests) {
-      if (request.getClusterName() == null
-          || request.getClusterName().isEmpty()
-          || request.getServiceName() == null
-          || request.getServiceName().isEmpty()) {
+      String clusterName = request.getClusterName();
+      String serviceGroupName = request.getServiceGroupName();
+      String serviceName = request.getServiceName();
+
+      if (Strings.isNullOrEmpty(clusterName) || Strings.isNullOrEmpty(serviceName)) {
         throw new IllegalArgumentException("Invalid arguments, cluster name"
             + " and/or service name should be provided to update services");
       }
 
       LOG.info("Received a updateService request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceGroupName=" + request.getServiceGroupName()
-          + ", serviceName=" + request.getServiceName()
+          + ", clusterName=" + clusterName
+          + ", serviceGroupName=" + serviceGroupName
+          + ", serviceName=" + serviceName
           + ", request=" + request);
 
-      clusterIds.add(request.getClusterName());
+      clusterIds.add(clusterName);
 
       if (clusterIds.size() > 1) {
         throw new IllegalArgumentException("Updates to multiple clusters is not"
             + " supported");
       }
 
-      if (!serviceNames.containsKey(request.getClusterName())) {
-        serviceNames.put(request.getClusterName(), new HashSet<>());
-      }
+      Pair<String, String> serviceID = Pair.of(serviceGroupName, serviceName);
+      boolean added = serviceNames.computeIfAbsent(clusterName, __ -> new HashSet<>())
+        .add(serviceID);
 
-      if (serviceNames.get(request.getClusterName())
-          .contains(request.getServiceName())) {
+      if (!added) {
         // TODO throw single exception
-        throw new IllegalArgumentException("Invalid request contains duplicate"
-            + " service names");
+        throw new IllegalArgumentException("Invalid request, contains duplicate service names");
       }
-      serviceNames.get(request.getClusterName()).add(request.getServiceName());
 
-      Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
+      Cluster cluster = clusters.getCluster(clusterName);
+      Service s = cluster.getService(serviceGroupName, serviceName);
       State oldState = s.getDesiredState();
       State newState = null;
       if (request.getDesiredState() != null) {
@@ -722,7 +721,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
         serviceCredentialStoreEnabledMap.put(s, credentialStoreEnabled);
         LOG.info("Service: service_name = {}, service_type = {}, credential_store_enabled from request: {}",
-          request.getServiceName(), request.getServiceType(), credentialStoreEnabled);
+          serviceName, request.getServiceType(), credentialStoreEnabled);
       }
 
       if (StringUtils.isNotEmpty(request.getCredentialStoreSupported())) {
@@ -733,7 +732,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateService request, clusterId={}, serviceName={}, newDesiredState=null",
-            request.getClusterName(), request.getServiceName());
+            clusterName, serviceName
+          );
         }
         continue;
       }

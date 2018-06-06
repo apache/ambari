@@ -21,6 +21,8 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
+import com.google.common.base.MoreObjects;
+
 public class Component {
   private final String hostName;
   private final String serviceName;
@@ -79,5 +81,15 @@ public class Component {
       .append(serviceComponentName)
       .append(hostId)
       .toHashCode();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("hostName", hostName)
+      .add("serviceName", serviceName)
+      .add("serviceComponentName", serviceComponentName)
+      .add("hostId", hostId)
+      .toString();
   }
 }

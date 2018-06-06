@@ -260,7 +260,7 @@ public class ClusterImplTest {
     cluster.deleteService(serviceToDelete, new DeleteHostComponentStatusMetaData());
 
     // Then
-    assertFalse("Deleted service should be removed from the service collection !", cluster.getServices().containsKey(serviceToDelete));
+    assertFalse("Deleted service should be removed from the service collection !", cluster.getServicesByName().containsKey(serviceToDelete));
 
     assertEquals("All components of the deleted service should be removed from all hosts", 0, cluster.getServiceComponentHosts(serviceToDelete, null).size());
 

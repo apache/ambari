@@ -137,7 +137,7 @@ public class HostsMasterMaintenanceCheckTest {
     upgradePacks.put(upgradePack.getName(), upgradePack);
     Mockito.when(ambariMetaInfo.getUpgradePacks(Mockito.anyString(), Mockito.anyString())).thenReturn(upgradePacks);
     Mockito.when(upgradePack.getTasks()).thenReturn(new HashMap<>());
-    Mockito.when(cluster.getServices()).thenReturn(new HashMap<>());
+    Mockito.when(cluster.getServicesByName()).thenReturn(new HashMap<>());
     Mockito.when(clusters.getHostsForCluster(Mockito.anyString())).thenReturn(new HashMap<>());
 
     check = new PrerequisiteCheck(null, null);

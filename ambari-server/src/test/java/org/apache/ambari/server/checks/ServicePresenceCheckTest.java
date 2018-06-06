@@ -93,7 +93,7 @@ public class ServicePresenceCheckTest {
 
     Map<String, Service> services = new HashMap<>();
     services.put("ATLAS", Mockito.mock(Service.class));
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServicesByName()).thenReturn(services);
 
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.NO_UPGRADE_SUPPORT_SERVICES_PROPERTY_NAME,"Atlas, MyService");
@@ -118,7 +118,7 @@ public class ServicePresenceCheckTest {
     Map<String, Service> services = new HashMap<>();
     services.put("ATLAS", Mockito.mock(Service.class));
     services.put("OLDSERVICE", Mockito.mock(Service.class));
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServicesByName()).thenReturn(services);
 
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.REPLACED_SERVICES_PROPERTY_NAME, "Atlas, OldService");
@@ -146,7 +146,7 @@ public class ServicePresenceCheckTest {
     Map<String, Service> services = new HashMap<>();
     services.put("ATLAS", Mockito.mock(Service.class));
     services.put("OLDSERVICE", Mockito.mock(Service.class));
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServicesByName()).thenReturn(services);
 
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.REMOVED_SERVICES_PROPERTY_NAME, "OldService");
@@ -172,7 +172,7 @@ public class ServicePresenceCheckTest {
     Map<String, Service> services = new HashMap<>();
     services.put("ATLAS", Mockito.mock(Service.class));
     services.put("REMOVEDSERVICE", Mockito.mock(Service.class));
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServicesByName()).thenReturn(services);
 
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.NO_UPGRADE_SUPPORT_SERVICES_PROPERTY_NAME,"MyServiceOne, MyServiceTwo");
@@ -200,7 +200,7 @@ public class ServicePresenceCheckTest {
 
     Map<String, Service> services = new HashMap<>();
     services.put("OLDSERVICE", Mockito.mock(Service.class));
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServicesByName()).thenReturn(services);
 
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.NO_UPGRADE_SUPPORT_SERVICES_PROPERTY_NAME,"Atlas, MyService");
@@ -230,7 +230,7 @@ public class ServicePresenceCheckTest {
     services.put("HDFS", Mockito.mock(Service.class));
     services.put("STORM", Mockito.mock(Service.class));
     services.put("RANGER", Mockito.mock(Service.class));
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServicesByName()).thenReturn(services);
 
     Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put(ServicePresenceCheck.NO_UPGRADE_SUPPORT_SERVICES_PROPERTY_NAME,"Atlas, HDFS");

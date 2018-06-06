@@ -562,7 +562,7 @@ public class AlertReceivedListener {
         return false;
       }
 
-      if (!cluster.getServices().containsKey(serviceName)) {
+      if (!cluster.getServicesByName().containsKey(serviceName)) {
         LOG.warn("Unable to process alert {} for an invalid service named {}",
             alert.getName(), serviceName);
 

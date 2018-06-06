@@ -175,12 +175,14 @@ App.QuickLinksView = Em.View.extend({
    */
   loadQuickLinksConfigurations: function () {
     var serviceName = this.get('content.serviceName');
+    let serviceStackName = App.StackService.find().findProperty('serviceName', serviceName).get('stackName');
+    let serviceStackVersion = App.StackService.find().findProperty('serviceName', serviceName).get('stackVersion');
     return App.ajax.send({
       name: 'configs.quicklinksconfig',
       sender: this,
       data: {
         serviceName: serviceName,
-        stackVersionUrl: App.get('stackVersionURL')
+        stackVersionUrl: App.getStackVersionUrl(serviceStackName, serviceStackVersion)
       },
       success: 'loadQuickLinksConfigSuccessCallback'
     });

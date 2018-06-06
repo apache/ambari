@@ -20,6 +20,11 @@ package org.apache.ambari.server.state.alerts;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -46,7 +51,6 @@ import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.codec.binary.Hex;
 import org.easymock.EasyMock;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -57,13 +61,11 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 
-import junit.framework.TestCase;
-
 /**
  * Tests for {@link AlertDefinitionHash}.
  */
 @Category({ category.AlertTest.class})
-public class AlertDefinitionHashTest extends TestCase {
+public class AlertDefinitionHashTest {
 
   private AlertDefinitionHash m_hash;
   private Clusters m_mockClusters;
@@ -79,15 +81,8 @@ public class AlertDefinitionHashTest extends TestCase {
   AlertDefinitionEntity m_hdfsHost;
   private ConfigHelper m_configHelper;
 
-  /**
-   *
-   */
-  @Override
   @Before
-  @SuppressWarnings("unchecked")
-  protected void setUp() throws Exception {
-    super.setUp();
-
+  public void setUp() throws Exception {
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
@@ -150,9 +145,10 @@ public class AlertDefinitionHashTest extends TestCase {
         clusterHosts).anyTimes();
 
     // cluster mock
-    expect(m_mockCluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(m_mockCluster.getClusterId()).andReturn(1L).anyTimes();
     expect(m_mockCluster.getClusterName()).andReturn(CLUSTERNAME).anyTimes();
-    expect(m_mockCluster.getServices()).andReturn(services).anyTimes();
+    expect(m_mockCluster.getServicesByName()).andReturn(services).anyTimes();
+    expect(m_mockCluster.getServices()).andReturn(services.values()).anyTimes();
     expect(
         m_mockCluster.getServiceComponentHosts(EasyMock.anyObject(String.class))).andReturn(
         serviceComponentHosts).anyTimes();
@@ -186,7 +182,7 @@ public class AlertDefinitionHashTest extends TestCase {
 
     EasyMock.expect(
         m_mockDao.findByServiceMaster(EasyMock.anyInt(),
-            (Set<String>) EasyMock.anyObject())).andReturn(
+            EasyMock.anyObject())).andReturn(
         Collections.singletonList(m_hdfsService)).anyTimes();
 
     EasyMock.expect(
@@ -204,18 +200,10 @@ public class AlertDefinitionHashTest extends TestCase {
 
     // configHelper mock
     m_configHelper = m_injector.getInstance(ConfigHelper.class);
-    EasyMock.expect(m_configHelper.getEffectiveDesiredTags((Cluster) anyObject(), EasyMock.anyString())).andReturn(new HashMap<>()).anyTimes();
-    EasyMock.expect(m_configHelper.getEffectiveConfigProperties((Cluster) anyObject(), (Map<String, Map<String, String>>) anyObject())).andReturn(new HashMap<>()).anyTimes();
+    EasyMock.expect(m_configHelper.getEffectiveDesiredTags(anyObject(), EasyMock.anyString())).andReturn(new HashMap<>()).anyTimes();
+    Map<String, Map<String, String>> desiredTags = anyObject();
+    EasyMock.expect(m_configHelper.getEffectiveConfigProperties(anyObject(), desiredTags)).andReturn(new HashMap<>()).anyTimes();
     EasyMock.replay(m_configHelper);
-  }
-
-  /**
-   *
-   */
-  @Override
-  @After
-  protected void tearDown() throws Exception {
-    super.tearDown();
   }
 
   /**

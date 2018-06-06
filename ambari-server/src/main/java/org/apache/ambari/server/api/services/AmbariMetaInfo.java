@@ -1267,7 +1267,7 @@ public class AmbariMetaInfo {
       // and off of that the alert definitions
       List<AlertDefinition> stackDefinitions = new ArrayList<>(50);
 
-      for (Service service : cluster.getServices().values()) {
+      for (Service service : cluster.getServices()) {
         ServiceInfo stackService = getService(service.getStackId().getStackName(),
             service.getStackId().getStackVersion(), service.getServiceType());
 

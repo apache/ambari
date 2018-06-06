@@ -159,6 +159,7 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -1055,7 +1056,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Cluster cluster = createMockCluster("c1", Collections.singleton(host), SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
-    expect(cluster.getServices())
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+    expect(cluster.getServicesByName())
         .andReturn(new HashMap<String, Service>() {
           {
             put(Service.Type.KERBEROS.name(), serviceKerberos);
@@ -1231,7 +1233,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Cluster cluster = createMockCluster("c1", Collections.singleton(host), SecurityType.NONE, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
-    expect(cluster.getServices())
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+    expect(cluster.getServicesByName())
         .andReturn(new HashMap<String, Service>() {
           {
             put(Service.Type.KERBEROS.name(), serviceKerberos);
@@ -1447,7 +1450,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Cluster cluster = createMockCluster("c1", hosts, SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
-    expect(cluster.getServices())
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+    expect(cluster.getServicesByName())
         .andReturn(new HashMap<String, Service>() {
           {
             put(Service.Type.KERBEROS.name(), serviceKerberos);
@@ -1844,7 +1848,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Cluster cluster = createMockCluster("c1", Collections.<Host>emptyList(), SecurityType.KERBEROS, null, null);
     if (includePreconfiguredServices) {
-      expect(cluster.getServices()).andReturn(serviceMap).once();
+      expect(cluster.getServicesByName()).andReturn(serviceMap).once();
+      expect(cluster.getServices()).andReturn(serviceMap.values()).anyTimes();
     }
 
     Map<String, Set<String>> installedServices = Collections.singletonMap("SERVICE1", Collections.singleton("COMPONENT1"));
@@ -2017,7 +2022,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     Map<String, Service> services = new HashMap<>();
 
     Cluster cluster = createMockCluster("c1", Collections.<Host>emptyList(), SecurityType.KERBEROS, null, null);
-    expect(cluster.getServices()).andReturn(services).times(2);
+    expect(cluster.getServicesByName()).andReturn(services).times(2);
+    expect(cluster.getServices()).andReturn(services.values()).anyTimes();
     expect(cluster.getServiceComponentHostMap(null, serviceNames)).andReturn(hostMap).once();
 
     KerberosDescriptor kerberosDescriptor = createKerberosDescriptor();
@@ -2403,7 +2409,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     serviceComponentHostMap.put("COMPONEN3A", Collections.singleton("hostA"));
 
     final Cluster cluster = createMockCluster("c1", hosts, SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
-    expect(cluster.getServices()).andReturn(services).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(services).anyTimes();
+    expect(cluster.getServices()).andReturn(services.values()).anyTimes();
     expect(cluster.getServiceComponentHostMap(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(serviceComponentHostMap).anyTimes();
 
     final Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>() {
@@ -2642,7 +2649,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     servicesMap.put("SERVICE2", service2);
 
     Cluster cluster = createMockCluster(clusterName, Arrays.asList(host1, host2, host3), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
-    expect(cluster.getServices()).andReturn(servicesMap).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(servicesMap).anyTimes();
+    expect(cluster.getServices()).andReturn(servicesMap.values()).anyTimes();
 
     Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("additional_realms", "");
@@ -2856,7 +2864,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     servicesMap.put("SERVICE1", service1);
 
     Cluster cluster = createMockCluster("c1", Collections.singletonList(host1), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
-    expect(cluster.getServices()).andReturn(servicesMap).anyTimes();
+    expect(cluster.getServicesByName()).andReturn(servicesMap).anyTimes();
+    expect(cluster.getServices()).andReturn(servicesMap.values()).anyTimes();
 
     Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("additional_realms", "");
@@ -3062,7 +3071,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Cluster cluster = createMockCluster("c1", Arrays.asList(hostA, hostB, hostC), SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
-    expect(cluster.getServices())
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+    expect(cluster.getServicesByName())
         .andReturn(new HashMap<String, Service>() {
           {
             put(Service.Type.KERBEROS.name(), serviceKerberos);
@@ -3322,7 +3332,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Cluster cluster = createMockCluster("c1", Collections.singleton(host), SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
-    expect(cluster.getServices())
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+    expect(cluster.getServicesByName())
         .andReturn(new HashMap<String, Service>() {
           {
             put(Service.Type.KERBEROS.name(), serviceKerberos);
@@ -3532,7 +3543,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
       expect(cluster.getClusterName()).andReturn("c1").anyTimes();
       expect(cluster.getClusterId()).andReturn(1L).anyTimes();
-      expect(cluster.getServices())
+      expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+      expect(cluster.getServicesByName())
           .andReturn(new HashMap<String, Service>() {
             {
               put(Service.Type.KERBEROS.name(), serviceKerberos);
@@ -3731,7 +3743,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Cluster cluster = createMockCluster("c1", Collections.singleton(host), SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.2")).anyTimes();
-    expect(cluster.getServices())
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+    expect(cluster.getServicesByName())
         .andReturn(new HashMap<String, Service>() {
           {
             put(Service.Type.KERBEROS.name(), serviceKerberos);
@@ -3952,7 +3965,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getServices())
+    expect(cluster.getServices()).andReturn(ImmutableSet.of(serviceKerberos, service1, service2)).anyTimes();
+    expect(cluster.getServicesByName())
         .andReturn(new HashMap<String, Service>() {
           {
             put(Service.Type.KERBEROS.name(), serviceKerberos);

@@ -614,7 +614,7 @@ public class ConfigHelper {
 
     Set<String> result = new HashSet<>();
 
-    for (Service service : clusters.getCluster(clusterName).getServices().values()) {
+    for (Service service : clusters.getCluster(clusterName).getServices()) {
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getServiceType());
       Set<PropertyInfo> stackLevelProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
       stackProperties.addAll(stackLevelProperties);
@@ -791,7 +791,7 @@ public class ConfigHelper {
       actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
     }
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServices()) {
       if (servicesMap.containsKey(service.getName())) {
         Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
         for (PropertyInfo serviceProperty : serviceProperties) {
@@ -880,7 +880,7 @@ public class ConfigHelper {
       actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
     }
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServices()) {
       if (servicesMap.containsKey(service.getName())) {
         Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
         for (PropertyInfo serviceProperty : serviceProperties) {
@@ -959,7 +959,7 @@ public class ConfigHelper {
 
     Set<StackId> stackIds = new HashSet<>();
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServices()) {
       stackIds.add(service.getStackId());
     }
 
@@ -1040,7 +1040,7 @@ public class ConfigHelper {
 
   public ServiceInfo getPropertyOwnerService(Cluster cluster, String configType, String propertyName) throws AmbariException {
 
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServices()) {
       StackId stackId = service.getStackId();
       StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
 
@@ -1060,12 +1060,10 @@ public class ConfigHelper {
     return null;
   }
 
-  public Set<PropertyInfo> getServiceProperties(Cluster cluster, String serviceName) throws AmbariException {
+  public Set<PropertyInfo> getServiceProperties(Cluster cluster, Service service) throws AmbariException {
     // The original implementation of this method is to return all properties regardless of whether
     // they should be excluded or not.  By setting removeExcluded to false in the method invocation
     // below, no attempt will be made to remove properties that exist in excluded types.
-    Service service = cluster.getService(serviceName);
-
     return getServiceProperties(service.getStackId(), service.getServiceType(), false);
   }
 
@@ -1117,7 +1115,7 @@ public class ConfigHelper {
   public Set<PropertyInfo> getStackProperties(Cluster cluster) throws AmbariException {
 
     Set<StackId> stackIds = new HashSet<>();
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : cluster.getServices()) {
       stackIds.add(service.getStackId());
     }
 
@@ -1531,7 +1529,7 @@ public class ConfigHelper {
       return;
     }
 
-    if (!clusters.getCluster(clusterId).getServices().keySet().contains(serviceName)) {
+    if (!clusters.getCluster(clusterId).getServicesByName().keySet().contains(serviceName)) {
       return;
     }
     Service service = clusters.getCluster(clusterId).getService(serviceName);

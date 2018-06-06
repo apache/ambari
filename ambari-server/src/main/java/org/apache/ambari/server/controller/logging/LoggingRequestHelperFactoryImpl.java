@@ -77,7 +77,7 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
             ambariManagementController.getCredentialStoreService(), cluster, ambariServerConfiguration.getLogSearchPortalExternalAddress());
         } else {
           boolean isLogSearchEnabled =
-            cluster.getServices().containsKey(LOGSEARCH_SERVICE_NAME);
+            cluster.getServicesByName().containsKey(LOGSEARCH_SERVICE_NAME);
 
           if (!isLogSearchEnabled) {
             // log search not enabled, just return null, since no helper impl is necessary

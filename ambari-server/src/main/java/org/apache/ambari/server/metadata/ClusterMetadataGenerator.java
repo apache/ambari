@@ -199,8 +199,7 @@ public class ClusterMetadataGenerator {
 
   public SortedMap<String, MetadataServiceInfo> getMetadataServiceLevelParams(Cluster cluster) throws AmbariException {
     SortedMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
-    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
-      Service service = serviceEntry.getValue();
+    for (Service service : cluster.getServices()) {
       serviceLevelParams.putAll(getMetadataServiceLevelParams(service));
     }
     return serviceLevelParams;

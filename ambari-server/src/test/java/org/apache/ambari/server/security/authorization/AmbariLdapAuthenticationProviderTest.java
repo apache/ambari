@@ -118,6 +118,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
+    configuration.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), "src/test/resources/mpacks-v2");
     ldapConfiguration = new AmbariLdapConfiguration();
     ldapConfiguration.setValueFor(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_ENABLED, "false");
     ldapConfiguration.setValueFor(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_FILTER, "(&(mail={0})(objectClass={userObjectClass}))");

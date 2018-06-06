@@ -75,7 +75,6 @@ import org.apache.ambari.server.topology.HostRequest;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
@@ -459,18 +458,11 @@ public class ClustersTest {
       Maps.newHashMap()
       );
 
-    Map<String, HostGroupInfo> hostGroups = Maps.newHashMap();
+    ProvisionClusterRequest topologyRequest = new ProvisionClusterRequest(bp, clusterConfig);
+    topologyRequest.setClusterId(cluster.getClusterId());
+    topologyRequest.setClusterName("Test Cluster");
 
-    ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
-    expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
-    expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
-    expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();
-    expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroups).anyTimes();
-
-
-    replay(bp, topologyRequest);
+    replay(bp);
 
     persistedState.persistTopologyRequest(topologyRequest);
 
@@ -563,15 +555,12 @@ public class ClustersTest {
     hostGroupInfo.addHost(hostName + "3");
     hostGroups.put(groupName, hostGroupInfo);
 
-    ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
-    expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
-    expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
-    expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();
-    expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroups).anyTimes();
+    ProvisionClusterRequest topologyRequest = new ProvisionClusterRequest(bp, clusterConfig);
+    topologyRequest.setClusterId(cluster.getClusterId());
+    topologyRequest.setClusterName("Test Cluster");
+    topologyRequest.getHostGroupInfo().putAll(hostGroups);
 
-    replay(bp, topologyRequest);
+    replay(bp);
 
     persistedState.persistTopologyRequest(topologyRequest);
 

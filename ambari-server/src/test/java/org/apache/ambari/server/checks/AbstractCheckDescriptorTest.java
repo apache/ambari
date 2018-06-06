@@ -113,7 +113,8 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     Set<String> missingServiceList = Sets.newHashSet("MISSING_SERVICE");
 
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getServices()).andReturn(services).atLeastOnce();
+    expect(cluster.getServicesByName()).andReturn(services).atLeastOnce();
+    expect(cluster.getServices()).andReturn(services.values()).anyTimes();
 
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
         allServicesList).atLeastOnce();
@@ -156,7 +157,8 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     Set<String> oneServiceList = Sets.newHashSet("SERVICE1");
 
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getServices()).andReturn(services).atLeastOnce();
+    expect(cluster.getServicesByName()).andReturn(services).atLeastOnce();
+    expect(cluster.getServices()).andReturn(services.values()).anyTimes();
 
     // the cluster summary will only return 1 service for the upgrade, even
     // though this cluster has 2 services installed

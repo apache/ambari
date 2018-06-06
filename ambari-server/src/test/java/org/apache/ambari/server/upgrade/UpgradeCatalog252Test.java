@@ -69,26 +69,33 @@ import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.StackFactory;
 import org.easymock.Capture;
 import org.easymock.EasyMockRunner;
 import org.easymock.Mock;
@@ -163,10 +170,13 @@ public class UpgradeCatalog252Test {
   private MetadataHolder metadataHolder;
 
   @Mock(type = MockType.NICE)
+  private ClusterMetadataGenerator metadataGenerator;
+
+  @Mock(type = MockType.NICE)
   private Injector injector;
 
   @Before
-  public void init() {
+  public void init() throws Exception {
     reset(entityManagerProvider, injector);
 
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
@@ -174,8 +184,9 @@ public class UpgradeCatalog252Test {
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper).anyTimes();
+    expect(metadataHolder.updateData(anyObject())).andReturn(Boolean.FALSE).anyTimes();
 
-    replay(entityManagerProvider, injector);
+    replay(entityManagerProvider, injector, metadataHolder);
   }
 
   @After
@@ -219,7 +230,6 @@ public class UpgradeCatalog252Test {
     final Service sparkMock = createNiceMock(Service.class);
     final Service spark2Mock = createNiceMock(Service.class);
     final AmbariManagementController controller = createMock(AmbariManagementController.class);
-    final ClusterMetadataGenerator metadataGenerator = createMock(ClusterMetadataGenerator.class);
 
     StackId stackId = new StackId("HDP", "2.2");
 
@@ -466,8 +476,16 @@ public class UpgradeCatalog252Test {
         binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         binder.bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
         binder.bind(MetadataHolder.class).toInstance(metadataHolder);
+        binder.bind(ClusterMetadataGenerator.class).toInstance(metadataGenerator);
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        binder.bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
+        binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        binder.bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+        binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+        binder.bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+        binder.bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+        binder.bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
       }
     };
     return Guice.createInjector(module);

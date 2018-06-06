@@ -32,25 +32,32 @@ App.serviceMapper = App.QuickDataMapper.create({
     console.time("App.serviceMapper execution time");
     var self = this;
     var passiveStateMap = this.get('passiveStateMap');
-    json.items.forEach(function (service) {
-      var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
-      if (cachedService) {
-        // restore service workStatus
-        App.Service.find(cachedService.ServiceInfo.service_name).set('workStatus', service.ServiceInfo.state);
-        cachedService.ServiceInfo.state = service.ServiceInfo.state;
-      } else {
-        var serviceData = {
-          ServiceInfo: {
-            service_name: service.ServiceInfo.service_name,
-            service_group_name: service.ServiceInfo.service_group_name,
-            state: service.ServiceInfo.state
-          },
-          host_components: [],
-          components: []
-        };
-        App.cache['services'].push(serviceData);
+    var services = [];
+    json.items.forEach(function (item) {
+      services = services.concat(item.services);
+    });
+
+    services.forEach(function (service) {
+      if(!service.ServiceInfo.service_name.includes('CLIENT')) {
+        var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
+        if (cachedService) {
+          // restore service workStatus
+          App.Service.find(cachedService.ServiceInfo.service_name).set('workStatus', service.ServiceInfo.state);
+          cachedService.ServiceInfo.state = service.ServiceInfo.state;
+        } else {
+          var serviceData = {
+            ServiceInfo: {
+              service_name: service.ServiceInfo.service_name,
+              service_group_name: service.ServiceInfo.service_group_name,
+              state: service.ServiceInfo.state
+            },
+            host_components: [],
+            components: []
+          };
+          App.cache['services'].push(serviceData);
+        }
+        passiveStateMap[service.ServiceInfo.service_name] = service.ServiceInfo.maintenance_state;
       }
-      passiveStateMap[service.ServiceInfo.service_name] = service.ServiceInfo.maintenance_state;
     });
 
     if (!this.get('initialAppLoad')) {

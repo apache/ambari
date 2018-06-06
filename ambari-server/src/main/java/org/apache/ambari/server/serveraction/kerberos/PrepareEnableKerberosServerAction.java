@@ -102,7 +102,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
 
     Map<String, Set<String>> propertiesToRemove = new HashMap<>();
     Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
-    Set<String> services = cluster.getServices().keySet();
+    Set<String> services = cluster.getServicesByName().keySet();
 
     // Calculate the current host-specific configurations. These will be used to replace
     // variables within the Kerberos descriptor data
