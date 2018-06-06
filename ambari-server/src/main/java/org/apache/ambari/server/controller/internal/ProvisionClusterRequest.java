@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilder;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileEvaluationException;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
@@ -54,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -205,6 +207,16 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     } catch (QuickLinksProfileEvaluationException ex) {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
     }
+  }
+
+  // for tests
+  public ProvisionClusterRequest(Blueprint blueprint, Configuration configuration) {
+    configRecommendationStrategy = ConfigRecommendationStrategy.NEVER_APPLY;
+    quickLinksProfileJson = null;
+    mpackInstances = ImmutableList.of();
+    stackIds = ImmutableSet.of();
+    setBlueprint(blueprint);
+    setConfiguration(configuration);
   }
 
   private String processQuickLinksProfile(Map<String, Object> properties) throws QuickLinksProfileEvaluationException {

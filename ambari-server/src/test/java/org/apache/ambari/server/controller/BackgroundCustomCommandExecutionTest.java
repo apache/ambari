@@ -80,6 +80,7 @@ public class BackgroundCustomCommandExecutionTest {
 
   private static final String STACK_VERSION = "2.0.6";
   private static final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
+  private static final String HOSTNAME = "c6401";
 
   @Before
   public void setup() throws Exception {
@@ -125,64 +126,57 @@ public class BackgroundCustomCommandExecutionTest {
     SecurityContextHolder.getContext().setAuthentication(null);
   }
 
-  @SuppressWarnings("serial")
   @Test
-  public void testRebalanceHdfsCustomCommand() {
-    try {
-      createClusterFixture();
+  public void testRebalanceHdfsCustomCommand() throws Exception {
+    createClusterFixture();
 
-      Map<String, String> requestProperties = new HashMap<String, String>() {
-        {
-          put(REQUEST_CONTEXT_PROPERTY, "Refresh YARN Capacity Scheduler");
-          put("command", "REBALANCEHDFS");
-          put("namenode" , "{\"threshold\":13}");//case is important here
-        }
-      };
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put(REQUEST_CONTEXT_PROPERTY, "Refresh YARN Capacity Scheduler");
+        put("command", "REBALANCEHDFS");
+        put("namenode" , "{\"threshold\":13}");//case is important here
+      }
+    };
 
-      ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
-          "REBALANCEHDFS", new HashMap<>(), false);
-      actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "HDFS", "NAMENODE",Collections.singletonList("c6401")));
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
+        "REBALANCEHDFS", new HashMap<>(), false);
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "HDFS", "NAMENODE", Collections.singletonList(HOSTNAME)));
 
-      controller.createAction(actionRequest, requestProperties);
+    controller.createAction(actionRequest, requestProperties);
 
-      Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
+    Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
 
-      Request request = requestCapture.getValue();
-      Assert.assertNotNull(request);
-      Assert.assertNotNull(request.getStages());
-      Assert.assertEquals(1, request.getStages().size());
-      Stage stage = request.getStages().iterator().next();
+    Request request = requestCapture.getValue();
+    Assert.assertNotNull(request);
+    Assert.assertNotNull(request.getStages());
+    Assert.assertEquals(1, request.getStages().size());
+    Stage stage = request.getStages().iterator().next();
 
-      System.out.println(stage);
+    System.out.println(stage);
 
-      Assert.assertEquals(1, stage.getHosts().size());
+    Assert.assertEquals(1, stage.getHosts().size());
 
-      List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c6401");
-      Assert.assertEquals(1, commands.size());
+    List<ExecutionCommandWrapper> commands = stage.getExecutionCommands(HOSTNAME);
+    Assert.assertEquals(1, commands.size());
 
-      ExecutionCommand command = commands.get(0).getExecutionCommand();
+    ExecutionCommand command = commands.get(0).getExecutionCommand();
 
-      Assert.assertEquals(AgentCommandType.BACKGROUND_EXECUTION_COMMAND, command.getCommandType());
-      Assert.assertEquals("{\"threshold\":13}", command.getCommandParams().get("namenode"));
-
-    } catch (Exception e) {
-      Assert.fail(e.getMessage());
-    }
+    Assert.assertEquals(AgentCommandType.BACKGROUND_EXECUTION_COMMAND, command.getCommandType());
+    Assert.assertEquals("{\"threshold\":13}", command.getCommandParams().get("namenode"));
   }
 
   private void createClusterFixture() throws AmbariException, AuthorizationException, IllegalAccessException , NoSuchFieldException{
     String clusterName = "c1";
     createCluster(clusterName);
-    addHost("c6401", clusterName);
-    addHost("c6402", clusterName);
-    clusters.getCluster(clusterName);
+
+    addHost(HOSTNAME, clusterName);
+    clusters.updateHostMappings(clusters.getHost(HOSTNAME));
+
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, STACK_ID.getStackId());
     createService(clusterName, serviceGroupName, "HDFS", null);
-
     createServiceComponent(clusterName, serviceGroupName, "HDFS","NAMENODE", State.INIT);
-
-    createServiceComponentHost(clusterName, serviceGroupName, "HDFS","NAMENODE","c6401", null);
+    createServiceComponentHost(clusterName, serviceGroupName, "HDFS","NAMENODE", HOSTNAME, null);
   }
 
   private void addHost(String hostname, String clusterName) throws AmbariException {

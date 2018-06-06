@@ -367,6 +367,7 @@ public class ServiceGroupImpl implements ServiceGroup {
     ServiceGroupEntity serviceGroupEntity = getServiceGroupEntity();
     serviceGroupEntity.setStack(stackEntity);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
+    stackId = new StackId(stackEntity.getStackName(), stackEntity.getStackVersion());
   }
 
   @Override
