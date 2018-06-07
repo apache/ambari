@@ -48,11 +48,7 @@ App.DatabasesTabOnStep7View = Em.View.extend({
         $('.loading').empty();
         this._super();
       },
-      tabs: function () {
-        var tabs = this.get('tabModels');
-        this.processTabs(tabs);
-        return tabs;
-      }.property('tabModels'),
+      tabs: Em.computed.alias('tabModels'),
       hideTabs: function () {
         this.get('tabs').forEach(function (tab) {
           tab.set('isHidden', tab.get('isConfigsPrepared') && tab.get('isHiddenByFilter'));
