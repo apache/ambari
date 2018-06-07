@@ -122,6 +122,8 @@ if "infra-solr-env" in config['configurations']:
   infra_solr_log_dir = config['configurations']['infra-solr-env']['infra_solr_log_dir']
   infra_solr_log = format("{infra_solr_log_dir}/solr-install.log")
   solr_env_content = config['configurations']['infra-solr-env']['content']
+  infra_solr_gc_log_opts = format(config['configurations']['infra-solr-env']['infra_solr_gc_log_opts'])
+  infra_solr_gc_tune = format(config['configurations']['infra-solr-env']['infra_solr_gc_tune'])
 
   zk_quorum = format(default('configurations/infra-solr-env/infra_solr_zookeeper_quorum', zookeeper_quorum))
 
