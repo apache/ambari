@@ -1758,27 +1758,22 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * Returns configs specific to the given service, stack, and stack version formatted as a blueprint fragment.
    * This is used to build out the Mpack Advisor config recommendation/validation request.
    * This is also used to get the "MISC" configs (configs not specific to a service).
-   * If we want to filter these down to just a subset, such as the "cluster-setttings.xml" configs, pass the corresponding "fileName" value.
    * 
    * @param {string} serviceName The name/type of the service to get configs for.
    * @param {string} stackName The name of the stack/mpack to get configs for.
    * @param {string} stackVersion The version of the stack/mpack to get configs for.
-   * @param {string} filename The file where the configs originate, such as "cluster-settings.xml". Ignored if set to null.
    * @param {array} configs List of configs to be filtered. This is typically all configs loaded from the stack information.
    */
-  getConfigsForServiceInstance: function (serviceName, stackName, stackVersion, fileName, configs) {
+  getConfigsForServiceInstance: function (serviceName, stackName, stackVersion, configs) {
     const serviceConfigs = configs.findProperty('serviceName', serviceName);
     
     if (serviceConfigs) {
       let serviceInstanceConfigs;
+      
       if (stackName && stackVersion) {
         serviceInstanceConfigs = serviceConfigs.configs.filter(config => (config.stackName === stackName && config.stackVersion === stackVersion) || config.stackName === undefined);
       } else {
         serviceInstanceConfigs = serviceConfigs.configs;
-      }  
-
-      if (fileName) {
-        serviceInstanceConfigs = serviceInstanceConfigs.filterProperty('fileName', fileName);
       }  
 
       serviceConfigs.set('configs', serviceInstanceConfigs);
