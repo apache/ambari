@@ -143,11 +143,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
               }
             });
           }
-          /**
-           * merging stack info with that is stored on UI
-           * for now is not used; uncomment in will be needed
-           * this.mergeWithUI(config);
-           */
+
           if (this.isMiscService(config.StackConfigurations.property_type)) {
             this.handleSpecialProperties(config);
           } else {
@@ -224,17 +220,18 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   },
 
   /**
-   * defines if property should refer to MISC tab
-   * @param type
+   * Returns true if property type should be in the MISC category and appear on the Misc tab in the UI.
+   * 
+   * @param type property type to check
    * @returns {Boolean}
    */
   isMiscService: function(type) {
-    return type.length &&
-      (type.contains('USER')
-      || type.contains('GROUP')
-      || type.contains('ADDITIONAL_USER_PROPERTY')
-      || type.contains('UID')
-      || type.contains('GID'));
+    // return type.length &&
+    //   (type.contains('USER')
+    //   || type.contains('GROUP')
+    //   || type.contains('ADDITIONAL_USER_PROPERTY')
+    //   || type.contains('UID')
+    //   || type.contains('GID'));
   },
 
   /**

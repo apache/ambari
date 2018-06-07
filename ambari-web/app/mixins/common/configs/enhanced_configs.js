@@ -240,7 +240,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     const wizardController = this.get('wizardController');
 
     if (wizardController) {
-      recommendations.blueprint.configurations = wizardController.getConfigsForServiceInstance('MISC', null, null, 'cluster-settings.xml', configs);
+      recommendations.blueprint.configurations = wizardController.getConfigsForServiceInstance('MISC', null, null, configs);
       recommendations.blueprint.mpack_instances = wizardController.getMpackInstances(configs);
     } else {
       App.get('mpackInstances'); //TODO: implement this property on the App object along with a routine to populate it at startup, similar to App.allHostNames
