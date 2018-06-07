@@ -125,7 +125,6 @@ class HeartbeatThread(threading.Thread):
     logger.info("Sending registration request")
     logger.debug("Registration request is {0}".format(registration_request))
 
-    self.server_responses_listener.connection = self.connection
     response = self.blocking_request(registration_request, Constants.REGISTRATION_ENDPOINT)
 
     logger.info("Registration response received")
@@ -134,7 +133,6 @@ class HeartbeatThread(threading.Thread):
     self.handle_registration_response(response)
 
     for endpoint, cache, listener, subscribe_to in self.post_registration_requests:
-      listener.connection = self.connection
       # should not hang forever on these requests
       response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
       try:
