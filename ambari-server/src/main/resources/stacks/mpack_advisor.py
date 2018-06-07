@@ -1548,13 +1548,13 @@ class MpackAdvisorImpl(MpackAdvisor):
               userValue = convertToNumber(configurations[configName]["properties"][propertyName])
               maxValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["maximum"])
               if userValue > maxValue:
-                validationItems.extend([{"config_name": propertyName, "item": self.getWarnItem("Value is greater than the recommended maximum of {0} ".format(maxValue))}])
+                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is greater than the recommended maximum of {0} ".format(maxValue))}])
             if "minimum" in recommendedDefaults[configName]["property_attributes"][propertyName] and \
                     propertyName in recommendedDefaults[configName]["properties"]:
               userValue = convertToNumber(configurations[configName]["properties"][propertyName])
               minValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["minimum"])
               if userValue < minValue:
-                validationItems.extend([{"config_name": propertyName, "item": self.getWarnItem("Value is less than the recommended minimum of {0} ".format(minValue))}])
+                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is less than the recommended minimum of {0} ".format(minValue))}])
       validatedItems = self.toConfigurationValidationProblems(validationItems, configName)
       for validatedItem in validatedItems:
         item = dict(itemHead.items() + validatedItem.items())
