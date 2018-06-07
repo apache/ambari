@@ -969,7 +969,7 @@ ALTER TABLE clusters ADD CONSTRAINT FK_clusters_upgrade_id FOREIGN KEY (upgrade_
 
 -- Kerberos
 CREATE TABLE kerberos_principal (
-  principal_name VARCHAR(255) NOT NULL,
+  principal_name VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   is_service SMALLINT NOT NULL DEFAULT 1,
   cached_keytab_path VARCHAR(255),
   CONSTRAINT PK_kerberos_principal PRIMARY KEY (principal_name)
@@ -989,7 +989,7 @@ CREATE TABLE kerberos_keytab (
 CREATE TABLE kerberos_keytab_principal (
   kkp_id BIGINT NOT NULL DEFAULT 0,
   keytab_path VARCHAR(255) NOT NULL,
-  principal_name VARCHAR(255) NOT NULL,
+  principal_name VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   host_id BIGINT,
   is_distributed SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_kkp PRIMARY KEY (kkp_id),
