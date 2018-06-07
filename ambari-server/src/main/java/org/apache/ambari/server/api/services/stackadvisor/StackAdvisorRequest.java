@@ -229,6 +229,7 @@ public class StackAdvisorRequest {
     HOST_GROUPS("host_groups"),
     CONFIGURATIONS("configurations"),
     SSO_CONFIGURATIONS("sso-configurations"),
+    KERBEROS_CONFIGURATIONS("kerberos-configurations"),
     CONFIGURATION_DEPENDENCIES("configuration-dependencies");
 
     private String type;

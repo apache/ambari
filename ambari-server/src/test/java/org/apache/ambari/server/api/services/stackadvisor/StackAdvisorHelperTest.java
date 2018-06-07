@@ -33,7 +33,10 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.St
 import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayoutRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayoutValidationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationDependenciesRecommendationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationValidationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.KerberosConfigurationRecommendationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.SingleSignOnConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
@@ -150,22 +153,22 @@ public class StackAdvisorHelperTest {
   @Test
   public void testCreateRecommendationCommand_returnsComponentLayoutRecommendationCommand()
       throws IOException, StackAdvisorException {
-    Configuration configuration = mock(Configuration.class);
-    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
-    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    ServiceInfo service = mock(ServiceInfo.class);
-    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
-    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
-    StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
-    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
-        .ofType(requestType).build();
+    testCreateRecommendationCommand(StackAdvisorRequestType.HOST_GROUPS, ComponentLayoutRecommendationCommand.class);
+  }
 
-    StackAdvisorCommand<RecommendationResponse> command = helper
-        .createRecommendationCommand("ZOOKEEPER", request);
+  @Test
+  public void testCreateRecommendationCommand_returnsConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
+    testCreateRecommendationCommand(StackAdvisorRequestType.CONFIGURATIONS, ConfigurationRecommendationCommand.class);
+  }
 
-    assertEquals(ComponentLayoutRecommendationCommand.class, command.getClass());
+  @Test
+  public void testCreateRecommendationCommand_returnsSingleSignOnConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
+    testCreateRecommendationCommand(StackAdvisorRequestType.SSO_CONFIGURATIONS, SingleSignOnConfigurationRecommendationCommand.class);
+  }
+
+  @Test
+  public void testCreateRecommendationCommand_returnsKerberosConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
+    testCreateRecommendationCommand(StackAdvisorRequestType.KERBEROS_CONFIGURATIONS, KerberosConfigurationRecommendationCommand.class);
   }
 
   @Test
@@ -210,7 +213,7 @@ public class StackAdvisorHelperTest {
 
   @Test
   public void testCreateRecommendationDependencyCommand_returnsConfigurationDependencyRecommendationCommand()
-    throws IOException, StackAdvisorException {
+      throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
@@ -218,7 +221,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo,null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -226,6 +229,25 @@ public class StackAdvisorHelperTest {
     StackAdvisorCommand<RecommendationResponse> command = helper.createRecommendationCommand("ZOOKEEPER", request);
 
     assertEquals(ConfigurationDependenciesRecommendationCommand.class, command.getClass());
+  }
+
+  private void testCreateRecommendationCommand(StackAdvisorRequestType requestType, Class expectedClass)
+      throws IOException, StackAdvisorException {
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+        .ofType(requestType).build();
+
+    StackAdvisorCommand<RecommendationResponse> command = helper.createRecommendationCommand("ZOOKEEPER", request);
+
+    assertEquals(expectedClass, command.getClass());
   }
 
   private static StackAdvisorHelper stackAdvisorHelperSpy(Configuration configuration, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) throws IOException {

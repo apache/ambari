@@ -99,6 +99,14 @@ class ServiceAdvisor(DefaultStackAdvisor):
     """
     pass
 
+  def getServiceConfigurationRecommendationsForKerberos(self, configurations, clusterSummary, services, hosts):
+    """
+    Any Kerberos-related configuration recommendations for the service should be defined in this function.
+
+    Redirect to getServiceConfigurationRecommendations for backward compatibility
+    """
+    return self.getServiceConfigurationRecommendations(configurations, clusterSummary, services, hosts)
+
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
     Returns an array of Validation objects about issues with the hostnames to which components are assigned.

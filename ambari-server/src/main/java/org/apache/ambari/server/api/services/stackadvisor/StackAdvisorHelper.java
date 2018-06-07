@@ -29,6 +29,7 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayo
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationDependenciesRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationValidationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.KerberosConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.SingleSignOnConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
@@ -148,6 +149,9 @@ public class StackAdvisorHelper {
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.SSO_CONFIGURATIONS) {
       command = new SingleSignOnConfigurationRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+    } else if (requestType == StackAdvisorRequestType.KERBEROS_CONFIGURATIONS) {
+      command = new KerberosConfigurationRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES) {
       command = new ConfigurationDependenciesRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
