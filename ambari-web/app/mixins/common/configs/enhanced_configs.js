@@ -219,7 +219,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       if (requiredTags.length) {
         this.loadAdditionalSites(requiredTags, stepConfigs, recommendations, dataToSend, onComplete);
       } else {
-        this.addRecommendationRequestParams(recommendations, dataToSend, stepConfigs);
+        dataToSend.recommendations = this.addRequestedConfigs(recommendations, stepConfigs);
         return this.getRecommendationsRequest(dataToSend, onComplete);
       }
     } else {
@@ -231,14 +231,22 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   },
 
   /**
-   *
+   * Adds the configs to include in the request to the recommendations.blueprint object in the format required.
+   * 
    * @param recommendations
-   * @param dataToSend
-   * @param stepConfigs
+   * @param configs
    */
-  addRecommendationRequestParams: function(recommendations, dataToSend, stepConfigs) {
-    recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
-    dataToSend.recommendations = recommendations;
+  addRequestedConfigs: function (recommendations, configs) {
+    const wizardController = this.get('wizardController');
+
+    if (wizardController) {
+      recommendations.blueprint.configurations = wizardController.getConfigsForServiceInstance('MISC', null, null, 'cluster-settings.xml', configs);
+      recommendations.blueprint.mpack_instances = wizardController.getMpackInstances(configs);
+    } else {
+      App.get('mpackInstances'); //TODO: implement this property on the App object along with a routine to populate it at startup, similar to App.allHostNames
+    }
+
+    return recommendations;
   },
 
   /**
@@ -253,7 +261,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     App.config.getConfigsByTypes(sites).done(function (configs) {
       stepConfigs = stepConfigs.concat(configs);
 
-      self.addRecommendationRequestParams(recommendations, dataToSend, stepConfigs);
+      dataToSend.recommendations = self.addRequestedConfigs(recommendations, stepConfigs);
       self.getRecommendationsRequest(dataToSend, onComplete);
     });
   },
@@ -282,17 +290,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     const params = {
       recommend: updateDependencies ? 'configuration-dependencies' : 'configurations',
       hosts: this.get('hostNames'),
-      services: this.get('serviceNames'),
       changed_configurations: updateDependencies ? changedConfigs : undefined
     };
-
-    //TODO - mpacks: Hard coded to use first mpack. Change when we are installing multiple mpacks.
-    const selectedMpacks = this.get('content.selectedMpacks');
-
-    if (selectedMpacks) {
-      params.stackName = selectedMpacks[0].name;
-      params.stackVersion = selectedMpacks[0].version;
-    }
 
     return params;
   },
@@ -300,19 +299,15 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   getRecommendationsRequest: function (dataToSend, callback) {
     const self = this;
     this.set('recommendationsInProgress', true);
-    const stackVersionUrl = App.getStackVersionUrl(dataToSend.stackName, dataToSend.stackVersion) || App.get('stackVersionURL');
     
     return App.ajax.send({
-      name: 'config.recommendations',
+      name: 'mpack.advisor.recommendations',
       sender: self,
       data: {
-        stackVersionUrl: stackVersionUrl,
-        dataToSend: {
+        data: {
           recommend: dataToSend.recommend,
           hosts: dataToSend.hosts,
-          services: dataToSend.services,
           changed_configurations: dataToSend.changed_configurations,
-          user_context: dataToSend.user_context,
           recommendations: dataToSend.recommendations
         }
       },
@@ -402,7 +397,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @method dependenciesSuccess
    */
   loadRecommendationsSuccess: function (data, opt, params) {
-    this._saveRecommendedValues(data, params.dataToSend.changed_configurations);
+    this._saveRecommendedValues(data, params.data.changed_configurations);
     if (this.isConfigHasInitialState()) {
       /** clearing all recommendations info **/
       this.undoRedoRecommended(this.get('recommendations'), false);
@@ -445,18 +440,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @private
    */
   _saveRecommendedValues: function(data, changedConfigs) {
-    Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
     var recommendations = data.resources[0].recommendations;
     if (recommendations['config-groups'] && this.get('selectedConfigGroup') && !this.get('selectedConfigGroup.isDefault')) {
       this.saveConfigGroupsRecommendations(recommendations, changedConfigs);
     } else {
-      var configObject = recommendations.blueprint.configurations;
+      var configObject = this.getAllRecommendedConfigs(recommendations);
       this.get('stepConfigs').forEach(function(stepConfig) {
         this.updateConfigsByRecommendations(configObject, stepConfig.get('configs'), changedConfigs);
       }, this);
       this.addByRecommendations(configObject, changedConfigs);
     }
     this.cleanUpRecommendations();
+  },
+
+  getAllRecommendedConfigs: function (recommendations) {
+    const serviceInstances = recommendations.blueprint.mpack_instances.reduce((result, value) => result.concat(value.service_instances), []);
+    const configs = serviceInstances.reduce((result, value) => Object.assign(result, value.configurations), {});
+    return configs;
   },
 
   /**

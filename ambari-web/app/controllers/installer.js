@@ -387,6 +387,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   loadCurrentHostGroups: function () {
+    this.set("content.recommendations", this.getDBProperty('recommendations'));
     this.set("content.recommendationsHostGroups", this.getDBProperty('recommendationsHostGroups'));
   },
 
