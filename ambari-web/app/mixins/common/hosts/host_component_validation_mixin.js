@@ -21,23 +21,12 @@ require('mixins/common/blueprint');
 var App = require('app');
 
 /**
- * @typedef {object} ServiceInstanceObject
- * @property {string} name name of the service instance
- * @property {string} type of the service instance (usually the name of the service, i.e. ZOOKEEPER)
- */
-
-/**
- * @typedef {object} MpackInstanceObject
- * @property {string} name name of the mpack instances (usually the name of a service group)
- * @property {string} type of the mpack instance (usually the name of the mpack, i.e. HDPCORE)
- * @property {string} version of the mpack
- * @property {ServiceInstanceObject[]} service_instances list of service instances
- */
-
-/**
  * @typedef {object} HostValidationRequestData
+ * @property {string} stackVersionUrl stack version url
  * @property {string[]} hosts host names
- * @property {MpackInstanceObject[]} mpack_instances list of mpack instances
+ * @property {string[]} services service names
+ * @property {string} validate validation type e.g. 'host_groups'
+ * @property {object} recommendations blueprint object
  */
 
 App.HostComponentValidationMixin = Em.Mixin.create(App.BlueprintMixin, {
@@ -49,6 +38,7 @@ App.HostComponentValidationMixin = Em.Mixin.create(App.BlueprintMixin, {
    */
   validateSelectedHostComponents: function(options) {
     var opts = $.extend({
+      services: [],
       blueprint: null,
       hosts: [],
       components: []
@@ -67,12 +57,11 @@ App.HostComponentValidationMixin = Em.Mixin.create(App.BlueprintMixin, {
     var res = [];
     if (!components) return [];
     components.forEach(function(component) {
+      var componentName = Em.get(component, 'componentName');
       if (Em.get(component, 'hosts.length')) {
         Em.get(component, 'hosts').forEach(function(hostName) {
           res.push(Em.Object.create({
-            componentName: Em.get(component, 'componentName'),
-            mpackInstance: Em.get(component, 'mpackInstance'),
-            serviceInstance: Em.get(component, 'serviceInstance'),
+            componentName: componentName,
             hostName: hostName
           }));
         });
@@ -87,17 +76,15 @@ App.HostComponentValidationMixin = Em.Mixin.create(App.BlueprintMixin, {
    * @return {HostValidationRequestData}
    */
   getHostComponentValidationParams: function(options) {
-    const requestData = {
-      data: {
-        validate: 'host_groups',
-        hosts: options.hosts,
-        recommendations: options.blueprint || this.getComponentsBlueprint(options.components)
-      }
+    const stackVersionUrl = App.getStackVersionUrl(options.stackName, options.stackVersion) || App.get('stackVersionURL');
+
+    return {
+      stackVersionUrl: stackVersionUrl,
+      hosts: options.hosts,
+      services: options.services,
+      validate: 'host_groups',
+      recommendations: options.blueprint || this.getComponentsBlueprint(options.components)
     };
-
-    requestData.data.recommendations.blueprint.mpack_instances = options.mpack_instances;
-
-    return requestData;
   },
 
   /**
@@ -108,7 +95,7 @@ App.HostComponentValidationMixin = Em.Mixin.create(App.BlueprintMixin, {
    */
   getHostComponentValidationRequest: function(validationData) {
     return App.ajax.send({
-      name: 'mpack.advisor.validations',
+      name: 'config.validations',
       sender: this,
       data: validationData,
       success: 'updateValidationsSuccessCallback',
@@ -116,7 +103,6 @@ App.HostComponentValidationMixin = Em.Mixin.create(App.BlueprintMixin, {
     });
   },
 
-  //these can be overridden in the derived object
   updateValidationsSuccessCallback: function() {},
   updateValidationsErrorCallback: function() {}
 });

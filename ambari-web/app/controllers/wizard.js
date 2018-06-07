@@ -18,7 +18,7 @@
 
 
 var App = require('app');
-var blueprintUtils = require('utils/blueprint');
+
 require('models/host');
 
 App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingMixin, {
@@ -1705,86 +1705,5 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         });
       }
     });
-  },
-
-  /**
-   * Return mpack_instances data needed for mpack advisor recommendations requests.
-   * This is basically service groups formatted as required by the mpack advisor API.
-   */
-  getMpackInstances: function (configs) {
-    const mpackInstances = {};
-    const selectedServices = this.get('content.selectedServices');
-    
-    selectedServices.forEach(service => {
-      //these will be defined by the user in the future
-      const serviceGroupName = service.mpackName;
-      const serviceInstanceName = service.name;
-
-      if (!mpackInstances[serviceGroupName]) {
-        mpackInstances[serviceGroupName] = {
-          name: serviceGroupName,
-          type: service.mpackName,
-          version: service.mpackVersion,
-          service_instances: []
-        };
-      }
-
-      const serviceInstance = {
-        name: serviceInstanceName,
-        type: service.name
-      };
-
-      //configs will be passed if we are building a request for configs recommendations/validations
-      //it will not be passed if we are building a request for host recommendations/validations
-      if (configs) {
-        const configurations = this.getConfigsForServiceInstance(service.name, service.mpackName, service.mpackVersion, null, configs);
-        if (configurations) {
-          serviceInstance.configurations = configurations;
-        }
-      }  
-
-      mpackInstances[serviceGroupName].service_instances.push(serviceInstance);
-    });
-
-    const mpack_instances = [];
-    for (let prop in mpackInstances) {
-      mpack_instances.push(mpackInstances[prop]);
-    }
-
-    return mpack_instances;
-  },
-
-  /**
-   * Returns configs specific to the given service, stack, and stack version formatted as a blueprint fragment.
-   * This is used to build out the Mpack Advisor config recommendation/validation request.
-   * This is also used to get the "MISC" configs (configs not specific to a service).
-   * If we want to filter these down to just a subset, such as the "cluster-setttings.xml" configs, pass the corresponding "fileName" value.
-   * 
-   * @param {string} serviceName The name/type of the service to get configs for.
-   * @param {string} stackName The name of the stack/mpack to get configs for.
-   * @param {string} stackVersion The version of the stack/mpack to get configs for.
-   * @param {string} filename The file where the configs originate, such as "cluster-settings.xml". Ignored if set to null.
-   * @param {array} configs List of configs to be filtered. This is typically all configs loaded from the stack information.
-   */
-  getConfigsForServiceInstance: function (serviceName, stackName, stackVersion, fileName, configs) {
-    const serviceConfigs = configs.findProperty('serviceName', serviceName);
-    
-    if (serviceConfigs) {
-      let serviceInstanceConfigs;
-      if (stackName && stackVersion) {
-        serviceInstanceConfigs = serviceConfigs.configs.filter(config => (config.stackName === stackName && config.stackVersion === stackVersion) || config.stackName === undefined);
-      } else {
-        serviceInstanceConfigs = serviceConfigs.configs;
-      }  
-
-      if (fileName) {
-        serviceInstanceConfigs = serviceInstanceConfigs.filterProperty('fileName', fileName);
-      }  
-
-      serviceConfigs.set('configs', serviceInstanceConfigs);
-      return blueprintUtils.buildConfigsJSON([serviceConfigs]); //buildConfigsJSON() expects an array
-    }
-
-    return null;
   }
 });

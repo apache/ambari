@@ -617,11 +617,13 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
           self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
         });
       }
+
     } else {
       console.timeEnd('applyServicesConfigs execution time: ');
       console.time('loadConfigRecommendations execution time: ');
       self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
     }
+
   },
 
   /**
