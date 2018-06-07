@@ -114,8 +114,21 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @type {Array} of strings (hostNames)
    */
   hostGroups: function() {
-    return this.get('content.recommendationsHostGroups') || blueprintUtils.generateHostGroups(App.get('allHostNames'));
-  }.property('content.recommendationsHostGroups', 'App.allHostNames', 'App.componentToBeAdded', 'App.componentToBeDeleted'),
+    const hostGroups = this.get('content.recommendationsHostGroups')
+      || this.get('content.recommendations')
+      || blueprintUtils.generateHostGroups(App.get('allHostNames'));
+    
+    return hostGroups;
+  }.property('content.recommendationsHostGroups', 'content.recommendations', 'App.allHostNames', 'App.componentToBeAdded', 'App.componentToBeDeleted'),
+
+  getMpackInstances(configs) {
+    if (this.get('isWizard')) {
+      const wizardController = this.get('wizardController');
+      return wizardController.getMpackInstances(configs);
+    } else {
+      App.get('mpackInstances'); //TODO: implement this property on the App object along with a routine to populate it at startup, similar to App.allHostNames
+    }
+  },
 
   /**
    * controller that is child of this mixin has to contain stepConfigs
@@ -133,8 +146,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       criticalIssues: []
     }));
 
-    const mpacks = this.get('content.selectedMpacks'); //TODO - mpacks
-    this.runServerSideValidation(mpacks[0].name, mpacks[0].version).done(function() {
+    this.runServerSideValidation().done(function() {
       if (self.get('configErrorList.issues.length') || self.get('configErrorList.criticalIssues.length')) {
         App.showConfigValidationPopup(self.get('configErrorList'), primary, secondary, self);
       } else {
@@ -152,25 +164,17 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * send request to validate configs
    * @returns {*}
    */
-  runServerSideValidation: function (stackName, stackVersion) {
-    var self = this;
-    var recommendations = this.get('hostGroups');
-    var stepConfigs = this.get('stepConfigs');
-    var dfd = $.Deferred();
+  runServerSideValidation: function () {
+    const dfd = $.Deferred();
 
-    this.getBlueprintConfigurations(this.get('stepConfigs'))
-      .done(function(blueprintConfigurations) {
-        recommendations.blueprint.configurations = blueprintConfigurations;
-        var request = self.validateSelectedConfigs({
-          hosts: self.get('hostNames'),
-          services: self.get('serviceNames'),
-          blueprint: recommendations,
-          stackName: stackName,
-          stackVersion: stackVersion
-        });
-        self.set('validationRequest', request);
-        request.done(dfd.resolve).fail(dfd.reject);
-      });
+    const request = this.validateSelectedConfigs({
+      hosts: this.get('hostNames'),
+      blueprint: this.get('hostGroups')
+    });
+
+    this.set('validationRequest', request);
+    request.done(dfd.resolve).fail(dfd.reject);
+
     return dfd.promise();
   },
 
@@ -182,7 +186,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
    */
   validateSelectedConfigs: function(options) {
     var opts = $.extend({
-      services: [],
       hosts: [],
       blueprint: null
     }, options || {});
@@ -197,7 +200,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
    */
   getServiceConfigsValidationRequest: function(validationData) {
     return App.ajax.send({
-      name: 'config.validations',
+      name: 'mpack.advisor.validations',
       sender: this,
       data: validationData,
       success: 'validationSuccess',
@@ -211,33 +214,13 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {ConfigsValidationRequestData}
    */
   getServiceConfigsValidationParams: function(options) {
-    const stackVersionUrl = App.getStackVersionUrl(options.stackName, options.stackVersion) || App.get('stackVersionURL');
-
     return {
-      stackVersionUrl: stackVersionUrl,
-      hosts: options.hosts,
-      services: options.services,
-      validate: 'configurations',
-      recommendations: options.blueprint
+      data: {
+        validate: 'configurations',
+        hosts: options.hosts,
+        recommendations: options.blueprint
+      }
     };
-  },
-
-  /**
-   * Return JSON for blueprint configurations
-   * @param {App.ServiceConfigs[]} serviceConfigs
-   * @returns {*}
-   */
-  getBlueprintConfigurations: function (serviceConfigs) {
-    var dfd = $.Deferred();
-    // check if we have configs from 'cluster-env', if not, then load them, as they are mandatory for validation request
-    if (!serviceConfigs.findProperty('serviceName', 'MISC')) {
-      App.config.getConfigsByTypes([{site: 'cluster-env', serviceName: 'MISC'}]).done(function(configs) {
-        dfd.resolve(blueprintUtils.buildConfigsJSON(serviceConfigs.concat(configs)));
-      });
-    } else {
-      dfd.resolve(blueprintUtils.buildConfigsJSON(serviceConfigs));
-    }
-    return dfd.promise();
   },
 
   /**
@@ -384,14 +367,12 @@ App.ServerValidatorMixin = Em.Mixin.create({
   valueObserver: function () {
     var self = this;
     if (this.get('isInstallWizard') && this.get('currentTabName') === 'all-configurations') {
-      const mpacks = this.get('content.selectedMpacks'); //TODO - mpacks
-
       if (this.get('requestTimer')) clearTimeout(this.get('requestTimer'));
       self.set('requestTimer', setTimeout(function () {
         if (self.get('validationRequest')) {
           self.get('validationRequest').abort();
         }
-        self.runServerSideValidation(mpacks[0].name, mpacks[0].version).done(function () {
+        self.runServerSideValidation().done(function () {
           self.set('validationRequest', null);
           self.set('requestTimer', 0);
         });

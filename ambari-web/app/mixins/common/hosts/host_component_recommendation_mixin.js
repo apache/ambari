@@ -21,26 +21,29 @@ require('mixins/common/blueprint');
 var App = require('app');
 
 /**
- * @typedef {object} RecommendComponentObject
- * @property {string} componentName name of the component
- * @property {number} [size=0] desired components size
- * @property {string[]} [hosts=[]] hosts assigned to component
+ * @typedef {object} ServiceInstanceObject
+ * @property {string} name name of the service instance
+ * @property {string} type of the service instance (usually the name of the service, i.e. ZOOKEEPER)
+ */
+
+/**
+ * @typedef {object} MpackInstanceObject
+ * @property {string} name name of the mpack instances (usually the name of a service group)
+ * @property {string} type of the mpack instance (usually the name of the mpack, i.e. HDPCORE)
+ * @property {string} version of the mpack
+ * @property {ServiceInstanceObject[]} service_instances list of service instances
  */
 
 /**
  * @typedef {object} HostComponentRecommendationOptions
  * @property {string[]} hosts list of host names, in most cases all available host names
- * @property {RecommendComponentObject[]} components list of components
- * @property {string[]} services list of service names
- * @property {object} [blueprint=null] when null blueprint will be created by <code>HostComponentRecommendationOptions.components</code> attribute
+ * @property {MpackInstanceObject[]} mpack_instances list of mpack instances
  */
 
 /**
  * @typedef {object} HostRecommendationRequestData
- * @property {string} stackVersionUrl stack version url
- * @property {string[]} hosts host names
- * @property {string[]} services service names
  * @property {string} recommend recommendation type e.g. 'host_groups'
+ * @property {string[]} hosts list of host names
  * @property {object} recommendations blueprint object
  */
 
@@ -58,7 +61,6 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
    */
   getRecommendedHosts: function(options) {
     var opts = $.extend({
-      services: [],
       hosts: [],
       components: [],
       blueprint: null
@@ -77,11 +79,12 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
     var res = [];
     if (!components) return [];
     components.forEach(function(component) {
-      var componentName = Em.get(component, 'componentName');
       if (Em.get(component, 'hosts.length')) {
         Em.get(component, 'hosts').forEach(function(hostName) {
           res.push(Em.Object.create({
-            componentName: componentName,
+            componentName: Em.get(component, 'componentName'),
+            mpackInstance: Em.get(component, 'mpackInstance'),
+            serviceInstance: Em.get(component, 'serviceInstance'),
             hostName: hostName
           }));
         });
@@ -97,17 +100,17 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
    * @method getRecommendationRequestData
    */
   getRecommendationRequestData: function(options) {
-    const stackVersionUrl = App.getStackVersionUrl(options.stackName, options.stackVersion) || App.get('stackVersionURL');
-
-    return {
-      stackVersionUrl: stackVersionUrl,
-      dataToSend: {
+    const requestData = {
+      data: {
         recommend: 'host_groups',
         hosts: options.hosts,
-        services: options.services,
         recommendations: options.blueprint || this.getComponentsBlueprint(options.components)
       }
-    };
+    }
+
+    requestData.data.recommendations.blueprint.mpack_instances = options.mpack_instances;
+
+    return requestData;
   },
 
   /**
@@ -118,7 +121,7 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
    */
   loadComponentsRecommendationsFromServer: function(recommendationData) {
     return App.ajax.send({
-      name: 'config.recommendations',
+      name: 'mpack.advisor.recommendations',
       sender: this,
       data: recommendationData,
       success: 'loadRecommendationsSuccessCallback',
@@ -126,6 +129,7 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
     });
   },
 
+  //these can be overridden in the derived object
   loadRecommendationsSuccessCallback: function() {},
   loadRecommendationsErrorCallback: function() {}
 });
