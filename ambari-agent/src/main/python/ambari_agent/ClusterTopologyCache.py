@@ -79,10 +79,12 @@ class ClusterTopologyCache(ClusterCache):
         continue
 
       current_host_id = self.current_host_ids_to_cluster[cluster_id]
-      for component_dict in self[cluster_id].components:
-        if 'hostIds' in component_dict and current_host_id in component_dict.hostIds:
-          if current_host_id in component_dict.hostIds:
-            self.cluster_local_components[cluster_id].append(component_dict.componentName)
+
+      if 'components' in self[cluster_id]:
+        for component_dict in self[cluster_id].components:
+          if 'hostIds' in component_dict and current_host_id in component_dict.hostIds:
+            if current_host_id in component_dict.hostIds:
+              self.cluster_local_components[cluster_id].append(component_dict.componentName)
 
 
     self.hosts_to_id = ImmutableDictionary(hosts_to_id)

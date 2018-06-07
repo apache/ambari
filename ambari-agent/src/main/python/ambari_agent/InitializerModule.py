@@ -89,7 +89,7 @@ class InitializerModule:
     self.alert_definitions_cache = ClusterAlertDefinitionsCache(self.config.cluster_cache_dir)
     self.configuration_builder = ConfigurationBuilder(self)
     self.stale_alerts_monitor = StaleAlertsMonitor(self)
-    self.server_responses_listener = ServerResponsesListener()
+    self.server_responses_listener = ServerResponsesListener(self)
     self.file_cache = FileCache(self.config)
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
     self.recovery_manager = RecoveryManager()

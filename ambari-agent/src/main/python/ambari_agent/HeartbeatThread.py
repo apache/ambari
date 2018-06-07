@@ -59,12 +59,12 @@ class HeartbeatThread(threading.Thread):
 
     # listeners
     self.server_responses_listener = initializer_module.server_responses_listener
-    self.commands_events_listener = CommandsEventListener(initializer_module.action_queue)
-    self.metadata_events_listener = MetadataEventListener(initializer_module.metadata_cache, initializer_module.config)
-    self.topology_events_listener = TopologyEventListener(initializer_module.topology_cache)
-    self.configuration_events_listener = ConfigurationEventListener(initializer_module.configurations_cache)
-    self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module.host_level_params_cache, initializer_module.recovery_manager)
-    self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module.alert_definitions_cache, initializer_module.alert_scheduler_handler)
+    self.commands_events_listener = CommandsEventListener(initializer_module)
+    self.metadata_events_listener = MetadataEventListener(initializer_module)
+    self.topology_events_listener = TopologyEventListener(initializer_module)
+    self.configuration_events_listener = ConfigurationEventListener(initializer_module)
+    self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module)
+    self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module)
     self.agent_actions_events_listener = AgentActionsListener(initializer_module)
     self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener]
 
@@ -125,6 +125,7 @@ class HeartbeatThread(threading.Thread):
     logger.info("Sending registration request")
     logger.debug("Registration request is {0}".format(registration_request))
 
+    self.server_responses_listener.connection = self.connection
     response = self.blocking_request(registration_request, Constants.REGISTRATION_ENDPOINT)
 
     logger.info("Registration response received")
@@ -133,6 +134,7 @@ class HeartbeatThread(threading.Thread):
     self.handle_registration_response(response)
 
     for endpoint, cache, listener, subscribe_to in self.post_registration_requests:
+      listener.connection = self.connection
       # should not hang forever on these requests
       response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
       try:

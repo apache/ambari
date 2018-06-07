@@ -32,9 +32,10 @@ class MetadataEventListener(EventListener):
   """
   Listener of Constants.METADATA_TOPIC events from server.
   """
-  def __init__(self, metadata_cache, config):
-    self.metadata_cache = metadata_cache
-    self.config = config
+  def __init__(self, initializer_module):
+    super(MetadataEventListener, self).__init__(initializer_module)
+    self.metadata_cache = initializer_module.metadata_cache
+    self.config = initializer_module.config
 
   def on_event(self, headers, message):
     """

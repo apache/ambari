@@ -34,7 +34,8 @@ class ServerResponsesListener(EventListener):
   RESPONSE_STATUS_STRING = 'status'
   RESPONSE_STATUS_SUCCESS = 'OK'
 
-  def __init__(self):
+  def __init__(self, initializer_module):
+    super(ServerResponsesListener, self).__init__(initializer_module)
     self.reset_responses()
 
   def on_event(self, headers, message):

@@ -30,9 +30,10 @@ class AlertDefinitionsEventListener(EventListener):
   """
   Listener of Constants.ALERTS_DEFINITIONS_TOPIC events from server.
   """
-  def __init__(self, alert_definitions_cache, alert_scheduler_handler):
-    self.alert_definitions_cache = alert_definitions_cache
-    self.alert_scheduler_handler = alert_scheduler_handler
+  def __init__(self, initializer_module):
+    super(AlertDefinitionsEventListener, self).__init__(initializer_module)
+    self.alert_definitions_cache = initializer_module.alert_definitions_cache
+    self.alert_scheduler_handler = initializer_module.alert_scheduler_handler
 
   def on_event(self, headers, message):
     """
