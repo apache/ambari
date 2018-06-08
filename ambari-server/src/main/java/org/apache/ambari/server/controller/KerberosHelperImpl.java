@@ -3552,6 +3552,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
           requestParams, null);
+      } else {
+        LOG.warn("Skipping {} command. No suitable hosts found", SET_KEYTAB);
       }
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
