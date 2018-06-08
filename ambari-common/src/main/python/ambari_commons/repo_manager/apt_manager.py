@@ -177,7 +177,20 @@ class AptManager(GenericManager):
       return filtered_packages
     else:
       Logger.info("Packages will be queried using all available repositories on the system.")
-      return [package[0] for package in packages]
+
+      # this is the case where the hosts are marked as sysprepped, but
+      # search the repos on-system anyway.  the url specified in ambari must match the one
+      # in the list file for this to work
+      for repo_id in repo_ids:
+        for package in packages:
+          if repo_id in package[2]:
+            filtered_packages.append(package[0])
+
+      if len(filtered_packages) > 0:
+        Logger.debug("Found packages for repo {}".format(str(filtered_packages)))
+        return filtered_packages
+      else:
+        return [package[0] for package in packages]
 
   def package_manager_configuration(self):
     """

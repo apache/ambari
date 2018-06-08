@@ -82,9 +82,16 @@ class TestStackSelectSetAll(RMFTestCase):
 
     config_dict = ConfigDictionary(json_payload)
 
+    def hdp_select_call(command, **kwargs):
+      # return no versions
+      if "versions" in command:
+        return (0,"2.5.9.9-9999")
+
+      return (0,command)
+
     family_mock.return_value = True
     get_config_mock.return_value = config_dict
-    call_mock.side_effect = fake_call   # echo the command
+    call_mock.side_effect = hdp_select_call
     exists_mock.return_value = True
 
     # Ensure that the json file was actually read.
@@ -155,6 +162,57 @@ class TestStackSelectSetAll(RMFTestCase):
     call_mock.assert_called_with(('ambari-python-wrap', u'/usr/bin/hdp-select', 'versions'), sudo = True)
     self.assertEqual(call_mock.call_count, 1)
 
+  @patch("os.path.exists")
+  @patch("resource_management.core.shell.call")
+  @patch.object(Script, 'get_config')
+  @patch.object(OSCheck, 'is_redhat_family')
+  def test_skippable_by_list(self, family_mock, get_config_mock, call_mock, exists_mock):
+    """
+    Tests that hosts are skippable if they don't have stack components installed
+    :return:
+    """
+    # Mock the config objects
+    json_file_path = os.path.join(self.get_custom_actions_dir(),
+      "ru_execute_tasks_namenode_prepare.json")
+    self.assertTrue(os.path.isfile(json_file_path))
+
+    with open(json_file_path, "r") as json_file:
+      json_payload = json.load(json_file)
+
+    json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
+    json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
+    json_payload["upgradeSummary"] = TestStackSelectSetAll._get_upgrade_summary_no_downgrade()["upgradeSummary"]
+
+    config_dict = ConfigDictionary(json_payload)
+
+    family_mock.return_value = False
+    get_config_mock.return_value = config_dict
+    exists_mock.return_value = True
+
+    def hdp_select_call(command, **kwargs):
+      # return no versions
+      if "versions" in command:
+        return (0,"2.6.7-123")
+
+      return (0,command)
+
+    call_mock.side_effect = hdp_select_call
+
+    # Ensure that the json file was actually read.
+    stack_name = default("/clusterLevelParams/stack_name", None)
+    stack_version = default("/clusterLevelParams/stack_version", None)
+    service_package_folder = default('/roleParams/service_package_folder', None)
+
+    self.assertEqual(stack_name, "HDP")
+    self.assertEqual(stack_version, '2.2')
+    self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
+
+    # Begin the test
+    ru_execute = UpgradeSetAll()
+    ru_execute.actionexecute(None)
+
+    call_mock.assert_called_with(('ambari-python-wrap', u'/usr/bin/hdp-select', 'versions'), sudo = True)
+    self.assertEqual(call_mock.call_count, 1)
 
   @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
