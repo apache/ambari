@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.stackadvisor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -35,9 +36,8 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayo
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationDependenciesRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationValidationCommand;
-import org.apache.ambari.server.api.services.stackadvisor.commands.KerberosConfigurationRecommendationCommand;
-import org.apache.ambari.server.api.services.stackadvisor.commands.SingleSignOnConfigurationRecommendationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommandType;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
@@ -97,7 +97,7 @@ public class StackAdvisorHelperTest {
     doReturn(command).when(helper).createValidationCommand("ZOOKEEPER", request);
     helper.validate(request);
 
-    assertTrue(false);
+    fail();
   }
 
   @Test
@@ -147,28 +147,43 @@ public class StackAdvisorHelperTest {
     doReturn(command).when(helper).createRecommendationCommand("ZOOKEEPER", request);
     helper.recommend(request);
 
-    assertTrue(false);
+    fail("Expected StackAdvisorException to be thrown");
   }
 
   @Test
   public void testCreateRecommendationCommand_returnsComponentLayoutRecommendationCommand()
       throws IOException, StackAdvisorException {
-    testCreateRecommendationCommand(StackAdvisorRequestType.HOST_GROUPS, ComponentLayoutRecommendationCommand.class);
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+        .ofType(requestType).build();
+
+    StackAdvisorCommand<RecommendationResponse> command = helper
+        .createRecommendationCommand("ZOOKEEPER", request);
+
+    assertEquals(ComponentLayoutRecommendationCommand.class, command.getClass());
   }
 
   @Test
   public void testCreateRecommendationCommand_returnsConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
-    testCreateRecommendationCommand(StackAdvisorRequestType.CONFIGURATIONS, ConfigurationRecommendationCommand.class);
+    testCreateConfigurationRecommendationCommand(StackAdvisorRequestType.CONFIGURATIONS, StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS);
   }
 
   @Test
   public void testCreateRecommendationCommand_returnsSingleSignOnConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
-    testCreateRecommendationCommand(StackAdvisorRequestType.SSO_CONFIGURATIONS, SingleSignOnConfigurationRecommendationCommand.class);
+    testCreateConfigurationRecommendationCommand(StackAdvisorRequestType.SSO_CONFIGURATIONS, StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_SSO);
   }
 
   @Test
   public void testCreateRecommendationCommand_returnsKerberosConfigurationRecommendationCommand() throws IOException, StackAdvisorException {
-    testCreateRecommendationCommand(StackAdvisorRequestType.KERBEROS_CONFIGURATIONS, KerberosConfigurationRecommendationCommand.class);
+    testCreateConfigurationRecommendationCommand(StackAdvisorRequestType.KERBEROS_CONFIGURATIONS, StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_KERBEROS);
   }
 
   @Test
@@ -231,7 +246,7 @@ public class StackAdvisorHelperTest {
     assertEquals(ConfigurationDependenciesRecommendationCommand.class, command.getClass());
   }
 
-  private void testCreateRecommendationCommand(StackAdvisorRequestType requestType, Class expectedClass)
+  private void testCreateConfigurationRecommendationCommand(StackAdvisorRequestType requestType, StackAdvisorCommandType expectedCommandType)
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
@@ -247,7 +262,9 @@ public class StackAdvisorHelperTest {
 
     StackAdvisorCommand<RecommendationResponse> command = helper.createRecommendationCommand("ZOOKEEPER", request);
 
-    assertEquals(expectedClass, command.getClass());
+    assertTrue(command instanceof ConfigurationRecommendationCommand);
+    assertEquals(expectedCommandType, ((ConfigurationRecommendationCommand) command).getCommandType());
+
   }
 
   private static StackAdvisorHelper stackAdvisorHelperSpy(Configuration configuration, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) throws IOException {
