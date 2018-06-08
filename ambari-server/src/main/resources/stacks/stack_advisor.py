@@ -341,6 +341,26 @@ class StackAdvisor(object):
     """
     pass
 
+  def recommendConfigurationsForKerberos(self, services, hosts):
+    """
+    Returns recommendation of Kerberos-related service configurations based on host-specific layout
+    of components.
+
+    This function takes as input all details about services being installed, and hosts
+    they are being installed into, to recommend host-specific configurations.
+
+    For backwards compatibility, this function redirects to recommendConfigurations. Implementations
+    should override this function to recommend Kerberos-specific property changes.
+
+    :type services: dict
+    :param services: Dictionary containing all information about services and component layout selected by the user.
+    :type hosts: dict
+    :param hosts: Dictionary containing all information about hosts in this cluster
+    :rtype: dict
+    :return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format.
+    """
+    return self.recommendConfigurations(services, hosts)
+
   def validateConfigurations(self, services, hosts):
     """"
     Returns array of Validation issues with configurations provided by user
@@ -1124,15 +1144,12 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def calculateYarnAllocationSizes(self, configurations, services, hosts):
     # initialize data
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
 
     # calculate memory properties and get cluster data dictionary with whole information
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
 
     # executing code from stack advisor HDP 206
     nodemanagerMinRam = 1048576 # 1TB in mb
@@ -1580,12 +1597,9 @@ class DefaultStackAdvisor(StackAdvisor):
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
 
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
@@ -1604,7 +1618,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     # If recommendation for config groups
     if "config-groups" in services:
-      self.recommendConfigGroupsConfigurations(recommendations, services, components, hosts,
+      self.recommendConfigGroupsConfigurations(recommendations, services, componentsList, hosts,
                                  servicesList)
     else:
       configurations = recommendations["recommendations"]["blueprint"]["configurations"]
@@ -1632,12 +1646,9 @@ class DefaultStackAdvisor(StackAdvisor):
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
 
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
@@ -1656,7 +1667,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     # If recommendation for config groups
     if "config-groups" in services:
-      self.recommendConfigGroupsConfigurations(recommendations, services, components, hosts,
+      self.recommendConfigGroupsConfigurations(recommendations, services, componentsList, hosts,
                                  servicesList)
     else:
       configurations = recommendations["recommendations"]["blueprint"]["configurations"]
@@ -1679,6 +1690,60 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return recommendations
 
+  def recommendConfigurationsForKerberos(self, services, hosts):
+    self.services = services
+
+    stackName = services["Versions"]["stack_name"]
+    stackVersion = services["Versions"]["stack_version"]
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
+
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
+
+
+    recommendations = {
+      "Versions": {
+        "stack_name": stackName,
+        "stack_version": stackVersion
+      },
+      "hosts": hostsList,
+      "services": servicesList,
+      "recommendations": {
+        "blueprint": {
+          "configurations": {},
+          "host_groups": []
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": []
+        }
+      }
+    }
+
+    # If recommendation for config groups
+    if "config-groups" in services:
+      self.recommendConfigGroupsConfigurations(recommendations, services, componentsList, hosts,
+                                 servicesList)
+    else:
+      configurations = recommendations["recommendations"]["blueprint"]["configurations"]
+
+      # there can be dependencies between service recommendations which require special ordering
+      # for now, make sure custom services (that have service advisors) run after standard ones
+      serviceAdvisors = []
+      recommenderDict = self.getServiceConfigurationRecommenderForKerberosDict()
+      for service in services["services"]:
+        serviceName = service["StackServices"]["service_name"]
+        calculation = recommenderDict.get(serviceName, None)
+        if calculation is not None:
+          calculation(configurations, clusterSummary, services, hosts)
+        else:
+          serviceAdvisor = self.getServiceAdvisor(serviceName)
+          if serviceAdvisor is not None:
+            serviceAdvisors.append(serviceAdvisor)
+      for serviceAdvisor in serviceAdvisors:
+        serviceAdvisor.getServiceConfigurationRecommendationsForKerberos(configurations, clusterSummary, services, hosts)
+
+    return recommendations
+
   def getServiceConfigurationRecommender(self, service):
     return self.getServiceConfigurationRecommenderDict().get(service, None)
 
@@ -1686,6 +1751,9 @@ class DefaultStackAdvisor(StackAdvisor):
     return {}
 
   def getServiceConfigurationRecommenderForSSODict(self):
+    return {}
+
+  def getServiceConfigurationRecommenderForKerberosDict(self):
     return {}
 
   # Recommendation helper methods
@@ -3171,3 +3239,17 @@ class DefaultStackAdvisor(StackAdvisor):
       return int(re.sub("\D", "", s))
     except ValueError:
       return None
+
+  def get_service_and_component_lists(self, services):
+    serviceList = []
+    componentList = []
+
+    if services:
+      for service in services:
+        serviceList.append(service["StackServices"]["service_name"])
+
+        if service["components"]:
+          for component in service["components"]:
+            componentList.append(component["StackServiceComponents"]["component_name"])
+
+    return serviceList, componentList

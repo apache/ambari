@@ -54,6 +54,10 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "RANGER": self.recommendRangerConfigurationsForSSO
       }
 
+  def getServiceConfigurationRecommenderForKerberosDict(self):
+    # For backwards compatibility, return the dict use for general stack advisor calls.
+    return self.getServiceConfigurationRecommenderDict()
+
   def recommendSPARK2Configurations(self, configurations, clusterData, services, hosts):
     """
     :type configurations dict
