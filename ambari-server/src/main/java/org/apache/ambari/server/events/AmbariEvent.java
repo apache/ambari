@@ -190,7 +190,12 @@ public abstract class AmbariEvent {
     /**
      * Service credential store has been enabled or disabled..
      */
-    SERVICE_CREDENTIAL_STORE_UPDATE;
+    SERVICE_CREDENTIAL_STORE_UPDATE,
+
+    /**
+     * Agent heartbeat was lost.
+     */
+    HEARTBEAT_LOST;
   }
 
   /**

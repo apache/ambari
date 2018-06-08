@@ -1866,14 +1866,28 @@ public class Configuration {
    */
   @Markdown(description = "The maximum size of an incoming stomp text message. Default is 2 MB.")
   public static final ConfigurationProperty<Integer> STOMP_MAX_INCOMING_MESSAGE_SIZE = new ConfigurationProperty<>(
-      "stomp.max.message.size", 2*1024*1024);
+      "stomp.max_incoming.message.size", 2*1024*1024);
 
   /**
    * The maximum size of a buffer for stomp message sending. Default is 5 MB.
    */
   @Markdown(description = "The maximum size of a buffer for stomp message sending. Default is 5 MB.")
   public static final ConfigurationProperty<Integer> STOMP_MAX_BUFFER_MESSAGE_SIZE = new ConfigurationProperty<>(
-      "stomp.max.message.size", 5*1024*1024);
+      "stomp.max_buffer.message.size", 5*1024*1024);
+
+  /**
+   * The number of attempts to emit execution command message to agent. Default is 3
+   */
+  @Markdown(description = "The number of attempts to emit execution command message to agent. Default is 3")
+  public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_COUNT = new ConfigurationProperty<>(
+      "stomp.commands.retry.count", 3);
+
+  /**
+   * The interval in seconds between attempts to emit execution command message to agent. Default is 5
+   */
+  @Markdown(description = "The interval in seconds between attempts to emit execution command message to agent. Default is 5")
+  public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_INTERVAL = new ConfigurationProperty<>(
+      "stomp.commands.retry.interval", 5);
 
   /**
    * The maximum number of threads used to extract Ambari Views when Ambari
@@ -4595,6 +4609,20 @@ public class Configuration {
    */
   public int getStompMaxBufferMessageSize() {
     return Integer.parseInt(getProperty(STOMP_MAX_BUFFER_MESSAGE_SIZE));
+  }
+
+  /**
+   * @return the number of attempts to emit execution command message to agent. Default is 3
+   */
+  public int getExecutionCommandsRetryCount() {
+    return Integer.parseInt(getProperty(EXECUTION_COMMANDS_RETRY_COUNT));
+  }
+
+  /**
+   * @return the interval in seconds between attempts to emit execution command message to agent. Default is 5
+   */
+  public int getExecutionCommandsRetryInterval() {
+    return Integer.parseInt(getProperty(EXECUTION_COMMANDS_RETRY_INTERVAL));
   }
 
   /**

@@ -21,8 +21,11 @@ import javax.servlet.ServletContext;
 
 import org.apache.ambari.server.agent.stomp.HeartbeatController;
 import org.apache.ambari.server.api.stomp.TestController;
+import org.apache.ambari.server.events.DefaultMessageEmitter;
+import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -51,6 +54,11 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   public AgentStompConfig(ServletContext servletContext, Injector injector) {
     this.servletContext = servletContext;
     configuration = injector.getInstance(org.apache.ambari.server.configuration.Configuration.class);
+  }
+
+  @Bean
+  public STOMPUpdateListener requestSTOMPListener(Injector injector) {
+    return new STOMPUpdateListener(injector, DefaultMessageEmitter.DEFAULT_AGENT_TYPES);
   }
 
   public DefaultHandshakeHandler getHandshakeHandler() {

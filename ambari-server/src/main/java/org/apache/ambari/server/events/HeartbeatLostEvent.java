@@ -17,35 +17,16 @@
  */
 package org.apache.ambari.server.events;
 
-/**
- * The {@link HostRegisteredEvent} class is fired when a host registered with
- * the server.
- */
-public class HostRegisteredEvent extends HostEvent {
+public class HeartbeatLostEvent extends AmbariEvent {
 
-  private Long hostId;
-  /**
-   * Constructor.
-   *
-   * @param hostName
-   */
-  public HostRegisteredEvent(String hostName, Long hostId) {
-    super(AmbariEventType.HOST_REGISTERED, hostName);
+  private final Long hostId;
+
+  public HeartbeatLostEvent(Long hostId) {
+    super(AmbariEventType.HEARTBEAT_LOST);
     this.hostId = hostId;
   }
 
   public Long getHostId() {
     return hostId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    StringBuilder buffer = new StringBuilder("HostRegistered{ ");
-    buffer.append("hostName=").append(m_hostName);
-    buffer.append("}");
-    return buffer.toString();
   }
 }
