@@ -1880,14 +1880,14 @@ public class Configuration {
    */
   @Markdown(description = "The number of attempts to emit execution command message to agent. Default is 4")
   public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_COUNT = new ConfigurationProperty<>(
-      "stomp.commands.retry.count", 4);
+      "execution.command.retry.count", 4);
 
   /**
    * The interval in seconds between attempts to emit execution command message to agent. Default is 15
    */
   @Markdown(description = "The interval in seconds between attempts to emit execution command message to agent. Default is 15")
   public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_INTERVAL = new ConfigurationProperty<>(
-      "stomp.commands.retry.interval", 15);
+      "execution.command.retry.interval", 15);
 
   /**
    * The maximum number of threads used to extract Ambari Views when Ambari
