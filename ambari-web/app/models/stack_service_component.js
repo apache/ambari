@@ -142,13 +142,21 @@ App.StackServiceComponent = DS.Model.extend({
     return (this.get('isAddableToHost') && !ignored.contains(this.get('componentName'))) || (this.get('componentName') === 'MYSQL_SERVER');
   }.property('componentName'),
 
+  /**
+   * @type {boolean}
+   */
+  isInstallable: function() {
+    const notInstallable = App.get('currentStackName') === 'HDF' ? ['ACTIVITY_ANALYZER', 'ACTIVITY_EXPLORER'] : [];
+    return !notInstallable.contains(this.get('componentName'));
+  }.property('componentName'),
+
   /** @property {Boolean} isShownOnInstallerAssignMasterPage - component visible on "Assign Masters" step of Install Wizard **/
   // Note: Components that are not visible on Assign Master Page are not saved as part of host component recommendation/validation layout
   isShownOnInstallerAssignMasterPage: function() {
     var component = this.get('componentName');
     var mastersNotShown = ['MYSQL_SERVER', 'POSTGRESQL_SERVER', 'HIVE_SERVER_INTERACTIVE'];
-    return this.get('isMaster') && !mastersNotShown.contains(component);
-  }.property('isMaster','componentName'),
+    return this.get('isMaster') && this.get('isInstallable') && !mastersNotShown.contains(component);
+  }.property('isMaster','componentName', 'isInstallable'),
 
   /** @property {Boolean} isShownOnInstallerSlaveClientPage - component visible on "Assign Slaves and Clients" step of Install Wizard**/
   // Note: Components that are not visible on Assign Slaves and Clients Page are saved as part of host component recommendation/validation layout
