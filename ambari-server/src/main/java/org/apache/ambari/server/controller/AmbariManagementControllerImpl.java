@@ -52,6 +52,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom;
@@ -779,14 +780,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           .setComponentName(sch.getServiceComponentName())
           .setServiceName(sch.getServiceName())
           .setDisplayName(sc.getDisplayName())
-          .setVersion(sch.getVersion())
           .setHostIds(hostIds)
           .setHostNames(hostNames)
           .setPublicHostNames(publicHostNames)
           .setComponentLevelParams(getTopologyComponentLevelParams(cluster.getClusterId(), serviceName, componentName,
               cluster.getSecurityType()))
-          .setCommandParams(getTopologyCommandParams(cluster.getClusterId(), serviceName, componentName))
+          .setCommandParams(getTopologyCommandParams(cluster.getClusterId(), serviceName, componentName, sch))
           .build();
+
       String clusterId = Long.toString(cluster.getClusterId());
       if (!topologyUpdates.containsKey(clusterId)) {
         topologyUpdates.put(clusterId, new TopologyCluster());
@@ -5663,7 +5664,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   //TODO will be a need to change to multi-instance usage
-  public TreeMap<String, String> getTopologyCommandParams(Long clusterId, String serviceName, String componentName) throws AmbariException {
+  public TreeMap<String, String> getTopologyCommandParams(Long clusterId, String serviceName, String componentName, ServiceComponentHost sch) throws AmbariException {
     TreeMap<String, String> commandParams = new TreeMap<>();
     RepositoryVersionEntity repositoryVersion = getComponentRepositoryVersion(clusterId, serviceName, componentName);
     if (null != repositoryVersion) {
@@ -5696,6 +5697,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       commandParams.put(COMMAND_TIMEOUT, actualTimeout);
       commandParams.put(SCRIPT, scriptName);
       commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
+    }
+    String schVersion = sch.getVersion();
+    if (!schVersion.equals("UNKNOWN")) {
+      commandParams.put(VERSION, schVersion);
     }
     return commandParams;
   }
