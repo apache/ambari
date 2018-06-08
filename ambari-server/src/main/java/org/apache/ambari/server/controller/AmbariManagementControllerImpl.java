@@ -1555,13 +1555,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties)
       throws AmbariException, AuthorizationException {
+    return updateClusters(requests, requestProperties, true);
+  }
+
+  @Override
+  @Transactional
+  public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
+                                                           Map<String, String> requestProperties,
+                                                           boolean fireAgentUpdates)
+      throws AmbariException, AuthorizationException {
 
     RequestStatusResponse response = null;
 
     // We have to allow for multiple requests to account for multiple
     // configuration updates (create multiple configuration resources)...
     for (ClusterRequest request : requests) {
-      response = updateCluster(request, requestProperties);
+      response = updateCluster(request, requestProperties, fireAgentUpdates);
     }
     return response;
   }
@@ -1660,7 +1669,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return output;
   }
 
-  private synchronized RequestStatusResponse updateCluster(ClusterRequest request, Map<String, String> requestProperties)
+  private synchronized RequestStatusResponse updateCluster(ClusterRequest request,
+                                                           Map<String, String> requestProperties,
+                                                           boolean fireAgentUpdates
+  )
       throws AmbariException, AuthorizationException {
 
     RequestStageContainer requestStageContainer = null;
@@ -2011,7 +2023,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     }
-    if (serviceConfigVersionResponse != null || nonServiceConfigsChanged) {
+    if (fireAgentUpdates && (serviceConfigVersionResponse != null || nonServiceConfigsChanged)) {
       configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
 

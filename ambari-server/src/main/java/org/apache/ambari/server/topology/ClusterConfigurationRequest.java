@@ -469,6 +469,8 @@ public class ClusterConfigurationRequest {
       }
     }
 
+    ambariContext.notifyAgentsAboutConfigsChanges(clusterName);
+
     if (tag.equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {
       // if this is a request to resolve config, then wait until resolution is completed
       try {

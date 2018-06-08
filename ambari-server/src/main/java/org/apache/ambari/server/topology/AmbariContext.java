@@ -528,13 +528,22 @@ public class AmbariContext {
       RetryHelper.executeWithRetry(new Callable<Object>() {
         @Override
         public Object call() throws Exception {
-          getController().updateClusters(Collections.singleton(clusterRequest), null);
+          getController().updateClusters(Collections.singleton(clusterRequest), null, false);
           return null;
         }
       });
     } catch (AmbariException e) {
       LOG.error("Failed to set configurations on cluster: ", e);
       throw new RuntimeException("Failed to set configurations on cluster: " + e, e);
+    }
+  }
+
+  public void notifyAgentsAboutConfigsChanges(String clusterName) {
+    try {
+      configHelper.get().updateAgentConfigs(Collections.singleton(clusterName));
+    } catch (AmbariException e) {
+      LOG.error("Failed to set send agent updates: ", e);
+      throw new RuntimeException("Failed to set send agent updates: " + e, e);
     }
   }
 
