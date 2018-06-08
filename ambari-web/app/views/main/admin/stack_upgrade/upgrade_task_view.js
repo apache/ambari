@@ -79,12 +79,19 @@ App.upgradeTaskView = Em.View.extend({
    */
   isContentLoaded: false,
 
+  didInsertElement: function() {
+    if (this.get('outsideView') && this.get('content')) {
+      this.toggleExpanded({context: this.get('content')});
+    }
+  },
+
   toggleExpanded: function (event) {
     var isExpanded = event.context.get('isExpanded');
     event.context.toggleProperty('isExpanded', !isExpanded);
     if (!isExpanded) {
-      event.context.set('isContentLoaded', false);
       this.doPolling(event.context);
+    } else {
+      this.set('isContentLoaded', true);
     }
   },
 
