@@ -1039,7 +1039,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createComponents
    */
   createComponents: function () {
-    var serviceComponents = App.StackServiceComponent.find();
+    var serviceComponents = App.StackServiceComponent.find().filterProperty('isInstallable');
     this.get('selectedServices').forEach(function (_service) {
       var serviceName = _service.get('serviceName');
       var componentsData = serviceComponents.filterProperty('serviceName', serviceName).map(function (_component) {
