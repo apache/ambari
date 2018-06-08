@@ -222,6 +222,7 @@ import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -1399,12 +1400,15 @@ public class UpgradeCatalog270Test {
         put("timeline.container-metrics.ttl", "2592000");
         put("timeline.metrics.cluster.aggregate.splitpoints", "cpu_user,mem_free");
         put("timeline.metrics.host.aggregate.splitpoints", "kafka.metric,nimbus.metric");
+        put("timeline.metrics.downsampler.topn.metric.patterns", "dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%," +
+          "dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%");
       }
     };
     Map<String, String> newProperties = new HashMap<String, String>() {
       {
         put("timeline.metrics.service.default.result.limit", "5760");
         put("timeline.container-metrics.ttl", "1209600");
+        put("timeline.metrics.downsampler.topn.metric.patterns", StringUtils.EMPTY);
       }
     };
 

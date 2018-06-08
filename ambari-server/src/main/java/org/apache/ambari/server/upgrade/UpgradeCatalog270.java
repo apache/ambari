@@ -1804,6 +1804,12 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                   LOG.warn("Error updating Container metrics TTL for ams-site (AMBARI_METRICS)");
                 }
               }
+              String topnDownsamplerMetricPatternsKey = "timeline.metrics.downsampler.topn.metric.patterns";
+              if (oldAmsSite.containsKey(topnDownsamplerMetricPatternsKey) &&
+                StringUtils.isNotEmpty(oldAmsSite.get(topnDownsamplerMetricPatternsKey))) {
+                LOG.info("Updating ams-site:timeline.metrics.downsampler.topn.metric.patterns to empty.");
+                newProperties.put(topnDownsamplerMetricPatternsKey, "");
+              }
             }
           }
           LOG.info("Removing ams-site host and aggregate cluster split points.");

@@ -26,6 +26,7 @@ import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -98,6 +99,14 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
   public void setUp() throws Exception {
     Logger.getLogger("org.apache.ambari.metrics.core.timeline").setLevel(Level.DEBUG);
     hdb = createTestableHBaseAccessor();
+
+    //Change default precision table ttl.
+    Field f = PhoenixHBaseAccessor.class.getDeclaredField("tableTTL");
+    f.setAccessible(true);
+    Map<String, Integer> precisionValues = (Map<String, Integer>) f.get(hdb);
+    precisionValues.put(METRICS_RECORD_TABLE_NAME, 2 * 86400);
+    f.set(hdb, precisionValues);
+
     // inits connection, starts mini cluster
     conn = getConnection(getUrl());
 

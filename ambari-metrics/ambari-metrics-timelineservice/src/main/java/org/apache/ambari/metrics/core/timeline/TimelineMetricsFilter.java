@@ -18,6 +18,8 @@
 
 package org.apache.ambari.metrics.core.timeline;
 
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_BLACKLIST_FILE;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,7 +42,11 @@ public class TimelineMetricsFilter {
   private static Set<String> whitelistedMetrics;
   private static Set<Pattern> whitelistedMetricPatterns;
   private static Set<String> whitelistedApps;
+
+  private static Set<String> blacklistedMetrics;
+  private static Set<Pattern> blacklistedPatterns;
   private static Set<String> blacklistedApps;
+
   private static String patternPrefix = "._p_";
   private static Set<String> amshbaseWhitelist;
 
@@ -60,11 +66,25 @@ public class TimelineMetricsFilter {
     whitelistedMetricPatterns = new HashSet<Pattern>();
     blacklistedApps = new HashSet<>();
     whitelistedApps = new HashSet<>();
+
+    blacklistedMetrics = new HashSet<>();
+    blacklistedPatterns = new HashSet<>();
+    blacklistedApps = new HashSet<>();
+
     amshbaseWhitelist = new HashSet<>();
 
     if (configuration.isWhitelistingEnabled()) {
       String whitelistFile = metricsConf.get(TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE, TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE_LOCATION_DEFAULT);
-      readMetricWhitelistFromFile(whitelistFile);
+      readMetricWhitelistFromFile(whitelistedMetrics, whitelistedMetricPatterns, whitelistFile);
+      LOG.info("Whitelisting " + whitelistedMetrics.size() + " metrics");
+      LOG.debug("Whitelisted metrics : " + Arrays.toString(whitelistedMetrics.toArray()));
+    }
+
+    String blacklistFile = metricsConf.get(TIMELINE_METRICS_BLACKLIST_FILE, "");
+    if (!StringUtils.isEmpty(blacklistFile)) {
+      readMetricWhitelistFromFile(blacklistedMetrics, blacklistedPatterns, blacklistFile);
+      LOG.info("Blacklisting " + blacklistedMetrics.size() + " metrics");
+      LOG.debug("Blacklisted metrics : " + Arrays.toString(blacklistedMetrics.toArray()));
     }
 
     String appsBlacklist = metricsConf.get(TimelineMetricConfiguration.TIMELINE_METRICS_APPS_BLACKLIST, "");
@@ -89,7 +109,7 @@ public class TimelineMetricsFilter {
     }
   }
 
-  private static void readMetricWhitelistFromFile(String whitelistFile) {
+  private static void readMetricWhitelistFromFile(Set<String> metricList, Set<Pattern> patternList, String whitelistFile) {
 
     BufferedReader br = null;
     String strLine;
@@ -103,17 +123,15 @@ public class TimelineMetricsFilter {
           continue;
         }
         if (strLine.startsWith(patternPrefix)) {
-          whitelistedMetricPatterns.add(Pattern.compile(strLine.substring(patternPrefix.length())));
+          patternList.add(Pattern.compile(strLine.substring(patternPrefix.length())));
         } else {
-          whitelistedMetrics.add(strLine);
+          metricList.add(strLine);
         }
       }
     } catch (IOException ioEx) {
-      LOG.error("Unable to parse metric whitelist file", ioEx);
+      LOG.error("Unable to parse metric file", ioEx);
     }
 
-    LOG.info("Whitelisting " + whitelistedMetrics.size() + " metrics");
-    LOG.debug("Whitelisted metrics : " + Arrays.toString(whitelistedMetrics.toArray()));
   }
 
   public static boolean acceptMetric(String metricName, String appId) {
@@ -130,6 +148,21 @@ public class TimelineMetricsFilter {
     // App Blacklisting
     if (CollectionUtils.isNotEmpty(blacklistedApps) && blacklistedApps.contains(appId)) {
       return false;
+    }
+
+    //Metric Blacklisting
+    if (CollectionUtils.isNotEmpty(blacklistedMetrics) || CollectionUtils.isNotEmpty(blacklistedPatterns)) {
+      if (blacklistedMetrics.contains(metricName)) {
+        return false;
+      }
+
+      for (Pattern p : blacklistedPatterns) {
+        Matcher m = p.matcher(metricName);
+        if (m.find()) {
+          blacklistedMetrics.add(metricName);
+          return false;
+        }
+      }
     }
 
     //Special Case appId = ams-hbase whitelisting.
