@@ -193,9 +193,9 @@ public abstract class AmbariEvent {
     SERVICE_CREDENTIAL_STORE_UPDATE,
 
     /**
-     * Agent heartbeat was lost.
+     * Message was not delivered to agent.
      */
-    HEARTBEAT_LOST;
+    MESSAGE_NOT_DELIVERED;
   }
 
   /**

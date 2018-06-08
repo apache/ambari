@@ -52,7 +52,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         put(STOMPEvent.Type.UPGRADE, "/events/upgrade");
         put(STOMPEvent.Type.AGENT_ACTIONS, "/agent_actions");
   }});
-  public static final Set<STOMPEvent.Type> DEFAULT_AGENT_TYPES =
+  public static final Set<STOMPEvent.Type> DEFAULT_AGENT_EVENT_TYPES =
       Collections.unmodifiableSet(new HashSet<STOMPEvent.Type>(Arrays.asList(
         STOMPEvent.Type.METADATA,
         STOMPEvent.Type.HOSTLEVELPARAMS,
@@ -62,7 +62,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         STOMPEvent.Type.ALERT_DEFINITIONS,
         STOMPEvent.Type.AGENT_ACTIONS
   )));
-  public static final Set<STOMPEvent.Type> DEFAULT_API_TYPES =
+  public static final Set<STOMPEvent.Type> DEFAULT_API_EVENT_TYPES =
       Collections.unmodifiableSet(new HashSet<STOMPEvent.Type>(Arrays.asList(
         STOMPEvent.Type.ALERT,
         STOMPEvent.Type.ALERT_GROUP,

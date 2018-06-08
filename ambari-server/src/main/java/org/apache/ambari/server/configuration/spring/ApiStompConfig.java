@@ -47,7 +47,7 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
   @Bean
   public STOMPUpdateListener requestSTOMPListener(Injector injector) {
-    return new STOMPUpdateListener(injector, DefaultMessageEmitter.DEFAULT_API_TYPES);
+    return new STOMPUpdateListener(injector, DefaultMessageEmitter.DEFAULT_API_EVENT_TYPES);
   }
 
   @Override

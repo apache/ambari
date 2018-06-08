@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.events;
 
-public class HeartbeatLostEvent extends AmbariEvent {
+public class MessageNotDelivered extends AmbariEvent {
 
   private final Long hostId;
 
-  public HeartbeatLostEvent(Long hostId) {
-    super(AmbariEventType.HEARTBEAT_LOST);
+  public MessageNotDelivered(Long hostId) {
+    super(AmbariEventType.MESSAGE_NOT_DELIVERED);
     this.hostId = hostId;
   }
 

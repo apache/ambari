@@ -125,11 +125,10 @@ public abstract class MessageEmitter {
           return;
         } catch (CancellationException e) {
           // scheduled tasks can be canceled
-          e.printStackTrace();
         } catch (ExecutionException e) {
-          e.printStackTrace();
+          LOG.error("Error during preparing command to emit", e);
           // generate delivery failed event
-          ambariEventPublisher.publish(new HeartbeatLostEvent(hostId));
+          ambariEventPublisher.publish(new MessageNotDelivered(hostId));
           return;
         }
       }
@@ -169,7 +168,7 @@ public abstract class MessageEmitter {
     public void run() {
       if (retry_counter >= retryCount) {
         // generate delivery failed event and cancel emitter
-        ambariEventPublisher.publish(new HeartbeatLostEvent(executionCommandEvent.getHostId()));
+        ambariEventPublisher.publish(new MessageNotDelivered(executionCommandEvent.getHostId()));
         unconfirmedMessages.remove(executionCommandEvent.getMessageId()); //?
 
         // remove commands queue for host
@@ -186,7 +185,8 @@ public abstract class MessageEmitter {
         retry_counter++;
         emitExecutionCommandToHost(executionCommandEvent);
       } catch (AmbariException e) {
-        e.printStackTrace();
+        LOG.error("Error during emitting execution command with message id {} on attempt {}",
+            executionCommandEvent.getMessageId(), retry_counter, e);
       }
     }
   }

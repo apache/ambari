@@ -25,7 +25,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TY
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.orm.entities.HostRoleCommandEntity_.host;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +40,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.events.HeartbeatLostEvent;
+import org.apache.ambari.server.events.MessageNotDelivered;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -357,14 +356,14 @@ public class HeartbeatMonitor implements Runnable {
   }
 
   @Subscribe
-  public void onHeartbeatLost(HeartbeatLostEvent heartbeatLostEvent) {
+  public void onMessageNotDelivered(MessageNotDelivered messageNotDelivered) {
     try {
-      Host hostObj = clusters.getHostById(heartbeatLostEvent.getHostId());
+      Host hostObj = clusters.getHostById(messageNotDelivered.getHostId());
       if (hostObj.getState() == HostState.HEARTBEAT_LOST) {
         //do not check if host already known be lost
         return;
       }
-      handleHeartbeatLost(heartbeatLostEvent.getHostId());
+      handleHeartbeatLost(messageNotDelivered.getHostId());
     } catch (Exception e) {
       LOG.error("Error during host to heartbeat lost moving", e);
     }

@@ -58,7 +58,7 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
   @Bean
   public STOMPUpdateListener requestSTOMPListener(Injector injector) {
-    return new STOMPUpdateListener(injector, DefaultMessageEmitter.DEFAULT_AGENT_TYPES);
+    return new STOMPUpdateListener(injector, DefaultMessageEmitter.DEFAULT_AGENT_EVENT_TYPES);
   }
 
   public DefaultHandshakeHandler getHandshakeHandler() {
