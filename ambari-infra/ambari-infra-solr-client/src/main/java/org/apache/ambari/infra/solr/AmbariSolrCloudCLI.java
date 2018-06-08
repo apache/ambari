@@ -19,6 +19,10 @@
 
 package org.apache.ambari.infra.solr;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -29,16 +33,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class AmbariSolrCloudCLI {
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariSolrCloudCLI.class);
 
-  private static final int ZK_CLIENT_TIMEOUT = 15000;
-  private static final int ZK_CLIENT_CONNECT_TIMEOUT = 15000;
+  private static final int ZK_CLIENT_TIMEOUT = 60000; // 1 minute
+  private static final int ZK_CLIENT_CONNECT_TIMEOUT = 60000; // 1 minute
   private static final String CREATE_COLLECTION_COMMAND = "create-collection";
   private static final String UPLOAD_CONFIG_COMMAND = "upload-config";
   private static final String DOWNLOAD_CONFIG_COMMAND = "download-config";

@@ -757,7 +757,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           .forHosts(hostNames)
           .withComponentHostsMap(cluster.getServiceComponentHostMap(null, services))
           .withConfigurations(requestConfigurations)
-          .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
+          .ofType(StackAdvisorRequest.StackAdvisorRequestType.KERBEROS_CONFIGURATIONS)
           .build();
 
         try {

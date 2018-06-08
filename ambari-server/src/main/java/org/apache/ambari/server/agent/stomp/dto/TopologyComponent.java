@@ -187,7 +187,6 @@ public class TopologyComponent {
     return TopologyComponent.newBuilder().setComponentName(getComponentName())
         .setDisplayName(getDisplayName())
         .setServiceName(getServiceName())
-        .setVersion(getVersion())
         .setComponentLevelParams(getComponentLevelParams() == null ? null : new TreeMap<>(getComponentLevelParams()))
         .setHostIds(getHostIds() == null ? null : new HashSet<>(getHostIds()))
         .setHostNames(getHostNames() == null ? null : new HashSet<>(getHostNames()))

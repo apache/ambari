@@ -27,6 +27,7 @@ RECOMMEND_COMPONENT_LAYOUT_ACTION = 'recommend-component-layout'
 VALIDATE_COMPONENT_LAYOUT_ACTION = 'validate-component-layout'
 RECOMMEND_CONFIGURATIONS = 'recommend-configurations'
 RECOMMEND_CONFIGURATIONS_FOR_SSO = 'recommend-configurations-for-sso'
+RECOMMEND_CONFIGURATIONS_FOR_KERBEROS = 'recommend-configurations-for-kerberos'
 RECOMMEND_CONFIGURATION_DEPENDENCIES = 'recommend-configuration-dependencies'
 VALIDATE_CONFIGURATIONS = 'validate-configurations'
 
@@ -34,6 +35,7 @@ ALL_ACTIONS = [RECOMMEND_COMPONENT_LAYOUT_ACTION,
                VALIDATE_COMPONENT_LAYOUT_ACTION,
                RECOMMEND_CONFIGURATIONS,
                RECOMMEND_CONFIGURATIONS_FOR_SSO,
+               RECOMMEND_CONFIGURATIONS_FOR_KERBEROS,
                RECOMMEND_CONFIGURATION_DEPENDENCIES,
                VALIDATE_CONFIGURATIONS]
 USAGE = "Usage: <action> <hosts_file> <services_file>\nPossible actions are: {0}\n".format( str(ALL_ACTIONS) )
@@ -122,6 +124,10 @@ def main(argv=None):
   elif action == RECOMMEND_CONFIGURATIONS_FOR_SSO:
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationsForSSO'}
     result = stackAdvisor.recommendConfigurationsForSSO(services, hosts)
+    result_file = os.path.join(actionDir, "configurations.json")
+  elif action == RECOMMEND_CONFIGURATIONS_FOR_KERBEROS:
+    services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationsForKerberos'}
+    result = stackAdvisor.recommendConfigurationsForKerberos(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
   elif action == RECOMMEND_CONFIGURATION_DEPENDENCIES:
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationDependencies'}
