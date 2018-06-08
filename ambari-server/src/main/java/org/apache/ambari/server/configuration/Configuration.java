@@ -1876,18 +1876,18 @@ public class Configuration {
       "stomp.max_buffer.message.size", 5*1024*1024);
 
   /**
-   * The number of attempts to emit execution command message to agent. Default is 3
+   * The number of attempts to emit execution command message to agent. Default is 4
    */
-  @Markdown(description = "The number of attempts to emit execution command message to agent. Default is 3")
+  @Markdown(description = "The number of attempts to emit execution command message to agent. Default is 4")
   public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_COUNT = new ConfigurationProperty<>(
-      "stomp.commands.retry.count", 3);
+      "stomp.commands.retry.count", 4);
 
   /**
-   * The interval in seconds between attempts to emit execution command message to agent. Default is 5
+   * The interval in seconds between attempts to emit execution command message to agent. Default is 15
    */
-  @Markdown(description = "The interval in seconds between attempts to emit execution command message to agent. Default is 5")
+  @Markdown(description = "The interval in seconds between attempts to emit execution command message to agent. Default is 15")
   public static final ConfigurationProperty<Integer> EXECUTION_COMMANDS_RETRY_INTERVAL = new ConfigurationProperty<>(
-      "stomp.commands.retry.interval", 5);
+      "stomp.commands.retry.interval", 15);
 
   /**
    * The maximum number of threads used to extract Ambari Views when Ambari
@@ -4612,14 +4612,14 @@ public class Configuration {
   }
 
   /**
-   * @return the number of attempts to emit execution command message to agent. Default is 3
+   * @return the number of attempts to emit execution command message to agent. Default is 4
    */
   public int getExecutionCommandsRetryCount() {
     return Integer.parseInt(getProperty(EXECUTION_COMMANDS_RETRY_COUNT));
   }
 
   /**
-   * @return the interval in seconds between attempts to emit execution command message to agent. Default is 5
+   * @return the interval in seconds between attempts to emit execution command message to agent. Default is 15
    */
   public int getExecutionCommandsRetryInterval() {
     return Integer.parseInt(getProperty(EXECUTION_COMMANDS_RETRY_INTERVAL));
