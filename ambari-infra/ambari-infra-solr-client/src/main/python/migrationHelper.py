@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import copy
+import glob
 import logging
 import os
 import sys
@@ -800,8 +802,84 @@ def upgrade_ranger_solrconfig_xml(options, config, service_filter):
       solr_znode=config.get('infra_solr', 'znode')
     ranger_config_set_name = config.get('ranger_collection', 'ranger_config_set_name')
     backup_ranger_config_set_name = config.get('ranger_collection', 'backup_ranger_config_set_name')
-    copy_znode(options, config, "{0}/configs/solrconfig.xml".format(solr_znode, ranger_config_set_name),
-               "{0}/configs/solrconfig.xml".format(solr_znode, backup_ranger_config_set_name))
+    copy_znode(options, config, "{0}/configs/{1}/solrconfig.xml".format(solr_znode, ranger_config_set_name),
+               "{0}/configs/{1}/solrconfig.xml".format(solr_znode, backup_ranger_config_set_name))
+
+def update_state_json(collection, config, options):
+  solr_znode='/infra-solr'
+  if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
+    solr_znode=config.get('infra_solr', 'znode')
+  coll_data_dir = "{0}migrate/data/{1}".format(INFRA_SOLR_CLIENT_BASE_PATH, collection)
+  if not os.path.exists(coll_data_dir):
+    os.makedirs(coll_data_dir)
+
+  copy_znode(options, config, "{0}/collections/{1}/state.json".format(solr_znode, collection), "{0}/state.json".format(coll_data_dir), copy_to_local=True)
+  copy_znode(options, config, "{0}/restore_metadata/{1}".format(solr_znode, collection), "{0}".format(coll_data_dir), copy_to_local=True)
+
+  json_file_list=glob.glob("{0}/*.json".format(coll_data_dir))
+  logger.debug("Downloaded json files list: {0}".format(str(json_file_list)))
+
+  cores_data_json_list = [k for k in json_file_list if 'state.json' not in k]
+  state_json_list = [k for k in json_file_list if 'state.json' in k]
+
+  if not cores_data_json_list:
+    raise Exception('Cannot find any downloaded restore core metadata for {0}'.format(collection))
+  if not state_json_list:
+    raise Exception('Cannot find any downloaded restore collection state metadata for {0}'.format(collection))
+
+  state_json_file=state_json_list[0]
+  state_data = read_json(state_json_file)
+  core_json_data=[]
+  for core_data_json_file in cores_data_json_list:
+    core_json_data.append(read_json(core_data_json_file))
+
+  logger.debug("collection data content: {0}".format(str(state_data)))
+  core_details={}
+  for core in core_json_data:
+    core_details[core['core_node']]=core
+  logger.debug("core data contents: {0}".format(str(core_details)))
+
+  collection_data = state_data[collection]
+  shards = collection_data['shards']
+  new_state_json_data=copy.deepcopy(state_data)
+
+  for shard in shards:
+    replicas = shards[shard]['replicas']
+    for replica in replicas:
+      core_data = replicas[replica]
+      core = core_data['core']
+      base_url = core_data['base_url']
+      node_name = core_data['node_name']
+      data_dir = core_data['dataDir'] if 'dataDir' in core_data else None
+      ulog_dir = core_data['ulogDir'] if 'ulogDir' in core_data else None
+
+      if replica in core_details:
+        old_core_node=core_details[replica]['core_node']
+        new_core_node=core_details[replica]['new_core_node']
+
+        new_state_core = copy.deepcopy(state_data[collection]['shards'][shard]['replicas'][replica])
+        new_state_json_data[collection]['shards'][shard]['replicas'][new_core_node]=new_state_core
+        if old_core_node != new_core_node:
+          if old_core_node in new_state_json_data[collection]['shards'][shard]['replicas']:
+            del new_state_json_data[collection]['shards'][shard]['replicas'][old_core_node]
+          if data_dir:
+            new_state_json_data[collection]['shards'][shard]['replicas'][new_core_node]['dataDir']=data_dir.replace(old_core_node, new_core_node)
+          if ulog_dir:
+            new_state_json_data[collection]['shards'][shard]['replicas'][new_core_node]['ulogDir']=ulog_dir.replace(old_core_node, new_core_node)
+        old_host=core_details[replica]['old_host']
+        new_host=core_details[replica]['new_host']
+        if old_host != new_host and old_core_node != new_core_node:
+          new_state_json_data[collection]['shards'][shard]['replicas'][new_core_node]['base_url']=base_url.replace(old_host, new_host)
+          new_state_json_data[collection]['shards'][shard]['replicas'][new_core_node]['node_name']=node_name.replace(old_host, new_host)
+        elif old_host != new_host:
+          new_state_json_data[collection]['shards'][shard]['replicas'][replica]['base_url']=base_url.replace(old_host, new_host)
+          new_state_json_data[collection]['shards'][shard]['replicas'][replica]['node_name']=node_name.replace(old_host, new_host)
+
+  with open("{0}/new_state.json".format(coll_data_dir), 'w') as outfile:
+    json.dump(new_state_json_data, outfile)
+
+  copy_znode(options, config, "{0}/new_state.json".format(coll_data_dir), "{0}/collections/{1}/state.json".format(solr_znode, collection), copy_from_local=True)
+
 
 def delete_znodes(options, config, service_filter):
   solr_znode='/infra-solr'
@@ -1113,6 +1191,33 @@ def rolling_restart_solr(options, accessor, parser, config):
   post_json(accessor, BATCH_REQUEST_API_URL.format(cluster), request_body)
   print "Rolling Restart Infra Solr Instances request sent. (check Ambari UI about the requests)"
 
+def update_state_jsons(options, accessor, parser, config, service_filter):
+  solr_urls = get_solr_urls(config)
+  collections=retry(list_collections, options, config, solr_urls, context="[List Solr Collections]")
+  collections=filter_collections(options, collections)
+  if is_ranger_available(config, service_filter):
+    backup_ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name')
+    if backup_ranger_collection in collections:
+      update_state_json(backup_ranger_collection, config, options)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(backup_ranger_collection)
+  if is_atlas_available(config, service_filter):
+    backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
+    if backup_fulltext_index_name in collections:
+      update_state_json(backup_fulltext_index_name, config, options)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name)
+    backup_edge_index_name = config.get('atlas_collections', 'backup_edge_index_name')
+    if backup_edge_index_name in collections:
+      update_state_json(backup_edge_index_name, config, options)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(backup_edge_index_name)
+    backup_vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name')
+    if backup_vertex_index_name in collections:
+      update_state_json(backup_vertex_index_name, config, options)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name)
+
 if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
 
@@ -1187,6 +1292,10 @@ if __name__=="__main__":
         upgrade_ranger_solrconfig_xml(options, config, service_filter)
         create_backup_collections(options, accessor, parser, config, service_filter)
         restore_collections(options, accessor, parser, config, service_filter)
+        update_state_jsons(options, accessor, parser, config, service_filter)
+      elif options.action.lower() == 'update-collection-state':
+        update_state_jsons(options, accessor, parser, config, service_filter)
+      elif options.action.lower() == 'reload':
         reload_collections(options, accessor, parser, config, service_filter)
       elif options.action.lower() == 'migrate':
         migrate_snapshots(options, accessor, parser, config, service_filter)

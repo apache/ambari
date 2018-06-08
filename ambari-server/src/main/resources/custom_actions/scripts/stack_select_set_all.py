@@ -65,7 +65,7 @@ class UpgradeSetAll(Script):
     # this script runs on all hosts; if this host doesn't have stack components,
     # then don't invoke the stack tool
     # (no need to log that it's skipped - the function will do that)
-    if is_host_skippable(stack_selector_path):
+    if is_host_skippable(stack_selector_path, summary.associated_version):
       return
 
     # invoke "set all"
@@ -75,10 +75,11 @@ class UpgradeSetAll(Script):
       raise Exception("Command '{0}' exit code is nonzero".format(cmd))
 
 
-def is_host_skippable(stack_selector_path):
+def is_host_skippable(stack_selector_path, associated_version):
   """
   Gets whether this host should not have the stack select tool called.
   :param stack_selector_path  the path to the stack selector tool.
+  :param associated_version: the version to use with the stack selector tool.
   :return: True if this host should be skipped, False otherwise.
   """
   if not os.path.exists(stack_selector_path):
@@ -100,6 +101,12 @@ def is_host_skippable(stack_selector_path):
   # check to see if the output is empty, indicating no versions installed
   if not out.strip():
     Logger.info("{0} has no stack versions installed".format(socket.gethostname()))
+    return True
+
+  # some pre-prepped systems may have a version, so there may be a version, so
+  # add the extra check if it is available
+  if not associated_version in out:
+    Logger.info("{0} is not found in the list of versions {1}".format(associated_version, out))
     return True
 
   return False

@@ -16,12 +16,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 import time
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.resources.properties_file import PropertiesFile
-
 
 def backup_collection(env):
   """
@@ -158,7 +159,10 @@ def restore_collection(env):
     core_properties['name'] = target_core
     core_properties['replicaType'] = core_details['type']
     core_properties['collection'] = command_commons.collection
-    core_properties['coreNodeName'] = core_details['node']
+    if command_commons.solr_hdfs_path:
+      core_properties['coreNodeName'] = 'backup_' + core_details['node']
+    else:
+      core_properties['coreNodeName'] = core_details['node']
     core_properties['shard'] = core_details['shard']
     if command_commons.solr_hdfs_path:
       hdfs_solr_node_folder=command_commons.solr_hdfs_path + format("/backup_{collection}/") + core_details['node']
@@ -174,30 +178,21 @@ def restore_collection(env):
                                    recursive_chown=True,
                                    recursive_chmod=True
                                    )
-        command_commons.HdfsResource(None, action="execute")
         command_commons.HdfsResource(format("{hdfs_solr_node_folder}/data/tlog"),
                                    type="directory",
                                    action="create_on_execute",
                                    owner=params.infra_solr_user,
                                    mode=0755
                                    )
-        command_commons.HdfsResource(None, action="execute")
         command_commons.HdfsResource(format("{hdfs_solr_node_folder}/data/snapshot_metadata"),
                                    type="directory",
                                    action="create_on_execute",
                                    owner=params.infra_solr_user,
                                    mode=0755
                                    )
-        command_commons.HdfsResource(None, action="execute")
-        if command_commons.solr_keep_backup:
-          Directory(format("{index_location}/snapshot.{src_core}"),
-                  action="delete",
-                  only_if=only_if_cmd,
-                  owner=params.infra_solr_user)
     else:
-      copy_cmd = format(
-        "mv {index_location}/snapshot.{src_core}/* {core_root_dir}/data/index/") if command_commons.solr_keep_backup \
-        else format("cp -r {index_location}/snapshot.{src_core}/* {core_root_dir}/data/index/")
+      copy_cmd = format("cp -r {index_location}/snapshot.{src_core}/* {core_root_dir}/data/index/") if command_commons.solr_keep_backup \
+        else format("mv {index_location}/snapshot.{src_core}/* {core_root_dir}/data/index/")
       Execute(
         copy_cmd, only_if=only_if_cmd,
         user=params.infra_solr_user,
@@ -218,6 +213,7 @@ def restore_collection(env):
           logoutput=True)
   for core_data in core_pairs:
     src_core = core_data['src_core']
+    src_host = core_data['src_host']
     target_core = core_data['target_core']
 
     if src_core in command_commons.skip_cores:
@@ -227,14 +223,36 @@ def restore_collection(env):
       Logger.info(format("Core '{target_core}' (target) is filtered out."))
       continue
 
+    if os.path.exists(format("{index_location}/snapshot.{src_core}")):
+      data_to_save = {}
+      host_core_data=host_cores_map[command_commons.CORE_DATA]
+      core_details=host_core_data[target_core]
+      core_node=core_details['node']
+      data_to_save['core']=target_core
+      data_to_save['core_node']=core_node
+      data_to_save['old_host']=core_data['target_host']
+      data_to_save['new_host']=src_host
+      if command_commons.solr_hdfs_path:
+        data_to_save['new_core_node']="backup_" + core_node
+      else:
+        data_to_save['new_core_node']=core_node
+
+      command_commons.write_core_file(target_core, data_to_save)
+      jaas_file = params.infra_solr_jaas_file if params.security_enabled else None
+      core_json_location = format("{index_location}/{target_core}.json")
+      znode_json_location = format("/restore_metadata/{collection}/{target_core}.json")
+      solr_cloud_util.copy_solr_znode_from_local(params.zookeeper_quorum, params.infra_solr_znode, params.java64_home, jaas_file, core_json_location, znode_json_location)
+
     core_root_dir = format("{solr_datadir}/backup_{target_core}")
     core_root_without_backup_dir = format("{solr_datadir}/{target_core}")
 
     if command_commons.solr_hdfs_path:
       if target_core in hdfs_cores_on_host:
+
         Logger.info(format("Core data '{target_core}' is located on this host, processing..."))
-        core_data=host_cores_map[command_commons.CORE_DATA]
-        core_details=core_data[target_core]
+        host_core_data=host_cores_map[command_commons.CORE_DATA]
+        core_details=host_core_data[target_core]
+
         core_node=core_details['node']
         collection_core_dir=command_commons.solr_hdfs_path + format("/{collection}/{core_node}")
         backup_collection_core_dir=command_commons.solr_hdfs_path + format("/backup_{collection}/{core_node}")
@@ -243,9 +261,9 @@ def restore_collection(env):
                                action="delete_on_execute",
                                owner=params.infra_solr_user
                                )
-        command_commons.HdfsResource(None, action="execute")
         if command_commons.check_hdfs_folder_exists(backup_collection_core_dir):
-          command_commons.move_hdfs_folder(backup_collection_core_dir, collection_core_dir)
+          collection_backup_core_dir=command_commons.solr_hdfs_path + format("/{collection}/backup_{core_node}")
+          command_commons.move_hdfs_folder(backup_collection_core_dir, collection_backup_core_dir)
       else:
         Logger.info(format("Core data '{target_core}' is not located on this host, skipping..."))
 
@@ -266,3 +284,10 @@ def restore_collection(env):
       recursive_ownership=True,
       only_if=format("test -d {core_root_without_backup_dir}")
     )
+
+    if command_commons.solr_hdfs_path and not command_commons.solr_keep_backup:
+      only_if_cmd = format("test -d {index_location}/snapshot.{src_core}")
+      Directory(format("{index_location}/snapshot.{src_core}"),
+            action="delete",
+            only_if=only_if_cmd,
+            owner=params.infra_solr_user)

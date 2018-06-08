@@ -35,6 +35,7 @@
       <fileset file="target/*.jar"/>
     </copy>
     <mkdir dir="target/migrate"/>
+    <mkdir dir="target/migrate/data"/>
     <get src="${lucene6-core.url}" dest="target/migrate/${lucene6-core-jar.name}" usetimestamp="true"/>
     <get src="${lucene6-backward-codecs.url}" dest="target/migrate/${lucene6-backward-codecs-jar.name}" usetimestamp="true"/>
     <copy todir="target/package/migrate" includeEmptyDirs="no">
@@ -42,6 +43,10 @@
       <fileset file="target/package/libs/lucene-core-${solr.version}.jar"/>
       <fileset file="target/package/libs/lucene-backward-codecs-${solr.version}.jar"/>
       <fileset file="src/main/resources/managed-schema"/>
+      <fileset file="src/main/resources/managed-schema"/>
+    </copy>
+    <copy todir="target/package/migrate/data" includeEmptyDirs="no">
+      <fileset file="src/main/resources/data/.keep"/>
     </copy>
     <copy todir="target/package" includeEmptyDirs="no">
       <fileset file="src/main/resources/solrCloudCli.sh"/>

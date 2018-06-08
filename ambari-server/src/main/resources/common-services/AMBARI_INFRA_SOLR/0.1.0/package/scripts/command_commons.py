@@ -87,6 +87,12 @@ solr_num_shards = int(default("/commandParams/solr_shards", "0"))
 
 solr_hdfs_path=default("/commandParams/solr_hdfs_path", None)
 
+keytab = None
+principal = None
+if params.security_enabled:
+  keytab = params.infra_solr_kerberos_keytab
+  principal = params.infra_solr_kerberos_principal
+
 if solr_hdfs_path:
 
   import functools
@@ -120,20 +126,16 @@ if solr_hdfs_path:
     user=params.infra_solr_user,
     hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
     security_enabled = params.security_enabled,
-    keytab = hdfs_user_keytab,
+    keytab = keytab,
     kinit_path_local = kinit_path_local,
     hadoop_bin_dir = hadoop_bin_dir,
     hadoop_conf_dir = hadoop_conf_dir,
-    principal_name = hdfs_principal_name,
+    principal_name = principal,
     hdfs_site = hdfs_site,
     default_fs = default_fs,
     immutable_paths = get_not_managed_resources(),
     dfs_type = dfs_type
   )
-
-if params.security_enabled:
-  keytab = params.infra_solr_kerberos_keytab
-  principal = params.infra_solr_kerberos_principal
 
 hostname_suffix = params.hostname.replace(".", "_")
 
@@ -318,6 +320,11 @@ def __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores
     json.dump(json_content, outfile)
   return json_content
 
+def write_core_file(core, core_data):
+  core_json_location = format("{index_location}/{core}.json")
+  with open(core_json_location, 'w') as outfile:
+    json.dump(core_data, outfile)
+
 def __read_host_cores_from_file(json_host_cores_path):
   """
   Read host cores from file, can be useful if you do not want to regenerate host core data (with that you can generate your own host core pairs for restore)
@@ -410,10 +417,10 @@ def execute_commad(command):
   return call(command, user=params.infra_solr_user, timeout=300)
 
 def move_hdfs_folder(source_dir, target_dir):
-  cmd=create_command(format("hdfs dfs -mv {source_dir} {target_dir}"))
+  cmd=create_command(format('hdfs dfs -mv {source_dir} {target_dir}'))
   returncode, stdout = execute_commad(cmd)
   if returncode:
-    raise Fail("Unable to move HDFS dir '{0}' to '{1}' (return code: {2})".format(source_dir, target_dir, str(returncode)))
+    raise Exception("Unable to move HDFS dir '{0}' to '{1}' (return code: {2})".format(source_dir, target_dir, str(returncode)))
   return stdout.strip()
 
 def check_hdfs_folder_exists(hdfs_dir):
