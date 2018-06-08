@@ -187,7 +187,7 @@ class AptManager(GenericManager):
             filtered_packages.append(package[0])
 
       if len(filtered_packages) > 0:
-        Logger.debug("Found packages for repo {}".format(str(filtered_packages)))
+        Logger.info("Found packages for repo {}".format(str(filtered_packages)))
         return filtered_packages
       else:
         return [package[0] for package in packages]
