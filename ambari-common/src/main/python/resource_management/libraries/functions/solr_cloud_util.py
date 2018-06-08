@@ -199,6 +199,21 @@ def remove_admin_handlers(zookeeper_quorum, solr_znode, java64_home, collection,
   remove_admin_handlers_cmd = format('{solr_cli_prefix} --remove-admin-handlers --collection {collection} --retry {retry} --interval {interval}')
   Execute(remove_admin_handlers_cmd)
 
+def copy_solr_znode(zookeeper_quorum, solr_znode, java64_home, jaas_file, src_znode, target_znode, retry = 5, interval = 10, java_opts=None):
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, java_opts, jaas_file)
+  copy_znode_cmd = format("{solr_cli_prefix} --transfer-znode --copy-src {src_znode} --copy-dest {target_znode} --retry {retry} --interval {interval}")
+  Execute(copy_znode_cmd)
+
+def copy_solr_znode_to_locat(zookeeper_quorum, solr_znode, java64_home, jaas_file, src_znode, target, retry = 5, interval = 10, java_opts=None):
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, java_opts, jaas_file)
+  copy_znode_cmd = format("{solr_cli_prefix} --transfer-znode --transfer-mode copyToLocal --copy-src {src_znode} --copy-dest {target} --retry {retry} --interval {interval}")
+  Execute(copy_znode_cmd)
+
+def copy_solr_znode_from_local(zookeeper_quorum, solr_znode, java64_home, jaas_file, src, target_znode, retry = 5, interval = 10, java_opts=None):
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, java_opts, jaas_file)
+  copy_znode_cmd = format("{solr_cli_prefix} --transfer-znode --transfer-mode copyFromLocal --copy-src {src} --copy-dest {target_znode} --retry {retry} --interval {interval}")
+  Execute(copy_znode_cmd)
+
 def default_config(config, name, default_value):
   subdicts = filter(None, name.split('/'))
   if not config:
