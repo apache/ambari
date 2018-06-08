@@ -292,6 +292,21 @@
     <on-ambari-upgrade add="true"/>
   </property>
 
+  <property>
+    <name>infra_solr_gc_log_opts</name>
+    <value>-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime</value>
+    <display-name>Infra Solr GC log options</display-name>
+    <description>Infra Solr GC log options</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_gc_tune</name>
+    <value>-XX:NewRatio=3 -XX:SurvivorRatio=4 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=8 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 -XX:+CMSScavengeBeforeRemark -XX:PretenureSizeThreshold=64m -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=50 -XX:CMSMaxAbortablePrecleanTime=6000 -XX:+CMSParallelRemarkEnabled -XX:+ParallelRefProcEnabled</value>
+    <display-name>Infra Solr GC Tune</display-name>
+    <description>Infra Solr GC Tune</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
   <!-- infra-solr-env.sh -->
   <property>
     <name>content</name>
