@@ -1737,7 +1737,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       //configs will be passed if we are building a request for configs recommendations/validations
       //it will not be passed if we are building a request for host recommendations/validations
       if (configs) {
-        const configurations = this.getConfigsForServiceInstance(service.name, service.mpackName, service.mpackVersion, null, configs);
+        const configurations = this.getConfigsForServiceInstance(service.name, service.mpackName, service.mpackVersion, configs);
         if (configurations) {
           serviceInstance.configurations = configurations;
         }
