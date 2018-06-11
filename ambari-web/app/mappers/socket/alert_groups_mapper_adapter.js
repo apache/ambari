@@ -25,6 +25,12 @@ App.alertGroupsMapperAdapter = App.QuickDataMapper.create({
   map: function(event) {
     event.groups.forEach((alertGroup) => {
       if (event.updateType === 'UPDATE' || event.updateType === 'CREATE') {
+        const {definitions} = alertGroup;
+        if (definitions) {
+          alertGroup.definitions = definitions.map(id => ({
+            id
+          }));
+        }
         App.alertGroupsMapper.map({
           items: [
             {

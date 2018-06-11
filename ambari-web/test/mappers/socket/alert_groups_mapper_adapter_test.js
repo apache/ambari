@@ -40,7 +40,8 @@ describe('App.alertGroupsMapperAdapter', function () {
         updateType: 'UPDATE',
         groups: [
           {
-            id: 1
+            id: 1,
+            definitions: [2]
           }
         ]
       };
@@ -48,7 +49,12 @@ describe('App.alertGroupsMapperAdapter', function () {
       expect(App.alertGroupsMapper.map.getCall(0).args[0]).to.be.eql({
         items: [{
           AlertGroup: {
-            id: 1
+            id: 1,
+            definitions: [
+              {
+                id: 2
+              }
+            ]
           }
         }]
       });
