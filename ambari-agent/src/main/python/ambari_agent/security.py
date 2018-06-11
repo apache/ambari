@@ -87,7 +87,7 @@ class VerifiedHTTPSConnection:
         self.establish_connection(conn)
         logger.info('SSL connection established. Two-way SSL authentication '
                     'completed successfully.')
-      except ambari_stomp.exception.ConnectFailedException as err:
+      except ssl.SSLError as err:
         logger.error('Two-way SSL authentication failed. Ensure that '
                      'server and agent certificates were signed by the same CA '
                      'and restart the agent. '
