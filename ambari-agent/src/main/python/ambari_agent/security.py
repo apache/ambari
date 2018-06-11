@@ -63,6 +63,10 @@ class VerifiedHTTPSConnection:
 
     if not self.two_way_ssl_required:
       conn = AmbariStompConnection(self.connection_url)
+      self.establish_connection(conn)
+      logger.info('SSL connection established. Two-way SSL authentication is '
+                  'turned off on the server.')
+      return conn
     else:
       self.certMan = CertificateManager(self.config, self.host)
       self.certMan.initSecurity()
@@ -79,8 +83,21 @@ class VerifiedHTTPSConnection:
 
       conn = AmbariStompConnection(self.connection_url, ssl_options=ssl_options)
 
-    self.establish_connection(conn)
-    return conn
+      try:
+        self.establish_connection(conn)
+        logger.info('SSL connection established. Two-way SSL authentication '
+                    'completed successfully.')
+      except ambari_stomp.exception.ConnectFailedException as err:
+        logger.error('Two-way SSL authentication failed. Ensure that '
+                     'server and agent certificates were signed by the same CA '
+                     'and restart the agent. '
+                     '\nIn order to receive a new agent certificate, remove '
+                     'existing certificate file from keys directory. As a '
+                     'workaround you can turn off two-way SSL authentication in '
+                     'server configuration(ambari.properties) '
+                     '\nExiting..')
+        raise err
+      return conn
 
   def establish_connection(self, conn):
     """
