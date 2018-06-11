@@ -44,6 +44,7 @@
     <analyzer>
       <tokenizer class="solr.KeywordTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.LengthFilterFactory" min="0" max="2500"/>
     </analyzer>
   </fieldType>
   <fieldType name="n_gram" class="solr.TextField" omitNorms="true" sortMissingLast="true">
