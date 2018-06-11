@@ -1135,13 +1135,13 @@ public class ViewRegistry {
 
         String configStackId = autoConfig.getStackId();
 
-        if (configStackId.equals("*")) {
-          // always return true when the auto-instance is configured to match
-          // against all stacks
-          return true;
-        }
-
         if (configStackId != null) {
+          if (configStackId.equals("*")) {
+            // always return true when the auto-instance is configured to match
+            // against all stacks
+            return true;
+          }
+
           StackId id = new StackId(configStackId);
 
           if (id.getStackName().equals(stackId.getStackName())) {
