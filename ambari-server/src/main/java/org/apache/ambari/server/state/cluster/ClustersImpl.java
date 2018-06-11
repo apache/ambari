@@ -43,7 +43,6 @@ import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
@@ -537,10 +536,6 @@ public class ClustersImpl implements Clusters {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a host to Clusters, hostname={}", hostname);
     }
-
-    // publish the event
-    HostRegisteredEvent event = new HostRegisteredEvent(hostname);
-    eventPublisher.publish(event);
   }
 
   @Override

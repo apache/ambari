@@ -239,6 +239,26 @@ public interface AmbariManagementController {
       throws AmbariException, AuthorizationException;
 
   /**
+   * Update the cluster identified by the given request object with the
+   * values carried by the given request object.
+   *
+   *
+   * @param requests          request objects which define which cluster to
+   *                          update and the values to set
+   * @param requestProperties request specific properties independent of resource
+   *
+   * @param fireAgentUpdates  should agent updates (configurations, metadata etc.) be fired inside
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
+   */
+  RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
+                                              Map<String, String> requestProperties, boolean fireAgentUpdates)
+      throws AmbariException, AuthorizationException;
+
+  /**
    * Updates the groups specified.
    *
    * @param requests the groups to modify

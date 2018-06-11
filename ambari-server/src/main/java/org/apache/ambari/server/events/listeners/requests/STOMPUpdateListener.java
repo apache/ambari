@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.events.listeners.requests;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
@@ -30,21 +32,24 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
 
 public class STOMPUpdateListener {
-  private final AgentSessionManager agentSessionManager;
 
   @Autowired
   private DefaultMessageEmitter defaultMessageEmitter;
 
-  public STOMPUpdateListener(Injector injector) {
+  private final Set<STOMPEvent.Type> typesToProcess;
+
+  public STOMPUpdateListener(Injector injector, Set<STOMPEvent.Type> typesToProcess) {
     STOMPUpdatePublisher STOMPUpdatePublisher =
       injector.getInstance(STOMPUpdatePublisher.class);
-    agentSessionManager = injector.getInstance(AgentSessionManager.class);
     STOMPUpdatePublisher.register(this);
+    this.typesToProcess = typesToProcess == null ? Collections.emptySet() : typesToProcess;
   }
 
   @Subscribe
   @AllowConcurrentEvents
-  public void onUpdateEvent(STOMPEvent event) throws AmbariException {
-    defaultMessageEmitter.emitMessage(event);
+  public void onUpdateEvent(STOMPEvent event) throws AmbariException, InterruptedException {
+    if (typesToProcess.contains(event.getType())) {
+      defaultMessageEmitter.emitMessage(event);
+    }
   }
 }
