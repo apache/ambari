@@ -26,7 +26,7 @@ import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.stomp.AmbariSubscriptionRegistry;
 import org.apache.ambari.server.api.AmbariSendToMethodReturnValueHandler;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
-import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +63,14 @@ public class RootStompConfig {
   }
 
   @Bean
-  public STOMPUpdateListener requestSTOMPListener(Injector injector) {
-    return new STOMPUpdateListener(injector);
-  }
-
-  @Bean
-  public DefaultMessageEmitter defaultMessageSender(Injector injector) {
-    return new DefaultMessageEmitter(injector.getInstance(AgentSessionManager.class), brokerTemplate);
+  public DefaultMessageEmitter defaultMessageEmitter(Injector injector) {
+    org.apache.ambari.server.configuration.Configuration configuration =
+        injector.getInstance(org.apache.ambari.server.configuration.Configuration.class);
+    return new DefaultMessageEmitter(injector.getInstance(AgentSessionManager.class),
+        brokerTemplate,
+        injector.getInstance(AmbariEventPublisher.class),
+        configuration.getExecutionCommandsRetryCount(),
+        configuration.getExecutionCommandsRetryInterval());
   }
 
   @Bean

@@ -15,37 +15,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.events;
+package org.apache.ambari.server.agent.stomp.dto;
 
-/**
- * The {@link HostRegisteredEvent} class is fired when a host registered with
- * the server.
- */
-public class HostRegisteredEvent extends HostEvent {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-  private Long hostId;
-  /**
-   * Constructor.
-   *
-   * @param hostName
-   */
-  public HostRegisteredEvent(String hostName, Long hostId) {
-    super(AmbariEventType.HOST_REGISTERED, hostName);
-    this.hostId = hostId;
+public class AckReport {
+
+  @JsonProperty("status")
+  private AckStatus status;
+
+  @JsonProperty("reason")
+  private String reason;
+
+  @JsonProperty("messageId")
+  private Long messageId;
+
+  public AckReport() {
   }
 
-  public Long getHostId() {
-    return hostId;
+  public AckStatus getStatus() {
+    return status;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    StringBuilder buffer = new StringBuilder("HostRegistered{ ");
-    buffer.append("hostName=").append(m_hostName);
-    buffer.append("}");
-    return buffer.toString();
+  public void setStatus(AckStatus status) {
+    this.status = status;
+  }
+
+  public String getReason() {
+    return reason;
+  }
+
+  public void setReason(String reason) {
+    this.reason = reason;
+  }
+
+  public Long getMessageId() {
+    return messageId;
+  }
+
+  public void setMessageId(Long messageId) {
+    this.messageId = messageId;
+  }
+
+  public enum AckStatus {
+    OK,
+    ERROR
   }
 }

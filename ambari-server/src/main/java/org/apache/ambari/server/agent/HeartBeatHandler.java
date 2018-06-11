@@ -30,6 +30,8 @@ import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.AgentActionEvent;
+import org.apache.ambari.server.events.HostRegisteredEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
@@ -94,6 +96,9 @@ public class HeartBeatHandler {
 
   @Inject
   private AgentSessionManager agentSessionManager;
+
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
 
   @Inject
   private AlertHelper alertHelper;
@@ -346,6 +351,10 @@ public class HeartBeatHandler {
         null != register.getPublicHostname() ? register.getPublicHostname() : hostname,
         new AgentVersion(register.getAgentVersion()), now, register.getHardwareProfile(),
         register.getAgentEnv(), register.getAgentStartTime()));
+
+    // publish the event
+    HostRegisteredEvent event = new HostRegisteredEvent(hostname, hostObject.getHostId());
+    ambariEventPublisher.publish(event);
 
     RegistrationResponse response = new RegistrationResponse();
 
