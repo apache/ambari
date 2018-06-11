@@ -317,7 +317,9 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
     var urlParams = [];
 
     this.get('wizardController.serviceToConfigSiteMap')[componentName].forEach(function(site){
-      urlParams.push('(type=' + site + '&tag=' + data.Clusters.desired_configs[site].tag + ')');
+      if (data.Clusters.desired_configs[site]) {
+        urlParams.push('(type=' + site + '&tag=' + data.Clusters.desired_configs[site].tag + ')');
+      }
     });
 
     // specific cases for certain components
