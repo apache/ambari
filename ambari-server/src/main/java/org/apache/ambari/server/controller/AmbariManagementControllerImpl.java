@@ -1397,7 +1397,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // filter on component name if provided
       Set<ServiceComponent> components = new HashSet<>();
       if (request.getComponentName() != null) {
-        components.add(s.getServiceComponent(request.getComponentName()));
+        if (s.getServiceComponents().keySet().contains(request.getComponentName())) {
+          components.add(s.getServiceComponent(request.getComponentName()));
+        }
       } else {
         components.addAll(s.getServiceComponents().values());
       }
@@ -3732,6 +3734,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         request.setServiceName(s.getName());
         request.setComponentName(hostComponentStateEntity.getComponentName());
         request.setComponentType(hostComponentStateEntity.getComponentType());
+      } else {
+        s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       }
 
       LOG.info("Received a hostComponent DELETE request"

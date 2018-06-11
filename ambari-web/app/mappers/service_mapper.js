@@ -32,7 +32,12 @@ App.serviceMapper = App.QuickDataMapper.create({
     console.time("App.serviceMapper execution time");
     var self = this;
     var passiveStateMap = this.get('passiveStateMap');
-    json.items.forEach(function (service) {
+    var services = [];
+    json.items.forEach(function (item) {
+      services = services.concat(item.services);
+    });
+
+    services.forEach(function (service) {
       if(!service.ServiceInfo.service_name.includes('CLIENT')) {
         var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
         if (cachedService) {

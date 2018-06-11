@@ -121,6 +121,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.niceMock;
@@ -183,16 +184,20 @@ import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -200,6 +205,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -211,8 +217,10 @@ import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.StackFactory;
 import org.apache.commons.io.IOUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -577,6 +585,13 @@ public class UpgradeCatalog270Test {
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+        bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+        bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+        bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+        bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
 
         install(new FactoryModuleBuilder().implement(
             Host.class, HostImpl.class).build(HostFactory.class));
@@ -1131,7 +1146,7 @@ public class UpgradeCatalog270Test {
         .addMockedMethod("createConfig")
         .createMock();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class), 1L)).andReturn(newConfig).once();
+    expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class), isNull())).andReturn(newConfig).once();
     final ClusterMetadataGenerator metadataGenerator = createMock(ClusterMetadataGenerator.class);
     expect(metadataGenerator.getClusterMetadataOnConfigsUpdate(eq(cluster1))).andReturn(createNiceMock(MetadataUpdateEvent.class)).once();
 
@@ -1139,6 +1154,7 @@ public class UpgradeCatalog270Test {
     Injector injector = createNiceMock(Injector.class);
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(injector.getInstance(MetadataHolder.class)).andReturn(createNiceMock(MetadataHolder.class)).anyTimes();
+    expect(injector.getInstance(ClusterMetadataGenerator.class)).andReturn(metadataGenerator).anyTimes();
     expect(injector.getInstance(AgentConfigsHolder.class)).andReturn(createNiceMock(AgentConfigsHolder.class)).anyTimes();
     expect(injector.getInstance(AmbariServer.class)).andReturn(createNiceMock(AmbariServer.class)).anyTimes();
     KerberosHelper kerberosHelperMock = createNiceMock(KerberosHelper.class);

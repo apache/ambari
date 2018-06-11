@@ -50,11 +50,16 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
@@ -85,7 +90,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(AmbariServer.class)
+@PrepareForTest({ AmbariContext.class, AmbariServer.class })
 public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
   private static final String CLUSTER_NAME = "test-cluster";
   private static final long CLUSTER_ID = 1;
@@ -165,6 +170,10 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
   private ConfigureClusterTaskFactory configureClusterTaskFactory;
   @Mock(type = MockType.NICE)
   private ConfigureClusterTask configureClusterTask;
+  @Mock(type = MockType.NICE)
+  private ArtifactResourceProvider artifactResourceProvider;
+  @Mock(type = MockType.NICE)
+  private MpackResourceProvider mpackResourceProvider;
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
@@ -311,11 +320,12 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-    expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
+    expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getProvisionAction()).andReturn(ProvisionAction.START_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(request.getAllMpacks()).andReturn(ImmutableSet.of()).anyTimes();
 
     expect(componentResolver.resolveComponents(anyObject())).andReturn(ImmutableMap.of(
       "group1", ImmutableSet.of(
@@ -354,6 +364,15 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
     PowerMock.replay(AmbariServer.class);
+    PowerMock.mockStatic(AmbariContext.class);
+    expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
+    PowerMock.replay(AmbariContext.class);
+    expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
+    expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(artifactResourceProvider).anyTimes();
+    RequestStatus completedStatus = createNiceMock(RequestStatus.class);
+    expect(completedStatus.getStatus()).andReturn(RequestStatus.Status.Complete).anyTimes();
+    expect(artifactResourceProvider.createResources(anyObject())).andReturn(completedStatus).anyTimes();
+    expect(managementController.getAmbariEventPublisher()).andReturn(createNiceMock(AmbariEventPublisher.class)).anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
@@ -382,10 +401,12 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
       anyString(), eq(AmbariContext.TaskType.INSTALL), anyBoolean())).andReturn(hostRoleCommandInstallComponent4).times(2);
 
     expect(hostRoleCommandInstallComponent3.getTaskId()).andReturn(1L).atLeastOnce();
+    expect(hostRoleCommandInstallComponent3.getRole()).andReturn(Role.valueOf("component3")).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     expect(hostRoleCommandInstallComponent4.getTaskId()).andReturn(2L).atLeastOnce();
+    expect(hostRoleCommandInstallComponent4.getRole()).andReturn(Role.valueOf("component4")).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
