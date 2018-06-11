@@ -26,19 +26,28 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ConfigNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.ServiceComponentSupport;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.commons.collections.CollectionUtils;
+
+import com.google.inject.Inject;
 
 /**
  * Changes oozie-env (adds -Dhdp.version to $HADOOP_OPTS variable)
  * and oozie-site (removes oozie.service.ELService.ext.functions.*) during upgrade
  */
 public class OozieConfigCalculation extends AbstractUpgradeServerAction {
+
+  private static final String FALCON_SERVICE_NAME = "FALCON";
+  @Inject
+  private ServiceComponentSupport serviceComponentSupport;
+
   private static final String OOZIE_ENV_TARGET_CONFIG_TYPE = "oozie-env";
   private static final String OOZIE_SITE_TARGET_CONFIG_TYPE = "oozie-site";
   private static final String ELSERVICE_PROPERTIES_NAME_PREFIX = "oozie.service.ELService.ext.functions.";
@@ -60,11 +69,17 @@ public class OozieConfigCalculation extends AbstractUpgradeServerAction {
           String.format("Source type %s not found", OOZIE_ENV_TARGET_CONFIG_TYPE), "");
     }
 
-    try {
-      changeOozieSize(cluster, stdOutBuilder);
-    } catch (ConfigNotFoundException e) {
-      return  createCommandReport(0, HostRoleStatus.FAILED,"{}",
-          String.format("Source type %s not found", OOZIE_SITE_TARGET_CONFIG_TYPE), "");
+    UpgradeContext upgradeContext = getUpgradeContext(cluster);
+    StackId targetStackId = upgradeContext.getTargetStack();
+
+
+    if (!serviceComponentSupport.isServiceSupported(FALCON_SERVICE_NAME, targetStackId.getStackName(), targetStackId.getStackVersion())) {
+      try {
+        removeFalconPropertiesFromOozieSize(cluster, stdOutBuilder);
+      } catch (AmbariException e) {
+        return createCommandReport(0, HostRoleStatus.FAILED, "{}",
+            String.format("Source type %s not found", OOZIE_SITE_TARGET_CONFIG_TYPE), "");
+      }
     }
 
     if (oozie_env_updated || oozie_site_updated) {
@@ -78,11 +93,11 @@ public class OozieConfigCalculation extends AbstractUpgradeServerAction {
   /**
    * Changes oozie-site (removes oozie.service.ELService.ext.functions.*)
    */
-  private void changeOozieSize(Cluster cluster, StringBuilder stringBuilder) throws ConfigNotFoundException {
+  private void removeFalconPropertiesFromOozieSize(Cluster cluster, StringBuilder stringBuilder) throws AmbariException {
     Config config = cluster.getDesiredConfigByType(OOZIE_SITE_TARGET_CONFIG_TYPE);
 
     if (config == null) {
-      throw new ConfigNotFoundException(cluster.getClusterName(), OOZIE_SITE_TARGET_CONFIG_TYPE);
+      throw new AmbariException(String.format("Target config not found %s", OOZIE_SITE_TARGET_CONFIG_TYPE));
     }
 
     Map<String, String> properties = config.getProperties();
@@ -107,12 +122,12 @@ public class OozieConfigCalculation extends AbstractUpgradeServerAction {
   /**
    * Changes oozie-env (adds -Dhdp.version to $HADOOP_OPTS variable)
    */
-  private void changeOozieEnv(Cluster cluster, StringBuilder stringBuilder) throws Exception {
+  private void changeOozieEnv(Cluster cluster, StringBuilder stringBuilder) throws AmbariException {
 
     Config config = cluster.getDesiredConfigByType(OOZIE_ENV_TARGET_CONFIG_TYPE);
 
     if (config == null) {
-      throw new ConfigNotFoundException(cluster.getClusterName(), OOZIE_ENV_TARGET_CONFIG_TYPE);
+      throw new AmbariException(String.format("Target config not found %s", OOZIE_ENV_TARGET_CONFIG_TYPE));
     }
 
     Map<String, String> properties = config.getProperties();

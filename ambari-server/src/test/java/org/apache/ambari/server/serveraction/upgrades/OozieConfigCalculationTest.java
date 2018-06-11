@@ -40,10 +40,14 @@ import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ServiceComponentSupport;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.powermock.api.easymock.PowerMock;
 
 import com.google.inject.Injector;
 
@@ -58,14 +62,29 @@ public class OozieConfigCalculationTest {
   private Clusters m_clusters;
   private AgentConfigsHolder agentConfigsHolder;
   private Field m_clusterField;
+  private Field m_componentSupportField;
   private Field agentConfigsHolderField;
+  private OozieConfigCalculation m_action;
+  private final UpgradeContext m_mockUpgradeContext = EasyMock.createNiceMock(UpgradeContext.class);
+  private ServiceComponentSupport componentSupport;
 
   @Before
   public void setup() throws Exception {
+
     m_injector = EasyMock.createMock(Injector.class);
+    componentSupport = EasyMock.createMock(ServiceComponentSupport.class);
     m_clusters = EasyMock.createMock(Clusters.class);
     agentConfigsHolder = createMock(AgentConfigsHolder.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
+
+    m_action = PowerMock.createNicePartialMock(OozieConfigCalculation.class, "getUpgradeContext");
+
+    expect(m_action.getUpgradeContext(cluster)).andReturn(m_mockUpgradeContext).once();
+    StackId stackId = new StackId("HDP", "3.0.0");
+    expect(m_mockUpgradeContext.getTargetStack()).andReturn(stackId).once();
+
+    expect(componentSupport.isServiceSupported("FALCON", stackId.getStackName(), stackId.getStackVersion()))
+        .andReturn(false).once();
 
     Map<String, String> siteMockProperties = new HashMap<String, String>() {{
       put("oozie.service.ELService.ext.functions.coord-action-create", "some value");
@@ -105,10 +124,16 @@ public class OozieConfigCalculationTest {
 
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
 
-    replay(m_injector, m_clusters, cluster, oozieEnv, oozie_site, agentConfigsHolder);
+    expect(m_injector.getInstance(ServiceComponentSupport.class)).andReturn(componentSupport).atLeastOnce();
+
+    replay(componentSupport, m_mockUpgradeContext, m_action, m_injector, m_clusters, cluster, oozieEnv, oozie_site, agentConfigsHolder);
 
     m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
+
+    m_componentSupportField = OozieConfigCalculation.class.getDeclaredField("serviceComponentSupport");
+    m_componentSupportField.setAccessible(true);
+
     agentConfigsHolderField = AbstractUpgradeServerAction.class.getDeclaredField("agentConfigsHolder");
     agentConfigsHolderField.setAccessible(true);
   }
@@ -128,15 +153,14 @@ public class OozieConfigCalculationTest {
     expect(hrc.getExecutionCommandWrapper()).andReturn(new ExecutionCommandWrapper(executionCommand)).anyTimes();
     replay(hrc);
 
-    OozieConfigCalculation action = new OozieConfigCalculation();
+    m_clusterField.set(m_action, m_clusters);
+    m_componentSupportField.set(m_action, componentSupport);
+    agentConfigsHolderField.set(m_action, agentConfigsHolder);
 
-    m_clusterField.set(action, m_clusters);
-    agentConfigsHolderField.set(action, agentConfigsHolder);
+    m_action.setExecutionCommand(executionCommand);
+    m_action.setHostRoleCommand(hrc);
 
-    action.setExecutionCommand(executionCommand);
-    action.setHostRoleCommand(hrc);
-
-    CommandReport report = action.execute(null);
+    CommandReport report = m_action.execute(null);
     assertNotNull(report);
 
     Cluster c = m_clusters.getCluster("c1");
