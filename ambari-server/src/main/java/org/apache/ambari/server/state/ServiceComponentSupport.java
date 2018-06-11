@@ -56,7 +56,10 @@ public class ServiceComponentSupport {
       .collect(toSet());
   }
 
-  private boolean isServiceSupported(String serviceName, String stackName, String stackVersion) {
+  /**
+   * Checks if the service is supported by the stack using metainfo
+   */
+  public boolean isServiceSupported(String serviceName, String stackName, String stackVersion) {
     try {
       ServiceInfo service = metaInfo.get().getServices(stackName, stackVersion).get(serviceName);
       return service != null && !service.isDeleted();
