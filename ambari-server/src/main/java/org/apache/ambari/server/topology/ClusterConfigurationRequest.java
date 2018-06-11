@@ -342,6 +342,9 @@ public class ClusterConfigurationRequest {
    * @param tag              config tag
    */
   public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes) {
+    // TODO: This version works with Ambari 3.0 where it is assumed that any service with a configuration can be identified
+    //   by its name. Even though the cluster is multi-stack (multi-mpack), service names should not conflict across mpacks,
+    //   except client services which have no configuration. In 3.1, mpack may have conflicting service names
     //todo: also handle setting of host group scoped configuration which is updated by config processor
     List<Pair<String, ClusterRequest>> serviceNamesAndConfigurationRequests = new ArrayList<>();
 
@@ -350,7 +353,7 @@ public class ClusterConfigurationRequest {
     final Set<String> clusterConfigTypes = clusterConfiguration.getFullProperties().keySet();
     final Set<String> globalConfigTypes = ImmutableSet.of("cluster-env");
 
-    // TODO: do we need to handle security type? In the previous version it was handled but in a broken (ineffective) way
+    // TODO: do we need to handle security type? In the previous version it was handled but in a broken way
     for (ServiceResponse service : ambariContext.getServices(clusterTopology.getClusterName())) {
       ClusterRequest clusterRequest =
         new ClusterRequest(clusterTopology.getClusterId(), clusterTopology.getClusterName(), null, null, null, null);
