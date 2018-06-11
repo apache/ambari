@@ -487,8 +487,6 @@ if __name__=="__main__":
     set_log_level(options.verbose)
     errors = validate_inputs(options)
 
-    os.popen('PYTHONHTTPSVERIFY=0')
-
     if errors:
       print 'Errors'
       for error in errors:
