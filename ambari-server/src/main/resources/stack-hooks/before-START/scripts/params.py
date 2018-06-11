@@ -195,6 +195,7 @@ if has_namenode or dfs_type == 'HCFS':
   task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
+hdfs_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hbase_tmp_dir = "/tmp/hbase-hbase"
 #db params

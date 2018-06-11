@@ -51,6 +51,11 @@ def setup_hadoop():
               group='root',
               cd_access='a',
       )
+      Directory(params.hdfs_pid_dir,
+              owner=params.hdfs_user,
+              cd_access='a',
+      )
+
     Directory(params.hadoop_tmp_dir,
               create_parents = True,
               owner=params.hdfs_user,
