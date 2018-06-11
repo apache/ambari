@@ -604,7 +604,8 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  void initPoliciesAndTTL() {
+  boolean initPoliciesAndTTL() {
+    boolean modifyAnyTable = false;
     Admin hBaseAdmin = null;
     try {
       hBaseAdmin = dataSource.getHBaseAdmin();
@@ -622,11 +623,11 @@ public class PhoenixHBaseAccessor {
         tableNames = (TableName[]) ArrayUtils.addAll(tableNames, containerMetricsTableName);
       } catch (IOException e) {
         LOG.warn("Unable to get table names from HBaseAdmin for setting policies.", e);
-        return;
+        return false;
       }
       if (tableNames == null || tableNames.length == 0) {
         LOG.warn("Unable to get table names from HBaseAdmin for setting policies.");
-        return;
+        return false;
       }
       for (String tableName : PHOENIX_TABLES) {
         try {
@@ -657,12 +658,12 @@ public class PhoenixHBaseAccessor {
           }
 
           //Set durability preferences
-          boolean durabilitySettingsModified = setDurabilityForTable(tableName, tableDescriptorBuilder);
+          boolean durabilitySettingsModified = setDurabilityForTable(tableName, tableDescriptorBuilder, tableDescriptor);
           modifyTable = modifyTable || durabilitySettingsModified;
 
           //Set compaction policy preferences
           boolean compactionPolicyModified = false;
-          compactionPolicyModified = setCompactionPolicyForTable(tableName, tableDescriptorBuilder);
+          compactionPolicyModified = setCompactionPolicyForTable(tableName, tableDescriptorBuilder, tableDescriptor);
           modifyTable = modifyTable || compactionPolicyModified;
 
           // Change TTL setting to match user configuration
@@ -680,13 +681,14 @@ public class PhoenixHBaseAccessor {
                   tableTTL.get(tableName) + " seconds.");
 
                 hBaseAdmin.modifyColumnFamily(tableNameOptional.get(), familyDescriptorBuilder.build());
-                // modifyTable = true;
+                modifyTable = true;
               }
             }
           }
 
           // Persist only if anything changed
           if (modifyTable) {
+            modifyAnyTable = modifyTable;
             hBaseAdmin.modifyTable(tableNameOptional.get(), tableDescriptorBuilder.build());
           }
 
@@ -700,21 +702,27 @@ public class PhoenixHBaseAccessor {
         LOG.warn("Exception on HBaseAdmin close.", e);
       }
     }
+    return modifyAnyTable;
   }
 
-  private boolean setDurabilityForTable(String tableName, TableDescriptorBuilder tableDescriptor) {
+  private boolean setDurabilityForTable(String tableName, TableDescriptorBuilder tableDescriptorBuilder, TableDescriptor tableDescriptor) {
     String tableDurability = metricsConf.get("timeline.metrics." + tableName + ".durability", "");
+
+    if (StringUtils.isEmpty(tableDurability) || tableDescriptor.getDurability().toString().equals(tableDurability)) {
+      return false;
+    }
+
     if (StringUtils.isNotEmpty(tableDurability)) {
       LOG.info("Setting WAL option " + tableDurability + " for table : " + tableName);
       boolean validDurability = true;
       if ("SKIP_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.SKIP_WAL);
+        tableDescriptorBuilder.setDurability(Durability.SKIP_WAL);
       } else if ("SYNC_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.SYNC_WAL);
+        tableDescriptorBuilder.setDurability(Durability.SYNC_WAL);
       } else if ("ASYNC_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.ASYNC_WAL);
+        tableDescriptorBuilder.setDurability(Durability.ASYNC_WAL);
       } else if ("FSYNC_WAL".equals(tableDurability)) {
-        tableDescriptor.setDurability(Durability.FSYNC_WAL);
+        tableDescriptorBuilder.setDurability(Durability.FSYNC_WAL);
       } else {
         LOG.info("Unknown value for durability : " + tableDurability);
         validDurability = false;
@@ -725,7 +733,9 @@ public class PhoenixHBaseAccessor {
   }
 
 
-  private boolean setCompactionPolicyForTable(String tableName, TableDescriptorBuilder tableDescriptorBuilder) {
+  private boolean setCompactionPolicyForTable(String tableName,
+                                              TableDescriptorBuilder tableDescriptorBuilder,
+                                              TableDescriptor tableDescriptor) {
 
     boolean modifyTable = false;
 
@@ -743,13 +753,11 @@ public class PhoenixHBaseAccessor {
       blockingStoreFiles = hbaseConf.getInt(storeFilesConfig, 1000);
     }
 
-    if (StringUtils.isEmpty(compactionPolicyKey) || StringUtils.isEmpty(compactionPolicyClass)) {
-      // Default blockingStoreFiles = 300
-      modifyTable = setHbaseBlockingStoreFiles(tableDescriptorBuilder, tableName, 300);
-    } else {
+    if (!compactionPolicyClass.equals(tableDescriptor.getValue(compactionPolicyKey))) {
       tableDescriptorBuilder.setValue(compactionPolicyKey, compactionPolicyClass);
-      setHbaseBlockingStoreFiles(tableDescriptorBuilder, tableName, blockingStoreFiles);
+      setHbaseBlockingStoreFiles(tableDescriptorBuilder, tableDescriptor, tableName, blockingStoreFiles);
       modifyTable = true;
+      LOG.info("Setting compaction policy for " + tableName + ", " + compactionPolicyKey + "=" + compactionPolicyClass);
     }
 
     if (!compactionPolicyKey.equals(HSTORE_ENGINE_CLASS)) {
@@ -762,11 +770,15 @@ public class PhoenixHBaseAccessor {
     return modifyTable;
   }
 
-  private boolean setHbaseBlockingStoreFiles(TableDescriptorBuilder tableDescriptor, String tableName, int value) {
-    tableDescriptor.setValue(BLOCKING_STORE_FILES_KEY, String.valueOf(value));
-    LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
-      " = " + value + " for " + tableName);
-    return true;
+  private boolean setHbaseBlockingStoreFiles(TableDescriptorBuilder tableDescriptorBuilder,
+                                             TableDescriptor tableDescriptor, String tableName, int value) {
+    if (!String.valueOf(value).equals(tableDescriptor.getValue(BLOCKING_STORE_FILES_KEY))) {
+      tableDescriptorBuilder.setValue(BLOCKING_STORE_FILES_KEY, String.valueOf(value));
+      LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
+        " = " + value + " for " + tableName);
+      return true;
+    }
+    return false;
   }
 
 
@@ -775,7 +787,7 @@ public class PhoenixHBaseAccessor {
                                                                List<byte[]> splitPoints) throws SQLException {
 
     String createTableWithSplitPointsSql = sql + getSplitPointsStr(splitPoints.size());
-    LOG.info(createTableWithSplitPointsSql);
+    LOG.debug(createTableWithSplitPointsSql);
     PreparedStatement statement = connection.prepareStatement(createTableWithSplitPointsSql);
     for (int i = 1; i <= splitPoints.size(); i++) {
       statement.setBytes(i, splitPoints.get(i - 1));
@@ -1042,6 +1054,11 @@ public class PhoenixHBaseAccessor {
     byte[] uuid = rs.getBytes("UUID");
     String metricName = metadataManagerInstance.getMetricNameFromUuid(uuid);
     Collection<List<Function>> functionList = findMetricFunctions(metricFunctions, metricName);
+
+    if (CollectionUtils.isEmpty(functionList)) {
+      LOG.warn("No metric name or pattern in GET query matched the metric name from the metric store : " + metricName);
+      return;
+    }
 
     for (List<Function> functions : functionList) {
       // Apply aggregation function if present

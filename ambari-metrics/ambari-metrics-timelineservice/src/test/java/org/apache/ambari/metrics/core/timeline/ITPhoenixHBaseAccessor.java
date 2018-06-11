@@ -18,6 +18,7 @@
 package org.apache.ambari.metrics.core.timeline;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.DATE_TIERED_COMPACTION_POLICY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.FIFO_COMPACTION_POLICY_CLASS;
@@ -362,16 +363,11 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   @Test
   public void testInitPoliciesAndTTL() throws Exception {
     Admin hBaseAdmin = hdb.getHBaseAdmin();
-    int precisionTtl = 2 * 86400;
+    int expectedPrecisionTtl = 2 * 86400;
+    int precisionTtl = 0;
 
-    Field f = PhoenixHBaseAccessor.class.getDeclaredField("tableTTL");
-    f.setAccessible(true);
-    Map<String, Integer> precisionValues = (Map<String, Integer>) f.get(hdb);
-    precisionValues.put(METRICS_RECORD_TABLE_NAME, precisionTtl);
-    f.set(hdb, precisionValues);
-
-    hdb.initPoliciesAndTTL();
-
+    boolean modifyTables = hdb.initPoliciesAndTTL();
+    Assert.assertTrue(modifyTables);
     // Verify expected policies are set
     boolean normalizerEnabled = false;
     String precisionTableCompactionPolicy = null;
@@ -423,10 +419,32 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     Assert.assertTrue("METRIC_RECORD_UUID Durability Set.", precisionTableDurabilitySet);
     Assert.assertTrue("METRIC_AGGREGATE_UUID Durability Set.", aggregateTableDurabilitySet);
     Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD_UUID.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
-    Assert.assertEquals("FIFO compaction policy is set for aggregate tables", DATE_TIERED_COMPACTION_POLICY, aggregateTableCompactionPolicy);
-    Assert.assertEquals("Precision TTL value as expected.", 86400, precisionTtl);
+    Assert.assertEquals("Date Tiered compaction policy is set for aggregate tables", DATE_TIERED_COMPACTION_POLICY, aggregateTableCompactionPolicy);
+    Assert.assertEquals("Precision TTL value as expected.", expectedPrecisionTtl, precisionTtl);
 
     hBaseAdmin.close();
+
+    //Try one more time. This time, modifyTable should be 'false'
+    assertFalse(hdb.initPoliciesAndTTL());
+
+    //Change precision durability to
+    Field f = PhoenixHBaseAccessor.class.getDeclaredField("metricsConf");
+    f.setAccessible(true);
+    Configuration newMetricsConf = (Configuration) f.get(hdb);
+    newMetricsConf.set("timeline.metrics." + METRICS_RECORD_TABLE_NAME + ".durability", "ASYNC_WAL");
+    f.set(hdb, newMetricsConf);
+
+    boolean modifyTable = hdb.initPoliciesAndTTL();
+    Assert.assertTrue(modifyTable);
+    TableName[] tableNames = hBaseAdmin.listTableNames(PHOENIX_TABLES_REGEX_PATTERN, false);
+
+    Optional<TableName> tableNameOptional = Arrays.stream(tableNames)
+      .filter(t -> METRICS_RECORD_TABLE_NAME.equals(t.getNameAsString())).findFirst();
+    TableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableNameOptional.get());
+    Assert.assertEquals(tableDescriptor.getDurability().toString(),"ASYNC_WAL");
+
+    //Try one more time. This time, modifyTable should be 'false'
+    assertFalse(hdb.initPoliciesAndTTL());
   }
 
   private Multimap<String, List<Function>> singletonValueFunctionMap(String metricName) {

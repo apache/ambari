@@ -451,29 +451,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
    * @return
    */
   protected String getDownsampledMetricSkipClause() {
-
-    //TODO Fix downsampling for UUID change.
     return StringUtils.EMPTY;
-
-//    if (CollectionUtils.isEmpty(this.downsampleMetricPatterns)) {
-//      return StringUtils.EMPTY;
-//    }
-//
-//    StringBuilder sb = new StringBuilder();
-//
-//    for (int i = 0; i < downsampleMetricPatterns.size(); i++) {
-//      sb.append(" METRIC_NAME");
-//      sb.append(" NOT");
-//      sb.append(" LIKE ");
-//      sb.append("'" + downsampleMetricPatterns.get(i) + "'");
-//
-//      if (i < downsampleMetricPatterns.size() - 1) {
-//        sb.append(" AND ");
-//      }
-//    }
-//
-//    sb.append(" AND ");
-//    return sb.toString();
   }
 
   /**

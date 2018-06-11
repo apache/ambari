@@ -310,7 +310,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
         Function function = new Function(readFunction, null);
         conditionBuilder.topNFunction(function);
       } else {
-        LOG.info("Invalid Input for TopN query. Ignoring TopN Request.");
+        LOG.debug("Invalid Input for TopN query. Ignoring TopN Request.");
       }
     }
   }

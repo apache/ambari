@@ -84,6 +84,29 @@ public class TimelineMetricsFilterTest {
   }
 
   @Test
+  public void testMetricBlacklisting() throws Exception {
+
+    Configuration metricsConf = new Configuration();
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+    replay(configuration);
+
+    URL fileUrl = ClassLoader.getSystemResource("test_data/metric_blacklist.dat");
+
+    metricsConf.set("timeline.metrics.blacklist.file", fileUrl.getPath());
+    TimelineMetricsFilter.initializeMetricFilter(configuration);
+
+    TimelineMetric timelineMetric = new TimelineMetric();
+
+    timelineMetric.setMetricName("cpu_system");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("cpu_idle");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+  }
+
+
+  @Test
   public void testTogether() throws Exception {
 
     Configuration metricsConf = new Configuration();
@@ -160,6 +183,8 @@ public class TimelineMetricsFilterTest {
     metricsConf.set("timeline.metrics.apps.whitelist", "namenode,nimbus");
     metricsConf.set("timeline.metrics.apps.blacklist", "datanode,kafka_broker");
     metricsConf.set("timeline.metrics.whitelist.file", getTestWhitelistFilePath());
+    URL fileUrl2 = ClassLoader.getSystemResource("test_data/metric_blacklist.dat");
+    metricsConf.set("timeline.metrics.blacklist.file", fileUrl2.getPath());
     expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
 
     Set<String> whitelist = new HashSet<>();
@@ -175,6 +200,16 @@ public class TimelineMetricsFilterTest {
     TimelineMetricsFilter.initializeMetricFilter(configuration);
 
     TimelineMetric timelineMetric = new TimelineMetric();
+
+
+    //Test Metric Blacklisting
+    timelineMetric.setMetricName("cpu_idle");
+    timelineMetric.setAppId("namenode");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("jvm.HeapMetrics.m1");
+    timelineMetric.setAppId("nimbus");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
 
     //Test App Whitelisting
     timelineMetric.setMetricName("metric.a.b.c");
