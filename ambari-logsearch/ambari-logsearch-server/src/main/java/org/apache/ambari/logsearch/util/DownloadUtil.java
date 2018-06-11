@@ -125,7 +125,7 @@ public class DownloadUtil {
     if (StringUtils.isBlank(excludeString)) {
       excludeString = "\"\"";
     } else {
-      List<String> exclude = Splitter.on(request.getIncludeMessage()).splitToList(LogSearchConstants.I_E_SEPRATOR);
+      List<String> exclude = Splitter.on(request.getExcludeMessage()).splitToList(LogSearchConstants.I_E_SEPRATOR);
       excludeString = "\"" + StringUtils.join(exclude, "\", \"") + "\"";
     }
     models.put("eString", excludeString);
