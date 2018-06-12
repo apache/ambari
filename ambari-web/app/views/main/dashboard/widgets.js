@@ -255,6 +255,25 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
         });
       });
     }
+    this.get('widgetGroups').forEach(group => {
+      const groupName = group.get('name');
+      group.get('allWidgets').forEach(widgetsSubGroup => {
+        const subGroupName = widgetsSubGroup.get('subGroupName'),
+          widgets = widgetsSubGroup.get('widgets'),
+          arrayFromSettings = newSettings.groups[groupName][subGroupName].visible,
+          isSubGroupForAll = subGroupName === '*',
+          orderedArray = isSubGroupForAll
+            ? arrayFromSettings.map(widget => `${widget.id}-${groupName}-${widget.subGroup}-*`)
+            : arrayFromSettings;
+        widgetsSubGroup.set('widgets', widgets.sort((widgetA, widgetB) => {
+          const idA = isSubGroupForAll ? widgetA.get('id') : parseInt(widgetA.get('id')),
+            idB = isSubGroupForAll ? widgetB.get('id') : parseInt(widgetB.get('id')),
+            indexA = orderedArray.indexOf(idA),
+            indexB = orderedArray.indexOf(idB);
+          return indexA > -1 && indexB > -1 ? indexA - indexB : 0;
+        }));
+      });
+    });
     this.set('userPreferences', newSettings);
     this.setDBProperty(this.get('persistKey'), newSettings);
     this.postUserPref(this.get('persistKey'), newSettings);
@@ -336,8 +355,9 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
           if (!existingEntry) {
             preferences.groups[widgetGroupName] = currentEntry;
           }
+        } else {
+          preferences[state].push(id);
         }
-        preferences[state].push(id);
       }
       preferences.threshold[id] = widget.threshold;
     });
