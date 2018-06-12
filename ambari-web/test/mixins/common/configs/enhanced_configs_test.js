@@ -525,7 +525,6 @@ describe('App.EnhancedConfigsMixin', function () {
       sinon.stub(mock, 'onComplete');
       sinon.stub(mixin, 'getConfigRecommendationsParams').returns({});
       sinon.stub(mixin, 'modifyRecommendationConfigGroups');
-      sinon.stub(mixin, 'addRecommendationRequestParams');
       sinon.stub(mixin, 'getRecommendationsRequest');
       sinon.stub(mixin, 'loadAdditionalSites');
     });
@@ -534,7 +533,6 @@ describe('App.EnhancedConfigsMixin', function () {
       mock.onComplete.restore();
       mixin.getConfigRecommendationsParams.restore();
       mixin.modifyRecommendationConfigGroups.restore();
-      mixin.addRecommendationRequestParams.restore();
       mixin.getRecommendationsRequest.restore();
       mixin.loadAdditionalSites.restore();
     });
@@ -566,33 +564,7 @@ describe('App.EnhancedConfigsMixin', function () {
       mixin.loadConfigRecommendations([{}], mock.onComplete);
       expect(mixin.getConfigRecommendationsParams.calledWith(true)).to.be.true;
       expect(mixin.modifyRecommendationConfigGroups.calledOnce).to.be.true;
-      expect(mixin.addRecommendationRequestParams.calledOnce).to.be.true;
       expect(mixin.getRecommendationsRequest.calledOnce).to.be.true;
-    });
-  });
-
-  describe("#addRecommendationRequestParams()", function () {
-
-    beforeEach(function() {
-      sinon.stub(blueprintUtils, 'buildConfigsJSON').returns([{}]);
-    });
-
-    afterEach(function() {
-      blueprintUtils.buildConfigsJSON.restore();
-    });
-
-    it("recommendations should be set", function () {
-      var dataToSend = {};
-      mixin.addRecommendationRequestParams({blueprint: {}}, dataToSend, []);
-      expect(dataToSend).to.be.eql({
-        "recommendations": {
-          "blueprint": {
-            "configurations": [
-              {}
-            ]
-          }
-        }
-      });
     });
   });
 
@@ -602,27 +574,23 @@ describe('App.EnhancedConfigsMixin', function () {
       sinon.stub(App.config, 'getConfigsByTypes').returns({
         done: function(callback) {callback([]);}
       });
-      sinon.stub(mixin, 'addRecommendationRequestParams');
       sinon.stub(mixin, 'getRecommendationsRequest');
+      sinon.stub(mixin, 'addRequestedConfigs');
       mixin.loadAdditionalSites([], [], {}, {}, Em.K);
     });
 
     afterEach(function() {
       App.config.getConfigsByTypes.restore();
-      mixin.addRecommendationRequestParams.restore();
       mixin.getRecommendationsRequest.restore();
+      mixin.addRequestedConfigs.restore();
     });
 
     it("App.config.getConfigsByTypes should be called", function() {
       expect(App.config.getConfigsByTypes.calledOnce).to.be.true;
     });
 
-    it("addRecommendationRequestParams should be called", function() {
-      expect(mixin.addRecommendationRequestParams.calledWith({}, {}, [])).to.be.true;
-    });
-
     it("getRecommendationsRequest should be called", function() {
-      expect(mixin.getRecommendationsRequest.calledWith({}, Em.K)).to.be.true;
+      expect(mixin.getRecommendationsRequest.calledOnce).to.be.true;
     });
   });
 
@@ -673,7 +641,6 @@ describe('App.EnhancedConfigsMixin', function () {
       expect(mixin.getConfigRecommendationsParams(true, [{}])).to.be.eql({
         recommend: 'configuration-dependencies',
         hosts: ['host1'],
-        services: ['S1'],
         changed_configurations: [{}]
       });
     });
@@ -684,7 +651,6 @@ describe('App.EnhancedConfigsMixin', function () {
       expect(mixin.getConfigRecommendationsParams(false, [{}])).to.be.eql({
         recommend: 'configurations',
         hosts: ['host1'],
-        services: ['S1'],
         changed_configurations: undefined
       });
     });
@@ -706,7 +672,7 @@ describe('App.EnhancedConfigsMixin', function () {
     it("App.ajax.send should be called", function() {
       mixin.getRecommendationsRequest({}, mock.callback);
       expect(mixin.get('recommendationsInProgress')).to.be.true;
-      var args = testHelpers.findAjaxRequest('name', 'config.recommendations');
+      var args = testHelpers.findAjaxRequest('name', 'mpack.advisor.recommendations');
       expect(args[0]).exists;
       args[0].callback();
       expect(mixin.get('recommendationsInProgress')).to.be.false;
@@ -847,7 +813,7 @@ describe('App.EnhancedConfigsMixin', function () {
   });
 
   describe("#loadRecommendationsSuccess()", function () {
-    var params = {dataToSend: {changed_configurations: []}};
+    var params = {data: {changed_configurations: []}};
 
     beforeEach(function() {
       sinon.stub(mixin, '_saveRecommendedValues');
@@ -962,7 +928,8 @@ describe('App.EnhancedConfigsMixin', function () {
           {
             recommendations: {
               blueprint: {
-                configurations: {}
+                configurations: {},
+                mpack_instances: []
               }
             }
           }
@@ -979,7 +946,8 @@ describe('App.EnhancedConfigsMixin', function () {
             recommendations: {
               'config-groups': [],
               blueprint: {
-                configurations: {}
+                configurations: {},
+                mpack_instances: []
               }
             }
           }
@@ -990,7 +958,8 @@ describe('App.EnhancedConfigsMixin', function () {
       expect(mixin.saveConfigGroupsRecommendations.calledWith({
         'config-groups': [],
         blueprint: {
-          configurations: {}
+          configurations: {},
+          mpack_instances: []
         }
       }, [])).to.be.true;
     });
@@ -1002,7 +971,8 @@ describe('App.EnhancedConfigsMixin', function () {
             recommendations: {
               'config-groups': [],
               blueprint: {
-                configurations: {}
+                configurations: {},
+                mpack_instances: []
               }
             }
           }
@@ -1022,7 +992,8 @@ describe('App.EnhancedConfigsMixin', function () {
             recommendations: {
               'config-groups': [],
               blueprint: {
-                configurations: {}
+                configurations: {},
+                mpack_instances: []
               }
             }
           }
@@ -1041,7 +1012,8 @@ describe('App.EnhancedConfigsMixin', function () {
           {
             recommendations: {
               blueprint: {
-                configurations: {}
+                configurations: {},
+                mpack_instances: []
               }
             }
           }

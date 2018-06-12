@@ -171,7 +171,7 @@ describe('App.stackServiceMapper', function () {
       },
       sortedServiceNames = ["HDFS", "HIVE", "ZOOKEEPER", "ACCUMULO", "KAFKA", "KERBEROS"],
       serviceResult = {
-        id: "KAFKA",
+        id: "KAFKA-HDP-2.2",
         serviceName: "KAFKA",
         displayName: "Kafka",
         configTypes: {
