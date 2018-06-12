@@ -87,7 +87,7 @@ class VerifiedHTTPSConnection:
         self.establish_connection(conn)
         logger.info('SSL connection established. Two-way SSL authentication '
                     'completed successfully.')
-      except ssl.SSLError as err:
+      except ssl.SSLError:
         logger.error('Two-way SSL authentication failed. Ensure that '
                      'server and agent certificates were signed by the same CA '
                      'and restart the agent. '
@@ -96,7 +96,7 @@ class VerifiedHTTPSConnection:
                      'workaround you can turn off two-way SSL authentication in '
                      'server configuration(ambari.properties) '
                      '\nExiting..')
-        raise err
+        raise
       return conn
 
   def establish_connection(self, conn):
