@@ -594,7 +594,6 @@ Em.I18n.translations = {
   'services.summary.selectHostForComponent': 'Select the host to add {0} component',
   'services.summary.allHostsAlreadyRunComponent': 'All hosts already running {0} component',
 
-  'topnav.logo.href':'/#/main/dashboard',
   'topnav.help.href':'https://cwiki.apache.org/confluence/display/AMBARI/Ambari',
 
   'installer.header':'Cluster Install Wizard',
