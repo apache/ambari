@@ -91,8 +91,6 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
 
   @Override
   protected void regenerateDataIdentifiers(AgentConfigsUpdateEvent data) {
-    data.setHash(null);
-    data.setTimestamp(null);
     data.setHash(getHash(data));
     data.setTimestamp(System.currentTimeMillis());
   }
