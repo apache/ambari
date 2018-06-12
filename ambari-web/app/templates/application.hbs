@@ -25,16 +25,10 @@
     <div class="navigation-bar-container">
     <ul class="side-nav-header nav nav-pills nav-stacked">
       <li class="navigation-header">
-        {{#if enableLinks}}
-          <a {{translateAttr href="topnav.logo.href"}} class="ambari-logo">
-            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
-          </a>
-        {{else}}
-          <a class="ambari-logo">
-            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
-          </a>
-        {{/if}}
-        <div class="btn-group">
+        <a href="#" {{action goToDashboard target="controller"}} class="ambari-logo">
+          <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
+        </a>
+        <div class="btn-group" {{action goToDashboard target="controller"}}>
           <span class="ambari-header" title="Apache Ambari" {{QAAttr "ambari-title"}}>{{t app.name}}</span>
         </div>
       </li>

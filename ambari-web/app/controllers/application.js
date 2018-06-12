@@ -132,6 +132,12 @@ App.ApplicationController = Em.Controller.extend(App.Persist, {
     App.router.route("adminView");
   },
 
+  goToDashboard: function () {
+    if (this.get('enableLinks')) {
+      App.router.route("main/dashboard");
+    }
+  },
+
   showAboutPopup: function() {
     App.ModalPopup.show({
       header: Em.I18n.t('common.aboutAmbari'),
