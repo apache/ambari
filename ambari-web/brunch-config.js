@@ -23,7 +23,8 @@ module.exports.config = {
       ignore: [
         /^(vendor|app\/data|app\/assets|test)/
       ],
-      pattern: /\.(js)$/
+      pattern: /\.(js)$/,
+      plugins: ['transform-object-assign']
     },
     assetsmanager: {
       copyTo: {
