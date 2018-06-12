@@ -50,7 +50,8 @@ from ambari_server.serverConfiguration import configDefaults, parse_properties_f
   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY, \
   SSL_API, SSL_API_PORT, DEFAULT_SSL_API_PORT, CLIENT_API_PORT, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, JAVA_HOME_PROPERTY, \
   get_resources_location, SECURITY_MASTER_KEY_LOCATION, SETUP_OR_UPGRADE_MSG, CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY
-from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, get_ambari_admin_username_password_pair, perform_changes_via_rest_api
+from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, \
+  get_ambari_admin_username_password_pair, perform_changes_via_rest_api, get_ssl_context
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, quit_if_has_answer
 from ambari_server.serverClassPath import ServerClassPath
@@ -296,7 +297,7 @@ def getLdapPropertyFromDB(properties, admin_login, admin_password, property_name
     sys.stdout.flush()
 
     try:
-      with closing(urllib2.urlopen(request)) as response:
+      with closing(urllib2.urlopen(request, context=get_ssl_context(properties))) as response:
         response_status_code = response.getcode()
         if response_status_code != 200:
           request_in_progress = False
@@ -398,7 +399,7 @@ def sync_ldap(options):
   request.get_method = lambda: 'POST'
 
   try:
-    response = urllib2.urlopen(request)
+    response = urllib2.urlopen(request, context=get_ssl_context(properties))
   except Exception as e:
     err = 'Sync event creation failed. Error details: %s' % e
     raise FatalException(1, err)
@@ -423,7 +424,7 @@ def sync_ldap(options):
     sys.stdout.flush()
 
     try:
-      response = urllib2.urlopen(request)
+      response = urllib2.urlopen(request, context=get_ssl_context(properties))
     except Exception as e:
       request_in_progress = False
       err = 'Sync event check failed. Error details: %s' % e
