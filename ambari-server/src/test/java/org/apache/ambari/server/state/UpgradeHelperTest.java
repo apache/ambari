@@ -2737,6 +2737,45 @@ public class UpgradeHelperTest extends EasyMockSupport {
     ambariMetaInfo.init();
   }
 
+  /**
+   * Tests that components added during the upgrade are scheduled for restart on
+   * their future hosts.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAddComponentsDuringUpgrade() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    assertTrue(upgrades.containsKey("upgrade_test_add_component"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_add_component");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.NON_ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    // 3 groups - stop, add component, restart
+    assertEquals(3, groups.size());
+
+    // ensure that the stop did not have extra hosts added to it
+    UpgradeGroupHolder group = groups.get(0);
+    assertEquals("STOP_HIVE", group.name);
+    List<StageWrapper> stageWrappers = group.items;
+    assertEquals(2, stageWrappers.size());
+
+    // ensure that the restart has the future hosts
+    group = groups.get(2);
+    assertEquals("RESTART_HIVE", group.name);
+    stageWrappers = group.items;
+    assertEquals(4, stageWrappers.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
+  }
 
   /**
    * @param cluster

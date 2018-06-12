@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
-import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
@@ -205,12 +203,6 @@ public class UpgradeHelper {
    */
   @Inject
   private Provider<AmbariManagementControllerImpl> m_controllerProvider;
-
-  @Inject
-  private Provider<MetadataHolder> m_metadataHolder;
-
-  @Inject
-  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   /**
    * Used to get configurations by service name.
@@ -382,46 +374,13 @@ public class UpgradeHelper {
           continue;
         }
 
-
         for (String component : service.components) {
           // Rolling Upgrade has exactly one task for a Component.
           // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
           // other tasks, and then Start on that Component.
-
           if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.get(service.serviceName).containsKey(component)) {
             continue;
           }
-
-          HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
-          if (null == hostsType) {
-            // a null hosts type usually means that the component is not
-            // installed in the cluster - but it's possible that it's going to
-            // be added as part of the upgrade. If this is the case, then we
-            // need to schedule tasks assuming the add works
-            String id = service.serviceName + "/" + component;
-            if (addedComponentsDuringUpgrade.containsKey(id)) {
-              AddComponentTask task = addedComponentsDuringUpgrade.get(id);
-              Collection<Host> candidateHosts = MasterHostResolver.getCandidateHosts(cluster,
-                  task.hosts, task.hostService, task.hostComponent);
-
-              if (!candidateHosts.isEmpty()) {
-                hostsType = HostsType.normal(
-                    candidateHosts.stream().map(host -> host.getHostName()).collect(
-                        Collectors.toCollection(LinkedHashSet::new)));
-              }
-            }
-
-            // if we still have no hosts, then truly skip this component
-            if (null == hostsType) {
-              continue;
-            }
-          }
-
-          if (!hostsType.unhealthy.isEmpty()) {
-            context.addUnhealthy(hostsType.unhealthy);
-          }
-
-          Service svc = cluster.getService(service.serviceName);
 
           // if a function name is present, build the tasks dynamically;
           // otherwise use the tasks defined in the upgrade pack processing
@@ -463,6 +422,56 @@ public class UpgradeHelper {
             LOG.error(MessageFormat.format("Couldn't create a processing component for service {0} and component {1}.", service.serviceName, component));
             continue;
           }
+
+          HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
+
+          // only worry about adding future commands if this is a start/restart task
+          boolean taskIsRestartOrStart = functionName == null || functionName == Type.START
+              || functionName == Type.RESTART;
+
+          // see if this component has an add component task which will indicate
+          // we need to dynamically schedule some more tasks by predicting where
+          // the components will be installed
+          String serviceAndComponentHash = service.serviceName + "/" + component;
+          if (taskIsRestartOrStart && addedComponentsDuringUpgrade.containsKey(serviceAndComponentHash)) {
+            AddComponentTask task = addedComponentsDuringUpgrade.get(serviceAndComponentHash);
+
+            Collection<Host> candidateHosts = MasterHostResolver.getCandidateHosts(cluster,
+                task.hosts, task.hostService, task.hostComponent);
+
+            // if we have candidate hosts, then we can create a structure to be
+            // scheduled
+            if (!candidateHosts.isEmpty()) {
+              if (null == hostsType) {
+                // a null hosts type usually means that the component is not
+                // installed in the cluster - but it's possible that it's going
+                // to be added as part of the upgrade. If this is the case, then
+                // we need to schedule tasks assuming the add works
+                hostsType = HostsType.normal(
+                    candidateHosts.stream().map(host -> host.getHostName()).collect(
+                        Collectors.toCollection(LinkedHashSet::new)));
+              } else {
+                // it's possible that we're adding components that may already
+                // exist in the cluster - in this case, we must append the
+                // structure instead of creating a new one
+                Set<String> hostsForTask = hostsType.getHosts();
+                for (Host host : candidateHosts) {
+                  hostsForTask.add(host.getHostName());
+                }
+              }
+            }
+          }
+
+          // if we still have no hosts, then truly skip this component
+          if (null == hostsType) {
+            continue;
+          }
+
+          if (!hostsType.unhealthy.isEmpty()) {
+            context.addUnhealthy(hostsType.unhealthy);
+          }
+
+          Service svc = cluster.getService(service.serviceName);
 
           setDisplayNames(context, service.serviceName, component);
 
