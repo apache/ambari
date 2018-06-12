@@ -152,7 +152,7 @@ public class ClusterConfigurationRequest {
       }
 
       // obtain recommended configurations before config updates
-      if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(this.clusterTopology.getConfigRecommendationStrategy())) {
+      if (clusterTopology.getConfigRecommendationStrategy().shouldUseAdvisor()) {
         // get merged properties form Blueprint & cluster template (this doesn't contains stack default values)
         stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
       }

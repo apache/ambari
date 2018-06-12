@@ -37,13 +37,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
@@ -68,6 +71,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
@@ -514,5 +518,87 @@ public class ClusterConfigurationRequestTest {
     return new Configuration(firstLevelConfig, firstLevelAttributes, secondLevelConf);
   }
 
+  @Test
+  public void testProcessClusterConfigRequest_SaveServiceIdAndServiceGroupId() throws Exception {
+    // GIVEN
+    Configuration configuration = new Configuration(
+      Maps.newHashMap(ImmutableMap.of(
+        "zoo.cfg", ImmutableMap.of("testKey", "testValue"),
+        "zookeeper-env", ImmutableMap.of("testKey", "testValue"),
+        "hdfs-site", ImmutableMap.of("testKey", "testValue"),
+        "hadoop-env", ImmutableMap.of("testKey", "testValue"))),
+      Maps.newHashMap()
+    );
+    List<String> serviceNames = ImmutableList.of("ZOOKEEPER", "HDFS");
+    StackId stackId = new StackId("HDPCORE", "1.0.0");
+    AtomicLong serviceIds = new AtomicLong(0);
+    Set<ServiceResponse> serviceResponses = serviceNames.stream().
+      map(
+        sName -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 0L, "HDPCORE", serviceIds.getAndIncrement(),
+          sName, sName, stackId, "1.0.0.0-b292", "INSTALLED", true, false, true, false, false)).
+      collect(toSet());
+
+    Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();
+    HostGroupInfo hg1 = new HostGroupInfo("hg1");
+    hg1.setConfiguration(new Configuration());
+    hostGroupInfoMap.put("hg1", hg1);
+
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
+    expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getServices()).andReturn(serviceNames).anyTimes();
+    expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
+
+    expect(topology.isValidConfigType("zoo.cfg")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("zookeeper-env")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("hadoop-env")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
+    expect(topology.getStackIds()).andReturn(ImmutableSet.of(stackId));
+
+    expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(ImmutableSet.of()).anyTimes();
+    expect(stack.getAllConfigurationTypes("ZOOKEEPER")).andReturn(ImmutableSet.of("zoo.cfg", "zookeeper-env"));
+    expect(stack.getAllConfigurationTypes("HDFS")).andReturn(ImmutableSet.of("hdfs-site", "hadoop-env"));
+
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
+    expect(ambariContext.getServices(anyString())).andReturn(serviceResponses).anyTimes();
+    Capture<ClusterRequest> clusterRequestCapture = Capture.newInstance(CaptureType.ALL);
+    ambariContext.setConfigurationOnCluster(capture(clusterRequestCapture));
+    expectLastCall().anyTimes();
+
+    expect(configHelper.getDefaultStackProperties(anyObject())).andReturn(stackProperties).anyTimes();
+
+    EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
+
+    // WHEN
+    ClusterConfigurationRequest request =
+      new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+    request.process();
+
+    // THEN
+    Map<String, Optional<Long>> expectedServiceIds = ImmutableMap.of(
+      "zoo.cfg", Optional.of(0L),
+      "zookeeper-env", Optional.of(0L),
+      "hadoop-env", Optional.of(1L),
+      "hdfs-site", Optional.of(1L),
+      "cluster-env", Optional.<Long>empty()
+    );
+    Set<String> clusterConfigTypes = new HashSet<>();
+    clusterRequestCapture.getValues().forEach(
+      clusterRequest -> clusterRequest.getDesiredConfig().forEach(
+        configRequest -> {
+          String configType = configRequest.getType();
+          clusterConfigTypes.add(configType);
+          assertTrue("Service ID should have been set except for global configs.",
+            configType.equals("cluster-env") || configRequest.getServiceGroupId().equals(0L));
+          assertEquals("Unexpected service id.",
+            expectedServiceIds.get(configType).orElse(null), configRequest.getServiceId());
+        }
+      )
+    );
+    assertEquals("Expected and actual cluster config types differ.", expectedServiceIds.keySet(), clusterConfigTypes);
+  }
 
 }
