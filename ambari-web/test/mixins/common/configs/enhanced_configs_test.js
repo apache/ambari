@@ -1439,5 +1439,58 @@ describe('App.EnhancedConfigsMixin', function () {
       expect(mixin.isConfigGroupAffected(['host1'], ['host2', 'host1'])).to.be.true;
     });
   });
+
+  describe('#addRequestedConfigs', function () {
+    it('adds the configs to include in the request to the recommendations.blueprint object in the format required', function () {
+      sinon.stub(blueprintUtils, 'buildConfigsJSON', function (configs) { return configs[0]; });
+      mixin.set('wizardController', App.InstallerController.create({
+        content: {
+          selectedServices: [
+            {
+              name: 'OTHER',
+              mpackName: 'MPACK',
+              mpackVersion: '1.0',
+            }
+          ]
+        }
+      }));
+
+      const actual = { blueprint: {} };
+      const configs = [
+        Em.Object.create({
+          serviceName: 'MISC',
+          configs: ['misc1', 'misc2']
+        }),
+        Em.Object.create({
+          serviceName: 'OTHER',
+          configs: ['other1', 'other2']
+        })
+      ];
+      const expected = {
+        blueprint: {
+          configurations: configs[0],
+          mpack_instances: [
+            {
+              name: 'MPACK',
+              type: 'MPACK',
+              version: '1.0',
+              service_instances: [
+                {
+                  name: 'OTHER',
+                  type: 'OTHER',
+                  configurations: configs[1]
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      mixin.addRequestedConfigs(actual, configs);
+      expect(actual).to.deep.equal(expected);
+
+      blueprintUtils.buildConfigsJSON.restore();
+    });
+  });
 });
 
