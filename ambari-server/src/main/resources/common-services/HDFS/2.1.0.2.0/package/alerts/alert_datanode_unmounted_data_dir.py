@@ -107,6 +107,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   # Sort the data dirs, which is needed for deterministic behavior when running the unit tests.
   normalized_data_dirs = sorted(normalized_data_dirs)
+  file_system.get_and_cache_mount_points(refresh=True)
   for data_dir in normalized_data_dirs:
     # This follows symlinks and will return False for a broken link (even in the middle of the linked list)
     if os.path.isdir(data_dir):
