@@ -201,7 +201,11 @@ App.WidgetValueObserver = Em.Mixin.create(App.ValueObserver, {
 App.ServiceConfigCalculateId = Ember.Mixin.create({
   'data-qa': Ember.computed(function () {
     const config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
-    return Em.get(config, 'name') || '';
+    const configName = Em.get(config, 'name') || '';
+    if (configName === 'content') {
+      return Em.get(config, 'id') || '';
+    }
+    return configName;
   })
 });
 
