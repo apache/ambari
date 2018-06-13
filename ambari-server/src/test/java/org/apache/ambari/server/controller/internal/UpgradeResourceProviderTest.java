@@ -898,7 +898,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
 
   @Test
-  public void testAbort() throws Exception {
+  public void testAbortUpgrade() throws Exception {
     RequestStatus status = testCreateResources();
 
     Set<Resource> createdResources = status.getAssociatedResources();
@@ -954,7 +954,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
 
   @Test
-  public void testRetry() throws Exception {
+  public void testResumeUpgrade() throws Exception {
     RequestStatus status = testCreateResources();
 
     Set<Resource> createdResources = status.getAssociatedResources();
@@ -988,15 +988,46 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
         foundOne = true;
       }
     }
+
     assertTrue("Expected at least one server-side action", foundOne);
 
-    HostRoleCommand cmd = commands.get(commands.size()-1);
+    // make sure we have enough commands to properly test this
+    assertTrue(commands.size() > 5);
 
+    // now, set some status of the commands to reflect an actual aborted upgrade
+    // (some completed, some faiures, some timeouts)
     HostRoleCommandDAO dao = injector.getInstance(HostRoleCommandDAO.class);
-    HostRoleCommandEntity entity = dao.findByPK(cmd.getTaskId());
-    entity.setStatus(HostRoleStatus.ABORTED);
-    dao.merge(entity);
+    for (int i = 0; i < commands.size(); i++) {
+      HostRoleCommand command = commands.get(i);
+      HostRoleCommandEntity entity = dao.findByPK(command.getTaskId());
 
+      // make sure to interweave failures/timeouts with completed
+      final HostRoleStatus newStatus;
+      switch (i) {
+        case 0:
+        case 1:
+          newStatus = HostRoleStatus.COMPLETED;
+          break;
+        case 2:
+          newStatus = HostRoleStatus.TIMEDOUT;
+          break;
+        case 3:
+          newStatus = HostRoleStatus.COMPLETED;
+          break;
+        case 4:
+          newStatus = HostRoleStatus.FAILED;
+          break;
+        default:
+          newStatus = HostRoleStatus.ABORTED;
+          break;
+      }
+
+      entity.setStatus(newStatus);
+      dao.merge(entity);
+    }
+
+
+    // resume the upgrade
     requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "PENDING");
@@ -1006,6 +1037,18 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     // !!! make sure we can.  actual reset is tested elsewhere
     req = PropertyHelper.getUpdateRequest(requestProps, null);
     urp.updateResources(req, null);
+
+    // test that prior completions (both timedout and failure) did not go back
+    // to PENDING
+    commands = am.getRequestTasks(id);
+    for (int i = 0; i < commands.size(); i++) {
+      HostRoleCommand command = commands.get(i);
+      if (i < 5) {
+        assertTrue(command.getStatus() != HostRoleStatus.PENDING);
+      } else {
+        assertTrue(command.getStatus() == HostRoleStatus.PENDING);
+      }
+    }
   }
 
   @Test(expected = IllegalArgumentException.class)

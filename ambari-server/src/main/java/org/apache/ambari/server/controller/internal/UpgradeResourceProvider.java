@@ -1555,8 +1555,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     } else if (status == HostRoleStatus.PENDING) {
       List<Long> taskIds = new ArrayList<>();
+
+      // pull back only ABORTED tasks in order to set them to PENDING - other
+      // status (such as TIMEDOUT and FAILED) must remain since they are
+      // considered to have been completed
       List<HostRoleCommandEntity> hrcEntities = s_hostRoleCommandDAO.findByRequestIdAndStatuses(
-          requestId, Sets.newHashSet(HostRoleStatus.ABORTED, HostRoleStatus.TIMEDOUT));
+          requestId, Sets.newHashSet(HostRoleStatus.ABORTED));
 
       for (HostRoleCommandEntity hrcEntity : hrcEntities) {
         taskIds.add(hrcEntity.getTaskId());
