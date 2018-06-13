@@ -28,6 +28,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.AmbariException;
@@ -61,6 +62,7 @@ public abstract class MessageEmitter {
       new ThreadFactoryBuilder().setNameFormat("ambari-message-monitor-%d").build());
 
   protected static final AtomicLong MESSAGE_ID = new AtomicLong(0);
+  protected static final Long ADDITIONAL_TIMEOUT_TIME = 5L;
   protected ConcurrentHashMap<Long, ScheduledFuture> unconfirmedMessages = new ConcurrentHashMap<>();
   protected ConcurrentHashMap<Long, BlockingQueue<ExecutionCommandEvent>> messagesToEmit = new ConcurrentHashMap<>();
 
@@ -119,7 +121,12 @@ public abstract class MessageEmitter {
           emitMessageTask.setScheduledFuture(scheduledFuture);
           unconfirmedMessages.put(event.getMessageId(), scheduledFuture);
 
-          scheduledFuture.get();
+          long timeout = retryCount * retryInterval + ADDITIONAL_TIMEOUT_TIME;
+          try {
+            scheduledFuture.get(timeout, TimeUnit.SECONDS);
+          } catch (TimeoutException e) {
+            processMessageMissing(scheduledFuture, event);
+          }
         } catch (InterruptedException e) {
           // can be interrupted when no responses were received from agent and HEARTBEAT_LOST will be fired
           return;
@@ -167,18 +174,7 @@ public abstract class MessageEmitter {
     @Override
     public void run() {
       if (retry_counter >= retryCount) {
-        // generate delivery failed event and cancel emitter
-        ambariEventPublisher.publish(new MessageNotDelivered(executionCommandEvent.getHostId()));
-        unconfirmedMessages.remove(executionCommandEvent.getMessageId()); //?
-
-        // remove commands queue for host
-        messagesToEmit.remove(executionCommandEvent.getHostId());
-
-        // cancel retrying to emit command
-        scheduledFuture.cancel(true);
-
-        // cancel checking for new commands for host
-        monitors.get(executionCommandEvent.getHostId()).cancel(true);
+        processMessageMissing(scheduledFuture, executionCommandEvent);
         return;
       }
       try {
@@ -188,6 +184,23 @@ public abstract class MessageEmitter {
         LOG.error("Error during emitting execution command with message id {} on attempt {}",
             executionCommandEvent.getMessageId(), retry_counter, e);
       }
+    }
+  }
+
+  private void processMessageMissing(ScheduledFuture scheduledFuture, ExecutionCommandEvent executionCommandEvent) {
+    // generate delivery failed event and cancel emitter
+    ambariEventPublisher.publish(new MessageNotDelivered(executionCommandEvent.getHostId()));
+    unconfirmedMessages.remove(executionCommandEvent.getMessageId());
+
+    // remove commands queue for host
+    messagesToEmit.remove(executionCommandEvent.getHostId());
+
+    // cancel retrying to emit command
+    scheduledFuture.cancel(true);
+
+    // cancel checking for new commands for host
+    if (monitors.containsKey(executionCommandEvent.getHostId())) {
+      monitors.get(executionCommandEvent.getHostId()).cancel(true);
     }
   }
 
