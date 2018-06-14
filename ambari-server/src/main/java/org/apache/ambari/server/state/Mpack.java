@@ -27,9 +27,9 @@ import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Sets;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 /**
