@@ -329,11 +329,14 @@ class ActionQueue(threading.Thread):
 
         command['agentLevelParams']['commandBeingRetried'] = "true"
         self.cancelEvent.wait(delay) # wake up if something was canceled
+
         continue
       else:
         logger.info("Quit retrying for command with taskId = {cid}. Status: {status}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
                     .format(cid=taskId, status=status, retryAble=retryAble, retryDuration=retryDuration, delay=delay))
         break
+
+    self.cancelEvent.clear()
 
     # do not fail task which was rescheduled from server
     if command_canceled:
