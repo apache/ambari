@@ -806,11 +806,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     Set<String> hostsToUpdate = new HashSet<>();
     for (ServiceComponentHostRequest request : requests) {
+      String serviceGroupName = request.getServiceGroupName();
       String serviceName = request.getServiceName();
       String componentName = request.getComponentName();
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Collection<Host> clusterHosts = cluster.getHosts();
-      Service s = cluster.getService(serviceName);
+      Service s = cluster.getService(serviceGroupName, serviceName);
       ServiceComponent sc = s.getServiceComponent(componentName);
       String hostName = request.getHostname();
       hostsToUpdate.add(hostName);
