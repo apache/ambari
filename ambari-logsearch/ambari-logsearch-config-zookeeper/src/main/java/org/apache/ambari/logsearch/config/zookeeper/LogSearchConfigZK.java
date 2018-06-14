@@ -28,10 +28,12 @@ import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.retry.RetryForever;
+import org.apache.curator.retry.RetryUntilElapsed;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
@@ -46,8 +48,9 @@ import com.google.gson.GsonBuilder;
 public class LogSearchConfigZK implements LogSearchConfig {
   private static final Logger LOG = LoggerFactory.getLogger(LogSearchConfigZK.class);
 
-  private static final int SESSION_TIMEOUT = 60000;
-  private static final int CONNECTION_TIMEOUT = 30000;
+  private static final int DEFAULT_SESSION_TIMEOUT = 60000;
+  private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
+  private static final int RETRY_INTERVAL_MS = 10000;
   private static final String DEFAULT_ZK_ROOT = "/logsearch";
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
@@ -76,6 +79,30 @@ public class LogSearchConfigZK implements LogSearchConfig {
   )
   private static final String ZK_ROOT_NODE_PROPERTY = "logsearch.config.zk_root";
 
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_session_time_out_ms",
+    description = "ZooKeeper session timeout in milliseconds",
+    examples = {"60000"},
+    sources = {"logsearch.properties", "logfeeder.properties"}
+  )
+  private static final String ZK_SESSION_TIMEOUT_PROPERTY = "logsearch.config.zk_session_time_out_ms";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_connection_time_out_ms",
+    description = "ZooKeeper connection timeout in milliseconds",
+    examples = {"30000"},
+    sources = {"logsearch.properties", "logfeeder.properties"}
+  )
+  private static final String ZK_CONNECTION_TIMEOUT_PROPERTY = "logsearch.config.zk_connection_time_out_ms";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_connection_retry_time_out_ms",
+    description = "The maximum elapsed time for connecting to ZooKeeper in milliseconds. 0 means retrying forever.",
+    examples = {"1200000"},
+    sources = {"logsearch.properties", "logfeeder.properties"}
+  )
+  private static final String ZK_CONNECTION_RETRY_TIMEOUT_PROPERTY = "logsearch.config.zk_connection_retry_time_out_ms";
+
   protected Map<String, String> properties;
   protected CuratorFramework client;
   protected TreeCache outputCache;
@@ -88,9 +115,9 @@ public class LogSearchConfigZK implements LogSearchConfig {
     LOG.info("Connecting to ZooKeeper at " + properties.get(ZK_CONNECT_STRING_PROPERTY) + root);
     client = CuratorFrameworkFactory.builder()
         .connectString(properties.get(ZK_CONNECT_STRING_PROPERTY) + root)
-        .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-        .connectionTimeoutMs(CONNECTION_TIMEOUT)
-        .sessionTimeoutMs(SESSION_TIMEOUT)
+        .retryPolicy(getRetryPolicy(properties.get(ZK_CONNECTION_RETRY_TIMEOUT_PROPERTY)))
+        .connectionTimeoutMs(getIntProperty(ZK_CONNECTION_TIMEOUT_PROPERTY, DEFAULT_CONNECTION_TIMEOUT))
+        .sessionTimeoutMs(getIntProperty(ZK_SESSION_TIMEOUT_PROPERTY, DEFAULT_SESSION_TIMEOUT))
         .build();
     client.start();
 
@@ -98,6 +125,21 @@ public class LogSearchConfigZK implements LogSearchConfig {
     outputCache.start();
 
     gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
+  }
+
+  private int getIntProperty(String propertyKey, int defaultValue) {
+    if (properties.get(propertyKey) == null)
+      return defaultValue;
+    return Integer.parseInt(properties.get(propertyKey));
+  }
+
+  private RetryPolicy getRetryPolicy(String zkConnectionRetryTimeoutValue) {
+    if (zkConnectionRetryTimeoutValue == null)
+      return new RetryForever(RETRY_INTERVAL_MS);
+    int maxElapsedTimeMs = Integer.parseInt(zkConnectionRetryTimeoutValue);
+    if (maxElapsedTimeMs == 0)
+      return new RetryForever(RETRY_INTERVAL_MS);
+    return new RetryUntilElapsed(maxElapsedTimeMs, RETRY_INTERVAL_MS);
   }
 
   @Override
