@@ -26,11 +26,12 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
@@ -115,10 +116,14 @@ public class CreateAndConfigureAction extends ConfigureAction {
       serviceName = commandParameters.get(CreateAndConfigureTask.PARAMETER_ASSOCIATED_SERVICE);
     }
 
-    RepositoryVersionEntity sourceRepoVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
-    RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
-    StackId sourceStackId = sourceRepoVersion.getStackId();
-    StackId targetStackId = targetRepoVersion.getStackId();
+    // this is wrong since it gets the service group by service name
+    long serviceGroupId = cluster.getService(serviceName).getServiceGroupId();
+    ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupId);
+    Mpack sourceMpack = upgradeContext.getSourceMpack(serviceGroup);
+    Mpack targetMpack = upgradeContext.getTargetMpack(serviceGroup);
+
+    StackId sourceStackId = sourceMpack.getStackId();
+    StackId targetStackId = targetMpack.getStackId();
 
     if (!sourceStackId.equals(targetStackId)){
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "",
@@ -150,8 +155,8 @@ public class CreateAndConfigureAction extends ConfigureAction {
         }
       }
 
-      String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
-          direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
+      String serviceVersionNote = String.format("%s %s: \n%s", direction.getText(true),
+          direction.getPreposition(), upgradeContext.getServiceGroupDisplayableSummary());
 
       m_configHelper.createConfigType(cluster, targetStackId,
           m_controller,

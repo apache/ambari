@@ -143,7 +143,7 @@ public class ServiceCheckGrouping extends Grouping {
       for (String service : priorityServices) {
         if (checkServiceValidity(upgradeContext, service, serviceMap)) {
           StageWrapper wrapper = new ServiceCheckStageWrapper(service,
-              upgradeContext.getServiceDisplay(service), true);
+              upgradeContext.getDisplayName(null, service), true);
 
           result.add(wrapper);
           clusterServices.remove(service);
@@ -159,7 +159,7 @@ public class ServiceCheckGrouping extends Grouping {
 
           if (checkServiceValidity(upgradeContext, service, serviceMap)) {
             StageWrapper wrapper = new ServiceCheckStageWrapper(service,
-                upgradeContext.getServiceDisplay(service), false);
+                upgradeContext.getDisplayName(null, service), false);
 
             result.add(wrapper);
           }
@@ -185,7 +185,6 @@ public class ServiceCheckGrouping extends Grouping {
             ServiceInfo si = m_metaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), svc.getServiceType());
             CommandScriptDefinition script = si.getCommandScript();
             if (null != script && null != script.getScript() && !script.getScript().isEmpty()) {
-              ctx.setServiceDisplay(service, si.getDisplayName());
               return true;
             }
           } catch (AmbariException e) {

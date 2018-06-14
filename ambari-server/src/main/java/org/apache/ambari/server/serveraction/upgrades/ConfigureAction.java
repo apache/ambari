@@ -37,7 +37,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
@@ -45,8 +44,10 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
@@ -201,10 +202,14 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
       serviceName = commandParameters.get(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE);
     }
 
-    RepositoryVersionEntity sourceRepoVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
-    RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
-    StackId sourceStackId = sourceRepoVersion.getStackId();
-    StackId targetStackId = targetRepoVersion.getStackId();
+    // this is wrong since it gets the service group by service name
+    long serviceGroupId = cluster.getService(serviceName).getServiceGroupId();
+    ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupId);
+    Mpack sourceMpack = upgradeContext.getSourceMpack(serviceGroup);
+    Mpack targetMpack = upgradeContext.getTargetMpack(serviceGroup);
+
+    StackId sourceStackId = sourceMpack.getStackId();
+    StackId targetStackId = targetMpack.getStackId();
 
     // extract setters
     List<ConfigurationKeyValue> keyValuePairs = Collections.emptyList();
@@ -551,8 +556,8 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     // !!! values are different and within the same stack.  create a new
     // config and service config version
     Direction direction = upgradeContext.getDirection();
-    String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
-        direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
+    String serviceVersionNote = String.format("%s %s: \n%s", direction.getText(true),
+        direction.getPreposition(), upgradeContext.getServiceGroupDisplayableSummary());
 
     String auditName = getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);
 

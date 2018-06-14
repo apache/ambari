@@ -117,7 +117,7 @@ public class ColocatedGrouping extends Grouping {
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
           proxy.message = getStageText("Preparing",
-              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
+              context.getDisplayName(null, service, pc.name), Collections.singleton(host));
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.service = service;
           proxy.component = pc.name;
@@ -136,7 +136,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.component = pc.name;
           proxy.type = Type.RESTART;
           proxy.message = getStageText("Restarting",
-              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
+              context.getDisplayName(null, service, pc.name), Collections.singleton(host));
           targetList.add(proxy);
         }
 
@@ -154,7 +154,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.type = type;
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.message = getStageText("Completing",
-              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
+              context.getDisplayName(null, service, pc.name), Collections.singleton(host));
           targetList.add(proxy);
         }
       }
@@ -313,7 +313,7 @@ public class ColocatedGrouping extends Grouping {
               compLocations.get(host).add(tw.getComponent());
             }
 
-            names.add(ctx.getComponentDisplay(
+            names.add(ctx.getDisplayName(null,
                 tw.getService(), tw.getComponent()));
           }
         }

@@ -23,23 +23,26 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
@@ -106,7 +109,7 @@ public class HostOrderGrouping extends Grouping {
 
     @Override
     public List<StageWrapper> build(UpgradeContext upgradeContext,
-        List<StageWrapper> stageWrappers) {
+        List<StageWrapper> stageWrappers) throws AmbariException {
 
       List<StageWrapper> wrappers = new ArrayList<>(stageWrappers);
 
@@ -136,7 +139,7 @@ public class HostOrderGrouping extends Grouping {
      *          the list of hostnames
      * @return the wrappers for a host
      */
-    private List<StageWrapper> buildHosts(UpgradeContext upgradeContext, List<String> hosts) {
+    private List<StageWrapper> buildHosts(UpgradeContext upgradeContext, List<String> hosts) throws AmbariException {
       if (CollectionUtils.isEmpty(hosts)) {
         return Collections.emptyList();
       }
@@ -174,13 +177,12 @@ public class HostOrderGrouping extends Grouping {
           // either doesn't exist or the downgrade is to the current target version.
           // hostsType better not be null either, but check anyway
           if (null != hostsType && !hostsType.getHosts().contains(hostName)) {
-            RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
-                sch.getServiceName());
+            Set<Mpack> targetMpacks = upgradeContext.getTargetMpacks();
 
-            LOG.warn("Host {} could not be orchestrated. Either there are no components for {}/{} " +
-                "or the target version {} is already current.",
-                hostName, sch.getServiceName(), sch.getServiceComponentName(),
-                targetRepositoryVersion.getVersion());
+            LOG.warn(
+                "Host {} could not be orchestrated. Either there are no components for {}/{} "
+                    + "or the target mpacks {} are already current.",
+                hostName, sch.getServiceName(), sch.getServiceComponentName(), targetMpacks);
 
             continue;
           }
@@ -231,7 +233,12 @@ public class HostOrderGrouping extends Grouping {
           // create task wrappers
           List<TaskWrapper> taskWrappers = new ArrayList<>();
           for (HostRoleCommand command : stageCommandsForHost) {
-            StackId stackId = upgradeContext.getRepositoryVersion().getStackId();
+            ExecutionCommandWrapper wrapper = command.getExecutionCommandWrapper();
+            String serviceGroupName = wrapper.getExecutionCommand().getServiceGroupName();
+            ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
+            Mpack targetMpack = upgradeContext.getTargetMpack(serviceGroup);
+            StackId stackId = targetMpack.getStackId();
+
             String componentName = command.getRole().name();
 
             String serviceName = null;
@@ -318,7 +325,7 @@ public class HostOrderGrouping extends Grouping {
         }
 
         StageWrapper wrapper = new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
-            String.format("Service Check %s", upgradeContext.getServiceDisplay(serviceName)),
+            String.format("Service Check %s", upgradeContext.getDisplayName(null, serviceName)),
             new TaskWrapper(serviceName, "", Collections.emptySet(), new ServiceCheckTask()));
 
         wrappers.add(wrapper);
@@ -333,11 +340,13 @@ public class HostOrderGrouping extends Grouping {
      * @param sch             the host component
      * @return                {@code true} if the host component advertises its version
      */
-    private boolean isVersionAdvertised(UpgradeContext upgradeContext, ServiceComponentHost sch) {
-      RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
-          sch.getServiceName());
-
-      StackId targetStack = targetRepositoryVersion.getStackId();
+    private boolean isVersionAdvertised(UpgradeContext upgradeContext, ServiceComponentHost sch)
+        throws AmbariException {
+      long serviceGroupId = sch.getServiceGroupId();
+      Cluster cluster = upgradeContext.getCluster();
+      ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupId);
+      Mpack targetMpack = upgradeContext.getTargetMpack(serviceGroup);
+      StackId targetStack = targetMpack.getStackId();
 
       try {
         ComponentInfo component = upgradeContext.getAmbariMetaInfo().getComponent(

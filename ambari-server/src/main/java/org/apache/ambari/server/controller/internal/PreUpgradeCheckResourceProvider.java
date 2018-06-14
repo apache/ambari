@@ -79,7 +79,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID          = PropertyHelper.getPropertyId("UpgradeChecks", "check_type");
   public static final String UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID        = PropertyHelper.getPropertyId("UpgradeChecks", "cluster_name");
   public static final String UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID        = PropertyHelper.getPropertyId("UpgradeChecks", "upgrade_type");
-  public static final String UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID = PropertyHelper.getPropertyId("UpgradeChecks", "repository_version_id");
+  public static final String UPGRADE_CHECK_UPGRADE_PLAN_ID = PropertyHelper.getPropertyId("UpgradeChecks", "upgrade_plan_id");
   public static final String UPGRADE_CHECK_TARGET_REPOSITORY_VERSION       = PropertyHelper.getPropertyId("UpgradeChecks", "repository_version");
 
   /**
@@ -117,7 +117,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID,
       UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID,
       UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID,
-      UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID,
+      UPGRADE_CHECK_UPGRADE_PLAN_ID,
       UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID);
 
 
@@ -167,12 +167,12 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       }
 
       String repositoryVersionId = (String) propertyMap.get(
-          UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID);
+          UPGRADE_CHECK_UPGRADE_PLAN_ID);
 
       if (StringUtils.isBlank(repositoryVersionId)) {
         throw new SystemException(
             String.format("%s is a required property when executing upgrade checks",
-                UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID));
+                UPGRADE_CHECK_UPGRADE_PLAN_ID));
       }
 
       final PrereqCheckRequest upgradeCheckRequest = new PrereqCheckRequest(clusterName,
@@ -241,7 +241,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         setResourceProperty(resource, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID, prerequisiteCheck.getClusterName(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID, upgradeType, requestedIds);
 
-        setResourceProperty(resource, UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID, repositoryVersion.getId(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_UPGRADE_PLAN_ID, repositoryVersion.getId(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_TARGET_REPOSITORY_VERSION, repositoryVersion.getVersion(), requestedIds);
 
         resources.add(resource);

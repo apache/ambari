@@ -35,7 +35,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
@@ -43,7 +42,6 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -124,7 +122,7 @@ public abstract class AbstractCheckDescriptor {
    */
   public final boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
     List<CheckQualification> qualifications = Lists.newArrayList(
-        new ServiceQualification(), new OrchestrationQualification(getClass()));
+        new ServiceQualification());
 
     // add any others from the concrete check
     qualifications.addAll(getQualifications());
@@ -384,49 +382,6 @@ public abstract class AbstractCheckDescriptor {
       }
 
       return true;
-    }
-  }
-
-  /**
-   * The {@link OrchestrationQualification} class is used to determine if the
-   * check is required to run based on the {@link RepositoryType}.
-   */
-  final class OrchestrationQualification implements CheckQualification {
-
-    private final Class<? extends AbstractCheckDescriptor> m_checkClass;
-
-    /**
-     * Constructor.
-     *
-     * @param checkClass
-     *          the class of the check which is being considered for
-     *          applicability.
-     */
-    public OrchestrationQualification(Class<? extends AbstractCheckDescriptor> checkClass) {
-      m_checkClass = checkClass;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-      RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
-      RepositoryType repositoryType = repositoryVersion.getType();
-
-      UpgradeCheck annotation = m_checkClass.getAnnotation(UpgradeCheck.class);
-      if (null == annotation) {
-        return true;
-      }
-
-      RepositoryType[] repositoryTypes = annotation.orchestration();
-
-      if (ArrayUtils.isEmpty(repositoryTypes)
-          || ArrayUtils.contains(repositoryTypes, repositoryType)) {
-        return true;
-      }
-
-      return false;
     }
   }
 

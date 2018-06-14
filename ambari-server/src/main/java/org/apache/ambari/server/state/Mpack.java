@@ -21,11 +21,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -196,6 +200,16 @@ public class Mpack {
   }
 
   /**
+   * Gets the stack ID of this mpack, which is a combination of name and
+   * version.
+   *
+   * @return the stack ID of the mpack.
+   */
+  public StackId getStackId() {
+    return new StackId(name, version);
+  }
+
+  /**
    * Gets the module with the given name. Module names are service names.
    *
    * @param moduleName
@@ -217,9 +231,10 @@ public class Mpack {
    */
   public ModuleComponent getModuleComponent(String moduleName, String moduleComponentName) {
    Module module = moduleHashMap.get(moduleName);
-      if(module !=null){
-        return module.getModuleComponent(moduleComponentName);
-      }
+    if (module != null) {
+      return module.getModuleComponent(moduleComponentName);
+    }
+
     return null;
   }
 
@@ -264,19 +279,13 @@ public class Mpack {
 
   @Override
   public String toString() {
-    return "Mpack{" +
-            "id=" + resourceId +
-            ", registryId=" + registryId +
-            ", mpackId='" + mpackId + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", prerequisites=" + prerequisites +
-            ", modules=" + modules +
-            ", definition='" + definition + '\'' +
-            ", description='" + description + '\'' +
-            ", mpackUri='" + mpackUri + '\'' +
-            ", displayName='" + mpackUri + '\'' +
-            '}';
+    return MoreObjects.toStringHelper(this)
+        .add("id", resourceId)
+        .add("registryId", registryId)
+        .add("mpackId", mpackId)
+        .add("name", name)
+        .add("version", version)
+        .add("displayName", displayName).toString();
   }
 
   public void copyFrom(Mpack mpack) {
@@ -319,9 +328,273 @@ public class Mpack {
    */
   public void populateModuleMap() {
     moduleHashMap = new HashMap<>();
-    for(Module module : this.modules){
+    for(Module module : modules){
       module.populateComponentMap();
       moduleHashMap.put(module.getName(), module);
+    }
+  }
+
+  /**
+   * Gets a summary of the version changes between two mpacks. This will not
+   * look at things like mpack descriptions, URLs, etc. It only returns
+   * additions, removals, and version changes of the module components.
+   *
+   * @param other
+   *          the mpack to compare with.
+   * @return a summary of changes.
+   */
+  public MpackChangeSummary getChangeSummary(Mpack other) {
+    MpackChangeSummary summary = new MpackChangeSummary(this, other);
+    return summary;
+  }
+
+  /**
+   * Contains an aggregated summary of changes in module and component version
+   * from one mpack to another. This will only represent version changes between
+   * components (or additions and removals).
+   */
+  public static class MpackChangeSummary {
+    private Set<ModuleComponent> m_added = Sets.newLinkedHashSet();
+    private Set<ModuleComponent> m_removed = Sets.newLinkedHashSet();
+    private Set<ModuleVersionChange> m_moduleVersionChanges = Sets.newLinkedHashSet();
+    private Set<ModuleComponentVersionChange> m_componentVersionChanges = Sets.newLinkedHashSet();
+
+    private final Mpack m_source;
+    private final Mpack m_target;
+
+    /**
+     * Constructor.
+     *
+     * @param source
+     *          the source mpack to diff from.
+     * @param other
+     *          the mpack to diff against.
+     */
+    public MpackChangeSummary(Mpack source, Mpack target) {
+      m_source = source;
+      m_target = target;
+
+      for (Module module : source.getModules()) {
+        Module otherModule = target.getModule(module.getName());
+        if (null == otherModule) {
+          module.getComponents().stream().peek(moduleComponent -> removed(moduleComponent));
+
+          continue;
+        }
+
+        // no change in module version, no components changed
+        if (StringUtils.equals(module.getVersion(), otherModule.getVersion())) {
+          continue;
+        }
+
+        // module version changed
+        ModuleVersionChange moduleVersionChange = changed(module, otherModule);
+
+        for (ModuleComponent moduleComponent : module.getComponents()) {
+          ModuleComponent otherComponent = module.getModuleComponent(moduleComponent.getName());
+          if (null == otherComponent) {
+            removed(moduleComponent);
+            continue;
+          }
+
+          // module component version changed
+          if (!StringUtils.equals(moduleComponent.getVersion(), otherComponent.getVersion())) {
+            changed(moduleVersionChange, moduleComponent, otherComponent);
+          }
+        }
+      }
+
+      for (Module otherModule : target.getModules()) {
+        Module thisModule = source.getModule(otherModule.getName());
+        if (null == thisModule) {
+          otherModule.getComponents().stream().peek(moduleComponent -> added(moduleComponent));
+
+          continue;
+        }
+
+        for (ModuleComponent otherComponent : otherModule.getComponents()) {
+          ModuleComponent thisComponent = thisModule.getModuleComponent(otherComponent.getName());
+          if (null == thisComponent) {
+            added(otherComponent);
+          }
+        }
+      }
+    }
+
+    /**
+     * Gets whether there are any changes represented by this summary.
+     */
+    public boolean hasChanges() {
+      return !(m_added.isEmpty() && m_removed.isEmpty() && m_moduleVersionChanges.isEmpty());
+    }
+
+    /**
+     * A module component was added between mpacks.
+     *
+     * @param moduleComponent
+     *          the added module component.
+     */
+    public void added(ModuleComponent moduleComponent) {
+      m_added.add(moduleComponent);
+    }
+
+    /**
+     * A module was changed between mpacks.
+     *
+     * @param moduleComponent
+     *          the removed module component.
+     */
+    public ModuleVersionChange changed(Module source, Module target) {
+      ModuleVersionChange change = new ModuleVersionChange(source, target);
+      m_moduleVersionChanges.add(change);
+      return change;
+    }
+
+    /**
+     * A module component was changed between mpacks.
+     *
+     * @param moduleVersionChange
+     *          the parent module change for this component.
+     * @param source
+     *          the source component version
+     * @param target
+     *          the target component version
+     */
+    public ModuleComponentVersionChange changed(ModuleVersionChange moduleVersionChange,
+        ModuleComponent source, ModuleComponent target) {
+      ModuleComponentVersionChange change = new ModuleComponentVersionChange(source, target);
+      m_componentVersionChanges.add(change);
+
+      moduleVersionChange.m_componentChanges.add(change);
+      return change;
+    }
+
+    /**
+     * A module component had a version changed between mpacks.
+     *
+     * @param moduleComponent
+     */
+    public void removed(ModuleComponent moduleComponent) {
+      m_removed.add(moduleComponent);
+    }
+
+    /**
+     * @return the added
+     */
+    public Set<ModuleComponent> getAdded() {
+      return m_added;
+    }
+
+    /**
+     * @return the removed
+     */
+    public Set<ModuleComponent> getRemoved() {
+      return m_removed;
+    }
+
+    /**
+     * Gets all modules which have changed versions.
+     *
+     * @return the changed modules
+     */
+    public Set<ModuleVersionChange> getModuleVersionChanges() {
+      return m_moduleVersionChanges;
+    }
+
+    /**
+     * Gets all components which have changed versions.
+     *
+     * @return the changed modules.
+     */
+    public Set<ModuleComponentVersionChange> getComponentVersionChanges() {
+      return m_componentVersionChanges;
+    }
+
+    /**
+     * Gets the source mpack the diff is from.
+     *
+     * @return the source
+     */
+    public Mpack getSource() {
+      return m_source;
+    }
+
+    /**
+     * Gets the mpack which was diff'd against.
+     *
+     * @return the other
+     */
+    public Mpack getTarget() {
+      return m_target;
+    }
+
+    /**
+     * Gets whether there are version changes of module components between
+     * mpacks.
+     *
+     * @return
+     */
+    public boolean hasVersionChanges() {
+      return !m_moduleVersionChanges.isEmpty();
+    }
+  }
+
+  /**
+   * Represents a change in module versions.
+   */
+  public static class ModuleVersionChange {
+    private final Module m_source;
+    private final Module m_target;
+    private final Set<ModuleComponentVersionChange> m_componentChanges = Sets.newLinkedHashSet();
+
+    /**
+     * Constructor.
+     *
+     * @param source
+     * @param target
+     */
+    public ModuleVersionChange(Module source, Module target) {
+      m_source = source;
+      m_target = target;
+    }
+
+    public Module getSource() {
+      return m_source;
+    }
+
+    public Module getTarget() {
+      return m_target;
+    }
+
+    public Set<ModuleComponentVersionChange> getComponentChanges() {
+      return m_componentChanges;
+    }
+  }
+
+  /**
+   * Represents a change in module component versions.
+   */
+  public static class ModuleComponentVersionChange {
+    private final ModuleComponent m_source;
+    private final ModuleComponent m_target;
+
+    /**
+     * Constructor.
+     *
+     * @param source
+     * @param target
+     */
+    public ModuleComponentVersionChange(ModuleComponent source, ModuleComponent target) {
+      m_source = source;
+      m_target = target;
+    }
+
+    public ModuleComponent getSource() {
+      return m_source;
+    }
+
+    public ModuleComponent getTarget() {
+      return m_target;
     }
   }
 }

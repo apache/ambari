@@ -15,37 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.stack.upgrade;
+package org.apache.ambari.server.events;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
+public class ServiceGroupMpackChangedEvent extends ClusterEvent {
 
-import com.google.gson.annotations.SerializedName;
-
-/**
- * Indicates the scope of a group or task
- */
-@XmlEnum
-public enum UpgradeScope {
-
-  /**
-   * Used only when completely upgrading the cluster.
-   */
-  @XmlEnumValue("COMPLETE")
-  @SerializedName("rolling_upgrade")
-  COMPLETE,
-
-  /**
-   * Used only when partially upgrading the cluster.
-   */
-  @XmlEnumValue("PARTIAL")
-  @SerializedName("partial")
-  PARTIAL,
-
-  /**
-   * Used for any scoped upgrade.
-   */
-  @XmlEnumValue("ANY")
-  @SerializedName("any")
-  ANY;
+  public ServiceGroupMpackChangedEvent(long clusterId) {
+    super(AmbariEventType.SERVICE_GROUP_MPACK_CHANGED, clusterId);
+  }
 }

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-
+import com.google.common.base.MoreObjects;
 import com.google.gson.annotations.SerializedName;
 
 /* Representation of the modules section in the mpack.json*/
@@ -158,24 +158,30 @@ public class Module {
             && Objects.equals(dependencies, module.dependencies) && Objects.equals(components, module.components);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
     return Objects.hash(id, displayName, description, category, name, version, definition, dependencies, components);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString() {
-    return "Module{" +
-            "id='" + id + '\'' +
-            ", displayName='" + displayName + '\'' +
-            ", description='" + description + '\'' +
-            ", category=" + category +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", definition='" + definition + '\'' +
-            ", dependencies=" + dependencies +
-            ", components=" + components +
-            '}';
+    return MoreObjects.toStringHelper(this)
+    .add("id", id)
+    .add("displayName", displayName)
+    .add("description", description)
+    .add("category", category)
+    .add("name", name)
+    .add("version", version)
+    .add("definition", definition)
+    .add("dependencies", dependencies)
+    .add("components", components)
+    .toString();
   }
 
   /**
@@ -183,7 +189,10 @@ public class Module {
    */
   public void populateComponentMap() {
     componentHashMap = new HashMap<>();
-    for (ModuleComponent moduleComponent : this.getComponents()){
+    for (ModuleComponent moduleComponent : getComponents()){
+      // set reverse lookup
+      moduleComponent.setModule(this);
+
       componentHashMap.put(moduleComponent.getName(), moduleComponent);
     }
   }

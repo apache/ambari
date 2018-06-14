@@ -50,8 +50,9 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.UpgradeContext.UpgradeServiceSummary;
+import org.apache.ambari.server.state.UpgradeContext.UpgradeServiceGroupSummary;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -516,25 +517,28 @@ public class ServerActionExecutor {
           if (actionClassname == null) {
             throw new AmbariException("Missing action classname for server action");
           } else {
-            Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+            Map<String, ServiceInfo> services = new HashMap<>();
             UpgradeSummary upgradeSummary = executionCommand.getUpgradeSummary();
             if (upgradeSummary != null) {
-              Map<String, UpgradeServiceSummary> upgradeServiceSummaries = upgradeSummary.services;
-              LOG.debug("UpgradeServiceSummary: " + upgradeServiceSummaries);
+              Map<String, UpgradeServiceGroupSummary> upgradeServiceGroupSummaries = upgradeSummary.serviceGroups;
               AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
               AmbariMetaInfo ambariMetaInfo = ambariManagementController.getAmbariMetaInfo();
               String serviceName = executionCommand.getServiceName();
-              if (serviceName != null && !serviceName.isEmpty()){
-                LOG.info(String.format("Server action %s is associated with service %s", actionClassname, serviceName));
+              String serviceGroupName = executionCommand.getServiceGroupName();
+
+              if (StringUtils.isNotBlank(serviceName) && StringUtils.isNotBlank(serviceGroupName)){
+                LOG.info("Server action {} is associated with service {}", actionClassname, serviceName);
                 //Execution stage of a given service, only need to examine stack information for this one service
-                UpgradeServiceSummary serviceSummary = upgradeServiceSummaries.get(serviceName);
-                addServiceInfo(services, ambariMetaInfo, serviceSummary.sourceStackId, serviceName);
+                UpgradeServiceGroupSummary serviceGroupSummary = upgradeServiceGroupSummaries.get(serviceGroupName);
+                addServiceInfo(services, ambariMetaInfo, serviceGroupSummary.targetStack, serviceName);
               } else {
                 LOG.info(String.format("Server action %s is not associated with a service", actionClassname));
                 //Load all Jars
-                for(String key: upgradeServiceSummaries.keySet()){
-                  UpgradeServiceSummary serviceSummary = upgradeServiceSummaries.get(key);
-                  addServiceInfo(services, ambariMetaInfo, serviceSummary.sourceStackId, key);
+                for(String serviceGroupKey: upgradeServiceGroupSummaries.keySet()){
+                  UpgradeServiceGroupSummary serviceGroupSummary = upgradeServiceGroupSummaries.get(serviceGroupKey);
+                  for (String serviceNameKey : serviceGroupSummary.services.keySet()) {
+                    addServiceInfo(services, ambariMetaInfo, serviceGroupSummary.targetStack, serviceNameKey);
+                  }
                 }
               }
               LOG.info(String.format("Attempt to load server action classes from %s", services.keySet().toString()));
@@ -571,7 +575,7 @@ public class ServerActionExecutor {
     private List<String> getStackInfo(String stackId) {
       LOG.debug(String.format("Stack id: %s", stackId));
       StringTokenizer tokens = new StringTokenizer(stackId, "-");
-      List<String> info = new ArrayList<String>();
+      List<String> info = new ArrayList<>();
       while (tokens.hasMoreElements()) {
         info.add((String)tokens.nextElement());
       }

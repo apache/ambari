@@ -46,7 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Used to represent cluster-based operations.
@@ -109,9 +109,6 @@ public class ClusterGrouping extends Grouping {
     @XmlElement(name="task")
     public Task task;
 
-    @XmlElement(name="scope")
-    public UpgradeScope scope = UpgradeScope.ANY;
-
     /**
      * A condition element with can prevent this stage from being scheduled in
      * the upgrade.
@@ -124,7 +121,7 @@ public class ClusterGrouping extends Grouping {
      */
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("id", id).add("title",
+      return MoreObjects.toStringHelper(this).add("id", id).add("title",
           title).omitNullValues().toString();
     }
 
@@ -192,7 +189,7 @@ public class ClusterGrouping extends Grouping {
 
           // only schedule this stage if its service is part of the upgrade
           if (StringUtils.isNotBlank(execution.service)) {
-            if (!upgradeContext.isServiceSupported(execution.service)) {
+            if (!upgradeContext.isSupportedInUpgrade(execution.service)) {
               continue;
             }
           }
@@ -285,13 +282,8 @@ public class ClusterGrouping extends Grouping {
 
     if (StringUtils.isNotBlank(service) && StringUtils.isNotBlank(component)) {
 
-      // !!! if the context is not scoped for the execute-stage, bail
-      if (!ctx.isScoped(execution.scope)) {
-        return null;
-      }
-
       // !!! if the context is targeted and does not include the service, bail
-      if (!ctx.isServiceSupported(service)) {
+      if (!ctx.isSupportedInUpgrade(service)) {
         return null;
       }
 

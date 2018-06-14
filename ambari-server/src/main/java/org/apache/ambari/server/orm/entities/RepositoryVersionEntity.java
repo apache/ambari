@@ -19,7 +19,6 @@ package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 
 @Deprecated
@@ -60,13 +59,6 @@ public class RepositoryVersionEntity {
   }
 
   public StackId getStackId() {
-    return null;
-  }
-
-  /**
-   * @return the type
-   */
-  public RepositoryType getType() {
     return null;
   }
 

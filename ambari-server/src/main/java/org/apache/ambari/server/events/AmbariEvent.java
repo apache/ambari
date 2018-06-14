@@ -189,9 +189,9 @@ public abstract class AmbariEvent {
     STALE_CONFIGS_UPDATE,
 
     /**
-     * Service component's repo has been changed..
+     * The mpack associated with a service group has changed.
      */
-    SERVICE_COMPONENT_REPO_CHANGE;
+    SERVICE_GROUP_MPACK_CHANGED;
   }
 
   /**

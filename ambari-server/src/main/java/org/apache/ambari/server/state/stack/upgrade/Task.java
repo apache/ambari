@@ -69,13 +69,6 @@ public abstract class Task {
    */
   public abstract String getActionVerb();
 
-  /**
-   * The scope for the task
-   */
-  @XmlElement(name = "scope")
-  public UpgradeScope scope = UpgradeScope.ANY;
-
-
   @Override
   public String toString() {
     return getType().toString();

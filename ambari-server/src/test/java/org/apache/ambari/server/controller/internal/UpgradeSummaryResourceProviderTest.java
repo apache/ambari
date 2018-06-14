@@ -269,8 +269,6 @@ public class UpgradeSummaryResourceProviderTest {
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
 
-
-    upgrade.setRepositoryVersion(null);
     upgradeDAO.create(upgrade);
 
     // Resource used to make assertions.
