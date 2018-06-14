@@ -275,7 +275,7 @@ App.HostComponentStatus = {
       case this.disabled:
         return 'Disabled';
       case this.init:
-        return 'Install Pending';
+        return 'Install Pending...';
     }
     return 'Unknown';
   },
