@@ -131,7 +131,8 @@ public class DownloadMpacksTaskTest {
     // then
     expectedException.expect(RuntimeException.class);
     expectedException.expectMessage(
-      "Error occured while registering mpack: EDW-1.0.0. Caused by java.net.UnknownHostException: mpacks.org");
+      "Error occured while registering mpack: EDW-1.0.0 (uri: http://mpacks.org/EDW.1.0.0). " +
+        "Caused by java.net.UnknownHostException: mpacks.org");
 
     // given
     reset(resourceProvider);
