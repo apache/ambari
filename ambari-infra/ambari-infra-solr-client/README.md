@@ -144,6 +144,8 @@ history_collection_name = history
 
 After the file has created successfully by the script, review the configuration (e.g.: if 1 of the Solr is not up yet, and you do not want to use its REST API for operations, you can remove its url from the urls of infra_solr section or you can change backup locations for different collections etc.)
 
+[![asciicast](https://asciinema.org/a/xsdPY8wReNJwFfqU9t5FtLWeR.png)](https://asciinema.org/a/xsdPY8wReNJwFfqU9t5FtLWeR?speed=2)
+
 ### <a id="ii.-backup-collections-(ambari-2.6.x-to-ambari-2.7.x)">III. Backup collections (Ambari 2.6.x to Ambari 2.7.x)</a>
 
 Before you start to upgrade process check the Solr instances are running and also make sure you have stable shards (at least one core is up and running) and will have enough space on the disks to store Solr backup data. (you will need at least that many as your index size per host). The backup process contains a few steps: backup ranger configs on znode, backup collections, delete Log Search znodes, then upgrade `managed-schema` znode for Ranger. 
