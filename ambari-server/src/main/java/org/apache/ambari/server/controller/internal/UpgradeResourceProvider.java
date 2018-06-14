@@ -1654,8 +1654,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setStackId(stackId);
     actionContext.setTimeout(timeout);
     actionContext.setRetryAllowed(allowRetry);
-    actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
-
+    if (StageWrapper.Type.SERVICE_CHECK.name().equals(role)) {
+      actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
+    } else {
+      actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
+    }
     // hosts in maintenance mode are excluded from the upgrade
     actionContext.setMaintenanceModeHostExcluded(true);
 
