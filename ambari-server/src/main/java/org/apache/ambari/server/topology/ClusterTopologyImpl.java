@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -79,7 +80,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.blueprint = topologyRequest.getBlueprint();
     this.setting = blueprint.getSetting();
     this.configuration = topologyRequest.getConfiguration();
-    configRecommendationStrategy = ConfigRecommendationStrategy.NEVER_APPLY;
+    configRecommendationStrategy = ConfigRecommendationStrategy.getDefault();
     provisionAction = topologyRequest instanceof BaseClusterRequest ? ((BaseClusterRequest) topologyRequest).getProvisionAction() : INSTALL_AND_START; // FIXME
 
     provisionRequest = null;
@@ -105,7 +106,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.provisionRequest = request;
     this.resolvedComponents = resolvedComponents;
     clusterName = request.getClusterName();
-    configRecommendationStrategy = request.getConfigRecommendationStrategy();
+    configRecommendationStrategy =
+      Optional.ofNullable(request.getConfigRecommendationStrategy()).orElse(ConfigRecommendationStrategy.getDefault());
     provisionAction = request.getProvisionAction();
 
     defaultPassword = provisionRequest.getDefaultPassword();

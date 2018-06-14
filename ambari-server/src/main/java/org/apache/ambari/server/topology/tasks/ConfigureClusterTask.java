@@ -75,7 +75,7 @@ public class ConfigureClusterTask implements Callable<Boolean> {
       msg = "Some host groups require more hosts, cluster configuration cannot begin";
     }
       else if (topology.getConfigRecommendationStrategy().shouldUseAdvisor() && topology.getHostNames().isEmpty()) {
-      msg = "Getting config recommendations requires at leas one host, cluster configuration cannot begin";
+      msg = "Getting config recommendations requires at least one host, cluster configuration cannot begin";
     }
     if (null != msg) {
       LOG.info(msg);

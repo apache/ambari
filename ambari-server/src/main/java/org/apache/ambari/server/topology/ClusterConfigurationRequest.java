@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -350,10 +349,13 @@ public class ClusterConfigurationRequest {
 
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
 
-    final Set<String> clusterConfigTypes = clusterConfiguration.getFullProperties().keySet();
+    final Map<String, Map<String, String>> clusterProperties = clusterConfiguration.getFullProperties();
+    final Map<String, Map<String, Map<String, String>>> clusterAttributes = clusterConfiguration.getFullAttributes();
+    final Set<String> clusterConfigTypes = clusterProperties.keySet();
     final Set<String> globalConfigTypes = ImmutableSet.of("cluster-env");
 
     // TODO: do we need to handle security type? In the previous version it was handled but in a broken way
+
     for (ServiceResponse service : ambariContext.getServices(clusterTopology.getClusterName())) {
       ClusterRequest clusterRequest =
         new ClusterRequest(clusterTopology.getClusterId(), clusterTopology.getClusterName(), null, null, null, null);
@@ -366,8 +368,8 @@ public class ClusterConfigurationRequest {
         );
 
       for (String serviceConfigType: configTypes) {
-        Map<String, String> properties = clusterConfiguration.getFullProperties().get(serviceConfigType);
-        Map<String, Map<String, String>> attributes = clusterConfiguration.getFullAttributes().get(serviceConfigType);
+        Map<String, String> properties = clusterProperties.get(serviceConfigType);
+        Map<String, Map<String, String>> attributes = clusterAttributes.get(serviceConfigType);
 
         removeNullValues(properties, attributes);
 
@@ -388,8 +390,8 @@ public class ClusterConfigurationRequest {
     ClusterRequest globalConfigClusterRequest =
       new ClusterRequest(clusterTopology.getClusterId(), clusterTopology.getClusterName(), null, null, null, null);
 
-    Map<String, String> clusterEnvProps = clusterConfiguration.getFullProperties().get("cluster-env");
-    Map<String, Map<String, String>> clusterEnvAttributes = clusterConfiguration.getFullAttributes().get("cluster-env");
+    Map<String, String> clusterEnvProps = clusterProperties.get("cluster-env");
+    Map<String, Map<String, String>> clusterEnvAttributes = clusterAttributes.get("cluster-env");
 
     removeNullValues(clusterEnvProps, clusterEnvAttributes);
 
@@ -414,7 +416,7 @@ public class ClusterConfigurationRequest {
     if (null != configAttributes) {
       configAttributes.values().removeIf(Objects::isNull);
       configAttributes.values().forEach(map -> map.values().removeIf(Objects::isNull));
-      configAttributes.entrySet().removeIf(e -> e.getValue().isEmpty());
+      configAttributes.values().removeIf(v -> v.isEmpty());
     }
   }
 
@@ -448,83 +450,4 @@ public class ClusterConfigurationRequest {
     }
   }
 
-  /**
-   * Internal class meant to represent the collection of configuration
-   * items and configuration attributes that are associated with a given service.
-   *
-   * This class is used to support proper configuration versioning when
-   * Ambari Blueprints is used to deploy a cluster.
-   */
-  private static class BlueprintServiceConfigRequest {
-
-    private final String serviceName;
-    private final Long serviceId;
-    private final Long serviceGroupId;
-
-    private List<BlueprintServiceConfigElement> configElements =
-      new LinkedList<>();
-
-    BlueprintServiceConfigRequest(String serviceName, Long serviceId, Long serviceGroupId) {
-      this.serviceName = serviceName;
-      this.serviceId = serviceId;
-      this.serviceGroupId = serviceGroupId;
-    }
-
-    void addConfigElement(String type, Map<String, String> props, Map<String, Map<String, String>> attributes) {
-      if (props == null) {
-        props = Collections.emptyMap();
-      }
-
-      if (attributes == null) {
-        attributes = Collections.emptyMap();
-      }
-      configElements.add(new BlueprintServiceConfigElement(type, props, attributes));
-    }
-
-    public String getServiceName() {
-      return serviceName;
-    }
-
-    public Long getServiceId() {
-      return serviceId;
-    }
-
-    public Long getServiceGroupId() {
-      return serviceGroupId;
-    }
-
-    List<BlueprintServiceConfigElement> getConfigElements() {
-      return configElements;
-    }
-  }
-
-  /**
-   * Internal class that represents the configuration
-   *  and attributes for a given configuration type.
-   */
-  private static class BlueprintServiceConfigElement {
-    private final String typeName;
-
-    private final Map<String, String> configuration;
-
-    private final Map<String, Map<String, String>> attributes;
-
-    BlueprintServiceConfigElement(String type, Map<String, String> props, Map<String, Map<String, String>> attributes) {
-      this.typeName = type;
-      this.configuration = props;
-      this.attributes = attributes;
-    }
-
-    public String getTypeName() {
-      return typeName;
-    }
-
-    public Map<String, String> getConfiguration() {
-      return configuration;
-    }
-
-    public Map<String, Map<String, String>> getAttributes() {
-      return attributes;
-    }
-  }
 }

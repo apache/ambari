@@ -51,4 +51,8 @@ public enum ConfigRecommendationStrategy {
     return shouldUseAdvisor;
   }
 
+  public static final ConfigRecommendationStrategy getDefault() {
+    return NEVER_APPLY;
+  }
+
 }

@@ -206,6 +206,7 @@ public interface ClusterTopology {
    */
   RequestStatusResponse startHost(String hostName, boolean skipFailure);
 
+  @Nonnull
   ConfigRecommendationStrategy getConfigRecommendationStrategy();
 
   ProvisionAction getProvisionAction();
