@@ -46,7 +46,7 @@ public class UpgradePlanConfigEntity {
   @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
   private String type;
 
-  @Column(name = "key", nullable = false, insertable = true, updatable = false)
+  @Column(name = "config_key", nullable = false, insertable = true, updatable = false)
   private String key;
 
   @Column(name="new_value", insertable = true, updatable = false)
