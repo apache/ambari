@@ -116,6 +116,7 @@ public class UpgradePlanResourceProviderTest {
     Map<String, Object> serviceGroups = ImmutableMap.<String, Object>builder()
         .put("service_group_id", 4L)
         .put("mpack_target_id", 2L)
+        .put("upgrade_pack", "up.xml")
         .build();
 
     Map<String, Object> requestMap = ImmutableMap.<String, Object>builder()
@@ -142,6 +143,7 @@ public class UpgradePlanResourceProviderTest {
     UpgradePlanDetailEntity detail = entity.getDetails().iterator().next();
     assertEquals(4L, detail.getServiceGroupId());
     assertEquals(2L, detail.getMpackTargetId());
+    assertEquals("up.xml", detail.getUpgradePack());
     assertNotNull(detail.getConfigChanges());
     // !!! TODO when more thorough code is added, we'll be able to test more assertions
     assertEquals(0, detail.getConfigChanges().size());

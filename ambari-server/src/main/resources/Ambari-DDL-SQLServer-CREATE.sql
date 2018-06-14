@@ -1054,6 +1054,7 @@ CREATE TABLE upgrade_plan_detail (
   upgrade_plan_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   mpack_target_id BIGINT NOT NULL,
+  upgrade_pack VARCHAR(255) NOT NULL,
   CONSTRAINT PK_upgrade_plan_detail PRIMARY KEY (id),
   CONSTRAINT FK_upgrade_det_upgrade_plan FOREIGN KEY (upgrade_plan_id) REFERENCES upgrade_plan (id)
 );
@@ -1062,7 +1063,7 @@ CREATE TABLE upgrade_plan_config (
   id BIGINT NOT NULL,
   upgrade_plan_detail_id BIGINT NOT NULL,
   config_type VARCHAR(255) NOT NULL,
-  key VARCHAR(255) NOT NULL,
+  config_key VARCHAR(255) NOT NULL,
   new_value TEXT,
   remove SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_upgrade_plan_config PRIMARY KEY (id),
