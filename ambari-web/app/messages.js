@@ -1401,16 +1401,31 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step7.notice.inProgress': 'Please wait while services are started',
   'admin.manageJournalNode.wizard.step7.notice.completed':'Completed update to JournalNodes.',
 
+  'admin.manageJournalNode.wizard.step3.error.multipleNameSpaces.nameNodes': 'Some NameNodes are in the process of being stopped. Please make sure that NameNodes are running to create checkpoints successfully.',
+  'admin.manageJournalNode.wizard.step3.body.singleNameSpace.safeModeText': 'Put the NameNode in Safe Mode (read-only mode)',
+  'admin.manageJournalNode.wizard.step3.body.multipleNameSpaces.safeModeText': 'Put the NameNodes in Safe Mode (read-only mode)',
+  'admin.manageJournalNode.wizard.step3.body.singleNameSpace.safeModeCommand': 'sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'',
+  'admin.manageJournalNode.wizard.step3.body.multipleNameSpaces.safeModeCommand': 'sudo su {0} -l -c \'hdfs dfsadmin -fs hdfs://{1} -safemode enter\'',
+  'admin.manageJournalNode.wizard.step3.body.singleNameSpace.checkPointText': 'Once in Safe Mode, create a Checkpoint',
+  'admin.manageJournalNode.wizard.step3.body.multipleNameSpaces.checkPointText': 'Once in Safe Mode, create Checkpoints',
+  'admin.manageJournalNode.wizard.step3.body.singleNameSpace.checkPointCommand': 'sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'',
+  'admin.manageJournalNode.wizard.step3.body.multipleNameSpaces.checkPointCommand': 'sudo su {0} -l -c \'hdfs dfsadmin -fs hdfs://{1} -saveNamespace\'',
+  'admin.manageJournalNode.wizard.step3.body.singleNameSpace.proceed': 'You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the Checkpoint has been created successfully.',
+  'admin.manageJournalNode.wizard.step3.body.multipleNameSpaces.proceed': 'You will be able to proceed once Ambari detects that the NameNodes are in Safe Mode and the Checkpoints have been created successfully.',
+  'admin.manageJournalNode.wizard.step3.body.singleNameSpace.recentCheckPoint': 'If the <b>Next</b> button is enabled before you run the <b>"Step 3: Save Namespace"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 3: Save Namespace"</b> command.',
+  'admin.manageJournalNode.wizard.step3.body.multipleNameSpaces.recentCheckPoint': 'If the <b>Next</b> button is enabled before you run the <b>"Step 3: Save Namespace"</b> commands, it means there are recent Checkpoints already and you may proceed without running the <b>"Step 3: Save Namespace"</b> commands.',
   'admin.manageJournalNode.wizard.step3.body':
   '<ol>' +
-  '<li>Login to the NameNode host <b>{1}</b>.</li>' +
-  '<li>Put the NameNode in Safe Mode (read-only mode):' +
-  '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
-  '<li>Once in Safe Mode, create a Checkpoint:' +
-  '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
-  '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the Checkpoint has been created successfully.</li>'+
-  '<div class="alert alert-warn">If the <b>Next</b> button is enabled before you run the <b>"Step 3: Save Namespace"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 3: Save Namespace"</b> command.</div>' +
+  '<li>Login to the NameNode host <b>{0}</b>.</li>' +
+  '<li>{1}:' +
+  '<div class="code-snippet">{2}</div></li>' +
+  '<li>{3}:' +
+  '<div class="code-snippet">{4}</div></li>' +
+  '<li>{5}</li>'+
+  '<div class="alert alert-warn">{6}</div>' +
   '</ol>',
+  'admin.manageJournalNode.wizard.step3.checkPointsNotCreated': 'Checkpoints not created yet',
+  'admin.manageJournalNode.wizard.step3.checkPointsCreated': 'Checkpoints created',
 
   'admin.manageJournalNode.wizard.step5.body':
   '<ol>' +
@@ -1451,7 +1466,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step2.header':'Select Hosts',
   'admin.highAvailability.wizard.step3.header':'Review',
   'admin.highAvailability.wizard.step4.header':'Create Checkpoint',
-  'admin.highAvailability.wizard.step4.error.nameNode':'NameNode is in the process of being stopped. Please make sure that namenode is running to create checkpoint successfully.',
+  'admin.highAvailability.wizard.step4.error.nameNode':'NameNode is in the process of being stopped. Please make sure that NameNode is running to create checkpoint successfully.',
   'admin.highAvailability.wizard.step5.header':'Configure Components',
   'admin.highAvailability.wizard.step6.header':'Initialize JournalNodes',
   'admin.highAvailability.wizard.step7.header':'Start Components',

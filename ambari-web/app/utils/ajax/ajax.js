@@ -1440,6 +1440,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE',
     'mock': ''
   },
+  'admin.high_availability.getNnCheckPointsStatuses': {
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in({hostNames})&fields=HostRoles/desired_state,metrics/dfs/namenode&minimal_response=true',
+    'mock': ''
+  },
   'admin.high_availability.getJnCheckPointStatus': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/JOURNALNODE?fields=metrics',
     'mock': ''

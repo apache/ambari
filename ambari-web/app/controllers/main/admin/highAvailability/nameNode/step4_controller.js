@@ -46,19 +46,26 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
 
   checkNnCheckPointStatus: function (data) {
     this.set('isNameNodeStarted', data.HostRoles.desired_state === 'STARTED');
-    var self = this;
-    var journalTransactionInfo = $.parseJSON(Em.get(data, 'metrics.dfs.namenode.JournalTransactionInfo'));
-    var isInSafeMode = !Em.isEmpty(Em.get(data, 'metrics.dfs.namenode.Safemode'));
-    // in case when transaction info absent or invalid return 2 which will return false in next `if` statement
-    journalTransactionInfo = !!journalTransactionInfo ? (parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId) - parseInt(journalTransactionInfo.MostRecentCheckpointTxId)) : 2;
-    if (journalTransactionInfo <= 1 && isInSafeMode) {
-      this.set("isNextEnabled", true);
+    const isNextEnabled = this.getNnCheckPointStatus(data);
+    if (isNextEnabled) {
+      this.set('isNextEnabled', true);
       return;
     }
-    
-    window.setTimeout(function () {
-      self.pullCheckPointStatus();
-    }, self.POLL_INTERVAL);
+
+    window.setTimeout(() => {
+      this.pullCheckPointStatus();
+    }, this.POLL_INTERVAL);
+  },
+
+  getNnCheckPointStatus: function (data) {
+    const isInSafeMode = !Em.isEmpty(Em.get(data, 'metrics.dfs.namenode.Safemode'));
+    let journalTransactionInfo = $.parseJSON(Em.get(data, 'metrics.dfs.namenode.JournalTransactionInfo'));
+    // in case when transaction info absent or invalid return 2 which will return false in next `if` statement
+    journalTransactionInfo = !!journalTransactionInfo
+      ? (parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId)
+        - parseInt(journalTransactionInfo.MostRecentCheckpointTxId))
+      : 2;
+    return journalTransactionInfo <= 1 && isInSafeMode;
   },
 
   done: function () {
