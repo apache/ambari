@@ -590,10 +590,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }
 
     var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
-    var isRangerServicePresent = rangerService && (rangerService.get('isInstalled') || rangerService.get('isSelected'));
+    const isRangerServicePresent = rangerService && (rangerService.get('isInstalled') || rangerService.get('isSelected'));
+    var infraSolrService = App.StackService.find().findProperty('serviceName', 'AMBARI_INFRA_SOLR');
+    const isInfraSolrPresent = infraSolrService && (infraSolrService.get('isInstalled') || infraSolrService.get('isSelected'));
     if(isRangerServicePresent && (this.get('wizardController.name') === 'installerController' || this.get('wizardController.name') === 'addServiceController')) {
       this.setRangerPluginsEnabled(serviceConfigs);
+      if (isInfraSolrPresent) {
+        this.setSolrCloudOn(serviceConfigs);
+      }
     }
+
     this.set('stepConfigs', serviceConfigs);
     this.set('stepConfigsCreated', true);
     this.updateConfigAttributesFromThemes();
@@ -654,6 +660,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         Em.set(pluginEnabledProperty, 'value', 'Yes');
       }
     });
+  },
+
+  setSolrCloudOn: function(stepConfigs) {
+    var rangerServiceConfigs = stepConfigs.findProperty('serviceName', 'RANGER').get('configs');
+    var solrCloudEnabledProperty = rangerServiceConfigs.findProperty('name', 'is_solrCloud_enabled');
+    Em.set(solrCloudEnabledProperty, 'value', 'true');
   },
 
   /**

@@ -195,7 +195,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       this.serviceValidation(callback, 'RANGER', 'rangerCheck');
       this.serviceValidation(callback, 'ATLAS', 'atlasCheck');
     }
-    this.dependentServiceValidation('ATLAS', 'AMBARI_INFRA_SOLR', 'ambariInfraCheck', callback);
+    this.dependentServiceValidation('RANGER', 'AMBARI_INFRA_SOLR', 'ambariRangerInfraCheck', callback);
+    this.dependentServiceValidation('ATLAS', 'AMBARI_INFRA_SOLR', 'ambariAtlasInfraCheck', callback);
+    this.dependentServiceValidation('ATLAS', 'HBASE', 'ambariAtlasHbaseCheck', callback);
     this.dependentServiceValidation('LOGSEARCH', 'AMBARI_INFRA_SOLR', 'ambariLogsearchCheck', callback);
     this.rangerValidation(callback);
     this.sparkValidation(callback);

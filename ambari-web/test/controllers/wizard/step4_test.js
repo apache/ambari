@@ -338,7 +338,7 @@ describe('App.WizardStep4Controller', function () {
         },
         {
           services: ['RANGER'],
-          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck', 'atlasCheck', 'rangerRequirements']
+          errorsExpected: ['ambariMetricsCheck', 'smartSenseCheck', 'atlasCheck', 'ambariRangerInfraCheck', 'rangerRequirements']
         },
         {
           services: ['SMARTSENSE'],
@@ -346,7 +346,7 @@ describe('App.WizardStep4Controller', function () {
         },
         {
           services: ['ATLAS', 'AMBARI_METRICS', 'SMARTSENSE'],
-          errorsExpected: ['rangerCheck', 'ambariInfraCheck', ]
+          errorsExpected: ['rangerCheck', 'ambariAtlasInfraCheck', 'ambariAtlasHbaseCheck']
         },
         {
           services: ['LOGSEARCH', 'AMBARI_METRICS', 'SMARTSENSE'],
@@ -354,7 +354,7 @@ describe('App.WizardStep4Controller', function () {
         },
         {
           services: ['ATLAS', 'AMBARI_METRICS', 'SMARTSENSE', 'RANGER'],
-          errorsExpected: ['ambariInfraCheck', 'rangerRequirements']
+          errorsExpected: ['ambariRangerInfraCheck', 'ambariAtlasInfraCheck', 'ambariAtlasHbaseCheck', 'rangerRequirements']
         },
       ],
       controllerNames = ['installerController', 'addServiceController'],
