@@ -19,6 +19,8 @@ package org.apache.ambari.server.state;
 
 import java.util.Objects;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import com.google.common.base.MoreObjects;
 import com.google.gson.annotations.SerializedName;
 
@@ -38,6 +40,7 @@ public class ModuleComponent {
   /**
    * The owning module for this module component.
    */
+  @JsonIgnore
   private transient Module module;
 
   public String getId() {
@@ -80,6 +83,7 @@ public class ModuleComponent {
     this.isExternal = isExternal;
   }
 
+  @JsonIgnore
   public Module getModule() {
     return module;
   }
