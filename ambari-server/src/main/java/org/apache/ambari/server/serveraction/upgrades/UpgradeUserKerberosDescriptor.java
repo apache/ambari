@@ -49,6 +49,9 @@ import com.google.inject.Inject;
  *
  * @see org.apache.ambari.server.state.kerberos.KerberosDescriptorUpdateHelper
  */
+@Experimental(
+    feature = ExperimentalFeature.MPACK_UPGRADES,
+    comment = "Needs to move away from stacks and to service groups & mpacks")
 public class UpgradeUserKerberosDescriptor extends AbstractUpgradeServerAction {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeUserKerberosDescriptor.class);
 
@@ -97,8 +100,8 @@ public class UpgradeUserKerberosDescriptor extends AbstractUpgradeServerAction {
           feature = ExperimentalFeature.PATCH_UPGRADES,
           comment = "This needs to be correctly done per-service")
 
-      StackId originalStackId = cluster.getCurrentStackVersion();
-      StackId targetStackId = upgradeContext.getRepositoryVersion().getStackId();
+      StackId originalStackId = null;
+      StackId targetStackId = null;
 
       if (upgradeContext.getDirection() == Direction.DOWNGRADE) {
         restoreDescriptor(foreignKeys, messages, errorMessages);

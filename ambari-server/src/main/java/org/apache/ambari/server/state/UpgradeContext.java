@@ -17,11 +17,10 @@
  */
 package org.apache.ambari.server.state;
 
-import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_DIRECTION;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_FAIL_ON_CHECK_WARNINGS;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_PACK;
-import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID;
+import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_PLAN_ID;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_SKIP_FAILURES;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION;
@@ -31,14 +30,15 @@ import static org.apache.ambari.server.controller.internal.UpgradeResourceProvid
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -59,11 +59,17 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.state.Mpack.ModuleComponentVersionChange;
+import org.apache.ambari.server.state.Mpack.ModuleVersionChange;
+import org.apache.ambari.server.state.Mpack.MpackChangeSummary;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -72,15 +78,14 @@ import org.apache.ambari.server.state.stack.upgrade.HostOrderGrouping;
 import org.apache.ambari.server.state.stack.upgrade.HostOrderItem;
 import org.apache.ambari.server.state.stack.upgrade.HostOrderItem.HostOrderActionType;
 import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
+import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
@@ -128,18 +133,6 @@ public class UpgradeContext {
   private UpgradePack m_upgradePack;
 
   /**
-   * Upgrades will always have a single version being upgraded to and downgrades
-   * will have a single version being downgraded from. This repository
-   * represents that version.
-   * <p/>
-   * When the direction is {@link Direction#UPGRADE}, this represents the target
-   * repository. <br/>
-   * When the direction is {@link Direction#DOWNGRADE}, this represents the
-   * repository being downgraded from.
-   */
-  private final RepositoryVersionEntity m_repositoryVersion;
-
-  /**
    * Resolves master components on hosts.
    */
   private final MasterHostResolver m_resolver;
@@ -149,16 +142,6 @@ public class UpgradeContext {
    * participate in the upgrade.
    */
   private final List<ServiceComponentHost> m_unhealthy = new ArrayList<>();
-
-  /**
-   * Mapping of service name to display name.
-   */
-  private final Map<String, String> m_serviceNames = new HashMap<>();
-
-  /**
-   * Mapping of component name to display name.
-   */
-  private final Map<String, String> m_componentNames = new HashMap<>();
 
   /**
    * {@code true} if slave/client component failures should be automatically
@@ -180,27 +163,10 @@ public class UpgradeContext {
   private boolean m_autoSkipManualVerification = false;
 
   /**
-   * A set of services which are included in this upgrade. This will never be
-   * empty - if all services of a cluster are included, then the cluster's
-   * current list of services is populated.
+   * A map containing each service group participating in the upgrade and the
+   * services/components participating.
    */
-  private final Set<String> m_services = new HashSet<>();
-
-  /**
-   * A mapping of service to target repository. On an upgrade, this will be the
-   * same for all services. On a downgrade, this may be different for each
-   * service depending on which repository the service was on before the failed
-   * upgrade.
-   */
-  private final Map<String, RepositoryVersionEntity> m_targetRepositoryMap = new HashMap<>();
-
-  /**
-   * A mapping of service to source (from) repository. On an upgrade, this will
-   * be the current desired repository of every service. When downgrading, this
-   * will be the same for all components and will represent the value returned
-   * from {@link #getRepositoryVersion()}.
-   */
-  private final Map<String, RepositoryVersionEntity> m_sourceRepositoryMap = new HashMap<>();
+  private final Map<ServiceGroup, MpackChangeSummary> m_serviceGroups = new HashMap<>();
 
   /**
    * Used by some {@link Grouping}s to generate commands. It is exposed here
@@ -251,47 +217,10 @@ public class UpgradeContext {
   private long m_revertUpgradeId;
 
   /**
-   * Defines orchestration type.  This is not the repository type when reverting a patch.
-   */
-  private RepositoryType m_orchestration = RepositoryType.STANDARD;
-
-  /**
    * Used to lookup overridable settings like default task parallelism
    */
   @Inject
   private Configuration configuration;
-
-  /**
-   * Reading upgrade type from provided request  or if nothing were provided,
-   * from previous upgrade for downgrade direction.
-   *
-   * @param upgradeRequestMap arguments provided for current upgrade request
-   * @param upgradeEntity previous upgrade entity, should be passed only for downgrade direction
-   *
-   * @return
-   * @throws AmbariException
-   */
-  private UpgradeType calculateUpgradeType(Map<String, Object> upgradeRequestMap,
-                                           UpgradeEntity upgradeEntity) throws AmbariException{
-
-    UpgradeType upgradeType = UpgradeType.ROLLING;
-
-    String upgradeTypeProperty = (String) upgradeRequestMap.get(UPGRADE_TYPE);
-    boolean upgradeTypePassed = StringUtils.isNotBlank(upgradeTypeProperty);
-
-    if (upgradeTypePassed){
-      try {
-        upgradeType = UpgradeType.valueOf(upgradeRequestMap.get(UPGRADE_TYPE).toString());
-      } catch (Exception e) {
-        throw new AmbariException(String.format("Property %s has an incorrect value of %s.",
-          UPGRADE_TYPE, upgradeTypeProperty));
-      }
-    } else if (upgradeEntity != null){
-      upgradeType = upgradeEntity.getUpgradeType();
-    }
-
-    return upgradeType;
-  }
 
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster,
@@ -321,11 +250,6 @@ public class UpgradeContext {
                 cluster.getClusterName()));
       }
 
-      if (!revertUpgrade.getOrchestration().isRevertable()) {
-        throw new AmbariException(String.format("The %s repository type is not revertable",
-            revertUpgrade.getOrchestration()));
-      }
-
       if (revertUpgrade.getDirection() != Direction.UPGRADE) {
         throw new AmbariException(
             "Only successfully completed upgrades can be reverted. Downgrades cannot be reverted.");
@@ -333,97 +257,77 @@ public class UpgradeContext {
 
       if (!revertableUpgrade.getId().equals(revertUpgrade.getId())) {
         throw new AmbariException(String.format(
-            "The only upgrade which is currently allowed to be reverted for cluster %s is upgrade ID %s which was an upgrade to %s",
+            "The only upgrade which is currently allowed to be reverted for cluster %s is upgrade ID %s which was an upgrade to the following mpacks: %s",
             cluster.getClusterName(), revertableUpgrade.getId(),
-            revertableUpgrade.getRepositoryVersion().getVersion()));
+            revertableUpgrade.getTargetMpackStacks()));
       }
 
       m_type = calculateUpgradeType(upgradeRequestMap, revertUpgrade);
 
       // !!! build all service-specific reversions
-      Set<RepositoryVersionEntity> priors = new HashSet<>();
-      Map<String, Service> clusterServices = cluster.getServicesByName();
       for (UpgradeHistoryEntity history : revertUpgrade.getHistory()) {
-        String serviceName = history.getServiceName();
-        String componentName = history.getComponentName();
+        ServiceGroupEntity serviceGroupEntity = history.getServiceGroupEntity();
 
-        priors.add(history.getFromReposistoryVersion());
+        // reverse these on the revert
+        MpackEntity sourceMpackEntity = history.getTargetMpackEntity();
+        MpackEntity targetMpackEntity = history.getSourceMpackEntity();
 
-        // if the service is no longer installed, do nothing
-        if (!clusterServices.containsKey(serviceName)) {
-          LOG.warn("{}/{} will not be reverted since it is no longer installed in the cluster",
-              serviceName, componentName);
+        ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupEntity.getServiceGroupId());
+
+        // if the service group is no longer installed, do nothing
+        if (null == serviceGroup) {
+          LOG.warn(
+              "The service group {} will not be reverted since it is no longer installed in the cluster",
+              serviceGroupEntity.getServiceGroupName());
 
           continue;
         }
 
-        m_services.add(serviceName);
-        m_sourceRepositoryMap.put(serviceName, history.getTargetRepositoryVersion());
-        m_targetRepositoryMap.put(serviceName, history.getFromReposistoryVersion());
+        Mpack sourceMpack = m_metaInfo.getMpack(sourceMpackEntity.getId());
+        Mpack targetMpack = m_metaInfo.getMpack(targetMpackEntity.getId());
+        MpackChangeSummary summary = sourceMpack.getChangeSummary(targetMpack);
+        m_serviceGroups.put(serviceGroup, summary);
       }
 
-      if (priors.size() != 1) {
-        String message = String.format("Upgrade from %s could not be reverted as there is no single "
-            + " repository across services.", revertUpgrade.getRepositoryVersion().getVersion());
-
-        throw new AmbariException(message);
-      }
-
-      m_repositoryVersion = priors.iterator().next();
-
-      // !!! the version is used later in validators
-      upgradeRequestMap.put(UPGRADE_REPO_VERSION_ID, m_repositoryVersion.getId().toString());
       // !!! use the same upgrade pack that was used in the upgrade being reverted
       upgradeRequestMap.put(UPGRADE_PACK, revertUpgrade.getUpgradePackage());
 
       // !!! direction can ONLY be an downgrade on revert
       m_direction = Direction.DOWNGRADE;
-      m_orchestration = revertUpgrade.getOrchestration();
     } else {
-
-      // determine direction
-      String directionProperty = (String) upgradeRequestMap.get(UPGRADE_DIRECTION);
-      if (StringUtils.isEmpty(directionProperty)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_DIRECTION));
-      }
-
-      m_direction = Direction.valueOf(directionProperty);
+      UpgradePlanEntity upgradePlan = null;
+      m_direction = upgradePlan.getDirection();
 
       // depending on the direction, we must either have a target repository or an upgrade we are downgrading from
       switch(m_direction){
         case UPGRADE:{
-          String repositoryVersionId = (String) upgradeRequestMap.get(UPGRADE_REPO_VERSION_ID);
-          if (null == repositoryVersionId) {
-            throw new AmbariException(
-                String.format("The property %s is required when the upgrade direction is %s",
-                    UPGRADE_REPO_VERSION_ID, m_direction));
-          }
-
           m_type = calculateUpgradeType(upgradeRequestMap, null);
 
-          // depending on the repository, add services
-          m_repositoryVersion = null;
-          m_orchestration = m_repositoryVersion.getType();
+          List<UpgradePlanDetailEntity> details = upgradePlan.getDetails();
+          for (UpgradePlanDetailEntity detail : details) {
+            long serviceGroupId = detail.getServiceGroupId();
+            long targetMpackId = detail.getMpackTargetId();
+            ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupId);
+            long sourceMpackId = serviceGroup.getMpackId();
 
-          // add all of the services participating in the upgrade
-          m_services.addAll(getServicesForUpgrade(cluster, m_repositoryVersion));
+            Mpack sourceMpack = m_metaInfo.getMpack(sourceMpackId);
+            Mpack targetMpack = m_metaInfo.getMpack(targetMpackId);
+            MpackChangeSummary summary = sourceMpack.getChangeSummary(targetMpack);
+            if (!summary.hasVersionChanges()) {
+              continue;
+            }
+
+            m_serviceGroups.put(serviceGroup, summary);
+          }
           break;
         }
         case DOWNGRADE:{
+          @Experimental(feature = ExperimentalFeature.MPACK_UPGRADES, comment = "Populate from prior upgrade")
           UpgradeEntity upgrade = m_upgradeDAO.findLastUpgradeForCluster(
               cluster.getClusterId(), Direction.UPGRADE);
 
-          m_repositoryVersion = upgrade.getRepositoryVersion();
-          m_orchestration = upgrade.getOrchestration();
           m_type = calculateUpgradeType(upgradeRequestMap, upgrade);
-
-          // populate the repository maps for all services in the upgrade
-          for (UpgradeHistoryEntity history : upgrade.getHistory()) {
-            m_services.add(history.getServiceName());
-            m_sourceRepositoryMap.put(history.getServiceName(), m_repositoryVersion);
-            m_targetRepositoryMap.put(history.getServiceName(), history.getFromReposistoryVersion());
-          }
-
+          populateParticipatingServiceGroups(cluster, m_serviceGroups, upgrade, true);
           break;
         }
         default:
@@ -432,19 +336,13 @@ public class UpgradeContext {
       }
     }
 
-
     /**
      * For the unit tests tests, there are multiple upgrade packs for the same
      * type, so allow picking one of them. In prod, this is empty.
      */
+    @Experimental(feature = ExperimentalFeature.MPACK_UPGRADES, comment = "No longer using single packs")
     String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
-
-    @Experimental(feature= ExperimentalFeature.REPO_VERSION_REMOVAL)
-    RepositoryVersionEntity upgradeFromRepositoryVersion = m_repositoryVersion;
-
-    m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
-        upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
-        m_type, preferredUpgradePackName);
+    m_upgradePack = null;
 
     // the validator will throw an exception if the upgrade request is not valid
     UpgradeRequestValidator upgradeRequestValidator = buildValidator(m_type);
@@ -492,52 +390,27 @@ public class UpgradeContext {
    */
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster, @Assisted UpgradeEntity upgradeEntity,
-      AmbariMetaInfo ambariMetaInfo, ConfigHelper configHelper) {
+      AmbariMetaInfo ambariMetaInfo, ConfigHelper configHelper) throws AmbariException {
     m_metaInfo = ambariMetaInfo;
 
     m_cluster = cluster;
     m_type = upgradeEntity.getUpgradeType();
     m_direction = upgradeEntity.getDirection();
-    m_repositoryVersion = upgradeEntity.getRepositoryVersion();
 
     m_autoSkipComponentFailures = upgradeEntity.isComponentFailureAutoSkipped();
     m_autoSkipServiceCheckFailures = upgradeEntity.isServiceCheckFailureAutoSkipped();
 
-    List<UpgradeHistoryEntity> allHistory = upgradeEntity.getHistory();
-    for (UpgradeHistoryEntity history : allHistory) {
-      String serviceName = history.getServiceName();
-      RepositoryVersionEntity sourceRepositoryVersion = history.getFromReposistoryVersion();
-      RepositoryVersionEntity targetRepositoryVersion = history.getTargetRepositoryVersion();
-      m_sourceRepositoryMap.put(serviceName, sourceRepositoryVersion);
-      m_targetRepositoryMap.put(serviceName, targetRepositoryVersion);
-      m_services.add(serviceName);
-    }
+    populateParticipatingServiceGroups(cluster, m_serviceGroups, upgradeEntity, false);
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is wrong")
+    @Experimental(
+        feature = ExperimentalFeature.MPACK_UPGRADES,
+        comment = "We need a way to get the upgrade packs given multiple mpacks")
     String upgradePackage = upgradeEntity.getUpgradePackage();
-    StackId stackId = m_repositoryVersion.getStackId();
-    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(null, null);
     m_upgradePack = packs.get(upgradePackage);
 
     m_resolver = new MasterHostResolver(m_cluster, configHelper, this);
-    m_orchestration = upgradeEntity.getOrchestration();
-
-    m_isRevert = upgradeEntity.getOrchestration().isRevertable()
-        && upgradeEntity.getDirection() == Direction.DOWNGRADE;
-  }
-
-  /**
-   * Getting stackId from the set of versions. Is is possible until we upgrading components on the same stack.
-   *
-   * Note: Function should be modified for cross-stack upgrade.
-   *
-   * @param version {@link Set} of services repository versions
-   * @return
-   * {@link StackId} based on provided versions
-   */
-  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-  public StackId getStackIdFromVersions(Map<String, RepositoryVersionEntity> version) {
-    return version.values().iterator().next().getStackId();
+    m_isRevert = upgradeEntity.isRevert();
   }
 
   /**
@@ -566,97 +439,6 @@ public class UpgradeContext {
    */
   public Cluster getCluster() {
     return m_cluster;
-  }
-
-  /**
-   * Gets the version that components are being considered to be "coming from".
-   * <p/>
-   * With a {@link Direction#UPGRADE}, this value represent the services'
-   * desired repository. However, {@link Direction#DOWNGRADE} will use the same
-   * value for all services which is the version that the downgrade is coming
-   * from.
-   *
-   * @return the source version for the upgrade
-   */
-  public Map<String, RepositoryVersionEntity> getSourceVersions() {
-    return new HashMap<>(m_sourceRepositoryMap);
-  }
-
-  /**
-   * Gets the version that service is being considered to be "coming from".
-   * <p/>
-   * With a {@link Direction#UPGRADE}, this value represent the services'
-   * desired repository. However, {@link Direction#DOWNGRADE} will use the same
-   * value for all services which is the version that the downgrade is coming
-   * from.
-   *
-   * @return the source repository for the upgrade
-   */
-  public RepositoryVersionEntity getSourceRepositoryVersion(String serviceName) {
-    return m_sourceRepositoryMap.get(serviceName);
-  }
-
-  /**
-   * Gets the version that service is being considered to be "coming from".
-   * <p/>
-   * With a {@link Direction#UPGRADE}, this value represent the services'
-   * desired repository. However, {@link Direction#DOWNGRADE} will use the same
-   * value for all services which is the version that the downgrade is coming
-   * from.
-   *
-   * @return the source repository for the upgrade
-   * @see #getSourceRepositoryVersion(String)
-   */
-  public String getSourceVersion(String serviceName) {
-    RepositoryVersionEntity serviceSourceVersion = m_sourceRepositoryMap.get(serviceName);
-    return serviceSourceVersion.getVersion();
-  }
-
-  /**
-   * Gets the version being upgraded to or downgraded to for all services
-   * participating. This is the version that the service will be on if the
-   * upgrade or downgrade succeeds.
-   * <p/>
-   * With a {@link Direction#UPGRADE}, all services should be targetting the
-   * same repository version. However, {@link Direction#DOWNGRADE} will target
-   * the original repository that the service was on.
-   *
-   * @return the target version for the upgrade
-   */
-  public Map<String, RepositoryVersionEntity> getTargetVersions() {
-    return new HashMap<>(m_targetRepositoryMap);
-  }
-
-  /**
-   * Gets the repository being upgraded to or downgraded to for the given
-   * service. This is the version that the service will be on if the upgrade or
-   * downgrade succeeds.
-   * <p/>
-   * With a {@link Direction#UPGRADE}, all services should be targeting the
-   * same repository version. However, {@link Direction#DOWNGRADE} will target
-   * the original repository that the service was on.
-   *
-   * @return the target repository for the upgrade
-   */
-  public RepositoryVersionEntity getTargetRepositoryVersion(String serviceName) {
-    return m_targetRepositoryMap.get(serviceName);
-  }
-
-  /**
-   * Gets the version being upgraded to or downgraded to for the given service.
-   * This is the version that the service will be on if the upgrade or downgrade
-   * succeeds.
-   * <p/>
-   * With a {@link Direction#UPGRADE}, all services should be targetting the
-   * same repository version. However, {@link Direction#DOWNGRADE} will target
-   * the original repository that the service was on.
-   *
-   * @return the target version for the upgrade
-   * @see #getTargetRepositoryVersion(String)
-   */
-  public String getTargetVersion(String serviceName) {
-    RepositoryVersionEntity serviceTargetVersion = m_targetRepositoryMap.get(serviceName);
-    return serviceTargetVersion.getVersion();
   }
 
   /**
@@ -695,64 +477,6 @@ public class UpgradeContext {
   }
 
   /**
-   * Gets the single repository version for the upgrade depending on the
-   * direction.
-   * <p/>
-   * If the direction is {@link Direction#UPGRADE} then this will return the
-   * target repository which every service will be on if the upgrade is
-   * finalized. <p/>
-   * If the direction is {@link Direction#DOWNGRADE} then this will return the
-   * repository from which the downgrade is coming from.
-   *
-   * @return the target repository version for this upgrade (never
-   *         {@code null}).
-   */
-  public RepositoryVersionEntity getRepositoryVersion() {
-    return m_repositoryVersion;
-  }
-
-  /**
-   * @return the service display name, or the service name if not set
-   */
-  public String getServiceDisplay(String service) {
-    if (m_serviceNames.containsKey(service)) {
-      return m_serviceNames.get(service);
-    }
-
-    return service;
-  }
-
-  /**
-   * @return the component display name, or the component name if not set
-   */
-  public String getComponentDisplay(String service, String component) {
-    String key = service + ":" + component;
-    if (m_componentNames.containsKey(key)) {
-      return m_componentNames.get(key);
-    }
-
-    return component;
-  }
-
-  /**
-   * @param service     the service name
-   * @param displayName the display name for the service
-   */
-  public void setServiceDisplay(String service, String displayName) {
-    m_serviceNames.put(service, (displayName == null) ? service : displayName);
-  }
-
-  /**
-   * @param service     the service name that owns the component
-   * @param component   the component name
-   * @param displayName the display name for the component
-   */
-  public void setComponentDisplay(String service, String component, String displayName) {
-    String key = service + ":" + component;
-    m_componentNames.put(key, displayName);
-  }
-
-  /**
    * Gets whether skippable components that failed are automatically skipped.
    *
    * @return the skipComponentFailures
@@ -781,49 +505,6 @@ public class UpgradeContext {
   }
 
   /**
-   * Gets the services participating in the upgrade.
-   *
-   * @return the set of supported services. This collection should never be
-   *         empty.
-   */
-  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-  public Set<String> getSupportedServices() {
-    return Collections.unmodifiableSet(m_services);
-  }
-
-  /**
-   * Gets if a service is supported.
-   *
-   * @param serviceName
-   *          the service name to check.
-   * @return {@code true} when the service is supported
-   */
-  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-  public boolean isServiceSupported(String serviceName) {
-    return m_services.contains(serviceName);
-  }
-
-  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-  public boolean isScoped(UpgradeScope scope) {
-    if (scope == UpgradeScope.ANY) {
-      return true;
-    }
-
-    switch (m_orchestration) {
-      case PATCH:
-      case SERVICE:
-      case MAINT:
-        return scope == UpgradeScope.PARTIAL;
-      case STANDARD:
-        return scope == UpgradeScope.COMPLETE;
-      default:
-        break;
-    }
-
-    return false;
-  }
-
-  /**
    * Gets the injected instance of a {@link RoleGraphFactory}.
    *
    * @return a {@link RoleGraphFactory} instance (never {@code null}).
@@ -839,18 +520,6 @@ public class UpgradeContext {
    */
   public HostRoleCommandFactory getHostRoleCommandFactory() {
     return m_hrcFactory;
-  }
-
-  /**
-   * Gets the repository type to determine if this upgrade is a complete upgrade
-   * or a service/patch.  This value is not always the same as the repository version.  In
-   * the case of a revert of a patch, the target repository may be of type STANDARD, but orchestration
-   * must be "like a patch".
-   *
-   * @return the orchestration type.
-   */
-  public RepositoryType getOrchestrationType() {
-    return m_orchestration;
   }
 
   /**
@@ -895,10 +564,9 @@ public class UpgradeContext {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("direction", m_direction)
-        .add("type", m_type)
-        .add("target", m_repositoryVersion).toString();
+        .add("type", m_type).toString();
   }
 
   /**
@@ -929,6 +597,18 @@ public class UpgradeContext {
   }
 
   /**
+   * Gets whether this upgrade is revertable.
+   *
+   * @return
+   */
+  @Experimental(
+      feature = ExperimentalFeature.MPACK_UPGRADES,
+      comment = "This must be stored in an upgrade pack or calculated from the versions")
+  public boolean isRevertable() {
+    throw new NotImplementedException();
+  }
+
+  /**
    * @return default value of number of tasks to run in parallel during upgrades
    */
   public int getDefaultMaxDegreeOfParallelism() {
@@ -943,59 +623,232 @@ public class UpgradeContext {
   public UpgradeSummary getUpgradeSummary() {
     UpgradeSummary summary = new UpgradeSummary();
     summary.direction = m_direction;
-    summary.type = m_type;
-    summary.orchestration = m_orchestration;
     summary.isRevert = m_isRevert;
+    summary.serviceGroups = new HashMap<>();
 
-    summary.services = new HashMap<>();
+    for (ServiceGroup serviceGroup : m_serviceGroups.keySet()) {
+      MpackChangeSummary changeSummary = m_serviceGroups.get(serviceGroup);
 
-    for (String serviceName : m_services) {
-      RepositoryVersionEntity sourceRepositoryVersion = m_sourceRepositoryMap.get(serviceName);
-      RepositoryVersionEntity targetRepositoryVersion = m_targetRepositoryMap.get(serviceName);
-      if (null == sourceRepositoryVersion || null == targetRepositoryVersion) {
-        LOG.warn("Unable to get the source/target repositories for {} for the upgrade summary",
-            serviceName);
-        continue;
+      UpgradeServiceGroupSummary serviceGroupSummary = new UpgradeServiceGroupSummary();
+      serviceGroupSummary.type = m_type;
+      serviceGroupSummary.sourceMpackId = changeSummary.getSource().getResourceId();
+      serviceGroupSummary.sourceStack = changeSummary.getSource().getStackId().getStackId();
+      serviceGroupSummary.targetMpackId = changeSummary.getTarget().getRegistryId();
+      serviceGroupSummary.targetStack = changeSummary.getTarget().getStackId().getStackId();
+      serviceGroupSummary.services = new LinkedHashMap<>();
+
+      summary.serviceGroups.put(serviceGroup.getServiceGroupName(), serviceGroupSummary);
+
+      for( ModuleVersionChange moduleVersionChange : changeSummary.getModuleVersionChanges() ) {
+        UpgradeServiceSummary upgradeServiceSummary = new UpgradeServiceSummary();
+        upgradeServiceSummary.sourceVersion = moduleVersionChange.getSource().getVersion();
+        upgradeServiceSummary.targetVersion = moduleVersionChange.getTarget().getVersion();
+        upgradeServiceSummary.components = new LinkedHashMap<>();
+        serviceGroupSummary.services.put(moduleVersionChange.getSource().getName(), upgradeServiceSummary);
+
+        for( ModuleComponentVersionChange componentVersionChange : moduleVersionChange.getComponentChanges() ) {
+          UpgradeComponentSummary componentSummary = new UpgradeComponentSummary();
+          componentSummary.sourceVersion = componentVersionChange.getSource().getVersion();
+          componentSummary.targetVersion = componentVersionChange.getTarget().getVersion();
+
+          upgradeServiceSummary.components.put(componentVersionChange.getSource().getName(), componentSummary);
+        }
       }
-
-      UpgradeServiceSummary serviceSummary = new UpgradeServiceSummary();
-      serviceSummary.sourceRepositoryId = sourceRepositoryVersion.getId();
-      serviceSummary.sourceStackId = sourceRepositoryVersion.getStackId().getStackId();
-      serviceSummary.sourceVersion = sourceRepositoryVersion.getVersion();
-
-      serviceSummary.targetRepositoryId = targetRepositoryVersion.getId();
-      serviceSummary.targetStackId = targetRepositoryVersion.getStackId().getStackId();
-      serviceSummary.targetVersion = targetRepositoryVersion.getVersion();
-
-      summary.services.put(serviceName, serviceSummary);
     }
 
     return summary;
   }
 
   /**
-   * Gets the set of services which will participate in the upgrade. The
-   * services available in the repository are comapred against those installed
-   * in the cluster to arrive at the final subset.
-   * <p/>
-   * In some cases, such as with a {@link RepositoryType#MAINT} repository, the
-   * subset can be further trimmed by determing that an installed services is
-   * already at a high enough version and doesn't need to be upgraded.
-   * <p/>
-   * This method will also populate the source ({@link #m_sourceRepositoryMap})
-   * and target ({@link #m_targetRepositoryMap}) repository maps.
+   * Gets the service groups participating in the upgrade, mapped to their
+   * respective {@link MpackChangeSummary}s.
    *
-   * @param cluster
-   *          the cluster (not {@code null}).
-   * @param repositoryVersion
-   *          the repository to use for the upgrade (not {@code null}).
-   * @return the set of services which will participate in the upgrade.
+   * @return the service groups in the upgrade.
+   */
+  public Map<ServiceGroup, MpackChangeSummary> getServiceGroups() {
+    return m_serviceGroups;
+  }
+
+  /**
+   * Gets the target management packs for this upgrade.
+   *
+   * @return the target mpacks for all service groups participating.
+   */
+  public Set<Mpack> getTargetMpacks() {
+    return m_serviceGroups.values().stream().map(serviceGroup -> serviceGroup.getTarget()).collect(
+        Collectors.toSet());
+  }
+
+  /**
+   * Gets the source mpack for the specified service group in this upgrade.
+   *
+   * @param serviceGroup
+   *          the service group
+   * @return the source mpack, or {@code null} if the service group is not
+   *         participating.
+   */
+  public Mpack getSourceMpack(ServiceGroup serviceGroup) {
+    Mpack source = null;
+    MpackChangeSummary changeSummary = m_serviceGroups.get(serviceGroup);
+    if (null != changeSummary) {
+      source = changeSummary.getSource();
+    }
+
+    return source;
+  }
+
+  /**
+   * Gets the target mpack for the specified service group in this upgrade.
+   *
+   * @param serviceGroup
+   *          the service group
+   * @return the target mpack, or {@code null} if the service group is not
+   *         participating.
+   */
+  public Mpack getTargetMpack(ServiceGroup serviceGroup) {
+    Mpack target = null;
+    MpackChangeSummary changeSummary = m_serviceGroups.get(serviceGroup);
+    if (null != changeSummary) {
+      target = changeSummary.getTarget();
+    }
+
+    return target;
+  }
+
+  /**
+   * Gets whether the service is supported in this upgrade.
+   *
+   * @param serviceName
+   * @return
+   */
+  @Experimental(feature=ExperimentalFeature.MPACK_UPGRADES, comment = "Needs implementation and thought")
+  public boolean isSupportedInUpgrade(String serviceName) {
+    return false;
+  }
+
+  /**
+   * Gets the display name for a given service.
+   *
+   * @param mpack
+   *          the mpack which owns the service.
+   * @param serviceName
+   *          the service name.
+   * @return the service display name.
+   */
+  public String getDisplayName(Mpack mpack, String serviceName) {
+    Module module = mpack.getModule(serviceName);
+    if (null == module) {
+      return serviceName;
+    }
+
+    return module.getDisplayName();
+
+  }
+
+  /**
+   * Gets the display name for a given component.
+   *
+   * @param mpack
+   *          the mpack which owns the service.
+   * @param serviceName
+   *          the component's service.
+   * @param componentName
+   *          the component name.
+   * @return the component display name.
+   */
+  public String getDisplayName(Mpack mpack, String serviceName, String componentName) {
+    ModuleComponent moduleComponent = mpack.getModuleComponent(serviceName, componentName);
+    if (null == moduleComponent) {
+      return componentName;
+    }
+
+    return moduleComponent.getName();
+  }
+
+  /**
+   * Gets a displayable summary of the service groups and their upgrade
+   * information.
+   *
+   * @return a displayable summary of the upgrade at the service group level.
+   */
+  public String getServiceGroupDisplayableSummary() {
+    StringBuilder buffer = new StringBuilder();
+    for (ServiceGroup serviceGroup : m_serviceGroups.keySet()) {
+      MpackChangeSummary changeSummary = m_serviceGroups.get(serviceGroup);
+      Mpack source = changeSummary.getSource();
+      Mpack target = changeSummary.getTarget();
+
+      buffer.append(serviceGroup.getServiceGroupName()).append(": ").append(
+          source.getStackId()).append("->").append(target.getStackId()).append(
+              System.lineSeparator());
+    }
+
+    return buffer.toString();
+  }
+
+  /**
+   * Reading upgrade type from provided request or if nothing were provided,
+   * from previous upgrade for downgrade direction.
+   *
+   * @param upgradeRequestMap
+   *          arguments provided for current upgrade request
+   * @param upgradeEntity
+   *          previous upgrade entity, should be passed only for downgrade
+   *          direction
+   *
+   * @return
    * @throws AmbariException
    */
-  private Set<String> getServicesForUpgrade(Cluster cluster,
-      RepositoryVersionEntity repositoryVersion) throws AmbariException {
+  private UpgradeType calculateUpgradeType(Map<String, Object> upgradeRequestMap,
+                                           UpgradeEntity upgradeEntity) throws AmbariException{
 
-    return Sets.newHashSet();
+    UpgradeType upgradeType = UpgradeType.ROLLING;
+
+    String upgradeTypeProperty = (String) upgradeRequestMap.get(UPGRADE_TYPE);
+    boolean upgradeTypePassed = StringUtils.isNotBlank(upgradeTypeProperty);
+
+    if (upgradeTypePassed){
+      try {
+        upgradeType = UpgradeType.valueOf(upgradeRequestMap.get(UPGRADE_TYPE).toString());
+      } catch (Exception e) {
+        throw new AmbariException(String.format("Property %s has an incorrect value of %s.",
+          UPGRADE_TYPE, upgradeTypeProperty));
+      }
+    } else if (upgradeEntity != null){
+      upgradeType = upgradeEntity.getUpgradeType();
+    }
+
+    return upgradeType;
+  }
+
+  /**
+   * Populate the participating service groups and their respective mpack
+   * summary differences. This is only for an upgrade which has already been
+   * created and persisted.
+   *
+   * @param cluster
+   * @param serviceGroups
+   * @param upgrade
+   * @param reverse
+   * @throws AmbariException
+   */
+  private void populateParticipatingServiceGroups(Cluster cluster,
+      Map<ServiceGroup, MpackChangeSummary> serviceGroups, UpgradeEntity upgrade,
+      boolean reverse) throws AmbariException {
+
+    for (UpgradeHistoryEntity history : upgrade.getHistory()) {
+      ServiceGroupEntity serviceGroupEntity = history.getServiceGroupEntity();
+      ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupEntity.getServiceGroupId());
+
+      // reverse these on the downgrade
+      MpackEntity sourceMpackEntity = reverse ? history.getTargetMpackEntity() : history.getSourceMpackEntity();
+      MpackEntity targetMpackEntity = reverse ? history.getSourceMpackEntity() : history.getTargetMpackEntity();
+
+      Mpack sourceMpack = m_metaInfo.getMpack(sourceMpackEntity.getId());
+      Mpack targetMpack = m_metaInfo.getMpack(targetMpackEntity.getId());
+      MpackChangeSummary summary = sourceMpack.getChangeSummary(targetMpack);
+      serviceGroups.put(serviceGroup, summary);
+    }
   }
 
   /**
@@ -1100,10 +953,10 @@ public class UpgradeContext {
         UpgradePack upgradePack, Map<String, Object> requestMap) throws AmbariException {
 
       if (direction == Direction.UPGRADE) {
-        String repositoryVersionId = (String) requestMap.get(UPGRADE_REPO_VERSION_ID);
-        if (StringUtils.isBlank(repositoryVersionId)) {
+        String upgradePlanId = (String) requestMap.get(UPGRADE_PLAN_ID);
+        if (StringUtils.isBlank(upgradePlanId)) {
           throw new AmbariException(
-              String.format("%s is required for upgrades", UPGRADE_REPO_VERSION_ID));
+              String.format("%s is required for upgrades", UPGRADE_PLAN_ID));
         }
       }
     }
@@ -1121,7 +974,7 @@ public class UpgradeContext {
     void check(Cluster cluster, Direction direction, UpgradeType type, UpgradePack upgradePack,
         Map<String, Object> requestMap) throws AmbariException {
 
-      String repositoryVersionId = (String) requestMap.get(UPGRADE_REPO_VERSION_ID);
+      String upgradePlanId = (String) requestMap.get(UPGRADE_PLAN_ID);
       boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
       boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
       String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;
@@ -1146,7 +999,7 @@ public class UpgradeContext {
 
       Predicate preUpgradeCheckPredicate = new PredicateBuilder().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID).equals(repositoryVersionId).and().property(
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PLAN_ID).equals(upgradePlanId).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).equals(m_isRevert).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(type).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();
@@ -1314,36 +1167,68 @@ public class UpgradeContext {
     @SerializedName("direction")
     public Direction direction;
 
-    @SerializedName("type")
-    public UpgradeType type;
-
-    @SerializedName("orchestration")
-    public RepositoryType orchestration;
-
     @SerializedName("isRevert")
     public boolean isRevert = false;
 
+    /**
+     * Mapping of service group name to the service group in the upgrade.
+     */
+    @SerializedName("serviceGroups")
+    public Map<String, UpgradeServiceGroupSummary> serviceGroups;
+  }
+
+  /**
+   * The {@link UpgradeServiceGroupSummary} class is used as a way to
+   * encapsulate the service group components and upgrade type participating in
+   * the upgrade.
+   */
+  public static class UpgradeServiceGroupSummary {
+    @SerializedName("type")
+    public UpgradeType type;
+
+    @SerializedName("sourceMpackId")
+    public long sourceMpackId;
+
+    @SerializedName("targetMpackId")
+    public long targetMpackId;
+
+    @SerializedName("sourceStack")
+    public String sourceStack;
+
+    @SerializedName("targetStack")
+    public String targetStack;
+
+    /**
+     * A mapping of service name to service summary information for services
+     * participating in the upgrade for this service group.
+     */
     @SerializedName("services")
     public Map<String, UpgradeServiceSummary> services;
   }
 
   /**
    * The {@link UpgradeServiceSummary} class is used as a way to encapsulate the
-   * service source and target versions during an upgrade.
+   * service component upgrade information during an upgrade.
    */
   public static class UpgradeServiceSummary {
-    @SerializedName("sourceRepositoryId")
-    public long sourceRepositoryId;
+    @SerializedName("sourceVersion")
+    public String sourceVersion;
 
-    @SerializedName("targetRepositoryId")
-    public long targetRepositoryId;
+    @SerializedName("targetVersion")
+    public String targetVersion;
 
-    @SerializedName("sourceStackId")
-    public String sourceStackId;
+    /**
+     * Mapping of component name its com
+     */
+    @SerializedName("components")
+    public Map<String, UpgradeComponentSummary> components;
+  }
 
-    @SerializedName("targetStackId")
-    public String targetStackId;
-
+  /**
+   * The {@link UpgradeComponentSummary} class is used as a way to encapsulate
+   * the component source and target versions during an upgrade.
+   */
+  public static class UpgradeComponentSummary {
     @SerializedName("sourceVersion")
     public String sourceVersion;
 

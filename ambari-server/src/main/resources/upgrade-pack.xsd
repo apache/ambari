@@ -61,14 +61,6 @@
     </xs:restriction>
   </xs:simpleType>
   
-  <xs:simpleType name="scope-type">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="COMPLETE" />
-      <xs:enumeration value="PARTIAL" />
-      <xs:enumeration value="ANY" />
-    </xs:restriction>
-  </xs:simpleType>
-  
   <xs:simpleType name="security-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="none" />
@@ -133,7 +125,6 @@
   <xs:complexType name="abstract-group-type" abstract="true">
     <xs:sequence>
       <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="scope" type="scope-type" minOccurs="0" />
       <xs:element name="direction" type="direction-type" minOccurs="0" />
       <xs:element name="service-check" minOccurs="0" type="xs:boolean" />
       <xs:element name="skippable" minOccurs="0" type="xs:boolean" />
@@ -172,7 +163,6 @@
               <xs:sequence>
                 <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="direction" type="direction-type" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="scope" type="scope-type" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="task" type="abstract-task-type" minOccurs="1" maxOccurs="1"/>
               </xs:sequence>              
               <xs:attribute name="title" type="xs:string" />
@@ -269,7 +259,6 @@
   <xs:complexType name="abstract-task-type" abstract="true">
     <xs:sequence>
       <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1" />
-      <xs:element name="scope" minOccurs="0" type="scope-type" />
       <xs:element name="summary" minOccurs="0" />
     </xs:sequence>
     <xs:attribute name="sequential" use="optional" type="xs:boolean" />

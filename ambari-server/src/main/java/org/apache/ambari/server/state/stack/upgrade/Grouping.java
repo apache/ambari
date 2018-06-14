@@ -83,9 +83,6 @@ public class Grouping {
   @XmlElement(name="parallel-scheduler")
   public ParallelScheduler parallelScheduler;
 
-  @XmlElement(name="scope")
-  public UpgradeScope scope = UpgradeScope.ANY;
-
   @XmlTransient
   public LifecycleType lifecycle;
 
@@ -245,7 +242,8 @@ public class Grouping {
         for (Set<String> hostSubset : hostSets) {
           batchNum++;
 
-          String stageText = getStageText(verb, ctx.getComponentDisplay(service, pc.name), hostSubset, batchNum, numBatchesNeeded);
+          String stageText = getStageText(verb, ctx.getDisplayName(null, service, pc.name),
+              hostSubset, batchNum, numBatchesNeeded);
 
           StageWrapper stage = new StageWrapper(
               type,
@@ -277,7 +275,7 @@ public class Grouping {
         tasks.add(new TaskWrapper(
             service, "", Collections.emptySet(), new ServiceCheckTask()));
 
-        displays.add(upgradeContext.getServiceDisplay(service));
+        displays.add(upgradeContext.getDisplayName(null, service));
       }
 
       if (upgradeContext.getDirection().isUpgrade() && m_serviceCheck

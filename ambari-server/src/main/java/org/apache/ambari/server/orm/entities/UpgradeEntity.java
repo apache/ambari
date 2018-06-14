@@ -18,7 +18,10 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -39,7 +42,6 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -131,6 +133,12 @@ public class UpgradeEntity {
   private Short downgradeAllowed = 1;
 
   /**
+   * {@code true} if this upgrade is a revert, otherwise {@code false}
+   */
+  @Column(name = "is_revert", nullable = false)
+  private Short isRevert = 0;
+
+  /**
    * Whether this upgrade is a candidate to be reverted. The current restriction
    * on this behavior is that only the most recent
    * {@link RepositoryType#PATCH}/{@link RepositoryType#MAINT} for a given
@@ -148,10 +156,6 @@ public class UpgradeEntity {
    */
   @Column(name = "revert_allowed", nullable = false)
   private Short revertAllowed = 0;
-
-  @Column(name="orchestration", nullable = false)
-  @Enumerated(value = EnumType.STRING)
-  private RepositoryType orchestration = RepositoryType.STANDARD;
 
   /**
    * {@code true} if the upgrade has been marked as suspended.
@@ -260,6 +264,25 @@ public class UpgradeEntity {
    */
   public void setDowngradeAllowed(boolean canDowngrade) {
     downgradeAllowed = (!canDowngrade ? (short) 0 : (short) 1);
+  }
+
+  /**
+   * Gets whether this upgrade is a revert.
+   *
+   * @return {@code true} if this is a revert, {@code false} otherwise.
+   */
+  public Boolean isRevert() {
+    return isRevert != null ? (isRevert != 0) : null;
+  }
+
+  /**
+   * Sets whether this upgrade is a revert.
+   *
+   * @param isRevert
+   *          {@code true} if this is a revert, {@code false} otherwise.
+   */
+  public void setIsRevert(boolean isRevert) {
+    this.isRevert = (!isRevert ? (short) 0 : (short) 1);
   }
 
   /**
@@ -400,56 +423,6 @@ public class UpgradeEntity {
   }
 
   /**
-   * Upgrades will always have a single version being upgraded to and downgrades
-   * will have a single version being downgraded from. This repository
-   * represents that version.
-   * <p/>
-   * When the direction is {@link Direction#UPGRADE}, this represents the target
-   * repository. <br/>
-   * When the direction is {@link Direction#DOWNGRADE}, this represents the
-   * repository being downgraded from.
-   *
-   * @return the repository version being upgraded to or downgraded from (never
-   *         {@code null}).
-   */
-  public RepositoryVersionEntity getRepositoryVersion() {
-    return null;
-  }
-
-  /**
-   * Sets the repository version for this upgrade. This value will change
-   * depending on the direction of the upgrade.
-   * <p/>
-   * When the direction is {@link Direction#UPGRADE}, this represents the target
-   * repository. <br/>
-   * When the direction is {@link Direction#DOWNGRADE}, this represents the
-   * repository being downgraded from.
-   *
-   * @param repositoryVersion
-   *          the repository version being upgraded to or downgraded from (not
-   *          {@code null}).
-   */
-  public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
-  }
-
-  /**
-   * Sets the orchestration for the upgrade.  Only different when an upgrade is a revert of a patch.
-   * In that case, the orchestration is set to PATCH even if the target repository is type STANDARD.
-   *
-   * @param type  the orchestration
-   */
-  public void setOrchestration(RepositoryType type) {
-    orchestration = type;
-  }
-
-  /**
-   * @return  the orchestration type
-   */
-  public RepositoryType getOrchestration() {
-    return orchestration;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -481,6 +454,66 @@ public class UpgradeEntity {
   public int hashCode() {
     return Objects.hashCode(upgradeId, clusterId, requestId, direction, suspended, upgradeType,
         upgradePackage);
+  }
+
+  /**
+   * Gets the mpacks which are participating in the upgrade.
+   *
+   * @return the set of mpacks in this upgrade.
+   */
+  public Set<MpackEntity> getSourceMpacks() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<MpackEntity> mpacks = historyEntities.stream().map(
+        history -> history.getSourceMpackEntity()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
+  }
+
+  /**
+   * Gets the mpack stack IDs which are participating in the upgrade.
+   *
+   * @return the set of mpacks in this upgrade.
+   */
+  public Set<String> getSourceMpackStacks() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<String> mpacks = historyEntities.stream().map(
+        history -> history.getSourceMpackEntity().getStackId().toString()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
+  }
+
+  /**
+   * Gets the mpacks which are participating in the upgrade.
+   *
+   * @return the target set of mpacks in this upgrade.
+   */
+  public Set<MpackEntity> getTargetMpack() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<MpackEntity> mpacks = historyEntities.stream().map(
+        history -> history.getTargetMpackEntity()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
+  }
+
+  /**
+   * Gets the mpack names which are participating in the upgrade.
+   *
+   * @return the target set of mpacks in this upgrade.
+   */
+  public Set<String> getTargetMpackStacks() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<String> mpacks = historyEntities.stream().map(
+        history -> history.getTargetMpackEntity().getStackId().toString()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
   }
 
 }

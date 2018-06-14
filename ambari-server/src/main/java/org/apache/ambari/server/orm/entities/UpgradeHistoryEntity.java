@@ -23,6 +23,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -31,6 +32,7 @@ import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -41,7 +43,7 @@ import com.google.common.base.Objects;
 @Table(
     name = "upgrade_history",
     uniqueConstraints = @UniqueConstraint(
-        columnNames = { "upgrade_id", "component_name", "service_name" }))
+        columnNames = { "upgrade_id", "service_group_id" }))
 @TableGenerator(
     name = "upgrade_history_id_generator",
     table = "ambari_sequences",
@@ -70,11 +72,41 @@ public class UpgradeHistoryEntity {
   @JoinColumn(name = "upgrade_id", nullable = false)
   private UpgradeEntity upgrade;
 
-  @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
-  private String serviceName;
+  @Column(name = "source_mpack_id", nullable = false, insertable = false, updatable = false)
+  private Long sourceMpackId;
 
-  @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
-  private String componentName;
+  @ManyToOne()
+  @JoinColumn(name = "source_mpack_id", referencedColumnName = "id")
+  private MpackEntity sourceMpackEntity;
+
+  @Column(name = "target_mpack_id", nullable = false, insertable = false, updatable = false)
+  private Long targetMpackId;
+
+  @ManyToOne()
+  @JoinColumn(name = "target_mpack_id", referencedColumnName = "id")
+  private MpackEntity targetMpackEntity;
+
+  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false)
+  private Long serviceGroupId;
+
+  @ManyToOne()
+  @JoinColumn(name = "service_group_id", referencedColumnName = "id")
+  private ServiceGroupEntity serviceGroupEntity;
+
+  /**
+   * Constructor.
+   *
+   */
+  UpgradeHistoryEntity() {
+  }
+
+  public UpgradeHistoryEntity(UpgradeEntity upgrade, ServiceGroupEntity serviceGroup,
+      MpackEntity sourceMpack, MpackEntity targetMpack) {
+    this.upgrade = upgrade;
+    serviceGroupEntity = serviceGroup;
+    sourceMpackEntity = sourceMpack;
+    targetMpackEntity = targetMpack;
+  }
 
   /**
    * @return the id
@@ -84,96 +116,39 @@ public class UpgradeHistoryEntity {
   }
 
   /**
-   * Gets the ID of the upgrade associated with this historical entry.
+   * Gets the upgrade that the history entry is for.
    *
-   * @return the upgrade ID (never {@code null}).
+   * @return the upgrade
    */
-  public Long getUpgradeId() {
-    return upgradeId;
+  public UpgradeEntity getUpgrade() {
+    return upgrade;
   }
 
   /**
-   * @return
-   */
-  public String getServiceName() {
-    return serviceName;
-  }
-
-  /**
-   * @param serviceName
-   */
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
-
-  /**
-   * @return
-   */
-  public String getComponentName() {
-    return componentName;
-  }
-
-  /**
-   * @param componentName
-   */
-  public void setComponentName(String componentName) {
-    this.componentName = componentName;
-  }
-
-  /**
-   * Gets the repository that the upgrade is coming from.
+   * Gets the source mpack that the upgrade is coming from.
    *
-   * @return the repository that the upgrade is coming from (not {@code null}).
+   * @return the sourceMpackEntity
    */
-  public RepositoryVersionEntity getFromReposistoryVersion() {
-    return null;
+  public MpackEntity getSourceMpackEntity() {
+    return sourceMpackEntity;
   }
 
   /**
-   * Sets the repository that the services in the upgrade are CURRENT on.
+   * Gets the target mpack that the upgrade is moving to.
    *
-   * @param repositoryVersionEntity
-   *          the repository entity (not {@code null}).
+   * @return the targetMpackEntity
    */
-  public void setFromRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
+  public MpackEntity getTargetMpackEntity() {
+    return targetMpackEntity;
   }
 
   /**
-   * Gets the target repository version for this upgrade.
+   * The service group which this upgrade history entry is for.
    *
-   * @return the target repository for the services in the upgrade (not
-   *         {@code null}).
+   * @return the service group.
    */
-  public RepositoryVersionEntity getTargetRepositoryVersion() {
-    return null;
-  }
-
-  /**
-   * Gets the version of the target repository.
-   *
-   * @return the target version string (never {@code null}).
-   * @see #getTargetRepositoryVersion()
-   */
-  public String getTargetVersion() {
-    return null;
-  }
-
-  /**
-   * Sets the target repository of the upgrade.
-   *
-   * @param repositoryVersionEntity
-   *          the target repository (not {@code null}).
-   */
-  public void setTargetRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
-  }
-
-  /**
-   * Sets the associated upgrade entity.
-   *
-   * @param upgrade
-   */
-  public void setUpgrade(UpgradeEntity upgrade) {
-    this.upgrade = upgrade;
+  public ServiceGroupEntity getServiceGroupEntity() {
+    return serviceGroupEntity;
   }
 
   /**
@@ -191,10 +166,10 @@ public class UpgradeHistoryEntity {
 
     UpgradeHistoryEntity that = (UpgradeHistoryEntity) o;
     return new EqualsBuilder()
-        .append(id, that.id)
         .append(upgradeId, that.upgradeId)
-        .append(serviceName, that.serviceName)
-        .append(componentName, that.componentName)
+        .append(serviceGroupEntity, that.serviceGroupEntity)
+        .append(sourceMpackEntity, that.sourceMpackEntity)
+        .append(targetMpackEntity, that.targetMpackEntity)
         .isEquals();
   }
 
@@ -203,7 +178,7 @@ public class UpgradeHistoryEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, upgradeId, serviceName, componentName);
+    return Objects.hashCode(upgradeId, serviceGroupEntity, sourceMpackEntity, targetMpackEntity);
   }
 
   /**
@@ -211,10 +186,11 @@ public class UpgradeHistoryEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("id", id)
         .add("upgradeId", upgradeId)
-        .add("serviceName", serviceName)
-        .add("componentName", componentName).toString();
+        .add("serviceGroupId", serviceGroupId)
+        .add("sourceMpack", sourceMpackEntity)
+        .add("targetMpack", targetMpackEntity).toString();
   }
 }

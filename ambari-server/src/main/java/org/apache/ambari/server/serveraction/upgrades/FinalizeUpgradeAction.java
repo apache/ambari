@@ -21,7 +21,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,19 +33,20 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
-import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.ModuleComponent;
+import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.Mpack.MpackChangeSummary;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeState;
@@ -93,9 +93,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     }
   }
 
-  @Inject
-  private RoleCommandOrderProvider roleCommandOrderProvider;
-
   /**
    * Execution path for upgrade.
    * @return the command report
@@ -104,43 +101,32 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     throws AmbariException, InterruptedException {
 
     Direction direction = upgradeContext.getDirection();
-    RepositoryType repositoryType = upgradeContext.getOrchestrationType();
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();
 
     try {
       Cluster cluster = upgradeContext.getCluster();
-      RepositoryVersionEntity repositoryVersion = upgradeContext.getRepositoryVersion();
-      String version = repositoryVersion.getVersion();
+      Map<ServiceGroup, MpackChangeSummary> serviceGroupChanges = upgradeContext.getServiceGroups();
+      for (ServiceGroup serviceGroup : serviceGroupChanges.keySet()) {
+        MpackChangeSummary mpackChangeSummary = serviceGroupChanges.get(serviceGroup);
 
-      String message;
-      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
-        message = MessageFormat.format("Finalizing the upgrade to {0} for all cluster services.", version);
-      } else {
-        Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
+        String message = MessageFormat.format(
+            "Finalizing the upgrade to {0} for the service group {1}",
+            mpackChangeSummary.getTarget().getVersion(), serviceGroup.getServiceGroupName());
 
-        message = MessageFormat.format(
-            "Finalizing the upgrade to {0} for the following services: {1}",
-            version, StringUtils.join(servicesInUpgrade, ','));
+        outSB.append(message).append(System.lineSeparator());
       }
-
-      outSB.append(message).append(System.lineSeparator());
 
       // iterate through all host components and make sure that they are on the
       // correct version; if they are not, then this will throw an exception
       Set<InfoTuple> errors = validateComponentVersions(upgradeContext);
       if (!errors.isEmpty()) {
         StrBuilder messageBuff = new StrBuilder(String.format(
-            "The following %d host component(s) "
-                + "have not been upgraded to version %s. Please install and upgrade "
-                + "the Stack Version on those hosts and try again.\nHost components:",
-            errors.size(), version)).append(System.lineSeparator());
+            "The following %d host component(s) have not been upgraded to their expected version:")).append(
+                System.lineSeparator());
 
-        for (InfoTuple error : errors) {
-          messageBuff.append(String.format("%s on host %s\n", error.componentName, error.hostName));
-        }
-
+        errors.stream().forEach(infoTuple -> messageBuff.append(infoTuple));
         throw new AmbariException(messageBuff.toString());
       }
 
@@ -153,13 +139,9 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         }
       }
 
-      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
-        outSB.append(String.format("Finalizing the version for cluster %s.\n", cluster.getClusterName()));
-        cluster.setCurrentStackVersion(cluster.getDesiredStackVersion());
-      }
-
       // mark revertable
-      if (repositoryType.isRevertable() && direction == Direction.UPGRADE) {
+      boolean revertable = false;
+      if (revertable && direction == Direction.UPGRADE) {
         UpgradeEntity upgrade = cluster.getUpgradeInProgress();
         upgrade.setRevertAllowed(true);
         upgrade = m_upgradeDAO.merge(upgrade);
@@ -171,8 +153,11 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // the upgrade is done!
       versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
 
-      message = String.format("The upgrade to %s has completed.", version);
-      outSB.append(message).append(System.lineSeparator());
+      StringBuilder finalMessage = new StringBuilder("The upgrade for the following service groups has completed.");
+      finalMessage.append(System.lineSeparator());
+      finalMessage.append(upgradeContext.getServiceGroupDisplayableSummary());
+
+      outSB.append(finalMessage).append(System.lineSeparator());
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } catch (Exception e) {
       errSB.append(e.getMessage());
@@ -195,47 +180,27 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
     try {
       Cluster cluster = upgradeContext.getCluster();
-      RepositoryVersionEntity downgradeFromRepositoryVersion = upgradeContext.getRepositoryVersion();
-      String downgradeFromVersion = downgradeFromRepositoryVersion.getVersion();
-      Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
+      Map<ServiceGroup, MpackChangeSummary> serviceGroupChanges = upgradeContext.getServiceGroups();
+      for (ServiceGroup serviceGroup : serviceGroupChanges.keySet()) {
+        MpackChangeSummary mpackChangeSummary = serviceGroupChanges.get(serviceGroup);
 
-      String message;
+        String message = MessageFormat.format(
+            "Finalizing the downgrade from {0} for the service group {1}",
+            mpackChangeSummary.getTarget().getVersion(), serviceGroup.getServiceGroupName());
 
-      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
-        message = MessageFormat.format(
-            "Finalizing the downgrade from {0} for all cluster services.",
-            downgradeFromVersion);
-      } else {
-        message = MessageFormat.format(
-            "Finalizing the downgrade from {0} for the following services: {1}",
-            downgradeFromVersion, StringUtils.join(servicesInUpgrade, ','));
+        outSB.append(message).append(System.lineSeparator());
       }
-
-      outSB.append(message).append(System.lineSeparator());
 
       // iterate through all host components and make sure that they are on the
       // correct version; if they are not, then this will throw an exception
       Set<InfoTuple> errors = validateComponentVersions(upgradeContext);
       if (!errors.isEmpty()) {
         StrBuilder messageBuff = new StrBuilder(String.format(
-            "The following %d host component(s) have not been downgraded to their desired versions:",
-            errors.size())).append(System.lineSeparator());
+            "The following %d host component(s) have not been downgraded to their expected version:")).append(
+                System.lineSeparator());
 
-        for (InfoTuple error : errors) {
-          messageBuff.append(String.format("%s: %s (current = %s, desired = %s)", error.hostName,
-              error.componentName, error.currentVersion, error.targetVersion));
-
-          messageBuff.append(System.lineSeparator());
-        }
-
-        throw new AmbariException(messageBuff.toString());
-      }
-
-      // for every repository being downgraded to, ensure the host versions are correct
-      Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
-      Set<RepositoryVersionEntity> targetRepositoryVersions = new HashSet<>();
-      for (String service : targetVersionsByService.keySet()) {
-        targetRepositoryVersions.add(targetVersionsByService.get(service));
+        errors.stream().forEach(infoTuple -> messageBuff.append(infoTuple));
+        outSB.append(messageBuff.toString()).append(System.lineSeparator());
       }
 
       // do some cleanup like resetting the upgrade state
@@ -248,18 +213,24 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       }
 
       // remove any configurations for services which crossed a stack boundary
-      for (String serviceName : servicesInUpgrade) {
-        RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
-        RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
-        StackId sourceStackId = sourceRepositoryVersion.getStackId();
-        StackId targetStackId = targetRepositoryVersion.getStackId();
-        // only work with configurations when crossing stacks
-        if (!sourceStackId.equals(targetStackId)) {
-          outSB.append(
-              String.format("Removing %s configurations for %s", sourceStackId,
-                  serviceName)).append(System.lineSeparator());
-          //TODO pass serviceGroupName
-          cluster.removeConfigurations(sourceStackId, cluster.getService(null, serviceName).getServiceId());
+      for (ServiceGroup serviceGroup : serviceGroupChanges.keySet()) {
+        MpackChangeSummary mpackChangeSummary = serviceGroupChanges.get(serviceGroup);
+        Mpack sourceMpack = mpackChangeSummary.getSource();
+        Mpack targetMpack = mpackChangeSummary.getTarget();
+        StackId sourceStackId = sourceMpack.getStackId();
+        StackId targetStackId = targetMpack.getStackId();
+
+        for (Service service : serviceGroup.getServices()) {
+          // only work with configurations when crossing stacks
+          if (!sourceStackId.equals(targetStackId)) {
+            outSB.append(
+                String.format("Removing %s configurations for %s", sourceStackId,
+                    service.getName())).append(System.lineSeparator());
+
+            cluster.removeConfigurations(sourceStackId,
+                cluster.getService(serviceGroup.getServiceGroupName(),
+                    service.getName()).getServiceId());
+          }
         }
       }
 
@@ -270,8 +241,11 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
 
-      message = String.format("The downgrade from %s has completed.", downgradeFromVersion);
-      outSB.append(message).append(System.lineSeparator());
+      StringBuilder finalMessage = new StringBuilder("The downgrade for the following service groups has completed.");
+      finalMessage.append(System.lineSeparator());
+      finalMessage.append(upgradeContext.getServiceGroupDisplayableSummary());
+
+      outSB.append(finalMessage).append(System.lineSeparator());
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } catch (Exception e) {
@@ -297,34 +271,36 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
     Set<InfoTuple> errors = new TreeSet<>();
 
-    Cluster cluster = upgradeContext.getCluster();
-    Set<String> servicesParticipating = upgradeContext.getSupportedServices();
-    for (String serviceName : servicesParticipating) {
-      Service service = cluster.getService(serviceName);
-      RepositoryVersionEntity repositoryVersionEntity = upgradeContext.getTargetRepositoryVersion(serviceName);
-      StackId targetStackId = repositoryVersionEntity.getStackId();
-      String targetVersion = repositoryVersionEntity.getVersion();
+    Map<ServiceGroup, MpackChangeSummary> serviceGroupChanges = upgradeContext.getServiceGroups();
+    for (ServiceGroup serviceGroup : serviceGroupChanges.keySet()) {
+      MpackChangeSummary mpackChangeSummary = serviceGroupChanges.get(serviceGroup);
+      Mpack targetMpack = mpackChangeSummary.getTarget();
+      StackId targetStackId = targetMpack.getStackId();
 
-      for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
-        for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
-          ComponentInfo componentInfo = ambariMetaInfo.getComponent(targetStackId.getStackName(),
-                  targetStackId.getStackVersion(), service.getServiceType(), serviceComponent.getName());
+      for (Service service : serviceGroup.getServices()) {
+        for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
+          for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
+            ComponentInfo componentInfo = ambariMetaInfo.getComponent(targetStackId.getStackName(),
+                    targetStackId.getStackVersion(), service.getServiceType(), serviceComponent.getName());
 
-          if (!componentInfo.isVersionAdvertised()) {
-            continue;
-          }
+            if (!componentInfo.isVersionAdvertised()) {
+              continue;
+            }
 
+            ModuleComponent moduleComponent = targetMpack.getModuleComponent(
+                serviceComponent.getServiceName(), serviceComponent.getName());
 
-          if (!StringUtils.equals(targetVersion, serviceComponentHost.getVersion())) {
-            errors.add(new InfoTuple(service.getName(), serviceComponent.getName(),
-                    serviceComponentHost.getHostName(), serviceComponentHost.getVersion(),
-                    targetVersion));
+            if (!StringUtils.equals(moduleComponent.getVersion(), serviceComponentHost.getVersion())) {
+              InfoTuple error = new InfoTuple(service.getName(), serviceComponent.getName(),
+                  serviceComponentHost.getHostName(), serviceComponentHost.getVersion(),
+                  moduleComponent.getVersion());
 
+              errors.add(error);
+            }
           }
         }
       }
     }
-
     return errors;
   }
 
@@ -401,15 +377,14 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     }
 
     /**
+     * Used for outputting error messages during upgrade.
+     * <p/>
      * {@inheritDoc}
      */
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
-          .add("host", hostName)
-          .add("component", componentName)
-          .add("current", currentVersion)
-          .add("target", targetVersion).toString();
+      return String.format("%s on host %s reported %s when %s was expected\n", componentName,
+          hostName, currentVersion, targetVersion);
     }
   }
 }

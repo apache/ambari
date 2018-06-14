@@ -146,7 +146,7 @@ public class PreUpgradeCheckResourceProviderTest {
     Predicate predicate = builder.property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals("upgrade_pack11").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(UpgradeType.EXPRESS).and()
-        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID).equals("1").toPredicate();
+        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PLAN_ID).equals("1").toPredicate();
 
 
     System.out.println("PreUpgradeCheckResourceProvider - " + provider);

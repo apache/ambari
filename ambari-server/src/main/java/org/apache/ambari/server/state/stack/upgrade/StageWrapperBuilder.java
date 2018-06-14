@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
@@ -86,7 +87,7 @@ public abstract class StageWrapperBuilder {
    *          the upgrade context (not {@code null}).
    * @return a list of stages, never {@code null}
    */
-  public final List<StageWrapper> build(UpgradeContext upgradeContext) {
+  public final List<StageWrapper> build(UpgradeContext upgradeContext) throws AmbariException {
     List<StageWrapper> stageWrappers = beforeBuild(upgradeContext);
     stageWrappers = build(upgradeContext, stageWrappers);
     stageWrappers = afterBuild(upgradeContext, stageWrappers);
@@ -118,7 +119,7 @@ public abstract class StageWrapperBuilder {
    * @return the stage wrapper list, (never {@code null})
    */
   public abstract List<StageWrapper> build(UpgradeContext upgradeContext,
-      List<StageWrapper> stageWrappers);
+      List<StageWrapper> stageWrappers) throws AmbariException;
 
   /**
    * Performs any post-processing that needs to be performed on the list of
@@ -229,7 +230,6 @@ public abstract class StageWrapperBuilder {
 
     List<Task> tasks = new ArrayList<>();
     for (Task t : interim) {
-      boolean taskPassesScoping = context.isScoped(t.scope);
       boolean taskPassesCondition = true;
 
       // tasks can have conditions on them, so check to make sure the condition is satisfied
@@ -237,7 +237,7 @@ public abstract class StageWrapperBuilder {
         taskPassesCondition = false;
       }
 
-      if (taskPassesScoping && taskPassesCondition) {
+      if (taskPassesCondition) {
         tasks.add(t);
       }
     }
@@ -253,9 +253,7 @@ public abstract class StageWrapperBuilder {
    */
   protected Task resolveTask(UpgradeContext context, ProcessingComponent pc) {
     if (null != pc.tasks && 1 == pc.tasks.size()) {
-      if (context.isScoped(pc.tasks.get(0).scope)) {
-        return pc.tasks.get(0);
-      }
+      return pc.tasks.get(0);
     }
 
     return null;

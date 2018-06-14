@@ -30,7 +30,7 @@ import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
+import org.apache.ambari.server.events.ServiceGroupMpackChangedEvent;
 import org.apache.ambari.server.events.TopologyAgentUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -192,7 +192,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
   }
 
   @Subscribe
-  public void onClusterComponentsRepoUpdate(ClusterComponentsRepoChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
+  public void onUpgradeDesiredMpackChange(ServiceGroupMpackChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
     Long clusterId = clusterComponentsRepoChangedEvent.getClusterId();
 
     TopologyCluster topologyCluster = new TopologyCluster();

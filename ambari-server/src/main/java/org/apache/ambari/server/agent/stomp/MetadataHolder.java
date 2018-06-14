@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
-import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
+import org.apache.ambari.server.events.ServiceGroupMpackChangedEvent;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -96,7 +96,7 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   }
 
   @Subscribe
-  public void onClusterComponentsRepoUpdate(ClusterComponentsRepoChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
+  public void onUpgradeDesiredMpackChange(ServiceGroupMpackChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
     Cluster cluster = m_clusters.get().getCluster(clusterComponentsRepoChangedEvent.getClusterId());
     updateData(metadataGenerator.getClusterMetadataOnRepoUpdate(cluster));
   }

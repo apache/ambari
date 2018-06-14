@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target({ ElementType.TYPE, ElementType.METHOD, ElementType.CONSTRUCTOR,
     ElementType.ANNOTATION_TYPE, ElementType.PACKAGE, ElementType.FIELD,
-    ElementType.LOCAL_VARIABLE })
+    ElementType.LOCAL_VARIABLE, ElementType.TYPE_USE, ElementType.TYPE_PARAMETER })
 public @interface Experimental {
 
   /**
