@@ -58,7 +58,7 @@ describe('App.topologyMapper', function () {
   describe('#applyComponentTopologyChanges', function () {
     beforeEach(function () {
       sinon.stub(mapper, 'addServiceIfNew');
-      sinon.stub(mapper, 'createHostComponent');
+      sinon.stub(mapper, 'createHostComponentIfNotExists').returns(true);
       sinon.stub(mapper, 'deleteHostComponent');
       sinon.stub(mapper, 'deleteServiceIfHasNoComponents');
       sinon.stub(App.componentsStateMapper, 'updateComponentCountOnCreate');
@@ -66,7 +66,7 @@ describe('App.topologyMapper', function () {
     });
     afterEach(function() {
       mapper.addServiceIfNew.restore();
-      mapper.createHostComponent.restore();
+      mapper.createHostComponentIfNotExists.restore();
       mapper.deleteHostComponent.restore();
       mapper.deleteServiceIfHasNoComponents.restore();
       App.componentsStateMapper.updateComponentCountOnCreate.restore();
@@ -78,12 +78,13 @@ describe('App.topologyMapper', function () {
           hostNames: ['host1'],
           serviceName: 'S1',
           version: 'UNKNOWN',
-          publicHostNames: ['public1']
+          publicHostNames: ['public1'],
+          componentName: 'test'
         }
       ];
       mapper.applyComponentTopologyChanges(components, 'UPDATE');
       expect(mapper.addServiceIfNew.calledWith('S1')).to.be.true;
-      expect(mapper.createHostComponent.calledWith(components[0], 'host1', 'public1')).to.be.true;
+      expect(mapper.createHostComponentIfNotExists.calledWith(components[0], 'host1', 'public1')).to.be.true;
       expect(App.componentsStateMapper.updateComponentCountOnCreate.calledWith(components[0])).to.be.true;
     });
 
@@ -160,14 +161,14 @@ describe('App.topologyMapper', function () {
     });
   });
 
-  describe('#createHostComponent', function () {
+  describe('#createHostComponentIfNotExists', function () {
     beforeEach(function () {
       sinon.stub(App.store, 'safeLoad');
       sinon.stub(mapper, 'updateHostComponentsOfHost');
       sinon.stub(mapper, 'updateHostComponentsOfService');
       sinon.stub(App.Host, 'find').returns(Em.Object.create({hostComponents: [], isLoaded: true}));
       sinon.stub(App.Service, 'find').returns(Em.Object.create({hostComponents: []}));
-      mapper.createHostComponent({componentName: 'C1'}, 'host1');
+      mapper.createHostComponentIfNotExists({componentName: 'C1'}, 'host1');
     });
     afterEach(function() {
       App.store.safeLoad.restore();

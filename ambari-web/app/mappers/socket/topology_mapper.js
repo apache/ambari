@@ -55,8 +55,9 @@ App.topologyMapper = App.QuickDataMapper.create({
       component.hostNames.forEach((hostName, index) => {
         if (eventType === 'UPDATE') {
           this.addServiceIfNew(component.serviceName);
-          this.createHostComponent(component, hostName, component.publicHostNames[index]);
-          App.componentsStateMapper.updateComponentCountOnCreate(component);
+          if (this.createHostComponentIfNotExists(component, hostName, component.publicHostNames[index])) {
+            App.componentsStateMapper.updateComponentCountOnCreate(component);
+          }
         } else if (eventType === 'DELETE') {
           this.deleteHostComponent(component, hostName);
           this.deleteServiceIfHasNoComponents(component.serviceName);
@@ -118,11 +119,14 @@ App.topologyMapper = App.QuickDataMapper.create({
    * @param {string} hostName
    * @param {string} publicHostName
    */
-  createHostComponent: function(component, hostName, publicHostName) {
+  createHostComponentIfNotExists: function(component, hostName, publicHostName) {
     const id = App.HostComponent.getId(component.componentName, hostName);
     const host = App.Host.find(hostName);
     const service = App.Service.find(component.serviceName);
-
+    const componentExists = host.get('hostComponents').findProperty('id', id);
+    if (componentExists) {
+      return false;
+    }
     App.store.safeLoad(App.HostComponent, {
       id: id,
       host_id: hostName,
@@ -139,6 +143,7 @@ App.topologyMapper = App.QuickDataMapper.create({
       this.updateHostComponentsOfHost(host, host.get('hostComponents').mapProperty('id').concat(id));
     }
     this.updateHostComponentsOfService(service, service.get('hostComponents').mapProperty('id').concat(id));
+    return true;
   },
 
   /**
