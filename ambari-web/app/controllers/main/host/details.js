@@ -777,7 +777,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     this.loadComponentRelatedConfigs(componentsMapItem.configTagsCallbackName, componentsMapItem.configsCallbackName);
     return this.showAddComponentPopup(component, hostName, () => {
-      this.installAndReconfigureComponent(hostName, component, componentsMapItem);
+      this.installAndReconfigureComponent(this.get('content.hostName'), component, componentsMapItem);
     }, fromServiceSummary);
   },
 
@@ -829,18 +829,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }.property('fromServiceSummary'),
         anyHostsWithoutComponent: Em.computed.or('!fromServiceSummary', 'hostsWithoutComponent.length'),
         selectedHostObserver: function () {
-          hostName = this.get('selectedHost');
+          const selectedHostName = this.get('selectedHost');
           if (!self.get('content')) {
             self.set('content', {});
           }
           self.setProperties({
-            'content.hostName': hostName
+            'content.hostName': selectedHostName
           });
           if (componentsMapItem) {
             const configs = self.get('configs');
             const params = configs && configs.params || {};
             if (componentsMapItem.hostPropertyName) {
-              self.set(componentsMapItem.hostPropertyName, hostName);
+              self.set(componentsMapItem.hostPropertyName, selectedHostName);
             }
             if (componentsMapItem.addPropertyName) {
               self.set(componentsMapItem.addPropertyName, true);
