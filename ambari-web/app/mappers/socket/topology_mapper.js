@@ -53,7 +53,7 @@ App.topologyMapper = App.QuickDataMapper.create({
   applyComponentTopologyChanges: function(components, eventType) {
     components.forEach((component) => {
       component.hostNames.forEach((hostName, index) => {
-        if (eventType === 'UPDATE') {
+        if (eventType === 'UPDATE' && !component.commandParams.version) {
           this.addServiceIfNew(component.serviceName);
           this.createHostComponent(component, hostName, component.publicHostNames[index]);
           App.componentsStateMapper.updateComponentCountOnCreate(component);
