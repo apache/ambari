@@ -5830,7 +5830,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return serviceLevelParams;
   }
 
-  public TreeMap<String, String> getMetadataAmbariLevelParams() throws AmbariException {
+  public TreeMap<String, String> getMetadataAmbariLevelParams() {
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
     clusterLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
     clusterLevelParams.put(JAVA_HOME, getJavaHome());

@@ -60,17 +60,12 @@ public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> ex
    * @return true if the update introduced any change
    */
   public boolean updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(false);
+    initializeDataIfNeeded(true);
     boolean changed = handleUpdate(update);
     if (changed) {
       regenerateDataIdentifiers(data);
       update.setHash(getData().getHash());
       STOMPUpdatePublisher.publish(update);
-    } else {
-      // in case update does not have changes empty identifiers should be populated anyway
-      if (!isIdentifierValid(data)) {
-        regenerateDataIdentifiers(data);
-      }
     }
     return changed;
   }

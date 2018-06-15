@@ -280,45 +280,43 @@ public class ClustersImpl implements Clusters {
   private void loadClustersAndHosts() {
     LOG.info("Initializing cluster and host data.");
 
-    clustersByName = new ConcurrentHashMap<>();
-    clustersById = new ConcurrentHashMap<>();
-    hostsByName = new ConcurrentHashMap<>();
-    hostsById = new ConcurrentHashMap<>();
-    hostClustersMap = new ConcurrentHashMap<>();
-    clusterHostsMap1 = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Cluster> clustersByNameTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, Cluster> clustersByIdTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Host> hostsByNameTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, Host> hostsByIdTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Set<Cluster>> hostClustersMapTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Set<Host>> clusterHostsMap1Temp = new ConcurrentHashMap<>();
 
     List<HostEntity> hostEntities = hostDAO.findAll();
     for (HostEntity hostEntity : hostEntities) {
       Host host = hostFactory.create(hostEntity);
-      hostsByName.put(hostEntity.getHostName(), host);
-      hostsById.put(hostEntity.getHostId(), host);
+      hostsByNameTemp.put(hostEntity.getHostName(), host);
+      hostsByIdTemp.put(hostEntity.getHostId(), host);
     }
+    hostsByName = hostsByNameTemp;
+    hostsById = hostsByIdTemp;
 
     for (ClusterEntity clusterEntity : clusterDAO.findAll()) {
       Cluster currentCluster = clusterFactory.create(clusterEntity);
-      clustersByName.put(clusterEntity.getClusterName(), currentCluster);
-      clustersById.put(currentCluster.getClusterId(), currentCluster);
-      clusterHostsMap1.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<>()));
+      clustersByNameTemp.put(clusterEntity.getClusterName(), currentCluster);
+      clustersByIdTemp.put(currentCluster.getClusterId(), currentCluster);
+      clusterHostsMap1Temp.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<>()));
     }
+    clustersByName = clustersByNameTemp;
+    clustersById = clustersByIdTemp;
 
     for (HostEntity hostEntity : hostEntities) {
       Set<Cluster> cSet = Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>());
-      hostClustersMap.put(hostEntity.getHostName(), cSet);
+      hostClustersMapTemp.put(hostEntity.getHostName(), cSet);
 
       Host host = getHostsByName().get(hostEntity.getHostName());
       for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
-        clusterHostsMap1.get(clusterEntity.getClusterName()).add(host);
+        clusterHostsMap1Temp.get(clusterEntity.getClusterName()).add(host);
         cSet.add(clustersByName.get(clusterEntity.getClusterName()));
       }
     }
-    // init host configs
-    for (Long hostId : hostsById.keySet()) {
-      try {
-        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
-      } catch (AmbariException e) {
-        LOG.error("Agent configs initialization was failed", e);
-      }
-    }
+    hostClustersMap = hostClustersMapTemp;
+    clusterHostsMap1 = clusterHostsMap1Temp;
   }
 
   @Override
@@ -491,12 +489,6 @@ public class ClustersImpl implements Clusters {
 
     if (null != hostId) {
       getHostsById().put(hostId, host);
-      // init host configs
-      try {
-        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
-      } catch (AmbariException e) {
-        LOG.error("Agent configs initialization was failed for host with id %s", hostId, e);
-      }
     }
   }
 
