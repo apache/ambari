@@ -39,22 +39,12 @@ module.exports = Em.Object.extend({
   /**
    * @type {string}
    */
-  webSocketUrl: '{protocol}://{hostname}:{port}/api/stomp/v1/websocket',
+  webSocketUrl: '{protocol}://{hostname}{port}/api/stomp/v1/websocket',
 
   /**
    * @type {string}
    */
-  sockJsUrl: '{protocol}://{hostname}:{port}/api/stomp/v1',
-
-  /**
-   * @const
-   */
-  PORT: '8080',
-
-  /**
-   * @const
-   */
-  SECURE_PORT: '8443',
+  sockJsUrl: '{protocol}://{hostname}{port}/api/stomp/v1',
 
   /**
    * sockJs should use only alternative options as transport in case when websocket supported but connection fails
@@ -134,11 +124,23 @@ module.exports = Em.Object.extend({
    * @returns {string}
    */
   getSocketUrl: function(template, isWebsocket) {
-    const hostname = window.location.hostname;
-    const isSecure = window.location.protocol === 'https:';
+    const hostname = this.getHostName();
+    const isSecure = this.isSecure();
     const protocol = isWebsocket ? (isSecure ? 'wss' : 'ws') : (isSecure ? 'https' : 'http');
-    const port = isSecure ? this.get('SECURE_PORT') : this.get('PORT');
+    const port = this.getPort();
     return template.replace('{hostname}', hostname).replace('{protocol}', protocol).replace('{port}', port);
+  },
+
+  getHostName: function () {
+    return window.location.hostname;
+  },
+
+  isSecure: function () {
+    return window.location.protocol === 'https:';
+  },
+
+  getPort: function () {
+    return window.location.port ? (':' + window.location.port) : '';
   },
 
   onConnectionSuccess: function() {
