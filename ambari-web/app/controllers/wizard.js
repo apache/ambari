@@ -553,21 +553,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     };
     this.saveClusterStatus(clusterStatus);
 
-    const serviceGroups = this.get('content.serviceGroups');
-    
-    const installPromises = serviceGroups.map(sg => {
-      data.serviceGroupName = sg;
-
-      return App.ajax.send({
-        name: isRetry ? 'common.host_components.update' : 'common.services.update',
-        sender: this,
-        data: data,
-        success: 'installServicesSuccessCallback',
-        error: 'installServicesErrorCallback'
-      })
-    })
-
-    $.when(...installPromises).then(callback, callback);
+    return App.ajax.send({
+      name: isRetry ? 'common.host_components.update' : 'common.services.update.all',
+      sender: this,
+      data: data,
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
+    }).then(callback, callback);
   },
 
   installServicesSuccessCallback: function (jsonData) {

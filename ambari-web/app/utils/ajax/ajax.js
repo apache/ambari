@@ -57,7 +57,8 @@ var urls = {
   },
 
   'common.services.update.all' : {
-    'real': '/clusters/{clusterName}/servicegroups?{urlParams}',
+    //'real': '/clusters/{clusterName}/servicegroups?{urlParams}', //this is the new endpoint that should really be used for this but it isn't ready yet
+    'real': '/clusters/{clusterName}/services?{urlParams}', //this is the deprecated endpoint we have to use for now
     'format': function (data) {
       return {
         type: 'PUT',

@@ -770,8 +770,7 @@ describe('App.WizardController', function () {
         ]
       }));
       wizardController.installServices(true);
-      expect(App.ajax.send.calledThrice).to.be.true;
-      expect($.when.calledOnce).to.be.true;
+      expect(App.ajax.send.calledOnce).to.be.true;
       expect(res).to.be.eql({
         "status": "PENDING"
       });
