@@ -45,7 +45,6 @@ App.upgradeGroupView = Em.View.extend({
     this.collapseLowerLevels(event.context);
     event.context.set('isExpanded', !isExpanded);
     if (!isExpanded && event.context.get('type') === 'ITEM') {
-      event.context.set('isTasksLoaded', false);
       this.doPolling(event.context);
     }
   },
