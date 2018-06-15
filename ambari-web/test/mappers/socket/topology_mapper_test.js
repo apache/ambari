@@ -77,7 +77,7 @@ describe('App.topologyMapper', function () {
         {
           hostNames: ['host1'],
           serviceName: 'S1',
-          version: 'UNKNOWN',
+          commandParams: {},
           publicHostNames: ['public1']
         }
       ];
