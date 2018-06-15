@@ -1246,6 +1246,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
         "SERVICE_CHECK", stackId, filters, commandParams, allowRetry,
         wrapper.getMaxTimeout(s_configuration));
+    actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, stackId, null);
