@@ -763,7 +763,7 @@ App.config = Em.Object.create({
    */
   getStepConfigForProperty: function (stepConfigs, fileName) {
     return stepConfigs.find(function (s) {
-      return s.get('configTypes').contains(App.config.getConfigTagFromFileName(fileName));
+      return !!s.get('configTypes')[App.config.getConfigTagFromFileName(fileName)];
     });
   },
 
@@ -797,6 +797,7 @@ App.config = Em.Object.create({
       serviceName: preDefinedServiceConfig.get('serviceName'),
       displayName: preDefinedServiceConfig.get('displayName'),
       configCategories: preDefinedServiceConfig.get('configCategories'),
+      configTypes: preDefinedServiceConfig.get('configTypes'),
       configs: configs || [],
       configGroups: configGroups || [],
       initConfigsLength: initConfigsLength || 0
