@@ -1353,6 +1353,47 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   }
 
   @Test
+  public void testUpdateSkipSCFailures() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.FALSE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.FALSE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(1);
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity entity = upgrades.get(0);
+
+    HostRoleCommandDAO dao = injector.getInstance(HostRoleCommandDAO.class);
+
+    List<HostRoleCommandEntity> tasks = dao.findByRequest(entity.getRequestId());
+    for (HostRoleCommandEntity task : tasks) {
+      if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK) {
+        StageEntity stage = task.getStage();
+        if (stage.isSkippable() && stage.isAutoSkipOnFailureSupported()) {
+          assertTrue(task.isFailureAutoSkipped());
+        } else {
+          assertFalse(task.isFailureAutoSkipped());
+        }
+      } else {
+        assertFalse(task.isFailureAutoSkipped());
+      }
+    }
+  }
+
+  @Test
   public void testUpdateSkipFailures() throws Exception {
     testCreateResourcesWithAutoSkipFailures();
 

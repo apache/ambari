@@ -1246,6 +1246,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
         "SERVICE_CHECK", stackId, filters, commandParams, allowRetry,
         wrapper.getMaxTimeout(s_configuration));
+    actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, stackId, null);
@@ -1654,11 +1655,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setStackId(stackId);
     actionContext.setTimeout(timeout);
     actionContext.setRetryAllowed(allowRetry);
-    if (StageWrapper.Type.SERVICE_CHECK.name().equals(role)) {
-      actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
-    } else {
-      actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
-    }
+    actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
+
     // hosts in maintenance mode are excluded from the upgrade
     actionContext.setMaintenanceModeHostExcluded(true);
 
