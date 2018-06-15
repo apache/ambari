@@ -864,6 +864,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
       boolean rackChange = updateHostRackInfoIfChanged(cluster, host, request);
 
+      if (rackChange) {
+        topologyHost.setRackName(host.getRackInfo());
+      }
 
       if (null != request.getPublicHostName()) {
         if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {

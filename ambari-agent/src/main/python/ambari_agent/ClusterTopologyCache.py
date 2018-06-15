@@ -103,6 +103,19 @@ class ClusterTopologyCache(ClusterCache):
       hostnames = [self.hosts_to_id[cluster_id][host_id].hostName for host_id in component_dict.hostIds]
       cluster_host_info[component_name.lower()+"_hosts"] += hostnames
 
+    cluster_host_info['all_hosts'] = []
+    cluster_host_info['all_racks'] = []
+    cluster_host_info['all_ipv4_ips'] = []
+    
+    for hosts_dict in self[cluster_id].hosts:
+      host_name = hosts_dict.hostName
+      rack_name = hosts_dict.rackName
+      ip = hosts_dict.ipv4
+      
+      cluster_host_info['all_hosts'].append(host_name)
+      cluster_host_info['all_racks'].append(rack_name)
+      cluster_host_info['all_ipv4_ips'].append(ip)
+
     self.cluster_host_info = cluster_host_info
     return cluster_host_info
 
