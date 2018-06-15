@@ -1900,6 +1900,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         isActive: false,
         isDisabled: false,
         isSkipped: false,
+        validateOnSwitch: false,
         tabView: App.CredentialsTabOnStep7View
       }),
       Em.Object.create({
@@ -1909,6 +1910,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         isActive: false,
         isDisabled: false,
         isSkipped: false,
+        validateOnSwitch: false,
         tabView: App.DatabasesTabOnStep7View
       }),
       Em.Object.create({
@@ -1918,6 +1920,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         isActive: false,
         isDisabled: false,
         isSkipped: false,
+        validateOnSwitch: false,
         selectedServiceName: null,
         tabView: App.DirectoriesTabOnStep7View
       }),
@@ -1928,6 +1931,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         isActive: false,
         isDisabled: false,
         isSkipped: false,
+        validateOnSwitch: false,
         tabView: App.AccountsTabOnStep7View
       }),
       Em.Object.create({
@@ -1937,6 +1941,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         isActive: false,
         isDisabled: false,
         isSkipped: false,
+        validateOnSwitch: true,
         selectedServiceName: null,
         tabView: App.ServicesConfigView
       })
@@ -2117,6 +2122,23 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   updateConfigAttributesFromThemes: function () {
     this.get('allSelectedServiceNames').forEach(serviceName => this.updateAttributesFromTheme(serviceName));
-  }
+  },
+
+  validateOnTabSwitch: function () {
+    const activeTab = this.get('tabs')[this.get('currentTabIndex')];
+    if (activeTab && activeTab.get('validateOnSwitch')) {
+      if (this.get('requestTimer')) {
+        clearTimeout(this.get('requestTimer'));
+      }
+      if (this.get('validationRequest')) {
+        this.get('validationRequest').abort();
+      }
+      if (this.get('recommendationsInProgress')) {
+        this.valueObserver();
+      } else {
+        this.runServerSideValidation().done(() => this.set('validationRequest', null));
+      }
+    }
+  }.observes('currentTabIndex')
 
 });
