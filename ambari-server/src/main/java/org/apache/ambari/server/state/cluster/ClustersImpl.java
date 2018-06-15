@@ -317,6 +317,14 @@ public class ClustersImpl implements Clusters {
     }
     hostClustersMap = hostClustersMapTemp;
     clusterHostsMap1 = clusterHostsMap1Temp;
+    // init host configs
+    for (Long hostId : hostsById.keySet()) {
+      try {
+        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
+      } catch (AmbariException e) {
+        LOG.error("Agent configs initialization was failed", e);
+      }
+    }
   }
 
   @Override
@@ -489,6 +497,12 @@ public class ClustersImpl implements Clusters {
 
     if (null != hostId) {
       getHostsById().put(hostId, host);
+      // init host configs
+      try {
+        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
+      } catch (AmbariException e) {
+        LOG.error("Agent configs initialization was failed for host with id %s", hostId, e);
+      }
     }
   }
 
