@@ -29,6 +29,7 @@ import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,9 +73,12 @@ public class DownloadMpacksTask {
         }
       }
       catch (Exception ex) {
-        throw ex instanceof RuntimeException ?
-          (RuntimeException)ex :
-          new RuntimeException("Error occured while registering mpack: " + mpack.getStackId(), ex);
+        List<Throwable> causes = ExceptionUtils.getThrowableList(ex);
+        Throwable rootCause = causes.get(causes.size() - 1);
+        throw new RuntimeException(
+          String.format("Error occured while registering mpack: %s (uri: %s). Caused by %s: %s", mpack.getStackId(),
+            mpack.getUrl(), rootCause.getClass().getName(), rootCause.getMessage(),
+          rootCause));
       }
     }
   }

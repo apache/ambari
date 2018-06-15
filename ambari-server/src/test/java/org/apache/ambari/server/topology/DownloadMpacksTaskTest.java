@@ -28,10 +28,12 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Set;
 
@@ -40,15 +42,21 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.ImmutableList;
 
 public class DownloadMpacksTaskTest {
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   private static final List<MpackInstance> INSTALLED_MPACKS = ImmutableList.of(
     mpack("HDPCORE", "1.0.0.0"),
@@ -116,6 +124,24 @@ public class DownloadMpacksTaskTest {
 
     // when
     downloadMpacksTask.downloadMissingMpacks(ImmutableList.of(brokenMpack));
+  }
+
+  @Test
+  public void testDownloadMissingMpacks_errorReporting() throws Exception {
+    // then
+    expectedException.expect(RuntimeException.class);
+    expectedException.expectMessage(
+      "Error occured while registering mpack: EDW-1.0.0 (uri: http://mpacks.org/EDW.1.0.0). " +
+        "Caused by java.net.UnknownHostException: mpacks.org");
+
+    // given
+    reset(resourceProvider);
+    expect(resourceProvider.createResources(anyObject()))
+      .andThrow(new SystemException("", new UnknownHostException("mpacks.org")));
+    replay(resourceProvider);
+
+    // when
+    downloadMpacksTask.downloadMissingMpacks(MISSING_MPACKS.subList(0, 1));
   }
 
 
