@@ -73,7 +73,8 @@ public class DownloadMpacksTask {
         }
       }
       catch (Exception ex) {
-        Throwable rootCause = ExceptionUtils.getRootCause(ex);
+        List<Throwable> causes = ExceptionUtils.getThrowableList(ex);
+        Throwable rootCause = causes.get(causes.size() - 1);
         throw new RuntimeException(
           String.format("Error occured while registering mpack: %s (uri: %s). Caused by %s: %s", mpack.getStackId(),
             mpack.getUrl(), rootCause.getClass().getName(), rootCause.getMessage(),
