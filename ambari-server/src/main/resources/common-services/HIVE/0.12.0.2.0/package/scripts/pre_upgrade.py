@@ -73,8 +73,8 @@ class HivePreUpgrade(Script):
       Execute(format(command), user = "root")
       Logger.info(format("Hive Metastore database backup created at {dump_file}"))
     else:
-      Logger.warn(format("Hive Metastore is using an external {hive_metastore_db_type} database, the connection url is {hive_jdbc_connection_url}."))
-      Logger.warn(format("Please log in to that host, and create a db backup manually by executing the following command: \"{command}\", then click on 'IGNORE AND PROCEED'"))
+      Logger.warning(format("Hive Metastore is using an external {hive_metastore_db_type} database, the connection url is {hive_jdbc_connection_url}."))
+      Logger.warning(format("Please log in to that host, and create a db backup manually by executing the following command: \"{command}\", then click on 'IGNORE AND PROCEED'"))
       raise Fail()
 
   def convert_tables(self, env):
