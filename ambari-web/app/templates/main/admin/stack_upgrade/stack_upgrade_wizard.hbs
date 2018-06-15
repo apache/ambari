@@ -74,7 +74,7 @@
                   <div class="panel-body">
                       {{#if view.runningItem.isTasksLoaded}}
                         <div class="clear col-md-12">
-                            {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
+                            {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view"}}
                         </div>
                       {{else}}
                           {{view App.SpinnerView classNames="clear"}}
@@ -110,7 +110,7 @@
                       <div class="panel-body">
                           {{#if view.failedItem.isTasksLoaded}}
                             <div class="clear col-md-12">
-                                {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
+                                {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view"}}
                             </div>
                           {{else}}
                               {{view App.SpinnerView classNames="clear"}}

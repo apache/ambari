@@ -24,14 +24,14 @@ App.upgradeTaskView = Em.View.extend({
 
   /**
    * view observed directly
-   * @type {boolean}
+   * @type {?Em.View}
    */
-  outsideView: false,
+  outsideView: null,
 
   /**
    * @type {boolean}
    */
-  showContent: Em.computed.or('outsideView', 'content.isExpanded'),
+  isExpanded: false,
 
   /**
    * @type {boolean}
@@ -74,37 +74,34 @@ App.upgradeTaskView = Em.View.extend({
    */
   errorTabIdLInk: Em.computed.format('#{0}','errorTabId'),
 
-  /**
-   * @type {boolean}
-   */
-  isContentLoaded: false,
-
   didInsertElement: function() {
     if (this.get('outsideView') && this.get('content')) {
-      this.toggleExpanded({context: this.get('content')});
+      this.set('isExpanded', true);
+      this.doPolling();
     }
   },
 
-  toggleExpanded: function (event) {
-    var isExpanded = event.context.get('isExpanded');
-    event.context.toggleProperty('isExpanded', !isExpanded);
+  toggleExpanded: function () {
+    var isExpanded = this.get('isExpanded');
+    this.toggleProperty('isExpanded', !isExpanded);
     if (!isExpanded) {
-      this.doPolling(event.context);
+      this.doPolling();
     } else {
-      this.set('isContentLoaded', true);
+      this.set('content.isContentLoaded', true);
     }
   },
 
   /**
    *
-   * @param task
    */
-  doPolling: function (task) {
+  doPolling: function () {
     var self = this;
+    var task = this.get('content');
+    var isExpanded = this.get('outsideView') ? this.get('outsideView.isDetailsOpened') : this.get('isExpanded');
 
-    if (task && task.get('isExpanded')) {
+    if (task && isExpanded) {
       this.get('controller').getUpgradeTask(task).complete(function () {
-        self.set('isContentLoaded', true);
+        task.set('isContentLoaded', true);
         if (!task.get('isCompleted')) {
           self.set('timer', setTimeout(function () {
             self.doPolling(task);
@@ -114,7 +111,7 @@ App.upgradeTaskView = Em.View.extend({
     } else {
       clearTimeout(this.get('timer'));
     }
-  },
+  }.observes('outsideView.isDetailsOpened'),
 
   willDestroyElement: function () {
     clearTimeout(this.get('timer'));

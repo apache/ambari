@@ -33,8 +33,6 @@ describe('App.upgradeTaskView', function () {
   view.removeObserver('content.isExpanded', view, 'doPolling');
   view.removeObserver('outsideView', view, 'doPolling');
 
-  App.TestAliases.testAsComputedOr(view, 'showContent', ['outsideView', 'content.isExpanded']);
-
   describe("#logTabId", function() {
     it("depends on `elementId`", function() {
       view.reopen({
@@ -183,13 +181,9 @@ describe('App.upgradeTaskView', function () {
     });
 
     it('doPolling should be called', function() {
-      var event = {
-        context: Em.Object.create({
-          isExpanded: false
-        })
-      };
-      view.toggleExpanded(event);
-      expect(event.context.get('isExpanded')).to.be.true;
+      view.set('isExpanded', false);
+      view.toggleExpanded();
+      expect(view.get('isExpanded')).to.be.true;
       expect(view.doPolling.calledOnce).to.be.true;
     });
   });
@@ -197,9 +191,19 @@ describe('App.upgradeTaskView', function () {
   describe('#doPolling', function() {
 
     it('getUpgradeTask should be called', function() {
-      view.doPolling(Em.Object.create({isExpanded: true}));
+      view.set('isExpanded', true);
+      view.doPolling();
       expect(view.get('controller').getUpgradeTask.calledOnce).to.be.true;
-      expect(view.get('isContentLoaded')).to.be.true;
+      expect(view.get('content.isContentLoaded')).to.be.true;
+    });
+
+    it('getUpgradeTask should be called when outside view', function() {
+      view.set('outsideView', Em.Object.create({
+        isDetailsOpened: true
+      }));
+      view.doPolling();
+      expect(view.get('controller').getUpgradeTask.called).to.be.true;
+      expect(view.get('content.isContentLoaded')).to.be.true;
     });
   });
 
