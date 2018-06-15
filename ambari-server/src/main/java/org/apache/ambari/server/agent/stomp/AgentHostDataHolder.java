@@ -69,7 +69,7 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
    * event to listeners.
    */
   public final void updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(update.getHostId(), false);
+    initializeDataIfNeeded(update.getHostId(), true);
     if (handleUpdate(update)) {
       T hostData = getData(update.getHostId());
       regenerateDataIdentifiers(hostData);
@@ -78,12 +78,6 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
         LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
       }
       STOMPUpdatePublisher.publish(update);
-    } else {
-      // in case update does not have changes empty identifiers should be populated anyway
-      T hostData = getData(update.getHostId());
-      if (!isIdentifierValid(hostData)) {
-        regenerateDataIdentifiers(hostData);
-      }
     }
   }
 
