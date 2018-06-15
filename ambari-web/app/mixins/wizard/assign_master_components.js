@@ -811,7 +811,6 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   renderComponents: function (masterComponents) {
     var installedServices = App.StackService.find().filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'); //list of shown services
     var result = [];
-    var serviceComponentId, previousComponentName;
 
     this.addNewMasters(masterComponents);
 
@@ -822,7 +821,6 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       if (masterComponent.get('isMasterWithMultipleInstances')) {
         showRemoveControl = installedServices.contains(masterComponent.get('stackService.serviceName')) &&
             (masterComponents.filterProperty('component_name', item.component_name).length > 1);
-        previousComponentName = item.component_name;
         componentObj.set('serviceComponentId', result.filterProperty('component_name', item.component_name).length + 1);
         componentObj.set("showRemoveControl", showRemoveControl);
       }

@@ -1014,7 +1014,9 @@ describe('App.WizardStep5Controller', function () {
         {
           fullComponent: Em.Object.create({
             componentName: 'c1',
-            serviceName: 's1'
+            serviceName: 's1',
+            serviceInstance: 'si1',
+            mpackInstance: 'm1'
           }),
           hostName: 'h1',
           mastersToMove: ['c1'],
@@ -1029,13 +1031,17 @@ describe('App.WizardStep5Controller', function () {
             serviceId: 's1',
             selectedHost: 'h2',
             isInstalled: true,
-            isServiceCoHost: false
+            isServiceCoHost: false,
+            serviceInstance: 'si1',
+            mpackInstance: 'm1'
           }
         },
         {
           fullComponent: Em.Object.create({
             componentName: 'c1',
-            serviceName: 's1'
+            serviceName: 's1',
+            serviceInstance: 'si1',
+            mpackInstance: 'm1'
           }),
           hostName: 'h1',
           mastersToMove: [],
@@ -1046,13 +1052,17 @@ describe('App.WizardStep5Controller', function () {
             serviceId: 's1',
             selectedHost: 'h1',
             isInstalled: false,
-            isServiceCoHost: false
+            isServiceCoHost: false,
+            serviceInstance: 'si1',
+            mpackInstance: 'm1'
           }
         },
         {
           fullComponent: Em.Object.create({
             componentName: 'c1',
-            serviceName: 's1'
+            serviceName: 's1',
+            serviceInstance: 'si1',
+            mpackInstance: 'm1'
           }),
           hostName: 'h1',
           mastersToMove: [],
@@ -1063,7 +1073,9 @@ describe('App.WizardStep5Controller', function () {
             serviceId: 's1',
             selectedHost: 'h1',
             isInstalled: false,
-            isServiceCoHost: true
+            isServiceCoHost: true,
+            serviceInstance: 'si1',
+            mpackInstance: 'm1'
           }
         }
       ]).forEach(function (test, i) {

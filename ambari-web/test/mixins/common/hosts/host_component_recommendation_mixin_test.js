@@ -76,7 +76,6 @@ describe('App.HostComponentRecommendationMixin', function() {
       {
         opts: null,
         e: {
-          services: [],
           hosts: [],
           components: [],
           blueprint: null
@@ -85,13 +84,11 @@ describe('App.HostComponentRecommendationMixin', function() {
       },
       {
         opts: {
-          services: ['s1'],
           hosts: ['h1'],
           components: [{componentName: 'c1'}],
           blueprint: {recommend:{}}
         },
         e: {
-          services: ['s1'],
           hosts: ['h1'],
           components: [{componentName: 'c1'}],
           blueprint: {recommend:{}}
@@ -109,9 +106,9 @@ describe('App.HostComponentRecommendationMixin', function() {
   describe('#loadComponentsRecommedationsFromServer', function() {
     it('default request options checking', function() {
       mixedObject.loadComponentsRecommendationsFromServer('someData');
-      var args = helpers.findAjaxRequest('name', 'config.recommendations');
+      var args = helpers.findAjaxRequest('name', 'mpack.advisor.recommendations');
       expect(args[0]).to.be.eql({
-        name: 'config.recommendations',
+        name: 'mpack.advisor.recommendations',
         sender: mixedObject,
         data: 'someData',
         success: 'loadRecommendationsSuccessCallback',
@@ -131,20 +128,34 @@ describe('App.HostComponentRecommendationMixin', function() {
       {
         options: {
           hosts: ['h1'],
-          services: ['s1'],
-          components: [Em.Object.create({componentName: 'c1', hostName: 'h1'})],
-          blueprint: null
+          components: [Em.Object.create({
+            componentName: 'c1',
+            hostName: 'h1',
+            mpackInstance: 'm1',
+            serviceInstance: 'si1'
+          })],
+          blueprint: null,
+          mpack_instances: []
         },
         e: {
-          dataToSend: {
+          data: {
             recommend: 'host_groups',
             hosts: ['h1'],
-            services: ['s1'],
             recommendations: {
               blueprint: {
                 host_groups: [
-                  { name: 'host-group-1', components: [{ name: 'c1' }] }
-                ]
+                  {
+                    name: 'host-group-1',
+                    components: [
+                      {
+                        name: 'c1',
+                        mpack_instance: 'm1',
+                        service_instance: 'si1'
+                      }
+                    ]
+                  }
+                ],
+                mpack_instances: []
               },
               blueprint_cluster_binding: {
                 host_groups: [
@@ -152,28 +163,27 @@ describe('App.HostComponentRecommendationMixin', function() {
                 ]
               }
             }
-          },
-          stackVersionUrl: '/stack/url'
+          }
         },
         m: 'when blueprint not passed it should be generated from components list'
       },
       {
         options: {
           hosts: ['h1'],
-          services: ['s1'],
           components: [Em.Object.create({componentName: 'c1', hostName: 'h1'})],
-          blueprint: { blueprint: {}}
+          blueprint: { blueprint: {} },
+          mpack_instances: []
         },
         e: {
-          dataToSend: {
+          data: {
             recommend: 'host_groups',
             hosts: ['h1'],
-            services: ['s1'],
             recommendations: {
-              blueprint: {}
+              blueprint: {
+                mpack_instances: []
+              }
             }
-          },
-          stackVersionUrl: '/stack/url'
+          }
         },
         m: 'when blueprint passed it should be used instead of generated blueprint'
       }

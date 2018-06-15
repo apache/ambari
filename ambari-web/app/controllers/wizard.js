@@ -940,20 +940,21 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @param stepController
    */
   saveSlaveComponentHosts: function (stepController) {
-    var hosts = stepController.get('hosts'),
-      dbHosts = this.getDBProperty('hosts'),
-      headers = stepController.get('headers');
+    const hosts = stepController.get('hosts');
+    const dbHosts = this.getDBProperty('hosts');
+    const headers = stepController.get('headers');
 
-    var formattedHosts = Ember.Object.create();
+    const formattedHosts = Ember.Object.create();
     headers.forEach(function (header) {
       formattedHosts.set(header.get('name'), []);
     });
 
     hosts.forEach(function (host) {
+      const checkboxes = host.checkboxes;
 
-      var checkboxes = host.checkboxes;
       headers.forEach(function (header) {
-        var cb = checkboxes.findProperty('title', header.get('label'));
+        const cb = checkboxes.findProperty('title', header.get('label'));
+
         if (cb.checked) {
           formattedHosts.get(header.get('name')).push({
             group: 'Default',
@@ -964,13 +965,15 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       });
     });
 
-    var slaveComponentHosts = [];
+    const slaveComponentHosts = [];
 
     headers.forEach(function (header) {
       slaveComponentHosts.push({
         componentName: header.get('name'),
         displayName: header.get('label').replace(/\s/g, ''),
-        hosts: formattedHosts.get(header.get('name'))
+        hosts: formattedHosts.get(header.get('name')),
+        serviceName: header.get('serviceName'),
+        serviceGroupName: header.get('serviceGroupName')
       });
     });
 
