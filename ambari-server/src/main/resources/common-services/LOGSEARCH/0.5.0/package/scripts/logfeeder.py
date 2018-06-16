@@ -19,7 +19,6 @@ limitations under the License.
 
 from ambari_commons.repo_manager import ManagerFactory
 from ambari_commons.shell import RepoCallContext
-from ambari_commons.os_utils import get_ambari_repo_file_full_name
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -63,10 +62,7 @@ class LogFeeder(Script):
   def upgrade_logfeeder(self, env):
     pkg_provider = ManagerFactory.get()
     context = RepoCallContext()
-    context.is_upgrade=True
     context.log_output = True
-    context.use_repos = {}
-    context.use_repos['ambari']=get_ambari_repo_file_full_name()
     pkg_provider.remove_package('ambari-logsearch-logfeeder', context, ignore_dependencies=True)
     pkg_provider.upgrade_package('ambari-logsearch-logfeeder', context)
 
