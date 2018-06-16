@@ -158,7 +158,7 @@ These tasks can be done with 1 [migrationHelper.py](#solr-migration-helper-scrip
 
 If the script finished successfully and everything looks green on Ambari UI as well, you can go ahead with [Infra Solr package upgrade](#iii.-upgrade-infra-solr-packages). Otherwise (or if you want to go step by step instead of the command above) you have to option to run tasks step by step (or manually as well). Those tasks are found in the next sections.
 
-[![asciicast](https://asciinema.org/a/187124.png)](https://asciinema.org/a/187124?speed=2)
+[![asciicast](https://asciinema.org/a/187421.png)](https://asciinema.org/a/187421?speed=2)
 
 #### <a id="ii/1.-backup-ranger-collection">III/1. Backup Ranger collection</a>
 
@@ -434,7 +434,7 @@ The collection creation and restore part can be done with 1 command:
 
 If the script finished successfully and everything looks green on Ambari UI as well, you can go ahead with [Restart Solr Instances](#viii.-restart-infra-solr-instances). Otherwise (or if you want to go step by step instead of the command above) you have to option to run tasks step by step (or manually as well). Those tasks are found in the next sections.
 
-[![asciicast](https://asciinema.org/a/187126.png)](https://asciinema.org/a/187126?speed=2)
+[![asciicast](https://asciinema.org/a/187423.png)](https://asciinema.org/a/187423?speed=2)
 
 #### <a id="vi/1.-restore-old-ranger-collection">VII/1. Restore Old Ranger collection</a>
 
