@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import subprocess
+from ambari_commons import subprocess32
 import socket
 import time
 import urllib2
@@ -163,7 +163,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       # make a single curl call to get just the http code
       _, stdout, stderr = shell.checked_call(['curl', '--negotiate', '-u', ':', '-sL', '-w',
         '%{http_code}', '--connect-timeout', curl_connection_timeout,
-        '-o', '/dev/null', query_url], stderr=subprocess.PIPE, env=kerberos_env)
+        '-o', '/dev/null', query_url], stderr=subprocess32.PIPE, env=kerberos_env)
 
       if stderr != '':
         raise Exception(stderr)
@@ -185,7 +185,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       start_time = time.time()
       _, stdout, stderr = shell.checked_call(['curl', '--negotiate', '-u', ':', '-sL',
         '--connect-timeout', curl_connection_timeout, query_url, ],
-        stderr=subprocess.PIPE, env=kerberos_env)
+        stderr=subprocess32.PIPE, env=kerberos_env)
 
       total_time = time.time() - start_time
 

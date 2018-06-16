@@ -41,6 +41,7 @@ from ambari_agent.ExitHelper import ExitHelper
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Facter import FacterLinux
 import ambari_commons
+from ambari_commons import subprocess32
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -189,7 +190,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(process_status_commands.called)
 
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
@@ -231,7 +232,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(aq.start.called)
 
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))

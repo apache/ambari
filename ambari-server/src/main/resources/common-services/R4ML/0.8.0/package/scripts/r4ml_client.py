@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import os
-import subprocess
+from ambari_commons import subprocess32
 from resource_management import *
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
@@ -71,7 +71,7 @@ class R4MLClient(Script):
     import urllib
     code = 0
     try :
-      code = subprocess.call(["sudo", "which", "R"])
+      code = subprocess32.call(["sudo", "which", "R"])
     except Exception as e :
       Logger.error(str(e))
     if code != 0 :

@@ -20,7 +20,6 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.libraries.functions.format import format
-import subprocess
 import os
 
 class R4MLServiceCheck(Script):

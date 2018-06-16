@@ -17,7 +17,7 @@ limitations under the License.
 """
 
 from resource_management import *
-import subprocess
+from ambari_commons import subprocess32
 import time
 
 class SparkServiceCheck(Script):
@@ -48,7 +48,7 @@ class SparkServiceCheck(Script):
 
     is_running = False
     for i in range(1,11):
-      proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      proc = subprocess32.Popen(command_with_flags, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
       Logger.info("Try %d, command: %s" % (i, " ".join(command_with_flags)))
       (stdout, stderr) = proc.communicate()
       response = stdout
@@ -119,7 +119,7 @@ class SparkServiceCheck(Script):
 
 
     #command_with_flags = [command, silent, out, head, httpGssnegotiate, userpswd, insecure, url]
-    # proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # proc = subprocess32.Popen(command_with_flags, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
     # (stdout, stderr) = proc.communicate()
     # response = stdout
     # if '200' in response:

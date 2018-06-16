@@ -22,7 +22,7 @@ from hdfs_namenode import namenode
 from hdfs import hdfs
 import time
 import json
-import subprocess
+from ambari_commons import subprocess32
 import hdfs_rebalance
 import sys
 import os
@@ -101,9 +101,9 @@ class NameNode(Script):
     _print("Executing command %s\n" % command)
     
     parser = hdfs_rebalance.HdfsParser()
-    proc = subprocess.Popen(
+    proc = subprocess32.Popen(
                             command, 
-                            stdout=subprocess.PIPE, 
+                            stdout=subprocess32.PIPE, 
                             shell=False,
                             close_fds=True,
                             cwd=basedir

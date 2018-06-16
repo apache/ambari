@@ -20,7 +20,7 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.libraries.functions.format import format
-import subprocess
+from ambari_commons import subprocess32
 import os
 
 class SystemMLServiceCheck(Script):
@@ -32,7 +32,7 @@ class SystemMLServiceCheck(Script):
             cp = format("{params.stack_root}/current/hadoop-client/*:{params.stack_root}/current/hadoop-mapreduce-client/*:{params.stack_root}/current/hadoop-client/lib/*:{params.systemml_lib_dir}/systemml.jar")
             java = format("{params.java_home}/bin/java")
             command = [java, "-cp", cp, "org.apache.sysml.api.DMLScript", "-s", "print('Apache SystemML');"]
-            process = subprocess.Popen(command, stdout=subprocess.PIPE)
+            process = subprocess32.Popen(command, stdout=subprocess32.PIPE)
             output = process.communicate()[0]
             print output
         

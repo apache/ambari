@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import optparse
-import subprocess
+from ambari_commons import subprocess32
 import json
 
 RESOURCEMANAGER = 'rm'
@@ -43,7 +43,7 @@ def getResponse(path, address, ssl_enabled):
       
   command_with_flags = [command,httpGssnegotiate,userpswd,insecure,url]
 
-  proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  proc = subprocess32.Popen(command_with_flags, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
   (stdout, stderr) = proc.communicate()
   response = json.loads(stdout)
   if response == None:

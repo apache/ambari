@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 import os, platform
-from subprocess import Popen, PIPE
+from ambari_commons import subprocess32
 
 class BigInsights425StackAdvisor(BigInsights42StackAdvisor):
 
@@ -67,9 +67,9 @@ class BigInsights425StackAdvisor(BigInsights42StackAdvisor):
     distro_version = platform.linux_distribution()[1]
     if distro_version < "7.0" and (py_exec == "/opt/rh/python27/root/usr/bin/python" or py_exec == "/opt/rh/python27/root/usr/bin/python2" or py_exec == "/opt/rh/python27/root/usr/bin/python2.7"):
       # Special handling for RHSCL Python 2.7
-      proc = Popen(['/usr/bin/scl', 'enable', 'python27', '/opt/rh/python27/root/usr/bin/python' ' -V'], stderr=PIPE)
+      proc = subprocess32.Popen(['/usr/bin/scl', 'enable', 'python27', '/opt/rh/python27/root/usr/bin/python' ' -V'], stderr=subprocess32.PIPE)
     else:
-      proc = Popen([py_exec, '-V'], stderr=PIPE)
+      proc = subprocess32.Popen([py_exec, '-V'], stderr=subprocess32.PIPE)
     py_string = proc.communicate()[1]
     py_version = py_string.split()[1]
 

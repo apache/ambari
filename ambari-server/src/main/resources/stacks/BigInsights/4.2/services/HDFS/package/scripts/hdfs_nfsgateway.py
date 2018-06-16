@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources import Directory
 from resource_management.core import shell
 from utils import service
-import subprocess,os
+import os
 
 # NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
 # on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
