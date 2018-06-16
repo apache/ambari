@@ -39,11 +39,10 @@ def backup_collection(env):
             owner=params.infra_solr_user,
             group=params.user_group
             )
-  host_cores_data_map = command_commons.get_host_cores_for_collection()
 
   Logger.info(format("Backup Solr Collection {collection} to {index_location}"))
 
-  host_core_map = host_cores_data_map[command_commons.HOST_CORES]
+  host_core_map = command_commons.solr_backup_host_cores_map
 
   host_or_ip = params.hostname
   # IP resolve - for unsecure cluster
@@ -92,11 +91,14 @@ def restore_collection(env):
   if command_commons.solr_num_shards == 0:
     raise Exception(format("The 'solr_shards' command parameter is required to set."))
 
-  host_cores_backup_map = command_commons.read_backup_json()
-  host_cores_map = command_commons.get_host_cores_for_collection(backup=False)
+  if not command_commons.solr_restore_config_set:
+    raise Exception(format("The 'solr_restore_config_set' command parameter is required to set."))
 
-  original_core_host_pairs = command_commons.sort_core_host_pairs(host_cores_backup_map[command_commons.CORE_HOST])
-  new_core_host_pairs = command_commons.sort_core_host_pairs(host_cores_map[command_commons.CORE_HOST])
+  Logger.info("Original core / host map: " + str(command_commons.solr_backup_core_host_map))
+  Logger.info("New core / host map: " + str(command_commons.solr_restore_core_host_map))
+
+  original_core_host_pairs = command_commons.sort_core_host_pairs(command_commons.solr_backup_core_host_map)
+  new_core_host_pairs = command_commons.sort_core_host_pairs(command_commons.solr_restore_core_host_map)
 
   core_pairs = command_commons.create_core_pairs(original_core_host_pairs, new_core_host_pairs)
   Logger.info("Generated core pairs: " + str(core_pairs))
@@ -115,9 +117,9 @@ def restore_collection(env):
 
   hdfs_cores_on_host=[]
 
-  for core_data in core_pairs:
-    src_core = core_data['src_core']
-    target_core = core_data['target_core']
+  for core_pair in core_pairs:
+    src_core = core_pair['src_core']
+    target_core = core_pair['target_core']
 
     if src_core in command_commons.skip_cores:
       Logger.info(format("Core '{src_core}' (src) is filtered out."))
@@ -126,7 +128,7 @@ def restore_collection(env):
       Logger.info(format("Core '{target_core}' (target) is filtered out."))
       continue
 
-    core_data = host_cores_map[command_commons.CORE_DATA]
+    core_data = command_commons.solr_restore_core_data
     only_if_cmd = format("test -d {index_location}/snapshot.{src_core}")
     core_root_dir = format("{solr_datadir}/backup_{target_core}")
     core_root_without_backup_dir = format("{solr_datadir}/{target_core}")
@@ -152,17 +154,17 @@ def restore_collection(env):
                 only_if=only_if_cmd
                 )
 
-    core_details = core_data[target_core]
+    core_details = core_data[target_core]['properties']
     core_properties = {}
-    core_properties['numShards'] = command_commons.solr_num_shards
-    core_properties['collection.configName'] = "ranger_audits"
+    core_properties['numShards'] = core_details['numShards']
+    core_properties['collection.configName'] = "ranger_audits" # TODO
     core_properties['name'] = target_core
-    core_properties['replicaType'] = core_details['type']
+    core_properties['replicaType'] = core_details['replicaType']
     core_properties['collection'] = command_commons.collection
     if command_commons.solr_hdfs_path:
-      core_properties['coreNodeName'] = 'backup_' + core_details['node']
+      core_properties['coreNodeName'] = 'backup_' + core_details['coreNodeName']
     else:
-      core_properties['coreNodeName'] = core_details['node']
+      core_properties['coreNodeName'] = core_details['coreNodeName']
     core_properties['shard'] = core_details['shard']
     if command_commons.solr_hdfs_path:
       hdfs_solr_node_folder=command_commons.solr_hdfs_path + format("/backup_{collection}/") + core_details['node']
@@ -211,10 +213,10 @@ def restore_collection(env):
   Execute(format("rm -rf {solr_datadir}/{collection}*"),
           user=params.infra_solr_user,
           logoutput=True)
-  for core_data in core_pairs:
-    src_core = core_data['src_core']
-    src_host = core_data['src_host']
-    target_core = core_data['target_core']
+  for core_pair in core_pairs:
+    src_core = core_pair['src_core']
+    src_host = core_pair['src_host']
+    target_core = core_pair['target_core']
 
     if src_core in command_commons.skip_cores:
       Logger.info(format("Core '{src_core}' (src) is filtered out."))
@@ -225,12 +227,12 @@ def restore_collection(env):
 
     if os.path.exists(format("{index_location}/snapshot.{src_core}")):
       data_to_save = {}
-      host_core_data=host_cores_map[command_commons.CORE_DATA]
-      core_details=host_core_data[target_core]
-      core_node=core_details['node']
+      host_core_data=command_commons.solr_restore_core_data
+      core_details=host_core_data[target_core]['properties']
+      core_node=core_details['coreNodeName']
       data_to_save['core']=target_core
       data_to_save['core_node']=core_node
-      data_to_save['old_host']=core_data['target_host']
+      data_to_save['old_host']=core_pair['target_host']
       data_to_save['new_host']=src_host
       if command_commons.solr_hdfs_path:
         data_to_save['new_core_node']="backup_" + core_node
@@ -250,10 +252,10 @@ def restore_collection(env):
       if target_core in hdfs_cores_on_host:
 
         Logger.info(format("Core data '{target_core}' is located on this host, processing..."))
-        host_core_data=host_cores_map[command_commons.CORE_DATA]
-        core_details=host_core_data[target_core]
+        host_core_data=command_commons.solr_restore_core_data
+        core_details=host_core_data[target_core]['properties']
 
-        core_node=core_details['node']
+        core_node=core_details['coreNodeName']
         collection_core_dir=command_commons.solr_hdfs_path + format("/{collection}/{core_node}")
         backup_collection_core_dir=command_commons.solr_hdfs_path + format("/backup_{collection}/{core_node}")
         command_commons.HdfsResource(collection_core_dir,

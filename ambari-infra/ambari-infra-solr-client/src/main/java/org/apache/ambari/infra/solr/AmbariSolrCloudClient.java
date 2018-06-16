@@ -24,6 +24,7 @@ import org.apache.ambari.infra.solr.commands.CreateShardCommand;
 import org.apache.ambari.infra.solr.commands.CreateSolrZnodeZkCommand;
 import org.apache.ambari.infra.solr.commands.DeleteZnodeZkCommand;
 import org.apache.ambari.infra.solr.commands.DownloadConfigZkCommand;
+import org.apache.ambari.infra.solr.commands.DumpCollectionsCommand;
 import org.apache.ambari.infra.solr.commands.EnableKerberosPluginSolrZkCommand;
 import org.apache.ambari.infra.solr.commands.GetShardsCommand;
 import org.apache.ambari.infra.solr.commands.GetSolrHostsCommand;
@@ -77,6 +78,7 @@ public class AmbariSolrCloudClient {
   private final String transferMode;
   private final String copySrc;
   private final String copyDest;
+  private final String output;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
     this.zkConnectString = builder.zkConnectString;
@@ -103,6 +105,7 @@ public class AmbariSolrCloudClient {
     this.transferMode = builder.transferMode;
     this.copySrc = builder.copySrc;
     this.copyDest = builder.copyDest;
+    this.output = builder.output;
   }
 
   /**
@@ -127,6 +130,13 @@ public class AmbariSolrCloudClient {
       }
     }
     return getCollection();
+  }
+
+  public String outputCollectionData() throws Exception {
+    List<String> collections = listCollections();
+    String result = new DumpCollectionsCommand(getRetryTimes(), getInterval(), collections).run(this);
+    LOG.info("Dump collections response: {}", result);
+    return result;
   }
 
   /**
@@ -381,5 +391,9 @@ public class AmbariSolrCloudClient {
 
   public String getCopyDest() {
     return copyDest;
+  }
+
+  public String getOutput() {
+    return output;
   }
 }

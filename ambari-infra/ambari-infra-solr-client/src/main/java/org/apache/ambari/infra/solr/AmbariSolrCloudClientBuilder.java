@@ -57,6 +57,7 @@ public class AmbariSolrCloudClientBuilder {
   String transferMode;
   String copySrc;
   String copyDest;
+  String output;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -212,6 +213,11 @@ public class AmbariSolrCloudClientBuilder {
 
   public AmbariSolrCloudClientBuilder withCopyDest(String copyDest) {
     this.copyDest = copyDest;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withOutput(String output) {
+    this.output = output;
     return this;
   }
 

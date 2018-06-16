@@ -301,6 +301,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
   infra_solr_user = infra_solr_env_props['infra_solr_user'] if 'infra_solr_user' in infra_solr_env_props else 'infra-solr'
   infra_solr_kerberos_keytab = infra_solr_env_props['infra_solr_kerberos_keytab'] if 'infra_solr_kerberos_keytab' in infra_solr_env_props else '/etc/security/keytabs/ambari-infra-solr.service.keytab'
   infra_solr_kerberos_principal = infra_solr_user + "/" + host
+  infra_solr_port = infra_solr_env_props['infra_solr_port'] if 'infra_solr_port' in infra_solr_env_props else '8886'
 
   config.add_section('local')
   config.set('local', 'java_home', options.java_home)
@@ -315,10 +316,11 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
 
   config.add_section('infra_solr')
   config.set('infra_solr', 'protocol', solr_protocol)
-  config.set('infra_solr', 'urls', solr_urls)
+  config.set('infra_solr', 'hosts', ','.join(solr_hosts))
   config.set('infra_solr', 'zk_connect_string', zk_connect_string)
   config.set('infra_solr', 'znode', solr_znode)
   config.set('infra_solr', 'user', infra_solr_user)
+  config.set('infra_solr', 'port', infra_solr_port)
   if security_enabled == 'true':
     config.set('infra_solr', 'keytab', infra_solr_kerberos_keytab)
     config.set('infra_solr', 'principal', infra_solr_kerberos_principal)

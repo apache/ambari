@@ -87,6 +87,13 @@ solr_num_shards = int(default("/commandParams/solr_shards", "0"))
 
 solr_hdfs_path=default("/commandParams/solr_hdfs_path", None)
 
+solr_backup_host_cores_map = json.loads(default("/commandParams/solr_backup_host_cores_map", "{}"))
+solr_backup_core_host_map = json.loads(default("/commandParams/solr_backup_core_host_map", "{}"))
+solr_restore_host_cores_map = json.loads(default("/commandParams/solr_restore_host_cores_map", "{}"))
+solr_restore_core_host_map = json.loads(default("/commandParams/solr_restore_core_host_map", "{}"))
+solr_restore_core_data = json.loads(default("/commandParams/solr_restore_core_data", "{}"))
+solr_restore_config_set = default("/commandParams/solr_restore_config_set", None)
+
 keytab = None
 principal = None
 if params.security_enabled:
@@ -139,14 +146,8 @@ if solr_hdfs_path:
 
 hostname_suffix = params.hostname.replace(".", "_")
 
-HOST_CORES='host-cores'
-CORE_HOST='core-host'
-HOST_SHARDS='host-shards'
-CORE_DATA='core-data'
-
 if shared_fs:
   index_location = format("{index_location}_{hostname_suffix}")
-
 
 def get_files_by_pattern(directory, pattern):
   for root, dirs, files in os.walk(directory):
@@ -266,96 +267,10 @@ def __get_domain_name(url):
   dm = spltAr[i].split('/')[0].split(':')[0].lower()
   return dm
 
-def __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores_path):
-  """
-  Fill (and write to file) a JSON object with core data from state.json (znode).
-  """
-  json_content={}
-  hosts_core_map={}
-  hosts_shard_map={}
-  core_host_map={}
-  core_data_map={}
-  with open(json_zk_state_path) as json_file:
-    json_data = json.load(json_file)
-    znode = json_data['znode']
-    data = json.loads(znode['data'])
-    collection_data = data[collection]
-    shards = collection_data['shards']
-
-    for shard in shards:
-      Logger.info(format("Found shard: {shard}"))
-      replicas = shards[shard]['replicas']
-      for replica in replicas:
-        core_data = replicas[replica]
-        core = core_data['core']
-        base_url = core_data['base_url']
-        state = core_data['state']
-        leader = core_data['leader'] if 'leader' in core_data else 'false'
-        domain = __get_domain_name(base_url)
-        if state == 'active' and leader == 'true':
-          if domain not in hosts_core_map:
-            hosts_core_map[domain]=[]
-          if domain not in hosts_shard_map:
-            hosts_shard_map[domain]=[]
-          if core not in core_data_map:
-            core_data_map[core]={}
-          hosts_core_map[domain].append(core)
-          hosts_shard_map[domain].append(shard)
-          core_host_map[core]=domain
-          core_data_map[core]['host']=domain
-          core_data_map[core]['node']=replica
-          if 'type' in core_data:
-            core_data_map[core]['type']=core_data['type']
-          else:
-            core_data_map[core]['type']='NRT'
-          core_data_map[core]['shard']=shard
-          Logger.info(format("Found leader/active replica: {replica} (core '{core}') in {shard} on {domain}"))
-        else:
-          Logger.info(format("Found non-leader/active replica: {replica} (core '{core}') in {shard} on {domain}"))
-  json_content[HOST_CORES]=hosts_core_map
-  json_content[CORE_HOST]=core_host_map
-  json_content[HOST_SHARDS]=hosts_shard_map
-  json_content[CORE_DATA]=core_data_map
-  with open(json_host_cores_path, 'w') as outfile:
-    json.dump(json_content, outfile)
-  return json_content
-
 def write_core_file(core, core_data):
   core_json_location = format("{index_location}/{core}.json")
   with open(core_json_location, 'w') as outfile:
     json.dump(core_data, outfile)
-
-def __read_host_cores_from_file(json_host_cores_path):
-  """
-  Read host cores from file, can be useful if you do not want to regenerate host core data (with that you can generate your own host core pairs for restore)
-  """
-  with open(json_host_cores_path) as json_file:
-    host_cores_json_data = json.load(json_file)
-    return host_cores_json_data
-
-
-def get_host_cores_for_collection(backup=True):
-  """
-  Get core details to an object and write them to a file as well. Backup data will be used during restore.
-  :param backup: if enabled, save file into backup_host_cores.json, otherwise use restore_host_cores.json
-  :return: detailed json about the cores
-  """
-  request_path = 'admin/zookeeper?wt=json&detail=true&path=%2Fclusterstate.json&view=graph'
-  json_folder = format("{index_location}")
-  json_zk_state_path = format("{json_folder}/zk_state.json")
-  if backup:
-    json_host_cores_path = format("{json_folder}/backup_host_cores.json")
-  else:
-    json_host_cores_path = format("{json_folder}/restore_host_cores.json")
-  api_request = create_solr_api_request_command(request_path, output=json_zk_state_path)
-  Execute(api_request, user=params.infra_solr_user)
-  return __read_host_cores_from_file(json_host_cores_path) if skip_generate_restore_host_cores \
-    else __read_host_cores_from_clusterstate_json(json_zk_state_path, json_host_cores_path)
-
-def read_backup_json():
-  with open(format("{index_location}/backup_host_cores.json")) as json_file:
-    json_data = json.load(json_file)
-    return json_data
 
 def create_core_pairs(original_cores, new_cores):
   """
