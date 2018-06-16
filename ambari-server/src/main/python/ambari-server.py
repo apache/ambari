@@ -570,6 +570,10 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-force-setup', action="store_true", default=False, help="Forces the use of LDAP even if other (i.e. PAM) authentication method is configured already or if there is no authentication method configured at all", dest="ldap_force_setup")
   parser.add_option('--ambari-admin-username', default=None, help="Ambari administrator username for accessing Ambari's REST API", dest="ambari_admin_username")
   parser.add_option('--ambari-admin-password', default=None, help="Ambari administrator password for accessing Ambari's REST API", dest="ambari_admin_password")
+  parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
+  parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
+  parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
+  parser.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_sso_options(parser):
