@@ -293,6 +293,17 @@
   </property>
 
   <property>
+    <name>infra_solr_extra_java_opts</name>
+    <value></value>
+    <display-name>Infra Solr extra java options</display-name>
+    <description>Extra Solr java options (e.g.: -Dproperty=value), that will be added to SOLR_OPTS environment variable</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
     <name>infra_solr_gc_log_opts</name>
     <value>-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime</value>
     <display-name>Infra Solr GC log options</display-name>
