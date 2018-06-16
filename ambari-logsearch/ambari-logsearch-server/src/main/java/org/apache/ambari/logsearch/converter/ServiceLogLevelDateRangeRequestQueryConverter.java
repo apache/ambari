@@ -61,6 +61,8 @@ public class ServiceLogLevelDateRangeRequestQueryConverter extends AbstractDateR
     }
     addListFilterToSolrQuery(solrQuery, CLUSTER, request.getClusters());
     addListFilterToSolrQuery(solrQuery, COMPONENT, request.getMustBe());
+    addIncludeFieldValues(solrQuery, request.getIncludeQuery());
+    addExcludeFieldValues(solrQuery, request.getExcludeQuery());
     return solrQuery;
   }
 
