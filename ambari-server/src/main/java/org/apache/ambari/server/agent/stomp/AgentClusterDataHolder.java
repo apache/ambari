@@ -77,7 +77,8 @@ public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> ex
 
   protected final void initializeDataIfNeeded(boolean regenerateHash) throws AmbariException {
     if (data == null) {
-      synchronized(this) {
+      updateLock.lock();
+      try {
         if (data == null) {
           T localData = getCurrentData();
           if (regenerateHash) {
@@ -85,6 +86,8 @@ public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> ex
           }
           data = localData;
         }
+      } finally {
+        updateLock.unlock();
       }
     }
   }
