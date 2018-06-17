@@ -65,8 +65,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   ],
 
   addCustomMessage: function () {
-    // show warning alert about downloading db connector for hive database
-    //if (this.get('config.name') === 'hive_database' || (this.get('config.serviceName') === 'RANGER' && (this.get('config.name') === 'DB_FALVOR') || ) {
+    // show warning alert about downloading db connector for services with databases
     if (this.isCustomMessageRequired()) {
       this.set('config.additionalView', Em.View.extend({
         template: Em.Handlebars.compile('<div class="alert alert-warning enhanced-configs">{{{view.message}}}</div>'),
@@ -80,7 +79,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
             dbData.driver_download_url,
             dbData.driver_download_url,
             dbData.driver_name,
-            this.get('config.serviceName').capitalize()
+            this.get('config.serviceName').toCapital()
           );
         }.property('config.value'),
         config: this.get('config')
