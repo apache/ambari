@@ -21,6 +21,7 @@ package org.apache.ambari.server.agent.stomp;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.agent.stomp.dto.HashAndTimestampIgnoreMixIn;
 import org.apache.ambari.server.agent.stomp.dto.HashIgnoreMixIn;
@@ -37,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class AgentDataHolder<T extends Hashable> {
   private final String salt = "";
+  protected final ReentrantLock updateLock = new ReentrantLock();
   private final static ObjectMapper MAPPER = new ObjectMapper();
   static {
     MAPPER.addMixIn(Hashable.class, HashIgnoreMixIn.class);

@@ -55,11 +55,19 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
   public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
     T hostData = data.get(hostId);
     if (hostData == null) {
-      hostData = getCurrentData(hostId);
-      if (regenerateHash) {
-        regenerateDataIdentifiers(hostData);
+      updateLock.lock();
+      try {
+        hostData = data.get(hostId);
+        if (hostData == null) {
+          hostData = getCurrentData(hostId);
+          if (regenerateHash) {
+            regenerateDataIdentifiers(hostData);
+          }
+          data.put(hostId, hostData);
+        }
+      } finally {
+        updateLock.unlock();
       }
-      data.put(hostId, hostData);
     }
     return hostData;
   }
@@ -68,16 +76,22 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
    * Apply an incremental update to the data (host-specific), and publish the
    * event to listeners.
    */
-  public final void updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(update.getHostId(), true);
-    if (handleUpdate(update)) {
-      T hostData = getData(update.getHostId());
-      regenerateDataIdentifiers(hostData);
-      setIdentifiersToEventUpdate(update, hostData);
-      if (update.getType().equals(STOMPEvent.Type.AGENT_CONFIGS)) {
-        LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
+  public void updateData(T update) throws AmbariException {
+    //TODO need optimization for perf cluster
+    updateLock.lock();
+    try {
+      initializeDataIfNeeded(update.getHostId(), true);
+      if (handleUpdate(update)) {
+        T hostData = getData(update.getHostId());
+        regenerateDataIdentifiers(hostData);
+        setIdentifiersToEventUpdate(update, hostData);
+        if (update.getType().equals(STOMPEvent.Type.AGENT_CONFIGS)) {
+          LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
+        }
+        STOMPUpdatePublisher.publish(update);
       }
-      STOMPUpdatePublisher.publish(update);
+    } finally {
+      updateLock.unlock();
     }
   }
 

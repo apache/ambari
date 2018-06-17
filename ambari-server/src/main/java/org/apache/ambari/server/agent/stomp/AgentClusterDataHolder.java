@@ -36,7 +36,7 @@ public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> ex
   @Inject
   protected STOMPUpdatePublisher STOMPUpdatePublisher;
 
-  private T data;
+  private volatile T data;
 
   public T getUpdateIfChanged(String agentHash) throws AmbariException {
     initializeDataIfNeeded(true);
@@ -60,21 +60,34 @@ public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> ex
    * @return true if the update introduced any change
    */
   public boolean updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(true);
-    boolean changed = handleUpdate(update);
-    if (changed) {
-      regenerateDataIdentifiers(data);
-      update.setHash(getData().getHash());
-      STOMPUpdatePublisher.publish(update);
+    updateLock.lock();
+    try {
+      initializeDataIfNeeded(true);
+      boolean changed = handleUpdate(update);
+      if (changed) {
+        regenerateDataIdentifiers(data);
+        update.setHash(getData().getHash());
+        STOMPUpdatePublisher.publish(update);
+      }
+      return changed;
+    } finally {
+      updateLock.unlock();
     }
-    return changed;
   }
 
   protected final void initializeDataIfNeeded(boolean regenerateHash) throws AmbariException {
     if (data == null) {
-      data = getCurrentData();
-      if (regenerateHash) {
-        regenerateDataIdentifiers(data);
+      updateLock.lock();
+      try {
+        if (data == null) {
+          T localData = getCurrentData();
+          if (regenerateHash) {
+            regenerateDataIdentifiers(localData);
+          }
+          data = localData;
+        }
+      } finally {
+        updateLock.unlock();
       }
     }
   }
