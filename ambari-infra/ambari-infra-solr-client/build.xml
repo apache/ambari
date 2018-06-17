@@ -46,7 +46,7 @@
       <fileset file="src/main/resources/managed-schema"/>
     </copy>
     <copy todir="target/package/migrate/data" includeEmptyDirs="no">
-      <fileset file="src/main/resources/data/.keep"/>
+      <fileset file="src/main/resources/data/security-without-authr.json"/>
     </copy>
     <copy todir="target/package" includeEmptyDirs="no">
       <fileset file="src/main/resources/solrCloudCli.sh"/>

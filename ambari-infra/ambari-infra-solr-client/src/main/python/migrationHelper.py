@@ -1291,6 +1291,22 @@ def update_state_jsons(options, accessor, parser, config, service_filter):
     else:
       print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name)
 
+
+def disable_solr_authorization(options, accessor, parser, config):
+  solr_znode='/infra-solr'
+  if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
+    solr_znode=config.get('infra_solr', 'znode')
+  kerberos_enabled='false'
+  if config.has_section('cluster') and config.has_option('cluster', 'kerberos_enabled'):
+    kerberos_enabled=config.get('cluster', 'kerberos_enabled')
+  if kerberos_enabled == 'true':
+    print "Disable Solr authorization by uploading a new security.json ..."
+    copy_znode(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("security-without-authr.json"),
+             "{0}/security.json".format(solr_znode), copy_from_local=True)
+  else:
+    print "Security is not enabled. Skipping disable Solr authorization operation."
+
+
 if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
 
@@ -1388,6 +1404,8 @@ if __name__=="__main__":
         service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "RESTART", "Restart")
       elif options.action.lower() == 'rolling-restart-solr':
         rolling_restart_solr(options, accessor, parser, config)
+      elif options.action.lower() == 'disable-solr-authorization':
+        disable_solr_authorization(options, accessor, parser, config)
       else:
         parser.print_help()
         print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore | rolling-restart-solr)'
