@@ -75,7 +75,7 @@ logger.addHandler(handler)
 
 class colors:
   OKGREEN = '\033[92m'
-  WARNING = '\033[93m'
+  WARNING = '\033[38;5;214m'
   FAIL = '\033[91m'
   ENDC = '\033[0m'
 
@@ -870,6 +870,30 @@ def upgrade_ranger_solrconfig_xml(options, config, service_filter):
     copy_znode(options, config, "{0}/configs/{1}/solrconfig.xml".format(solr_znode, ranger_config_set_name),
                "{0}/configs/{1}/solrconfig.xml".format(solr_znode, backup_ranger_config_set_name))
 
+def check_shard_for_collection(collection):
+  active_shards = []
+  all_shards = []
+  collections_data = get_collections_data(COLLECTIONS_DATA_JSON_LOCATION.format("check_collections.json"))
+  print "Checking available shards for '{0}' collection...".format(collection)
+  if collection in collections_data:
+    collection_details = collections_data[collection]
+    if 'shards' in collection_details:
+      for shard in collection_details['shards']:
+        all_shards.append(shard)
+        if 'replicas' in collection_details['shards'][shard]:
+          for replica in collection_details['shards'][shard]['replicas']:
+            if 'state' in collection_details['shards'][shard]['replicas'][replica] \
+              and collection_details['shards'][shard]['replicas'][replica]['state'].lower() == 'active':
+              logger.debug("Found active shard for {0} (collection: {1})".format(shard, collection))
+              active_shards.append(shard)
+  for shard in all_shards:
+    if shard in active_shards:
+      print "{0}OK{1}: Found active replica for {2}" \
+        .format(colors.OKGREEN, colors.ENDC, shard)
+    else:
+      print "{0}WARNING{1}: Not found any active replicas for {2}, migration will probably fail, fix or delete the shard if it is possible." \
+        .format(colors.WARNING, colors.ENDC, shard)
+
 def generate_core_pairs(original_collection, collection, config, options):
   core_pairs_data={}
 
@@ -1336,7 +1360,6 @@ def update_state_jsons(options, accessor, parser, config, service_filter):
     else:
       print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name)
 
-
 def disable_solr_authorization(options, accessor, parser, config):
   solr_znode='/infra-solr'
   if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
@@ -1350,6 +1373,32 @@ def disable_solr_authorization(options, accessor, parser, config):
              "{0}/security.json".format(solr_znode), copy_from_local=True)
   else:
     print "Security is not enabled. Skipping disable Solr authorization operation."
+
+def check_shards(options, accessor, parser, config):
+  collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_collections.json"))
+  collections=filter_collections(options, collections)
+  if is_ranger_available(config, service_filter):
+    ranger_collection = config.get('ranger_collection', 'ranger_collection_name')
+    if ranger_collection in collections:
+      check_shard_for_collection(ranger_collection)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(ranger_collection)
+  if is_atlas_available(config, service_filter):
+    fulltext_index_name = config.get('atlas_collections', 'fulltext_index_name')
+    if fulltext_index_name in collections:
+      check_shard_for_collection(fulltext_index_name)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(fulltext_index_name)
+    edge_index_name = config.get('atlas_collections', 'edge_index_name')
+    if edge_index_name in collections:
+      check_shard_for_collection(edge_index_name)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(edge_index_name)
+    vertex_index_name = config.get('atlas_collections', 'vertex_index_name')
+    if vertex_index_name in collections:
+      check_shard_for_collection(vertex_index_name)
+    else:
+      print "Collection ('{0}') does not exist or filtered out. Skipping update collection state operation.".format(fulltext_index_name)
 
 
 if __name__=="__main__":
@@ -1451,6 +1500,8 @@ if __name__=="__main__":
         rolling_restart_solr(options, accessor, parser, config)
       elif options.action.lower() == 'disable-solr-authorization':
         disable_solr_authorization(options, accessor, parser, config)
+      elif options.action.lower() == 'check-shards':
+        check_shards(options, accessor, parser, config)
       else:
         parser.print_help()
         print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore | rolling-restart-solr)'
