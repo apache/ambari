@@ -52,9 +52,22 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     this.addCustomMessage();
   },
 
+  customMessageServiceMapping: [
+    {
+      serviceName: 'HIVE', dbConfigName: 'hive_database'
+    },
+    {
+      serviceName: 'RANGER', dbConfigName: 'DB_FLAVOR'
+    },
+    {
+      serviceName: 'RANGER_KMS', dbConfigName: 'DB_FLAVOR'
+    }
+  ],
+
   addCustomMessage: function () {
     // show warning alert about downloading db connector for hive database
-    if (this.get('config.name') === 'hive_database') {
+    //if (this.get('config.name') === 'hive_database' || (this.get('config.serviceName') === 'RANGER' && (this.get('config.name') === 'DB_FALVOR') || ) {
+    if (this.isCustomMessageRequired()) {
       this.set('config.additionalView', Em.View.extend({
         template: Em.Handlebars.compile('<div class="alert alert-warning enhanced-configs">{{{view.message}}}</div>'),
         message: function () {
@@ -66,12 +79,20 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
             dbData.driver,
             dbData.driver_download_url,
             dbData.driver_download_url,
-            dbData.driver_name
+            dbData.driver_name,
+            this.get('config.serviceName').capitalize()
           );
         }.property('config.value'),
         config: this.get('config')
       }));
     }
+  },
+
+  isCustomMessageRequired: function () {
+    var self = this;
+    return this.get('customMessageServiceMapping').find(function (configMap) {
+      return configMap['serviceName'].toLowerCase() === self.get('config.serviceName').toLowerCase() && configMap['dbConfigName'].toLowerCase() === self.get('config.name').toLowerCase()
+    });
   },
 
   disableSwitchToTextBox: function () {

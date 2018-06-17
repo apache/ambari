@@ -916,7 +916,7 @@ Em.I18n.translations = {
   'will need to collect configuration and logs manually for troubleshooting support cases. ' +
   'Are you sure you want to proceed without SmartSense?',
   'installer.step4.rangerCheck.popup.header': 'Apache Ranger',
-  'installer.step4.rangerCheck.popup.body':'Apache Ranger provides fine grained authorization and audit of access attempts for many Hadoop ecosystem services. If you do not install the Apache Ranger Service, the security of your cluster will be diminished. Are you sure you want to proceed without it? ',
+  'installer.step4.rangerCheck.popup.body':'Apache Ranger provides fine grained authorization and audit of access attempts for many Hadoop ecosystem services. If you do not install the Apache Ranger Service and enable Kerberos, the security of your cluster will be diminished. Are you sure you want to proceed without it? ',
   'installer.step4.atlasCheck.popup.header': 'Apache Atlas',
   'installer.step4.atlasCheck.popup.body':'Apache Atlas provides strong data governance, lineage and metadata management for many hadoop ecosystem services. If you do not install Apache Atlas service, the data governance capabilities of you cluster will be diminished. Are you sure you want to proceed without it? ',
 
@@ -2342,7 +2342,7 @@ Em.I18n.translations = {
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing Changes in',
   'services.service.config.setRecommendedValue': 'Set Recommended',
-  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with Hive, you must <a href="{3}" target="_blank">' +
+  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {5}, you must <a href="{3}" target="_blank">' +
     'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
     '<b>ambari-server setup --jdbc-db={1} --jdbc-driver=/path/to/{1}/{2}</b>',
 

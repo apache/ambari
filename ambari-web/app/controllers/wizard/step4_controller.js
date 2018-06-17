@@ -88,33 +88,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
-   * Check whether Ranger is selected and show installation requirements if yes
-   * @param {function} callback
-   * @method rangerValidation
-   */
-  rangerValidation: function (callback) {
-    var rangerService = this.findProperty('serviceName', 'RANGER');
-    if (rangerService && !rangerService.get('isInstalled')) {
-      if(rangerService.get('isSelected')) {
-        this.addValidationError({
-          id: 'rangerRequirements',
-          type: 'WARNING',
-          callback: this.rangerRequirementsPopup,
-          callbackParams: [callback]
-        });
-      }
-      else {
-        //Ranger is selected, remove the Ranger error from errorObject array
-        var rangerError = this.get('errorStack').filterProperty('id',"rangerRequirements");
-        if(rangerError)
-        {
-           this.get('errorStack').removeObject(rangerError[0]);
-        }
-      }
-    }
-  },
-
-  /**
    * Warn user if he tries to install Spark with HDP 2.2
    * @param {function} callback
    * @method sparkValidation
@@ -199,7 +172,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     this.dependentServiceValidation('ATLAS', 'AMBARI_INFRA_SOLR', 'ambariAtlasInfraCheck', callback);
     this.dependentServiceValidation('ATLAS', 'HBASE', 'ambariAtlasHbaseCheck', callback);
     this.dependentServiceValidation('LOGSEARCH', 'AMBARI_INFRA_SOLR', 'ambariLogsearchCheck', callback);
-    this.rangerValidation(callback);
     this.sparkValidation(callback);
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
       var firstError = this.get('errorStack').findProperty('isShown', false);
@@ -554,45 +526,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       }),
       primary: Em.I18n.t('common.proceedAnyway'),
       primaryClass: 'btn-warning',
-      onPrimary: function () {
-        self.onPrimaryPopupCallback(callback);
-        this.hide();
-      },
-      onSecondary: function () {
-        if (callback) {
-          callback(id);
-        }
-        this._super();
-      },
-      onClose: function () {
-        if (callback) {
-          callback(id);
-        }
-        this._super();
-      }
-    });
-  },
-
-  /**
-   * Show popup with installation requirements for Ranger service
-   * @param {function} callback
-   * @param {string} id
-   * @return {App.ModalPopup}
-   * @method rangerRequirementsPopup
-   */
-  rangerRequirementsPopup: function (callback, id) {
-    var self = this;
-    return App.ModalPopup.show({
-      'data-qa': 'ranger-requirements-modal',
-      header: Em.I18n.t('installer.step4.rangerRequirements.popup.header'),
-      bodyClass: Em.View.extend({
-        templateName: require('templates/wizard/step4/step4_ranger_requirements_popup')
-      }),
-      primary: Em.I18n.t('common.proceed'),
-      isChecked: false,
-      disablePrimary: function () {
-        return !this.get('isChecked');
-      }.property('isChecked'),
       onPrimary: function () {
         self.onPrimaryPopupCallback(callback);
         this.hide();
