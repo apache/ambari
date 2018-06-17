@@ -76,7 +76,7 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
    * Apply an incremental update to the data (host-specific), and publish the
    * event to listeners.
    */
-  public final void updateData(T update) throws AmbariException {
+  public void updateData(T update) throws AmbariException {
     //TODO need optimization for perf cluster
     updateLock.lock();
     try {
