@@ -30,7 +30,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
     if (!App.router.get('clusterController.isLoaded')) {
       return [];
     }
-    return misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), App.Service.find().toArray());
+    return misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), App.Service.find().toArray(), s => s.get('serviceName'));
   }.property('App.router.clusterController.isLoaded').volatile(),
 
   /**

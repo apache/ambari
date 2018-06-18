@@ -21,10 +21,13 @@ var misc = require('utils/misc');
 App.serviceMapper = App.QuickDataMapper.create({
   model: App.Service,
   config: {
-    id: 'ServiceInfo.service_name',
+    id: 'ServiceInfo.id',
     service_name: 'ServiceInfo.service_name',
     service_group_name: 'ServiceInfo.service_group_name',
-    work_status: 'ServiceInfo.state'
+    work_status: 'ServiceInfo.state',
+    mpack_name: 'ServiceInfo.mpack_name',
+    mpack_version: 'ServiceInfo.mpack_version',
+    tool_tip_content: 'ServiceInfo.tool_tip_content'
   },
   initialAppLoad: false,
   passiveStateMap: {},
@@ -33,8 +36,15 @@ App.serviceMapper = App.QuickDataMapper.create({
     var self = this;
     var passiveStateMap = this.get('passiveStateMap');
     var services = [];
+    
     json.items.forEach(function (item) {
-      services = services.concat(item.services);
+      const itemServices = item.services.map(service => {
+        service.ServiceInfo.mpack_name = item.ServiceGroupInfo.mpack_name;
+        service.ServiceInfo.mpack_version = item.ServiceGroupInfo.mpack_version;
+        return service;
+      });
+
+      services = services.concat(itemServices);
     });
 
     services.forEach(function (service) {
@@ -47,9 +57,13 @@ App.serviceMapper = App.QuickDataMapper.create({
         } else {
           var serviceData = {
             ServiceInfo: {
+              id: `${service.ServiceInfo.service_name}-${service.ServiceInfo.service_group_name}`,
               service_name: service.ServiceInfo.service_name,
               service_group_name: service.ServiceInfo.service_group_name,
-              state: service.ServiceInfo.state
+              state: service.ServiceInfo.state,
+              mpack_name: service.ServiceInfo.mpack_name,
+              mpack_version: service.ServiceInfo.mpack_version,
+              tool_tip_content: `${service.ServiceInfo.service_name} (${service.ServiceInfo.service_group_name})`
             },
             host_components: [],
             components: []
@@ -65,7 +79,7 @@ App.serviceMapper = App.QuickDataMapper.create({
         App.serviceMetricsMapper.mapExtendedModel(item);
         return self.parseIt(item, self.get('config'));
       });
-      parsedCacheServices = misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), parsedCacheServices);
+      parsedCacheServices = misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), parsedCacheServices, item => item.service_name);
       App.store.safeLoadMany(this.get('model'), parsedCacheServices);
       this.set('initialAppLoad', true);
     }
