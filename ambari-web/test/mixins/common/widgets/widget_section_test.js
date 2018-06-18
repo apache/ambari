@@ -38,9 +38,9 @@ describe('App.WidgetSectionMixin', function () {
       },
       {
         services: [
-          {
+          Em.Object.create({
             serviceName: 'AMBARI_METRICS'
-          }
+          })
         ],
         isAmbariMetricsInstalled: true,
         title: 'Ambari Metrics installed'
