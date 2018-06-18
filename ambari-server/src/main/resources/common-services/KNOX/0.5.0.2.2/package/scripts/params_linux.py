@@ -222,7 +222,7 @@ hive_http_port = default('/configurations/hive-site/hive.server2.thrift.http.por
 hive_http_path = default('/configurations/hive-site/hive.server2.thrift.http.path', "cliservice")
 hive_server_hosts = default("/clusterHostInfo/hive_server_hosts", None)
 if type(hive_server_hosts) is list:
-  hive_server_host = hive_server_hosts[0]
+  hive_server_host = hive_server_hosts[0] if len(hive_server_hosts) > 0 else None
 else:
   hive_server_host = hive_server_hosts
 
