@@ -261,10 +261,12 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   loadMasterComponentHosts: function () {
     var self = this,
-      dfd = $.Deferred();
+        dfd = $.Deferred(),
+        ASSIGN_MASTER_STEP = 2,
+        DEPLOYMENT_STEPS = ['6', '7', '8'];
     this._super().done(function () {
       self.set('content.skipMasterStep', App.StackService.find().filterProperty('isSelected').filterProperty('hasMaster').everyProperty('isInstalled', true));
-      self.get('isStepDisabled').findProperty('step', 2).set('value', self.get('content.skipMasterStep') || (self.get('currentStep') == 7 || self.get('currentStep') == 8));
+      self.get('isStepDisabled').findProperty('step', ASSIGN_MASTER_STEP).set('value', self.get('content.skipMasterStep') || DEPLOYMENT_STEPS.contains(self.get('currentStep')));
       dfd.resolve();
     });
     return dfd.promise();
