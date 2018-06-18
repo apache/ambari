@@ -54,9 +54,8 @@ public class DumpCollectionsCommand extends AbstractZookeeperRetryCommand<String
 
   @Override
   protected String executeZkCommand(AmbariSolrCloudClient client, SolrZkClient zkClient, SolrZooKeeper solrZooKeeper) throws Exception {
+    Map<String, SolrCollection> collectionMap = new HashMap<>();
     if (!this.collections.isEmpty()) {
-      ObjectMapper objectMapper = new ObjectMapper();
-      Map<String, SolrCollection> collectionMap = new HashMap<>();
       for (String collection : this.collections) {
         SolrCollection solrCollection = new SolrCollection();
         Collection<Slice> slices = getSlices(client.getSolrCloudClient(), collection);
@@ -112,16 +111,16 @@ public class DumpCollectionsCommand extends AbstractZookeeperRetryCommand<String
         solrCollection.setName(collection);
         collectionMap.put(collection, solrCollection);
       }
-      File file = new File(client.getOutput());
-      if (!file.exists()) {
-        file.createNewFile();
-      }
-      final ObjectWriter objectWriter = objectMapper
-        .writerWithDefaultPrettyPrinter();
-      objectWriter.writeValue(file, collectionMap);
-      return objectWriter.writeValueAsString(collectionMap);
     }
-    return null;
+    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectWriter objectWriter = objectMapper
+      .writerWithDefaultPrettyPrinter();
+    File file = new File(client.getOutput());
+    if (!file.exists()) {
+      file.createNewFile();
+    }
+    objectWriter.writeValue(file, collectionMap);
+    return objectWriter.writeValueAsString(collectionMap);
   }
 
   private String getHostFromNodeName(String nodeName) {
