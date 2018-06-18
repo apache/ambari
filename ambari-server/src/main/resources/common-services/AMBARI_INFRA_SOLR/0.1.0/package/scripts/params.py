@@ -124,6 +124,7 @@ if "infra-solr-env" in config['configurations']:
   solr_env_content = config['configurations']['infra-solr-env']['content']
   infra_solr_gc_log_opts = format(config['configurations']['infra-solr-env']['infra_solr_gc_log_opts'])
   infra_solr_gc_tune = format(config['configurations']['infra-solr-env']['infra_solr_gc_tune'])
+  infra_solr_extra_java_opts = format(default('configurations/infra-solr-env/infra_solr_extra_java_opts', ""))
 
   zk_quorum = format(default('configurations/infra-solr-env/infra_solr_zookeeper_quorum', zookeeper_quorum))
 
