@@ -228,8 +228,9 @@ module.exports = App.WizardRoute.extend({
     },
     backTransition: function (router) {
       var goToPreviousStep = function() {
-        router.transitionTo(step);
+        router.transitionTo('step3');
       };
+      var wizardStep7Controller = router.get('wizardStep7Controller');
       if (wizardStep7Controller.hasChanges()) {
         wizardStep7Controller.showChangesWarningPopup(goToPreviousStep);
       } else {
