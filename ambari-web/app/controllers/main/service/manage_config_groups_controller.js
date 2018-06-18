@@ -1065,49 +1065,31 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   },
 
   loadInstallerHostsSuccessCallback: function (data) {
-    var rawHosts = App.router.get('installerController.content.hosts'),
-      masterComponents = App.router.get('installerController.content.masterComponentHosts'),
+    const allHosts = App.router.get('installerController.allHosts').toMapByProperty('hostName'),
       slaveComponents = App.router.get('installerController.content.slaveComponentHosts'),
-      hosts = [];
-    masterComponents.forEach(function (component) {
-      var host = rawHosts[component.hostName];
-      if (host.hostComponents) {
-        host.hostComponents.push(Em.Object.create({
-          componentName: component.component,
-          displayName: component.display_name
-        }));
-      } else {
-        rawHosts[component.hostName].hostComponents = [
-          Em.Object.create({
-            componentName: component.component,
-            displayName: component.display_name
-          })
-        ]
-      }
-    });
-    slaveComponents.forEach(function (component) {
-      component.hosts.forEach(function (rawHost) {
-        var host = rawHosts[rawHost.hostName];
-        if (host.hostComponents) {
-          host.hostComponents.push(Em.Object.create({
-            componentName: component.componentName,
-            displayName: component.displayName
-          }));
-        } else {
-          rawHosts[rawHost.hostName].hostComponents = [
-            Em.Object.create({
-              componentName: component.componentName,
-              displayName: component.displayName
-            })
-          ]
+      clientComponents = App.router.get('installerController.content.clients'),
+      clients = clientComponents.map(client => ({
+        componentName: client.component_name,
+        displayName: client.display_name
+      }));
+    let hosts = [];
+
+    slaveComponents.forEach(component => {
+      component.hosts.forEach(rawHost => {
+        let host = allHosts[rawHost.hostName];
+        if (!host.hostComponents) {
+          host.hostComponents = [];
+        }
+        if (component.componentName === 'CLIENT') {
+          host.hostComponents.pushObjects(clients);
         }
       });
     });
 
-    data.items.forEach(function (host) {
-      var disksOverallCapacity = 0,
+    data.items.forEach(host => {
+      let disksOverallCapacity = 0,
         diskFree = 0;
-      host.Hosts.disk_info.forEach(function (disk) {
+      host.Hosts.disk_info.forEach(disk => {
         disksOverallCapacity += parseFloat(disk.size);
         diskFree += parseFloat(disk.available);
       });
@@ -1123,7 +1105,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         diskInfo: host.Hosts.disk_info,
         diskTotal: disksOverallCapacity / (1024 * 1024),
         diskFree: diskFree / (1024 * 1024),
-        hostComponents: (rawHosts[host.Hosts.host_name] && rawHosts[host.Hosts.host_name].hostComponents) || []
+        hostComponents: (allHosts[host.Hosts.host_name] && allHosts[host.Hosts.host_name].hostComponents) || []
       }));
     });
 
