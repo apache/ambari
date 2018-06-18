@@ -1026,7 +1026,8 @@ describe('App.WizardSelectMpacksController', function () {
         {
           mpack: {
             name: "mpackName1",
-            displayName: "displayName1"
+            displayName: "displayName1",
+            registryId: 1
           },
           mpackUrl: "http://someurl.com/mpack1",
           version: "1.0.0.0"
@@ -1034,7 +1035,8 @@ describe('App.WizardSelectMpacksController', function () {
         {
           mpack: {
             name: "mpackName2",
-            displayName: "displayName2"
+            displayName: "displayName2",
+            registryId: 1
           },
           mpackUrl: "http://someurl.com/mpack2",
           version: "1.0.0.0"
@@ -1068,7 +1070,8 @@ describe('App.WizardSelectMpacksController', function () {
           displayName: "displayName1",
           publicUrl: "http://someurl.com/mpack1",
           downloadUrl: "http://someurl.com/mpack1",
-          version: "1.0.0.0"
+          version: "1.0.0.0",
+          registryId: 1
         },
         {
           id: "mpackName2-1.0.0.0",
@@ -1076,7 +1079,8 @@ describe('App.WizardSelectMpacksController', function () {
           displayName: "displayName2",
           publicUrl: "http://someurl.com/mpack2",
           downloadUrl: "http://someurl.com/mpack2",
-          version: "1.0.0.0"
+          version: "1.0.0.0",
+          registryId: 1
         }
       ];
 
