@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
@@ -41,9 +42,11 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
 import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostsRemovedEvent;
+import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
@@ -154,6 +157,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
 
+  private AtomicBoolean jpaInitialized = new AtomicBoolean(false);
+
   @Inject
   public ActionDBAccessorImpl(@Named("executionCommandCacheSize") long cacheLimit,
                               AmbariEventPublisher eventPublisher) {
@@ -168,7 +173,18 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Inject
   void init() {
-    requestId = stageDAO.getLastRequestId();
+    if (jpaInitialized.get()) {
+      LOG.info("Initializing last request ID from DB ...");
+      requestId = stageDAO.getLastRequestId();
+    }
+  }
+
+  @Subscribe
+  public void jpaInitialized(JpaInitializedEvent event) {
+    LOG.info("JPA initialized event received: {}", event);
+    jpaInitialized.getAndSet(true);
+    init();
+    LOG.info("Set latest request ID.");
   }
 
   /* (non-Javadoc)

@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
@@ -96,12 +97,15 @@ public class TaskStatusListener {
 
   private STOMPUpdatePublisher STOMPUpdatePublisher;
 
+  private final ActionDBAccessor actionDbAccessor;
+
   @Inject
   public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO,
-                            STOMPUpdatePublisher STOMPUpdatePublisher) {
+                            STOMPUpdatePublisher STOMPUpdatePublisher, ActionDBAccessor actionDbAccessor) {
     this.stageDAO = stageDAO;
     this.requestDAO = requestDAO;
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;
+    this.actionDbAccessor = actionDbAccessor;
     taskEventPublisher.register(this);
   }
 
@@ -282,6 +286,9 @@ public class TaskStatusListener {
         Boolean didStatusChange = updateRequestStatus(reportedRequestId, stagesWithChangedTaskStatus);
         if (didStatusChange) {
           requestDAO.updateStatus(reportedRequestId, request.getStatus(), request.getDisplayStatus());
+          if (request.getStatus() != null && request.getStatus().isCompletedState()) {
+            actionDbAccessor.endRequest(reportedRequestId);
+          }
         }
         if (request.isCompleted() && isAllTasksCompleted(reportedRequestId)) {
           // Request is considered ton have been finished if request status and all of it's tasks status are completed
