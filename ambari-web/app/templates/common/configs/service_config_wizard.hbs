@@ -34,6 +34,14 @@
               </a>
             </li>
           {{/each}}
+          {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
+            <li class="divider"></li>
+            <li>
+              <a href="#" {{action "manageConfigurationGroup" target="controller"}}>
+                <i class="glyphicon glyphicon-cog"></i>&nbsp;{{t services.service.actions.manage_configuration_groups.short}}
+              </a>
+            </li>
+          {{/isAuthorized}}
         </ul>
       </div>
       <div class="pull-right">
