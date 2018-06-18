@@ -157,7 +157,7 @@ def restore_collection(env):
     core_details = core_data[target_core]['properties']
     core_properties = {}
     core_properties['numShards'] = core_details['numShards']
-    core_properties['collection.configName'] = "ranger_audits" # TODO
+    core_properties['collection.configName'] = command_commons.solr_restore_config_set
     core_properties['name'] = target_core
     core_properties['replicaType'] = core_details['replicaType']
     core_properties['collection'] = command_commons.collection
@@ -167,7 +167,7 @@ def restore_collection(env):
       core_properties['coreNodeName'] = core_details['coreNodeName']
     core_properties['shard'] = core_details['shard']
     if command_commons.solr_hdfs_path:
-      hdfs_solr_node_folder=command_commons.solr_hdfs_path + format("/backup_{collection}/") + core_details['node']
+      hdfs_solr_node_folder=command_commons.solr_hdfs_path + format("/backup_{collection}/") + core_details['coreNodeName']
       source_folder=format("{index_location}/snapshot.{src_core}/")
       if command_commons.check_folder_exists(source_folder):
         hdfs_cores_on_host.append(target_core)
