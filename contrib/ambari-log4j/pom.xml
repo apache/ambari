@@ -91,7 +91,6 @@
     <dependency>
     	<groupId>postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-      <version>${postgres.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
