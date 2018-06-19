@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
@@ -49,7 +50,7 @@ public class HostGroupInfo {
   /**
    * hosts contained associated with the host group
    */
-  private final Collection<String> hostNames = new HashSet<>();
+  private final Set<String> hostNames = new HashSet<>();
 
   /**
    * maps host names to rack information
@@ -105,7 +106,7 @@ public class HostGroupInfo {
    *
    * @return collection of user specified host names; will never be null
    */
-  public Collection<String> getHostNames() {
+  public Set<String> getHostNames() {
     // needs to be an exclusive lock, not a read lock because collection
     // shouldn't change while copying elements into the new set instance
     synchronized (hostNames) {

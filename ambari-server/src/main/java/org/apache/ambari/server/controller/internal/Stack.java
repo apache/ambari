@@ -232,7 +232,7 @@ public class Stack implements StackDefinition {
   }
 
   @Override
-  public Collection<String> getAllConfigurationTypes(String service) {
+  public Set<String> getAllConfigurationTypes(String service) {
     Map<String, Map<String, ConfigProperty>> serviceConfigs = getServiceConfigurations(service);
     return serviceConfigs != null ? serviceConfigs.keySet() : ImmutableSet.of();
   }

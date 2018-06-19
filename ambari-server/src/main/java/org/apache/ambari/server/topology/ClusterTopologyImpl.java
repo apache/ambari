@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -60,6 +61,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final Set<StackId> stackIds;
   private final StackDefinition stack;
   private Long clusterId;
+  private String clusterName;
   private final Blueprint blueprint;
   private final Configuration configuration;
   private final ConfigRecommendationStrategy configRecommendationStrategy;
@@ -78,7 +80,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.blueprint = topologyRequest.getBlueprint();
     this.setting = blueprint.getSetting();
     this.configuration = topologyRequest.getConfiguration();
-    configRecommendationStrategy = ConfigRecommendationStrategy.NEVER_APPLY;
+    configRecommendationStrategy = ConfigRecommendationStrategy.getDefault();
     provisionAction = topologyRequest instanceof BaseClusterRequest ? ((BaseClusterRequest) topologyRequest).getProvisionAction() : INSTALL_AND_START; // FIXME
 
     provisionRequest = null;
@@ -103,7 +105,9 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.configuration = request.getConfiguration();
     this.provisionRequest = request;
     this.resolvedComponents = resolvedComponents;
-    configRecommendationStrategy = request.getConfigRecommendationStrategy();
+    clusterName = request.getClusterName();
+    configRecommendationStrategy =
+      Optional.ofNullable(request.getConfigRecommendationStrategy()).orElse(ConfigRecommendationStrategy.getDefault());
     provisionAction = request.getProvisionAction();
 
     defaultPassword = provisionRequest.getDefaultPassword();
@@ -122,6 +126,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Long getClusterId() {
     return clusterId;
+  }
+
+  @Override
+  public String getClusterName() {
+    return clusterName;
   }
 
   public void setClusterId(Long clusterId) {
@@ -374,6 +383,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
   public boolean isComponentHadoopCompatible(String component) {
     return getStack().getServicesForComponent(component)
       .anyMatch(stackIdService -> HADOOP_COMPATIBLE_FS.equals(stackIdService.getRight().getServiceType()));
+  }
+
+  @Override
+  public Set<String> getHostNames() {
+    synchronized(hostGroupInfoMap) {
+      return hostGroupInfoMap.values().stream().flatMap(
+        hg -> hg.getHostNames().stream()
+      ).collect(toSet());
+    }
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {

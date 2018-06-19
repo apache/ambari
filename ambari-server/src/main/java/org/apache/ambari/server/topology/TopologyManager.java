@@ -1085,13 +1085,19 @@ public class TopologyManager {
    */
   private void addClusterConfigRequest(final LogicalRequest logicalRequest, ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
     ConfigureClusterTask task = configureClusterTaskFactory.createConfigureClusterTask(topology, configurationRequest, ambariEventPublisher);
-    executor.submit(new AsyncCallableService<>(task, task.getTimeout(), task.getRepeatDelay(),"ConfigureClusterTask", throwable -> {
-      HostRoleStatus status = throwable instanceof TimeoutException ? HostRoleStatus.TIMEDOUT : HostRoleStatus.FAILED;
-      LOG.info("ConfigureClusterTask failed, marking host requests {}", status);
-      for (HostRequest hostRequest : logicalRequest.getHostRequests()) {
-        hostRequest.markHostRequestFailed(status, throwable, persistedState);
+    executor.submit(new AsyncCallableService<>(
+      task,
+      task.getTimeout(),
+      task.getRepeatDelay(),
+      "ConfigureClusterTask",
+      throwable -> {
+        HostRoleStatus status = throwable instanceof TimeoutException ? HostRoleStatus.TIMEDOUT : HostRoleStatus.FAILED;
+        LOG.info("ConfigureClusterTask failed, marking host requests {}", status);
+        for (HostRequest hostRequest : logicalRequest.getHostRequests()) {
+          hostRequest.markHostRequestFailed(status, throwable, persistedState);
+        }
       }
-    }));
+    ));
   }
 
   /**

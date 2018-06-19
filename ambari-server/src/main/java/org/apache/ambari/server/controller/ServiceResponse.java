@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.state.StackId;
 
+import com.google.common.base.MoreObjects;
+
 import io.swagger.annotations.ApiModelProperty;
 
 public class ServiceResponse {
@@ -308,5 +310,26 @@ public class ServiceResponse {
   public interface ServiceResponseSwagger extends ApiModel {
     @ApiModelProperty(name = "ServiceInfo")
     ServiceResponse getServiceResponse();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("clusterId", clusterId)
+      .add("clusterName", clusterName)
+      .add("serviceGroupId", serviceGroupId)
+      .add("serviceGroupName", serviceGroupName)
+      .add("serviceId", serviceId)
+      .add("serviceName", serviceName)
+      .add("serviceType", serviceType)
+      .add("desiredStackId", desiredStackId)
+      .add("desiredState", desiredState)
+      .add("maintenanceState", maintenanceState)
+      .add("credentialStoreSupported", credentialStoreSupported)
+      .add("credentialStoreEnabled", credentialStoreEnabled)
+      .add("ssoIntegrationSupported", ssoIntegrationSupported)
+      .add("ssoIntegrationDesired", ssoIntegrationDesired)
+      .add("ssoIntegrationEnabled", ssoIntegrationEnabled)
+      .toString();
   }
 }

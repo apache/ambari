@@ -8255,6 +8255,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(topologyRequestMock.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topologyRequestMock.getClusterId()).andReturn(1L).anyTimes();
+    expect(topologyRequestMock.getClusterName()).andReturn("testCluster").anyTimes();
     expect(topologyRequestMock.getConfigRecommendationStrategy()).andReturn(recommendation).anyTimes();
     expect(topologyRequestMock.getConfiguration()).andReturn(configuration).anyTimes();
     expect(topologyRequestMock.getDefaultPassword()).andReturn("secret").anyTimes();
