@@ -142,6 +142,10 @@ public class TimelineMetricMetadata {
     return isWhitelisted;
   }
 
+  public void setIsWhitelisted(boolean isWhitelisted) {
+    this.isWhitelisted = isWhitelisted;
+  }
+
   public void setSupportsAggregates(boolean supportsAggregates) {
     this.supportsAggregates = supportsAggregates;
   }

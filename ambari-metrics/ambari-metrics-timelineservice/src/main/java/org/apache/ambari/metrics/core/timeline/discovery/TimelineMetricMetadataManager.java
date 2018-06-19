@@ -357,6 +357,14 @@ public class TimelineMetricMetadataManager {
   }
 
   /**
+   * Fetch metrics metadata from store from V1 table (no UUID)
+   * @throws SQLException
+   */
+  Map<TimelineMetricMetadataKey, TimelineMetricMetadata> getMetadataFromStoreV1() throws SQLException {
+    return hBaseAccessor.getTimelineMetricMetadataV1();
+  }
+
+  /**
    * Fetch metrics metadata from store
    * @throws SQLException
    */
@@ -370,6 +378,14 @@ public class TimelineMetricMetadataManager {
    */
   Map<String, TimelineMetricHostMetadata> getHostedAppsFromStore() throws SQLException {
     return hBaseAccessor.getHostedAppsMetadata();
+  }
+
+  /**
+   * Fetch hosted apps from store from V1 table (no UUID)
+   * @throws SQLException
+   */
+  Map<String, TimelineMetricHostMetadata> getHostedAppsFromStoreV1() throws SQLException {
+    return hBaseAccessor.getHostedAppsMetadataV1();
   }
 
   Map<String, Set<String>> getHostedInstancesFromStore() throws SQLException {
@@ -797,4 +813,29 @@ public class TimelineMetricMetadataManager {
     return false;
   }
 
+  /**
+   * Run TimelineMetricMetadataSync once
+   */
+  public void forceMetricsMetadataSync() {
+    metricMetadataSync.run();
+  }
+
+  public void updateMetadataCacheUsingV1Tables() throws SQLException {
+    Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadataV1Map = getMetadataFromStoreV1();
+    METADATA_CACHE.entrySet().stream().filter(mapEntry -> !mapEntry.getValue().isPersisted()).forEach(mapEntry -> {
+      TimelineMetricMetadataKey key = mapEntry.getKey();
+      //TODO ignore instanceID since it wasn't used in AMSv1?
+      TimelineMetricMetadata metadataV1 = metadataV1Map.get(key);
+      mapEntry.getValue().setSeriesStartTime(metadataV1.getSeriesStartTime());
+      mapEntry.getValue().setSupportsAggregates(metadataV1.isSupportsAggregates());
+      mapEntry.getValue().setType(metadataV1.getType());
+      mapEntry.getValue().setIsWhitelisted(metadataV1.isWhitelisted());
+    });
+
+
+//    Map<String, TimelineMetricHostMetadata> hostedAppsV1 = getHostedAppsFromStoreV1();
+//    for (Map.Entry<String, TimelineMetricHostMetadata> entry : hostedAppsV1.entrySet()) {
+//
+//    }
+  }
 }

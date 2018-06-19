@@ -59,8 +59,10 @@ import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.C
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.DEFAULT_ENCODING;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.DEFAULT_TABLE_COMPRESSION;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_HOSTED_APPS_METADATA_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_HOSTED_APPS_METADATA_SQL_V1;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_INSTANCE_HOST_METADATA_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_METADATA_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_METADATA_SQL_V1;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
@@ -1869,6 +1871,52 @@ public class PhoenixHBaseAccessor {
     return hostedAppMap;
   }
 
+  public Map<String, TimelineMetricHostMetadata> getHostedAppsMetadataV1() throws SQLException {
+    Map<String, TimelineMetricHostMetadata> hostedAppMap = new HashMap<>();
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
+    try {
+      stmt = conn.prepareStatement(GET_HOSTED_APPS_METADATA_SQL_V1);
+      rs = stmt.executeQuery();
+
+      while (rs.next()) {
+        String appIds = rs.getString("APP_IDS");
+        TimelineMetricHostMetadata hostMetadata = new TimelineMetricHostMetadata(new HashSet<>());
+        if (StringUtils.isNotEmpty(appIds)) {
+          hostMetadata = new TimelineMetricHostMetadata(new HashSet<>(Arrays.asList(StringUtils.split(appIds, ","))));
+        }
+        hostedAppMap.put(rs.getString("HOSTNAME"), hostMetadata);
+      }
+
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+
+    return hostedAppMap;
+  }
+
   public Map<String, Set<String>> getInstanceHostsMetdata() throws SQLException {
     Map<String, Set<String>> instanceHostsMap = new HashMap<>();
     Connection conn = getConnection();
@@ -1945,6 +1993,63 @@ public class PhoenixHBaseAccessor {
         TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(metricName, appId, instanceId);
         metadata.setIsPersisted(true); // Always true on retrieval
         metadata.setUuid(rs.getBytes("UUID"));
+        metadataMap.put(key, metadata);
+      }
+
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+
+    return metadataMap;
+  }
+
+  // No filter criteria support for now.
+  public Map<TimelineMetricMetadataKey, TimelineMetricMetadata> getTimelineMetricMetadataV1() throws SQLException {
+    Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadataMap = new HashMap<>();
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
+    try {
+      stmt = conn.prepareStatement(GET_METRIC_METADATA_SQL_V1);
+      rs = stmt.executeQuery();
+
+      while (rs.next()) {
+        String metricName = rs.getString("METRIC_NAME");
+        String appId = rs.getString("APP_ID");
+        TimelineMetricMetadata metadata = new TimelineMetricMetadata(
+          metricName,
+          appId,
+          "",
+          rs.getString("UNITS"),
+          rs.getString("TYPE"),
+          rs.getLong("START_TIME"),
+          rs.getBoolean("SUPPORTS_AGGREGATION"),
+          rs.getBoolean("IS_WHITELISTED")
+        );
+
+        TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(metricName, appId, "");
+        metadata.setIsPersisted(false);
         metadataMap.put(key, metadata);
       }
 
