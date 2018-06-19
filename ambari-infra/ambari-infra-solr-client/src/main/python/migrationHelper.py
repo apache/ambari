@@ -1404,7 +1404,8 @@ def check_shards(options, accessor, parser, config):
 if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
 
-  parser.add_option("-a", "--action", dest="action", type="string", help="delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore | rolling-restart-solr")
+  parser.add_option("-a", "--action", dest="action", type="string", help="delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
+              ' rolling-restart-solr | check-shards | disable-solr-authorization | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-logsearch")
   parser.add_option("-i", "--ini-file", dest="ini_file", type="string", help="Config ini file to parse (required)")
   parser.add_option("-f", "--force", dest="force", default=False, action="store_true", help="force index upgrade even if it's the right version")
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="use for verbose logging")
@@ -1504,7 +1505,8 @@ if __name__=="__main__":
         check_shards(options, accessor, parser, config)
       else:
         parser.print_help()
-        print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore | rolling-restart-solr)'
+        print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
+              ' rolling-restart-solr | check-shards | disable-solr-authorization | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-logsearch)'
         sys.exit(1)
 
       print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
