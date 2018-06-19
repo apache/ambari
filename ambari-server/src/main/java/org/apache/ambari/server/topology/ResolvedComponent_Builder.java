@@ -574,12 +574,8 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       }
       ResolvedComponent_Builder.Value other = (ResolvedComponent_Builder.Value) obj;
       return Objects.equals(stackId, other.stackId)
-          //&& Objects.equals(serviceGroupName, other.serviceGroupName)
-          //&& Objects.equals(serviceName, other.serviceName)
           && Objects.equals(componentName, other.componentName)
           && Objects.equals(serviceInfo, other.serviceInfo)
-          //&& Objects.equals(componentInfo, other.componentInfo)
-          //&& Objects.equals(component, other.component)
         ;
     }
 
@@ -587,12 +583,8 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
     public int hashCode() {
       return Objects.hash(
           stackId,
-          //serviceGroupName,
-          //serviceName,
           componentName,
           serviceInfo
-          //componentInfo,
-          //component
       );
     }
 
@@ -603,7 +595,6 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
               "stackId=" + stackId,
               (serviceGroupName != null ? "serviceGroupName=" + serviceGroupName : null),
               (serviceName != null ? "serviceName=" + serviceName : null),
-              //"componentName=" + componentName,
               "service=" + serviceInfo.getName(),
               "component=" + componentInfo.getName(),
               "input=" + component)
