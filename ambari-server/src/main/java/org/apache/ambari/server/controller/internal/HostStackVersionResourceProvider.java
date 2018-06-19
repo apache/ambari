@@ -66,6 +66,7 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -437,13 +438,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
             Collections.singletonList(hostName));
 
-    ActionExecutionContext actionContext = new ActionExecutionContext(
-            cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
-            Collections.singletonList(filter),
-            roleParams);
-    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
-    actionContext.setRepositoryVersion(repoVersionEnt);
-
+    ActionExecutionContext actionContext = createActionExecutionContext(cluster, repoVersionEnt, roleParams, filter, INSTALL_PACKAGES_ACTION);
     repoVersionHelper.addCommandRepositoryToContext(actionContext, osEntity);
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
@@ -461,31 +456,21 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       throw new SystemException("Could not build cluster topology", e);
     }
 
-    Stage stage = stageFactory.createNew(req.getId(),
-            "/tmp/ambari",
-            cluster.getClusterName(),
-            cluster.getClusterId(),
-            caption,
-            "{}",
-            StageUtils.getGson().toJson(hostLevelParams));
-
-    long stageId = req.getLastStageId() + 1;
-    if (0L == stageId) {
-      stageId = 1L;
-    }
-    stage.setStageId(stageId);
-    req.setClusterHostInfo(clusterHostInfoJson);
-    req.addStages(Collections.singletonList(stage));
-
-    try {
-      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null, !forceInstallOnNonMemberHost);
-    } catch (AmbariException e) {
-      throw new SystemException("Can not modify stage", e);
-    }
+    String hostLevelParamsJson = StageUtils.getGson().toJson(hostLevelParams);
+    Stage stage = createStage(cluster, req, caption, "{}", hostLevelParamsJson, clusterHostInfoJson);
+    addToStage(actionContext, stage, forceInstallOnNonMemberHost);
 
     if (forceInstallOnNonMemberHost) {
-      addSelectStackStage(desiredRepoVersion, forceInstallOnNonMemberHost, cluster, filter, caption, req,
-        hostLevelParams, clusterHostInfoJson);
+      Map<String, String> stackSelectRoleParams = Collections.emptyMap();
+      actionContext = createActionExecutionContext(cluster, repoVersionEnt, stackSelectRoleParams, filter, STACK_SELECT_ACTION);
+
+      ImmutableMap<String, String> commandParams = ImmutableMap.of(
+        "version", desiredRepoVersion
+      );
+      String commandParamsJson = StageUtils.getGson().toJson(commandParams);
+      stage = createStage(cluster, req, caption, commandParamsJson, hostLevelParamsJson, clusterHostInfoJson);
+
+      addToStage(actionContext, stage, true);
     }
 
     try {
@@ -500,23 +485,28 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     return req;
   }
 
-  private void addSelectStackStage(String desiredRepoVersion, boolean forceInstallOnNonMemberHost, Cluster cluster,
-                                 RequestResourceFilter filter, String caption, RequestStageContainer req, Map<String, String> hostLevelParams, String clusterHostInfoJson) throws SystemException {
-    Stage stage;
-    long stageId;
-    ActionExecutionContext actionContext;
-    Map<String, String> commandParams = new HashMap<>();
-    commandParams.put("version", desiredRepoVersion);
+  private ActionExecutionContext createActionExecutionContext(Cluster cluster, RepositoryVersionEntity repoVersionEntity, Map<String, String> roleParams, RequestResourceFilter filter, String action) {
+    List<RequestResourceFilter> resourceFilters = Collections.singletonList(filter);
+    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(), action, resourceFilters, roleParams);
+    Short timeout = Short.valueOf(configuration.getDefaultAgentTaskTimeout(true));
+    actionContext.setTimeout(timeout);
+    actionContext.setRepositoryVersion(repoVersionEntity);
+    return actionContext;
+  }
 
-    stage = stageFactory.createNew(req.getId(),
+  private Stage createStage(Cluster cluster, RequestStageContainer req, String caption,
+    String commandParamsJson, String hostLevelParamsJson, String clusterHostInfoJson
+  ) {
+    Stage stage = stageFactory.createNew(req.getId(),
       "/tmp/ambari",
       cluster.getClusterName(),
       cluster.getClusterId(),
       caption,
-      StageUtils.getGson().toJson(commandParams),
-      StageUtils.getGson().toJson(hostLevelParams));
+      commandParamsJson,
+      hostLevelParamsJson
+    );
 
-    stageId = req.getLastStageId() + 1;
+    long stageId = req.getLastStageId() + 1;
     if (0L == stageId) {
       stageId = 1L;
     }
@@ -524,19 +514,16 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     req.setClusterHostInfo(clusterHostInfoJson);
     req.addStages(Collections.singletonList(stage));
 
-    actionContext = new ActionExecutionContext(
-      cluster.getClusterName(), STACK_SELECT_ACTION,
-      Collections.singletonList(filter),
-      Collections.<String, String>emptyMap());
-    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
+    return stage;
+  }
 
+  private void addToStage(ActionExecutionContext context, Stage stage, boolean forceInstallOnNonMemberHost) throws SystemException {
     try {
-      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null, !forceInstallOnNonMemberHost);
+      actionExecutionHelper.get().addExecutionCommandsToStage(context, stage, null, !forceInstallOnNonMemberHost);
     } catch (AmbariException e) {
       throw new SystemException("Can not modify stage", e);
     }
   }
-
 
   private RequestStageContainer createRequest(String caption) {
     ActionManager actionManager = getManagementController().getActionManager();

@@ -45,7 +45,10 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -303,7 +306,9 @@ public class HostStackVersionResourceProviderTest {
 
   @Test
   public void testCreateResources_on_host_not_belonging_To_any_cluster() throws Exception {
-    StackId stackId = new StackId("HDP", "2.0.1");
+    String stackName = "HDP";
+    String stackVersion = "2.0.1";
+    StackId stackId = new StackId(stackName, stackVersion);
 
     final Host host1 = createNiceMock("host1", Host.class);
     expect(host1.getHostName()).andReturn("host1").anyTimes();
@@ -330,10 +335,12 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-      anyObject(Map.class), anyObject(String.class))).andReturn(packages).anyTimes();
+      anyObject(Map.class), anyObject(String.class)
+    )).andReturn(packages).anyTimes();
 
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
-      eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+      eq(managementController)
+    )).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
     expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
@@ -344,7 +351,8 @@ public class HostStackVersionResourceProviderTest {
     expect(
       repositoryVersionDAOMock.findByStackAndVersion(
         anyObject(StackId.class),
-        anyObject(String.class))).andReturn(repoVersion);
+        anyObject(String.class)
+      )).andReturn(repoVersion);
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
     requestCapture = newCapture();
@@ -356,13 +364,15 @@ public class HostStackVersionResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
-      cluster, repositoryVersionDAOMock, configHelper, sch, actionManager, hostVersionEntityMock, hostVersionDAOMock);
+      cluster, repositoryVersionDAOMock, configHelper, sch, actionManager, hostVersionEntityMock, hostVersionDAOMock
+    );
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
       PropertyHelper.getPropertyIds(type),
       PropertyHelper.getKeyPropertyIds(type),
-      managementController);
+      managementController
+    );
 
     injector.injectMembers(provider);
 
@@ -374,8 +384,8 @@ public class HostStackVersionResourceProviderTest {
     // add properties to the request map
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID, "2.2.0.1-885");
-    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_STACK_PROPERTY_ID, "HDP");
-    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_VERSION_PROPERTY_ID, "2.0.1");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_STACK_PROPERTY_ID, stackName);
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_VERSION_PROPERTY_ID, stackVersion);
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, "host1");
     Set<Map<String, String>> components = new HashSet<>();
     Map<String, String> hiveMetastoreComponent = new HashMap<>();
@@ -386,7 +396,8 @@ public class HostStackVersionResourceProviderTest {
     components.add(hiveServerstoreComponent);
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_COMPONENT_NAMES_PROPERTY_ID, components);
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID,
-      "true");
+      "true"
+    );
 
     propertySet.add(properties);
 
@@ -398,7 +409,15 @@ public class HostStackVersionResourceProviderTest {
     // verify
     verify(managementController, response, clusters);
 
-    assertEquals(requestCapture.getValue().getStages().size(), 2);
+    org.apache.ambari.server.actionmanager.Request capturedRequest = requestCapture.getValue();
+    assertEquals(capturedRequest.getStages().size(), 2);
+    for (Stage stage : capturedRequest.getStages()) {
+      for (ExecutionCommandWrapper cmdWrapper : stage.getExecutionCommands(host1.getHostName())) {
+        Map<String, String> hostLevelParams = cmdWrapper.getExecutionCommand().getHostLevelParams();
+        assertEquals(stackName, hostLevelParams.get(ExecutionCommand.KeyNames.STACK_NAME));
+        assertEquals(stackVersion, hostLevelParams.get(ExecutionCommand.KeyNames.STACK_VERSION));
+      }
+    }
   }
 
   @Test
