@@ -74,8 +74,6 @@ request_time_interval = int(default("/commandParams/solr_request_time_interval",
 check_hosts_default = True if params.security_enabled else False
 check_hosts = default("/commandParams/solr_check_hosts", check_hosts_default)
 
-skip_generate_restore_host_cores = default("/commandParams/solr_skip_generate_restore_host_cores", False)
-
 solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
 solr_port = format("{params.infra_solr_port}")
 solr_base_url = format("{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr")
