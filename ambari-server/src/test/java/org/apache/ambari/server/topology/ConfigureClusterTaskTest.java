@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.Collections;
 
@@ -70,11 +71,15 @@ public class ConfigureClusterTaskTest extends EasyMockSupport {
     // GIVEN
     expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.emptyList());
     expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.emptyMap());
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(clusterTopology.getClusterId()).andReturn(1L).anyTimes();
     expect(clusterTopology.getAmbariContext()).andReturn(ambariContext);
     expect(ambariContext.getClusterName(1L)).andReturn("testCluster");
     clusterConfigurationRequest.process();
+    expectLastCall();
     ambariEventPublisher.publish(anyObject(AmbariEvent.class));
+    expectLastCall();
+
     replayAll();
 
     // WHEN
@@ -90,7 +95,9 @@ public class ConfigureClusterTaskTest extends EasyMockSupport {
     // GIVEN
     expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.emptyList());
     expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.emptyMap());
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     clusterConfigurationRequest.process();
+    expectLastCall();
     replayAll();
 
     AsyncCallableService<Boolean> asyncService = new AsyncCallableService<>(testSubject, 5000, 500, "test", t -> {});

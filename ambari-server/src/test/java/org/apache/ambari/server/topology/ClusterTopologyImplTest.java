@@ -264,6 +264,7 @@ public class ClusterTopologyImplTest {
 
   private class TestTopologyRequest implements ProvisionRequest {
 
+    @Override
     public String getClusterName() {
       return CLUSTER_NAME;
     }

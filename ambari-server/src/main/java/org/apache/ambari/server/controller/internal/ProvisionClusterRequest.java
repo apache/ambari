@@ -211,7 +211,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
 
   // for tests
   public ProvisionClusterRequest(Blueprint blueprint, Configuration configuration) {
-    configRecommendationStrategy = ConfigRecommendationStrategy.NEVER_APPLY;
+    configRecommendationStrategy = ConfigRecommendationStrategy.getDefault();
     quickLinksProfileJson = null;
     mpackInstances = ImmutableList.of();
     stackIds = ImmutableSet.of();
@@ -265,6 +265,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     return credentialsMap;
   }
 
+  @Override
   public String getClusterName() {
     return clusterName;
   }

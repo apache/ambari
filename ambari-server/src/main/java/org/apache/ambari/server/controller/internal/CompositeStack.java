@@ -134,7 +134,7 @@ public class CompositeStack implements StackDefinition {
   }
 
   @Override
-  public Collection<String> getAllConfigurationTypes(String service) {
+  public Set<String> getAllConfigurationTypes(String service) {
     return stacks.stream()
       .flatMap(m -> m.getAllConfigurationTypes(service).stream())
       .collect(toSet());

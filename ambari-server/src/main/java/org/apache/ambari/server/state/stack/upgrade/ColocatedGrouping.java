@@ -18,7 +18,6 @@
 package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,14 +35,12 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper.Type;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -380,7 +377,7 @@ public class ColocatedGrouping extends Grouping {
     public String toString() {
       String s = "";
       for (TaskWrapper t : tasks) {
-        s += component + "/" + t.getTasks() + " ";
+        s += component + "/" + t.getTask() + " ";
       }
 
       return s;
@@ -400,9 +397,7 @@ public class ColocatedGrouping extends Grouping {
       List<TaskWrapper> interim = new ArrayList<>();
 
       for (TaskWrapper wrapper : tasks) {
-        Collection<Task> filtered = Collections2.filter(wrapper.getTasks(), predicate);
-
-        if (CollectionUtils.isNotEmpty(filtered)) {
+        if (predicate.apply(wrapper.getTask())) {
           interim.add(wrapper);
         }
       }

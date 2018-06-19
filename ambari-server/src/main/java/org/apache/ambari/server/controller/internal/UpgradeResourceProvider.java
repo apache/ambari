@@ -786,23 +786,23 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           // is a bug that prevents one stage with multiple tasks assigned for
           // the same host, break them out into individual stages.
           for (TaskWrapper taskWrapper : wrapper.getTasks()) {
-            for (Task task : taskWrapper.getTasks()) {
-              if (upgradeContext.isManualVerificationAutoSkipped()
-                  && task.getType() == Task.Type.MANUAL) {
-                continue;
-              }
+            Task task = taskWrapper.getTask();
 
-              UpgradeItemEntity itemEntity = new UpgradeItemEntity();
+            if (upgradeContext.isManualVerificationAutoSkipped()
+                && task.getType() == Task.Type.MANUAL) {
+              continue;
+            }
 
-              itemEntity.setText(wrapper.getText());
-              itemEntity.setTasks(wrapper.getTasksJson());
-              itemEntity.setHosts(wrapper.getHostsJson());
+            UpgradeItemEntity itemEntity = new UpgradeItemEntity();
 
-              injectVariables(configHelper, cluster, itemEntity);
-              if (makeServerSideStage(group, upgradeContext, null, req,
-                  itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
-                itemEntities.add(itemEntity);
-              }
+            itemEntity.setText(wrapper.getText());
+            itemEntity.setTasks(wrapper.getTasksJson());
+            itemEntity.setHosts(wrapper.getHostsJson());
+
+            injectVariables(configHelper, cluster, itemEntity);
+            if (makeServerSideStage(group, upgradeContext, null, req,
+                itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
+              itemEntities.add(itemEntity);
             }
           }
         } else {

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
@@ -35,14 +36,20 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
@@ -64,6 +71,8 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
@@ -74,6 +83,11 @@ import com.google.common.collect.Maps;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AmbariContext.class})
 public class ClusterConfigurationRequestTest {
+
+  public static final Long CLUSTER_ID = Long.valueOf(1);
+  public static final String CLUSTER_NAME = "testCluster";
+  public static final List<String> SERVICE_NAMES = ImmutableList.of("HDFS", "KERBEROS", "ZOOKEEPER");
+
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -234,21 +248,20 @@ public class ClusterConfigurationRequestTest {
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).times(2);
 
-    expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
+    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
 
     expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(topology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getServiceForConfigType("testConfigType")).andReturn("KERBEROS").anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(ImmutableSet.of("testConfigType")
     ).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
 
-    Set<String> services = ImmutableSet.of("HDFS", "KERBEROS", "ZOOKEEPER");
-    expect(topology.getServices()).andReturn(services).anyTimes();
-    expect(stack.getConfiguration(services)).andReturn(stackDefaultConfig).once();
+    expect(topology.getServices()).andReturn(SERVICE_NAMES).anyTimes();
+    expect(stack.getConfiguration(SERVICE_NAMES)).andReturn(stackDefaultConfig).once();
 
     expect(topology.getComponents()).andAnswer(() -> Stream.of(
       builderFor("HDFS", "NAMENODE").buildPartial(),
@@ -263,14 +276,20 @@ public class ClusterConfigurationRequestTest {
 
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
+    expect(topology.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
     expect(topology.getHostGroupsForComponent(anyString())).andReturn(Collections.emptyList())
       .anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
-    expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
+    expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn(CLUSTER_NAME).anyTimes();
     expect(ambariContext.createConfigurationRequests(EasyMock.anyObject())).andReturn(Collections
       .emptyList()).anyTimes();
+   Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().map(
+      serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
+          null, null, null, null, false, false, false, false, false)
+    ).collect(toSet());
+    expect(ambariContext.getServices(anyString())).andReturn(services).anyTimes();
 
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(STACK_ID))).andReturn(stackProperties).anyTimes();
@@ -303,7 +322,7 @@ public class ClusterConfigurationRequestTest {
 
 
     String clusterName = captureClusterName.getValue();
-    assertEquals("testCluster", clusterName);
+    assertEquals(CLUSTER_NAME, clusterName);
     return captureUpdatedConfigTypes;
   }
 
@@ -319,29 +338,38 @@ public class ClusterConfigurationRequestTest {
     expectLastCall().andReturn(controller).anyTimes();
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
+    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
 
     expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(topology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")).anyTimes();
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(ImmutableSet.of("testConfigType")).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
-
-    expect(topology.getServices()).andReturn(ImmutableSet.of("HDFS", "KERBEROS", "ZOOKEEPER")).anyTimes();
+    Set<String> serviceNames = ImmutableSet.of("HDFS", "KERBEROS", "ZOOKEEPER");
+    expect(topology.getServices()).andReturn(serviceNames).anyTimes();
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getComponents()).andAnswer(Stream::empty).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(topology.getClusterId()).andReturn(1L).anyTimes();
+    expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
-    expect(ambariContext.getClusterName(1L)).andReturn("testCluster").anyTimes();
+    expect(ambariContext.getClusterName(1L)).andReturn(CLUSTER_NAME).anyTimes();
     expect(ambariContext.createConfigurationRequests(EasyMock.anyObject())).andReturn(Collections
       .emptyList()).anyTimes();
+    Set<ServiceResponse> services = IntStream.range(0, serviceNames.size()).boxed().
+      map(
+        serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
+            null, null, null, null, false, false, false, false, false)
+      ).
+      collect(toSet());
+  expect(ambariContext.getServices(anyString())).andReturn(services).anyTimes();
+
+
 
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(STACK_ID))).andReturn(stackProperties).anyTimes();
@@ -491,5 +519,87 @@ public class ClusterConfigurationRequestTest {
     return new Configuration(firstLevelConfig, firstLevelAttributes, secondLevelConf);
   }
 
+  @Test
+  public void testProcessClusterConfigRequest_SaveServiceIdAndServiceGroupId() throws Exception {
+    // GIVEN
+    Configuration configuration = new Configuration(
+      Maps.newHashMap(ImmutableMap.of(
+        "zoo.cfg", ImmutableMap.of("testKey", "testValue"),
+        "zookeeper-env", ImmutableMap.of("testKey", "testValue"),
+        "hdfs-site", ImmutableMap.of("testKey", "testValue"),
+        "hadoop-env", ImmutableMap.of("testKey", "testValue"))),
+      Maps.newHashMap()
+    );
+    List<String> serviceNames = ImmutableList.of("ZOOKEEPER", "HDFS");
+    StackId stackId = new StackId("HDPCORE", "1.0.0");
+    AtomicLong serviceIds = new AtomicLong(0);
+    Set<ServiceResponse> serviceResponses = serviceNames.stream().
+      map(
+        sName -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 0L, "HDPCORE", serviceIds.getAndIncrement(),
+          sName, sName, stackId, "1.0.0.0-b292", "INSTALLED", true, false, true, false, false)).
+      collect(toSet());
+
+    Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();
+    HostGroupInfo hg1 = new HostGroupInfo("hg1");
+    hg1.setConfiguration(new Configuration());
+    hostGroupInfoMap.put("hg1", hg1);
+
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
+    expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getServices()).andReturn(serviceNames).anyTimes();
+    expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
+
+    expect(topology.isValidConfigType("zoo.cfg")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("zookeeper-env")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("hadoop-env")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
+    expect(topology.getStackIds()).andReturn(ImmutableSet.of(stackId));
+
+    expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(ImmutableSet.of()).anyTimes();
+    expect(stack.getAllConfigurationTypes("ZOOKEEPER")).andReturn(ImmutableSet.of("zoo.cfg", "zookeeper-env"));
+    expect(stack.getAllConfigurationTypes("HDFS")).andReturn(ImmutableSet.of("hdfs-site", "hadoop-env"));
+
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
+    expect(ambariContext.getServices(anyString())).andReturn(serviceResponses).anyTimes();
+    Capture<ClusterRequest> clusterRequestCapture = Capture.newInstance(CaptureType.ALL);
+    ambariContext.setConfigurationOnCluster(capture(clusterRequestCapture));
+    expectLastCall().anyTimes();
+
+    expect(configHelper.getDefaultStackProperties(anyObject())).andReturn(stackProperties).anyTimes();
+
+    EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
+
+    // WHEN
+    ClusterConfigurationRequest request =
+      new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+    request.process();
+
+    // THEN
+    Map<String, Optional<Long>> expectedServiceIds = ImmutableMap.of(
+      "zoo.cfg", Optional.of(0L),
+      "zookeeper-env", Optional.of(0L),
+      "hadoop-env", Optional.of(1L),
+      "hdfs-site", Optional.of(1L),
+      "cluster-env", Optional.<Long>empty()
+    );
+    Set<String> clusterConfigTypes = new HashSet<>();
+    clusterRequestCapture.getValues().forEach(
+      clusterRequest -> clusterRequest.getDesiredConfig().forEach(
+        configRequest -> {
+          String configType = configRequest.getType();
+          clusterConfigTypes.add(configType);
+          assertTrue("Service ID should have been set except for global configs.",
+            configType.equals("cluster-env") || configRequest.getServiceGroupId().equals(0L));
+          assertEquals("Unexpected service id.",
+            expectedServiceIds.get(configType).orElse(null), configRequest.getServiceId());
+        }
+      )
+    );
+    assertEquals("Expected and actual cluster config types differ.", expectedServiceIds.keySet(), clusterConfigTypes);
+  }
 
 }

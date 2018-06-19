@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -277,8 +278,8 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     // don't expect toEntity()
 
-    List<String> configTypes1 = Arrays.asList("service1-site", "service1-env");
-    List<String> configTypes2 = Arrays.asList("service2-site", "service2-env");
+    Set<String> configTypes1 = ImmutableSet.of("service1-site", "service1-env");
+    Set<String> configTypes2 = ImmutableSet.of("service2-site", "service2-env");
     expect(stack.getConfigurationTypes("service1")).andReturn(configTypes1).anyTimes();
     expect(stack.getConfigurationTypes("service2")).andReturn(configTypes2).anyTimes();
     expect(stack.getAllConfigurationTypes("service1")).andReturn(configTypes1).anyTimes();

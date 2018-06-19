@@ -127,6 +127,11 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   }
 
   @Override
+  public String getClusterName() {
+    return request.getClusterName();
+  }
+
+  @Override
   public Type getType() {
     return Type.PROVISION;
   }

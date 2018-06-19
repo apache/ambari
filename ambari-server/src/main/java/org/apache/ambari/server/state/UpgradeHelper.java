@@ -616,19 +616,18 @@ public class UpgradeHelper {
       }
 
       for (TaskWrapper taskWrapper : stageWrapper.getTasks()) {
-        for (Task task : taskWrapper.getTasks()) {
-          if (null != task.summary) {
-            task.summary = tokenReplace(ctx, task.summary, null, null);
-          }
+        Task task = taskWrapper.getTask();
+        if (null != task.summary) {
+          task.summary = tokenReplace(ctx, task.summary, null, null);
+        }
 
-          if (task.getType() == Type.MANUAL) {
-            ManualTask mt = (ManualTask) task;
-            if(null != mt.messages && !mt.messages.isEmpty()){
-              for(int i = 0; i < mt.messages.size(); i++){
-                String message =  mt.messages.get(i);
-                message = tokenReplace(ctx, message, taskWrapper.getService(), taskWrapper.getComponent());
-                mt.messages.set(i, message);
-              }
+        if (task.getType() == Type.MANUAL) {
+          ManualTask mt = (ManualTask) task;
+          if(null != mt.messages && !mt.messages.isEmpty()){
+            for(int i = 0; i < mt.messages.size(); i++){
+              String message =  mt.messages.get(i);
+              message = tokenReplace(ctx, message, taskWrapper.getService(), taskWrapper.getComponent());
+              mt.messages.set(i, message);
             }
           }
         }
