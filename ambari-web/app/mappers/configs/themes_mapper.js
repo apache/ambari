@@ -142,6 +142,7 @@ App.themesMapper = App.QuickDataMapper.create({
         var parsedSubSection = this.parseIt(subSection, this.get("subSectionConfig"));
         parsedSubSection.section_id = parsedSection.id;
         parsedSubSection.id = parsedSubSection.name + '_' + serviceName + '_' + themeName;
+        parsedSubSection.theme_name = themeName;
 
         this.loadSubSectionTabs(subSection, parsedSubSection);
         if (parsedSubSection['depends_on']) {
@@ -167,6 +168,7 @@ App.themesMapper = App.QuickDataMapper.create({
       subSection['subsection-tabs'].forEach(function (subSectionTab) {
         var parsedSubSectionTab = this.parseIt(subSectionTab, this.get("subSectionTabConfig"));
         parsedSubSectionTab.sub_section_id = parsedSubSection.id;
+        parsedSubSectionTab.theme_name = parsedSubSection.theme_name;
         if (parsedSubSectionTab['depends_on']) {
           subSectionTabConditions.push(parsedSubSectionTab);
         }

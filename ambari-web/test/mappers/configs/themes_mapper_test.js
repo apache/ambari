@@ -219,7 +219,8 @@ describe('App.themeMapper', function () {
           "name": "SSEC1",
           "row_index": 2,
           "row_span": 5,
-          "section_id": 1
+          "section_id": 1,
+          "theme_name": "t1",
         }
       ]);
     });
@@ -239,7 +240,8 @@ describe('App.themeMapper', function () {
           "name": "SSEC1",
           "row_index": 2,
           "row_span": 5,
-          "section_id": 1
+          "section_id": 1,
+          "theme_name": "t1"
         }],
         'subsection'
       ]);
@@ -260,7 +262,8 @@ describe('App.themeMapper', function () {
           "name": "SSEC1",
           "row_index": 2,
           "row_span": 5,
-          "section_id": 1
+          "section_id": 1,
+          "theme_name": "t1"
         }
       ]);
     });
@@ -293,7 +296,7 @@ describe('App.themeMapper', function () {
     });
 
     it('mapThemeConditions should be called', function() {
-      App.themesMapper.loadSubSectionTabs(subSection, {id: 2});
+      App.themesMapper.loadSubSectionTabs(subSection, {id: 2, theme_name: "t1"});
       expect(App.themesMapper.mapThemeConditions.getCall(0).args).to.be.eql([
         [{
           "depends_on": [],
@@ -301,14 +304,15 @@ describe('App.themeMapper', function () {
           "id": "SEC1",
           "is_active": true,
           "name": "SEC1",
-          "sub_section_id": 2
+          "sub_section_id": 2,
+          "theme_name": "t1"
         }],
         'subsectionTab'
       ]);
     });
 
     it('App.store.safeLoadMany should be called', function() {
-      App.themesMapper.loadSubSectionTabs(subSection, {id: 2});
+      App.themesMapper.loadSubSectionTabs(subSection, {id: 2, theme_name: "t1"});
       expect(App.store.safeLoadMany.getCall(0).args[1]).to.be.eql([
         {
           "depends_on": [],
@@ -316,7 +320,8 @@ describe('App.themeMapper', function () {
           "id": "SEC1",
           "is_active": true,
           "name": "SEC1",
-          "sub_section_id": 2
+          "sub_section_id": 2,
+          "theme_name": "t1"
         }
       ]);
     });
