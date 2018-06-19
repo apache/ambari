@@ -101,15 +101,12 @@ public class RecoveryConfigHelper {
 
     AutoStartConfig autoStartConfig = new AutoStartConfig(clusterName);
 
-    RecoveryConfig recoveryConfig = new RecoveryConfig();
-    recoveryConfig.setMaxCount(autoStartConfig.getNodeRecoveryMaxCount());
-    recoveryConfig.setMaxLifetimeCount(autoStartConfig.getNodeRecoveryLifetimeMaxCount());
-    recoveryConfig.setRetryGap(autoStartConfig.getNodeRecoveryRetryGap());
-    recoveryConfig.setType(autoStartConfig.getNodeRecoveryType());
-    recoveryConfig.setWindowInMinutes(autoStartConfig.getNodeRecoveryWindowInMin());
-    if (autoStartConfig.isRecoveryEnabled()) {
-      recoveryConfig.setEnabledComponents(autoStartConfig.getEnabledComponents(hostname));
-    }
+    RecoveryConfig recoveryConfig = new RecoveryConfig(autoStartConfig.getNodeRecoveryType(),
+        autoStartConfig.getNodeRecoveryMaxCount(),
+        autoStartConfig.getNodeRecoveryWindowInMin(),
+        autoStartConfig.getNodeRecoveryRetryGap(),
+        autoStartConfig.getNodeRecoveryLifetimeMaxCount(),
+        autoStartConfig.isRecoveryEnabled() ? autoStartConfig.getEnabledComponents(hostname) : null);
 
     return recoveryConfig;
   }

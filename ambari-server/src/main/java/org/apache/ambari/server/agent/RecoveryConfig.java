@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.agent;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,12 +28,6 @@ import com.google.gson.annotations.SerializedName;
  * Recovery config to be sent to the agent
  */
 public class RecoveryConfig {
-
-  /**
-   * Creates a holder for agent requests
-   */
-  public RecoveryConfig() {
-  }
 
   @SerializedName("type")
   @JsonProperty("type")
@@ -58,52 +53,38 @@ public class RecoveryConfig {
   @JsonProperty("components")
   private List<RecoveryConfigComponent> enabledComponents;
 
-  public List<RecoveryConfigComponent> getEnabledComponents() {
-    return enabledComponents;
+  public RecoveryConfig(String type, String maxCount, String windowInMinutes, String retryGap, String maxLifetimeCount,
+                        List<RecoveryConfigComponent> enabledComponents) {
+    this.type = type;
+    this.maxCount = maxCount;
+    this.windowInMinutes = windowInMinutes;
+    this.retryGap = retryGap;
+    this.maxLifetimeCount = maxLifetimeCount;
+    this.enabledComponents = enabledComponents;
   }
 
-  public void setEnabledComponents(List<RecoveryConfigComponent> enabledComponents) {
-    this.enabledComponents = enabledComponents;
+  public List<RecoveryConfigComponent> getEnabledComponents() {
+    return enabledComponents == null ? null : Collections.unmodifiableList(enabledComponents);
   }
 
   public String getType() {
     return type;
   }
 
-  public void setType(String type) {
-    this.type = type;
-  }
-
   public String getMaxCount() {
     return maxCount;
-  }
-
-  public void setMaxCount(String maxCount) {
-    this.maxCount = maxCount;
   }
 
   public String getWindowInMinutes() {
     return windowInMinutes;
   }
 
-  public void setWindowInMinutes(String windowInMinutes) {
-    this.windowInMinutes = windowInMinutes;
-  }
-
   public String getRetryGap() {
     return retryGap;
   }
 
-  public void setRetryGap(String retryGap) {
-    this.retryGap = retryGap;
-  }
-
   public String getMaxLifetimeCount() {
     return maxLifetimeCount;
-  }
-
-  public void setMaxLifetimeCount(String maxLifetimeCount) {
-    this.maxLifetimeCount = maxLifetimeCount;
   }
 
   @Override
