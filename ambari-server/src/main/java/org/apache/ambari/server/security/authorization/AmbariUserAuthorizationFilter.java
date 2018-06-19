@@ -19,7 +19,6 @@
 package org.apache.ambari.server.security.authorization;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -33,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
+import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
 import org.apache.commons.lang.math.NumberUtils;
@@ -77,15 +77,14 @@ public class AmbariUserAuthorizationFilter implements Filter {
             httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
             httpResponse.flushBuffer();
             return;
-          } if (!userEntity.getActive()) {
+          }
+          if (!userEntity.getActive()) {
             httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "User is not active");
             httpResponse.flushBuffer();
             return;
           } else {
-            Collection<AmbariGrantedAuthority> userAuthorities = users.getUserAuthorities(userEntity);
-            User user = users.getUser(userEntity);
-            AmbariUserAuthentication authentication = new AmbariUserAuthentication(token, user, userAuthorities);
-            authentication.setAuthenticated(true);
+            AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+            AmbariUserAuthentication authentication = new AmbariUserAuthentication(token, userDetails, true);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
           }
