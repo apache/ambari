@@ -80,6 +80,21 @@ public class CompositeStack implements StackDefinition {
   }
 
   @Override
+  public Stream<Pair<StackId, ServiceInfo>> getServices(String serviceName) {
+    return stacks.stream()
+      .flatMap(each -> each.getServices(serviceName));
+  }
+
+  @Override
+  public Optional<ServiceInfo> getService(StackId stackId, String serviceName) {
+    return stacks.stream()
+      .map(each -> each.getService(stackId, serviceName))
+      .filter(Optional::isPresent)
+      .findAny()
+      .map(o -> o.orElse(null));
+  }
+
+  @Override
   public Set<StackId> getStackIds() {
     return stacks.stream()
       .map(Stack::getStackId)

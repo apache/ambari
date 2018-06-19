@@ -31,7 +31,7 @@ public class RejectUnknownComponents implements TopologyValidator {
   private static final Logger LOG = LoggerFactory.getLogger(RejectUnknownComponents.class);
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
     String unknownComponents = topology.getComponents()
       .map(ResolvedComponent::componentName)
       .filter(c -> !RootComponent.AMBARI_SERVER.name().equals(c))
@@ -43,5 +43,6 @@ public class RejectUnknownComponents implements TopologyValidator {
       LOG.info(msg);
       throw new InvalidTopologyException(msg);
     }
+    return topology;
   }
 }

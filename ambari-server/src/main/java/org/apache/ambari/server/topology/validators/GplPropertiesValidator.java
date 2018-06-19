@@ -61,13 +61,13 @@ public class GplPropertiesValidator implements TopologyValidator {
   }
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
     // need to reject blueprints that have LZO enabled if the Ambari Server hasn't been configured for it
     boolean gplEnabled = configuration.getGplLicenseAccepted();
 
     if (gplEnabled) {
       LOG.info("GPL license accepted, skipping config check");
-      return;
+      return topology;
     }
 
     // we don't want to include default stack properties so we can't use full properties
@@ -84,5 +84,6 @@ public class GplPropertiesValidator implements TopologyValidator {
         }
       }
     }
+    return topology;
   }
 }

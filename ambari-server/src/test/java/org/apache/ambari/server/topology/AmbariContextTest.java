@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.Collections.emptySet;
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -241,9 +242,9 @@ public class AmbariContextTest {
     expect(topology.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
     expect(topology.getServices()).andReturn(blueprintServices).anyTimes();
     expect(topology.getComponents()).andAnswer(() -> Stream.of(
-      ResolvedComponent.builder(new Component("s1Component1")).stackId(STACK_ID).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("s1Component2")).stackId(STACK_ID).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("s2Component1")).stackId(STACK_ID).serviceType("service2").buildPartial()
+      builderFor("service1", "s1Component1").stackId(STACK_ID).buildPartial(),
+      builderFor("service1", "s1Component2").stackId(STACK_ID).buildPartial(),
+      builderFor("service2", "s2Component1").stackId(STACK_ID).buildPartial()
     )).anyTimes();
     expect(topology.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(topology.getSetting()).andReturn(setting).anyTimes();

@@ -44,6 +44,11 @@ public interface ClusterTopology {
   Long getClusterId();
 
   /**
+   * @throws IllegalStateException if the topology already has a clusterId associated with it
+   */
+  void setClusterId(Long clusterId);
+
+  /**
    * @return the cluster name
    */
   String getClusterName();
@@ -111,6 +116,7 @@ public interface ClusterTopology {
    */
   @Deprecated // 1. component name is not enough, 2. only used for stack-specific checks/updates
   Collection<String> getHostGroupsForComponent(String component);
+  Set<String> getHostGroupsForComponent(ResolvedComponent component);
 
   /**
    * Get the name of the host group which is mapped to the specified host.
@@ -231,12 +237,24 @@ public interface ClusterTopology {
    */
   boolean containsMasterComponent(String hostGroup);
 
-  Collection<HostGroup> getHostGroups();
+  Set<String> getHostGroups();
 
   /*
    * @return true if the given component belongs to a service that has serviceType=HCFS
    */
   boolean isComponentHadoopCompatible(String component);
+
+  /**
+   * Creates a new, updated @{code ClusterTopology} with components combined from the current topology
+   * and the given additional ones.
+   * Note that parts of the returned topology may be shallow copies of the one passed in, which should no
+   * longer be used.
+   *
+   * @param additionalComponents additional components to be deployed, grouped by host group name
+   * @return the new, combined topology (may be the same object, if no additional components are provided)
+   * @throws InvalidTopologyException if any unknown host groups are encountered
+   */
+  ClusterTopology withAdditionalComponents(Map<String, Set<ResolvedComponent>> additionalComponents) throws InvalidTopologyException;
 
   Set<String> getHostNames();
 }

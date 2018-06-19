@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.NEVER_APPLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY;
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
@@ -109,6 +110,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   private static final Configuration EMPTY_CONFIG = new Configuration(Collections.emptyMap(), Collections.emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<>();
+  private final Map<String, String> serviceByComponent = new HashMap<>();
   private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
   private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
 
@@ -165,7 +167,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
     // return false for all components since for this test we don't care about the value
     expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
-    expect(stack.getServicesForComponent(anyObject())).andAnswer(() -> Stream.empty()).anyTimes();
+    expect(stack.getServicesForComponent(anyObject())).andAnswer(Stream::empty).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.emptyMap()).anyTimes();
 
     expect(serviceInfo.getRequiredProperties()).andReturn(Collections.emptyMap()).anyTimes();
@@ -267,6 +269,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       String service = entry.getKey();
       for (String component : entry.getValue()) {
         expect(stack.getServiceForComponent(component)).andReturn(service).anyTimes();
+        serviceByComponent.put(component, service);
       }
     }
   }
@@ -6691,17 +6694,15 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
     rangerComponents.add("RANGER_USERSYNC");
+    rangerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
     hdfsComponents.add("DATANODE");
 
     TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
-
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
-
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
@@ -6755,9 +6756,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
     rangerComponents.add("RANGER_USERSYNC");
+    rangerComponents.add("OOZIE_SERVER");
 
     TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
-    group1.components.add("OOZIE_SERVER");
 
 
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1+")).anyTimes();
@@ -6816,14 +6817,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
     rangerComponents.add("RANGER_USERSYNC");
+    rangerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
     hdfsComponents.add("DATANODE");
 
     TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
-
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
 
@@ -6887,16 +6887,16 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
     Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
-    Collection<String> rangerComponents = new HashSet<>();
-    rangerComponents.add("RANGER_ADMIN");
-    rangerComponents.add("RANGER_USERSYNC");
-
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
     hdfsComponents.add("DATANODE");
 
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+    rangerComponents.addAll(hdfsComponents);
+
     TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
-    group1.components.addAll(hdfsComponents);
 
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
@@ -6956,17 +6956,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
     rangerComponents.add("RANGER_USERSYNC");
+    rangerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
     hdfsComponents.add("DATANODE");
 
     TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
-
-
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
-
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
@@ -7025,18 +7022,16 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
     Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
-    Collection<String> rangerComponents = new HashSet<>();
-    rangerComponents.add("RANGER_ADMIN");
-    rangerComponents.add("RANGER_USERSYNC");
-
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
     hdfsComponents.add("DATANODE");
 
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+    rangerComponents.addAll(hdfsComponents);
+
     TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
-    group1.components.addAll(hdfsComponents);
-
-
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
 
 
@@ -7165,6 +7160,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<String> kmsServerComponents = new HashSet<>();
     kmsServerComponents.add("RANGER_KMS_SERVER");
+    kmsServerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
@@ -7172,7 +7168,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
 
@@ -7264,6 +7259,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<String> kmsServerComponents = new HashSet<>();
     kmsServerComponents.add("RANGER_KMS_SERVER");
+    kmsServerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
@@ -7271,7 +7267,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
 
@@ -7307,6 +7302,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<String> kmsServerComponents = new HashSet<>();
     kmsServerComponents.add("RANGER_KMS_SERVER");
+    kmsServerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
@@ -7317,7 +7313,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hosts.add("host2");
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, hosts);
-    group1.components.add("DATANODE");
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host3"));
 
@@ -7361,6 +7356,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<String> kmsServerComponents = new HashSet<>();
     kmsServerComponents.add("RANGER_KMS_SERVER");
+    kmsServerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
@@ -7371,7 +7367,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hosts.add("host2");
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, hosts);
-    group1.components.add("DATANODE");
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host3"));
 
@@ -7421,13 +7416,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> stormComponents = new HashSet<>();
     stormComponents.add("NIMBUS");
     stormComponents.add("DRPC_SERVER");
+    stormComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
 
 
     TestHostGroup group1 = new TestHostGroup("group1", stormComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
 
@@ -7464,6 +7459,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<String> kmsServerComponents = new HashSet<>();
     kmsServerComponents.add("RANGER_KMS_SERVER");
+    kmsServerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
@@ -7471,7 +7467,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
 
@@ -7553,6 +7548,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<String> kmsServerComponents = new HashSet<>();
     kmsServerComponents.add("RANGER_KMS_SERVER");
+    kmsServerComponents.add("DATANODE");
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
@@ -7560,7 +7556,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, Collections.singleton("host1"));
-    group1.components.add("DATANODE");
 
     TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
 
@@ -8233,18 +8228,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       //todo: HG configs
       groupInfo.setConfiguration(hostGroup.configuration);
 
-      Set<ResolvedComponent> components = hostGroup.components.stream()
-        .map(name -> ResolvedComponent.builder(new Component(name)).stackId(STACK_ID).serviceType(stack.getServiceForComponent(name)).buildPartial())
-        .collect(toSet());
-
-      List<Component> componentList = components.stream()
+      List<Component> componentList = hostGroup.components.stream()
         .map(ResolvedComponent::component)
         .collect(toList());
 
       //create host group which is set on topology
       allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, componentList, EMPTY_CONFIG, "1"));
       hostGroupInfo.put(hostGroup.name, groupInfo);
-      resolvedComponents.put(hostGroup.name, components);
+      resolvedComponents.put(hostGroup.name, hostGroup.components);
     }
 
     for (HostGroup group : allHostGroups.values()) {
@@ -8278,22 +8269,23 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   private class TestHostGroup {
-    private String name;
-    private Collection<String> components;
-    private Collection<String> hosts;
-    private Configuration configuration;
+    private final String name;
+    private final Set<ResolvedComponent> components;
+    private final Collection<String> hosts;
+    private final Configuration configuration;
 
     public TestHostGroup(String name, Collection<String> components, Collection<String> hosts) {
-      this.name = name;
-      this.components = components;
-      this.hosts = hosts;
-      configuration = new Configuration(Collections.emptyMap(),
-        Collections.emptyMap());
+      this(name, components, hosts, Configuration.createEmpty());
     }
 
     public TestHostGroup(String name, Collection<String> components, Collection<String> hosts, Configuration configuration) {
       this.name = name;
-      this.components = components;
+      this.components = components.stream()
+        .map(component -> builderFor(serviceByComponent.get(component), component)
+          .component(new Component(component))
+          .stackId(STACK_ID)
+          .buildPartial())
+        .collect(toSet());
       this.hosts = hosts;
       this.configuration = configuration;
     }

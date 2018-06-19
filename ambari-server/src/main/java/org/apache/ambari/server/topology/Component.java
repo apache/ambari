@@ -82,9 +82,9 @@ public class Component {
   public String toString() {
     return MoreObjects.toStringHelper(this)
       .add("name", name)
-      .add("mpackInstance", mpackInstance)
-      .add("serviceInstance", serviceInstance)
-      .add("provisionAction", provisionAction)
+      .add("mpack_instance", mpackInstance)
+      .add("service_instance", serviceInstance)
+      .add("provision_action", provisionAction)
       .toString();
   }
 

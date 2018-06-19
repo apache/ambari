@@ -30,18 +30,15 @@ import org.slf4j.LoggerFactory;
 public class StackConfigTypeValidator implements TopologyValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(StackConfigTypeValidator.class);
 
-  public StackConfigTypeValidator() {
-  }
-
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
 
     // get the config types form the request
     Set<String> incomingConfigTypes = new HashSet<>(topology.getConfiguration().getAllConfigTypes());
 
     if (incomingConfigTypes.isEmpty()) {
       LOGGER.debug("No config types to be checked.");
-      return;
+      return topology;
     }
 
     Set<String> stackConfigTypes = new HashSet<>(topology.getStack().getConfiguration().getAllConfigTypes());
@@ -55,5 +52,6 @@ public class StackConfigTypeValidator implements TopologyValidator {
       LOGGER.error(message);
       throw new InvalidTopologyException(message);
     }
+    return topology;
   }
 }

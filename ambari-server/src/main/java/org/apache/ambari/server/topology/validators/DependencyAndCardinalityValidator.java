@@ -18,10 +18,19 @@
 
 package org.apache.ambari.server.topology.validators;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.StackDefinition;
@@ -29,12 +38,16 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.topology.AmbiguousComponentException;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Component;
-import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.ResolvedComponent;
+import org.apache.ambari.server.topology.StackComponentResolver;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,33 +59,42 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(DependencyAndCardinalityValidator.class);
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
-    Blueprint blueprint = topology.getBlueprint();
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", topology.getBlueprintName());
 
     StackDefinition stack = topology.getStack();
-    Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
-    Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
+    Map<String, Set<ResolvedComponent>> autoAddedComponents = new TreeMap<>();
+    Map<String, Map<Component, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
-    for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(topology, blueprint, stack, group);
+    for (String group : topology.getHostGroups()) {
+      Map<Component, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(topology, autoAddedComponents, group);
       if (!missingGroupDependencies.isEmpty()) {
-        missingDependencies.put(group.getName(), missingGroupDependencies);
+        missingDependencies.put(group, missingGroupDependencies);
       }
     }
 
     Collection<String> cardinalityFailures = new HashSet<>();
-    Collection<String> services = topology.getServices();
+    Set<Pair<StackId, ServiceInfo>> services = topology.getComponents()
+      .map(each -> Pair.of(each.stackId(), each.serviceInfo()))
+      .collect(Collectors.toSet());
 
-    for (String service : services) {
-      for (String component : stack.getComponents(service)) {
+    for (Pair<StackId, ServiceInfo> pair : services) {
+      StackId stackId = pair.getLeft();
+      ServiceInfo serviceInfo = pair.getRight();
+      for (ComponentInfo componentInfo : serviceInfo.getComponents()) {
+        String component = componentInfo.getName();
+        ResolvedComponent resolved = ResolvedComponent.builder(new Component(component))
+          .stackId(stackId)
+          .serviceInfo(serviceInfo)
+          .componentInfo(componentInfo)
+          .build();
+
         Cardinality cardinality = stack.getCardinality(component);
         AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
         if (cardinality.isAll()) {
-          cardinalityFailures.addAll(verifyComponentInAllHostGroups(blueprint, new Component(component), autoDeploy));
+          cardinalityFailures.addAll(verifyComponentInAllHostGroups(topology, resolved, autoDeploy, autoAddedComponents));
         } else {
-          cardinalityFailures.addAll(verifyComponentCardinalityCount(
-            stack, topology, blueprint, new Component(component), cardinality, autoDeploy));
+          cardinalityFailures.addAll(verifyComponentCardinalityCount(topology, autoAddedComponents, resolved, cardinality, autoDeploy));
         }
       }
     }
@@ -80,6 +102,8 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
     if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
       generateInvalidTopologyException(missingDependencies, cardinalityFailures);
     }
+
+    return topology.withAdditionalComponents(autoAddedComponents);
   }
 
   /**
@@ -87,54 +111,59 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
    * For components that are auto-install enabled, will add component to topology if needed.
    *
    *
-   * @param blueprint   blueprint to validate
    * @param component   component to validate
    * @param autoDeploy  auto-deploy information for component
    *
    * @return collection of missing component information
    */
-  private Collection<String> verifyComponentInAllHostGroups(Blueprint blueprint, Component component, AutoDeployInfo autoDeploy) {
+  private Collection<String> verifyComponentInAllHostGroups(ClusterTopology topology, ResolvedComponent component, AutoDeployInfo autoDeploy, Map<String, Set<ResolvedComponent>> autoAddedComponents) {
     Collection<String> cardinalityFailures = new HashSet<>();
-    int actualCount = blueprint.getHostGroupsForComponent(component.getName()).size();
-    Map<String, HostGroup> hostGroups = blueprint.getHostGroups();
-    if (actualCount != hostGroups.size()) {
+    Set<String> hostGroupsForComponent = topology.getHostGroupsForComponent(component);
+    Set<String> allHostGroups = topology.getHostGroups();
+    if (hostGroupsForComponent.size() != allHostGroups.size()) {
       if (autoDeploy != null && autoDeploy.isEnabled()) {
-        for (HostGroup group : hostGroups.values()) {
-          group.addComponent(component);
+        for (String group : topology.getHostGroups()) {
+          if (!hostGroupsForComponent.contains(group)) {
+            autoAddedComponents.computeIfAbsent(group, __ -> new LinkedHashSet<>())
+              .add(component);
+          }
         }
       } else {
-        cardinalityFailures.add(component + "(actual=" + actualCount + ", required=ALL)");
+        cardinalityFailures.add(formatCardinalityFailure(component, hostGroupsForComponent.size(), Cardinality.ALL));
       }
     }
     return cardinalityFailures;
   }
 
-  private Map<String, Collection<DependencyInfo>> validateHostGroup(ClusterTopology topology, Blueprint blueprint, StackDefinition stack, HostGroup group) {
-    LOGGER.info("Validating hostgroup: {}", group.getName());
-    Map<String, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
+  private Map<Component, Collection<DependencyInfo>> validateHostGroup(ClusterTopology topology, Map<String, Set<ResolvedComponent>> autoAddedComponents, String groupName) {
+    LOGGER.info("Validating host group: {}", groupName);
+    StackDefinition stack = topology.getStack();
+    Map<Component, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
 
-    for (Component component : new HashSet<>(group.getComponents())) {
+    Set<ResolvedComponent> componentsInHostGroup = topology.getComponentsInHostGroup(groupName).collect(toSet());
+    for (ResolvedComponent component : componentsInHostGroup) {
       LOGGER.debug("Processing component: {}", component);
 
-      for (DependencyInfo dependency : stack.getDependenciesForComponent(component.getName())) {
-        LOGGER.debug("Processing dependency [{}] for component [{}]", dependency.getName(), component);
+      for (DependencyInfo dependencyInfo : stack.getDependenciesForComponent(component.componentName())) {
+        LOGGER.debug("Processing dependency [{}] for component [{}]", dependencyInfo.getName(), component);
 
         // dependent components from the stack definitions are only added if related services are explicitly added to the blueprint!
-        ComponentInfo componentInfo = stack.getComponentInfo(dependency.getComponentName());
-        if (componentInfo == null) {
-          LOGGER.debug("The component [{}] is not associated with any known services, skipping dependency", dependency.getComponentName());
+        ResolvedComponent dependency;
+        try {
+          dependency = resolveComponent(stack, component.stackId(), dependencyInfo.getServiceName(), dependencyInfo.getComponentName());
+        } catch (AmbiguousComponentException e) {
+          LOGGER.info("Could not resolve depended component {} due to {}", dependencyInfo, e.getMessage());
           continue;
         }
 
-        String         dependencyScope = dependency.getScope();
-        String         componentName   = dependency.getComponentName();
-        AutoDeployInfo autoDeployInfo  = dependency.getAutoDeploy();
+        String         dependencyScope = dependencyInfo.getScope();
+        AutoDeployInfo autoDeployInfo  = dependencyInfo.getAutoDeploy();
         boolean        resolved        = false;
 
         //check if conditions are met, if any
-        if(dependency.hasDependencyConditions()) {
+        if (dependencyInfo.hasDependencyConditions()) {
           boolean conditionsSatisfied = true;
-          for (DependencyConditionInfo dependencyCondition : dependency.getDependencyConditions()) {
+          for (DependencyConditionInfo dependencyCondition : dependencyInfo.getDependencyConditions()) {
             if (!dependencyCondition.isResolved(topology.getConfiguration().getFullProperties())) {
               conditionsSatisfied = false;
               break;
@@ -146,27 +175,24 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
         }
         if (dependencyScope.equals("cluster")) {
           Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
-            stack, topology, blueprint, new Component(componentName), new Cardinality("1+"), autoDeployInfo);
+            topology, autoAddedComponents, dependency, new Cardinality("1+"), autoDeployInfo);
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
-          if (group.getComponentNames().contains(componentName)) {
+          if (componentsInHostGroup.contains(dependency)) {
             resolved = true;
-            LOGGER.debug("Host group {} contains component {} and satisfies host-level dependency for component {}", group.getName(), componentName, component);
+            LOGGER.debug("Host group {} contains component {} and satisfies host-level dependency for component {}", groupName, dependency, component);
           } else if (autoDeployInfo != null && autoDeployInfo.isEnabled()) {
             resolved = true;
-            group.addComponent(new Component(componentName));
-            LOGGER.info("Added component {} in host group {} to satisfy host-level dependency for component {}", componentName, group.getName(), component);
+            autoAddedComponents.computeIfAbsent(groupName, __ -> new LinkedHashSet<>())
+              .add(dependency);
+            LOGGER.info("Added component {} in host group {} to satisfy host-level dependency for component {}", dependency, groupName, component);
           }
         }
 
         if (! resolved) {
-          Collection<DependencyInfo> missingCompDependencies = missingDependencies.get(component.getName());
-          if (missingCompDependencies == null) {
-            missingCompDependencies = new HashSet<>();
-            missingDependencies.put(component.getName(), missingCompDependencies);
-          }
-          missingCompDependencies.add(dependency);
+          missingDependencies.computeIfAbsent(component.component(), __ -> new HashSet<>())
+            .add(dependencyInfo);
         }
       }
     }
@@ -178,8 +204,6 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
    * auto-install enabled, will add component to topology if needed.
    *
    *
-   * @param stack        stack definition
-   * @param blueprint    blueprint to validate
    * @param component    component to validate
    * @param cardinality  required cardinality
    * @param autoDeploy   auto-deploy information for component
@@ -187,10 +211,9 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
    * @return collection of missing component information
    */
   private Collection<String> verifyComponentCardinalityCount(
-    StackDefinition stack,
     ClusterTopology topology,
-    Blueprint blueprint,
-    Component component,
+    Map<String, Set<ResolvedComponent>> autoAddedComponents,
+    ResolvedComponent component,
     Cardinality cardinality,
     AutoDeployInfo autoDeploy
   ) {
@@ -198,30 +221,35 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
     Collection<String> cardinalityFailures = new HashSet<>();
     //todo: don't hard code this HA logic here
     if (BlueprintConfigurationProcessor.isNameNodeHAEnabled(configProperties) &&
-        (component.getName().equals("SECONDARY_NAMENODE"))) {
+        (component.componentName().equals("SECONDARY_NAMENODE"))) {
       // override the cardinality for this component in an HA deployment,
       // since the SECONDARY_NAMENODE should not be started in this scenario
       cardinality = new Cardinality("0");
     }
 
-    int actualCount = blueprint.getHostGroupsForComponent(component.getName()).size();
+    int actualCount = topology.getHostGroupsForComponent(component).size();
+    LOGGER.debug("Host groups for {}: {}", component, actualCount);
     if (! cardinality.isValidCount(actualCount)) {
-      boolean validated = ! isDependencyManaged(stack, component.getName(), configProperties);
+      StackDefinition stack = topology.getStack();
+      boolean validated = ! isDependencyManaged(stack, component.componentName(), configProperties);
       if (! validated && autoDeploy != null && autoDeploy.isEnabled() && cardinality.supportsAutoDeploy()) {
         String coLocateName = autoDeploy.getCoLocate();
         if (coLocateName != null && ! coLocateName.isEmpty()) {
-          Collection<HostGroup> coLocateHostGroups = blueprint.getHostGroupsForComponent(coLocateName.split("/")[1]);
-          if (! coLocateHostGroups.isEmpty()) {
-            validated = true;
-            HostGroup group = coLocateHostGroups.iterator().next();
-            group.addComponent(component);
-
+          String[] coLocateNameParts = coLocateName.split("/");
+          if (coLocateNameParts.length == 2) {
+            ResolvedComponent coLocateWith = resolveComponent(stack, coLocateNameParts[0], coLocateNameParts[1]);
+            Collection<String> coLocateHostGroups = topology.getHostGroupsForComponent(coLocateWith);
+            if (!coLocateHostGroups.isEmpty()) {
+              validated = true;
+              String group = coLocateHostGroups.iterator().next();
+              autoAddedComponents.computeIfAbsent(group, __ -> new LinkedHashSet<>())
+                .add(component);
+            }
           }
         }
       }
       if (! validated) {
-        cardinalityFailures.add(component + "(actual=" + actualCount + ", required=" +
-            cardinality.getValue() + ")");
+        cardinalityFailures.add(formatCardinalityFailure(component, actualCount, cardinality));
       }
     }
     return cardinalityFailures;
@@ -237,7 +265,7 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
    *
    * @return true if the specified component managed by the cluster; false otherwise
    */
-  protected boolean isDependencyManaged(StackDefinition stack, String component, Map<String, Map<String, String>> clusterConfig) {
+  protected static boolean isDependencyManaged(StackDefinition stack, String component, Map<String, Map<String, String>> clusterConfig) {
     boolean isManaged = true;
     String externalComponentConfig = stack.getExternalComponentConfig(component);
     if (externalComponentConfig != null) {
@@ -263,10 +291,9 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
    * @throws IllegalArgumentException  Always thrown and contains information regarding the topology validation failure
    *                                   in the msg
    */
-  private void generateInvalidTopologyException(Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies,
+  private void generateInvalidTopologyException(Map<String, ?> missingDependencies,
                                                 Collection<String> cardinalityFailures) throws InvalidTopologyException {
 
-    //todo: encapsulate some of this in exception?
     String msg = "Cluster Topology validation failed.";
     if (! cardinalityFailures.isEmpty()) {
       msg += "  Invalid service component count: " + cardinalityFailures;
@@ -278,4 +305,33 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
         "add the following to the end of the url: '?validate_topology=false'";
     throw new InvalidTopologyException(msg);
   }
+
+  private ResolvedComponent resolveComponent(StackDefinition stack, StackId stackId, String service, String component) throws AmbiguousComponentException {
+    Optional<ServiceInfo> serviceInfo = stack.getService(stackId, service);
+    if (serviceInfo.isPresent()) {
+      ComponentInfo componentInfo = serviceInfo.get().getComponentByName(component);
+      if (componentInfo != null) {
+        return ResolvedComponent.builder(new Component(component))
+          .stackId(stackId)
+          .serviceInfo(serviceInfo.get())
+          .componentInfo(componentInfo)
+          .build();
+      }
+    }
+
+    return resolveComponent(stack, service, component);
+  }
+
+  private ResolvedComponent resolveComponent(StackDefinition stack, String service, String component) throws AmbiguousComponentException {
+    // dependency does not specify the stack
+    Stream<Pair<StackId, ServiceInfo>> services = stack.getServicesForComponent(component)
+      .filter(each -> Objects.equals(each.getRight().getName(), service));
+
+    return StackComponentResolver.getComponent(new Component(component), services);
+  }
+
+  private static String formatCardinalityFailure(ResolvedComponent component, int actual, Cardinality expected) {
+    return String.format("%s (actual=%s, expected=%s)", component.component(), actual, expected);
+  }
+
 }

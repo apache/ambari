@@ -29,7 +29,6 @@ import org.apache.ambari.server.controller.internal.BlueprintConfigurationProces
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +41,14 @@ public class NameNodeHighAvailabilityValidator implements TopologyValidator {
   private static final Logger LOG = LoggerFactory.getLogger(NameNodeHighAvailabilityValidator.class);
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) {
     Blueprint blueprint = topology.getBlueprint();
 
     Map<String, Map<String, String>> clusterConfigurations = topology.getConfiguration().getProperties();
 
     if (!BlueprintConfigurationProcessor.isNameNodeHAEnabled(clusterConfigurations)) {
       LOG.info("NAMENODE HA is not enabled, skipping validation of {}", blueprint.getName());
-      return;
+      return topology;
     }
 
     LOG.info("Validating NAMENODE HA for blueprint: {}", blueprint.getName());
@@ -81,6 +80,7 @@ public class NameNodeHighAvailabilityValidator implements TopologyValidator {
         }
       }
     }
+    return topology;
   }
 
 }

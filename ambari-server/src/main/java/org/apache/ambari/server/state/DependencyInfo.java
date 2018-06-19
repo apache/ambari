@@ -21,6 +21,7 @@ package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -181,11 +182,27 @@ public class DependencyInfo {
     return !CollectionUtils.isEmpty(dependencyConditions);
   }
 
+  /** @return true if dependency scope is host-level */
+  public boolean isHostLevel() {
+    return "host".equals(getScope());
+  }
+
+  /** @return true if auto-deploy is enabled */
+  public boolean isAutoDeployable() {
+    return m_autoDeploy != null && m_autoDeploy.isEnabled();
+  }
+
+  /** @return true if all dependency conditions are resolved */
+  public boolean areDependencyConditionsResolved(Map<String, Map<String, String>> properties) {
+    return getDependencyConditions().stream()
+      .allMatch(condition -> condition.isResolved(properties));
+  }
+
   @Override
   public String toString() {
     return "DependencyInfo[name=" + getName() +
            ", scope=" + getScope() +
-           ", auto-deploy=" + m_autoDeploy.isEnabled() +
+           ", auto-deploy=" + isAutoDeployable() +
            "]";
   }
 
