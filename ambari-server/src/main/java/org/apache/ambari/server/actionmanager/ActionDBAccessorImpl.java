@@ -156,7 +156,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
 
-  private AtomicBoolean jpaInitialized = new AtomicBoolean(false);
+  private final AtomicBoolean jpaInitialized = new AtomicBoolean(false);
 
   @Inject
   public ActionDBAccessorImpl(@Named("executionCommandCacheSize") long cacheLimit,
@@ -173,17 +173,18 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Inject
   void init() {
     if (jpaInitialized.get()) {
-      LOG.info("Initializing last request ID from DB ...");
+      LOG.info("Setting last request ID from DB ...");
       requestId = stageDAO.getLastRequestId();
+      LOG.info("Set latest request ID.");
     }
   }
 
   @Subscribe
   public void jpaInitialized(JpaInitializedEvent event) {
     LOG.info("JPA initialized event received: {}", event);
-    jpaInitialized.getAndSet(true);
-    init();
-    LOG.info("Set latest request ID.");
+    if (!jpaInitialized.getAndSet(true)) {
+      init();
+    }
   }
 
   /* (non-Javadoc)
