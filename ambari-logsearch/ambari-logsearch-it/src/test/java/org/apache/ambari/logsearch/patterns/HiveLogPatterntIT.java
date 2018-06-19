@@ -33,16 +33,16 @@ import org.junit.Test;
 public class HiveLogPatterntIT extends PatternITBase {
 
   @Test
-  public void testHiveServer2LogEntry() throws Exception {
+  public void testHiveServerLogEntry() throws Exception {
     String logEntry = "2018-05-11T07:46:01,087 WARN  [main]: metastore.HiveMetaStoreClient (:()) - Failed to connect to the MetaStore Server...";
-    Map<String, Object> result = testLogEntry(logEntry,"hive_hiveserver2", inputConfigTemplate(
+    Map<String, Object> result = testLogEntry(logEntry,"hive_server", inputConfigTemplate(
             new File(HDP_SERVICES_FOLDER, "HIVE/package/templates/input.config-hive.json.j2")));
 
     assertThat(result.isEmpty(), is(false));
     assertThat(result.get("cluster"), is(CLUSTER));
     assertThat(result.get("level"), is("WARN"));
     assertThat(result.get("event_count"), is(1));
-    assertThat(result.get("type"), is("hive_hiveserver2"));
+    assertThat(result.get("type"), is("hive_server"));
     assertThat(result.containsKey("seq_num"), is(true));
     assertThat(result.containsKey("id"), is(true));
     assertThat(result.containsKey("message_md5"), is(true));
@@ -58,16 +58,16 @@ public class HiveLogPatterntIT extends PatternITBase {
   }
 
   @Test
-  public void testHiveServer2InteractiveLogEntry() throws Exception {
+  public void testHiveServerInteractiveLogEntry() throws Exception {
     String logEntry = "2018-05-11T08:48:02,973 WARN  [main]: conf.HiveConf (HiveConf.java:initialize(5193)) - HiveConf of name hive.hook.proto.base-directory does not exist";
-    Map<String, Object> result = testLogEntry(logEntry,"hive_hiveserver2", inputConfigTemplate(
+    Map<String, Object> result = testLogEntry(logEntry,"hive_server_interactive", inputConfigTemplate(
             new File(HDP_SERVICES_FOLDER, "HIVE/package/templates/input.config-hive.json.j2")));
 
     assertThat(result.isEmpty(), is(false));
     assertThat(result.get("cluster"), is(CLUSTER));
     assertThat(result.get("level"), is("WARN"));
     assertThat(result.get("event_count"), is(1));
-    assertThat(result.get("type"), is("hive_hiveserver2"));
+    assertThat(result.get("type"), is("hive_server_interactive"));
     assertThat(result.containsKey("seq_num"), is(true));
     assertThat(result.containsKey("id"), is(true));
     assertThat(result.containsKey("message_md5"), is(true));

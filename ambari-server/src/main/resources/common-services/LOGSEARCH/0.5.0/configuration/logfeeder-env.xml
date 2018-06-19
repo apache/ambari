@@ -151,6 +151,28 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>ambari_server_log_dir</name>
+    <value>/var/log/ambari-server</value>
+    <description>Log dir of Ambari Server. Use this property when bootstrapping Logsearch only.</description>
+    <display-name>Ambari Server log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ambari_agent_log_dir</name>
+    <value>/var/log/ambari-agent</value>
+    <description>Log dir of Ambari Agent. Use this property when bootstrapping Logsearch only.</description>
+    <display-name>Ambari Agent log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>logfeeder-env template</display-name>
     <description>This is the jinja template for logfeeder-env.sh file</description>
