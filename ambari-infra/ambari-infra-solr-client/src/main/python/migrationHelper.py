@@ -758,19 +758,33 @@ def copy_znode(options, config, copy_src, copy_dest, copy_from_local=False, copy
   logger.debug(str(out))
 
 def list_collections(options, config, output_file):
-  solr_cli_command=create_infra_solr_client_command(options, config, '--dump-collections --output {0}'.format(output_file), appendZnode=True)
-  logger.debug("Solr cli command: {0}".format(solr_cli_command))
-  sys.stdout.write('Dumping collections data to {0} ... '.format(output_file))
-  sys.stdout.flush()
-  process = Popen(solr_cli_command, stdout=PIPE, stderr=PIPE, shell=True)
-  out, err = process.communicate()
-  if process.returncode != 0:
-    sys.stdout.write(colors.FAIL + 'FAILED\n' + colors.ENDC)
+  dump_json_files_list=[]
+  skip_dump=False
+  if options.skip_json_dump_files:
+    dump_json_files_list=options.skip_json_dump_files.split(',')
+  if dump_json_files_list:
+    for dump_json_file in dump_json_files_list:
+      if output_file.endswith(dump_json_file):
+        skip_dump=True
+  if skip_dump:
+    print 'Skipping collection dump file generation: {0}'.format(output_file)
+    if not os.path.exists(output_file):
+      print "{0}FAIL{1}: Collection dump file '{2}' does not exist.".format(colors.FAIL, colors.ENDC, output_file)
+      sys.exit(1)
+  else:
+    solr_cli_command=create_infra_solr_client_command(options, config, '--dump-collections --output {0}'.format(output_file), appendZnode=True)
+    logger.debug("Solr cli command: {0}".format(solr_cli_command))
+    sys.stdout.write('Dumping collections data to {0} ... '.format(output_file))
     sys.stdout.flush()
-    raise Exception("{0} command failed: {1}".format(solr_cli_command, str(err)))
-  sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
-  sys.stdout.flush()
-  logger.debug(str(out))
+    process = Popen(solr_cli_command, stdout=PIPE, stderr=PIPE, shell=True)
+    out, err = process.communicate()
+    if process.returncode != 0:
+      sys.stdout.write(colors.FAIL + 'FAILED\n' + colors.ENDC)
+      sys.stdout.flush()
+      raise Exception("{0} command failed: {1}".format(solr_cli_command, str(err)))
+    sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
+    sys.stdout.flush()
+    logger.debug(str(out))
   collections_data = get_collections_data(output_file)
   return collections_data.keys() if collections_data is not None else []
 
@@ -1430,6 +1444,7 @@ if __name__=="__main__":
   parser.add_option("--batch-interval", dest="batch_interval", type="int", default=60 ,help="batch time interval (seconds) between requests (for restarting INFRA SOLR, default: 60)")
   parser.add_option("--batch-fault-tolerance", dest="batch_fault_tolerance", type="int", default=0 ,help="fault tolerance of tasks for batch request (for restarting INFRA SOLR, default: 0)")
   parser.add_option("--shared-drive", dest="shared_drive", default=False, action="store_true", help="Use if the backup location is shared between hosts. (override config from config ini file)")
+  parser.add_option("--skip-json-dump-files", dest="skip_json_dump_files", type="string", help="comma separated list of files that won't be download during collection dump (could be useful if it is required to change something in manually in the already downloaded file)")
   (options, args) = parser.parse_args()
 
   set_log_level(options.verbose)
