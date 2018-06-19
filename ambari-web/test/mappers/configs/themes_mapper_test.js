@@ -282,7 +282,7 @@ describe('App.themeMapper', function () {
           "name": 'SEC1',
           "display-name": 'sec1',
           "depends-on": [],
-          "sub_section_id": 'SUB1',
+          "sub_section_id": 'SUB1'
         }
       ]
     };
