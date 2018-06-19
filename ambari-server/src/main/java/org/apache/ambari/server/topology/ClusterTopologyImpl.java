@@ -118,16 +118,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
     registerHostGroupInfo(request.getHostGroupInfo());
   }
 
-  ClusterTopologyImpl copy() {
-    try {
-      return new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
-    } catch (InvalidTopologyException e) {
-      // cannot happen, since already validated
-      LOG.error("Failed to copy cluster topology {}", this);
-      return null;
-    }
-  }
-
   public ClusterTopologyImpl withAdditionalComponents(Map<String, Set<ResolvedComponent>> additionalComponents) throws InvalidTopologyException {
     if (additionalComponents.isEmpty()) {
       return this;
