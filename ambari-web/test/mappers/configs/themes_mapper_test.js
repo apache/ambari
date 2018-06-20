@@ -382,7 +382,8 @@ describe('App.themeMapper', function () {
     it('should set config to subSection', function() {
       json.ThemeInfo.theme_data.Theme.configuration.placement.configs[0]["subsection-name"] = 'ss-1';
       var subSection = Em.Object.create({
-        configProperties: []
+        configProperties: [],
+        isLoaded: true
       });
       this.mockSection.returns(subSection);
       App.themesMapper.mapThemeConfigs(json);
@@ -392,7 +393,8 @@ describe('App.themeMapper', function () {
     it('should set config to SubSectionTab', function() {
       json.ThemeInfo.theme_data.Theme.configuration.placement.configs[0]["subsection-tab-name"] = 'sst-1';
       var subSectionTab = Em.Object.create({
-        configProperties: []
+        configProperties: [],
+        isLoaded: true
       });
       this.mockSectionTab.returns(subSectionTab);
       App.themesMapper.mapThemeConfigs(json);
