@@ -59,6 +59,7 @@ def should_install_lzo():
   Return true if lzo is enabled via core-site.xml and GPL license (required for lzo) is accepted.
   """
   config = Script.get_config()
+
   stack_version_unformatted = stack_features.get_stack_feature_version(config)
   if check_stack_feature(StackFeature.LZO, stack_version_unformatted):
     io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
@@ -69,6 +70,11 @@ def should_install_lzo():
 
     if not is_gpl_license_accepted():
       Logger.warning(INSTALLING_LZO_WITHOUT_GPL)
+      return False
+    
+    # happens for autostart commands
+    if not 'repositoryFile' in config:
+      Logger.warning("Cannot download lzo packages, since repositories are not provided.")
       return False
   else:
     Logger.info("This stack does not indicate that it supports LZO installation.")
