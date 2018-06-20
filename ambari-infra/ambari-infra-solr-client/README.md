@@ -113,6 +113,7 @@ kerberos_enabled = true
 [infra_solr]
 protocol = http
 hosts = c7402.ambari.apache.org,c7403.ambari.apache.org
+port = 8886
 zk_connect_string = c7401.ambari.apache.org:2181
 znode = /infra-solr
 user = infra-solr
@@ -405,7 +406,7 @@ If the script finished successfully and everything looks green on Ambari UI as w
 Migration for `ranger_audits` collection (cores):
 
 ```bash
-# by efault, you will mirate to Lucene 6.6.2, if you want to migrate again to Solr 7 (not requred), you can use --version 7.3.1 flag
+# by default, you will mirate to Lucene 6.6.2, if you want to migrate again to Solr 7 (not requred), you can use --version 7.3.1 flag
 /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action migrate -s RANGER
 ```
 
@@ -637,6 +638,7 @@ BACKUP_BASE_PATH=/tmp
 - `--service-filter` or `-s`: you can filter on services for migration commands (like run against only ATLAS or RANGER), possible values: ATLAS,RANGER,LOGSEARCH
 - `--skip-cores`: skip specific cores from migration (can be useful if just one of it failed during restore etc.)
 - `--collection` or `-c`: run migration commands on just a specific collection (like: `ranger_adits`, or `old_ranger_audits` for restore)
+- `--core-filter`: can be used only for index migration, that will work as a regex filter on the snapshot core folder e.g.: "mycore" means it will be applied only on "/index/location/mycore_folder" but not on "/index/location/myother_folder"
 
 #### <a id="if-solr-restarted">What to do if Solr instances restarted right after Ambari upgrade but before upgrade Solr instance packages?</a>
 
@@ -747,6 +749,11 @@ Options:
                         restarting INFRA SOLR, default: 0)
   --shared-drive        Use if the backup location is shared between hosts.
                         (override config from config ini file)
+  --skip-json-dump-files=SKIP_JSON_DUMP_FILES
+                        comma separated list of files that won't be download
+                        during collection dump (could be useful if it is
+                        required to change something in manually in the
+                        already downloaded file)
 ```
 
 #### <a id="migration-config-generator">Solr Migration Config Generator Script</a>
