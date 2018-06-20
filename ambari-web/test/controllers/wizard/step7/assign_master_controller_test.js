@@ -307,8 +307,10 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(App.Service, 'find').returns([
         {serviceName: 'S1'}
       ]);
-      sinon.stub(App.StackService, 'find', function(input) {
-        return Em.Object.create({displayName: input});
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: function (prop, input) {
+          return Em.Object.create({ displayName: input });
+        }
       });
     });
 

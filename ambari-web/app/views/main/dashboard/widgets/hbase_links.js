@@ -23,7 +23,7 @@ App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
   templateName: require('templates/main/dashboard/widgets/hbase_links'),
 
   port: function() {
-    return App.StackService.find('HBASE').compareCurrentVersion('1.1') > -1 ? '16010' : '60010';
+    return App.StackService.find().findProperty('serviceName', 'HBASE').compareCurrentVersion('1.1') > -1 ? '16010' : '60010';
   }.property(),
 
   componentName: 'HBASE_REGIONSERVER',

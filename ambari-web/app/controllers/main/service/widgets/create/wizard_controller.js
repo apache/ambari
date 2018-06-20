@@ -210,7 +210,7 @@ App.WidgetWizardController = App.WizardController.extend({
       data: {
         stackVersionURL: App.get('stackVersionURL'),
         serviceNames: App.Service.find().filter(function (item) {
-          return App.StackService.find(item.get('id')).get('isServiceWithWidgets');
+          return App.StackService.find().findProperty('serviceName', item.get('id')).get('isServiceWithWidgets');
         }).mapProperty('serviceName').join(',')
       },
       callback: callback,

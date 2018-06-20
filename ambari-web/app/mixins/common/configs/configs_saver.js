@@ -75,7 +75,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @type {App.StackService[]}
    */
   currentServices: function() {
-    return [App.StackService.find(this.get('content.serviceName'))];
+    return [App.StackService.find().findProperty('serviceName', this.get('content.serviceName'))];
   }.property('content.serviceName'),
 
   /**
@@ -327,7 +327,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
     //generates list of properties that was changed
     var modifiedConfigs = this.getModifiedConfigs(configs);
-    var serviceFileNames = Object.keys(App.StackService.find(serviceName).get('configTypes')).map(function (type) {
+    var serviceFileNames = Object.keys(App.StackService.find().findProperty('serviceName', serviceName).get('configTypes')).map(function (type) {
       return App.config.getOriginalFileName(type);
     });
 
@@ -439,7 +439,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    *
    * @returns {boolean}
    */
-  allowSaveCoreSite: function() {
+  allowSaveCoreSite: function () {
     return this.get('currentServices').some(function(service) {
       return (this.get('coreSiteServiceNames').contains(service.get('serviceName'))
         || this.get('coreSiteServiceType') === service.get('serviceType'));

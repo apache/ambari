@@ -357,7 +357,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     return dependentServices.filter(function (item) {
       return !App.Service.find().findProperty('serviceName', item);
     }).map(function (item) {
-      return App.StackService.find(item).get('displayName');
+      return App.StackService.find().findProperty('serviceName', item).get('displayName');
     });
   },
 

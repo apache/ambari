@@ -1085,7 +1085,7 @@ App.config = Em.Object.create({
     if (!serviceName || unsupportedServiceNames.contains(serviceName) || !filename) {
       return false;
     } else {
-      var stackService = App.StackService.find(serviceName);
+      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
       if (!stackService) {
         return false;
       }
@@ -1104,7 +1104,7 @@ App.config = Em.Object.create({
       if (!stackServiceName) {
         return false;
       }
-      var stackService = App.StackService.find(serviceName);
+      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
       return !!this.getConfigTypesInfoFromService(stackService).supportsAddingForbidden.find(function (configType) {
         return filename.startsWith(configType);
       });
