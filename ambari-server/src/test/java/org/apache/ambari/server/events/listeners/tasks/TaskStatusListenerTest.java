@@ -29,7 +29,6 @@ import java.util.List;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -94,7 +93,6 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     StageEntity stageEntity = createNiceMock(StageEntity.class);
     RequestEntity requestEntity = createNiceMock(RequestEntity.class);
     STOMPUpdatePublisher statePublisher = createNiceMock(STOMPUpdatePublisher.class);
-    ActionDBAccessor actionDbAccessor = createNiceMock(ActionDBAccessor.class);
     EasyMock.expect(stageEntity.getStatus()).andReturn(hostRoleStatus).anyTimes();;
     EasyMock.expect(stageEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();
     EasyMock.expect(stageEntity.isSkippable()).andReturn(Boolean.FALSE).anyTimes();;
@@ -112,10 +110,9 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     EasyMock.replay(stageDAO);
     EasyMock.replay(requestDAO);
     EasyMock.replay(statePublisher);
-    EasyMock.replay(actionDbAccessor);
 
     TaskCreateEvent event = new TaskCreateEvent(hostRoleCommands);
-    TaskStatusListener listener = new TaskStatusListener(publisher, stageDAO, requestDAO, statePublisher, actionDbAccessor);
+    TaskStatusListener listener = new TaskStatusListener(publisher,stageDAO,requestDAO,statePublisher);
 
     Assert.assertTrue(listener.getActiveTasksMap().isEmpty());
     Assert.assertTrue(listener.getActiveStageMap().isEmpty());

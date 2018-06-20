@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
@@ -45,7 +44,6 @@ import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostsRemovedEvent;
-import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
@@ -156,8 +154,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
 
-  private final AtomicBoolean jpaInitialized = new AtomicBoolean(false);
-
   @Inject
   public ActionDBAccessorImpl(@Named("executionCommandCacheSize") long cacheLimit,
                               AmbariEventPublisher eventPublisher) {
@@ -172,19 +168,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Inject
   void init() {
-    if (jpaInitialized.get()) {
-      LOG.info("Setting last request ID from DB ...");
-      requestId = stageDAO.getLastRequestId();
-      LOG.info("Set latest request ID.");
-    }
-  }
-
-  @Subscribe
-  public void jpaInitialized(JpaInitializedEvent event) {
-    LOG.info("JPA initialized event received: {}", event);
-    if (!jpaInitialized.getAndSet(true)) {
-      init();
-    }
+    requestId = stageDAO.getLastRequestId();
   }
 
   /* (non-Javadoc)
@@ -230,6 +214,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public Collection<HostRoleCommandEntity> abortOperation(long requestId) {
+    Collection<HostRoleCommandEntity> abortedHostRoleCommands = Collections.emptyList();
     long now = System.currentTimeMillis();
 
     // only request commands which actually need to be aborted; requesting all
@@ -251,10 +236,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     // no need to merge if there's nothing to merge
     if (!commands.isEmpty()) {
-      return hostRoleCommandDAO.mergeAll(commands);
+      abortedHostRoleCommands = hostRoleCommandDAO.mergeAll(commands);
     }
     endRequest(requestId);
-    return Collections.emptyList();
+    return abortedHostRoleCommands;
   }
 
   /* (non-Javadoc)
