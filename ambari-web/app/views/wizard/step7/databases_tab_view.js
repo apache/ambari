@@ -43,6 +43,7 @@ App.DatabasesTabOnStep7View = Em.View.extend({
       supportsConfigLayout: true,
       willDestroyElement: function () {
         $('.loading').append(Em.I18n.t('app.loadingPlaceholder'));
+        App.store.fastCommit();
       },
       didInsertElement: function () {
         $('.loading').empty();
