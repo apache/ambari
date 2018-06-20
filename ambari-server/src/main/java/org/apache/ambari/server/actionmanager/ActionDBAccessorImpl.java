@@ -214,6 +214,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public Collection<HostRoleCommandEntity> abortOperation(long requestId) {
+    Collection<HostRoleCommandEntity> abortedHostRoleCommands = Collections.emptyList();
     long now = System.currentTimeMillis();
 
     // only request commands which actually need to be aborted; requesting all
@@ -235,10 +236,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     // no need to merge if there's nothing to merge
     if (!commands.isEmpty()) {
-      return hostRoleCommandDAO.mergeAll(commands);
+      abortedHostRoleCommands = hostRoleCommandDAO.mergeAll(commands);
     }
     endRequest(requestId);
-    return Collections.emptyList();
+    return abortedHostRoleCommands;
   }
 
   /* (non-Javadoc)
