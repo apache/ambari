@@ -184,25 +184,65 @@
         
       },
       "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
-      "multiline_pattern":"^(\\[EL%{SPACE}%{LOGLEVEL:level}\\])",
-      "message_pattern":"(?m)^\\[EL%{SPACE}%{LOGLEVEL:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
+      "multiline_pattern":"^(\\[EL%{SPACE}%{DATA:level}\\])",
+      "message_pattern":"(?m)^\\[EL%{SPACE}%{DATA:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{
             "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
           }
-
         },
-        "level":{
-          "map_fieldvalue":{
-            "pre_value":"Warning",
-            "post_value":"Warn"
+        "level":[
+          {
+            "map_fieldvalue":{
+              "pre_value":"Severe",
+              "post_value":"ERROR"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Warning",
+              "post_value":"WARN"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Finer",
+              "post_value":"WARN"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Info",
+              "post_value":"INFO"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Config",
+              "post_value":"INFO"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Fine",
+              "post_value":"DEBUG"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Finest",
+              "post_value":"TRACE"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"All",
+              "post_value":"TRACE"
+            }
           }
-
-        }
-
+        ]
       }
-
     },
     {
       "filter":"grok",

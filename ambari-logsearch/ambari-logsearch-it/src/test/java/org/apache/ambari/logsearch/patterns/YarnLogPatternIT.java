@@ -133,14 +133,14 @@ public class YarnLogPatternIT extends PatternITBase {
   @Test
   public void testYarnHistoryServerLogEntry() throws Exception {
     Map<String, Object> result = testLogEntry("2018-05-02 10:02:54,215 INFO  webapp.View (HsJobsBlock.java:render(74)) - Getting list of all Jobs.",
-            "yarn_historyserver",
-            inputConfigTemplate(new File(HDP_SERVICES_FOLDER, "YARN/package/templates/input.config-yarn.json.j2")));
+            "mapred_historyserver",
+            inputConfigTemplate(new File(HDP_SERVICES_FOLDER, "YARN/package/templates/input.config-mapreduce2.json.j2")));
 
     assertThat(result.isEmpty(), is(false));
     assertThat(result.get("cluster"), is(CLUSTER));
     assertThat(result.get("level"), is("INFO"));
     assertThat(result.get("event_count"), is(1));
-    assertThat(result.get("type"), is("yarn_historyserver"));
+    assertThat(result.get("type"), is("mapred_historyserver"));
     assertThat(result.get("logger_name"), is("webapp.View "));
     assertThat(result.containsKey("seq_num"), is(true));
     assertThat(result.containsKey("id"), is(true));

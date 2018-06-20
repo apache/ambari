@@ -179,13 +179,33 @@ public class AmbariLogPatternIT extends PatternITBase {
   }
 
   @Test
-  public void testAmbariEclipseLinkEntry() throws Exception {
+  public void testAmbariEclipseLinkSevereEntry() throws Exception {
+    testAmbariEclipseLinkEntry("Severe", "ERROR");
+  }
+
+  @Test
+  public void testAmbariEclipseLinkWarningEntry() throws Exception {
+    testAmbariEclipseLinkEntry("Warning", "WARN");
+  }
+
+  @Test
+  public void testAmbariEclipseLinkInfoEntry() throws Exception {
+    testAmbariEclipseLinkEntry("Info", "INFO");
+  }
+
+  @Test
+  public void testAmbariEclipseLinkConfigEntry() throws Exception {
+    testAmbariEclipseLinkEntry("Config", "INFO");
+  }
+
+  private void testAmbariEclipseLinkEntry(String logLevel, String expectedLogLevel) throws Exception {
     // given
-    String logEntry = "[EL Info]: 2018-05-02 09:27:17.79--ServerSession(1657512321)-- EclipseLink, version: Eclipse Persistence Services - 2.6.2.v20151217-774c696";
+    String logEntry = "[EL " + logLevel + "]: 2018-05-02 09:27:17.79--ServerSession(1657512321)-- EclipseLink, version: Eclipse Persistence Services - 2.6.2.v20151217-774c696";
     // when
     Map<String, Object> result = testLogEntry(logEntry, "ambari_eclipselink", ambariInputConfigTemplate());
     // then
     assertThat(result.isEmpty(), is(false));
+    assertThat(result.get("level"), is(expectedLogLevel));
     assertThat(result.get("cluster"), is(CLUSTER));
     assertThat(result.get("event_count"), is(1));
     assertThat(result.get("type"), is("ambari_eclipselink"));

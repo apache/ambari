@@ -25,6 +25,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
+
 import status_params
 
 
@@ -218,8 +219,8 @@ logsearch_audit_logs_solrconfig_content = config['configurations']['logsearch-au
 logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['content']
 
 # Log dirs
-ambari_server_log_dir = '/var/log/ambari-server'
-ambari_agent_log_dir = '/var/log/ambari-agent'
+ambari_server_log_dir = default('/configurations/logfeeder-env/ambari_server_log_dir', "/var/log/ambari-server")
+ambari_agent_log_dir = default('/configurations/logfeeder-env/ambari_agent_log_dir', "/var/log/ambari-agent")
 
 # System logs
 logfeeder_system_messages_content = config['configurations']['logfeeder-system_log-env']['logfeeder_system_messages_content']
