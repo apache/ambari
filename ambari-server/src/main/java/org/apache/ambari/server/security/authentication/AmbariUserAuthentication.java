@@ -26,8 +26,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class AmbariUserAuthentication implements Authentication {
 
-  private String serializedToken;
-  private AmbariUserDetails userDetails;
+  private final String serializedToken;
+  private final AmbariUserDetails userDetails;
+
   private boolean authenticated;
 
   public AmbariUserAuthentication(String token, AmbariUserDetails userDetails) {
