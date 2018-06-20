@@ -77,6 +77,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   credentialsTabNextEnabled: false,
 
   /**
+   * Define state of next button on databases tab
+   */
+  databasesTabNextEnabled: false,
+
+  /**
    * used in services_config.js view to mark a config with security icon
    */
   secureConfigs: require('data/configs/wizards/secure_mapping'),
@@ -2037,12 +2042,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     switch (tabName) {
       case 'credentials':
         return !this.get('credentialsTabNextEnabled');
+      case 'databases':
+        return !this.get('databasesTabNextEnabled');
       case 'all-configurations':
         return this.get('isSubmitDisabled');
       default:
         return false;
     }
-  }.property('tabs.@each.isActive', 'isSubmitDisabled', 'credentialsTabNextEnabled'),
+  }.property('tabs.@each.isActive', 'isSubmitDisabled', 'credentialsTabNextEnabled', 'databasesTabNextEnabled'),
 
   /**
    * Set isDisabled state for tabs
@@ -2092,7 +2099,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (validations !== this.get('validationsCounter')) {
       this.ringBell();
     }
-    this.set('hasErrors', !!validations);
+    this.set('hasErrors', Boolean(validations + configErrorList.get('criticalIssues.length')));
     this.set('validationsCounter', validations);
   }.observes('changedProperties.length', 'stepConfigs.@each.configsWithErrors.length', 'configErrorList.issues.length', 'configErrorList.criticalIssues.length'),
 

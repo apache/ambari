@@ -64,6 +64,33 @@ App.DatabasesTabOnStep7View = Em.View.extend({
         currentTab.set('isActive', true);
       }
     }));
-  }
+    this.setProperties();
+  },
+
+  setProperties: function() {
+    if (this.get('controller.stepConfigsCreated')) {
+      var properties = [];
+      this.get('tabs').forEach((tab) => {
+        if (tab.get('isCategorized')) {
+          tab.get('sections').forEach((section) => {
+            section.get('subSections').forEach((row) => {
+              row.get('configProperties').forEach((id) => {
+                var config = App.configsCollection.getConfig(id);
+                var stepConfig = config && this.get('controller.stepConfigs').findProperty('serviceName', Em.get(config, 'serviceName')).get('configs').findProperty('name', Em.get(config, 'name'));
+                if (stepConfig) {
+                  properties.push(stepConfig);
+                }
+              });
+            });
+          });
+        }
+      });
+      this.set('properties', properties);
+    }
+  },
+
+  updateNextDisabled: function () {
+    this.set('controller.databasesTabNextEnabled', !this.get('properties').someProperty('error'));
+  }.observes('properties.@each.error')
 
 });

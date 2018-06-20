@@ -205,11 +205,11 @@ App.themesMapper = App.QuickDataMapper.create({
         var subSection = App.SubSection.find(subSectionId);
       }
 
-      if (configProperty && subSection) {
+      if (configProperty && subSection && subSection.get('isLoaded')) {
         if (!subSection.get('configProperties').contains(configProperty.id)) {
           subSection.set('configProperties', subSection.get('configProperties').concat(configProperty.id));
         }
-      } else if (configProperty && subSectionTab) {
+      } else if (configProperty && subSectionTab && subSectionTab.get('isLoaded')) {
         if (!subSectionTab.get('configProperties').contains(configProperty.id)) {
           subSectionTab.set('configProperties', subSectionTab.get('configProperties').concat(configProperty.id));
         }
