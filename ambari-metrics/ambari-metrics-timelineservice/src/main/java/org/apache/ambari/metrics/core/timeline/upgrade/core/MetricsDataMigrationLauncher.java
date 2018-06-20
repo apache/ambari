@@ -204,7 +204,7 @@ public class MetricsDataMigrationLauncher {
     timelineMetricConfiguration.initialize();
 
     timelineMetricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor);
-    timelineMetricMetadataManager.initializeMetadata();
+    timelineMetricMetadataManager.initializeMetadata(false);
 
     hBaseAccessor.setMetadataInstance(timelineMetricMetadataManager);
   }
