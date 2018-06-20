@@ -27,6 +27,11 @@ App.DatabasesTabOnStep7View = Em.View.extend({
     return App.Tab.find().filterProperty('themeName', 'database');
   }.property(),
 
+  /**
+   * @type {Array}
+   */
+  properties: [],
+
   configsView: null,
 
   didInsertElement: function () {
@@ -64,10 +69,10 @@ App.DatabasesTabOnStep7View = Em.View.extend({
         currentTab.set('isActive', true);
       }
     }));
-    this.setProperties();
+    this.setLocalProperties();
   },
 
-  setProperties: function() {
+  setLocalProperties: function() {
     if (this.get('controller.stepConfigsCreated')) {
       var properties = [];
       this.get('tabs').forEach((tab) => {
