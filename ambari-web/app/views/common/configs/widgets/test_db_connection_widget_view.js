@@ -21,6 +21,7 @@ require('views/common/controls_view');
 var App = require('app');
 var dbUtils = require('utils/configs/database');
 
+//@Todo merge with CheckDBConnectionView
 App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/test_db_connection_widget'),
   classNames: ['widget'],
@@ -292,7 +293,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
       OOZIE: ['oozie.db.schema.name', 'oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password', 'oozie.service.JPAService.jdbc.driver', 'oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL'],
       KERBEROS: ['kdc_hosts'],
-      RANGER: ranger && App.StackService.find().findProperty('serviceName', 'RANGER').compareCurrentVersion('0.5') > -1 ?
+      RANGER: ranger && ranger.compareCurrentVersion('0.5') > -1 ?
         ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
         ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
     };
@@ -300,10 +301,9 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   }.property(),
 
   getConnectionProperty: function (regexp, isGetName) {
-    var _this = this;
     var serviceName = this.get('config.serviceName');
     var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
-    var propertyName = _this.get('requiredProps').filter(function (item) {
+    var propertyName = this.get('requiredProps').filter(function (item) {
       return regexp.test(item);
     })[0];
     return (isGetName) ? propertyName : serviceConfigs.findProperty('name', propertyName).get('value');
