@@ -144,7 +144,7 @@ App.themesMapper = App.QuickDataMapper.create({
         parsedSubSection.id = parsedSubSection.name + '_' + serviceName + '_' + themeName;
         parsedSubSection.theme_name = themeName;
 
-        this.loadSubSectionTabs(subSection, parsedSubSection);
+        this.loadSubSectionTabs(subSection, parsedSubSection, themeName);
         if (parsedSubSection['depends_on']) {
           subSectionConditions.push(parsedSubSection);
         }
@@ -152,7 +152,7 @@ App.themesMapper = App.QuickDataMapper.create({
       }, this);
       if (subSectionConditions.length) {
         var type = 'subsection';
-        this.mapThemeConditions(subSectionConditions, type);
+        this.mapThemeConditions(subSectionConditions, type, themeName);
       }
       App.store.safeLoadMany(this.get("subSectionModel"), subSections);
       parsedSection.sub_sections = subSections.mapProperty("id");
@@ -160,7 +160,7 @@ App.themesMapper = App.QuickDataMapper.create({
   },
 
 
-  loadSubSectionTabs: function(subSection, parsedSubSection) {
+  loadSubSectionTabs: function(subSection, parsedSubSection, themeName) {
     if (subSection['subsection-tabs']) {
       var subSectionTabs = [];
       var subSectionTabConditions = [];
@@ -168,7 +168,7 @@ App.themesMapper = App.QuickDataMapper.create({
       subSection['subsection-tabs'].forEach(function (subSectionTab) {
         var parsedSubSectionTab = this.parseIt(subSectionTab, this.get("subSectionTabConfig"));
         parsedSubSectionTab.sub_section_id = parsedSubSection.id;
-        parsedSubSectionTab.theme_name = parsedSubSection.theme_name;
+        parsedSubSectionTab.theme_name = themeName;
         if (parsedSubSectionTab['depends_on']) {
           subSectionTabConditions.push(parsedSubSectionTab);
         }
@@ -177,7 +177,7 @@ App.themesMapper = App.QuickDataMapper.create({
       subSectionTabs[0].is_active = true;
       if (subSectionTabConditions.length) {
         var type = 'subsectionTab';
-        this.mapThemeConditions(subSectionTabConditions, type);
+        this.mapThemeConditions(subSectionTabConditions, type, themeName);
       }
       App.store.safeLoadMany(this.get("subSectionTabModel"), subSectionTabs);
       parsedSubSection.sub_section_tabs = subSectionTabs.mapProperty("id");
@@ -299,7 +299,7 @@ App.themesMapper = App.QuickDataMapper.create({
    * @param subSections: Array
    * @param type: {String} possible values: `subsection` or `subsectionTab`
    */
-  mapThemeConditions: function(subSections, type) {
+  mapThemeConditions: function(subSections, type, themeName) {
     var subSectionConditionsCopy = [];
     subSections.forEach(function(_subSection){
       var subSectionConditions = _subSection['depends_on'];
@@ -307,6 +307,7 @@ App.themesMapper = App.QuickDataMapper.create({
         var subSectionCondition = $.extend({},_subSectionCondition);
         subSectionCondition.id = _subSection.id + '_' + index;
         subSectionCondition.name = _subSection.name;
+        subSectionCondition.theme_name = themeName;
         if (_subSectionCondition.configs && _subSectionCondition.configs.length) {
           subSectionCondition.configs = _subSectionCondition.configs.map(function (item) {
             var result = {};

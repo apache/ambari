@@ -827,11 +827,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
         let themeResource;
         if (subsectionCondition.get('type') === 'subsection') {
           themeResource = App.SubSection.find().find(function (subsection) {
-            return subsection.get('name') === subsectionConditionName && subsectionCondition.get('id').toLowerCase().includes(subsection.get('themeName').toLowerCase());
+            return subsection.get('name') === subsectionConditionName && subsectionCondition.get('themeName') === subsection.get('themeName');
           });
         } else if (subsectionCondition.get('type') === 'subsectionTab') {
           themeResource = App.SubSectionTab.find().find(function (subsectionTab) {
-            return subsectionTab.get('name') === subsectionConditionName && subsectionCondition.get('id').toLowerCase().includes(subsectionTab.get('themeName').toLowerCase());
+            return subsectionTab.get('name') === subsectionConditionName && subsectionCondition.get('themeName') === subsectionTab.get('themeName');
           });
         }
         themeResource.set('isHiddenByConfig', !valueAttributes.visible);
