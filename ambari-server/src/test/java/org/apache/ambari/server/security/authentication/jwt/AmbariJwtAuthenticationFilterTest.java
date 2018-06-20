@@ -46,13 +46,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandler;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
+import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.easymock.Capture;
@@ -126,12 +126,12 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeInMillis(System.currentTimeMillis());
     JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-      .subject("test-user")
-      .issuer("unit-test")
-      .issueTime(calendar.getTime())
-      .expirationTime(expirationTime)
-      .audience(audience)
-      .build();
+        .subject("test-user")
+        .issuer("unit-test")
+        .issueTime(calendar.getTime())
+        .expirationTime(expirationTime)
+        .audience(audience)
+        .build();
 
     SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claimsSet);
     signedJWT.sign(signer);
@@ -151,12 +151,12 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     expirationTime.add(Calendar.DATE, -1);
 
     JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-      .subject("test-user")
-      .issuer("unit-test")
-      .issueTime(issueTime.getTime())
-      .expirationTime(issueTime.getTime())
-      .audience("test-audience-invalid")
-      .build();
+        .subject("test-user")
+        .issuer("unit-test")
+        .issueTime(issueTime.getTime())
+        .expirationTime(issueTime.getTime())
+        .audience("test-audience-invalid")
+        .build();
 
     SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claimsSet);
     signedJWT.sign(signer);
@@ -401,21 +401,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     expect(userAuthenticationEntity.getAuthenticationType()).andReturn(UserAuthenticationType.JWT).anyTimes();
     expect(userAuthenticationEntity.getAuthenticationKey()).andReturn("").anyTimes();
 
-    PrincipalEntity principal = createMock(PrincipalEntity.class);
-    expect(principal.getPrivileges()).andReturn(Collections.emptySet()).atLeastOnce();
-
     UserEntity userEntity = createMock(UserEntity.class);
-    expect(userEntity.getAuthenticationEntities()).andReturn(Collections.singletonList(userAuthenticationEntity)).once();
-    expect(userEntity.getActive()).andReturn(true).atLeastOnce();
-    expect(userEntity.getUserId()).andReturn(1).atLeastOnce();
-    expect(userEntity.getUserName()).andReturn("username").atLeastOnce();
-    expect(userEntity.getCreateTime()).andReturn(new Date().getTime()).atLeastOnce();
-    expect(userEntity.getMemberEntities()).andReturn(Collections.emptySet()).atLeastOnce();
     expect(userEntity.getAuthenticationEntities()).andReturn(Collections.singletonList(userAuthenticationEntity)).atLeastOnce();
-    expect(userEntity.getPrincipal()).andReturn(principal).atLeastOnce();
+
+    User user = createMock(User.class);
 
     Users users = createMock(Users.class);
     expect(users.getUserEntity("test-user")).andReturn(userEntity).once();
+    expect(users.getUser(userEntity)).andReturn(user).once();
     expect(users.getUserAuthorities(userEntity)).andReturn(Collections.emptyList()).once();
     users.validateLogin(userEntity, "test-user");
     expectLastCall().once();
