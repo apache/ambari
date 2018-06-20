@@ -374,6 +374,11 @@ public class AmbariSolrCloudCLI {
       .numberOfArgs(1)
       .build();
 
+    final Option includeDocNumberOption = Option.builder("idn")
+      .longOpt("include-doc-number")
+      .desc("Include the number of docs as well in collection dump")
+      .build();
+
     options.addOption(helpOption);
     options.addOption(retryOption);
     options.addOption(removeAdminHandlerOption);
@@ -421,6 +426,7 @@ public class AmbariSolrCloudCLI {
     options.addOption(setupKerberosPluginOption);
     options.addOption(securityJsonLocationOption);
     options.addOption(outputOption);
+    options.addOption(includeDocNumberOption);
 
     AmbariSolrCloudClient solrCloudClient = null;
 
@@ -520,6 +526,7 @@ public class AmbariSolrCloudCLI {
       String copyDest = cli.hasOption("cpd") ? cli.getOptionValue("cpd") : null;
       String transferMode = cli.hasOption("tm") ? cli.getOptionValue("tm") : "NONE";
       String output = cli.hasOption("o") ? cli.getOptionValue("o") : null;
+      boolean includeDocNumber = cli.hasOption("idn");
 
       AmbariSolrCloudClientBuilder clientBuilder = new AmbariSolrCloudClientBuilder()
         .withZkConnectString(zkConnectString)
@@ -547,6 +554,7 @@ public class AmbariSolrCloudCLI {
         .withCopySrc(copySrc)
         .withCopyDest(copyDest)
         .withOutput(output)
+        .withIncludeDocNumber(includeDocNumber)
         .withSecurityJsonLocation(securityJsonLocation)
         .withZnode(znode)
         .withSecure(isSecure)

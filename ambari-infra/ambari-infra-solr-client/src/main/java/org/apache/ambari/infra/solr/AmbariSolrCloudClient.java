@@ -79,6 +79,7 @@ public class AmbariSolrCloudClient {
   private final String copySrc;
   private final String copyDest;
   private final String output;
+  private final boolean includeDocNumber;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
     this.zkConnectString = builder.zkConnectString;
@@ -106,6 +107,7 @@ public class AmbariSolrCloudClient {
     this.copySrc = builder.copySrc;
     this.copyDest = builder.copyDest;
     this.output = builder.output;
+    this.includeDocNumber = builder.includeDocNumber;
   }
 
   /**
@@ -395,5 +397,9 @@ public class AmbariSolrCloudClient {
 
   public String getOutput() {
     return output;
+  }
+
+  public boolean isIncludeDocNumber() {
+    return includeDocNumber;
   }
 }

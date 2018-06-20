@@ -58,6 +58,7 @@ public class AmbariSolrCloudClientBuilder {
   String copySrc;
   String copyDest;
   String output;
+  public boolean includeDocNumber;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -218,6 +219,11 @@ public class AmbariSolrCloudClientBuilder {
 
   public AmbariSolrCloudClientBuilder withOutput(String output) {
     this.output = output;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withIncludeDocNumber(boolean includeDocNumber) {
+    this.includeDocNumber = includeDocNumber;
     return this;
   }
 

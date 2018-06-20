@@ -24,11 +24,20 @@ import java.util.Map;
 
 public class SolrCollection {
   private String name;
+  private long numberOfDocs = -1;
   private Map<String, SolrShard> shards = new HashMap<>();
   private Map<String, List<String>> leaderHostCoreMap = new HashMap<>();
   private Map<String, SolrCoreData> leaderSolrCoreDataMap = new HashMap<>();
   private Map<String, List<String>> leaderShardsMap = new HashMap<>();
   private Map<String, String> leaderCoreHostMap = new HashMap<>();
+
+  public long getNumberOfDocs() {
+    return numberOfDocs;
+  }
+
+  public void setNumberOfDocs(long numberOfDocs) {
+    this.numberOfDocs = numberOfDocs;
+  }
 
   public Map<String, SolrShard> getShards() {
     return shards;

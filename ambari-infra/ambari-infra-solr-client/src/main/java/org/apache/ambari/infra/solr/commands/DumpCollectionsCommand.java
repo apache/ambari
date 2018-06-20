@@ -24,6 +24,7 @@ import org.apache.ambari.infra.solr.AmbariSolrCloudClient;
 import org.apache.ambari.infra.solr.domain.json.SolrCollection;
 import org.apache.ambari.infra.solr.domain.json.SolrCoreData;
 import org.apache.ambari.infra.solr.domain.json.SolrShard;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.Replica;
@@ -58,7 +59,12 @@ public class DumpCollectionsCommand extends AbstractZookeeperRetryCommand<String
     if (!this.collections.isEmpty()) {
       for (String collection : this.collections) {
         SolrCollection solrCollection = new SolrCollection();
-        Collection<Slice> slices = getSlices(client.getSolrCloudClient(), collection);
+        CloudSolrClient solrClient = client.getSolrCloudClient();
+        if (client.isIncludeDocNumber()) {
+          long numberOfDocs = getNumberOfDocs(solrClient, collection);
+          solrCollection.setNumberOfDocs(numberOfDocs);
+        }
+        Collection<Slice> slices = getSlices(solrClient, collection);
         Integer numShards = slices.size();
         Map<String, SolrShard> solrShardMap = new HashMap<>();
         Map<String, List<String>> leaderHostCoreMap = new HashMap<>();
@@ -140,5 +146,12 @@ public class DumpCollectionsCommand extends AbstractZookeeperRetryCommand<String
     ZkStateReader reader = solrClient.getZkStateReader();
     DocCollection docCollection = reader.getClusterState().getCollection(collection);
     return docCollection.getSlices();
+  }
+
+  private long getNumberOfDocs(CloudSolrClient solrClient, String collection) throws Exception {
+    solrClient.setDefaultCollection(collection);
+    SolrQuery q = new SolrQuery("*:*");
+    q.setRows(0);
+    return solrClient.query(q).getResults().getNumFound();
   }
 }
