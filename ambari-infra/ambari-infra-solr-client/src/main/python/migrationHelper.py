@@ -514,7 +514,7 @@ def upgrade_logfeeders(options, accessor, parser, config):
   Upgrade (remove & re-install) logfeeders
   """
   cluster = config.get('ambari_server', 'cluster')
-  logfeeder_hosts = get_service_components(options, accessor, cluster, "LOGSEARCH", "LOGSEARCH_SERVER")
+  logfeeder_hosts = get_service_components(options, accessor, cluster, "LOGSEARCH", "LOGSEARCH_LOGFEEDER")
 
   context = "Upgrade Log Feeders"
   sys.stdout.write("Sending upgrade request: [{0}] ".format(context))
