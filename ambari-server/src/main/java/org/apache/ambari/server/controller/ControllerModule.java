@@ -44,6 +44,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.StaticallyInject;
@@ -55,8 +57,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
+import org.apache.ambari.server.checks.PreUpgradeCheck;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
 import org.apache.ambari.server.configuration.Configuration;
@@ -531,6 +533,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
     install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
     install(new FactoryModuleBuilder().build(RootLevelSettingsManagerFactory.class));
+    install(new FactoryModuleBuilder().build(PrereqCheckRequestFactory.class));
 
     bind(RegistryFactory.class).to(RegistryFactoryImpl.class);
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
@@ -700,11 +703,13 @@ public class ControllerModule extends AbstractModule {
   }
 
   /**
-   * Searches for all instances of {@link AbstractCheckDescriptor} on the
-   * classpath and registers each as a singleton with the
-   * {@link UpgradeCheckRegistry}.
+   * Searches for all instances of {@link PreUpgradeCheck} on the classpath and
+   * registers each as a singleton with the {@link UpgradeCheckRegistry}.
    */
   @SuppressWarnings("unchecked")
+  @Experimental(
+      feature = ExperimentalFeature.UPGRADE_PACK_PRE_CHECKS,
+      comment = "Need a different way to register these and inject configs into them")
   protected Set<BeanDefinition> registerUpgradeChecks(Set<BeanDefinition> beanDefinitions) {
 
     // make the registry a singleton
@@ -712,14 +717,14 @@ public class ControllerModule extends AbstractModule {
     bind(UpgradeCheckRegistry.class).toInstance(registry);
 
     if (null == beanDefinitions || beanDefinitions.isEmpty()) {
-      String packageName = AbstractCheckDescriptor.class.getPackage().getName();
+      String packageName = PreUpgradeCheck.class.getPackage().getName();
       LOG.info("Searching package {} for classes matching {}", packageName,
-          AbstractCheckDescriptor.class);
+          PreUpgradeCheck.class);
 
       ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 
       // match all implementations of the base check class
-      AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
+      AssignableTypeFilter filter = new AssignableTypeFilter(PreUpgradeCheck.class);
       scanner.addIncludeFilter(filter);
 
       beanDefinitions = scanner.findCandidateComponents(packageName);
@@ -727,7 +732,7 @@ public class ControllerModule extends AbstractModule {
 
     // no dispatchers is a problem
     if (null == beanDefinitions || beanDefinitions.size() == 0) {
-      LOG.error("No instances of {} found to register", AbstractCheckDescriptor.class);
+      LOG.error("No instances of {} found to register", PreUpgradeCheck.class);
       return null;
     }
 
@@ -738,8 +743,8 @@ public class ControllerModule extends AbstractModule {
       Class<?> clazz = ClassUtils.resolveClassName(className, ClassUtils.getDefaultClassLoader());
 
       try {
-        AbstractCheckDescriptor upgradeCheck = (AbstractCheckDescriptor) clazz.newInstance();
-        bind((Class<AbstractCheckDescriptor>) clazz).toInstance(upgradeCheck);
+        PreUpgradeCheck upgradeCheck = (PreUpgradeCheck) clazz.newInstance();
+        bind((Class<PreUpgradeCheck>) clazz).toInstance(upgradeCheck);
         registry.register(upgradeCheck);
       } catch (Exception exception) {
         LOG.error("Unable to bind and register upgrade check {}", clazz, exception);
@@ -747,8 +752,8 @@ public class ControllerModule extends AbstractModule {
     }
 
     // log the order of the pre-upgrade checks
-    List<AbstractCheckDescriptor> upgradeChecks = registry.getUpgradeChecks();
-    for (AbstractCheckDescriptor upgradeCheck : upgradeChecks) {
+    List<PreUpgradeCheck> upgradeChecks = registry.getUpgradeChecks();
+    for (PreUpgradeCheck upgradeCheck : upgradeChecks) {
       LOG.info("Registered pre-upgrade check {}", upgradeCheck.getClass());
     }
     return beanDefinitions;

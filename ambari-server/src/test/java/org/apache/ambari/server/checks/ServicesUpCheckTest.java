@@ -28,6 +28,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -40,7 +41,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -89,8 +90,8 @@ public class ServicesUpCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest(upgradePlan);
 
     ServicesUpCheck suc = new ServicesUpCheck();
     Configuration config = Mockito.mock(Configuration.class);
@@ -284,10 +285,11 @@ public class ServicesUpCheckTest {
       Mockito.when(hcs.getCurrentState()).thenReturn(State.STARTED);
     }
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    UpgradeCheckResult check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
@@ -295,8 +297,8 @@ public class ServicesUpCheckTest {
     Mockito.when(hcsNameNode.getDesiredState()).thenReturn(State.STARTED);
     Mockito.when(hcsDataNode1.getDesiredState()).thenReturn(State.STARTED);
 
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
@@ -305,8 +307,8 @@ public class ServicesUpCheckTest {
     Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALLED);
     Mockito.when(hcsMetricsMonitor.getCurrentState()).thenReturn(State.INSTALLED);
 
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
@@ -314,16 +316,16 @@ public class ServicesUpCheckTest {
     Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.INSTALLED);
     Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
 
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertFalse(check.getFailedDetail().isEmpty());
 
     // Case 5. Change HDFS master to STARTED, but one slave to INSTALLED, should pass (2/3 are up).
     Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.STARTED);
     Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
@@ -331,8 +333,8 @@ public class ServicesUpCheckTest {
     Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.STARTED);
     Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
     Mockito.when(hcsDataNode2.getCurrentState()).thenReturn(State.INSTALLED);
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(check.getFailReason().indexOf("50%") > -1);
     Assert.assertFalse(check.getFailedDetail().isEmpty());
@@ -340,8 +342,8 @@ public class ServicesUpCheckTest {
     // place the DN slaves into MM which will allow them to be skipped
     Mockito.when(host1.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.ON);
     Mockito.when(host3.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.ON);
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
@@ -352,15 +354,15 @@ public class ServicesUpCheckTest {
     Mockito.when(host1.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.OFF);
     Mockito.when(host3.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.OFF);
 
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertFalse(check.getFailedDetail().isEmpty());
 
     // put NN into MM; should still fail since it's a master
     Mockito.when(host1.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.ON);
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, request);
+    check = new UpgradeCheckResult(null, null);
+    servicesUpCheck.perform(request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertFalse(check.getFailedDetail().isEmpty());
   }

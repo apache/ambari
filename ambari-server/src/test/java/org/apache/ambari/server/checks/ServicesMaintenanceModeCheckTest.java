@@ -26,6 +26,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -33,7 +34,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -72,8 +73,8 @@ public class ServicesMaintenanceModeCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest(upgradePlan);
 
     ServicesMaintenanceModeCheck smmc = new ServicesMaintenanceModeCheck();
     Configuration config = Mockito.mock(Configuration.class);
@@ -109,16 +110,16 @@ public class ServicesMaintenanceModeCheckTest {
 
     // We don't bother checking service desired state as it's performed by a separate check
     Mockito.when(service.getDesiredState()).thenReturn(State.UNKNOWN);
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest(upgradePlan);
 
-    servicesMaintenanceModeCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    UpgradeCheckResult result = servicesMaintenanceModeCheck.perform(checkRequest);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
 
     Mockito.when(service.getDesiredState()).thenReturn(State.STARTED);
-    check = new PrerequisiteCheck(null, null);
-    servicesMaintenanceModeCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    result = servicesMaintenanceModeCheck.perform(checkRequest);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
   }
 }

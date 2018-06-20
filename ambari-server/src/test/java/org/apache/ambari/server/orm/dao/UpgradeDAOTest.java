@@ -103,7 +103,6 @@ public class UpgradeDAOTest {
     entity.setClusterId(clusterId.longValue());
     entity.setRequestEntity(requestEntity);
     entity.setUpgradeType(UpgradeType.ROLLING);
-    entity.setUpgradePackage("test-upgrade");
     entity.setDowngradeAllowed(true);
 
     UpgradeGroupEntity group = new UpgradeGroupEntity();
@@ -179,7 +178,6 @@ public class UpgradeDAOTest {
     entity1.setDirection(Direction.UPGRADE);
     entity1.setRequestEntity(requestEntity);
     entity1.setUpgradeType(UpgradeType.ROLLING);
-    entity1.setUpgradePackage("test-upgrade");
     entity1.setDowngradeAllowed(true);
     dao.create(entity1);
     UpgradeEntity entity2 = new UpgradeEntity();
@@ -188,7 +186,6 @@ public class UpgradeDAOTest {
     entity2.setDirection(Direction.DOWNGRADE);
     entity2.setRequestEntity(requestEntity);
     entity2.setUpgradeType(UpgradeType.ROLLING);
-    entity2.setUpgradePackage("test-upgrade");
     entity2.setDowngradeAllowed(true);
     dao.create(entity2);
     UpgradeEntity entity3 = new UpgradeEntity();
@@ -197,7 +194,6 @@ public class UpgradeDAOTest {
     entity3.setDirection(Direction.UPGRADE);
     entity3.setRequestEntity(requestEntity);
     entity3.setUpgradeType(UpgradeType.ROLLING);
-    entity3.setUpgradePackage("test-upgrade");
     entity3.setDowngradeAllowed(true);
     dao.create(entity3);
     UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(clusterId.longValue(), Direction.UPGRADE);
@@ -225,7 +221,6 @@ public class UpgradeDAOTest {
     upgradeEntity.setDirection(Direction.UPGRADE);
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
-    upgradeEntity.setUpgradePackage("test-upgrade");
     dao.create(upgradeEntity);
 
     UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1, Direction.UPGRADE);

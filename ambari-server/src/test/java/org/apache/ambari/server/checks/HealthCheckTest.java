@@ -30,11 +30,12 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,10 +80,11 @@ public class HealthCheckTest {
   public void testWarningWhenNoAlertsExist() throws AmbariException {
     when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(Collections.emptyList());
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
-    healthCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
+    UpgradePlanEntity upgradePlan = mock(UpgradePlanEntity.class);
+
+    UpgradeCheckResult result = healthCheck.perform(new PrereqCheckRequest(upgradePlan));
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
   }
 
   @Test
@@ -110,9 +112,10 @@ public class HealthCheckTest {
 
     when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(asList(alertCurrentEntity));
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
-    healthCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
-    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
-    Assert.assertFalse(check.getFailedDetail().isEmpty());
+    UpgradePlanEntity upgradePlan = mock(UpgradePlanEntity.class);
+
+    UpgradeCheckResult result = healthCheck.perform(new PrereqCheckRequest(upgradePlan));
+    Assert.assertEquals(PrereqCheckStatus.WARNING, result.getStatus());
+    Assert.assertFalse(result.getFailedDetail().isEmpty());
   }
 }

@@ -31,6 +31,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -38,7 +39,7 @@ import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -88,8 +89,10 @@ public class ConfigurationMergeCheckTest {
 
   @Test
   public void testApplicable() throws Exception {
-
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = EasyMock.createNiceMock(UpgradePlanEntity.class); 
+    replay(upgradePlan);
+    
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     ConfigurationMergeCheck cmc = new ConfigurationMergeCheck();
     Configuration config = EasyMock.createMock(Configuration.class);
@@ -148,41 +151,40 @@ public class ConfigurationMergeCheckTest {
 
     replay(ami);
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = EasyMock.createNiceMock(UpgradePlanEntity.class); 
+    replay(upgradePlan);
+    
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, "cluster");
-    cmc.perform(check, request);
-    Assert.assertEquals("Expect no warnings", 0, check.getFailedOn().size());
+    UpgradeCheckResult result = cmc.perform(request);
+    Assert.assertEquals("Expect no warnings", 0, result.getFailedOn().size());
 
-    check = new PrerequisiteCheck(null, "cluster");
     m_configMap.put(CONFIG_PROPERTY, "1025m");
     pi11.setValue("1026");
-    cmc.perform(check, request);
+    result = cmc.perform(request);
     Assert.assertEquals("Expect warning when user-set has changed from new default",
-        1, check.getFailedOn().size());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    ConfigurationMergeCheck.MergeDetail detail = (ConfigurationMergeCheck.MergeDetail) check.getFailedDetail().get(0);
+        1, result.getFailedOn().size());
+    Assert.assertEquals(1, result.getFailedDetail().size());
+    ConfigurationMergeCheck.MergeDetail detail = (ConfigurationMergeCheck.MergeDetail) result.getFailedDetail().get(0);
     Assert.assertEquals("1025m", detail.current);
     Assert.assertEquals("1026m", detail.new_stack_value);
     Assert.assertEquals("1025m", detail.result_value);
     Assert.assertEquals(CONFIG_TYPE, detail.type);
     Assert.assertEquals(CONFIG_PROPERTY, detail.property);
 
-    check = new PrerequisiteCheck(null, "cluster");
     pi11.setName(CONFIG_PROPERTY + ".foo");
-    cmc.perform(check, request);
+    result = cmc.perform(request);
     Assert.assertEquals("Expect no warning when user new stack is empty",
-        0, check.getFailedOn().size());
-    Assert.assertEquals(0, check.getFailedDetail().size());
+        0, result.getFailedOn().size());
+    Assert.assertEquals(0, result.getFailedDetail().size());
 
-    check = new PrerequisiteCheck(null, "cluster");
     pi11.setName(CONFIG_PROPERTY);
     pi10.setName(CONFIG_PROPERTY + ".foo");
-    cmc.perform(check, request);
+    result = cmc.perform(request);
     Assert.assertEquals("Expect warning when user old stack is empty, and value changed",
-        1, check.getFailedOn().size());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    detail = (ConfigurationMergeCheck.MergeDetail) check.getFailedDetail().get(0);
+        1, result.getFailedOn().size());
+    Assert.assertEquals(1, result.getFailedDetail().size());
+    detail = (ConfigurationMergeCheck.MergeDetail) result.getFailedDetail().get(0);
     Assert.assertEquals("1025m", detail.current);
     Assert.assertEquals("1026m", detail.new_stack_value);
   }

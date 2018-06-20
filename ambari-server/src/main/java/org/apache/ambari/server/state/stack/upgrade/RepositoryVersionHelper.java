@@ -19,38 +19,29 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandRepository;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Mpack;
-import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceGroup;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
@@ -152,67 +143,6 @@ public class RepositoryVersionHelper {
     throw new AmbariException("There were no suitable upgrade packs for stack " + stackName + " " + stackVersion +
         ((null != upgradeType) ? " and upgrade type " + upgradeType : ""));
   }
-
-  /**
-   * Build the role parameters for an install command.
-   *
-   * @param amc           the management controller.  Tests don't use the same instance that gets injected.
-   * @param repoVersion   the repository version
-   * @param osFamily      the os family
-   * @param servicesOnHost the set of services to check for packages
-   * @return a Map<String, String> to use in
-   */
-  public Map<String, String> buildRoleParams(AmbariManagementController amc, RepositoryVersionEntity repoVersion, String osFamily, Set<String> servicesOnHost)
-    throws SystemException {
-
-    StackId stackId = repoVersion.getStackId();
-
-    List<OsSpecific.Package> packages = new ArrayList<>();
-
-    for (String serviceName : servicesOnHost) {
-      ServiceInfo serviceInfo;
-      StackInfo stackInfo;
-
-      try {
-        if (ami.get().isServiceRemovedInStack(stackId.getStackName(), stackId.getStackVersion(), serviceName)) {
-          LOG.info(String.format("%s has been removed from stack %s-%s. Skip calculating its installation packages", stackId.getStackName(), stackId.getStackVersion(), serviceName));
-          continue; //No need to calculate install packages for removed services
-        }
-
-        stackInfo = ami.get().getStack(stackId);
-        serviceInfo = ami.get().getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
-      } catch (AmbariException e) {
-        throw new SystemException(String.format("Cannot obtain stack information for %s-%s", stackId.getStackName(), stackId.getStackVersion()), e);
-      }
-
-      List<OsSpecific.Package> packagesForStackService = amc.getPackagesForStackServiceHost(stackInfo, serviceInfo,
-        new HashMap<>(), osFamily);
-
-      List<String> blacklistedPackagePrefixes = configuration.get().getRollingUpgradeSkipPackagesPrefixes();
-      for (OsSpecific.Package aPackage : packagesForStackService) {
-        if (!aPackage.getSkipUpgrade()) {
-          boolean blacklisted = false;
-          for (String prefix : blacklistedPackagePrefixes) {
-            if (aPackage.getName().startsWith(prefix)) {
-              blacklisted = true;
-              break;
-            }
-          }
-          if (! blacklisted) {
-            packages.add(aPackage);
-          }
-        }
-      }
-    }
-
-    Map<String, String> roleParams = new HashMap<>();
-    roleParams.put("stack_id", stackId.getStackId());
-    // !!! TODO make roleParams <String, Object> so we don't have to do this awfulness.
-    roleParams.put(KeyNames.PACKAGE_LIST, gson.toJson(packages));
-
-    return roleParams;
-  }
-
 
   /**
    * Return repositories available for target os version on host based on the

@@ -961,7 +961,6 @@ CREATE TABLE upgrade (
   cluster_id NUMBER(19) NOT NULL,
   request_id NUMBER(19) NOT NULL,
   direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
-  upgrade_package VARCHAR2(255) NOT NULL,
   upgrade_type VARCHAR2(32) NOT NULL,
   skip_failures NUMBER(1) DEFAULT 0 NOT NULL,
   skip_sc_failures NUMBER(1) DEFAULT 0 NOT NULL,

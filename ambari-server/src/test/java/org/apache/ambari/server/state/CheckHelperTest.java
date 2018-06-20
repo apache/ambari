@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.expect;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,14 +29,16 @@ import java.util.Set;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.CheckDescription;
+import org.apache.ambari.server.checks.ClusterCheck;
+import org.apache.ambari.server.checks.PreUpgradeCheck;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.easymock.EasyMock;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
+import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -55,7 +59,7 @@ import junit.framework.Assert;
 @Ignore
 @Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 @RunWith(MockitoJUnitRunner.class)
-public class CheckHelperTest {
+public class CheckHelperTest extends EasyMockSupport {
 
   private final Clusters clusters = Mockito.mock(Clusters.class);
 
@@ -87,14 +91,16 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheck() throws Exception {
     final CheckHelper helper = new CheckHelper();
-    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
+    Configuration configuration = createNiceMock(Configuration.class);
+    List<PreUpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
-    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
-    EasyMock.replay(configuration);
+    expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     updateChecksRegistry.add(m_mockCheck);
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+
+    replayAll();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
@@ -116,14 +122,16 @@ public class CheckHelperTest {
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
     final CheckHelper helper = new CheckHelper();
-    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
+    Configuration configuration = createNiceMock(Configuration.class);
+    List<PreUpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
-    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
-    EasyMock.replay(configuration);
+    expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     updateChecksRegistry.add(m_mockCheck);
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+
+    replayAll();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
@@ -137,17 +145,19 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckThrowsException() throws Exception {
     final CheckHelper helper = new CheckHelper();
-    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
+    Configuration configuration = createNiceMock(Configuration.class);
+    List<PreUpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
-    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
-    EasyMock.replay(configuration);
+    expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     updateChecksRegistry.add(m_mockCheck);
 
     // this will cause an exception
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+
+    replayAll();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
@@ -160,18 +170,20 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckBypassesFailure() throws Exception {
     final CheckHelper helper = new CheckHelper();
-    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
+    Configuration configuration = createNiceMock(Configuration.class);
+    List<PreUpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
-    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(true);
-    EasyMock.replay(configuration);
+    expect(configuration.isUpgradePrecheckBypass()).andReturn(true);
     updateChecksRegistry.add(m_mockCheck);
 
     // this will cause an exception, triggering the bypass
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
 
+    replayAll();
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     helper.performChecks(request, updateChecksRegistry, configuration);
 
     Assert.assertEquals(PrereqCheckStatus.BYPASS, request.getResult(m_mockCheckDescription));
@@ -190,24 +202,26 @@ public class CheckHelperTest {
     Mockito.when(clusters.getCluster(Mockito.anyString())).thenReturn(cluster);
 
     final CheckHelper helper = new CheckHelper();
-    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
+    Configuration configuration = createNiceMock(Configuration.class);
+    List<PreUpgradeCheck> updateChecksRegistry = new ArrayList<>();
 
-    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
-    EasyMock.replay(configuration);
+    expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     updateChecksRegistry.add(m_mockCheck);
 
     // this will cause an exception, triggering the fail
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+
+    replayAll();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     helper.performChecks(request, updateChecksRegistry, configuration);
 
     Assert.assertEquals(PrereqCheckStatus.FAIL, request.getResult(m_mockCheckDescription));
   }
 
-  class MockCheck extends AbstractCheckDescriptor {
+  class MockCheck extends ClusterCheck {
 
     protected MockCheck() {
       super(m_mockCheckDescription);
@@ -230,9 +244,10 @@ public class CheckHelperTest {
     }
 
     @Override
-    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+    public UpgradeCheckResult perform(PrereqCheckRequest request)
         throws AmbariException {
       m_mockPerform.toString();
+      return new UpgradeCheckResult(this);
     }
   }
 }
