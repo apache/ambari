@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -937,24 +938,20 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         // Run through the list of service component hosts. If all host components are in removable state,
         // the service can be deleted, irrespective of it's state.
         //
-        boolean isServiceRemovable = true;
+        List<ServiceComponentHost> nonRemovableComponents =  service.getServiceComponents().values().stream()
+          .flatMap(sch -> sch.getServiceComponentHosts().values().stream())
+          .filter(sch -> !sch.canBeRemoved())
+          .collect(Collectors.toList());
 
-        for (ServiceComponent sc : service.getServiceComponents().values()) {
-          Map<String, ServiceComponentHost> schHostMap = sc.getServiceComponentHosts();
+        if (!nonRemovableComponents.isEmpty()) {
+          for (ServiceComponentHost sch: nonRemovableComponents){
+            String msg = String.format("Cannot remove %s/%s. %s on %s is in %s state.",
+              serviceRequest.getClusterName(), serviceRequest.getServiceName(), sch.getServiceComponentName(),
+              sch.getHost(), String.valueOf(sch.getState()));
 
-          for (Map.Entry<String, ServiceComponentHost> entry : schHostMap.entrySet()) {
-            ServiceComponentHost sch = entry.getValue();
-            if (!sch.canBeRemoved()) {
-              String msg = "Cannot remove " + serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
-                      ". " + sch.getServiceComponentName() + "on " + sch.getHost() + " is in " +
-                      String.valueOf(sch.getDesiredState()) + " state.";
-              LOG.error(msg);
-              isServiceRemovable = false;
-            }
+            LOG.error(msg);
           }
-        }
 
-        if (!isServiceRemovable) {
           throw new AmbariException ("Cannot remove " +
                   serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
                     ". " + "One or more host components are in a non-removable state.");
