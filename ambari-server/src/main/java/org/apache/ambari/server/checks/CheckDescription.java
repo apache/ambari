@@ -33,6 +33,11 @@ import com.google.common.collect.ImmutableMap;
  */
 public class CheckDescription {
 
+  /**
+   * All of the instantiated {@link CheckDescription}s.
+   */
+  private static final Set<CheckDescription> s_values = new LinkedHashSet<>();
+
   public static CheckDescription HOSTS_HEARTBEAT = new CheckDescription("HOSTS_HEARTBEAT",
     PrereqCheckType.HOST,
     "All hosts must be communicating with Ambari. Hosts which are not reachable should be placed in Maintenance Mode.",
@@ -171,11 +176,6 @@ public class CheckDescription {
       new ImmutableMap.Builder<String, String>()
         .put(ClusterCheck.DEFAULT,
             "The following services are included in the upgrade but the repository is missing their dependencies:\n%s").build());
-
-  /**
-   * All of the instantiated {@link CheckDescription}s.
-   */
-  private static final Set<CheckDescription> s_values = new LinkedHashSet<>();
 
   /**
    * A unique identifier.
