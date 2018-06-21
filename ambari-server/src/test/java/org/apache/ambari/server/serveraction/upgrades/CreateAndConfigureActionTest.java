@@ -312,7 +312,6 @@ public class CreateAndConfigureActionTest {
     upgradeEntity.setId(1L);
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
 
     ServiceGroupDAO serviceGroupDAO = m_injector.getInstance(ServiceGroupDAO.class);

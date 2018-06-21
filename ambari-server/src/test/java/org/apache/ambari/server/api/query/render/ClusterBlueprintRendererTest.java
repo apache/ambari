@@ -819,7 +819,7 @@ public class ClusterBlueprintRendererTest {
   }
 
   @Experimental(
-      feature = ExperimentalFeature.REPO_VERSION_REMOVAL,
+      feature = ExperimentalFeature.MULTI_SERVICE,
       comment = "Blueprints must get mpack data from a different endpoint, not stack_versions")
   private void addStackVersions(TreeNode<Resource> clusterTree) {
   }

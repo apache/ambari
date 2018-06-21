@@ -22,11 +22,12 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.junit.Assert;
 import org.junit.Before;
@@ -49,7 +50,7 @@ public class PreviousUpgradeCompletedTest {
   private StackId sourceStackId = new StackId("HDP", "2.2");
   private StackId targetStackId = new StackId("HDP", "2.2");
   private String clusterName = "cluster";
-  private PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
+  private PrereqCheckRequest checkRequest;
   private PreviousUpgradeCompleted puc = new PreviousUpgradeCompleted();
 
 
@@ -68,23 +69,23 @@ public class PreviousUpgradeCompletedTest {
     stack.setStackName(stackId.getStackName());
     stack.setStackVersion(stackId.getStackVersion());
 
-    checkRequest.setSourceStackId(sourceStackId);
-
     puc.clustersProvider = new Provider<Clusters>() {
       @Override
       public Clusters get() {
         return clusters;
       }
     };
+
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    checkRequest = new PrereqCheckRequest(upgradePlan);
   }
 
   @Test
   public void testPerform() throws Exception {
     // no existing upgrades
     Mockito.when(cluster.getUpgradeInProgress()).thenReturn(null);
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    puc.perform(check, checkRequest);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    UpgradeCheckResult result = puc.perform(checkRequest);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
 
     // existing upgrade
     UpgradeEntity upgradeInProgress = Mockito.mock(UpgradeEntity.class);
@@ -92,8 +93,7 @@ public class PreviousUpgradeCompletedTest {
     Mockito.when(upgradeInProgress.getClusterId()).thenReturn(1L);
 
     Mockito.when(cluster.getUpgradeInProgress()).thenReturn(upgradeInProgress);
-    check = new PrerequisiteCheck(null, null);
-    puc.perform(check, checkRequest);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    result = puc.perform(checkRequest);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
   }
 }

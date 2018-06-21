@@ -41,7 +41,7 @@ import com.google.inject.Injector;
 public class UpgradeCheckOrderTest {
 
   /**
-   * Tests that instances of {@link AbstractCheckDescriptor} are ordered
+   * Tests that instances of {@link ClusterCheck} are ordered
    * correctly.
    *
    * @throws Exception
@@ -63,11 +63,11 @@ public class UpgradeCheckOrderTest {
     Assert.assertEquals(registry, registry2);
 
     // get the check list
-    List<AbstractCheckDescriptor> checks = registry.getUpgradeChecks();
+    List<PreUpgradeCheck> checks = registry.getUpgradeChecks();
 
     // scan for all checks
     ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-    AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
+    AssignableTypeFilter filter = new AssignableTypeFilter(ClusterCheck.class);
     scanner.addIncludeFilter(filter);
 
     // grab all check subclasses using the exact folder they are in to avoid loading the SampleServiceCheck from the test jar
@@ -76,8 +76,8 @@ public class UpgradeCheckOrderTest {
     // verify they are equal
     Assert.assertEquals(beanDefinitions.size(), checks.size());
 
-    AbstractCheckDescriptor lastCheck = null;
-    for (AbstractCheckDescriptor check : checks) {
+    PreUpgradeCheck lastCheck = null;
+    for (PreUpgradeCheck check : checks) {
       UpgradeCheckGroup group = UpgradeCheckGroup.DEFAULT;
       UpgradeCheckGroup lastGroup = UpgradeCheckGroup.DEFAULT;
 

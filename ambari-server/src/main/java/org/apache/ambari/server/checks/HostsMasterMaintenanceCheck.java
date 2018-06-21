@@ -23,18 +23,21 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.ModuleComponent;
+import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.Mpack.ModuleComponentVersionChange;
+import org.apache.ambari.server.state.Mpack.MpackChangeSummary;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.inject.Singleton;
 
@@ -46,10 +49,7 @@ import com.google.inject.Singleton;
     group = UpgradeCheckGroup.MAINTENANCE_MODE,
     order = 5.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
-
-  static final String KEY_NO_UPGRADE_NAME = "no_upgrade_name";
-  static final String KEY_NO_UPGRADE_PACK = "no_upgrade_pack";
+public class HostsMasterMaintenanceCheck extends ClusterCheck {
 
   /**
    * Constructor.
@@ -59,42 +59,28 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final StackId stackId = request.getSourceStackId();
     final Set<String> hostsWithMasterComponent = new HashSet<>();
 
-    // TODO AMBARI-12698, need to pass the upgrade pack to use in the request, or at least the type.
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
-    final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(
-        stackId.getStackName(), stackId.getStackVersion(), repositoryVersion.getVersion(), null);
+    for (UpgradePlanDetailEntity upgradeDetail : request.getUpgradePlan().getDetails()) {
+      ServiceGroup serviceGroup = cluster.getServiceGroup(upgradeDetail.getServiceGroupId());
+      Mpack sourceMpack = ambariMetaInfo.get().getMpack(serviceGroup.getMpackId());
+      Mpack targetMpack = ambariMetaInfo.get().getMpack(upgradeDetail.getMpackTargetId());
 
-    if (upgradePackName == null) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      String fail = getFailReason(KEY_NO_UPGRADE_NAME, prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(String.format(fail, stackId.getStackName(), stackId.getStackVersion()));
-      return;
-    }
+      MpackChangeSummary changeSummary = sourceMpack.getChangeSummary(targetMpack);
+      for( ModuleComponentVersionChange componentChanges : changeSummary.getComponentVersionChanges()) {
+        ModuleComponent moduleComponent = componentChanges.getSource();
 
-    final UpgradePack upgradePack = ambariMetaInfo.get().getUpgradePacks(stackId.getStackName(), stackId.getStackVersion()).get(upgradePackName);
-    if (upgradePack == null) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      String fail = getFailReason(KEY_NO_UPGRADE_PACK, prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(String.format(fail, upgradePackName));
-      return;
-    }
-
-    final Set<String> componentsFromUpgradePack = new HashSet<>();
-    for (Map<String, ProcessingComponent> task: upgradePack.getTasks().values()) {
-      componentsFromUpgradePack.addAll(task.keySet());
-    }
-
-    for (Service service: cluster.getServices()) {
-      for (ServiceComponent serviceComponent: service.getServiceComponents().values()) {
-        if (serviceComponent.isMasterComponent() && componentsFromUpgradePack.contains(serviceComponent.getName())) {
-          hostsWithMasterComponent.addAll(serviceComponent.getServiceComponentHosts().keySet());
+        for (Service service: serviceGroup.getServices()) {
+          for (ServiceComponent serviceComponent: service.getServiceComponents().values()) {
+            if (serviceComponent.isMasterComponent() && StringUtils.equals(moduleComponent.getName(), serviceComponent.getName())) {
+              hostsWithMasterComponent.addAll(serviceComponent.getServiceComponentHosts().keySet());
+            }
+          }
         }
       }
     }
@@ -103,16 +89,18 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     for (Map.Entry<String, Host> hostEntry : clusterHosts.entrySet()) {
       final Host host = hostEntry.getValue();
       if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.ON && hostsWithMasterComponent.contains(host.getHostName())) {
-        prerequisiteCheck.getFailedOn().add(host.getHostName());
+        result.getFailedOn().add(host.getHostName());
 
-        prerequisiteCheck.getFailedDetail().add(
+        result.getFailedDetail().add(
             new HostDetail(host.getHostId(), host.getHostName()));
       }
     }
 
-    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
+    if (!result.getFailedOn().isEmpty()) {
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.setFailReason(getFailReason(result, request));
     }
+
+    return result;
   }
 }

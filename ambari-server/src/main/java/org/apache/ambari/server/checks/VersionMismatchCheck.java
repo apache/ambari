@@ -29,7 +29,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
@@ -44,27 +44,32 @@ import com.google.inject.Singleton;
     group = UpgradeCheckGroup.COMPONENT_VERSION,
     order = 7.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class VersionMismatchCheck extends AbstractCheckDescriptor {
+public class VersionMismatchCheck extends ClusterCheck {
 
   public VersionMismatchCheck() {
     super(CheckDescription.VERSION_MISMATCH);
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     List<String> errorMessages = new ArrayList<>();
+
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     for (Service service : cluster.getServices()) {
-      validateService(service, prerequisiteCheck, errorMessages);
+      validateService(service, result, errorMessages);
     }
 
-    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      String failReason = getFailReason(prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(errorMessages, "\n")));
-      prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, "\n"));
+    if (!result.getFailedOn().isEmpty()) {
+      result.setStatus(PrereqCheckStatus.WARNING);
+      String failReason = getFailReason(result, request);
+      result.setFailReason(String.format(failReason, StringUtils.join(errorMessages, "\n")));
+      result.setFailReason(StringUtils.join(errorMessages, "\n"));
     }
+
+    return result;
   }
 
   /**
@@ -74,7 +79,7 @@ public class VersionMismatchCheck extends AbstractCheckDescriptor {
    * @param errorMessages
    * @throws AmbariException
    */
-  private void validateService(Service service, PrerequisiteCheck prerequisiteCheck,
+  private void validateService(Service service, UpgradeCheckResult prerequisiteCheck,
                                List<String> errorMessages) throws AmbariException {
     Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
     for (ServiceComponent serviceComponent : serviceComponents.values()) {
@@ -89,7 +94,7 @@ public class VersionMismatchCheck extends AbstractCheckDescriptor {
    * @param errorMessages
    */
   private void validateServiceComponent(ServiceComponent serviceComponent,
-                                        PrerequisiteCheck prerequisiteCheck, List<String> errorMessages) {
+                                        UpgradeCheckResult prerequisiteCheck, List<String> errorMessages) {
     Map<String, ServiceComponentHost> serviceComponentHosts = serviceComponent.getServiceComponentHosts();
     for (ServiceComponentHost serviceComponentHost : serviceComponentHosts.values()) {
       validateServiceComponentHost(serviceComponent, serviceComponentHost,
@@ -108,7 +113,7 @@ public class VersionMismatchCheck extends AbstractCheckDescriptor {
    */
   private void validateServiceComponentHost(ServiceComponent serviceComponent,
                                             ServiceComponentHost serviceComponentHost,
-                                            PrerequisiteCheck prerequisiteCheck,
+                                            UpgradeCheckResult prerequisiteCheck,
                                             List<String> errorMessages) {
     if (serviceComponentHost.getUpgradeState().equals(UpgradeState.VERSION_MISMATCH)) {
       String hostName = serviceComponentHost.getHostName();

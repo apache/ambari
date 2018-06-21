@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterSettingNotFoundException;
 import org.apache.ambari.server.ServiceGroupNotFoundException;
@@ -355,14 +353,6 @@ public interface Cluster {
    * @param stackVersion
    */
   void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
-
-  /**
-   * @return
-   * @throws AmbariException
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  List<Host> transitionHostsToInstalling() throws AmbariException;
 
   /**
    * Gets whether the cluster is still initializing or has finished with its

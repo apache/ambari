@@ -91,7 +91,7 @@ import com.google.common.collect.ImmutableSet;
  */
 //todo: switch over to EasyMockSupport
 @Experimental(
-    feature = ExperimentalFeature.REPO_VERSION_REMOVAL,
+    feature = ExperimentalFeature.UNIT_TEST_REQUIRED,
     comment = "Add test cases for mpacks and multiple/bad versions")
 public class AmbariContextTest {
 

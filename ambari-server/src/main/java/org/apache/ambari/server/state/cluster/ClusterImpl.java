@@ -163,7 +163,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -1418,15 +1417,6 @@ public class ClusterImpl implements Cluster {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setSecurityType(securityType);
     clusterEntity = clusterDAO.merge(clusterEntity);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @Transactional
-  public List<Host> transitionHostsToInstalling() throws AmbariException {
-    return Lists.newArrayList();
   }
 
   @Override
@@ -3390,6 +3380,9 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
+  @Experimental(
+      feature = ExperimentalFeature.VERSION_REPORTING,
+      comment = "This needs to be changed to include service groups and to use the module component version")
   public Map<String, Map<String, String>> getComponentVersionMap() {
     Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
 

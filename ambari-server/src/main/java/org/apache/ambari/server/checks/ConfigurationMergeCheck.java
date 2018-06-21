@@ -24,11 +24,15 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
+import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
@@ -42,7 +46,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     order = 99.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
+public class ConfigurationMergeCheck extends ClusterCheck {
 
   @Inject
   ConfigMergeHelper m_mergeHelper;
@@ -60,39 +64,32 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
    * </ul>
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(PrereqCheckRequest request)
       throws AmbariException {
 
-    RepositoryVersionEntity rve = request.getTargetRepositoryVersion();
-
-    Map<String, Map<String, ThreeWayValue>> changes =
-        m_mergeHelper.getConflicts(request.getClusterName(), rve.getStackId());
-
+    final String clusterName = request.getClusterName();
+    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
     Set<String> failedTypes = new HashSet<>();
 
-    for (Entry<String, Map<String, ThreeWayValue>> entry : changes.entrySet()) {
-      for (Entry<String, ThreeWayValue> configEntry : entry.getValue().entrySet()) {
+    for (UpgradePlanDetailEntity upgradeDetail : request.getUpgradePlan().getDetails()) {
+      ServiceGroup serviceGroup = cluster.getServiceGroup(upgradeDetail.getServiceGroupId());
+      Mpack targetMpack = ambariMetaInfo.get().getMpack(upgradeDetail.getMpackTargetId());
 
-        ThreeWayValue twv = configEntry.getValue();
-        if (null == twv.oldStackValue) { // !!! did not exist and in the map means changed
-          failedTypes.add(entry.getKey());
+      StackId sourceStack = serviceGroup.getStackId();
+      StackId targetStack = targetMpack.getStackId();
 
-          prerequisiteCheck.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
+      Map<String, Map<String, ThreeWayValue>> changes =
+          m_mergeHelper.getConflicts(request.getClusterName(), targetStack);
 
-          MergeDetail md = new MergeDetail();
-          md.type = entry.getKey();
-          md.property = configEntry.getKey();
-          md.current = twv.savedValue;
-          md.new_stack_value = twv.newStackValue;
-          md.result_value = md.current;
-          prerequisiteCheck.getFailedDetail().add(md);
+      for (Entry<String, Map<String, ThreeWayValue>> entry : changes.entrySet()) {
+        for (Entry<String, ThreeWayValue> configEntry : entry.getValue().entrySet()) {
 
-        } else if (!twv.oldStackValue.equals(twv.savedValue)) {  // !!! value customized
-          if (null == twv.newStackValue || // !!! not in new stack
-              !twv.oldStackValue.equals(twv.newStackValue)) { // !!! or the default value changed
+          ThreeWayValue twv = configEntry.getValue();
+          if (null == twv.oldStackValue) { // !!! did not exist and in the map means changed
             failedTypes.add(entry.getKey());
 
-            prerequisiteCheck.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
+            result.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
 
             MergeDetail md = new MergeDetail();
             md.type = entry.getKey();
@@ -100,22 +97,38 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
             md.current = twv.savedValue;
             md.new_stack_value = twv.newStackValue;
             md.result_value = md.current;
-            prerequisiteCheck.getFailedDetail().add(md);
+            result.getFailedDetail().add(md);
+
+          } else if (!twv.oldStackValue.equals(twv.savedValue)) {  // !!! value customized
+            if (null == twv.newStackValue || // !!! not in new stack
+                !twv.oldStackValue.equals(twv.newStackValue)) { // !!! or the default value changed
+              failedTypes.add(entry.getKey());
+
+              result.getFailedOn().add(entry.getKey() + "/" + configEntry.getKey());
+
+              MergeDetail md = new MergeDetail();
+              md.type = entry.getKey();
+              md.property = configEntry.getKey();
+              md.current = twv.savedValue;
+              md.new_stack_value = twv.newStackValue;
+              md.result_value = md.current;
+              result.getFailedDetail().add(md);
+            }
           }
         }
       }
     }
 
-    if (prerequisiteCheck.getFailedOn().size() > 0) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      String failReason = getFailReason(prerequisiteCheck, request);
+    if (result.getFailedOn().size() > 0) {
+      result.setStatus(PrereqCheckStatus.WARNING);
+      String failReason = getFailReason(result, request);
 
-      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(
-          failedTypes, ", ")));
-
+      result.setFailReason(String.format(failReason, StringUtils.join(failedTypes, ", ")));
     } else {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+      result.setStatus(PrereqCheckStatus.PASS);
     }
+
+    return result;
   }
 
   /**

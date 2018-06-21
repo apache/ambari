@@ -25,7 +25,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
@@ -41,7 +41,7 @@ import com.google.inject.Singleton;
     group = UpgradeCheckGroup.DEFAULT,
     order = 4.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
+public class PreviousUpgradeCompleted extends ClusterCheck {
 
   /**
    * The message displayed as part of this pre-upgrade check.
@@ -56,7 +56,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
 
@@ -70,12 +70,16 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
           directionText);
     }
 
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     if (null != errorMessage) {
       LinkedHashSet<String> failedOn = new LinkedHashSet<>();
       failedOn.add(cluster.getClusterName());
-      prerequisiteCheck.setFailedOn(failedOn);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(errorMessage);
+      result.setFailedOn(failedOn);
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.setFailReason(errorMessage);
     }
+
+    return result;
   }
 }

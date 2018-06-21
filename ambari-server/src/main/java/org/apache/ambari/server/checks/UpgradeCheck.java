@@ -30,7 +30,7 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link UpgradeCheck} annotation is used to provide ordering and grouping
- * to any {@link AbstractCheckDescriptor} instance.
+ * to any {@link ClusterCheck} instance.
  * <p/>
  * Classes marked with this annotation should also be {@link Singleton}. They
  * will be discovered on the classpath and then registered with the

@@ -125,7 +125,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   public static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   public static final String UPGRADE_PLAN_ID = "Upgrade/upgrade_plan_id";
   public static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
-  public static final String UPGRADE_PACK = "Upgrade/pack";
   public static final String UPGRADE_ID = "Upgrade/upgrade_id";
   public static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
   public static final String UPGRADE_SUMMARY = "Upgrade/summary";
@@ -264,7 +263,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
     PROPERTY_IDS.add(UPGRADE_PLAN_ID);
     PROPERTY_IDS.add(UPGRADE_TYPE);
-    PROPERTY_IDS.add(UPGRADE_PACK);
     PROPERTY_IDS.add(UPGRADE_ID);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
     PROPERTY_IDS.add(UPGRADE_SUMMARY);
@@ -625,7 +623,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_ID, entity.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, cluster.getClusterName(), requestedIds);
     setResourceProperty(resource, UPGRADE_TYPE, entity.getUpgradeType(), requestedIds);
-    setResourceProperty(resource, UPGRADE_PACK, entity.getUpgradePackage(), requestedIds);
     setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
     setResourceProperty(resource, UPGRADE_SUSPENDED, entity.isSuspended(), requestedIds);
@@ -747,7 +744,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradeEntity upgrade = new UpgradeEntity();
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setDirection(direction);
-    upgrade.setUpgradePackage(pack.getName());
     upgrade.setUpgradeType(pack.getType());
     upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
     upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());

@@ -22,28 +22,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.checks.CheckDescription;
+import org.apache.ambari.server.checks.PreUpgradeCheck;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
-
-
-class DescriptorPreCheck {
-
-  public AbstractCheckDescriptor descriptor;
-  public PrerequisiteCheck check;
-
-  public DescriptorPreCheck(AbstractCheckDescriptor descriptor, PrerequisiteCheck check) {
-    this.descriptor = descriptor;
-    this.check = check;
-  }
-}
 
 @Singleton
 public class CheckHelper {
@@ -60,22 +49,19 @@ public class CheckHelper {
    * @param checksRegistry Registry with all PreChecks that may be applied.
    * @return List of applicable PreChecks.
    */
-  public List<DescriptorPreCheck> getApplicablePrerequisiteChecks(PrereqCheckRequest request,
-                                                       List<AbstractCheckDescriptor> checksRegistry) {
-    List<DescriptorPreCheck> applicablePreChecks = new LinkedList<>();
+  public List<PreUpgradeCheck> getApplicablePrerequisiteChecks(PrereqCheckRequest request,
+      List<PreUpgradeCheck> checksRegistry) {
+    List<PreUpgradeCheck> applicablePreChecks = new LinkedList<>();
 
-    final String clusterName = request.getClusterName();
-    for (AbstractCheckDescriptor checkDescriptor : checksRegistry) {
-      final PrerequisiteCheck prerequisiteCheck = new PrerequisiteCheck(checkDescriptor.getDescription(), clusterName);
-
+    for (PreUpgradeCheck preUpgradeCheck : checksRegistry) {
       try {
-        if (checkDescriptor.isApplicable(request)) {
-          applicablePreChecks.add(new DescriptorPreCheck(checkDescriptor, prerequisiteCheck));
+        if (preUpgradeCheck.isApplicable(request)) {
+          applicablePreChecks.add(preUpgradeCheck);
         }
       } catch (Exception ex) {
         LOG.error(
             "Unable to determine whether the pre-upgrade check {} is applicable to this upgrade",
-            checkDescriptor.getDescription().name(), ex);
+            preUpgradeCheck.getCheckDescrption().name(), ex);
       }
     }
     return applicablePreChecks;
@@ -88,39 +74,39 @@ public class CheckHelper {
    *          pre-requisite check request
    * @return list of pre-requisite check results
    */
-  public List<PrerequisiteCheck> performChecks(PrereqCheckRequest request,
-                                               List<AbstractCheckDescriptor> checksRegistry, Configuration config) {
+  public List<UpgradeCheckResult> performChecks(PrereqCheckRequest request,
+      List<PreUpgradeCheck> checksRegistry, Configuration config) {
 
-    final String clusterName = request.getClusterName();
-    final List<PrerequisiteCheck> prerequisiteCheckResults = new ArrayList<>();
+    final List<UpgradeCheckResult> prerequisiteCheckResults = new ArrayList<>();
     final boolean canBypassPreChecks = config.isUpgradePrecheckBypass();
 
-    List<DescriptorPreCheck> applicablePreChecks = getApplicablePrerequisiteChecks(request, checksRegistry);
+    List<PreUpgradeCheck> applicablePreChecks = getApplicablePrerequisiteChecks(request, checksRegistry);
 
-    for (DescriptorPreCheck descriptorPreCheck : applicablePreChecks) {
-      AbstractCheckDescriptor checkDescriptor = descriptorPreCheck.descriptor;
-      PrerequisiteCheck prerequisiteCheck = descriptorPreCheck.check;
+    for (PreUpgradeCheck preUpgradeCheck : applicablePreChecks) {
+      CheckDescription checkDescription = preUpgradeCheck.getCheckDescrption();
+      UpgradeCheckResult result;
       try {
-        checkDescriptor.perform(prerequisiteCheck, request);
+        result = preUpgradeCheck.perform(request);
       } catch (ClusterNotFoundException ex) {
-        prerequisiteCheck.setFailReason("Cluster with name " + clusterName + " doesn't exists");
-        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+        result = new UpgradeCheckResult(preUpgradeCheck, PrereqCheckStatus.FAIL);
+        result.setFailReason("The cluster could not be found.");
       } catch (Exception ex) {
-        LOG.error("Check " + checkDescriptor.getDescription().name() + " failed", ex);
-        prerequisiteCheck.setFailReason("Unexpected server error happened");
-        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+        LOG.error("Check " + checkDescription.name() + " failed", ex);
+        result = new UpgradeCheckResult(preUpgradeCheck, PrereqCheckStatus.FAIL);
+        result.setFailReason("Unexpected server error happened");
       }
 
-      if (prerequisiteCheck.getStatus() == PrereqCheckStatus.FAIL && canBypassPreChecks) {
-        LOG.error("Check {} failed but stack upgrade is allowed to bypass failures. Error to bypass: {}. Failed on: {}",
-          checkDescriptor.getDescription().name(),
-          prerequisiteCheck.getFailReason(),
-          StringUtils.join(prerequisiteCheck.getFailedOn(), ", "));
-        prerequisiteCheck.setStatus(PrereqCheckStatus.BYPASS);
+      if (result.getStatus() == PrereqCheckStatus.FAIL && canBypassPreChecks) {
+        LOG.error(
+            "Check {} failed but stack upgrade is allowed to bypass failures. Error to bypass: {}. Failed on: {}",
+            checkDescription.name(), result.getFailReason(),
+            StringUtils.join(result.getFailedOn(), ", "));
+
+        result.setStatus(PrereqCheckStatus.BYPASS);
       }
 
-      prerequisiteCheckResults.add(prerequisiteCheck);
-      request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
+      prerequisiteCheckResults.add(result);
+      request.addResult(checkDescription, result.getStatus());
     }
 
     return prerequisiteCheckResults;
