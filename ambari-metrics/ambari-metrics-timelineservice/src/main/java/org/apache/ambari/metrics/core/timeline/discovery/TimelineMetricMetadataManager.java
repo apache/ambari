@@ -131,6 +131,13 @@ public class TimelineMetricMetadataManager {
    * Initialize Metadata from the store
    */
   public void initializeMetadata() {
+    initializeMetadata(true);
+  }
+
+  /**
+   * Initialize Metadata from the store
+   */
+  public void initializeMetadata(boolean scheduleMetadateSync) {
 
     //Create metadata schema
     Connection conn = null;
@@ -180,10 +187,12 @@ public class TimelineMetricMetadataManager {
 
       metricMetadataSync = new TimelineMetricMetadataSync(this);
     // Schedule the executor to sync to store
-    executorService.scheduleWithFixedDelay(metricMetadataSync,
-      metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
-      metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
-      TimeUnit.SECONDS);
+    if (scheduleMetadateSync) {
+      executorService.scheduleWithFixedDelay(metricMetadataSync,
+          metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
+          metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
+          TimeUnit.SECONDS);
+    }
     // Read from store and initialize map
     try {
       Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata = getMetadataFromStore();
@@ -357,6 +366,14 @@ public class TimelineMetricMetadataManager {
   }
 
   /**
+   * Fetch metrics metadata from store from V1 table (no UUID)
+   * @throws SQLException
+   */
+  Map<TimelineMetricMetadataKey, TimelineMetricMetadata> getMetadataFromStoreV1() throws SQLException {
+    return hBaseAccessor.getTimelineMetricMetadataV1();
+  }
+
+  /**
    * Fetch metrics metadata from store
    * @throws SQLException
    */
@@ -509,6 +526,10 @@ public class TimelineMetricMetadataManager {
     byte[] metricUuid = getUuid(new TimelineClusterMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(),
       timelineMetric.getInstanceId(), -1l), createIfNotPresent);
     byte[] hostUuid = getUuidForHostname(timelineMetric.getHostName(), createIfNotPresent);
+
+    if (hostUuid != null) {
+      putIfModifiedHostedAppsMetadata(timelineMetric.getHostName(), timelineMetric.getAppId());
+    }
 
     if (metricUuid == null || hostUuid == null) {
       return null;
@@ -797,4 +818,35 @@ public class TimelineMetricMetadataManager {
     return false;
   }
 
+  /**
+   * Run TimelineMetricMetadataSync once
+   */
+  public void forceMetricsMetadataSync() {
+    metricMetadataSync.run();
+  }
+
+  public void updateMetadataCacheUsingV1Tables() throws SQLException {
+    Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadataV1Map = getMetadataFromStoreV1();
+    for (TimelineMetricMetadataKey key: METADATA_CACHE.keySet()) {
+      TimelineMetricMetadata cacheValue = METADATA_CACHE.get(key);
+      TimelineMetricMetadata oldValue = metadataV1Map.get(key);
+
+      if (oldValue != null) {
+        if (!cacheValue.isPersisted()) {
+          LOG.info(String.format("Updating properties for %s", key));
+          cacheValue.setSeriesStartTime(oldValue.getSeriesStartTime());
+          cacheValue.setSupportsAggregates(oldValue.isSupportsAggregates());
+          cacheValue.setType(oldValue.getType());
+          cacheValue.setIsWhitelisted(oldValue.isWhitelisted());
+        } else if (oldValue.getSeriesStartTime() < cacheValue.getSeriesStartTime() &&
+                   cacheValue.getSeriesStartTime() != 0L &&
+                   cacheValue.isWhitelisted())
+        {
+          LOG.info(String.format("Updating startTime for %s", key));
+          cacheValue.setSeriesStartTime(oldValue.getSeriesStartTime());
+          cacheValue.setIsPersisted(false);
+        }
+      }
+    }
+  }
 }

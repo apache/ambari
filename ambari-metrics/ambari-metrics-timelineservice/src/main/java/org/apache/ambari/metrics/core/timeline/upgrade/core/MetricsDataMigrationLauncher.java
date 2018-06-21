@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,6 +90,7 @@ public class MetricsDataMigrationLauncher {
   private Integer numberOfThreads;
   private TimelineMetricConfiguration timelineMetricConfiguration;
   private PhoenixHBaseAccessor hBaseAccessor;
+  private TimelineMetricMetadataManager timelineMetricMetadataManager;
   private Map<String, Set<String>> processedMetrics;
 
   public MetricsDataMigrationLauncher(String whitelistedFilePath, String processedMetricsFilePath, Long startTime, Integer numberOfThreads, Integer batchSize) throws Exception {
@@ -201,8 +203,9 @@ public class MetricsDataMigrationLauncher {
     this.timelineMetricConfiguration = TimelineMetricConfiguration.getInstance();
     timelineMetricConfiguration.initialize();
 
-    TimelineMetricMetadataManager timelineMetricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor);
-    timelineMetricConfiguration.initialize();
+    timelineMetricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor);
+    timelineMetricMetadataManager.initializeMetadata(false);
+
     hBaseAccessor.setMetadataInstance(timelineMetricMetadataManager);
   }
 
@@ -244,6 +247,13 @@ public class MetricsDataMigrationLauncher {
       LOG.error(ioEx);
     }
     return whitelistedMetrics;
+  }
+
+  private void saveMetadata() throws SQLException {
+    LOG.info("Saving metadata to store...");
+    timelineMetricMetadataManager.updateMetadataCacheUsingV1Tables();
+    timelineMetricMetadataManager.forceMetricsMetadataSync();
+    LOG.info("Metadata was saved.");
   }
 
 
@@ -297,6 +307,18 @@ public class MetricsDataMigrationLauncher {
     }
 
     try {
+      //Setup shutdown hook for metadata save.
+      MetricsDataMigrationLauncher finalDataMigrationLauncher = dataMigrationLauncher;
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        public void run() {
+          try {
+            finalDataMigrationLauncher.saveMetadata();
+          } catch (SQLException e) {
+            LOG.error("Exception during metadata saving, exiting...", e);
+          }
+        }
+      });
+
       dataMigrationLauncher.runMigration(timeoutInMinutes);
     } catch (IOException e) {
       LOG.error("Exception during data migration, exiting...", e);
