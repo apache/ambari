@@ -28,6 +28,7 @@ import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
  */
 public interface TopologyRequestFactory {
 
-  ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException;
-  // todo: use to create other request types
+  ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration, boolean validateTopology)
+    throws InvalidTopologyTemplateException;
+
 }

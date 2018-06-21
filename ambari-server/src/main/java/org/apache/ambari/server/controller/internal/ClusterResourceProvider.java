@@ -166,6 +166,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(QUICKLINKS_PROFILE);
     propertyIds.add(MPACK_INSTANCES);
     propertyIds.add(CLUSTER_STATE_PROPERTY_ID);
+    propertyIds.add(BlueprintResourceProvider.VALIDATE_TOPOLOGY_PROPERTY_ID);
   }
 
 
@@ -511,16 +512,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @param requestInfoProperties raw request body
    * @return asynchronous response information
    *
-   * @throws ResourceAlreadyExistsException if cluster already exists
    * @throws SystemException                if an unexpected exception occurs
-   * @throws UnsupportedPropertyException   if an invalid property is specified in the request
-   * @throws NoSuchParentResourceException  if a necessary parent resource doesn't exist
    */
-  @SuppressWarnings("unchecked")
-  private RequestStatusResponse processBlueprintCreate(Map<String, Object> properties, Map<String, String> requestInfoProperties)
-      throws ResourceAlreadyExistsException, SystemException, UnsupportedPropertyException,
-      NoSuchParentResourceException {
-
+  private RequestStatusResponse processBlueprintCreate(Map<String, Object> properties, Map<String, String> requestInfoProperties) throws SystemException {
     LOG.info("Creating Cluster '" + properties.get(CLUSTER_NAME_PROPERTY_ID) +
         "' based on blueprint '" + String.valueOf(properties.get(BLUEPRINT)) + "'.");
 
@@ -531,8 +525,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     ProvisionClusterRequest createClusterRequest;
     try {
+      boolean validateTopology = BlueprintResourceProvider.shouldValidate(requestInfoProperties);
       createClusterRequest =
-        topologyRequestFactory.createProvisionClusterRequest(properties, securityConfiguration);
+        topologyRequestFactory.createProvisionClusterRequest(properties, securityConfiguration, validateTopology);
     } catch (InvalidTopologyTemplateException e) {
       throw new IllegalArgumentException("Invalid Cluster Creation Template: " + e, e);
     }

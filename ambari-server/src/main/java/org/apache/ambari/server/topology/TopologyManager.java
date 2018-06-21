@@ -294,7 +294,9 @@ public class TopologyManager {
     final String clusterName = request.getClusterName();
     final SecurityConfiguration securityConfiguration = provisionRequest.getSecurity();
 
-    final ClusterTopology topology = topologyValidatorService.validate(initialTopology); // FIXME known stacks validation is too late here
+    final ClusterTopology topology = request.shouldValidateTopology()
+      ? topologyValidatorService.validate(initialTopology) // FIXME known stacks validation is too late here
+      : initialTopology;
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
