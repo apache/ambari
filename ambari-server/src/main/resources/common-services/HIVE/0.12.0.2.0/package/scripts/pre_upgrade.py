@@ -57,7 +57,7 @@ class HivePreUpgrade(Script):
     self.__dump_db(command, "mysql", is_db_here)
 
   def __dump_postgres_db(self, is_db_here):
-    command = format("export PGPASSWORD='{hive_metastore_user_passwd}'; pg_dump -U {hive_metastore_user_name} {{hive_db_schma_name}} > {{dump_file}}")
+    command = format("export PGPASSWORD='{hive_metastore_user_passwd}'; pg_dump -U {hive_metastore_user_name} {hive_db_schma_name} > {{dump_file}}")
     self.__dump_db(command, "postgres", is_db_here)
 
   def __dump_oracle_db(self, is_db_here):
@@ -67,15 +67,15 @@ class HivePreUpgrade(Script):
   def __dump_db(self, command, type, is_db_here):
     dump_dir = "/etc/hive/dbdump"
     dump_file = format("{dump_dir}/hive-{stack_version_formatted}-{type}-dump.sql")
+    command = format("mkdir -p {dump_dir}; " + command)
     if is_db_here:
-      if not os.path.exists(dump_dir):
-        Directory(dump_dir)
-      Execute(format(command), user = "root")
+      Execute(command, user = "root")
       Logger.info(format("Hive Metastore database backup created at {dump_file}"))
     else:
+      Logger.warning("MANUAL DB DUMP REQUIRED!!")
       Logger.warning(format("Hive Metastore is using an external {hive_metastore_db_type} database, the connection url is {hive_jdbc_connection_url}."))
-      Logger.warning(format("Please log in to that host, and create a db backup manually by executing the following command: \"{command}\", then click on 'IGNORE AND PROCEED'"))
-      raise Fail()
+      Logger.warning("Please log in to that host, and create a db backup manually by executing the following command:")
+      Logger.warning(format("\"{command}\""))
 
   def convert_tables(self, env):
     import params
