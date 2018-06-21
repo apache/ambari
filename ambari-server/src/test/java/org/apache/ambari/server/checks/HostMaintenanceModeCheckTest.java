@@ -31,6 +31,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -39,6 +40,7 @@ import com.google.inject.Provider;
 /**
  * Tests {@link HostMaintenanceModeCheck}.
  */
+@Ignore
 public class HostMaintenanceModeCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
 

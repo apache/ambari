@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
@@ -46,6 +47,7 @@ import com.google.inject.Provider;
  * Checks VersionMismatchCheck pre-upgrade check. Includes tests that emulate both
  * clusters with and without host components in VERSION_MISMATCH upgrade state.
  */
+@Ignore
 public class VersionMismatchCheckTest {
   private static final String CLUSTER_NAME = "cluster1";
   private static final String FIRST_SERVICE_NAME = "service1";

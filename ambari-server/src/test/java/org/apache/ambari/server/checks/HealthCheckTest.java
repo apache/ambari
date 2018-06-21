@@ -38,11 +38,12 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Provider;
 
-
+@Ignore
 public class HealthCheckTest {
   private static final String CLUSTER_NAME = "cluster1";
   private static final long CLUSTER_ID = 1L;
