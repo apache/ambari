@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -41,12 +42,14 @@ import org.apache.ambari.server.controller.internal.BlueprintConfigurationProces
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -87,8 +90,58 @@ public class ClusterTopologyImpl implements ClusterTopology {
       Sets.union(topologyRequest.getStackIds(), topologyRequest.getBlueprint().getStackIds()));
     stack = ambariContext.composeStacks(stackIds);
     resolvedComponents = ImmutableMap.of();
-
+    adjustTopology();
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
+  }
+
+  /**
+   * This is to collect configurations formerly (in Ambari 2.x) belonging to cluster-env and already migrated to
+   * cluster settings. Eventually all configurations from cluster-env should be migrated and this collection
+   * should be removed.
+   */
+  private static final Set<String> SAFE_TO_REMOVE_FROM_CLUSTER_ENV = ImmutableSet.of(
+    ConfigHelper.COMMAND_RETRY_ENABLED,
+    ConfigHelper.COMMAND_RETRY_MAX_TIME_IN_SEC,
+    ConfigHelper.COMMANDS_TO_RETRY
+  );
+
+  /**
+   * This method adjusts cluster topologies coming from the Ambari 2.x blueprint structure for Ambari
+   * 3.x.
+   * Currently it extract configuration from cluster-env and transforms it into cluster settings.
+   */
+  private void adjustTopology() {
+    Set<PropertyInfo> clusterProperties = AmbariContext.getController().getAmbariMetaInfo().getClusterProperties();
+    Set<String> clusterSettingPropertyNames = clusterProperties.stream().map(prop -> prop.getName()).collect(toSet());
+    Map<String, String> clusterEnv = Optional
+      .ofNullable(configuration.getFullProperties().get(ConfigHelper.CLUSTER_ENV))
+      .orElse(ImmutableMap.of());
+
+    Set<String> convertedProperties = new HashSet<>();
+    Set<String> remainingProperties = new HashSet<>();
+    clusterEnv.entrySet().forEach( entry -> {
+      if (clusterSettingPropertyNames.contains(entry.getKey())) {
+        // Add to the cluster_settings section of the Setting object
+        setting.getProperties()
+          .computeIfAbsent(
+            Setting.SETTING_NAME_CLUSTER_SETTINGS,
+            __ -> Sets.newHashSet(Maps.newHashMap()))
+          .iterator().next()
+          .put(entry.getKey(), entry.getValue());
+        // Only remove it from cluster-env if handling this configuration has been migrated to use
+        // cluster settings.
+        if (SAFE_TO_REMOVE_FROM_CLUSTER_ENV.contains(entry.getKey())) {
+          configuration.removeProperty(ConfigHelper.CLUSTER_ENV, entry.getKey());
+        }
+        convertedProperties.add(entry.getKey());
+      }
+      else {
+        remainingProperties.add(entry.getKey());
+      }
+    });
+    LOG.info("Converted {} properties from cluster-env to cluster settings, left {} as is. Converted properties: {}," +
+      " remaining properties: {}", convertedProperties.size(), remainingProperties.size(), convertedProperties,
+      remainingProperties);
   }
 
   // FIXME 2. replayed request should simply be a provision or scale request
@@ -111,6 +164,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     stack = request.getStack();
     setting = request.getSetting();
     blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServices()));
+    adjustTopology();
     registerHostGroupInfo(request.getHostGroupInfo());
   }
 

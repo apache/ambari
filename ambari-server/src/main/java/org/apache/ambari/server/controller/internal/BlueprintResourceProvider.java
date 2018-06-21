@@ -393,23 +393,29 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       if(config instanceof BlueprintConfigEntity) {
         Map<String, String> properties = JsonUtils.fromJson(config.getConfigData(), new TypeReference<Map<String, String>>(){});
 
-        // TODO: use multiple mpacks
-        BlueprintMpackInstanceEntity mpack =
-          ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackInstances().iterator().next();
-        StackInfo metaInfoStack;
-
-        try {
-          metaInfoStack = ambariMetaInfo.getStack(mpack.getMpackName(), mpack.getMpackVersion());
-        } catch (AmbariException e) {
-          throw new NoSuchResourceException(e.getMessage());
+        // TODO: use multiple mpacks, + make it work with blueprints with no mpack
+        Collection<BlueprintMpackInstanceEntity> mpackInstances = ((BlueprintConfigEntity) config).getBlueprintEntity().getMpackInstances();
+        if (mpackInstances.isEmpty()) {
+          LOG.warn("This blueprint does not specify any mpacks/stacks. Configurations cannot be retrieved.");
         }
+        else {
+          BlueprintMpackInstanceEntity mpack =
+            ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackInstances().iterator().next();
+          StackInfo metaInfoStack;
 
-        Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
-          metaInfoStack.getConfigPropertiesTypes(type);
+          try {
+            metaInfoStack = ambariMetaInfo.getStack(mpack.getMpackName(), mpack.getMpackVersion());
+          } catch (AmbariException e) {
+            throw new NoSuchResourceException(e.getMessage());
+          }
 
-        SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1L);
+          Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
+            metaInfoStack.getConfigPropertiesTypes(type);
 
-        configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+          SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1L);
+
+          configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+        }
       } else {
         Map<String, Object> properties = JsonUtils.fromJson(config.getConfigData(), new TypeReference<Map<String, Object>>(){});
         configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
