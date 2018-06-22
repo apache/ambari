@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -352,6 +353,7 @@ public class TopologyManagerTest {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.shouldValidateTopology()).andStubReturn(true);
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getAllMpacks()).andReturn(ImmutableSet.of(mpack1, mpack2)).anyTimes();
@@ -709,6 +711,21 @@ public class TopologyManagerTest {
     PowerMock.replayAll();
 
     topologyManager.provisionCluster(request, "{}");
+  }
+
+  @Test
+  public void validationTurnedOff() throws Exception {
+    expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).anyTimes();
+    expect(request.shouldValidateTopology()).andReturn(false);
+    TopologyValidatorService validator = createStrictMock(TopologyValidatorService.class);
+    Whitebox.setInternalState(topologyManager, "topologyValidatorService", validator);
+
+    replayAll();
+    replay(validator);
+
+    topologyManager.provisionCluster(request, "{}");
+
+    verify(validator);
   }
 
   private SettingEntity createQuickLinksSettingEntity(String content, long timeStamp) {
