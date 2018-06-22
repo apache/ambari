@@ -653,12 +653,13 @@ DATE_FIELD=evtTime
 infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 -f $DATE_FIELD -e $END_DATE --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS
 
 # Or if you want to run the command in the background (with log and pid file):
-nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 -f $DATE_FIELD -e $END_DATE --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS > /tmp/solr-data-mgr.log 2>&1>& echo $! > /tmp/solr-data-mgr.pid
+nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 -f $DATE_FIELD -e $END_DATE --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS > /tmp/solr-data-mgr.log 2>&1 & echo $! > /tmp/solr-data-mgr.pid
 ```
+[![asciicast](https://asciinema.org/a/188396.png)](https://asciinema.org/a/188396?speed=2)
 
 #### <a id="viii/2.-transport-old-data-to-atlas-collections">IX/2. Transport old data to Atlas collections</a>
 
-In the end, you end up with 6 Atlas collections (vertex_index, old_vertex_index, edge_index, old_edge_index, fulltext_index, old_fulltext_index), in order to drop the restored one, you will need to transfer your old data to the new collection. To achieve this, you can use [solrDataManager.py](#solr-data-manager-script), which is located next to the `migrationHelper.py` script. Here, the script usage will be a bit different as we cannot provide a proper date/timestamp field, so during the data transfer, the records will be sorted only by id. (to do this it will be needed to use `--skip-date-usage` flag)
+In the end, you end up with 6 Atlas collections (vertex_index, old_vertex_index, edge_index, old_edge_index, fulltext_index, old_fulltext_index ... old_* collections will only exist if there was a restore against a non-empty collections, that means you won't need to transfer data if there is no old_* pair for a specific collection), in order to drop the restored one, you will need to transfer your old data to the new collection. To achieve this, you can use [solrDataManager.py](#solr-data-manager-script), which is located next to the `migrationHelper.py` script. Here, the script usage will be a bit different as we cannot provide a proper date/timestamp field, so during the data transfer, the records will be sorted only by id. (to do this it will be needed to use `--skip-date-usage` flag)
 
 Example: (with vertex_index, to the same with edge_index and fulltext_index, most likely at least edge_index will be empty)
 ```bash
@@ -677,8 +678,10 @@ INFRA_SOLR_PRINCIPAL=... # example: infra-solr/$(hostname -f)@EXAMPLE.COM
 infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 --skip-date-usage --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS
 
 # Or if you want to run the command in the background (with log and pid file):
-nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 --skip-date-usage --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS > /tmp/solr-data-mgr.log 2>&1>& echo $! > /tmp/solr-data-mgr.pid
+nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 --skip-date-usage --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS > /tmp/solr-data-mgr.log 2>&1 & echo $! > /tmp/solr-data-mgr.pid
 ```
+
+[![asciicast](https://asciinema.org/a/188402.png)](https://asciinema.org/a/188402?speed=2)
 
 ### <a id="happy-path">Happy path</a>
 
@@ -688,14 +691,34 @@ BACKUP_BASE_PATH=/tmp
 
 # if backup is required:
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org -port 8080 --cluster cl1 --username admin --password admin --backup-base-path=$BACKUP_BASE_PATH --java-home /usr/jdk64/jdk1.8.0_112
+# use action upgrade-logfeeders and upgrade-logsearch-portal as well if LOGSEARCH installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-clients
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action backup-and-cleanup
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-instances
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-solr
+# if logsearch installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-logsearch
+# if ranger installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-ranger
+# if atlas installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-atlas
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action migrate
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restore
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action rolling-restart-solr
 
 # or if backup is not required:
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org -port 8080 --cluster cl1 --username admin --password admin --backup-base-path=$BACKUP_BASE_PATH --java-home /usr/jdk64/jdk1.8.0_112
+# use action upgrade-logfeeders and upgrade-logsearch-portal as well if LOGSEARCH installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-clients
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action delete-collections
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-instances
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-solr
+# if logsearch installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-logsearch
+# if ranger installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-ranger
+# if atlas installed
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-atlas
 ```
 
 ### <a id="appendix">APPENDIX</a>
