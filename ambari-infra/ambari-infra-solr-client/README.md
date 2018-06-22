@@ -63,16 +63,35 @@ Ambari Infra Solr uses Solr 7 from Ambari 2.7.0, therefore it is required migrat
 
 ### <a id="i.-upgrade-ambari-infra-solr-client">I. Upgrade Ambari Infra Solr Client</a>
 
-First make sure `ambari-infra-solr-client` is the latest. (If its before 2.7.x) It will contain the migrationHelper.py script at `/usr/lib/ambari-infra-solr-client` location.
-Also make sure you won't upgrade `ambari-infra-solr` until the migration has not done. (all of this should happen after `ambari-server` upgrade, also make sure to not restart `INFRA_SOLR` instances). 
-You will need to stop ranger plugins at this point. (not mandatory, but recommended before backup, as you want to backup the same data that you had before)
+##### Prerequisites:
+- Upgrade Ambari server
+- Stop Ranger plugins (optional, but recommended, plugins won't operate anyway)
+- Do NOT restart Infra Solr after Ambari server upgrade (if you do, see [this](#if-solr-restarted))
 
-Optionally if you are done with the second [step](#0-gather-params), you can send an upgrade command to the installed ambari-infra-solr-client components on the cluster (it's basically run a pacakge remove and package install)
+First make sure `ambari-infra-solr-client` is the latest. (If its before 2.7.x) It will contain the migrationHelper.py script at `/usr/lib/ambari-infra-solr-client` location.
+Also make sure you won't upgrade `ambari-infra-solr` until the migration has not done. (all of this should happen after `ambari-server` upgrade, also make sure to not restart `INFRA_SOLR` instances).
+
+For upgrading `ambari-infra-solr-client` ssh into a host (where there is an `ambari=infra-solr` located as well):
 
 ```bash
-CONFIG_INI_LOCATION=ambari_solr_migration.ini
-/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-clients
+# For RHEL/CentOS/Oracle Linux:
+
+yum clean all
+yum upgrade ambari-infra-solr-client
+
+# For SLES:
+
+zypper clean
+zypper up ambari-infra-solr-client
+
+# For Ubuntu/Debian:
+
+apt-get clean all
+apt-get update
+apt-get install ambari-infra-solr-client
 ```
+
+You will need to repeat that step on every other host where `ambari-infra-solr-client` is installed or optionally you can skip ambari-infra-solr-client upgrade on all host, and you can do that after the end of the next step, see [here](#automatic-upgrade-ambari-infra-solr-client).
 
 ### <a id="0-gather-params">II. Gather required Ambari and Solr parameters</a>
 
@@ -90,7 +109,8 @@ CONFIG_INI_LOCATION=ambari_solr_migration.ini # output of the script with requir
 Some important flags that can be added at this point;
 - `--shared-drive` : Use this flag if the location of the backup is shared between hosts (it will generate the index location as <index_location><hostname>, therefore migration commands can be parallel on different hosts)
 - `--backup-base-path`: base path of the backup. e.g. if you provide `/my/path`, the backup locations will be `/my/path/ranger` and `/my/path/atlas`, if the base path won't be the same for these, you can provie Ranger or Atlas specific ones with `--ranger-backup-base-path` and `--atlas-backup-base-path`
-- `--hdfs-base-path`: use this if index is stored hdfs, that is applied for all index, most of the time that is only used for ranger, so if that is the case ose `--ranger-hdfs-base-path` instead of this option, the value is mostly `/user/infra-solr` which means the collection itself could be at `hdfs:///user/infra-solr/ranger_audts` location
+- `--hdfs-base-path`: use this if index is stored hdfs, that is applied for all index, most of the time that is only used for ranger, so if that is the case ose `--ranger-hdfs-base-path` instead of this option, the value is mostly `/user/infra-solr` which means the collection itself could be at `hdfs:///user/infra-solr/ranger_audits` location
+(IMPORTANT NOTE: if ranger index is stored on hdfs, make sure to use the proper `-Dsolr.hdfs.security.kerberos.principal` in `infra-solr-env/content` config, by default it points to the Infra Solr principal, but if it was set to something else before, that needs to be changed to that)
 
 The generated config file output could be something like that:
 ```ini
@@ -155,13 +175,26 @@ audit_logs_collection_name = audit_logs
 history_collection_name = history
 ```
 
-After the file has created successfully by the script, review the configuration (e.g.: if 1 of the Solr is not up yet, and you do not want to use its REST API for operations, you can remove its host from the hosts of infra_solr section or you can change backup locations for different collections etc.). Also if it's not required to backup e.g. Atlas collections (so you are ok to drop those), you can change the `enabled` config of the collections section to false.``
+After the file has created successfully by the script, review the configuration (e.g.: if 1 of the Solr is not up yet, and you do not want to use its REST API for operations, you can remove its host from the hosts of infra_solr section or you can change backup locations for different collections etc.). Also if it's not required to backup e.g. Atlas collections (so you are ok to drop those), you can change the `enabled` config of the collections section to `false`.
 
 [![asciicast](https://asciinema.org/a/xsdPY8wReNJwFfqU9t5FtLWeR.png)](https://asciinema.org/a/xsdPY8wReNJwFfqU9t5FtLWeR?speed=2)
 
+##### <a id="automatic-upgrade-ambari-infra-solr-client">(Optional) Upgrade All ambari-infra-solr packages</id>
+
+If you did not upgrade ambari-infra-solr-client packages on all host, you can do that from the host where you are, to send a command to Ambari to do that on every host where there is an `INFRA_SOLR_CLIENT` component located:
+
+```bash
+CONFIG_INI_LOCATION=ambari_solr_migration.ini
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-clients
+```
+
 ### <a id="ii.-backup-collections-(ambari-2.6.x-to-ambari-2.7.x)">III. Backup collections (Ambari 2.6.x to Ambari 2.7.x)</a>
 
-Before you start to upgrade process check the Solr instances are running and also make sure you have stable shards (at least one core is up and running) and will have enough space on the disks to store Solr backup data. (you will need at least that many as your index size per host). The backup process contains a few steps: backup ranger configs on znode, backup collections, delete Log Search znodes, then upgrade `managed-schema` znode for Ranger. 
+##### Prerequisites:
+- Check the Solr instances are running and also make sure you have stable shards (at least one core is up and running)
+- Have enough space on the disks to store Solr backup data
+
+The backup process contains a few steps: backup ranger configs on znode, backup collections, delete Log Search znodes, then upgrade `managed-schema` znode for Ranger. 
 These tasks can be done with 1 [migrationHelper.py](#solr-migration-helper-script) command:
 
 ```bash
@@ -370,12 +403,7 @@ zookeeper-client -server $ZK_CONN_STR rmr /infra-solr/configs/history
 
 At this step, you will need to upgrade `ambari-infra-solr` packages. (also make sure ambari-logsearch* packages are upgraded as well)
 
-Example (for CentOS):
-```bash
-yum upgrade -y ambari-infra-solr
-```
-
-Or optionally you can do that through ambari commands with the migrationHelper.py script (that means you wont need to ssh into every Infra Solr instance host):
+You can do that through ambari commands with the migrationHelper.py script (that means you wont need to ssh into every Infra Solr instance host):
 ```bash
 /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-instances
 # same can be done for logfeeders and logsearch portals if required:
@@ -383,9 +411,45 @@ Or optionally you can do that through ambari commands with the migrationHelper.p
 ```
 That runs a package remove and a package install.
 
+Or the usual way is to run these commands on every host where `ambari-infra-solr` packages are located:
+
+```bash
+# For RHEL/CentOS/Oracle Linux:
+
+yum clean all
+yum upgrade ambari-infra-solr
+
+# For SLES:
+
+zypper clean
+zypper up ambari-infra-solr
+
+# For Ubuntu/Debian:
+
+apt-get clean all
+apt-get update
+apt-get install ambari-infra-solr
+```
+
+After the packages are updated, Solr instances can be restarted. It can be done from the UI or from command line as well:
+
+```bash
+/usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-solr
+```
+
 ### <a id="iv.-re-create-collections">V. Re-create collections</a>
 
-Restart Ranger Admin / Atlas / Log Search Ambari service, as the collections were deleted before, during startup, new collections will be created (as a Solr 7 collection).
+Restart Ranger Admin / Atlas / Log Search Ambari service, as the collections were deleted before, during startup, new collections will be created (as a Solr 7 collection). This can be done through the UI or with the following commands:
+
+```bash
+# if Ranger installed on the cluster
+/usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-ranger
+# if Atlas installed on the cluster
+/usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-atlas
+# If LogSearch installed on the cluster
+/usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-logsearch
+```
+
 At this point you can stop, and do the migration / restore later (until you will have the backup), and go ahead with e.g. HDP upgrade. (migration part can take long - 1GB/min.)
 
 ### <a id="v.-migrate-solr-collections">VI. Migrate Solr Collections</a>
@@ -456,7 +520,7 @@ The collection creation and restore part can be done with 1 command:
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restore --keep-backup
 ```
 
-If the script finished successfully and everything looks green on Ambari UI as well, you can go ahead with [Restart Solr Instances](#viii.-restart-infra-solr-instances). Otherwise (or if you want to go step by step instead of the command above) you have to option to run tasks step by step (or manually as well). Those tasks are found in the next sections.
+If the script finished successfully and everything looks green on Ambari UI as well, you can go ahead with [Restart Solr Instances](#vii.-restart-infra-solr-instances). Otherwise (or if you want to go step by step instead of the command above) you have to option to run tasks step by step (or manually as well). Those tasks are found in the next sections.
 
 [![asciicast](https://asciinema.org/a/187423.png)](https://asciinema.org/a/187423?speed=2)
 
@@ -573,13 +637,16 @@ In the end, you end up with 2 collections (ranger_audits and old_ranger_audits),
 ```bash
 # Init values:
 SOLR_URL=... # example: http://c6401.ambari.apache.org:8886/solr
-INFRA_SOLR_KEYTAB=... # example: /etc/security/keytabs/ambari-infra-solr.service.keytab
-INFRA_SOLR_PRINCIPAL=... # example: infra-solr/$(hostname -f)@EXAMPLE.COM
+
 END_DATE=... # example: 2018-02-18T12:00:00.000Z , date until you export data
 
 OLD_COLLECTION=old_ranger_audits
 ACTIVE_COLLECTION=ranger_audits
 EXCLUDE_FIELDS=_version_ # comma separated exclude fields, at least _version_ is required
+
+# provide these with -k and -n options only if kerberos is enabled for Infra Solr !!!
+INFRA_SOLR_KEYTAB=... # example: /etc/security/keytabs/ambari-infra-solr.service.keytab
+INFRA_SOLR_PRINCIPAL=... # example: infra-solr/$(hostname -f)@EXAMPLE.COM
 
 DATE_FIELD=evtTime
 # infra-solr-data-manager is a symlink points to /usr/lib/ambari-infra-solr-client/solrDataManager.py
@@ -591,26 +658,26 @@ nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z n
 
 #### <a id="viii/2.-transport-old-data-to-atlas-collections">IX/2. Transport old data to Atlas collections</a>
 
-In the end, you end up with 6 Atlas collections (vertex_index, old_vertex_index, edge_index, old_edge_index, fulltext_index, old_fulltext_index), in order to drop the restored one, you will need to transfer your old data to the new collection. To achieve this, you can use [solrDataManager.py](#solr-data-manager-script), which is located next to the `migrationHelper.py` script
+In the end, you end up with 6 Atlas collections (vertex_index, old_vertex_index, edge_index, old_edge_index, fulltext_index, old_fulltext_index), in order to drop the restored one, you will need to transfer your old data to the new collection. To achieve this, you can use [solrDataManager.py](#solr-data-manager-script), which is located next to the `migrationHelper.py` script. Here, the script usage will be a bit different as we cannot provide a proper date/timestamp field, so during the data transfer, the records will be sorted only by id. (to do this it will be needed to use `--skip-date-usage` flag)
 
-Example: (with fulltext_index, to the same with edge_index and vertex_index)
+Example: (with vertex_index, to the same with edge_index and fulltext_index, most likely at least edge_index will be empty)
 ```bash
 # Init values:
 SOLR_URL=... # example: http://c6401.ambari.apache.org:8886/solr
-INFRA_SOLR_KEYTAB=... # example: /etc/security/keytabs/ambari-infra-solr.service.keytab
-INFRA_SOLR_PRINCIPAL=... # example: infra-solr/$(hostname -f)@EXAMPLE.COM
-END_DATE=... # example: 2018-02-18T12:00:00.000Z , date until you export data
 
-OLD_COLLECTION=old_fulltext_index
-ACTIVE_COLLECTION=fulltext_index
+OLD_COLLECTION=old_vertex_index
+ACTIVE_COLLECTION=vertex_index
 EXCLUDE_FIELDS=_version_ # comma separated exclude fields, at least _version_ is required
 
-DATE_FIELD=timestamp
+# provide these with -k and -n options only if kerberos is enabled for Infra Solr !!!
+INFRA_SOLR_KEYTAB=... # example: /etc/security/keytabs/ambari-infra-solr.service.keytab
+INFRA_SOLR_PRINCIPAL=... # example: infra-solr/$(hostname -f)@EXAMPLE.COM
+
 # infra-solr-data-manager is a symlink points to /usr/lib/ambari-infra-solr-client/solrDataManager.py
-infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 -f $DATE_FIELD -e $END_DATE --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS
+infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 --skip-date-usage --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS
 
 # Or if you want to run the command in the background (with log and pid file):
-nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 -f $DATE_FIELD -e $END_DATE --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS > /tmp/solr-data-mgr.log 2>&1>& echo $! > /tmp/solr-data-mgr.pid
+nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z none -r 10000 -w 100000 --skip-date-usage --solr-output-collection $ACTIVE_COLLECTION -k $INFRA_SOLR_KEYTAB -n $INFRA_SOLR_PRINCIPAL --exclude-fields $EXCLUDE_FIELDS > /tmp/solr-data-mgr.log 2>&1>& echo $! > /tmp/solr-data-mgr.pid
 ```
 
 ### <a id="happy-path">Happy path</a>
@@ -682,7 +749,11 @@ Options:
   -h, --help            show this help message and exit
   -a ACTION, --action=ACTION
                         delete-collections | backup | cleanup-znodes | backup-
-                        and-cleanup | migrate | restore | rolling-restart-solr
+                        and-cleanup | migrate | restore |'               '
+                        rolling-restart-solr | check-shards | disable-solr-
+                        authorization | upgrade-solr-clients | upgrade-solr-
+                        instances | upgrade-logsearch-portal | upgrade-
+                        logfeeders | stop-logsearch | restart-logsearch
   -i INI_FILE, --ini-file=INI_FILE
                         Config ini file to parse (required)
   -f, --force           force index upgrade even if it's the right version
@@ -723,10 +794,6 @@ Options:
                         core filter for replica folders
   --skip-cores=SKIP_CORES
                         specific cores to skip (comma separated)
-  --skip-generate-restore-host-cores
-                        Skip the generation of restore_host_cores.json, just
-                        read the file itself, can be useful if command failed
-                        at some point.
   --hdfs-base-path=HDFS_BASE_PATH
                         hdfs base path where the collections are located
                         (e.g.: /user/infrasolr). Use if both atlas and ranger
@@ -869,8 +936,11 @@ Options:
   --exclude-fields=EXCLUDE_FIELDS
                         Comma separated list of excluded fields from json
                         response
+  --skip-date-usage     datestamp field won't be used for queries (sort based
+                        on id field)
 
   specifying the end of the range:
-    -e END, --end=END     end of the range
-    -d DAYS, --days=DAYS  number of days to keep
+    -e END, --end=END   end of the range
+    -d DAYS, --days=DAYS
+                        number of days to keep
 ```
