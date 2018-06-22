@@ -508,7 +508,7 @@ class TestActionQueue(TestCase):
     initializer_module.init()
     initializer_module.config = config
     initializer_module.recovery_manager = RecoveryManager(tempfile.mktemp())
-    initializer_module.recovery_manager.update_config(5, 5, 1, 11, True, False, False, "")
+    initializer_module.recovery_manager.update_config(5, 5, 1, 11, True, False, False)
 
     with patch("__builtin__.open") as open_mock:
       # Make file read calls visible

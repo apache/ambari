@@ -29,26 +29,11 @@ import com.google.gson.annotations.SerializedName;
  */
 public class RecoveryConfig {
 
-  @SerializedName("type")
-  @JsonProperty("type")
-  private String type;
-
-  @SerializedName("maxCount")
-  @JsonProperty("maxCount")
-  private String maxCount;
-
-  @SerializedName("windowInMinutes")
-  @JsonProperty("windowInMinutes")
-  private String windowInMinutes;
-
-  @SerializedName("retryGap")
-  @JsonProperty("retryGap")
-  private String retryGap;
-
-  @SerializedName("maxLifetimeCount")
-  @JsonProperty("maxLifetimeCount")
-  private String maxLifetimeCount;
-
+  /**
+   * Creates a holder for agent requests
+   */
+  public RecoveryConfig() {
+  }
   @SerializedName("components")
   @JsonProperty("components")
   private List<RecoveryConfigComponent> enabledComponents;
@@ -67,26 +52,6 @@ public class RecoveryConfig {
     return enabledComponents == null ? null : Collections.unmodifiableList(enabledComponents);
   }
 
-  public String getType() {
-    return type;
-  }
-
-  public String getMaxCount() {
-    return maxCount;
-  }
-
-  public String getWindowInMinutes() {
-    return windowInMinutes;
-  }
-
-  public String getRetryGap() {
-    return retryGap;
-  }
-
-  public String getMaxLifetimeCount() {
-    return maxLifetimeCount;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -94,35 +59,18 @@ public class RecoveryConfig {
 
     RecoveryConfig that = (RecoveryConfig) o;
 
-    if (type != null ? !type.equals(that.type) : that.type != null) return false;
-    if (maxCount != null ? !maxCount.equals(that.maxCount) : that.maxCount != null) return false;
-    if (windowInMinutes != null ? !windowInMinutes.equals(that.windowInMinutes) : that.windowInMinutes != null)
-      return false;
-    if (retryGap != null ? !retryGap.equals(that.retryGap) : that.retryGap != null) return false;
-    if (maxLifetimeCount != null ? !maxLifetimeCount.equals(that.maxLifetimeCount) : that.maxLifetimeCount != null)
-      return false;
     return enabledComponents != null ? enabledComponents.equals(that.enabledComponents) : that.enabledComponents == null;
   }
 
   @Override
   public int hashCode() {
-    int result = type != null ? type.hashCode() : 0;
-    result = 31 * result + (maxCount != null ? maxCount.hashCode() : 0);
-    result = 31 * result + (windowInMinutes != null ? windowInMinutes.hashCode() : 0);
-    result = 31 * result + (retryGap != null ? retryGap.hashCode() : 0);
-    result = 31 * result + (maxLifetimeCount != null ? maxLifetimeCount.hashCode() : 0);
-    result = 31 * result + (enabledComponents != null ? enabledComponents.hashCode() : 0);
+    int result = (enabledComponents != null ? enabledComponents.hashCode() : 0);
     return result;
   }
 
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("RecoveryConfig{");
-    buffer.append(", type=").append(type);
-    buffer.append(", maxCount=").append(maxCount);
-    buffer.append(", windowInMinutes=").append(windowInMinutes);
-    buffer.append(", retryGap=").append(retryGap);
-    buffer.append(", maxLifetimeCount=").append(maxLifetimeCount);
     buffer.append(", components=").append(enabledComponents);
     buffer.append('}');
     return buffer.toString();

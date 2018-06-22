@@ -92,7 +92,7 @@ class InitializerModule:
     self.server_responses_listener = ServerResponsesListener(self)
     self.file_cache = FileCache(self.config)
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
-    self.recovery_manager = RecoveryManager()
+    self.recovery_manager = RecoveryManager(self)
     self.commandStatuses = CommandStatusDict(self)
 
     self.init_threads()
