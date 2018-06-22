@@ -57,7 +57,8 @@ var urls = {
   },
 
   'common.services.update.all' : {
-    'real': '/clusters/{clusterName}/servicegroups?{urlParams}',
+    //'real': '/clusters/{clusterName}/servicegroups?{urlParams}', //this is the new endpoint that should really be used for this but it isn't ready yet
+    'real': '/clusters/{clusterName}/services?{urlParams}', //this is the deprecated endpoint we have to use for now
     'format': function (data) {
       return {
         type: 'PUT',
@@ -2145,22 +2146,6 @@ var urls = {
     }
   },
 
-  'config.validations': {
-    'real': '{stackVersionUrl}/validations',
-    'mock': '/data/stacks/HDP-2.1/validations.json',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          hosts: data.hosts,
-          services: data.services,
-          validate: data.validate,
-          recommendations: data.recommendations
-        })
-      }
-    }
-  },
-
   'preinstalled.checks': {
     'real': '/requests',
     'mock': '',
@@ -3134,6 +3119,26 @@ var urls = {
 
   'mpack.get_all_registered': {
     real: '/mpacks?fields=*'
+  },
+
+  'mpack.advisor.recommendations': {
+    real: '/mpacks/recommendations',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+
+  'mpack.advisor.validations': {
+    real: '/mpacks/validations',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data.data)
+      }
+    }
   },
 
   'registry.all': {

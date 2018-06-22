@@ -127,8 +127,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   interDependentServices: function() {
     var serviceName = this.get('content.serviceName'), interDependentServices = [];
-    App.StackService.find(serviceName).get('requiredServices').forEach(function(requiredService) {
-      if (App.StackService.find(requiredService).get('requiredServices').contains(serviceName)) {
+    App.StackService.find().findProperty('serviceName', serviceName).get('requiredServices').forEach(function(requiredService) {
+      if (App.StackService.find().findProperty('serviceName', requiredService).get('requiredServices').contains(serviceName)) {
         interDependentServices.push(requiredService);
       }
     });
@@ -149,11 +149,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   dependentServiceNames: function() {
     return App.get('router.clusterController.isConfigsPropertiesLoaded') ?
-      App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames') : [];
+      App.StackService.find().findProperty('serviceName', this.get('content.serviceName')).get('dependentServiceNames') : [];
   }.property('content.serviceName', 'App.router.clusterController.isConfigsPropertiesLoaded'),
 
   configDependentServiceNames: function() {
-    return this.get('dependentServiceNames').concat(App.StackService.find(this.get('content.serviceName')).get('requiredServices'))
+    return this.get('dependentServiceNames').concat(App.StackService.find().findProperty('serviceName', this.get('content.serviceName')).get('requiredServices'))
   }.property('dependentServiceNames'),
 
   /**
@@ -244,7 +244,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         });
 
         self.get('configDependentServiceNames').forEach(function(serviceName) {
-          var configTypes = App.StackService.find(serviceName.name).get('configTypeList');
+          var configTypes = App.StackService.find().findProperty('serviceName', serviceName.name).get('configTypeList');
           if (configTypes) {
             var configsByService = allConfigs.filter(function (c) {
               return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
@@ -1393,7 +1393,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
     App.Service.find().forEach(function (service) {
       if (!serviceNamesToDelete.contains(service.get('serviceName'))) {
-        var requiredServices = App.StackService.find(service.get('serviceName')).get('requiredServices');
+        var requiredServices = App.StackService.find().findProperty('serviceName', service.get('serviceName')).get('requiredServices');
         serviceNamesToDelete.forEach(function (dependsOnService) {
           if (requiredServices.contains(dependsOnService)) {
             dependentServices.push(service.get('serviceName'));

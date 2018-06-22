@@ -1500,8 +1500,17 @@ describe('App.config', function() {
   });
 
   describe('#getStepConfigForProperty', function () {
-    var input = [Em.Object.create({ configTypes: ['f1'] }), Em.Object.create({ configTypes: ['f2'] })];
+    var input = [
+      Em.Object.create({
+        configTypes: { f1: 'f1' }
+      }),
+      Em.Object.create({
+        configTypes: { f2: 'f2' }
+      })
+    ];
+    
     var output = input[0];
+
     it('returns stepConfig for fileName', function () {
       expect(App.config.getStepConfigForProperty(input, 'f1')).to.eql(output);
     });

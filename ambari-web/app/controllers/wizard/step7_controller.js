@@ -617,13 +617,11 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
           self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
         });
       }
-
     } else {
       console.timeEnd('applyServicesConfigs execution time: ');
       console.time('loadConfigRecommendations execution time: ');
       self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
     }
-
   },
 
   /**
@@ -756,7 +754,13 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
       var serviceName = service.get('serviceName');
       if (['MISC'].concat(this.get('allSelectedServiceNames')).contains(serviceName)) {
         var serviceConfig = App.config.createServiceConfig(serviceName);
-        serviceConfig.set('showConfig', App.StackService.find(serviceName).get('isInstallable'));
+        let stackService;
+        if (serviceName === 'MISC') {
+          stackService = App.StackService.find('MISC');
+        } else {
+          stackService = App.StackService.find().findProperty('serviceName', serviceName);
+        }
+        serviceConfig.set('showConfig', stackService.get('isInstallable'));
         if (this.get('wizardController.name') === 'addServiceController') {
           serviceConfig.set('selected', !this.get('installedServiceNames').concat('MISC').contains(serviceName));
           if (serviceName === 'MISC') {

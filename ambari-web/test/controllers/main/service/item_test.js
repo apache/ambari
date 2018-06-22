@@ -1387,8 +1387,10 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(App.StackService, 'find', function (serviceName) {
-        return stackServiceModel[serviceName];
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: function (prop, serviceName) {
+          return stackServiceModel[serviceName];
+        }
       });
       this.mockService = sinon.stub(App.Service, 'find');
     });
@@ -1679,8 +1681,10 @@ describe('App.MainServiceItemController', function () {
     var mainServiceItemController;
 
     beforeEach(function() {
-      sinon.stub(App.StackService, 'find', function (serviceName) {
-        return stackServiceModel[serviceName];
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: function (prop, serviceName) {
+          return stackServiceModel[serviceName];
+        }
       });
       mainServiceItemController = App.MainServiceItemController.create({
         content: {}
@@ -1939,9 +1943,13 @@ describe('App.MainServiceItemController', function () {
           serviceName: serviceName
         }
       });
-      sinon.stub(App.StackService, 'find').returns(Em.Object.create({
-        dependentServiceNames: dependentServiceNames
-      }));
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: function () {
+          return Em.Object.create({
+            dependentServiceNames: dependentServiceNames
+          });
+        }
+      });
     });
 
     afterEach(function () {

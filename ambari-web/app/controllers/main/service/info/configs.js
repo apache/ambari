@@ -324,10 +324,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    * @returns {String[]}
    */
   getServicesDependencies: function(serviceName) {
-    var dependencies = Em.getWithDefault(App.StackService.find(serviceName), 'dependentServiceNames', []);
+    var dependencies = Em.getWithDefault(App.StackService.find().findProperty('serviceName', serviceName), 'dependentServiceNames', []);
     var loop = function(dependentServices, allDependencies) {
       return dependentServices.reduce(function(all, name) {
-        var service = App.StackService.find(name);
+        var service = App.StackService.find().findProperty('serviceName', name);
         if (!service) {
           return all;
         }
@@ -589,7 +589,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   onLoadOverrides: function (allConfigs) {
     this.get('servicesToLoad').forEach(function(serviceName) {
       var configGroups = serviceName === this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
-      var configTypes = App.StackService.find(serviceName).get('configTypeList');
+      var configTypes = App.StackService.find().findProperty('serviceName', serviceName).get('configTypeList');
       var configsByService = this.get('allConfigs').filter(function (c) {
         return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
       });

@@ -390,7 +390,7 @@ App.AddMetricExpressionView = Em.View.extend({
         serviceName: serviceName,
         //in order to support panel lists
         href: '#' + serviceName,
-        displayName: App.StackService.find(serviceName).get('displayName'),
+        displayName: App.StackService.find().findProperty('serviceName', serviceName).get('displayName'),
         count: servicesMap[serviceName].count,
         components: components
       }));

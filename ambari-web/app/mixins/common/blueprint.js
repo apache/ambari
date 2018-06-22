@@ -44,7 +44,11 @@ App.BlueprintMixin = Em.Mixin.create({
       res.blueprint.host_groups.push({
         name: group_name,
         components: mappedComponents[host] ? mappedComponents[host].map(function (c) {
-          return { name: Em.get(c, 'componentName') };
+          return {
+            mpack_instance: Em.get(c, 'mpackInstance'),
+            service_instance: Em.get(c, 'serviceInstance'),
+            name: Em.get(c, 'componentName')
+          };
         }) : []
       });
 
