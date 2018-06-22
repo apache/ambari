@@ -49,6 +49,11 @@ LOGSEARCH_SERVICE_NAME = 'LOGSEARCH'
 LOGSEARCH_SERVER_COMPONENT_NAME ='LOGSEARCH_SERVER'
 LOGSEARCH_LOGFEEDER_COMPONENT_NAME ='LOGSEARCH_LOGFEEDER'
 
+RANGER_SERVICE_NAME = "RANGER"
+RANGER_ADMIN_COMPONENT_NAME = "RANDER_ADMIN"
+
+ATLAS_SERVICE_NAME = "ATLAS"
+ATLAS_SERVER_COMPONENT_NAME = "ATLAS_SERVER"
 
 CLUSTERS_URL = '/api/v1/clusters/{0}'
 
@@ -1390,14 +1395,14 @@ def validate_ini_file(options, parser):
     print 'ini file ({0}) does not exist'.format(options.ini_file)
     sys.exit(1)
 
-def rolling_restart_solr(options, accessor, parser, config):
+def rolling_restart(options, accessor, parser, config, service_name, component_name, context):
   cluster = config.get('ambari_server', 'cluster')
   component_hosts = get_solr_hosts(options, accessor, cluster)
   interval_secs = options.batch_interval
   fault_tolerance = options.batch_fault_tolerance
-  request_body = create_batch_command("RESTART", component_hosts, cluster, "AMBARI_INFRA_SOLR", "INFRA_SOLR", interval_secs, fault_tolerance, "Rolling restart Infra Solr Instances")
+  request_body = create_batch_command("RESTART", component_hosts, cluster, service_name, component_name, interval_secs, fault_tolerance, "Rolling restart Infra Solr Instances")
   post_json(accessor, BATCH_REQUEST_API_URL.format(cluster), request_body)
-  print "Rolling Restart Infra Solr Instances request sent. (check Ambari UI about the requests)"
+  print "{0} request sent. (check Ambari UI about the requests)".format(context)
 
 def update_state_jsons(options, accessor, parser, config, service_filter):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("collections.json"))
@@ -1472,7 +1477,7 @@ def check_shards(options, accessor, parser, config):
 def check_docs(options, accessor, parser, config):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"), include_number_of_docs=True)
   if collections:
-    print "Get the number documents per collections ..."
+    print "Get the number of documents per collections ..."
     docs_map = get_number_of_docs_map(COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"))
     for collection_docs_data in docs_map:
       print "Collection: '{0}' - Number of docs: {1}".format(collection_docs_data, docs_map[collection_docs_data])
@@ -1572,11 +1577,21 @@ if __name__=="__main__":
       elif options.action.lower() == 'stop-logsearch':
         service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "STOP", "Stop")
         service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "STOP", "Stop")
+      elif options.action.lower() == 'restart-solr':
+        service_components_command(options, accessor, parser, config, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME, "RESTART", "Restart")
       elif options.action.lower() == 'restart-logsearch':
         service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "RESTART", "Restart")
         service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "RESTART", "Restart")
+      elif options.action.lower() == 'restart-atlas':
+        service_components_command(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "RESTART", "Restart")
+      elif options.action.lower() == 'restart-ranger':
+        service_components_command(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "RESTART", "Restart")
+      elif options.action.lower() == 'rolling-restart-ranger':
+        rolling_restart(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "Rolling Restart Ranger Admin Instances")
+      elif options.action.lower() == 'rolling-restart-atlas':
+        rolling_restart(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "Rolling Restart Atlas Server Instances")
       elif options.action.lower() == 'rolling-restart-solr':
-        rolling_restart_solr(options, accessor, parser, config)
+        rolling_restart(options, accessor, parser, config, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME, "Rolling Restart Infra Solr Instances")
       elif options.action.lower() == 'disable-solr-authorization':
         disable_solr_authorization(options, accessor, parser, config)
       elif options.action.lower() == 'check-shards':
@@ -1586,7 +1601,9 @@ if __name__=="__main__":
       else:
         parser.print_help()
         print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
-              ' rolling-restart-solr | check-shards | check-docs | disable-solr-authorization | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-logsearch)'
+              ' rolling-restart-solr | rolling-restart-ranger | rolling-restart-atlas | check-shards | check-docs | disable-solr-authorization |' \
+              ' upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-solr |' \
+              ' restart-logsearch | restart-ranger | restart-atlas)'
         sys.exit(1)
 
       print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
