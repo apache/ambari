@@ -22,7 +22,6 @@ import pprint
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.LiveStatus import LiveStatus
 
-
 logger = logging.getLogger()
 
 
@@ -73,7 +72,7 @@ class RecoveryManager:
     "stale_config": False
   }
 
-  def __init__(self, recovery_enabled=False, auto_start_only=False, auto_install_start=False):
+  def __init__(self, initializer_module, recovery_enabled=False, auto_start_only=False, auto_install_start=False):
     self.recovery_enabled = recovery_enabled
     self.auto_start_only = auto_start_only
     self.auto_install_start = auto_install_start
@@ -96,9 +95,10 @@ class RecoveryManager:
     self.__cache_lock = threading.RLock()
     self.active_command_count = 0
     self.cluster_id = None
+    self.initializer_module = initializer_module
 
     self.actions = {}
-    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start, "")
+    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
 
   def on_execution_command_start(self):
     with self.__active_command_lock:
@@ -436,6 +436,8 @@ class RecoveryManager:
       if action_counter["count"] < self.max_count:
         if seconds_since_last_attempt > self.retry_gap_in_sec:
           return True
+        else:
+          logger.info("Not running recovery command due to retry_gap = {0} (seconds)".format(self.retry_gap_in_sec))
       else:
         sec_since_last_reset = now - action_counter["lastReset"]
         if sec_since_last_reset > self.window_in_sec:
@@ -447,17 +449,28 @@ class RecoveryManager:
     return int(time.time())
 
   def update_recovery_config(self, dictionary):
-    """
-    TODO: Server sends the recovery configuration - call update_config after parsing
-    "recoveryConfig": {
-      "type" : "DEFAULT|AUTO_START|AUTO_INSTALL_START|FULL",
-      "maxCount" : 10,
-      "windowInMinutes" : 60,
-      "retryGap" : 0,
-      "components" : "a,b"
-      }
-    """
+    if dictionary and "recoveryConfig" in dictionary:
+      if logger.isEnabledFor(logging.INFO):
+        logger.info("RecoverConfig = %s", pprint.pformat(dictionary["recoveryConfig"]))
+      config = dictionary["recoveryConfig"]
+      if 'components' in config:
+        enabled_components = config['components']
+        enabled_components_list = []
 
+        components = [(item["service_name"], item["component_name"], item["desired_state"]) for item in enabled_components]
+        for service, component, state in components:
+          enabled_components_list.append(component)
+          self.update_desired_status(component, state)
+          # Recovery Manager is Component oriented, however Agent require Service and component name to build properly
+          # commands. As workaround, we pushing service name from the server and keeping it relation at agent.
+          #
+          # However it important to keep map actual, for this reason relation could be updated if service will
+          #  push another service <-> component relation
+          self.__component_to_service_map[component] = service
+          
+        self.enabled_components = enabled_components_list
+
+  def on_config_update(self):
     recovery_enabled = False
     auto_start_only = False
     auto_install_start = False
@@ -465,37 +478,36 @@ class RecoveryManager:
     window_in_min = 60
     retry_gap = 5
     max_lifetime_count = 12
-    enabled_components = []
 
-    if dictionary and "recoveryConfig" in dictionary:
-      if logger.isEnabledFor(logging.INFO):
-        logger.info("RecoverConfig = %s", pprint.pformat(dictionary["recoveryConfig"]))
-      config = dictionary["recoveryConfig"]
-      if "type" in config:
-        if config["type"] in ["AUTO_INSTALL_START", "AUTO_START", "FULL"]:
+    cluster_cache = self.initializer_module.configurations_cache[self.cluster_id]
+
+    if 'configurations' in cluster_cache and 'cluster-env' in cluster_cache['configurations']:
+      config = cluster_cache['configurations']['cluster-env']
+      if "recovery_type" in config:
+        if config["recovery_type"] in ["AUTO_INSTALL_START", "AUTO_START", "FULL"]:
           recovery_enabled = True
-          if config["type"] == "AUTO_START":
+          if config["recovery_type"] == "AUTO_START":
             auto_start_only = True
-          elif config["type"] == "AUTO_INSTALL_START":
+          elif config["recovery_type"] == "AUTO_INSTALL_START":
             auto_install_start = True
 
-      if "maxCount" in config:
-        max_count = self._read_int_(config["maxCount"], max_count)
-      if "windowInMinutes" in config:
-        window_in_min = self._read_int_(config["windowInMinutes"], window_in_min)
-      if "retryGap" in config:
-        retry_gap = self._read_int_(config["retryGap"], retry_gap)
-      if 'maxLifetimeCount' in config:
-        max_lifetime_count = self._read_int_(config['maxLifetimeCount'], max_lifetime_count)
+      if "recovery_enabled" in config:
+        recovery_enabled = self._read_bool_(config, "recovery_enabled", recovery_enabled)
 
-      if 'components' in config:
-        enabled_components = config['components']
+      if "recovery_max_count" in config:
+        max_count = self._read_int_(config, "recovery_max_count", max_count)
+      if "recovery_window_in_minutes" in config:
+        window_in_min = self._read_int_(config, "recovery_window_in_minutes", window_in_min)
+      if "recovery_retry_interval" in config:
+        retry_gap = self._read_int_(config, "recovery_retry_interval", retry_gap)
+      if 'recovery_lifetime_max_count' in config:
+        max_lifetime_count = self._read_int_(config, 'recovery_lifetime_max_count', max_lifetime_count)
 
     self.update_config(max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only,
-                       auto_install_start, enabled_components)
+                       auto_install_start)
 
   def update_config(self, max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled,
-                    auto_start_only, auto_install_start, enabled_components):
+                    auto_start_only, auto_install_start):
     """
     Update recovery configuration with the specified values.
 
@@ -506,8 +518,6 @@ class RecoveryManager:
     recovery_enabled - True or False. Indicates whether recovery is enabled or not.
     auto_start_only - True if AUTO_START recovery type was specified. False otherwise.
     auto_install_start - True if AUTO_INSTALL_START recovery type was specified. False otherwise.
-    enabled_components - CSV of componenents enabled for auto start.
-
 
     Update recovery configuration, recovery is disabled if configuration values
     are not correct
@@ -539,7 +549,6 @@ class RecoveryManager:
     self.auto_start_only = auto_start_only
     self.auto_install_start = auto_install_start
     self.max_lifetime_count = max_lifetime_count
-    self.enabled_components = []
 
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALL_FAILED, self.INSTALLED, self.STARTED]
@@ -551,26 +560,7 @@ class RecoveryManager:
       self.allowed_desired_states = [self.INSTALLED, self.STARTED]
       self.allowed_current_states = [self.INSTALL_FAILED, self.INSTALLED]
 
-    if enabled_components is not None and len(enabled_components) > 0:
-      components = [(item["service_name"], item["component_name"], item["desired_state"]) for item in enabled_components]
-      for service, component, state in components:
-        self.enabled_components.append(component)
-        self.update_desired_status(component, state)
-
-        # Recovery Manager is Component oriented, however Agent require Service and component name to build properly
-        # commands. As workaround, we pushing service name from the server and keeping it relation at agent.
-        #
-        # However it important to keep map actual, for this reason relation could be updated if service will
-        #  push another service <-> component relation
-        self.__component_to_service_map[component] = service
-
     self.recovery_enabled = recovery_enabled
-    if self.recovery_enabled:
-      logger.info(
-        "==> Auto recovery is enabled with maximum %s in %s minutes with gap of %s minutes between and"
-        " lifetime max being %s. Enabled components - %s",
-        self.max_count, self.window_in_min, self.retry_gap, self.max_lifetime_count,
-        ', '.join(self.enabled_components))
 
   def get_unique_task_id(self):
     self.id += 1
@@ -687,10 +677,18 @@ class RecoveryManager:
   def get_start_command(self, component):
     return self.get_command(component, "START")
 
-  def _read_int_(self, value, default_value=0):
+  def _read_int_(self, config, key, default_value=0):
     int_value = default_value
     try:
-      int_value = int(value)
-    except ValueError:
+      int_value = int(config[key])
+    except (ValueError, KeyError):
       pass
     return int_value
+
+  def _read_bool_(self, config, key, default_value=False):
+    bool_value = default_value
+    try:
+      bool_value = (config[key].lower() == "true")
+    except KeyError:
+      pass
+    return bool_value

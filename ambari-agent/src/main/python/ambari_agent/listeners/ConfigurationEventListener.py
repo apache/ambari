@@ -33,6 +33,7 @@ class ConfigurationEventListener(EventListener):
   def __init__(self, initializer_module):
     super(ConfigurationEventListener, self).__init__(initializer_module)
     self.configurations_cache = initializer_module.configurations_cache
+    self.recovery_manager = initializer_module.recovery_manager
 
   def on_event(self, headers, message):
     """
@@ -48,6 +49,11 @@ class ConfigurationEventListener(EventListener):
       return
 
     self.configurations_cache.rewrite_cache(message['clusters'], message['hash'])
+
+    if message['clusters']:
+      # FIXME: Recovery manager does not support multiple cluster as of now.
+      self.recovery_manager.cluster_id = message['clusters'].keys()[0]
+      self.recovery_manager.on_config_update()
 
   def get_handled_path(self):
     return Constants.CONFIGURATIONS_TOPIC
