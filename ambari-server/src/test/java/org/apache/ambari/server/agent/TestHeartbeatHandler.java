@@ -424,11 +424,6 @@ public class TestHeartbeatHandler {
     reg.setPrefix(Configuration.PREFIX_DIR);
     RegistrationResponse rr = handler.handleRegistration(reg);
     RecoveryConfig rc = rr.getRecoveryConfig();
-    assertEquals(rc.getMaxCount(), "4");
-    assertEquals(rc.getType(), "AUTO_START");
-    assertEquals(rc.getMaxLifetimeCount(), "10");
-    assertEquals(rc.getRetryGap(), "2");
-    assertEquals(rc.getWindowInMinutes(), "23");
     assertEquals(rc.getEnabledComponents(), "DATANODE,NAMENODE");
 
     // Send a heart beat with the recovery timestamp set to the
@@ -498,11 +493,6 @@ public class TestHeartbeatHandler {
     reg.setPrefix(Configuration.PREFIX_DIR);
     RegistrationResponse rr = handler.handleRegistration(reg);
     RecoveryConfig rc = rr.getRecoveryConfig();
-    assertEquals(rc.getMaxCount(), "4");
-    assertEquals(rc.getType(), "AUTO_START");
-    assertEquals(rc.getMaxLifetimeCount(), "10");
-    assertEquals(rc.getRetryGap(), "2");
-    assertEquals(rc.getWindowInMinutes(), "23");
     assertEquals(rc.getEnabledComponents(), "DATANODE,NAMENODE"); // HDFS_CLIENT is in maintenance mode
   }
 

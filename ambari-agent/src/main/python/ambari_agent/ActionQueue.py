@@ -278,6 +278,8 @@ class ActionQueue(threading.Thread):
     logger.info("Command execution metadata - taskId = {taskId}, retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}, log_output = {log_command_output}".
                  format(taskId=taskId, retryAble=retryAble, retryDuration=retryDuration, log_command_output=log_command_output))
     command_canceled = False
+    self.cancelEvent.clear()
+    
     while retryDuration >= 0:
       if taskId in self.taskIdsToCancel:
         logger.info('Command with taskId = {0} canceled'.format(taskId))
@@ -336,7 +338,7 @@ class ActionQueue(threading.Thread):
                     .format(cid=taskId, status=status, retryAble=retryAble, retryDuration=retryDuration, delay=delay))
         break
 
-    self.cancelEvent.clear()
+    self.taskIdsToCancel.discard(taskId)
 
     # do not fail task which was rescheduled from server
     if command_canceled:
