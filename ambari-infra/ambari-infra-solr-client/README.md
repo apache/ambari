@@ -177,7 +177,7 @@ history_collection_name = history
 
 After the file has created successfully by the script, review the configuration (e.g.: if 1 of the Solr is not up yet, and you do not want to use its REST API for operations, you can remove its host from the hosts of infra_solr section or you can change backup locations for different collections etc.). Also if it's not required to backup e.g. Atlas collections (so you are ok to drop those), you can change the `enabled` config of the collections section to `false`.
 
-[![asciicast](https://asciinema.org/a/xsdPY8wReNJwFfqU9t5FtLWeR.png)](https://asciinema.org/a/xsdPY8wReNJwFfqU9t5FtLWeR?speed=2)
+[![asciicast](https://asciinema.org/a/188260.png)](https://asciinema.org/a/188260?speed=2)
 
 ##### <a id="automatic-upgrade-ambari-infra-solr-client">(Optional) Upgrade All ambari-infra-solr packages</id>
 
