@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.agent;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,17 +34,22 @@ public class RecoveryConfig {
    */
   public RecoveryConfig() {
   }
-
   @SerializedName("components")
   @JsonProperty("components")
   private List<RecoveryConfigComponent> enabledComponents;
 
-  public List<RecoveryConfigComponent> getEnabledComponents() {
-    return enabledComponents;
+  public RecoveryConfig(String type, String maxCount, String windowInMinutes, String retryGap, String maxLifetimeCount,
+                        List<RecoveryConfigComponent> enabledComponents) {
+    this.type = type;
+    this.maxCount = maxCount;
+    this.windowInMinutes = windowInMinutes;
+    this.retryGap = retryGap;
+    this.maxLifetimeCount = maxLifetimeCount;
+    this.enabledComponents = enabledComponents;
   }
 
-  public void setEnabledComponents(List<RecoveryConfigComponent> enabledComponents) {
-    this.enabledComponents = enabledComponents;
+  public List<RecoveryConfigComponent> getEnabledComponents() {
+    return enabledComponents == null ? null : Collections.unmodifiableList(enabledComponents);
   }
 
   @Override
