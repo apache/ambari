@@ -52,6 +52,7 @@ import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.TableDescriptor;
+import org.apache.hadoop.metrics2.lib.MetricsTestHelper;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
@@ -123,11 +124,11 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     long ctime = startTime;
     long minute = 60 * 1000;
 
-    TimelineMetrics metrics1 = MetricTestHelper.prepareSingleTimelineMetric(ctime, "local1",
+    TimelineMetrics metrics1 = MetricTestHelper.prepareSingleTimelineMetric(ctime, "local3",
       "disk_free", 1);
     hdb.insertMetricRecords(metrics1, true);
 
-    TimelineMetrics metrics2 = MetricTestHelper.prepareSingleTimelineMetric(ctime + minute, "local1",
+    TimelineMetrics metrics2 = MetricTestHelper.prepareSingleTimelineMetric(ctime + minute, "local3",
       "disk_free", 2);
     hdb.insertMetricRecords(metrics2, true);
 
@@ -139,11 +140,11 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_%"); }},
-      Collections.singletonList("local1"),
+      Collections.singletonList("local3"),
       "host", null);
     Condition condition = new DefaultCondition(uuids,
       new ArrayList<String>() {{ add("disk_free"); }},
-      Collections.singletonList("local1"),
+      Collections.singletonList("local3"),
       "host", null, startTime, endTime + 1000, Precision.MINUTES, null, false);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_free"));
@@ -153,7 +154,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     TimelineMetric metric = timelineMetrics.getMetrics().get(0);
 
     assertEquals("disk_free", metric.getMetricName());
-    assertEquals("local1", metric.getHostName());
+    assertEquals("local3", metric.getHostName());
     assertEquals(1, metric.getMetricValues().size());
     Iterator<Map.Entry<Long, Double>> iterator = metric.getMetricValues().entrySet().iterator();
     assertEquals(1.5, iterator.next().getValue(), 0.00001);
@@ -359,6 +360,60 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertEquals(1, metric.getMetricValues().size());
     assertEquals(2.0, metric.getMetricValues().values().iterator().next(), 0.00001);
   }
+
+  @Test
+  public void testGetInvalidMetricRecords() throws IOException, SQLException {
+    // GIVEN
+    long startTime = System.currentTimeMillis();
+    long ctime = startTime;
+    long minute = 60 * 1000;
+
+    List<TimelineMetric> timelineMetricList = new ArrayList<>();
+
+    timelineMetricList.add(
+      MetricTestHelper.createTimelineMetric(ctime, "valid_metric", "h1", "test_app",
+        null, 1.0));
+    timelineMetricList.add(
+      MetricTestHelper.createTimelineMetric(ctime, "invalid_metric", "h1", "test_app",
+        null, Double.NaN));
+    TimelineMetrics timelineMetrics = new TimelineMetrics();
+    timelineMetrics.setMetrics(timelineMetricList);
+    hdb.insertMetricRecords(timelineMetrics, true);
+
+    // WHEN
+    long endTime = ctime + minute;
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("valid_metric"); }},
+      Collections.singletonList("h1"),
+      "test_app", null);
+
+    Condition condition = new DefaultCondition(uuids,
+      new ArrayList<String>() {{ add("valid_metric"); }},
+      Collections.singletonList("h1"),
+      "test_app", null, startTime - 1000, endTime, Precision.SECONDS, null, true);
+    TimelineMetrics timelineMetricsFromStore = hdb.getMetricRecords(condition,
+      singletonValueFunctionMap("valid_metric"));
+
+    //THEN
+    assertEquals(1, timelineMetricsFromStore.getMetrics().size());
+    TimelineMetric metric = timelineMetricsFromStore.getMetrics().get(0);
+
+    assertEquals("valid_metric", metric.getMetricName());
+    assertEquals("h1", metric.getHostName());
+    assertEquals(4, metric.getMetricValues().size());
+
+
+    uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("invalid_metric"); }},
+      Collections.singletonList("h1"),
+      "test_app", null);
+    condition = new DefaultCondition(uuids,
+      new ArrayList<String>() {{ add("invalid_metric"); }},
+      Collections.singletonList("h1"),
+      "test_app", null, startTime, endTime, Precision.SECONDS, null, true);
+    timelineMetricsFromStore = hdb.getMetricRecords(condition, singletonValueFunctionMap("invalid_metric"));
+    assertTrue(timelineMetricsFromStore.getMetrics().isEmpty());
+
+  }
+
 
   @Test
   public void testInitPoliciesAndTTL() throws Exception {

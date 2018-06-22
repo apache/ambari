@@ -52,6 +52,7 @@ import org.apache.ambari.metrics.core.timeline.query.Condition;
 import org.apache.ambari.metrics.core.timeline.query.ConditionBuilder;
 import org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL;
 import org.apache.ambari.metrics.core.timeline.query.TopNCondition;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -455,9 +456,9 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     for (TimelineMetricWithAggregatedValues entry : aggregationResult.getResult()) {
       aggregateMap.put(entry.getTimelineMetric(), entry.getMetricAggregate());
       hostname = hostname == null ? entry.getTimelineMetric().getHostName() : hostname;
-      break;
     }
     long timestamp = aggregationResult.getTimeInMilis();
+    LOG.info(String.format("Adding host %s to aggregated by in-memory aggregator. Timestamp : %s", hostname, timestamp));
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("Adding host %s to aggregated by in-memory aggregator. Timestamp : %s", hostname, timestamp));
     }

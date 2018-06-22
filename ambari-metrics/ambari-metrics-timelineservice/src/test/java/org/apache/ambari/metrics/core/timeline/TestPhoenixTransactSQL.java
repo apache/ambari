@@ -167,7 +167,7 @@ public class TestPhoenixTransactSQL {
     long hour = 60 * minute;
     long day = 24 * hour;
 
-    Long endTime = 1407959918000L;
+    Long endTime = System.currentTimeMillis();
     Long startTime = endTime - 200 * second;
 
     //SECONDS precision
@@ -289,7 +289,7 @@ public class TestPhoenixTransactSQL {
     long minute = 60 * second;
     long hour = 60 * minute;
 
-    Long endTime = 1407959918000L;
+    Long endTime = System.currentTimeMillis();
     Long startTime = endTime - 200 * second;
     // SECONDS precision
     // 2 Metrics, 1 Host, Time = 200 seconds
@@ -349,7 +349,7 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // HOURS precision
-    startTime = endTime - 30 * 24 * hour;
+    startTime = endTime - 29 * 24 * hour;
     condition = new DefaultCondition(
       new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
@@ -472,9 +472,16 @@ public class TestPhoenixTransactSQL {
       hosts.add("TestHost"+i);
     }
 
+    long second = 1000;
+    long minute = 60 * second;
+    long hour = 60 * minute;
+
+    Long endTime = System.currentTimeMillis();
+    Long startTime = endTime - hour;
+
     Condition condition = new DefaultCondition(
       metrics, hosts,
-      "a1", "i1", 1407950000L, 1407953600L, Precision.SECONDS, null, false);
+      "a1", "i1", startTime, endTime, Precision.SECONDS, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
     Capture<String> stmtCapture = new Capture<String>();
@@ -490,7 +497,7 @@ public class TestPhoenixTransactSQL {
     //Check without passing precision. Should be OK!
     condition = new DefaultCondition(
       metrics, hosts,
-      "a1", "i1", 1407950000L, 1407953600L, null, null, false);
+      "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
     stmtCapture = new Capture<String>();
@@ -516,7 +523,7 @@ public class TestPhoenixTransactSQL {
     }
     condition = new DefaultCondition(
       metrics, hosts,
-      "a1", "i1", 1407867200L, 1407953600L, null, null, false);
+      "a1", "i1", endTime - 24*hour, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
     stmtCapture = new Capture<String>();
@@ -538,7 +545,7 @@ public class TestPhoenixTransactSQL {
     }
     condition = new DefaultCondition(
       metrics, hosts,
-      "a1", "i1", 1407867200L, 1407953600L, null, null, false);
+      "a1", "i1", endTime - 24*hour, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
     stmtCapture = new Capture<String>();
@@ -562,10 +569,9 @@ public class TestPhoenixTransactSQL {
     for (int i = 0; i < numHosts; i++) {
       hosts.add("TestHost"+i);
     }
-    long endtime = 1407953600L;
     condition = new DefaultCondition(
       metrics, hosts,
-      "a1", "i1", endtime - 5 * 60 * 60, endtime, Precision.SECONDS, null, false);
+      "a1", "i1", endTime - 5 * hour, endTime, Precision.SECONDS, null, false);
     boolean exceptionThrown = false;
     boolean requestedSizeFoundInMessage = false;
 
