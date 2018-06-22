@@ -108,40 +108,6 @@ public class RecoveryConfigHelperTest {
   }
 
   /**
-   * Test default cluster-env properties for recovery.
-   */
-  @Test
-  public void testRecoveryConfigDefaultValues()
-      throws Exception {
-    RecoveryConfig recoveryConfig = recoveryConfigHelper.getDefaultRecoveryConfig();
-    assertEquals(recoveryConfig.getMaxLifetimeCount(), RecoveryConfigHelper.RECOVERY_LIFETIME_MAX_COUNT_DEFAULT);
-    assertEquals(recoveryConfig.getMaxCount(), RecoveryConfigHelper.RECOVERY_MAX_COUNT_DEFAULT);
-    assertEquals(recoveryConfig.getRetryGap(), RecoveryConfigHelper.RECOVERY_RETRY_GAP_DEFAULT);
-    assertEquals(recoveryConfig.getWindowInMinutes(), RecoveryConfigHelper.RECOVERY_WINDOW_IN_MIN_DEFAULT);
-    assertEquals(recoveryConfig.getType(), RecoveryConfigHelper.RECOVERY_TYPE_DEFAULT);
-    assertNull(recoveryConfig.getEnabledComponents());
-  }
-
-  /**
-   * Test cluster-env properties from a dummy cluster
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testRecoveryConfigValues()
-      throws Exception {
-    String hostname = "hostname1";
-    Cluster cluster = getDummyCluster(Sets.newHashSet(hostname));
-    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), hostname);
-    assertEquals(recoveryConfig.getMaxLifetimeCount(), "10");
-    assertEquals(recoveryConfig.getMaxCount(), "4");
-    assertEquals(recoveryConfig.getRetryGap(), "2");
-    assertEquals(recoveryConfig.getWindowInMinutes(), "23");
-    assertEquals(recoveryConfig.getType(), "AUTO_START");
-    assertNotNull(recoveryConfig.getEnabledComponents());
-  }
-
-  /**
    * Install a component with auto start enabled. Verify that the old config was
    * invalidated.
    *
