@@ -23,8 +23,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostna
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -45,7 +43,6 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
@@ -56,7 +53,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -105,40 +101,6 @@ public class RecoveryConfigHelperTest {
   @After
   public void teardown() throws Exception {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
-  }
-
-  /**
-   * Test default cluster-env properties for recovery.
-   */
-  @Test
-  public void testRecoveryConfigDefaultValues()
-      throws Exception {
-    RecoveryConfig recoveryConfig = recoveryConfigHelper.getDefaultRecoveryConfig();
-    assertEquals(recoveryConfig.getMaxLifetimeCount(), RecoveryConfigHelper.RECOVERY_LIFETIME_MAX_COUNT_DEFAULT);
-    assertEquals(recoveryConfig.getMaxCount(), RecoveryConfigHelper.RECOVERY_MAX_COUNT_DEFAULT);
-    assertEquals(recoveryConfig.getRetryGap(), RecoveryConfigHelper.RECOVERY_RETRY_GAP_DEFAULT);
-    assertEquals(recoveryConfig.getWindowInMinutes(), RecoveryConfigHelper.RECOVERY_WINDOW_IN_MIN_DEFAULT);
-    assertEquals(recoveryConfig.getType(), RecoveryConfigHelper.RECOVERY_TYPE_DEFAULT);
-    assertNull(recoveryConfig.getEnabledComponents());
-  }
-
-  /**
-   * Test cluster-env properties from a dummy cluster
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testRecoveryConfigValues()
-      throws Exception {
-    String hostname = "hostname1";
-    Cluster cluster = getDummyCluster(Sets.newHashSet(hostname));
-    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), hostname);
-    assertEquals(recoveryConfig.getMaxLifetimeCount(), "10");
-    assertEquals(recoveryConfig.getMaxCount(), "4");
-    assertEquals(recoveryConfig.getRetryGap(), "2");
-    assertEquals(recoveryConfig.getWindowInMinutes(), "23");
-    assertEquals(recoveryConfig.getType(), "AUTO_START");
-    assertNotNull(recoveryConfig.getEnabledComponents());
   }
 
   /**
@@ -208,41 +170,6 @@ public class RecoveryConfigHelperTest {
     assertEquals(Lists.newArrayList(
       new RecoveryConfigComponent(NAMENODE, HDFS, State.INIT)
     ), recoveryConfig.getEnabledComponents());
-  }
-
-  /**
-   * Disable cluster level auto start and verify that the config is stale.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testClusterEnvConfigChanged()
-      throws Exception {
-    Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
-
-    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setDesiredState(State.INSTALLED);
-
-    // Get the recovery configuration
-    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
-    assertEquals(Lists.newArrayList(
-      new RecoveryConfigComponent(DATANODE, HDFS, State.INSTALLED)
-    ), recoveryConfig.getEnabledComponents());
-
-    // Get cluser-env config and turn off recovery for the cluster
-    Config config = cluster.getDesiredConfigByType("cluster-env");
-
-    config.updateProperties(new HashMap<String, String>() {{
-      put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "false");
-    }});
-    config.save();
-
-    // Get the recovery configuration again and verify that there are no components to be auto started
-    recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
-    assertNull(recoveryConfig.getEnabledComponents());
   }
 
   /**

@@ -53,9 +53,9 @@ class HostLevelParamsEventListener(EventListener):
       cluster_id = message['clusters'].keys()[0]
 
       if 'recoveryConfig' in message['clusters'][cluster_id]:
-        logging.info("Updating recoveryConfig from metadata")
-        self.recovery_manager.update_recovery_config(self.host_level_params_cache[cluster_id])
+        logging.info("Updating recoveryConfig from hostLevelParams")
         self.recovery_manager.cluster_id = cluster_id
+        self.recovery_manager.update_recovery_config(self.host_level_params_cache[cluster_id])
 
   def get_handled_path(self):
     return Constants.HOST_LEVEL_PARAMS_TOPIC
