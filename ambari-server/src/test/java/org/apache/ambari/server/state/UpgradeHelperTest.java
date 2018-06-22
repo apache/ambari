@@ -154,7 +154,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_configHelper.getEffectiveDesiredTags(
         EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<>()).anyTimes();
     expect(m_configHelper.getHostActualConfigs(
-        EasyMock.anyLong())).andReturn(new AgentConfigsUpdateEvent(Collections.emptySortedMap())).anyTimes();
+        EasyMock.anyLong())).andReturn(new AgentConfigsUpdateEvent(null, Collections.emptySortedMap())).anyTimes();
     expect(m_configHelper.getChangedConfigTypes(anyObject(Cluster.class), anyObject(ServiceConfigEntity.class),
         anyLong(), anyLong(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
   }
