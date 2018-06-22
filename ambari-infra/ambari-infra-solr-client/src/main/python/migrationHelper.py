@@ -1469,6 +1469,15 @@ def check_shards(options, accessor, parser, config):
     else:
       print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(fulltext_index_name)
 
+def check_docs(options, accessor, parser, config):
+  collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"), include_number_of_docs=True)
+  if collections:
+    print "Get the number documents per collections ..."
+    docs_map = get_number_of_docs_map(COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"))
+    for collection_docs_data in docs_map:
+      print "Collection: '{0}' - Number of docs: {1}".format(collection_docs_data, docs_map[collection_docs_data])
+  else:
+    print "Not found any collections."
 
 if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
@@ -1572,10 +1581,12 @@ if __name__=="__main__":
         disable_solr_authorization(options, accessor, parser, config)
       elif options.action.lower() == 'check-shards':
         check_shards(options, accessor, parser, config)
+      elif options.action.lower() == 'check-docs':
+        check_docs(options, accessor, parser, config)
       else:
         parser.print_help()
         print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
-              ' rolling-restart-solr | check-shards | disable-solr-authorization | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-logsearch)'
+              ' rolling-restart-solr | check-shards | check-docs | disable-solr-authorization | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-logsearch)'
         sys.exit(1)
 
       print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
