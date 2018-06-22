@@ -100,7 +100,7 @@ public class RecoveryConfigHelper {
     }
 
     AutoStartConfig autoStartConfig = new AutoStartConfig(clusterName);
-    
+
     RecoveryConfig recoveryConfig = new RecoveryConfig(autoStartConfig.getEnabledComponents(hostname));
     return recoveryConfig;
   }

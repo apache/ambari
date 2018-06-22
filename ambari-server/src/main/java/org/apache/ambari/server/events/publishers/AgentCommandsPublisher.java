@@ -89,10 +89,10 @@ public class AgentCommandsPublisher {
       }
       for (Map.Entry<Long, TreeMap<String, ExecutionCommandsCluster>> hostEntry : executionCommandsClusters.entrySet()) {
         Long hostId = hostEntry.getKey();
-        ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostId,
-            agentConfigsHolder
-                .initializeDataIfNeeded(hostId, true).getTimestamp(),
-            hostEntry.getValue());
+        ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostEntry.getValue());
+        executionCommandEvent.setHostId(hostId);
+        executionCommandEvent.setRequiredConfigTimestamp(agentConfigsHolder
+            .initializeDataIfNeeded(hostId, true).getTimestamp());
         STOMPUpdatePublisher.publish(executionCommandEvent);
       }
     }

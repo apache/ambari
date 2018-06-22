@@ -35,31 +35,31 @@ public class AgentDataHolderTest {
     AmbariEventPublisher ambariEventPublisher = createNiceMock(AmbariEventPublisher.class);
     AgentConfigsHolder agentConfigsHolder = new AgentConfigsHolder(ambariEventPublisher);
 
-    AgentConfigsUpdateEvent event1 = new AgentConfigsUpdateEvent(null, null);
+    AgentConfigsUpdateEvent event1 = new AgentConfigsUpdateEvent(null);
     event1.setHash("01");
     event1.setTimestamp(1L);
     String eventHash1 = agentConfigsHolder.getHash(event1);
 
     // difference in hash only
-    AgentConfigsUpdateEvent event2 = new AgentConfigsUpdateEvent(null, null);
+    AgentConfigsUpdateEvent event2 = new AgentConfigsUpdateEvent(null);
     event2.setHash("02");
     event2.setTimestamp(1L);
     String eventHash2 = agentConfigsHolder.getHash(event2);
 
     // difference in timestamp only
-    AgentConfigsUpdateEvent event3 = new AgentConfigsUpdateEvent(null, null);
+    AgentConfigsUpdateEvent event3 = new AgentConfigsUpdateEvent(null);
     event3.setHash("01");
     event3.setTimestamp(2L);
     String eventHash3 = agentConfigsHolder.getHash(event3);
 
     // difference in both hash and timestamp
-    AgentConfigsUpdateEvent event4 = new AgentConfigsUpdateEvent(null, null);
+    AgentConfigsUpdateEvent event4 = new AgentConfigsUpdateEvent(null);
     event4.setHash("02");
     event4.setTimestamp(2L);
     String eventHash4 = agentConfigsHolder.getHash(event4);
 
     // hash and timestamp are the same, changes in body
-    AgentConfigsUpdateEvent event5 = new AgentConfigsUpdateEvent(null, MapUtils.EMPTY_SORTED_MAP);
+    AgentConfigsUpdateEvent event5 = new AgentConfigsUpdateEvent(MapUtils.EMPTY_SORTED_MAP);
     event5.setHash("01");
     event5.setTimestamp(1L);
     String eventHash5 = agentConfigsHolder.getHash(event5);

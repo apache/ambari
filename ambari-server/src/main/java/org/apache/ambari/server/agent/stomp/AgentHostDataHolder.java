@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
 import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.events.STOMPHostEvent;
@@ -43,10 +42,10 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
   @Inject
   private STOMPUpdatePublisher STOMPUpdatePublisher;
 
-  private final ConcurrentHashMap<Long, T> data = new ConcurrentHashMap<>();
+  private final Map<Long, T> data = new ConcurrentHashMap<>();
 
   protected abstract T getCurrentData(Long hostId) throws AmbariException;
-  protected abstract T handleUpdate(T current, T update) throws AmbariException;
+  protected abstract boolean handleUpdate(T update) throws AmbariException;
 
   public T getUpdateIfChanged(String agentHash, Long hostId) throws AmbariException {
     T hostData = initializeDataIfNeeded(hostId, true);
@@ -54,23 +53,21 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
   }
 
   public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
-    try {
-      return data.computeIfAbsent(hostId, id -> initializeData(hostId, regenerateHash));
-    } catch (AmbariRuntimeException e) {
-      throw new AmbariException(e.getMessage(), e);
-    }
-  }
-
-  private T initializeData(Long hostId, boolean regenerateHash) {
-    T hostData;
-    try {
-      hostData = getCurrentData(hostId);
-    } catch (AmbariException e) {
-      LOG.error("Error during retrieving initial value for host: {} and class {}", hostId, getClass().getName(), e);
-      throw new AmbariRuntimeException("Error during retrieving initial value for host: " + hostId + " and class: " + getClass().getName(), e);
-    }
-    if (regenerateHash) {
-      regenerateDataIdentifiers(hostData);
+    T hostData = data.get(hostId);
+    if (hostData == null) {
+      updateLock.lock();
+      try {
+        hostData = data.get(hostId);
+        if (hostData == null) {
+          hostData = getCurrentData(hostId);
+          if (regenerateHash) {
+            regenerateDataIdentifiers(hostData);
+          }
+          data.put(hostId, hostData);
+        }
+      } finally {
+        updateLock.unlock();
+      }
     }
     return hostData;
   }
@@ -80,34 +77,21 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
    * event to listeners.
    */
   public void updateData(T update) throws AmbariException {
+    //TODO need optimization for perf cluster
+    updateLock.lock();
     try {
-      data.compute(update.getHostId(), (id, current) -> {
-        if (current == null) {
-          current = initializeData(id, true);
+      initializeDataIfNeeded(update.getHostId(), true);
+      if (handleUpdate(update)) {
+        T hostData = getData(update.getHostId());
+        regenerateDataIdentifiers(hostData);
+        setIdentifiersToEventUpdate(update, hostData);
+        if (update.getType().equals(STOMPEvent.Type.AGENT_CONFIGS)) {
+          LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
         }
-        T updated;
-        try {
-          updated = handleUpdate(current, update);
-        } catch (AmbariException e) {
-          LOG.error("Error during handling update for host: {} and class {}", id, getClass().getName(), e);
-          throw new AmbariRuntimeException("Error during handling update for host: " + id + " and class: " + getClass().getName(), e);
-        }
-        if (updated == null) {
-          return current;
-        } else {
-          regenerateDataIdentifiers(updated);
-          setIdentifiersToEventUpdate(update, updated);
-          return updated;
-        }
-      });
-    } catch(AmbariRuntimeException e) {
-      throw new AmbariException(e.getMessage(), e);
-    }
-    if (isIdentifierValid(update)) {
-      if (update.getType().equals(STOMPEvent.Type.AGENT_CONFIGS)) {
-        LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), update.getHostId());
+        STOMPUpdatePublisher.publish(update);
       }
-      STOMPUpdatePublisher.publish(update);
+    } finally {
+      updateLock.unlock();
     }
   }
 
