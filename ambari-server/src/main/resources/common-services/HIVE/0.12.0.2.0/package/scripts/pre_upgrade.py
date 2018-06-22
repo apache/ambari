@@ -87,8 +87,12 @@ class HivePreUpgrade(Script):
     source_dir = format("/usr/hdp/{source_version}");
     target_dir = format("/usr/hdp/{target_version}")
     
+    if params.security_enabled:
+      hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
+      Execute(hive_kinit_cmd, user = params.hive_user)
+    
     classpath = format("{source_dir}/hive2/lib/*:{source_dir}/hadoop/*:{source_dir}/hadoop/lib/*:{source_dir}/hadoop-mapreduce/*:{source_dir}/hadoop-mapreduce/lib/*:{target_dir}/hive/lib/hive-pre-upgrade.jar:{source_dir}/hive/conf")
-    cmd = format("{java64_home}/bin/java -cp {classpath} org.apache.hadoop.hive.upgrade.acid.PreUpgradeTool -execute")
+    cmd = format("{java64_home}/bin/java -Djavax.security.auth.useSubjectCredsOnly=false -cp {classpath} org.apache.hadoop.hive.upgrade.acid.PreUpgradeTool -execute")
     Execute(cmd, user = "hive")
 
 if __name__ == "__main__":
