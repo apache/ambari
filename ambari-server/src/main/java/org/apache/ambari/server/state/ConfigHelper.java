@@ -2067,7 +2067,8 @@ public class ConfigHelper {
           new ClusterConfigs(configurationsTreeMap, configurationAttributesTreeMap));
     }
 
-    AgentConfigsUpdateEvent agentConfigsUpdateEvent = new AgentConfigsUpdateEvent(hostId, clustersConfigs);
+    AgentConfigsUpdateEvent agentConfigsUpdateEvent = new AgentConfigsUpdateEvent(clustersConfigs);
+    agentConfigsUpdateEvent.setHostId(hostId);
     return agentConfigsUpdateEvent;
   }
 

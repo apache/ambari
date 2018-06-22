@@ -44,7 +44,7 @@ public class AgentConfigsUpdateEvent extends STOMPHostEvent implements Hashable 
   /**
    * Host identifier.
    */
-  private final Long hostId;
+  private Long hostId;
 
   /**
    * Configs grouped by cluster id as keys.
@@ -52,9 +52,8 @@ public class AgentConfigsUpdateEvent extends STOMPHostEvent implements Hashable 
   @JsonProperty("clusters")
   private final SortedMap<String, ClusterConfigs> clustersConfigs;
 
-  public AgentConfigsUpdateEvent(Long hostId, SortedMap<String, ClusterConfigs> clustersConfigs) {
+  public AgentConfigsUpdateEvent(SortedMap<String, ClusterConfigs> clustersConfigs) {
     super(Type.AGENT_CONFIGS);
-    this.hostId = hostId;
     this.clustersConfigs = clustersConfigs;
     this.timestamp = System.currentTimeMillis();
   }
@@ -76,6 +75,10 @@ public class AgentConfigsUpdateEvent extends STOMPHostEvent implements Hashable 
     this.timestamp = timestamp;
   }
 
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
+  }
+
   @Override
   public Long getHostId() {
     return hostId;
@@ -86,7 +89,7 @@ public class AgentConfigsUpdateEvent extends STOMPHostEvent implements Hashable 
   }
 
   public static AgentConfigsUpdateEvent emptyUpdate() {
-    return new AgentConfigsUpdateEvent(null, null);
+    return new AgentConfigsUpdateEvent(null);
   }
 
   @Override
