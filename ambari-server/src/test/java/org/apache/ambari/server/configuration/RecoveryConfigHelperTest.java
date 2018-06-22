@@ -177,41 +177,6 @@ public class RecoveryConfigHelperTest {
   }
 
   /**
-   * Disable cluster level auto start and verify that the config is stale.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testClusterEnvConfigChanged()
-      throws Exception {
-    Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
-
-    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setDesiredState(State.INSTALLED);
-
-    // Get the recovery configuration
-    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
-    assertEquals(Lists.newArrayList(
-      new RecoveryConfigComponent(DATANODE, HDFS, State.INSTALLED)
-    ), recoveryConfig.getEnabledComponents());
-
-    // Get cluser-env config and turn off recovery for the cluster
-    Config config = cluster.getDesiredConfigByType("cluster-env");
-
-    config.updateProperties(new HashMap<String, String>() {{
-      put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "false");
-    }});
-    config.save();
-
-    // Get the recovery configuration again and verify that there are no components to be auto started
-    recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
-    assertNull(recoveryConfig.getEnabledComponents());
-  }
-
-  /**
    * Change the maintenance mode of a service component host and verify that
    * config is stale.
    *
