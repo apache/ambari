@@ -41,9 +41,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class UpgradeUpdateEvent extends AmbariUpdateEvent {
 
-  @JsonProperty("associated_version")
-  private String associatedVersion;
-
   @JsonProperty("cluster_id")
   private Long clusterId;
 
@@ -111,7 +108,6 @@ public class UpgradeUpdateEvent extends AmbariUpdateEvent {
     RequestEntity rentity = requestDAO.findByPK(upgradeEntity.getRequestId());
 
     upgradeUpdateEvent.setUpgradeId(upgradeEntity.getId());
-    upgradeUpdateEvent.setAssociatedVersion(upgradeEntity.getRepositoryVersion().getVersion());
     upgradeUpdateEvent.setClusterId(upgradeEntity.getClusterId());
     upgradeUpdateEvent.setDirection(upgradeEntity.getDirection());
     upgradeUpdateEvent.setDowngradeAllowed(upgradeEntity.isDowngradeAllowed());
@@ -153,14 +149,6 @@ public class UpgradeUpdateEvent extends AmbariUpdateEvent {
     upgradeUpdateEvent.setRequestStatus(calc.getStatus());
 
     return upgradeUpdateEvent;
-  }
-
-  public String getAssociatedVersion() {
-    return associatedVersion;
-  }
-
-  public void setAssociatedVersion(String associatedVersion) {
-    this.associatedVersion = associatedVersion;
   }
 
   public Long getClusterId() {

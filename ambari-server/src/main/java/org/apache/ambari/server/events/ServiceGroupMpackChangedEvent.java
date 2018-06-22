@@ -15,27 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.topology;
+package org.apache.ambari.server.events;
 
-import java.util.Collection;
-import java.util.Set;
+public class ServiceGroupMpackChangedEvent extends ClusterEvent {
 
-import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.state.StackId;
-
-/**
- * Request for provisioning the cluster.  This interface is extracted
- * from ProvisionClusterRequest so that we can have a unified view of the
- * blueprint and the request in BlueprintBasedClusterProvisionRequest.
- */
-public interface ProvisionRequest extends TopologyRequest {
-
-  String getClusterName();
-  ConfigRecommendationStrategy getConfigRecommendationStrategy();
-  ProvisionAction getProvisionAction();
-  String getDefaultPassword();
-  Set<StackId> getStackIds();
-  Collection<MpackInstance> getMpacks();
-  SecurityConfiguration getSecurityConfiguration();
-
+  public ServiceGroupMpackChangedEvent(long clusterId) {
+    super(AmbariEventType.SERVICE_GROUP_MPACK_CHANGED, clusterId);
+  }
 }

@@ -21,6 +21,7 @@ package org.apache.ambari.server.state;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -380,6 +382,47 @@ public class ServiceGroupImpl implements ServiceGroup {
     return serviceGroup.getClusterServices().stream().map(entity -> {
       return serviceFactory.createExisting(cluster, this, entity);
     }).collect(Collectors.toList());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(mpackId, serviceGroupName);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (null == object) {
+      return false;
+    }
+
+    if (this == object) {
+      return true;
+    }
+
+    if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    ServiceGroupImpl that = (ServiceGroupImpl) object;
+
+    return Objects.equals(mpackId, that.mpackId)
+        && Objects.equals(serviceGroupName, that.serviceGroupName);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("mpackId", mpackId)
+        .add("serviceGroupName", serviceGroupName).toString();
   }
 
 }

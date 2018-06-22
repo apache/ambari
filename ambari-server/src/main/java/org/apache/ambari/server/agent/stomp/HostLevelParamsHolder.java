@@ -24,8 +24,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
+import org.apache.ambari.server.events.ServiceGroupMpackChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -70,6 +70,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     return hostLevelParamsUpdateEvent;
   }
 
+  @Override
   protected boolean handleUpdate(HostLevelParamsUpdateEvent update) throws AmbariException {
     //TODO implement update host level params process
     setData(update, update.getHostId());
@@ -82,7 +83,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   }
 
   @Subscribe
-  public void onClusterComponentsRepoUpdate(ClusterComponentsRepoChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
+  public void onUpgradeDesiredMpackChange(ServiceGroupMpackChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
     Long clusterId = clusterComponentsRepoChangedEvent.getClusterId();
 
     Cluster cluster = clusters.getCluster(clusterId);

@@ -83,7 +83,6 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
   public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECKS         = UPGRADE_PLAN + "skip_service_checks";
   public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECK_FAILURES = UPGRADE_PLAN + "skip_service_check_failures";
   public static final String UPGRADE_PLAN_FAIL_ON_CHECK_WARNINGS      = UPGRADE_PLAN + "fail_on_check_warnings";
-
   public static final String UPGRADE_PLAN_SERVICE_GROUPS              = UPGRADE_PLAN + "servicegroups";
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.<Resource.Type, String>builder()
@@ -152,9 +151,9 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
     String json = s_gson.toJson(groupMaps);
 
     java.lang.reflect.Type listType = new TypeToken<ArrayList<ServiceGroupJson>>(){}.getType();
-    List<ServiceGroupJson> l = s_gson.fromJson(json, listType);
+    List<ServiceGroupJson> sgList = s_gson.fromJson(json, listType);
 
-    UpgradePlanEntity entity = toEntity(propertyMap, l);
+    UpgradePlanEntity entity = toEntity(propertyMap, sgList);
 
     s_upgradePlanDAO.create(entity);
 
@@ -316,6 +315,14 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
         UpgradePlanDetailEntity detail = new UpgradePlanDetailEntity();
         detail.setServiceGroupId(sgJson.serviceGroupId);
         detail.setMpackTargetId(sgJson.mpackTargetId);
+        if (StringUtils.isNotBlank(sgJson.upgradePack)) {
+          // !!! find and verify the target mpack has the upgrade pack asked for
+          detail.setUpgradePack(sgJson.upgradePack);
+        } else {
+          // !!! TODO find the upgrade pack in the target that will update the
+          // service group
+          detail.setUpgradePack("foo");
+        }
 
         // !!! TODO During create, we have to resolve the config changes and persist them
         // to allow the user to override them.  Ignore passed-in values, this has to come
@@ -374,6 +381,14 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
     @JsonProperty("mpack_target_id")
     private Long mpackTargetId;
 
+    /**
+     * Upgrade pack to use.  This property is not expected to be sent by the UI
+     * but is used for API testing.
+     */
+    @SerializedName("upgrade_pack")
+    @JsonProperty("upgrade_pack")
+    private String upgradePack;
+
     @SerializedName("configuration_changes")
     @JsonProperty("configuration_changes")
     private List<ConfigurationChangeJson> config_changes;
@@ -381,6 +396,7 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
     private ServiceGroupJson(UpgradePlanDetailEntity detail) {
       serviceGroupId = detail.getServiceGroupId();
       mpackTargetId = detail.getMpackTargetId();
+      upgradePack = detail.getUpgradePack();
 
       config_changes = detail.getConfigChanges().stream()
           .map(ConfigurationChangeJson::new).collect(Collectors.toList());

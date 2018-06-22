@@ -36,7 +36,7 @@ App.serviceMapper = App.QuickDataMapper.create({
     var self = this;
     var passiveStateMap = this.get('passiveStateMap');
     var services = [];
-    
+
     json.items.forEach(function (item) {
       const itemServices = item.services.map(service => {
         service.ServiceInfo.mpack_name = item.ServiceGroupInfo.mpack_name;

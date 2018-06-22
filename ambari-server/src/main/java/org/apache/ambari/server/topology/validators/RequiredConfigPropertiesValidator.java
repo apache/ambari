@@ -48,7 +48,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
    * @throws InvalidTopologyException when there are missing configuration types or properties related to services in the blueprint
    */
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
 
     // collect required properties
     Map<String, Map<String, Collection<String>>> requiredPropertiesByService = getRequiredPropertiesByService(topology);
@@ -103,6 +103,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
         "properties in the blueprint or cluster creation template configuration. " + missingProperties);
     }
 
+    return topology;
   }
 
 

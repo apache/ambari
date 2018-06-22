@@ -21,7 +21,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -29,12 +28,6 @@ import org.apache.commons.lang.StringUtils;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Release {
-
-  /**
-   * The type of repository dictates how the repo should be installed and its upgradability.
-   */
-  @XmlElement(name="type")
-  public RepositoryType repositoryType;
 
   /**
    * The stack id for the repository.

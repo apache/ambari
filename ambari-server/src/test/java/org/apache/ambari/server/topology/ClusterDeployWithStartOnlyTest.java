@@ -18,6 +18,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
@@ -30,7 +31,6 @@ import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.newCapture;
 import static org.junit.Assert.assertEquals;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,7 +70,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.topology.validators.TopologyValidator;
-import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
@@ -85,6 +84,7 @@ import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -177,9 +177,6 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
-
-  @Mock
-  private TopologyValidatorService topologyValidatorServiceMock;
 
   @Mock
   private ComponentResolver componentResolver;
@@ -279,8 +276,8 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     // don't expect toEntity()
 
-    expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
-    expect(stack.getAllConfigurationTypes("service2")).andReturn(Arrays.asList("service2-site", "service2-env")).anyTimes();
+    expect(stack.getAllConfigurationTypes("service1")).andReturn(ImmutableSet.of("service1-site", "service1-env")).anyTimes();
+    expect(stack.getAllConfigurationTypes("service2")).andReturn(ImmutableSet.of("service2-site", "service2-env")).anyTimes();
     expect(stack.getAutoDeployInfo("component1")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component2")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component3")).andReturn(null).anyTimes();
@@ -323,18 +320,19 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getProvisionAction()).andReturn(ProvisionAction.START_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.shouldValidateTopology()).andReturn(true).anyTimes();
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getAllMpacks()).andReturn(ImmutableSet.of()).anyTimes();
 
     expect(componentResolver.resolveComponents(anyObject())).andReturn(ImmutableMap.of(
       "group1", ImmutableSet.of(
-        ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
-        ResolvedComponent.builder(new Component("component2")).serviceType("service2").buildPartial()
+        builderFor("service1", "component1").buildPartial(),
+        builderFor("service2", "component2").buildPartial()
       ),
       "group2", ImmutableSet.of(
-        ResolvedComponent.builder(new Component("component3")).serviceType("service2").buildPartial(),
-        ResolvedComponent.builder(new Component("component4")).serviceType("service2").buildPartial()
+        builderFor("service2", "component3").buildPartial(),
+        builderFor("service2", "component4").buildPartial()
       )
     )).anyTimes();
 
@@ -357,9 +355,8 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
       LogicalRequestFactory.class.getMethod("createRequest",
         Long.class, TopologyRequest.class, ClusterTopology.class,
         TopologyLogicalRequestEntity.class)).createMock();
-    Field f = TopologyManager.class.getDeclaredField("logicalRequestFactory");
-    f.setAccessible(true);
-    f.set(topologyManager, logicalRequestFactory);
+    Whitebox.setInternalState(topologyManager, "logicalRequestFactory", logicalRequestFactory);
+    Whitebox.setInternalState(topologyManager, "topologyValidatorService", TopologyManagerTest.NO_VALIDATION);
 
     PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
@@ -443,16 +440,9 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     persistedState.persistLogicalRequest((LogicalRequest) anyObject(), anyLong());
     expectLastCall().once();
 
-    topologyValidatorServiceMock.validateTopologyConfiguration(anyObject(ClusterTopology.class));
-
     replayAll();
 
-    Class clazz = TopologyManager.class;
-
-    f = clazz.getDeclaredField("executor");
-    f.setAccessible(true);
-    f.set(topologyManager, executor);
-
+    Whitebox.setInternalState(topologyManager, "executor", executor);
     EasyMockSupport.injectMocks(topologyManager);
   }
 

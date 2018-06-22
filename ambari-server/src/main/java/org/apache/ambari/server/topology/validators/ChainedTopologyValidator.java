@@ -48,10 +48,11 @@ public class ChainedTopologyValidator implements TopologyValidator {
   }
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
     for (TopologyValidator validator : validators) {
       LOGGER.info("Performing topology validation: {}", validator.getClass());
-      validator.validate(topology);
+      topology = validator.validate(topology);
     }
+    return topology;
   }
 }

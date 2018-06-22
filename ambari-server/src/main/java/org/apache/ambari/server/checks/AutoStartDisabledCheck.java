@@ -23,7 +23,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
@@ -37,7 +37,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.CONFIGURATION_WARNING,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class AutoStartDisabledCheck extends AbstractCheckDescriptor {
+public class AutoStartDisabledCheck extends ClusterCheck {
 
   static final String CLUSTER_ENV_TYPE = "cluster-env";
   static final String RECOVERY_ENABLED_KEY = "recovery_enabled";
@@ -63,23 +63,24 @@ public class AutoStartDisabledCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException {
 
     String autoStartEnabled = getProperty(request, CLUSTER_ENV_TYPE, RECOVERY_ENABLED_KEY);
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     // !!! auto-start is already disabled
     if (!Boolean.valueOf(autoStartEnabled)) {
-      return;
+      return result;
     }
 
     // !!! double check the value is AUTO_START.  it's the only supported value (and there's no enum for it)
     String recoveryType = getProperty(request, CLUSTER_ENV_TYPE, RECOVERY_TYPE_KEY);
     if (StringUtils.equals(recoveryType, RECOVERY_AUTO_START)) {
-
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.getFailedOn().add(request.getClusterName());
-
+      result.setFailReason(getFailReason(result, request));
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.getFailedOn().add(request.getClusterName());
     }
+
+    return result;
   }
 }

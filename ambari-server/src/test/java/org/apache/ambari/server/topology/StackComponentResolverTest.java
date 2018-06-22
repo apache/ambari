@@ -19,13 +19,12 @@ package org.apache.ambari.server.topology;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -35,9 +34,11 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.internal.StackDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang3.tuple.Pair;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -47,6 +48,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -64,7 +66,10 @@ public class StackComponentResolverTest extends EasyMockSupport {
     .thenComparing(ResolvedComponent::effectiveServiceName)
     .thenComparing(ResolvedComponent::componentName);
 
-  private static final Set<String> CLIENT_COMPONENTS = Sets.union(hdpCoreComponents(), odsComponents()).stream()
+  private static final Set<ResolvedComponent.Builder> HDP_CORE_COMPONENTS = hdpCoreComponents();
+  private static final Set<ResolvedComponent.Builder> ODS_COMPONENTS = odsComponents();
+
+  private static final Set<String> CLIENT_COMPONENTS = Sets.union(HDP_CORE_COMPONENTS, ODS_COMPONENTS).stream()
     .map(ResolvedComponent::componentName)
     .filter(each -> each.contains("_CLIENT"))
     .collect(toSet());
@@ -89,33 +94,33 @@ public class StackComponentResolverTest extends EasyMockSupport {
   @Test(expected = IllegalArgumentException.class) // THEN
   public void ambiguousComponentName() {
     // GIVEN
-    Set<ResolvedComponent> components = build(Sets.union(hdpCoreComponents(), odsComponents()));
+    Set<ResolvedComponent> components = build(Sets.union(HDP_CORE_COMPONENTS, ODS_COMPONENTS));
     aStackWith(components);
     defineMpacksAs(MPACK_INSTANCE1, MPACK_INSTANCE2);
     aHostGroupWith(components);
     replayAll();
 
     // WHEN
-    Map<String, Set<ResolvedComponent>> resolved = subject.resolveComponents(request);
+    subject.resolveComponents(request);
   }
 
   @Test(expected = IllegalArgumentException.class) // THEN
   public void unknownComponent() {
     // GIVEN
-    Set<ResolvedComponent> components = build(Sets.union(hdpCoreComponents(), odsComponents()));
+    Set<ResolvedComponent> components = build(Sets.union(HDP_CORE_COMPONENTS, ODS_COMPONENTS));
     aStackWith(components);
     defineMpacksAs(MPACK_INSTANCE1, MPACK_INSTANCE2);
     aHostGroupWith(new Component("UNKNOWN_COMPONENT"));
     replayAll();
 
     // WHEN
-    Map<String, Set<ResolvedComponent>> resolved = subject.resolveComponents(request);
+    subject.resolveComponents(request);
   }
 
   @Test
   public void withExplicitNamesOnlyForClients() {
     // GIVEN
-    Set<ResolvedComponent.Builder> builders = Sets.union(hdpCoreComponents(), odsComponents());
+    Set<ResolvedComponent.Builder> builders = Sets.union(HDP_CORE_COMPONENTS, ODS_COMPONENTS);
     builders.stream().filter(each -> CLIENT_COMPONENTS.contains(each.componentName())).forEach(each -> each.serviceGroupName(each.stackId().getStackName()));
     Set<ResolvedComponent> components = build(builders);
     aStackWith(components);
@@ -135,8 +140,8 @@ public class StackComponentResolverTest extends EasyMockSupport {
     // GIVEN
     String mpackInstanceName1 = STACK_ID1.getStackName(), mpackInstanceName2 = STACK_ID2.getStackName();
     Set<ResolvedComponent> components = build(Sets.union(
-      inServiceGroup(mpackInstanceName1, hdpCoreComponents()),
-      inServiceGroup(mpackInstanceName2, odsComponents())
+      inServiceGroup(mpackInstanceName1, HDP_CORE_COMPONENTS),
+      inServiceGroup(mpackInstanceName2, ODS_COMPONENTS)
     ));
 
     aStackWith(components);
@@ -161,8 +166,8 @@ public class StackComponentResolverTest extends EasyMockSupport {
     // GIVEN
     String mpackInstanceName1 = "hdp-core", mpackInstanceName2 = "ods!";
     Set<ResolvedComponent> components = build(Sets.union(
-      inServiceGroup(mpackInstanceName1, hdpCoreComponents()),
-      inServiceGroup(mpackInstanceName2, odsComponents())
+      inServiceGroup(mpackInstanceName1, HDP_CORE_COMPONENTS),
+      inServiceGroup(mpackInstanceName2, ODS_COMPONENTS)
     ));
 
     aStackWith(components);
@@ -196,6 +201,8 @@ public class StackComponentResolverTest extends EasyMockSupport {
       expect(service.getName()).andReturn(entry.getValue().iterator().next().serviceType()).anyTimes();
       for (ResolvedComponent component : entry.getValue()) {
         services.put(component, service);
+        ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+        expect(service.getComponentByName(component.componentName())).andReturn(componentInfo).anyTimes();
       }
     }
 
@@ -208,19 +215,6 @@ public class StackComponentResolverTest extends EasyMockSupport {
         .andAnswer(() -> entry.getValue().stream().map(each -> Pair.of(each.getLeft().stackId(), each.getRight()))).anyTimes();
     }
     expect(stack.getServicesForComponent(anyString())).andAnswer(Stream::empty).anyTimes();
-  }
-
-  private void mpacksWith(String serviceName, String componentName, MpackInstance... mpacks) {
-    defineMpacksAs(mpacks);
-
-    Collection<Pair<StackId, ServiceInfo>> services = Arrays.stream(mpacks)
-      .map(mpack -> {
-        ServiceInfo service = createNiceMock(ServiceInfo.class);
-        expect(service.getName()).andReturn(serviceName).anyTimes();
-        return Pair.of(mpack.getStackId(), service);
-      })
-      .collect(toList());
-    expect(stack.getServicesForComponent(componentName)).andAnswer(services::stream).anyTimes();
   }
 
   private void aHostGroupWith(Component component) {
@@ -239,16 +233,12 @@ public class StackComponentResolverTest extends EasyMockSupport {
     expect(request.getHostGroups()).andReturn(hostGroups).anyTimes();
   }
 
-  private static Set<ResolvedComponent> build(ResolvedComponent.Builder builder) {
-    return build(ImmutableSet.of(builder));
-  }
-
   private static Set<ResolvedComponent> build(Set<ResolvedComponent.Builder> builders) {
     builders.forEach(each ->
       each.component(new Component(each.componentName(), each.effectiveServiceGroupName(), each.effectiveServiceName(), null)));
 
     return builders.stream()
-      .map(ResolvedComponent.Builder::build)
+      .map(ResolvedComponent.Builder::buildPartial)
       .collect(toSet());
   }
 
@@ -271,11 +261,11 @@ public class StackComponentResolverTest extends EasyMockSupport {
 
   private static Set<ResolvedComponent.Builder> hdpCoreComponents() {
     Set<ResolvedComponent.Builder> builders = ImmutableSet.of(
-      ResolvedComponent.builder("HADOOP_CLIENT").serviceType("HADOOP_CLIENTS"),
-      ResolvedComponent.builder("DATANODE").serviceType("HDFS"),
-      ResolvedComponent.builder("NAMENODE").serviceType("HDFS"),
-      ResolvedComponent.builder("ZOOKEEPER_CLIENT").serviceType("ZOOKEEPER_CLIENTS"),
-      ResolvedComponent.builder("ZOOKEEPER_SERVER").serviceType("ZOOKEEPER")
+      builderFor("HADOOP_CLIENTS", "HADOOP_CLIENT"),
+      builderFor("HDFS", "DATANODE"),
+      builderFor("HDFS", "NAMENODE"),
+      builderFor("ZOOKEEPER_CLIENTS", "ZOOKEEPER_CLIENT"),
+      builderFor("ZOOKEEPER", "ZOOKEEPER_SERVER")
     );
     builders.forEach(each -> each.stackId(STACK_ID1));
     return builders;
@@ -283,14 +273,35 @@ public class StackComponentResolverTest extends EasyMockSupport {
 
   private static Set<ResolvedComponent.Builder> odsComponents() {
     Set<ResolvedComponent.Builder> builders = ImmutableSet.of(
-      ResolvedComponent.builder("HADOOP_CLIENT").serviceType("HADOOP_CLIENTS"),
-      ResolvedComponent.builder("HBASE_MASTER").serviceType("HBASE"),
-      ResolvedComponent.builder("HBASE_REGIONSERVER").serviceType("HBASE"),
-      ResolvedComponent.builder("HBASE_CLIENT").serviceType("HBASE_CLIENTS"),
-      ResolvedComponent.builder("ZOOKEEPER_CLIENT").serviceType("ZOOKEEPER_CLIENTS")
+      builderFor("HADOOP_CLIENTS", "HADOOP_CLIENT"),
+      builderFor("HBASE", "HBASE_MASTER"),
+      builderFor("HBASE", "HBASE_REGIONSERVER"),
+      builderFor("HBASE_CLIENTS", "HBASE_CLIENT"),
+      builderFor("ZOOKEEPER_CLIENTS", "ZOOKEEPER_CLIENT")
     );
     builders.forEach(each -> each.stackId(STACK_ID2));
     return builders;
+  }
+
+  public static ResolvedComponent.Builder builderFor(String serviceType, String componentType) {
+    return builderFor(serviceType, componentType, false);
+  }
+
+  public static ResolvedComponent.Builder builderFor(String serviceType, String componentType, boolean masterComponent) {
+    ComponentInfo componentInfo = EasyMock.createNiceMock(ComponentInfo.class);
+    expect(componentInfo.getName()).andReturn(componentType).anyTimes();
+    expect(componentInfo.isMaster()).andReturn(masterComponent).anyTimes();
+
+    ServiceInfo serviceInfo = EasyMock.createNiceMock(ServiceInfo.class);
+    expect(serviceInfo.getName()).andReturn(serviceType).anyTimes();
+    expect(serviceInfo.getComponentByName(componentType)).andReturn(componentInfo).anyTimes();
+    expect(serviceInfo.getComponents()).andReturn(ImmutableList.of(componentInfo)).anyTimes();
+
+    replay(componentInfo, serviceInfo);
+
+    return ResolvedComponent.builder(new Component(componentType))
+      .serviceInfo(serviceInfo)
+      .componentInfo(componentInfo);
   }
 
 }

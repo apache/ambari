@@ -3052,7 +3052,7 @@ var urls = {
             "MpackInfo" : {
               "mpack_name" : data.name,
               "mpack_version" : data.version,
-              "registry_id" : data.registry
+              "registry_id" : data.registryId
             }
           }
         })

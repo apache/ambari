@@ -265,12 +265,9 @@ public class UpgradeSummaryResourceProviderTest {
     upgrade.setRequestEntity(requestEntity);
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setId(1L);
-    upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
 
-
-    upgrade.setRepositoryVersion(null);
     upgradeDAO.create(upgrade);
 
     // Resource used to make assertions.

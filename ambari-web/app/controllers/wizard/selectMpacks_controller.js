@@ -51,6 +51,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
             name: mpack.RegistryMpackInfo.mpack_name,
             displayName: mpack.RegistryMpackInfo.mpack_display_name,
             description: mpack.RegistryMpackInfo.mpack_description,
+            registryId: mpack.RegistryMpackInfo.registry_id,
             //this is the text that will be used to filter this mpack in the UI
             //at this point, this is just the text that comes from this mpack
             //but additional text will be appended to form the final filterOn value
@@ -214,7 +215,6 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     const mpackVersions = this.get('content.mpackVersions');
     const mpackServices = this.get('content.mpackServices');
     const mpackServiceVersions = this.get('content.mpackServiceVersions');
-    const mpackUsecases = this.get('content.mpackUsecases');
 
     if (!mpacks || mpacks.length === 0
       || !mpackVersions || mpackVersions.length === 0
@@ -586,10 +586,11 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
         const selectedMpack = {
           id: `${mpackVersion.mpack.name}-${mpackVersion.version}`,
           name: mpackVersion.mpack.name,
+          version: mpackVersion.version,
           displayName: mpackVersion.mpack.displayName,
           publicUrl: mpackVersion.mpackUrl,
           downloadUrl: mpackVersion.mpackUrl,
-          version: mpackVersion.version
+          registryId: mpackVersion.mpack.registryId
         };
         
         const oldSelectedMpacks = this.get('content.selectedMpacks');

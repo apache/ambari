@@ -25,5 +25,14 @@ import org.apache.ambari.server.topology.InvalidTopologyException;
  * Performs topology validation.
  */
 public interface TopologyValidator {
-  void validate(ClusterTopology topology) throws InvalidTopologyException;
+
+  /**
+   * Performs some validation on {@code topology}.
+   *
+   * @return The given topology, or a new updated one if some changes are necessary and can be performed automatically
+   *         (eg. {@link DependencyAndCardinalityValidator} may add some auto-deployable components)
+   * @throws InvalidTopologyException if validation fails (most validators)
+   * @throws IllegalArgumentException if validation fails (some validators)
+   */
+  ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException;
 }

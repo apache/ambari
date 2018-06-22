@@ -97,7 +97,7 @@ public class AsyncCallableService<T> implements Callable<T> {
       } catch (ExecutionException e) {
         Throwable cause = Throwables.getRootCause(e);
         if (!(cause instanceof RetryTaskSilently)) {
-          LOG.info(String.format("Task %s exception during execution", taskName), cause);
+          LOG.error(String.format("Task %s exception during execution", taskName), cause);
         }
         lastError = cause;
         timeLeft = timeout - (System.currentTimeMillis() - startTime) - retryDelay;

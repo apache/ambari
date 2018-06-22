@@ -39,6 +39,8 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * The {@link MpackEntity} class represents the mpack objects in the cluster.
  */
@@ -188,16 +190,12 @@ public class MpackEntity {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("MpackEntity{");
-    buffer.append("id=").append(id);
-    if (null != registryId) {
-      buffer.append(", registryId=").append(registryId);
-    }
-    buffer.append(", mpackName=").append(mpackName);
-    buffer.append(", mpackVersion=").append(mpackVersion);
-    buffer.append(", mpackUri=").append(mpackUri);
-    buffer.append("}");
-    return buffer.toString();
+    return MoreObjects.toStringHelper(this).omitNullValues()
+        .add("id", id)
+        .add("registryId", registryId)
+        .add("name", mpackName)
+        .add("version", mpackVersion)
+        .add("uri", mpackUri).toString();
   }
 
   /**

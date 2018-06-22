@@ -19,10 +19,12 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -47,6 +49,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
@@ -58,6 +61,7 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
@@ -99,6 +103,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -118,6 +123,14 @@ public class TopologyManagerTest {
   private static final String SAMPLE_QUICKLINKS_PROFILE_1 = "{\"filters\":[{\"visible\":true}],\"services\":[]}";
   private static final String SAMPLE_QUICKLINKS_PROFILE_2 =
       "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}";
+  private final List<String> SERVICE_NAMES = ImmutableList.of("service1", "service2");
+
+  static final TopologyValidatorService NO_VALIDATION = new TopologyValidatorService() {
+    @Override
+    public ClusterTopology validate(ClusterTopology clusterTopology) {
+      return clusterTopology;
+    }
+  };
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -190,9 +203,6 @@ public class TopologyManagerTest {
   private Future mockFuture;
 
   @Mock
-  private TopologyValidatorService topologyValidatorService;
-
-  @Mock
   private ComponentResolver componentResolver;
 
   private final Configuration stackConfig = new Configuration(new HashMap<>(),
@@ -210,6 +220,13 @@ public class TopologyManagerTest {
     new HashMap<>(), bpGroup1Config);
   private final Configuration topoGroup2Config = new Configuration(new HashMap<>(),
     new HashMap<>(), bpGroup2Config);
+
+  private final Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().
+    map(
+      serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
+          null, null, null, null, false, false, false, false, false)
+    ).
+    collect(toSet());
 
   private HostGroupInfo group1Info = new HostGroupInfo("group1");
   private HostGroupInfo group2Info = new HostGroupInfo("group2");
@@ -283,10 +300,10 @@ public class TopologyManagerTest {
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(clusterTopologyMock.getComponents()).andReturn(Stream.of(
-      ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("component2")).serviceType("service2").buildPartial(),
-      ResolvedComponent.builder(new Component("component3")).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("component4")).serviceType("service2").buildPartial()
+      builderFor("service1", "component1").buildPartial(),
+      builderFor("service2", "component2").buildPartial(),
+      builderFor("service1", "component3").buildPartial(),
+      builderFor("service2", "component4").buildPartial()
     )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
@@ -295,15 +312,15 @@ public class TopologyManagerTest {
     expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Arrays.asList(group1, group2)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component4")).andReturn(Collections.singleton(group2)).anyTimes();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
-    expect(clusterTopologyMock.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
+    expect(clusterTopologyMock.getServices()).andReturn(SERVICE_NAMES).anyTimes();
     expect(clusterTopologyMock.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     // don't expect toEntity()
 
-    expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
-    expect(stack.getAllConfigurationTypes("service2")).andReturn(Arrays.asList("service2-site", "service2-env")).anyTimes();
+    expect(stack.getAllConfigurationTypes("service1")).andReturn(ImmutableSet.of("service1-site", "service1-env")).anyTimes();
+    expect(stack.getAllConfigurationTypes("service2")).andReturn(ImmutableSet.of("service2-site", "service2-env")).anyTimes();
     expect(stack.getAutoDeployInfo("component1")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component2")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component3")).andReturn(null).anyTimes();
@@ -336,6 +353,7 @@ public class TopologyManagerTest {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.shouldValidateTopology()).andStubReturn(true);
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getAllMpacks()).andReturn(ImmutableSet.of(mpack1, mpack2)).anyTimes();
@@ -386,6 +404,7 @@ public class TopologyManagerTest {
     expectLastCall().anyTimes();
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_ID);
     expectLastCall().anyTimes();
+    expect(ambariContext.getServices(anyString())).andReturn(services).anyTimes();
 
     expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
     expect(resourceProvider.createResources((anyObject()))).andReturn(new RequestStatusImpl(null, null, null)).anyTimes(); // persist raw request
@@ -421,6 +440,7 @@ public class TopologyManagerTest {
     PowerMock.replay(AmbariContext.class);
 
     Whitebox.setInternalState(topologyManager, "executor", executor);
+    Whitebox.setInternalState(topologyManager, "topologyValidatorService", NO_VALIDATION);
     EasyMockSupport.injectMocks(topologyManager);
 
     Whitebox.setInternalState(topologyManagerReplay, "executor", executor);
@@ -691,6 +711,21 @@ public class TopologyManagerTest {
     PowerMock.replayAll();
 
     topologyManager.provisionCluster(request, "{}");
+  }
+
+  @Test
+  public void validationTurnedOff() throws Exception {
+    expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).anyTimes();
+    expect(request.shouldValidateTopology()).andReturn(false);
+    TopologyValidatorService validator = createStrictMock(TopologyValidatorService.class);
+    Whitebox.setInternalState(topologyManager, "topologyValidatorService", validator);
+
+    replayAll();
+    replay(validator);
+
+    topologyManager.provisionCluster(request, "{}");
+
+    verify(validator);
   }
 
   private SettingEntity createQuickLinksSettingEntity(String content, long timeStamp) {

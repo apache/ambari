@@ -34,10 +34,11 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
@@ -68,7 +69,7 @@ import com.google.inject.Singleton;
     group = UpgradeCheckGroup.LIVELINESS,
     order = 2.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class ServicesUpCheck extends AbstractCheckDescriptor {
+public class ServicesUpCheck extends ClusterCheck {
 
   private static final float SLAVE_THRESHOLD = 0.5f;
 
@@ -83,7 +84,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(PrereqCheckRequest request)
       throws AmbariException {
 
     final String clusterName = request.getClusterName();
@@ -91,109 +92,116 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     List<String> errorMessages = new ArrayList<>();
     LinkedHashSet<ServiceDetail> failedServices = new LinkedHashSet<>();
 
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
-    for (String serviceName : servicesInUpgrade) {
-      final Service service = cluster.getService(serviceName);
+    Map<ServiceGroup, Set<String>> serviceGroupsInUpgrade = getServicesInUpgrade(request);
+    for (ServiceGroup serviceGroup : serviceGroupsInUpgrade.keySet()) {
+      for( String serviceName : serviceGroupsInUpgrade.get(serviceGroup) ) {
 
-      // Ignore services like Tez that are clientOnly.
-      if (service.isClientOnlyService()) {
-        continue;
-      }
-
-      Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
-      for (Map.Entry<String, ServiceComponent> component : serviceComponents.entrySet()) {
-
-        ServiceComponent serviceComponent = component.getValue();
-        // In Services like HDFS, ignore components like HDFS Client
-        if (serviceComponent.isClientComponent()) {
+        final Service service = cluster.getService(serviceName);
+  
+        // Ignore services like Tez that are clientOnly.
+        if (service.isClientOnlyService()) {
           continue;
         }
-
-        // skip if the component is not part of the finalization version check
-        if (!serviceComponent.isVersionAdvertised()) {
-          continue;
-        }
-
-        // TODO, add more logic that checks the Upgrade Pack.
-        // These components are not in the upgrade pack and do not advertise a
-        // version:
-        // ZKFC, Ambari Metrics, Kerberos, Atlas (right now).
-        // Generally, if it advertises a version => in the upgrade pack.
-        // So it can be in the Upgrade Pack but not advertise a version.
-        List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
-          service.getClusterId(), service.getServiceGroupId(), service.getServiceId(), serviceComponent.getName());
-
-        // not installed, nothing to do
-        if (hostComponentSummaries.isEmpty()) {
-          continue;
-        }
-
-        // non-master, "true" slaves with cardinality 1+
-        boolean checkThreshold = false;
-        if (!serviceComponent.isMasterComponent()) {
-          StackId stackId = service.getStackId();
-          ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(stackId.getStackName(),
-              stackId.getStackVersion(), serviceComponent.getServiceType(),
-              serviceComponent.getName());
-
-          String cardinality = componentInfo.getCardinality();
-          // !!! check if there can be more than one. This will match, say,
-          // datanodes but not ZKFC
-          if (null != cardinality
-              && (cardinality.equals("ALL") || cardinality.matches("[1-9].*"))) {
-            checkThreshold = true;
+  
+        Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+        for (Map.Entry<String, ServiceComponent> component : serviceComponents.entrySet()) {
+  
+          ServiceComponent serviceComponent = component.getValue();
+          // In Services like HDFS, ignore components like HDFS Client
+          if (serviceComponent.isClientComponent()) {
+            continue;
           }
-        }
-
-        // check threshold for slaves which have a non-0 cardinality
-        if (checkThreshold) {
-          int total = hostComponentSummaries.size();
-          int up = 0;
-          int down = 0;
-
-          for (HostComponentSummary summary : hostComponentSummaries) {
-            if (isConsideredDown(cluster, serviceComponent, summary)) {
-              down++;
-            } else {
-              up++;
+  
+          // skip if the component is not part of the finalization version check
+          if (!serviceComponent.isVersionAdvertised()) {
+            continue;
+          }
+  
+          // TODO, add more logic that checks the Upgrade Pack.
+          // These components are not in the upgrade pack and do not advertise a
+          // version:
+          // ZKFC, Ambari Metrics, Kerberos, Atlas (right now).
+          // Generally, if it advertises a version => in the upgrade pack.
+          // So it can be in the Upgrade Pack but not advertise a version.
+          List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
+            service.getClusterId(), service.getServiceGroupId(), service.getServiceId(), serviceComponent.getName());
+  
+          // not installed, nothing to do
+          if (hostComponentSummaries.isEmpty()) {
+            continue;
+          }
+  
+          // non-master, "true" slaves with cardinality 1+
+          boolean checkThreshold = false;
+          if (!serviceComponent.isMasterComponent()) {
+            StackId stackId = service.getStackId();
+            ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(stackId.getStackName(),
+                stackId.getStackVersion(), serviceComponent.getServiceType(),
+                serviceComponent.getName());
+  
+            String cardinality = componentInfo.getCardinality();
+            // !!! check if there can be more than one. This will match, say,
+            // datanodes but not ZKFC
+            if (null != cardinality
+                && (cardinality.equals("ALL") || cardinality.matches("[1-9].*"))) {
+              checkThreshold = true;
             }
           }
-
-          if ((float) down / total > SLAVE_THRESHOLD) { // arbitrary
-            failedServices.add(new ServiceDetail(serviceName));
-
-            String message = MessageFormat.format(
-                "{0}: {1} out of {2} {3} are started; there should be {4,number,percent} started before upgrading.",
-                service.getName(), up, total, serviceComponent.getName(), SLAVE_THRESHOLD);
-            errorMessages.add(message);
-          }
-        } else {
-          for (HostComponentSummary summary : hostComponentSummaries) {
-            if (isConsideredDown(cluster, serviceComponent, summary)) {
+  
+          // check threshold for slaves which have a non-0 cardinality
+          if (checkThreshold) {
+            int total = hostComponentSummaries.size();
+            int up = 0;
+            int down = 0;
+  
+            for (HostComponentSummary summary : hostComponentSummaries) {
+              if (isConsideredDown(cluster, serviceComponent, summary)) {
+                down++;
+              } else {
+                up++;
+              }
+            }
+  
+            if ((float) down / total > SLAVE_THRESHOLD) { // arbitrary
               failedServices.add(new ServiceDetail(serviceName));
-
-              String message = MessageFormat.format("{0}: {1} (in {2} on host {3})",
-                  service.getName(), serviceComponent.getName(), summary.getCurrentState(),
-                  summary.getHostName());
+  
+              String message = MessageFormat.format(
+                  "{0}: {1} out of {2} {3} are started; there should be {4,number,percent} started before upgrading.",
+                  service.getName(), up, total, serviceComponent.getName(), SLAVE_THRESHOLD);
               errorMessages.add(message);
-              break;
+            }
+          } else {
+            for (HostComponentSummary summary : hostComponentSummaries) {
+              if (isConsideredDown(cluster, serviceComponent, summary)) {
+                failedServices.add(new ServiceDetail(serviceName));
+  
+                String message = MessageFormat.format("{0}: {1} (in {2} on host {3})",
+                    service.getName(), serviceComponent.getName(), summary.getCurrentState(),
+                    summary.getHostName());
+                errorMessages.add(message);
+                break;
+              }
             }
           }
         }
       }
     }
 
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.setFailedOn(
+      result.setFailedOn(
           failedServices.stream().map(failedService -> failedService.serviceName).collect(
               Collectors.toCollection(LinkedHashSet::new)));
 
-      prerequisiteCheck.getFailedDetail().addAll(failedServices);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(
+      result.getFailedDetail().addAll(failedServices);
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.setFailReason(
           "The following Service Components should be in a started state.  Please invoke a service Stop and full Start and try again. "
               + StringUtils.join(errorMessages, ", "));
     }
+
+    return result;
   }
 
   /**

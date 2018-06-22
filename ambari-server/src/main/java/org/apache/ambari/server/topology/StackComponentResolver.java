@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.internal.StackDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang3.tuple.Pair;
@@ -61,24 +62,14 @@ public class StackComponentResolver implements ComponentResolver {
         Stream<Pair<StackId, ServiceInfo>> servicesForComponent = stack.getServicesForComponent(comp.getName());
         servicesForComponent = filterByMpackName(mpackInstanceName, servicesForComponent, stackIdByMpackName);
 
-        Set<Pair<StackId, ServiceInfo>> serviceMatches = servicesForComponent.collect(toSet());
-
-        if (serviceMatches.size() != 1) {
-          String msg = formatResolutionProblemMessage(hg, comp, serviceMatches);
-          LOG.warn("Component resolution failure:" + msg);
-          problems.add(msg);
-        } else {
-          Pair<StackId, ServiceInfo> stackService = serviceMatches.iterator().next();
-          StackId stackId = stackService.getLeft();
-          String serviceType = stackService.getRight().getName();
-
-          ResolvedComponent resolved = ResolvedComponent.builder(comp)
-            .stackId(stackId)
-            .serviceType(serviceType)
-            .build();
-
+        try {
+          ResolvedComponent resolved = getComponent(comp, servicesForComponent);
           LOG.debug("Component resolved: " + resolved);
           hostGroupComponents.add(resolved);
+        } catch (AmbiguousComponentException e) {
+          String msg = formatResolutionProblemMessage(hg, comp, e.getMessage());
+          LOG.warn("Component resolution failure:" + msg);
+          problems.add(msg);
         }
       }
     }
@@ -90,12 +81,28 @@ public class StackComponentResolver implements ComponentResolver {
     return result;
   }
 
-  private static String formatResolutionProblemMessage(HostGroup hg, Component comp, Set<Pair<StackId, ServiceInfo>> serviceMatches) {
-    boolean multipleMatches = !serviceMatches.isEmpty();
-    String problem = multipleMatches ? "Multiple services" : "No service";
+  public static ResolvedComponent getComponent(Component comp, Stream<Pair<StackId, ServiceInfo>> servicesForComponent) throws AmbiguousComponentException {
+    Set<Pair<StackId, ServiceInfo>> serviceMatches = servicesForComponent.collect(toSet());
 
-    StringBuilder sb = new StringBuilder(problem)
-      .append(" found for component ").append(comp.getName())
+    if (serviceMatches.size() != 1) {
+      throw new AmbiguousComponentException(serviceMatches);
+    }
+
+    Pair<StackId, ServiceInfo> stackService = serviceMatches.iterator().next();
+    StackId stackId = stackService.getLeft();
+    ServiceInfo serviceInfo = stackService.getRight();
+    ComponentInfo componentInfo = serviceInfo.getComponentByName(comp.getName());
+
+    return ResolvedComponent.builder(comp)
+      .stackId(stackId)
+      .serviceInfo(serviceInfo)
+      .componentInfo(componentInfo)
+      .build();
+  }
+
+  private static String formatResolutionProblemMessage(HostGroup hg, Component comp, String message) {
+    StringBuilder sb = new StringBuilder(message)
+      .append(" for component ").append(comp.getName())
       .append(" in host group " ).append(hg.getName());
 
     if (!Strings.isNullOrEmpty(comp.getMpackInstance())) {
@@ -103,9 +110,6 @@ public class StackComponentResolver implements ComponentResolver {
     }
     if (!Strings.isNullOrEmpty(comp.getServiceInstance())) {
       sb.append(" service: ").append(comp.getServiceInstance());
-    }
-    if (multipleMatches) {
-      sb.append(": ").append(serviceMatches);
     }
 
     return sb.toString();

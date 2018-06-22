@@ -397,19 +397,9 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setDesiredRepositoryVersion() {
-  }
-
-
-  @Override
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
+  @Experimental(feature = ExperimentalFeature.VERSION_REPORTING)
   public String getDesiredVersion() {
     Cluster cluster = service.getCluster();
 

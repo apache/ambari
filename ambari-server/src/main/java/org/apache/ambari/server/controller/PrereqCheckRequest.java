@@ -20,48 +20,59 @@ package org.apache.ambari.server.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.checks.CheckDescription;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * Represents a prerequisite check request.
  */
 public class PrereqCheckRequest {
-  private String m_clusterName;
-  private StackId m_sourceStackId;
-  private RepositoryVersionEntity m_targetRepositoryVersion;
+  private final UpgradePlanEntity m_upgradePlan;
   private PrerequisiteCheckConfig m_prereqCheckConfig;
 
-  private UpgradeType m_upgradeType;
-
   private Map<CheckDescription, PrereqCheckStatus> m_results = new HashMap<>();
-  private boolean m_revert = false;
 
+  /**
+   *
+   */
+  @Inject
+  private Clusters m_clusters;
 
-  public PrereqCheckRequest(String clusterName, UpgradeType upgradeType) {
-    m_clusterName = clusterName;
-    m_upgradeType = upgradeType;
+  /**
+   * Constructor.
+   *
+   * @param upgradePlan
+   *          the upgrade plan.
+   */
+  @AssistedInject
+  public PrereqCheckRequest(@Assisted UpgradePlanEntity upgradePlan) {
+    m_upgradePlan = upgradePlan;
   }
 
   /**
-   * Construct a request to performs checks before an Upgrade.
-   * The default type is Rolling.
-   * @param clusterName
+   * Gets the upgrade plan associated with this upgrade pre-check request.
+   *
+   * @return the upgrade plan.
    */
-  public PrereqCheckRequest(String clusterName) {
-    this(clusterName, UpgradeType.ROLLING);
+  public UpgradePlanEntity getUpgradePlan() {
+    return m_upgradePlan;
   }
 
-  public String getClusterName() {
-    return m_clusterName;
-  }
-
-  public UpgradeType getUpgradeType() {
-    return m_upgradeType;
+  /**
+   * Gets the cluster name involved in the pre upgrade checks.
+   *
+   * @return the cluster name.
+   */
+  public String getClusterName() throws AmbariException {
+    return m_clusters.getCluster(m_upgradePlan.getClusterId()).getClusterName();
   }
 
   /**
@@ -83,44 +94,6 @@ public class PrereqCheckRequest {
   }
 
   /**
-   * Gets the cluster's current stack before upgrade.
-   *
-   * @return the sourceStackId the source stack ID.
-   */
-  public StackId getSourceStackId() {
-    return m_sourceStackId;
-  }
-
-  /**
-   * Sets the cluster's current stack before upgrade.
-   *
-   * @param sourceStackId
-   *          the sourceStackId to set
-   */
-  public void setSourceStackId(StackId sourceStackId) {
-    m_sourceStackId = sourceStackId;
-  }
-
-  /**
-   * Gets the target repository of the upgrade.
-   *
-   * @return the target repository.
-   */
-  public RepositoryVersionEntity getTargetRepositoryVersion() {
-    return m_targetRepositoryVersion;
-  }
-
-  /**
-   * Sets the target of the upgrade.
-   *
-   * @param targetRepositoryVersion
-   *          the target repository version
-   */
-  public void setTargetRepositoryVersion(RepositoryVersionEntity targetRepositoryVersion) {
-    m_targetRepositoryVersion = targetRepositoryVersion;
-  }
-
-  /**
    * Gets the prerequisite check config
    * @return the prereqCheckConfig
    */
@@ -134,20 +107,5 @@ public class PrereqCheckRequest {
    */
   public void setPrerequisiteCheckConfig(PrerequisiteCheckConfig prereqCheckConfig) {
     m_prereqCheckConfig = prereqCheckConfig;
-  }
-
-  /**
-   * @param revert
-   *          {@code true} if the check is for a patch reversion
-   */
-  public void setRevert(boolean revert) {
-    m_revert = revert;
-  }
-
-  /**
-   * @return if the check is for a patch reversion
-   */
-  public boolean isRevert() {
-    return m_revert;
   }
 }

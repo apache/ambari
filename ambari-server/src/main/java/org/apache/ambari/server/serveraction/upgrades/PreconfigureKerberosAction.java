@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -44,7 +46,6 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.PreconfigureServiceType;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.state.Cluster;
@@ -75,6 +76,9 @@ import com.google.inject.Inject;
  * Kerberos descriptors, flagged for pre-configuring, during stack upgrades in order to prevent service
  * restarts when the flagged services are installed.
  */
+@Experimental(
+    feature = ExperimentalFeature.MPACK_UPGRADES,
+    comment = "Needs to move away from stacks and to service groups & mpacks")
 public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
   static final String UPGRADE_DIRECTION_KEY = "upgrade_direction";
 
@@ -264,17 +268,14 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
    * @return the target {@link StackId}
    * @throws AmbariException if multiple stack id's are detected
    */
+  @Experimental(
+      feature = ExperimentalFeature.MPACK_UPGRADES,
+      comment = "Needs to move away from stacks and to service groups & mpacks")
   private StackId getTargetStackId(Cluster cluster) throws AmbariException {
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
 
     // !!! FIXME in a per-service view, what does this become?
     Set<StackId> stackIds = new HashSet<>();
-
-    for (Service service : cluster.getServices()) {
-      RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(service.getName());
-      StackId targetStackId = targetRepoVersion.getStackId();
-      stackIds.add(targetStackId);
-    }
 
     if (1 != stackIds.size()) {
       throw new AmbariException("Services are deployed from multiple stacks and cannot determine a unique one.");

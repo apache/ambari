@@ -42,9 +42,11 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -310,18 +312,15 @@ public class CreateAndConfigureActionTest {
     upgradeEntity.setId(1L);
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
 
-    for (Service service : cluster.getServices()) {
-      Map<String, ServiceComponent> components = service.getServiceComponents();
-      for (String componentName : components.keySet()) {
-        UpgradeHistoryEntity history = new UpgradeHistoryEntity();
-        history.setUpgrade(upgradeEntity);
-        history.setServiceName(service.getName());
-        history.setComponentName(componentName);
-        upgradeEntity.addHistory(history);
-      }
+    ServiceGroupDAO serviceGroupDAO = m_injector.getInstance(ServiceGroupDAO.class);
+    for( ServiceGroup serviceGroup : cluster.getServiceGroups().values() ) {
+      ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroup.getServiceGroupId());
+      UpgradeHistoryEntity history = new UpgradeHistoryEntity(upgradeEntity, serviceGroupEntity,
+          mpack211, mpackEntity);
+
+      upgradeEntity.addHistory(history);
     }
 
     upgradeDAO.create(upgradeEntity);

@@ -28,6 +28,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -40,7 +41,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -88,8 +89,8 @@ public class ComponentsInstallationCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest(upgradePlan);
     ComponentsInstallationCheck cic = new ComponentsInstallationCheck();
     Configuration config = Mockito.mock(Configuration.class);
     cic.config = config;
@@ -275,45 +276,41 @@ public class ComponentsInstallationCheckTest {
       Mockito.when(hcs.getCurrentState()).thenReturn(State.STARTED);
     }
 
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALLED);
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
+    UpgradeCheckResult result = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
 
     // Case 2. Ensure that AMS is ignored even if their current state is not INSTALLED
     Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     Mockito.when(hcsMetricsMonitor.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
+    result = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
 
     // Case 3: Change TEZ client state to INSTALL_FAILED, should fail
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertTrue(check.getFailReason().indexOf("Service components in INSTALL_FAILED state") > -1);
-    Assert.assertEquals(1, check.getFailedDetail().size());
+    result = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    Assert.assertTrue(result.getFailReason().indexOf("Service components in INSTALL_FAILED state") > -1);
+    Assert.assertEquals(1, result.getFailedDetail().size());
 
     // Case 4: Change TEZ client state to INSTALL_FAILED and place TEZ in Maintenance mode, should succeed
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.ON);
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
+    result = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
 
     // Case 5: Change TEZ client state to INSTALL_FAILED and place host2 in Maintenance mode, should succeed
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
     Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
+    result = componentsInstallationCheck.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
   }
 }

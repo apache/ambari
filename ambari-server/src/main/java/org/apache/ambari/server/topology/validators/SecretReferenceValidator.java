@@ -30,7 +30,7 @@ import org.apache.ambari.server.utils.SecretReference;
 public class SecretReferenceValidator implements TopologyValidator {
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
     // we don't want to include default stack properties so we can't use full properties
     Map<String, Map<String, String>> clusterConfigurations = topology.getConfiguration().getProperties();
 
@@ -57,6 +57,7 @@ public class SecretReferenceValidator implements TopologyValidator {
           "replace following properties with real passwords:\n" + errorMessage);
       }
     }
+    return topology;
   }
 
 }

@@ -24,6 +24,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -32,7 +33,7 @@ import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -59,8 +60,9 @@ public class HostsHeartbeatCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest(upgradePlan);
+
     HostsHeartbeatCheck hhc = new HostsHeartbeatCheck();
     Configuration config = Mockito.mock(Configuration.class);
     hhc.config = config;
@@ -114,24 +116,22 @@ public class HostsHeartbeatCheckTest {
 
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertFalse(check.getFailedDetail().isEmpty());
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    UpgradeCheckResult result = hostHeartbeatCheck.perform(new PrereqCheckRequest(upgradePlan));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    Assert.assertFalse(result.getFailedDetail().isEmpty());
 
     // put the unhealthy host into MM which will allow this check to pass
-    check = new PrerequisiteCheck(null, null);
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
-    hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
+    result = hostHeartbeatCheck.perform(new PrereqCheckRequest(upgradePlan));
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
 
     // make the host healthy and take it out of MM to produce a PASS result
     Mockito.when(status3.getHealthStatus()).thenReturn(HealthStatus.HEALTHY);
-    check = new PrerequisiteCheck(null, null);
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
-    hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
+    result = hostHeartbeatCheck.perform(new PrereqCheckRequest(upgradePlan));
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
   }
 }

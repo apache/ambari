@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.ambari.server.api.query.render.ClusterBlueprintRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -77,6 +78,13 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     setChildren.add(new SubResourceDefinition(Resource.Type.Artifact));
 
     return setChildren;
+  }
+
+  @Override
+  public Collection<String> getCreateDirectives() {
+    Collection<String> directives = super.getCreateDirectives();
+    directives.add(BlueprintResourceProvider.VALIDATE_TOPOLOGY_PROPERTY_ID);
+    return directives;
   }
 
   @Override

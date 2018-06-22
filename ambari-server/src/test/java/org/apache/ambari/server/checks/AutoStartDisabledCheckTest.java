@@ -26,12 +26,14 @@ import java.util.Map;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -82,48 +84,51 @@ public class AutoStartDisabledCheckTest {
 
   @Test
   public void testNoAutoStart() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.AUTO_START_DISABLED, "foo");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = EasyMock.createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     Assert.assertTrue(m_check.isApplicable(request));
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(StringUtils.isBlank(result.getFailReason()));
   }
 
   @Test
   public void testAutoStartFalse() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.AUTO_START_DISABLED, "foo");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = EasyMock.createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     Assert.assertTrue(m_check.isApplicable(request));
 
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_ENABLED_KEY, "false");
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(StringUtils.isBlank(result.getFailReason()));
   }
 
   @Test
   public void testAutoStartTrue() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.AUTO_START_DISABLED, "foo");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = EasyMock.createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     Assert.assertTrue(m_check.isApplicable(request));
 
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_ENABLED_KEY, "true");
     m_configMap.put(AutoStartDisabledCheck.RECOVERY_TYPE_KEY, AutoStartDisabledCheck.RECOVERY_AUTO_START);
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertTrue(StringUtils.isNotBlank(check.getFailReason()));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    Assert.assertTrue(StringUtils.isNotBlank(result.getFailReason()));
     Assert.assertEquals("Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to " +
-          "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.", check.getFailReason());
+          "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.", result.getFailReason());
 
   }
 

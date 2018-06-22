@@ -25,7 +25,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
@@ -41,12 +41,12 @@ import com.google.inject.Singleton;
     group = UpgradeCheckGroup.DEFAULT,
     order = 4.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
+public class PreviousUpgradeCompleted extends ClusterCheck {
 
   /**
    * The message displayed as part of this pre-upgrade check.
    */
-  public static final String ERROR_MESSAGE = "There is an existing {0} {1} {2} which has not completed. This {3} must be completed before a new upgrade or downgrade can begin.";
+  public static final String ERROR_MESSAGE = "There is an existing {0} with ID {1} which has not completed. This {2} must be completed before a new upgrade or downgrade can begin.";
 
   /**
    * Constructor.
@@ -56,7 +56,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
 
@@ -65,18 +65,21 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
     if (null != upgradeInProgress) {
       Direction direction = upgradeInProgress.getDirection();
       String directionText = direction.getText(false);
-      String prepositionText = direction.getPreposition();
 
-      errorMessage = MessageFormat.format(ERROR_MESSAGE, directionText, prepositionText,
-          upgradeInProgress.getRepositoryVersion().getVersion(), directionText);
+      errorMessage = MessageFormat.format(ERROR_MESSAGE, directionText, upgradeInProgress.getId(),
+          directionText);
     }
+
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     if (null != errorMessage) {
       LinkedHashSet<String> failedOn = new LinkedHashSet<>();
       failedOn.add(cluster.getClusterName());
-      prerequisiteCheck.setFailedOn(failedOn);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(errorMessage);
+      result.setFailedOn(failedOn);
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.setFailReason(errorMessage);
     }
+
+    return result;
   }
 }

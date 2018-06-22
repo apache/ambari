@@ -42,12 +42,14 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
@@ -191,7 +193,6 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setId(1L);
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
     upgradeDAO.create(upgradeEntity);
 
@@ -254,7 +255,6 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setId(1L);
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
     upgradeDAO.create(upgradeEntity);
 
@@ -321,23 +321,13 @@ public class ComponentVersionCheckActionTest {
     cluster.setCurrentStackVersion(sourceStack);
     cluster.setDesiredStackVersion(targetStack);
 
+    ServiceGroupDAO serviceGroupDAO = m_injector.getInstance(ServiceGroupDAO.class);
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroup.getServiceGroupId());
+
     // tell the upgrade that HDFS is upgrading - without this, no services will
     // be participating in the upgrade
     UpgradeEntity upgrade = cluster.getUpgradeInProgress();
-    UpgradeHistoryEntity history = new UpgradeHistoryEntity();
-    history.setUpgrade(upgrade);
-    history.setServiceName("HDFS");
-    history.setComponentName("NAMENODE");
-    history.setFromRepositoryVersion(null);
-    history.setTargetRepositoryVersion(null);
-    upgrade.addHistory(history);
-
-    history = new UpgradeHistoryEntity();
-    history.setUpgrade(upgrade);
-    history.setServiceName("HDFS");
-    history.setComponentName("DATANODE");
-    history.setFromRepositoryVersion(null);
-    history.setTargetRepositoryVersion(null);
+    UpgradeHistoryEntity history = new UpgradeHistoryEntity(upgrade, serviceGroupEntity, sourceMpack, targetMpack);
     upgrade.addHistory(history);
 
     UpgradeDAO upgradeDAO = m_injector.getInstance(UpgradeDAO.class);

@@ -290,11 +290,13 @@ public class TopologyManager {
     BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
     Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
 
-    final ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
+    ClusterTopology initialTopology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
     final String clusterName = request.getClusterName();
     final SecurityConfiguration securityConfiguration = provisionRequest.getSecurity();
 
-    topologyValidatorService.validateTopologyConfiguration(topology); // FIXME known stacks validation is too late here
+    final ClusterTopology topology = request.shouldValidateTopology()
+      ? topologyValidatorService.validate(initialTopology) // FIXME known stacks validation is too late here
+      : initialTopology;
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
@@ -1085,13 +1087,19 @@ public class TopologyManager {
    */
   private void addClusterConfigRequest(final LogicalRequest logicalRequest, ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
     ConfigureClusterTask task = configureClusterTaskFactory.createConfigureClusterTask(topology, configurationRequest, ambariEventPublisher);
-    executor.submit(new AsyncCallableService<>(task, task.getTimeout(), task.getRepeatDelay(),"ConfigureClusterTask", throwable -> {
-      HostRoleStatus status = throwable instanceof TimeoutException ? HostRoleStatus.TIMEDOUT : HostRoleStatus.FAILED;
-      LOG.info("ConfigureClusterTask failed, marking host requests {}", status);
-      for (HostRequest hostRequest : logicalRequest.getHostRequests()) {
-        hostRequest.markHostRequestFailed(status, throwable, persistedState);
+    executor.submit(new AsyncCallableService<>(
+      task,
+      task.getTimeout(),
+      task.getRepeatDelay(),
+      "ConfigureClusterTask",
+      throwable -> {
+        HostRoleStatus status = throwable instanceof TimeoutException ? HostRoleStatus.TIMEDOUT : HostRoleStatus.FAILED;
+        LOG.info("ConfigureClusterTask failed, marking host requests {}", status);
+        for (HostRequest hostRequest : logicalRequest.getHostRequests()) {
+          hostRequest.markHostRequestFailed(status, throwable, persistedState);
+        }
       }
-    }));
+    ));
   }
 
   /**

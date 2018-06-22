@@ -163,7 +163,8 @@ describe('App.HostComponentRecommendationMixin', function() {
                 ]
               }
             }
-          }
+          },
+          stackVersionUrl: '/stack/url'
         },
         m: 'when blueprint not passed it should be generated from components list'
       },

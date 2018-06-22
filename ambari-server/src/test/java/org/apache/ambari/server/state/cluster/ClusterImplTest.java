@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
@@ -34,6 +36,7 @@ import static org.junit.Assert.fail;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -46,6 +49,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -56,7 +60,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -341,6 +347,46 @@ public class ClusterImplTest {
 
     // Then
     assertEquals(2, clusterSize);
-
   }
+
+  @Test
+  public void testAddConfigWithServiceId() throws Exception {
+    // Given
+    String clusterName = "TEST_ADD_CONFIG_WITH_SERVICE_ID";
+    StackId stackId = new StackId("HDPCORE-1.0.0.0");
+
+    ormTestHelper.createMpack(stackId);
+    clusters.addCluster(clusterName, stackId);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    final Long serviceId = 1L;
+    final String configType = "zoo.cfg";
+
+    // When
+    List<Object> initialVersion = ImmutableList.of(configType, "INITIAL", ImmutableMap.of("prop", "value1"));
+    List<Object> topologyResolved = ImmutableList.of(configType, "TOPOLOGY_RESOLVED", ImmutableMap.of("prop", "value2"));
+      cluster.addConfig(createConfig(initialVersion), serviceId);
+    cluster.addConfig(createConfig(topologyResolved), serviceId);
+
+    // Then (test that configs are properly saved, one doesn't override the other)
+    List<Config> zooCfgVersions = cluster.getConfigsByServiceId(serviceId);
+    assertEquals(2, zooCfgVersions.size());
+    assertEquals(
+      ImmutableSet.of(initialVersion, topologyResolved),
+      zooCfgVersions.stream().map(this::configToList).collect(toSet()));
+  }
+
+  private Config createConfig(List<Object> data) {
+    Config config = mock(Config.class);
+    expect(config.getType()).andReturn((String)data.get(0)).anyTimes();
+    expect(config.getTag()).andReturn((String)data.get(1)).anyTimes();
+    expect(config.getProperties()).andReturn((Map)data.get(2)).anyTimes();
+    replay(config);
+    return config;
+  }
+
+  private List<Object> configToList(Config config) {
+    return ImmutableList.of(config.getType(), config.getTag(), config.getProperties());
+  }
+
 }
