@@ -326,6 +326,7 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getProvisionAction()).andReturn(INSTALL_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.shouldValidateTopology()).andReturn(true).anyTimes();
     expect(request.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getAllMpacks()).andReturn(ImmutableSet.of()).anyTimes();

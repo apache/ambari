@@ -28,6 +28,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -37,7 +38,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -157,9 +159,9 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
    */
   @Test
   public void testCheckPassesWhenServicAndComponentsExist() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
@@ -171,11 +173,11 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     Assert.assertTrue(m_check.isApplicable(request));
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
-    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
+    Assert.assertTrue(StringUtils.isBlank(result.getFailReason()));
   }
 
   /**
@@ -186,9 +188,9 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
    */
   @Test
   public void testCheckPassesWhenComponentNotAdvertisingVersion() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
 
@@ -208,11 +210,11 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     Assert.assertTrue(m_check.isApplicable(request));
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
-    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
+    Assert.assertTrue(result.getFailedDetail().isEmpty());
+    Assert.assertTrue(StringUtils.isBlank(result.getFailReason()));
   }
 
   /**
@@ -222,9 +224,9 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
    */
   @Test
   public void testCheckFailsWhenServiceExistsButIsDeleted() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
@@ -234,11 +236,11 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     Assert.assertTrue(m_check.isApplicable(request));
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("ZOOKEEPER"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    Assert.assertEquals(1, result.getFailedDetail().size());
+    Assert.assertTrue(result.getFailedOn().contains("ZOOKEEPER"));
   }
 
   /**
@@ -248,9 +250,10 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
    */
   @Test
   public void testCheckFailsWhenComponentExistsButIsDeleted() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
@@ -262,11 +265,11 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     Assert.assertTrue(m_check.isApplicable(request));
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("ZOOKEEPER_SERVER"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    Assert.assertEquals(1, result.getFailedDetail().size());
+    Assert.assertTrue(result.getFailedOn().contains("ZOOKEEPER_SERVER"));
   }
 
   /**
@@ -276,10 +279,10 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
    */
   @Test
   public void testCheckFailsWhenServiceIsMissing() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(
-        CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
@@ -296,11 +299,11 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     Assert.assertTrue(m_check.isApplicable(request));
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("FOO_SERVICE"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    Assert.assertEquals(1, result.getFailedDetail().size());
+    Assert.assertTrue(result.getFailedOn().contains("FOO_SERVICE"));
   }
 
   /**
@@ -310,10 +313,10 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
    */
   @Test
   public void testCheckFailsWhenComponentIsMissing() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(
-        CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
 
@@ -336,11 +339,11 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     Assert.assertTrue(m_check.isApplicable(request));
 
-    m_check.perform(check, request);
+    UpgradeCheckResult result = m_check.perform(request);
 
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("FOO_COMPONENT"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
+    Assert.assertEquals(1, result.getFailedDetail().size());
+    Assert.assertTrue(result.getFailedOn().contains("FOO_COMPONENT"));
   }
 
 }

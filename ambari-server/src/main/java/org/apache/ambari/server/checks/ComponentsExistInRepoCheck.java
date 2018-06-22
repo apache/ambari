@@ -27,15 +27,17 @@ import java.util.stream.Collectors;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
@@ -50,7 +52,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.TOPOLOGY,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
+public class ComponentsExistInRepoCheck extends ClusterCheck {
 
   /**
    * Constructor.
@@ -60,94 +62,104 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(PrereqCheckRequest request)
       throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
 
-    StackId sourceStack = request.getSourceStackId();
-    StackId targetStack = repositoryVersion.getStackId();
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
-    Set<ServiceDetail> failedServices = new TreeSet<>();
-    Set<ServiceComponentDetail> failedComponents = new TreeSet<>();
+    for (UpgradePlanDetailEntity upgradeDetail : request.getUpgradePlan().getDetails()) {
+      ServiceGroup serviceGroup = cluster.getServiceGroup(upgradeDetail.getServiceGroupId());
+      Mpack targetMpack = ambariMetaInfo.get().getMpack(upgradeDetail.getMpackTargetId());
 
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
-    for (String serviceName : servicesInUpgrade) {
-      try {
-        Service service = cluster.getService(serviceName);
+      StackId sourceStack = serviceGroup.getStackId();
+      StackId targetStack = targetMpack.getStackId();
+
+      Set<ServiceDetail> failedServices = new TreeSet<>();
+      Set<ServiceComponentDetail> failedComponents = new TreeSet<>();
+
+      for (Service service : serviceGroup.getServices()) {
+        String serviceName = service.getName();
         String serviceType = service.getServiceType();
-        ServiceInfo serviceInfo = ambariMetaInfo.get().getService(targetStack.getStackName(),
-            targetStack.getStackVersion(), serviceType);
 
-        if (serviceInfo.isDeleted() || !serviceInfo.isValid()) {
-          failedServices.add(new ServiceDetail(serviceName));
-          continue;
-        }
+        try {
+          ServiceInfo serviceInfo = ambariMetaInfo.get().getService(targetStack.getStackName(),
+              targetStack.getStackVersion(), serviceType);
 
-        Map<String, ServiceComponent> componentsInUpgrade = service.getServiceComponents();
-        for (String componentName : componentsInUpgrade.keySet()) {
-          try {
-            ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(
-                targetStack.getStackName(), targetStack.getStackVersion(), serviceType,
-                componentName);
+          if (serviceInfo.isDeleted() || !serviceInfo.isValid()) {
+            failedServices.add(new ServiceDetail(serviceName));
+            continue;
+          }
 
-            // if this component isn't included in the upgrade, then skip it
-            if (!componentInfo.isVersionAdvertised()) {
-              continue;
-            }
+          Map<String, ServiceComponent> componentsInUpgrade = service.getServiceComponents();
+          for (String componentName : componentsInUpgrade.keySet()) {
+            try {
+              ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(
+                  targetStack.getStackName(), targetStack.getStackVersion(), serviceType,
+                  componentName);
 
-            if (componentInfo.isDeleted()) {
+              // if this component isn't included in the upgrade, then skip it
+              if (!componentInfo.isVersionAdvertised()) {
+                continue;
+              }
+
+              if (componentInfo.isDeleted()) {
+                failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
+              }
+
+            } catch (StackAccessException stackAccessException) {
               failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
             }
-
-          } catch (StackAccessException stackAccessException) {
-            failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
           }
+        } catch (StackAccessException stackAccessException) {
+          failedServices.add(new ServiceDetail(serviceName));
         }
-      } catch (StackAccessException stackAccessException) {
-        failedServices.add(new ServiceDetail(serviceName));
-      }
-    }
-
-    if (failedServices.isEmpty() && failedComponents.isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
-      return;
-    }
-
-    Set<String> failedServiceNames = failedServices.stream().map(
-        failureDetail -> failureDetail.serviceName).collect(
-            Collectors.toCollection(LinkedHashSet::new));
-
-    Set<String> failedComponentNames = failedComponents.stream().map(
-        failureDetail -> failureDetail.componentName).collect(
-            Collectors.toCollection(LinkedHashSet::new));
-
-    LinkedHashSet<String> failures = new LinkedHashSet<>();
-    failures.addAll(failedServiceNames);
-    failures.addAll(failedComponentNames);
-
-    prerequisiteCheck.setFailedOn(failures);
-    prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-
-    prerequisiteCheck.getFailedDetail().addAll(failedServices);
-    prerequisiteCheck.getFailedDetail().addAll(failedComponents);
-
-    String message = "The following {0} exist in {1} but are not included in {2}. They must be removed before upgrading.";
-    String messageFragment = "";
-    if (!failedServices.isEmpty()) {
-      messageFragment = "services";
-    }
-
-    if( !failedComponents.isEmpty() ){
-      if(!StringUtils.isEmpty(messageFragment)){
-        messageFragment += " and ";
       }
 
-      messageFragment += "components";
+      if (failedServices.isEmpty() && failedComponents.isEmpty()) {
+        continue;
+      }
+
+      Set<String> failedServiceNames = failedServices.stream().map(
+          failureDetail -> failureDetail.serviceName).collect(
+              Collectors.toCollection(LinkedHashSet::new));
+
+      Set<String> failedComponentNames = failedComponents.stream().map(
+          failureDetail -> failureDetail.componentName).collect(
+              Collectors.toCollection(LinkedHashSet::new));
+
+      LinkedHashSet<String> failures = new LinkedHashSet<>();
+      failures.addAll(failedServiceNames);
+      failures.addAll(failedComponentNames);
+
+      result.setFailedOn(failures);
+      result.setStatus(PrereqCheckStatus.FAIL);
+
+      result.getFailedDetail().addAll(failedServices);
+      result.getFailedDetail().addAll(failedComponents);
+
+      String message = "In the {0} service group the following {1} exist in {2} but are not included in {3}. They must be removed before upgrading.";
+      String messageFragment = "";
+      if (!failedServices.isEmpty()) {
+        messageFragment = "services";
+      }
+
+      if (!failedComponents.isEmpty()) {
+        if (!StringUtils.isEmpty(messageFragment)) {
+          messageFragment += " and ";
+        }
+
+        messageFragment += "components";
+      }
+
+      message = MessageFormat.format(message, serviceGroup.getServiceGroupName(), messageFragment,
+          sourceStack, targetStack);
+
+      result.setFailReason(message);
+      return result;
     }
 
-    message = MessageFormat.format(message, messageFragment, sourceStack, targetStack);
-    prerequisiteCheck.setFailReason(message);
+    return result;
   }
 }

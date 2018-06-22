@@ -27,7 +27,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
  * occurs when a Host Component advertises it's current version value.
  */
 @Deprecated
-@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
+@Experimental(feature = ExperimentalFeature.VERSION_REPORTING)
 public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
 
   protected Cluster cluster;

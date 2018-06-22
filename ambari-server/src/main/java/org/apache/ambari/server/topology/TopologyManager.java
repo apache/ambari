@@ -276,7 +276,10 @@ public class TopologyManager {
     ensureInitialized();
 
     ClusterTopology initialTopology = ambariContext.createClusterTopology(request);
-    final ClusterTopology topology = topologyValidatorService.validate(initialTopology); // FIXME known stacks validation is too late here
+    final ClusterTopology topology = request.shouldValidateTopology()
+      ? topologyValidatorService.validate(initialTopology) // FIXME known stacks validation is too late here
+      : initialTopology;
+
     final String clusterName = request.getClusterName();
     final SecurityConfiguration securityConfiguration = topology.getSecurity();
 

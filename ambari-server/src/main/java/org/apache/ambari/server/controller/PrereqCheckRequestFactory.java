@@ -10,25 +10,29 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.controller;
 
-package org.apache.ambari.server.topology;
-
-import java.util.Map;
-
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 
 /**
- * Factory for creating topology requests.
+ * Used for building dependency injected instances of
+ * {@link PrereqCheckRequest}s.
  */
-public interface TopologyRequestFactory {
+public interface PrereqCheckRequestFactory {
 
-  ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration, boolean validateTopology)
-    throws InvalidTopologyTemplateException;
+  /**
+   * Creates a new {@link PrereqCheckRequest} based off of a supplied upgrade
+   * plan.
+   *
+   * @param upgradePlanEntity
+   *          the upgrade plan
+   * @return the upgrade check request
+   */
+  PrereqCheckRequest createNew(UpgradePlanEntity upgradePlanEntity);
 
 }

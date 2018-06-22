@@ -19,7 +19,6 @@ package org.apache.ambari.server.state;
 
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_FAIL_ON_CHECK_WARNINGS;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS;
-import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_PACK;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_PLAN_ID;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_SKIP_FAILURES;
@@ -198,6 +197,7 @@ public class UpgradeContext {
    * Used to suggest upgrade packs during creation of an upgrade context.
    */
   @Inject
+  @Experimental(feature = ExperimentalFeature.MPACK_UPGRADES)
   private UpgradeHelper m_upgradeHelper;
 
   /**
@@ -289,9 +289,6 @@ public class UpgradeContext {
         m_serviceGroups.put(serviceGroup, summary);
       }
 
-      // !!! use the same upgrade pack that was used in the upgrade being reverted
-      upgradeRequestMap.put(UPGRADE_PACK, revertUpgrade.getUpgradePackage());
-
       // !!! direction can ONLY be an downgrade on revert
       m_direction = Direction.DOWNGRADE;
     } else {
@@ -335,14 +332,6 @@ public class UpgradeContext {
               String.format("%s is not a valid upgrade direction.", m_direction));
       }
     }
-
-    /**
-     * For the unit tests tests, there are multiple upgrade packs for the same
-     * type, so allow picking one of them. In prod, this is empty.
-     */
-    @Experimental(feature = ExperimentalFeature.MPACK_UPGRADES, comment = "No longer using single packs")
-    String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
-    m_upgradePack = null;
 
     // the validator will throw an exception if the upgrade request is not valid
     UpgradeRequestValidator upgradeRequestValidator = buildValidator(m_type);
@@ -401,13 +390,6 @@ public class UpgradeContext {
     m_autoSkipServiceCheckFailures = upgradeEntity.isServiceCheckFailureAutoSkipped();
 
     populateParticipatingServiceGroups(cluster, m_serviceGroups, upgradeEntity, false);
-
-    @Experimental(
-        feature = ExperimentalFeature.MPACK_UPGRADES,
-        comment = "We need a way to get the upgrade packs given multiple mpacks")
-    String upgradePackage = upgradeEntity.getUpgradePackage();
-    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(null, null);
-    m_upgradePack = packs.get(upgradePackage);
 
     m_resolver = new MasterHostResolver(m_cluster, configHelper, this);
     m_isRevert = upgradeEntity.isRevert();
@@ -977,7 +959,6 @@ public class UpgradeContext {
       String upgradePlanId = (String) requestMap.get(UPGRADE_PLAN_ID);
       boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
       boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
-      String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;
 
       // verify that there is not an upgrade or downgrade that is in progress or suspended
       UpgradeEntity existingUpgrade = cluster.getUpgradeInProgress();
@@ -1000,9 +981,7 @@ public class UpgradeContext {
       Predicate preUpgradeCheckPredicate = new PredicateBuilder().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PLAN_ID).equals(upgradePlanId).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).equals(m_isRevert).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(type).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(type).toPredicate();
 
       Request preUpgradeCheckRequest = PropertyHelper.getReadRequest();
 

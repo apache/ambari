@@ -31,7 +31,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
@@ -47,14 +47,14 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     order = 98.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescriptor {
+public class HardcodedStackVersionPropertiesCheck extends ClusterCheck {
 
   public HardcodedStackVersionPropertiesCheck() {
     super(CheckDescription.HARDCODED_STACK_VERSION_PROPERTIES_CHECK);
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(PrereqCheckRequest request)
       throws AmbariException {
 
     Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
@@ -85,17 +85,20 @@ public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescripto
       }
     }
 
-    if (failures.size() > 0) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      String failReason = getFailReason(prerequisiteCheck, request);
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
-      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(failedVersions, ',')));
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failures));
+    if (failures.size() > 0) {
+      result.setStatus(PrereqCheckStatus.WARNING);
+      String failReason = getFailReason(result, request);
+
+      result.setFailReason(String.format(failReason, StringUtils.join(failedVersions, ',')));
+      result.setFailedOn(new LinkedHashSet<>(failures));
 
     } else {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+      result.setStatus(PrereqCheckStatus.PASS);
     }
 
+    return result;
   }
 
   /**

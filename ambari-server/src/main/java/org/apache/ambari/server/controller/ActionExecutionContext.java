@@ -23,13 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 /**
  * The context required to create tasks and stages for a custom action
@@ -48,7 +45,6 @@ public class ActionExecutionContext {
   private String expectedComponentName;
   private boolean hostsInMaintenanceModeExcluded = true;
   private boolean allowRetry = false;
-  private RepositoryVersionEntity repositoryVersion;
   private List<ExecutionCommandVisitor> m_visitors = new ArrayList<>();
 
   /**
@@ -193,36 +189,6 @@ public class ActionExecutionContext {
    */
   public void setAutoSkipFailures(boolean autoSkipFailures) {
     this.autoSkipFailures = autoSkipFailures;
-  }
-
-  /**
-   * Gets the stack/version to use for generating stack-associated values for a
-   * command. In some cases the cluster's stack is not the correct one to use,
-   * such as when distributing a repository.
-   *
-   * @return the repository for the stack/version to use when generating
-   *         stack-specific content for the command.
-   *
-   * @return
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionEntity getRepositoryVersion() {
-    return repositoryVersion;
-  }
-
-  /**
-   * Sets the stack/version to use for generating stack-associated values for a
-   * command. In some cases the cluster's stack is not the correct one to use,
-   * such as when distributing a repository.
-   *
-   * @param stackId
-   *          the stackId to use for stack-based properties on the command.
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
-    this.repositoryVersion = repositoryVersion;
   }
 
   /**

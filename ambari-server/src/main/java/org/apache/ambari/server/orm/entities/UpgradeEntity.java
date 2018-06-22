@@ -116,9 +116,6 @@ public class UpgradeEntity {
   @Enumerated(value = EnumType.STRING)
   private Direction direction = Direction.UPGRADE;
 
-  @Column(name="upgrade_package", nullable = false)
-  private String upgradePackage;
-
   @Column(name="upgrade_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private UpgradeType upgradeType;
@@ -320,20 +317,6 @@ public class UpgradeEntity {
   }
 
   /**
-   * @return the upgrade package name, without the extension.
-   */
-  public String getUpgradePackage() {
-    return upgradePackage;
-  }
-
-  /**
-   * @param upgradePackage the upgrade pack to set
-   */
-  public void setUpgradePackage(String upgradePackage) {
-    this.upgradePackage = upgradePackage;
-  }
-
-  /**
    * Gets whether skippable components that failed are automatically skipped.
    * They will be placed into the {@link HostRoleStatus#SKIPPED_FAILED} state.
    *
@@ -443,7 +426,6 @@ public class UpgradeEntity {
         .append(direction, that.direction)
         .append(suspended, that.suspended)
         .append(upgradeType, that.upgradeType)
-        .append(upgradePackage, that.upgradePackage)
         .isEquals();
   }
 
@@ -452,8 +434,7 @@ public class UpgradeEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hashCode(upgradeId, clusterId, requestId, direction, suspended, upgradeType,
-        upgradePackage);
+    return Objects.hashCode(upgradeId, clusterId, requestId, direction, suspended, upgradeType);
   }
 
   /**

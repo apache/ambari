@@ -561,8 +561,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     };
   }
 
-  private static boolean shouldValidate(Map<String, String> requestInfoProps) {
-    String validateTopology = requestInfoProps.get("validate_topology");
+  public static boolean shouldValidate(Map<String, String> requestInfoProps) {
+    String validateTopology = requestInfoProps.get(VALIDATE_TOPOLOGY_PROPERTY_ID);
     return validateTopology == null || Boolean.parseBoolean(validateTopology);
   }
 

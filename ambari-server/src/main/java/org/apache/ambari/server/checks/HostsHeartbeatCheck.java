@@ -26,7 +26,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Singleton;
@@ -46,7 +46,7 @@ import com.google.inject.Singleton;
     group = UpgradeCheckGroup.LIVELINESS,
     order = 1.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
+public class HostsHeartbeatCheck extends ClusterCheck {
 
   /**
    * Constructor.
@@ -59,11 +59,13 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(PrereqCheckRequest request)
       throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     Collection<Host> hosts = cluster.getHosts();
+
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     for (Host host : hosts) {
       HealthStatus hostHealth = host.getHealthStatus().getHealthStatus();
@@ -72,9 +74,9 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
         case UNHEALTHY:
         case UNKNOWN:
           if (maintenanceState == MaintenanceState.OFF) {
-            prerequisiteCheck.getFailedOn().add(host.getHostName());
+            result.getFailedOn().add(host.getHostName());
 
-            prerequisiteCheck.getFailedDetail().add(
+            result.getFailedDetail().add(
                 new HostDetail(host.getHostId(), host.getHostName()));
           }
           break;
@@ -85,10 +87,11 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
     }
 
     // for any hosts unhealthy and NOT in MM mode, fail this check
-    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
-      return;
+    if (!result.getFailedOn().isEmpty()) {
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.setFailReason(getFailReason(result, request));
     }
+
+    return result;
   }
 }

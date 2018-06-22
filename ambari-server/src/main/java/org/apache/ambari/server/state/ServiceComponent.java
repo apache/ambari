@@ -66,16 +66,12 @@ public interface ServiceComponent {
   void setDesiredState(State state);
 
   @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
+  @Experimental(feature = ExperimentalFeature.VERSION_REPORTING)
   StackId getStackId();
 
   @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
+  @Experimental(feature = ExperimentalFeature.VERSION_REPORTING)
   String getDesiredVersion();
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  void setDesiredRepositoryVersion();
 
   /**
    * Refresh Component info due to current stack

@@ -130,18 +130,28 @@ public class ClusterResourceProviderTest {
   }
 
   @Test
+  public void createClusterResourceWithValidation() throws Exception {
+    testCreateResource_blueprint(TestAuthenticationFactory.createAdministrator(), Boolean.TRUE);
+  }
+
+  @Test
+  public void createClusterResourceWithoutValidation() throws Exception {
+    testCreateResource_blueprint(TestAuthenticationFactory.createAdministrator(), Boolean.FALSE);
+  }
+
+  @Test
   public void testCreateResource_blueprint_asAdministrator() throws Exception {
-    testCreateResource_blueprint(TestAuthenticationFactory.createAdministrator());
+    testCreateResource_blueprint(TestAuthenticationFactory.createAdministrator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResource_blueprint__NonAdministrator() throws Exception {
-    testCreateResource_blueprint(TestAuthenticationFactory.createClusterAdministrator());
+    testCreateResource_blueprint(TestAuthenticationFactory.createClusterAdministrator(), null);
   }
 
   @Test
   public void testCreateResource_blueprint_With_ProvisionAction() throws Exception {
-    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties();
     Map<String, Object> properties = requestProperties.iterator().next();
     properties.put(BaseClusterRequest.PROVISION_ACTION_PROPERTY, "INSTALL_ONLY");
     Map<String, String> requestInfoProperties = new HashMap<>();
@@ -153,7 +163,7 @@ public class ClusterResourceProviderTest {
 
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
       .once();
-    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, null, true)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
@@ -171,7 +181,7 @@ public class ClusterResourceProviderTest {
 
   @Test
   public void testCreateResource_blueprint_withSecurityConfiguration() throws Exception {
-    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties();
     Map<String, Object> properties = requestProperties.iterator().next();
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
 
@@ -183,7 +193,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration, true)).andReturn(topologyRequest).once();
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
@@ -201,13 +211,13 @@ public class ClusterResourceProviderTest {
 
   @Test(expected=IllegalArgumentException.class)
   public void testCreateResource_blueprint__InvalidRequest() throws Exception {
-    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties();
     Map<String, Object> properties = requestProperties.iterator().next();
 
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     // throw exception from topology request factory an assert that the correct exception is thrown from resource provider
-    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andThrow(new InvalidTopologyException
+    expect(topologyFactory.createProvisionClusterRequest(properties, null, true)).andThrow(new InvalidTopologyException
       ("test"));
 
     replayAll();
@@ -419,12 +429,12 @@ public class ClusterResourceProviderTest {
   }
 
   //todo: configuration properties are not being added to props
-  private Set<Map<String, Object>> createBlueprintRequestProperties(String clusterName, String blueprintName) {
+  private Set<Map<String, Object>> createBlueprintRequestProperties() {
     Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
+    properties.put(ClusterResourceProvider.BLUEPRINT, BLUEPRINT_NAME);
     propertySet.add(properties);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
@@ -438,32 +448,18 @@ public class ClusterResourceProviderTest {
     hostGroupHosts.add(hostGroupHostProperties);
     properties.put("host_groups", hostGroups);
 
-    Map<String, String> mapGroupConfigProperties = new HashMap<>();
-    mapGroupConfigProperties.put("myGroupProp", "awesomeValue");
-
-    // blueprint core-site cluster configuration properties
-    Map<String, String> blueprintCoreConfigProperties = new HashMap<>();
-    blueprintCoreConfigProperties.put("property1", "value2");
-    blueprintCoreConfigProperties.put("new.property", "new.property.value");
-
-    Map<String, String> blueprintGlobalConfigProperties = new HashMap<>();
-    blueprintGlobalConfigProperties.put("hive_database", "New MySQL Database");
-
-    Map<String, String> oozieEnvConfigProperties = new HashMap<>();
-    oozieEnvConfigProperties.put("property1","value2");
-    Map<String, String> hbaseEnvConfigProperties = new HashMap<>();
-    hbaseEnvConfigProperties.put("property1","value2");
-    Map<String, String> falconEnvConfigProperties = new HashMap<>();
-    falconEnvConfigProperties.put("property1","value2");
-
     return propertySet;
   }
 
-  private void testCreateResource_blueprint(Authentication authentication) throws Exception {
-    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+  private void testCreateResource_blueprint(Authentication authentication, Boolean validateTopology) throws Exception {
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties();
     Map<String, Object> properties = requestProperties.iterator().next();
     Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");
+    boolean expectValidateTopology = validateTopology == null || validateTopology;
+    if (validateTopology != null) {
+      requestInfoProperties.put(BlueprintResourceProvider.VALIDATE_TOPOLOGY_PROPERTY_ID, validateTopology.toString());
+    }
 
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
@@ -471,7 +467,7 @@ public class ClusterResourceProviderTest {
 
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
-    expect(topologyFactory.createProvisionClusterRequest(eq(properties), anyObject())).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(eq(properties), anyObject(), eq(expectValidateTopology))).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
@@ -620,7 +616,7 @@ public class ClusterResourceProviderTest {
     verify(managementController, response, clusters);
   }
 
-  public void testUpdateWithConfiguration(Authentication authentication) throws Exception {
+  private void testUpdateWithConfiguration(Authentication authentication) throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
@@ -789,7 +785,7 @@ public class ClusterResourceProviderTest {
   public void testCreateResource_blueprint_withRepoVersion() throws Exception {
     Authentication authentication = TestAuthenticationFactory.createAdministrator();
 
-    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties();
     Map<String, Object> properties = requestProperties.iterator().next();
 
     Map<String, String> requestInfoProperties = new HashMap<>();
@@ -801,7 +797,7 @@ public class ClusterResourceProviderTest {
 
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
-    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, null, true)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 

@@ -81,7 +81,7 @@ import com.google.common.collect.ImmutableMap;
  * Renderer which renders a cluster resource as a blueprint.
  */
 @Experimental(
-    feature = ExperimentalFeature.REPO_VERSION_REMOVAL,
+    feature = ExperimentalFeature.MULTI_SERVICE,
     comment = "Blueprints must get mpack data from a different endpoint, not stack_versions")
 public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 

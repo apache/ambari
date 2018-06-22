@@ -193,7 +193,6 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setId(1L);
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
     upgradeDAO.create(upgradeEntity);
 
@@ -256,7 +255,6 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setId(1L);
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setUpgradePackage("");
     upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
     upgradeDAO.create(upgradeEntity);
 

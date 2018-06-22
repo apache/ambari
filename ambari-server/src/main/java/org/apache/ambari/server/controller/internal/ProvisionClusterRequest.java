@@ -156,6 +156,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
 
   private final Collection<MpackInstance> mpackInstances;
   private final Set<StackId> stackIds;
+  private final boolean validateTopology;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
@@ -165,7 +166,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
    * @param properties  request properties
    * @param securityConfiguration  security config related properties
    */
-  public ProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
+  public ProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration, boolean validateTopology) throws
       InvalidTopologyTemplateException {
 
     setClusterName(String.valueOf(properties.get(
@@ -189,6 +190,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
 
     parseHostGroupInfo(properties);
 
+    this.validateTopology = validateTopology;
     this.securityConfiguration = securityConfiguration;
     credentialsMap = parseCredentials(properties);
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS && getCredentialsMap().get(KDC_ADMIN_CREDENTIAL) == null) {
@@ -215,6 +217,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     quickLinksProfileJson = null;
     mpackInstances = ImmutableList.of();
     stackIds = ImmutableSet.of();
+    validateTopology = false;
     setBlueprint(blueprint);
     setConfiguration(configuration);
   }
@@ -514,6 +517,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     return mpackInstances;
   }
 
+  public boolean shouldValidateTopology() {
+    return validateTopology;
+  }
+
   /**
    * @return a set containing the mpacks in the provision request and the blueprint combined.
    */
@@ -533,6 +540,4 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
       });
     return entity;
   }
-
-
 }

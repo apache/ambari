@@ -34,7 +34,7 @@ import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -51,7 +51,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.DEFAULT,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class HealthCheck extends AbstractCheckDescriptor {
+public class HealthCheck extends ClusterCheck {
 
   private static final List<AlertState> ALERT_STATES = asList(WARNING, CRITICAL);
 
@@ -69,7 +69,7 @@ public class HealthCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(PrereqCheckRequest request)
       throws AmbariException {
 
     AlertsDAO alertsDAO = alertsDAOProvider.get();
@@ -78,6 +78,8 @@ public class HealthCheck extends AbstractCheckDescriptor {
     List<AlertCurrentEntity> alerts = alertsDAO.findCurrentByCluster(cluster.getClusterId());
 
     List<String> errorMessages = new ArrayList<>();
+
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
 
     for (AlertCurrentEntity alert : alerts) {
       AlertHistoryEntity alertHistory = alert.getAlertHistory();
@@ -92,17 +94,19 @@ public class HealthCheck extends AbstractCheckDescriptor {
         } else {
           errorMessages.add(state + ": " + label + ": " + hostName);
         }
-        prerequisiteCheck.getFailedDetail().add(new AlertDetail(state, label, hostName));
+        result.getFailedDetail().add(new AlertDetail(state, label, hostName));
       }
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.getFailedOn().add(clusterName);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      String failReason = getFailReason(prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(
+      result.getFailedOn().add(clusterName);
+      result.setStatus(PrereqCheckStatus.WARNING);
+      String failReason = getFailReason(result, request);
+      result.setFailReason(
           String.format(failReason, StringUtils.join(errorMessages, System.lineSeparator())));
     }
+
+    return result;
   }
 
   /**

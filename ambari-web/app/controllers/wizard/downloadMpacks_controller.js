@@ -35,6 +35,7 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
         version: mpack.version,
         displayName: mpack.displayName,
         url: mpack.downloadUrl,
+        registryId: mpack.registryId,
         inProgress: true,
         failed: false,
         succeeded: false,
@@ -54,11 +55,12 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
   downloadMpack: function (mpack) {
     console.log("downloading mpacks");
     return App.ajax.send({
-      name: 'mpack.download_by_url',
+      name: 'mpack.download',
       sender: this,
       data: {
         name: mpack.name,
-        url: mpack.url
+        version: mpack.version,
+        registryId: mpack.registryId
       },
       success: 'downloadMpackSuccess',
       error: 'downloadMpackError',

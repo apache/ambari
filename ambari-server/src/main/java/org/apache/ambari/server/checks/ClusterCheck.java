@@ -24,37 +24,44 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.Mpack.ModuleVersionChange;
+import org.apache.ambari.server.state.Mpack.MpackChangeSummary;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 /**
- * Describes prerequisite check.
+ * A {@link ClusterCheck} is used to run a pre-upgrade check against a condition
+ * that is not dependent on any installed service.
  */
-public abstract class AbstractCheckDescriptor {
+public abstract class ClusterCheck implements PreUpgradeCheck {
 
   protected static final String DEFAULT = "default";
 
@@ -76,50 +83,45 @@ public abstract class AbstractCheckDescriptor {
   @Inject
   Gson gson;
 
-  private CheckDescription m_description;
+  private final CheckDescription m_description;
 
   /**
    * Constructor.
    *
    * @param description description
    */
-  protected AbstractCheckDescriptor(CheckDescription description) {
+  protected ClusterCheck(CheckDescription description) {
     m_description = description;
   }
 
   /**
-   * Gets the set of services that this check is associated with. If the check
-   * is not associated with a particular service, then this should be an empty
-   * set.
-   *
-   * @return a set of services which will determine whether this check is
-   *         applicable.
+   * {@inheritDoc}
    */
+  @Override
+  public CheckDescription getCheckDescrption() {
+    return m_description;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Set<String> getApplicableServices() {
     return Collections.emptySet();
   }
 
   /**
-   * Gets any additional qualifications which an upgrade check should run in
-   * order to determine if it's applicable to the upgrade.
-   *
-   * @return a list of qualifications, or an empty list.
+   * {@inheritDoc}
    */
+  @Override
   public List<CheckQualification> getQualifications() {
     return Collections.emptyList();
   }
 
   /**
-   * Tests if the prerequisite check is applicable to given upgrade request. If
-   * a check requires some extra processing
-   *
-   * @param request
-   *          prerequisite check request
-   * @return true if check should be performed
-   *
-   * @throws org.apache.ambari.server.AmbariException
-   *           if server error happens
+   * {@inheritDoc}
    */
+  @Override
   public final boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
     List<CheckQualification> qualifications = Lists.newArrayList(
         new ServiceQualification());
@@ -137,30 +139,16 @@ public abstract class AbstractCheckDescriptor {
 
 
   /**
-   * Executes check against given cluster.
-   *
-   * @param prerequisiteCheck dto for upgrade check results
-   * @param request pre upgrade check request
-   *
-   * @throws AmbariException if server error happens
+   * {@inheritDoc}
    */
-  public abstract void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException;
+  @Override
+  public abstract UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException;
 
 
   /**
-   * Gets the description of the check.
-   *
-   * @return the description (not {@code null}).
+   * {@inheritDoc}
    */
-  public CheckDescription getDescription() {
-    return m_description;
-  }
-
-  /**
-   * Gets the type of check.
-   *
-   * @return the type of check (not {@code null}).
-   */
+  @Override
   public PrereqCheckType getType() {
     return m_description.getType();
   }
@@ -171,7 +159,7 @@ public abstract class AbstractCheckDescriptor {
    * @param request           the request
    * @return the failure string
    */
-  protected String getFailReason(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  protected String getFailReason(UpgradeCheckResult prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
     return getFailReason(DEFAULT, prerequisiteCheck, request);
   }
@@ -192,8 +180,8 @@ public abstract class AbstractCheckDescriptor {
    */
   protected String getProperty(PrereqCheckRequest request, String configType, String propertyName)
       throws AmbariException {
-    final String clusterName = request.getClusterName();
-    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
+    UpgradePlanEntity upgradePlan = request.getUpgradePlan();
+    final Cluster cluster = clustersProvider.get().getCluster(upgradePlan.getClusterId());
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     final DesiredConfig desiredConfig = desiredConfigs.get(configType);
 
@@ -214,24 +202,18 @@ public abstract class AbstractCheckDescriptor {
    * @param request           the request
    * @return the failure string
    */
-  protected String getFailReason(String key, PrerequisiteCheck prerequisiteCheck,
+  protected String getFailReason(String key, UpgradeCheckResult prerequisiteCheck,
       PrereqCheckRequest request) throws AmbariException {
+    UpgradePlanEntity upgradePlan = request.getUpgradePlan();
     String fail = m_description.getFail(key);
-
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
-    if (fail.contains("{{version}}") && null != repositoryVersion) {
-      fail = fail.replace("{{version}}", repositoryVersion.getVersion());
-    }
 
     if (fail.contains("{{fails}}")) {
       LinkedHashSet<String> names = prerequisiteCheck.getFailedOn();
 
       // If Type=PrereqCheckType.HOST, names list is already populated
-      if (getDescription().getType() == PrereqCheckType.SERVICE) {
+      if (m_description.getType() == PrereqCheckType.SERVICE) {
         Clusters clusters = clustersProvider.get();
-        AmbariMetaInfo metaInfo = ambariMetaInfo.get();
-
-        Cluster c = clusters.getCluster(request.getClusterName());
+        Cluster c = clusters.getCluster(upgradePlan.getClusterId());
         Map<String, Service> services = c.getServicesByName();
 
         LinkedHashSet<String> displays = new LinkedHashSet<>();
@@ -276,12 +258,9 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Gets whether this upgrade check is required for the specified
-   * {@link UpgradeType}. Checks which are marked as required do not need to be
-   * explicitely declared in the {@link UpgradePack} to be run.
-   *
-   * @return {@code true} if it is required, {@code false} otherwise.
+   * {@inheritDoc}
    */
+  @Override
   public boolean isRequired(UpgradeType upgradeType) {
     UpgradeType[] upgradeTypes = getClass().getAnnotation(UpgradeCheck.class).required();
     for (UpgradeType requiredType : upgradeTypes) {
@@ -294,16 +273,64 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Gets the services participating in the upgrade from the VDF.
+   * Gets the services participating in the upgrade as a flat set of services
+   * which are not associated with any service groups.
    *
    * @param request
    *          the upgrade check request.
-   * @return the services participating in the upgrade, which can either be all
-   *         of the cluster's services or a subset based on repository type.
+   * @return the services participating in the upgrade
    */
-  final Set<String> getServicesInUpgrade(PrereqCheckRequest request) throws AmbariException {
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    return Sets.newHashSet();
+  final Set<String> getDistinctServicesInUpgrade(PrereqCheckRequest request)
+      throws AmbariException {
+    Set<String> servicesInUpgrade = Sets.newHashSet();
+    UpgradePlanEntity upgradePlan = request.getUpgradePlan();
+    final Cluster cluster = clustersProvider.get().getCluster(upgradePlan.getClusterId());
+    List<UpgradePlanDetailEntity> details = upgradePlan.getDetails();
+    for (UpgradePlanDetailEntity detail : details) {
+      ServiceGroup serviceGroup = cluster.getServiceGroup(detail.getServiceGroupId());
+      Mpack sourceMpack = ambariMetaInfo.get().getMpack(serviceGroup.getMpackId());
+      Mpack targetMpack = ambariMetaInfo.get().getMpack(detail.getMpackTargetId());
+      MpackChangeSummary changeSummary = sourceMpack.getChangeSummary(targetMpack);
+      Set<ModuleVersionChange> moduleChanges = changeSummary.getModuleVersionChanges();
+
+      servicesInUpgrade.addAll(
+          moduleChanges.stream().map(moduleChange -> moduleChange.getSource().getName()).collect(
+              Collectors.toSet()));
+    }
+
+    return servicesInUpgrade;
+  }
+
+  /**
+   * Gets the services participating in the upgrade organized by their service
+   * groups.
+   *
+   * @param request
+   * @return the service groups and their services which are participating in
+   *         the upgrade.
+   * @throws AmbariException
+   */
+  final Map<ServiceGroup, Set<String>> getServicesInUpgrade(PrereqCheckRequest request) throws AmbariException {
+    Map<ServiceGroup, Set<String>> serviceGroupsInUpgrade = Maps.newLinkedHashMap();
+    UpgradePlanEntity upgradePlan = request.getUpgradePlan();
+    final Cluster cluster = clustersProvider.get().getCluster(upgradePlan.getClusterId());
+    List<UpgradePlanDetailEntity> details = upgradePlan.getDetails();
+    for (UpgradePlanDetailEntity detail : details) {
+      Set<String> servicesInUpgrade = Sets.newHashSet();
+      ServiceGroup serviceGroup = cluster.getServiceGroup(detail.getServiceGroupId());
+      serviceGroupsInUpgrade.put(serviceGroup, servicesInUpgrade);
+
+      Mpack sourceMpack = ambariMetaInfo.get().getMpack(serviceGroup.getMpackId());
+      Mpack targetMpack = ambariMetaInfo.get().getMpack(detail.getMpackTargetId());
+      MpackChangeSummary changeSummary = sourceMpack.getChangeSummary(targetMpack);
+      Set<ModuleVersionChange> moduleChanges = changeSummary.getModuleVersionChanges();
+
+      servicesInUpgrade.addAll(
+          moduleChanges.stream().map(moduleChange -> moduleChange.getSource().getName()).collect(
+              Collectors.toSet()));
+    }
+
+    return serviceGroupsInUpgrade;
   }
 
   /**
@@ -327,7 +354,7 @@ public abstract class AbstractCheckDescriptor {
   /**
    * The {@link ServiceQualification} class is used to determine if the
    * service(s) associated with an upgraade check are both installed in the
-   * cluster and included in thr upgrade.
+   * cluster and included in the upgrade.
    * <p/>
    * If a service is installed but not included in the upgrade (for example of
    * the upgrade is a patch upgrade), then the check should not qualify to run.
@@ -348,7 +375,7 @@ public abstract class AbstractCheckDescriptor {
         return true;
       }
 
-      Set<String> servicesForUpgrade = getServicesInUpgrade(request);
+      Set<String> servicesForUpgrade = getDistinctServicesInUpgrade(request);
 
       for (String serviceInUpgrade : servicesForUpgrade) {
         if (applicableServices.contains(serviceInUpgrade)) {
