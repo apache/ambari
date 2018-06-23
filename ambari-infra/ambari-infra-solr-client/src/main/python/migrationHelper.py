@@ -50,7 +50,7 @@ LOGSEARCH_SERVER_COMPONENT_NAME ='LOGSEARCH_SERVER'
 LOGSEARCH_LOGFEEDER_COMPONENT_NAME ='LOGSEARCH_LOGFEEDER'
 
 RANGER_SERVICE_NAME = "RANGER"
-RANGER_ADMIN_COMPONENT_NAME = "RANDER_ADMIN"
+RANGER_ADMIN_COMPONENT_NAME = "RANGER_ADMIN"
 
 ATLAS_SERVICE_NAME = "ATLAS"
 ATLAS_SERVER_COMPONENT_NAME = "ATLAS_SERVER"
@@ -1448,31 +1448,35 @@ def disable_solr_authorization(options, accessor, parser, config):
   else:
     print "Security is not enabled. Skipping disable Solr authorization operation."
 
-def check_shards(options, accessor, parser, config):
+def check_shards(options, accessor, parser, config, backup_shards = False):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_collections.json"))
   collections=filter_collections(options, collections)
   if is_ranger_available(config, service_filter):
-    ranger_collection = config.get('ranger_collection', 'ranger_collection_name')
+    ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name') if backup_shards \
+      else config.get('ranger_collection', 'ranger_collection_name')
     if ranger_collection in collections:
       check_shard_for_collection(ranger_collection)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(ranger_collection)
+      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(ranger_collection)
   if is_atlas_available(config, service_filter):
-    fulltext_index_name = config.get('atlas_collections', 'fulltext_index_name')
+    fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name') if backup_shards \
+      else config.get('atlas_collections', 'fulltext_index_name')
     if fulltext_index_name in collections:
       check_shard_for_collection(fulltext_index_name)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(fulltext_index_name)
-    edge_index_name = config.get('atlas_collections', 'edge_index_name')
+      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name)
+    edge_index_name = config.get('atlas_collections', 'backup_edge_index_name') if backup_shards \
+      else config.get('atlas_collections', 'edge_index_name')
     if edge_index_name in collections:
       check_shard_for_collection(edge_index_name)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(edge_index_name)
-    vertex_index_name = config.get('atlas_collections', 'vertex_index_name')
+      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(edge_index_name)
+    vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name') if backup_shards \
+      else config.get('atlas_collections', 'vertex_index_name')
     if vertex_index_name in collections:
       check_shard_for_collection(vertex_index_name)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(fulltext_index_name)
+      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name)
 
 def check_docs(options, accessor, parser, config):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"), include_number_of_docs=True)
@@ -1482,7 +1486,7 @@ def check_docs(options, accessor, parser, config):
     for collection_docs_data in docs_map:
       print "Collection: '{0}' - Number of docs: {1}".format(collection_docs_data, docs_map[collection_docs_data])
   else:
-    print "Not found any collections."
+    print "Check number of documents - Not found any collections."
 
 if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
@@ -1571,39 +1575,67 @@ if __name__=="__main__":
       elif options.action.lower() == 'upgrade-solr-instances':
         upgrade_solr_instances(options, accessor, parser, config)
       elif options.action.lower() == 'upgrade-logsearch-portal':
-        upgrade_logsearch_portal(options, accessor, parser, config)
+        if is_logsearch_available(config, service_filter):
+          upgrade_logsearch_portal(options, accessor, parser, config)
+        else:
+          print "LOGSEARCH service has not found in the config or filtered out."
       elif options.action.lower() == 'upgrade-logfeeders':
-        upgrade_logfeeders(options, accessor, parser, config)
+        if is_logsearch_available(config, service_filter):
+          upgrade_logfeeders(options, accessor, parser, config)
+        else:
+          print "LOGSEARCH service has not found in the config or filtered out."
       elif options.action.lower() == 'stop-logsearch':
-        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "STOP", "Stop")
-        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "STOP", "Stop")
+        if is_logsearch_available(config, service_filter):
+          service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "STOP", "Stop")
+          service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "STOP", "Stop")
+        else:
+          print "LOGSEARCH service has not found in the config or filtered out."
       elif options.action.lower() == 'restart-solr':
         service_components_command(options, accessor, parser, config, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME, "RESTART", "Restart")
       elif options.action.lower() == 'restart-logsearch':
-        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "RESTART", "Restart")
-        service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "RESTART", "Restart")
+        if is_logsearch_available(config, service_filter):
+          service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "RESTART", "Restart")
+          service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "RESTART", "Restart")
+        else:
+          print "LOGSEARCH service has not found in the config or filtered out."
       elif options.action.lower() == 'restart-atlas':
-        service_components_command(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "RESTART", "Restart")
+        if is_atlas_available(config, service_filter):
+          service_components_command(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "RESTART", "Restart")
+        else:
+          print "ATLAS service has not found in the config or filtered out."
       elif options.action.lower() == 'restart-ranger':
-        service_components_command(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "RESTART", "Restart")
+        if is_ranger_available(config, service_filter):
+          service_components_command(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "RESTART", "Restart")
+        else:
+          print "RANGER service has not found in the config or filtered out."
       elif options.action.lower() == 'rolling-restart-ranger':
-        rolling_restart(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "Rolling Restart Ranger Admin Instances")
+        if is_ranger_available(config, service_filter):
+          rolling_restart(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "Rolling Restart Ranger Admin Instances")
+        else:
+          print "RANGER service has not found in the config or filtered out."
       elif options.action.lower() == 'rolling-restart-atlas':
-        rolling_restart(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "Rolling Restart Atlas Server Instances")
+        if is_atlas_available(config, service_filter):
+          rolling_restart(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "Rolling Restart Atlas Server Instances")
+        else:
+          print "ATLAS service has not found in the config or filtered out."
       elif options.action.lower() == 'rolling-restart-solr':
         rolling_restart(options, accessor, parser, config, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME, "Rolling Restart Infra Solr Instances")
       elif options.action.lower() == 'disable-solr-authorization':
         disable_solr_authorization(options, accessor, parser, config)
       elif options.action.lower() == 'check-shards':
         check_shards(options, accessor, parser, config)
+      elif options.action.lower() == 'check-backup-shards':
+        check_shards(options, accessor, parser, config, backup_shards=True)
       elif options.action.lower() == 'check-docs':
         check_docs(options, accessor, parser, config)
       else:
         parser.print_help()
         print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
-              ' rolling-restart-solr | rolling-restart-ranger | rolling-restart-atlas | check-shards | check-docs | disable-solr-authorization |' \
+              ' rolling-restart-solr | rolling-restart-ranger | rolling-restart-atlas | check-shards | check-backup-shards | check-docs | disable-solr-authorization |' \
               ' upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-solr |' \
               ' restart-logsearch | restart-ranger | restart-atlas)'
         sys.exit(1)
-
-      print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
+      if options.verbose:
+        print "Migration helper command ({0}) {1}FINISHED{2}".format(str(args), colors.OKGREEN, colors.ENDC)
+      else:
+        print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)

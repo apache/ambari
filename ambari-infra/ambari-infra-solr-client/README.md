@@ -685,39 +685,68 @@ nohup infra-solr-data-manager -m archive -v -c $OLD_COLLECTION -s $SOLR_URL -z n
 
 ### <a id="happy-path">Happy path</a>
 
+Happy path steps are mainly for automation.
+
+##### 1. Generate migration config
+
+Generate ini config first for the migration, after running the following script, review the ini file content.
+
 ```bash
 CONFIG_INI_LOCATION=ambari_migration.ini
 BACKUP_BASE_PATH=/tmp
-
-# if backup is required:
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org -port 8080 --cluster cl1 --username admin --password admin --backup-base-path=$BACKUP_BASE_PATH --java-home /usr/jdk64/jdk1.8.0_112
-# use action upgrade-logfeeders and upgrade-logsearch-portal as well if LOGSEARCH installed
+```
+##### 2.a) Do backup-migrate-restore
+
+For doing a backup + cleanup, then later migrate + restore, use the following commands:
+
+```bash
+/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode backup
+/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode delete --skip-solr-client-upgrade
+# go ahead with HDP upgrade or anything else, then if you have resource / time:
+/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode migrate-restore
+```
+
+Or you can execute these commands togather (if you won't go with HDP upgrade after backup):
+```bash
+/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode all
+```
+
+Which is equivalent will execute the following migrationHelper.py commands:
+
+```bash
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org -port 8080 --cluster cl1 --username admin --password admin --backup-base-path=$BACKUP_BASE_PATH --java-home /usr/jdk64/jdk1.8.0_112
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-clients
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action backup-and-cleanup
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-instances
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-logsearch-portal
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-logfeeders
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-solr
-# if logsearch installed
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-logsearch
-# if ranger installed
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-ranger
-# if atlas installed
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-atlas
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action migrate
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restore
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action rolling-restart-solr
+```
 
-# or if backup is not required:
-/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org -port 8080 --cluster cl1 --username admin --password admin --backup-base-path=$BACKUP_BASE_PATH --java-home /usr/jdk64/jdk1.8.0_112
-# use action upgrade-logfeeders and upgrade-logsearch-portal as well if LOGSEARCH installed
+##### 2.a) Do delete only if backup is not required
+
+For only cleanup collections, execute this script:
+```bash
+/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode delete
+```
+
+Which is equivalent will execute the following migrationHelper.py commands:
+```bash
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-clients
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action delete-collections
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-instances
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-logsearch-portal
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-logfeeders
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-solr
-# if logsearch installed
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-logsearch
-# if ranger installed
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-ranger
-# if atlas installed
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-atlas
 ```
 
