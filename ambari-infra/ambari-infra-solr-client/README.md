@@ -707,7 +707,7 @@ For doing a backup + cleanup, then later migrate + restore, use the following co
 /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode migrate-restore
 ```
 
-Or you can execute these commands togather (if you won't go with HDP upgrade after backup):
+Or you can execute these commands together (if you won't go with HDP upgrade after backup):
 ```bash
 /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode all
 ```
@@ -715,7 +715,6 @@ Or you can execute these commands togather (if you won't go with HDP upgrade aft
 Which is equivalent will execute the following migrationHelper.py commands:
 
 ```bash
-/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationConfigGenerator.py --ini-file $CONFIG_INI_LOCATION --host c7401.ambari.apache.org -port 8080 --cluster cl1 --username admin --password admin --backup-base-path=$BACKUP_BASE_PATH --java-home /usr/jdk64/jdk1.8.0_112
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-clients
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action backup-and-cleanup
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action upgrade-solr-instances
@@ -730,7 +729,7 @@ Which is equivalent will execute the following migrationHelper.py commands:
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action rolling-restart-solr
 ```
 
-##### 2.a) Do delete only if backup is not required
+##### 2.b) Do delete only if backup is not required
 
 For only cleanup collections, execute this script:
 ```bash
@@ -749,6 +748,10 @@ Which is equivalent will execute the following migrationHelper.py commands:
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-ranger
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-atlas
 ```
+
+##### 3. Transportsolr data from old collections to active collections (optional)
+
+See [transport old data to new collections](#viii.-transport-old-data-to-new-collections) step
 
 ### <a id="appendix">APPENDIX</a>
 
@@ -802,10 +805,13 @@ Options:
   -a ACTION, --action=ACTION
                         delete-collections | backup | cleanup-znodes | backup-
                         and-cleanup | migrate | restore |'               '
-                        rolling-restart-solr | check-shards | disable-solr-
-                        authorization | upgrade-solr-clients | upgrade-solr-
-                        instances | upgrade-logsearch-portal | upgrade-
-                        logfeeders | stop-logsearch | restart-logsearch
+                        rolling-restart-solr | rolling-restart-atlas |
+                        rolling-restart-ranger | check-shards | check-backup-
+                        shards | disable-solr-authorization |'              '
+                        upgrade-solr-clients | upgrade-solr-instances |
+                        upgrade-logsearch-portal | upgrade-logfeeders | stop-
+                        logsearch | restart-solr |restart-logsearch | restart-
+                        ranger | restart-atlas
   -i INI_FILE, --ini-file=INI_FILE
                         Config ini file to parse (required)
   -f, --force           force index upgrade even if it's the right version
@@ -873,6 +879,10 @@ Options:
                         during collection dump (could be useful if it is
                         required to change something in manually in the
                         already downloaded file)
+  --skip-index-size     Skip index size check for check-shards or check-
+                        backup-shards
+  --skip-warnings       Pass check-shards or check-backup-shards even if there
+                        are warnings
 ```
 
 #### <a id="migration-config-generator">Solr Migration Config Generator Script</a>
@@ -930,7 +940,7 @@ Options:
   --shared-drive        Use if the backup location is shared between hosts.
 ```
 
-#### <a id="">Solr Data Manager Script</a>
+#### <a id="data-manager-script">Solr Data Manager Script</a>
 
 `/usr/lib/ambari-infra-solr-client/solrDataManager.py --help`
 
@@ -995,4 +1005,24 @@ Options:
     -e END, --end=END   end of the range
     -d DAYS, --days=DAYS
                         number of days to keep
+```
+
+#### <a id="ambari-solr-migration-script">Ambari Solr Migration script</a>
+
+`/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --help`
+
+```text
+Usage: /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --mode <MODE> --ini-file <ini_file> [additional options]
+
+   -m, --mode  <MODE>                     available migration modes: delete-only | backup-only | migrate-restore | all
+   -i, --ini-file <INI_FILE>              ini-file location (used by migrationHelper.py)
+   -s, --migration-script-location <file> migrateHelper.py location (default: /usr/lib/ambari-infra-solr-client/migrationHelper.py)
+   -w, --wait-between-steps <seconds>     wait between different migration steps in seconds (default: 15)
+   -p, --python-path                      python location, default: /usr/bin/python
+   -b, --batch-interval                   seconds between batch tasks for rolling restart solr at last step (default: 60)
+   --skip-solr-client-upgrade             skip ambari-infra-solr-client package upgrades
+   --skip-solr-server-upgrade             skip ambari-infra-solr package upgrades
+   --skip-logsearch-upgrade               skip ambari-logsearch-portal and ambari-logsearch-logfeeder package upgrades
+   --skip-warnings                        skip warnings at check-shards step
+   -h, --help                             print help
 ```

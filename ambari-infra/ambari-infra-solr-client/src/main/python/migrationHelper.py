@@ -66,6 +66,7 @@ LIST_SOLR_COLLECTION_URL = '{0}/admin/collections?action=LIST&wt=json'
 CREATE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=CREATE&name={1}&collection.configName={2}&numShards={3}&replicationFactor={4}&maxShardsPerNode={5}&wt=json'
 DELETE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=DELETE&name={1}&wt=json'
 RELOAD_SOLR_COLLECTION_URL = '{0}/admin/collections?action=RELOAD&name={1}&wt=json'
+CORE_DETAILS_URL = '{0}replication?command=details&wt=json'
 
 INFRA_SOLR_CLIENT_BASE_PATH = '/usr/lib/ambari-infra-solr-client/'
 RANGER_NEW_SCHEMA = 'migrate/managed-schema'
@@ -728,6 +729,43 @@ def reload_collection(options, config, solr_urls, collection):
   else:
     raise Exception("RELOAD collection ('{0}') failed. ({1}) Response: {1}".format(collection, str(out)))
 
+def human_size(size_bytes):
+  if size_bytes == 1:
+    return "1 byte"
+  suffixes_table = [('bytes',0),('KB',2),('MB',2),('GB',2),('TB',2), ('PB',2)]
+  num = float(size_bytes)
+  for suffix, precision in suffixes_table:
+    if num < 1024.0:
+      break
+    num /= 1024.0
+  if precision == 0:
+    formatted_size = "%d" % num
+  else:
+    formatted_size = str(round(num, ndigits=precision))
+  return "%s %s" % (formatted_size, suffix)
+
+def parse_size(human_size):
+  units = {"bytes": 1, "KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4 }
+  number, unit = [string.strip() for string in human_size.split()]
+  return int(float(number)*units[unit])
+
+def get_replica_index_size(config, core_url, replica):
+  request = CORE_DETAILS_URL.format(core_url)
+  logger.debug("Solr request: {0}".format(request))
+  get_core_detaul_json_cmd=create_solr_api_request_command(request, config)
+  process = Popen(get_core_detaul_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+  out, err = process.communicate()
+  if process.returncode != 0:
+    raise Exception("{0} command failed: {1}".format(get_core_detaul_json_cmd, str(err)))
+  response=json.loads(str(out))
+  if 'details' in response:
+    if 'indexSize' in response['details']:
+      return response['details']['indexSize']
+    else:
+      raise Exception("Not found 'indexSize' in core details ('{0}'). Response: {1}".format(replica, str(out)))
+  else:
+    raise Exception("GET core details ('{0}') failed. Response: {1}".format(replica, str(out)))
+
 def delete_znode(options, config, znode):
   solr_cli_command=create_infra_solr_client_command(options, config, '--delete-znode --znode {0}'.format(znode))
   logger.debug("Solr cli command: {0}".format(solr_cli_command))
@@ -890,9 +928,43 @@ def upgrade_ranger_solrconfig_xml(options, config, service_filter):
     copy_znode(options, config, "{0}/configs/{1}/solrconfig.xml".format(solr_znode, ranger_config_set_name),
                "{0}/configs/{1}/solrconfig.xml".format(solr_znode, backup_ranger_config_set_name))
 
-def check_shard_for_collection(collection):
+def evaluate_check_shard_result(collection, result, skip_index_size = False):
+  evaluate_result = {}
+  active_shards = result['active_shards']
+  all_shards = result['all_shards']
+  warnings = 0
+  print 30 * "-"
+  for shard in all_shards:
+    if shard in active_shards:
+      print "{0}OK{1}: Found active leader replica for {2}" \
+        .format(colors.OKGREEN, colors.ENDC, shard)
+    else:
+      warnings=warnings+1
+      print "{0}WARNING{1}: Not found any active leader replicas for {2}, migration will probably fail, fix or delete the shard if it is possible." \
+        .format(colors.WARNING, colors.ENDC, shard)
+
+  if not skip_index_size:
+    index_size_map = result['index_size_map']
+    host_index_size_map = result['host_index_size_map']
+    if index_size_map:
+      print "Index size per shard for {0}:".format(collection)
+      for shard in index_size_map:
+        print " - {0}: {1}".format(shard, human_size(index_size_map[shard]))
+    if host_index_size_map:
+      print "Index size per host for {0} (consider this for backup): ".format(collection)
+      for host in host_index_size_map:
+        print " - {0}: {1}".format(host, human_size(host_index_size_map[host]))
+      evaluate_result['host_index_size_map'] = host_index_size_map
+  print 30 * "-"
+  evaluate_result['warnings'] = warnings
+  return evaluate_result
+
+def check_shard_for_collection(config, collection, skip_index_size = False):
+  result = {}
   active_shards = []
   all_shards = []
+  index_size_map = {}
+  host_index_size_map = {}
   collections_data = get_collections_data(COLLECTIONS_DATA_JSON_LOCATION.format("check_collections.json"))
   print "Checking available shards for '{0}' collection...".format(collection)
   if collection in collections_data:
@@ -903,16 +975,31 @@ def check_shard_for_collection(collection):
         if 'replicas' in collection_details['shards'][shard]:
           for replica in collection_details['shards'][shard]['replicas']:
             if 'state' in collection_details['shards'][shard]['replicas'][replica] \
-              and collection_details['shards'][shard]['replicas'][replica]['state'].lower() == 'active':
+              and collection_details['shards'][shard]['replicas'][replica]['state'].lower() == 'active' \
+              and 'leader' in collection_details['shards'][shard]['replicas'][replica]['properties'] \
+              and collection_details['shards'][shard]['replicas'][replica]['properties']['leader'] == 'true' :
               logger.debug("Found active shard for {0} (collection: {1})".format(shard, collection))
               active_shards.append(shard)
-  for shard in all_shards:
-    if shard in active_shards:
-      print "{0}OK{1}: Found active replica for {2}" \
-        .format(colors.OKGREEN, colors.ENDC, shard)
-    else:
-      print "{0}WARNING{1}: Not found any active replicas for {2}, migration will probably fail, fix or delete the shard if it is possible." \
-        .format(colors.WARNING, colors.ENDC, shard)
+              if not skip_index_size:
+                core_url = collection_details['shards'][shard]['replicas'][replica]['coreUrl']
+                core_name = collection_details['shards'][shard]['replicas'][replica]['coreName']
+                node_name = collection_details['shards'][shard]['replicas'][replica]['nodeName']
+                hostname = node_name.split(":")[0]
+                index_size = get_replica_index_size(config, core_url, core_name)
+                index_bytes = parse_size(index_size)
+                if hostname in host_index_size_map:
+                  last_value = host_index_size_map[hostname]
+                  host_index_size_map[hostname] = last_value + index_bytes
+                else:
+                  host_index_size_map[hostname] = index_bytes
+                index_size_map[shard] = index_bytes
+  result['active_shards'] = active_shards
+  result['all_shards'] = all_shards
+  if not skip_index_size:
+    result['index_size_map'] = index_size_map
+    result['host_index_size_map'] = host_index_size_map
+
+  return result
 
 def generate_core_pairs(original_collection, collection, config, options):
   core_pairs_data={}
@@ -1448,35 +1535,67 @@ def disable_solr_authorization(options, accessor, parser, config):
   else:
     print "Security is not enabled. Skipping disable Solr authorization operation."
 
+def summarize_shard_check_result(check_results, skip_warnings = False, skip_index_size = False):
+  warnings = 0
+  index_size_per_host = {}
+  for collection in check_results:
+    warnings=warnings+check_results[collection]['warnings']
+    if not skip_index_size and 'host_index_size_map' in check_results[collection]:
+      host_index_size_map = check_results[collection]['host_index_size_map']
+      for host in host_index_size_map:
+        if host in index_size_per_host:
+          last_value=index_size_per_host[host]
+          index_size_per_host[host]=last_value+host_index_size_map[host]
+        else:
+          index_size_per_host[host]=host_index_size_map[host]
+      pass
+  if not skip_index_size and index_size_per_host:
+    print "Full index size per hosts: (consider this for backup)"
+    for host in index_size_per_host:
+      print " - {0}: {1}".format(host, human_size(index_size_per_host[host]))
+
+  print "All warnings: {0}".format(warnings)
+  if warnings != 0 and not skip_warnings:
+    print "Check shards - {0}FAILED{1} (warnings: {2}, fix warnings or use --skip-warnings flag to PASS) ".format(colors.FAIL, colors.ENDC, warnings)
+    sys.exit(1)
+  else:
+    print "Check shards - {0}PASSED{1}".format(colors.OKGREEN, colors.ENDC)
+
 def check_shards(options, accessor, parser, config, backup_shards = False):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_collections.json"))
   collections=filter_collections(options, collections)
+  check_results={}
   if is_ranger_available(config, service_filter):
     ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name') if backup_shards \
       else config.get('ranger_collection', 'ranger_collection_name')
     if ranger_collection in collections:
-      check_shard_for_collection(ranger_collection)
+      ranger_collection_details = check_shard_for_collection(config, ranger_collection, options.skip_index_size)
+      check_results[ranger_collection]=evaluate_check_shard_result(ranger_collection, ranger_collection_details, options.skip_index_size)
     else:
       print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(ranger_collection)
   if is_atlas_available(config, service_filter):
     fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name') if backup_shards \
       else config.get('atlas_collections', 'fulltext_index_name')
     if fulltext_index_name in collections:
-      check_shard_for_collection(fulltext_index_name)
+      fulltext_collection_details = check_shard_for_collection(config, fulltext_index_name, options.skip_index_size)
+      check_results[fulltext_index_name]=evaluate_check_shard_result(fulltext_index_name, fulltext_collection_details, options.skip_index_size)
     else:
       print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name)
     edge_index_name = config.get('atlas_collections', 'backup_edge_index_name') if backup_shards \
       else config.get('atlas_collections', 'edge_index_name')
     if edge_index_name in collections:
-      check_shard_for_collection(edge_index_name)
+      edge_collection_details = check_shard_for_collection(config, edge_index_name, options.skip_index_size)
+      check_results[edge_index_name]=evaluate_check_shard_result(edge_index_name, edge_collection_details, options.skip_index_size)
     else:
       print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(edge_index_name)
     vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name') if backup_shards \
       else config.get('atlas_collections', 'vertex_index_name')
     if vertex_index_name in collections:
-      check_shard_for_collection(vertex_index_name)
+      vertex_collection_details = check_shard_for_collection(config, vertex_index_name, options.skip_index_size)
+      check_results[vertex_index_name]=evaluate_check_shard_result(vertex_index_name, vertex_collection_details, options.skip_index_size)
     else:
       print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name)
+    summarize_shard_check_result(check_results, options.skip_warnings, options.skip_index_size)
 
 def check_docs(options, accessor, parser, config):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"), include_number_of_docs=True)
@@ -1492,7 +1611,8 @@ if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
 
   parser.add_option("-a", "--action", dest="action", type="string", help="delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
-              ' rolling-restart-solr | check-shards | disable-solr-authorization | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-logsearch")
+              ' rolling-restart-solr | rolling-restart-atlas | rolling-restart-ranger | check-shards | check-backup-shards | disable-solr-authorization |'\
+              ' upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-solr |restart-logsearch | restart-ranger | restart-atlas")
   parser.add_option("-i", "--ini-file", dest="ini_file", type="string", help="Config ini file to parse (required)")
   parser.add_option("-f", "--force", dest="force", default=False, action="store_true", help="force index upgrade even if it's the right version")
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="use for verbose logging")
@@ -1520,9 +1640,14 @@ if __name__=="__main__":
   parser.add_option("--batch-fault-tolerance", dest="batch_fault_tolerance", type="int", default=0 ,help="fault tolerance of tasks for batch request (for restarting INFRA SOLR, default: 0)")
   parser.add_option("--shared-drive", dest="shared_drive", default=False, action="store_true", help="Use if the backup location is shared between hosts. (override config from config ini file)")
   parser.add_option("--skip-json-dump-files", dest="skip_json_dump_files", type="string", help="comma separated list of files that won't be download during collection dump (could be useful if it is required to change something in manually in the already downloaded file)")
+  parser.add_option("--skip-index-size", dest="skip_index_size", default=False, action="store_true", help="Skip index size check for check-shards or check-backup-shards")
+  parser.add_option("--skip-warnings", dest="skip_warnings", default=False, action="store_true", help="Pass check-shards or check-backup-shards even if there are warnings")
   (options, args) = parser.parse_args()
 
   set_log_level(options.verbose)
+
+  if options.verbose:
+    print "Run command with args: {0}".format(str(sys.argv))
 
   validate_ini_file(options, parser)
 
