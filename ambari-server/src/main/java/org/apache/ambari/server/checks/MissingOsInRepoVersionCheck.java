@@ -70,6 +70,9 @@ public class MissingOsInRepoVersionCheck extends AbstractCheckDescriptor {
     return clustersProvider.get().getCluster(prerequisiteCheck.getClusterName());
   }
 
+  /**
+   * @return set of each os family in the cluster, excluding hosts which are in maintenance state
+   */
   private Set<String> osFamiliesInCluster(Cluster cluster) {
     return cluster.getHosts().stream()
       .filter(host -> host.getMaintenanceState(cluster.getClusterId()) == OFF)
@@ -77,10 +80,16 @@ public class MissingOsInRepoVersionCheck extends AbstractCheckDescriptor {
       .collect(toSet());
   }
 
+  /**
+   * @return set of each os family in the source stack
+   */
   private Set<String> sourceOsFamilies(PrereqCheckRequest request) throws AmbariException {
     return ambariMetaInfo.get().getStack(request.getSourceStackId()).getRepositoriesByOs().keySet();
   }
 
+  /**
+   * @return set of each os family in the target repository
+   */
   private Set<String> targetOsFamilies(PrereqCheckRequest request) {
     return request
       .getTargetRepositoryVersion()
