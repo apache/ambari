@@ -54,8 +54,9 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     sys.path.append(file_path)
     global alert
     import alert_datanode_unmounted_data_dir as alert
-  
-  def test_missing_configs(self):
+
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
+  def test_missing_configs(self, get_and_cache_mount_points_mock):
     """
     Check that the status is UNKNOWN when configs are missing.
     """
