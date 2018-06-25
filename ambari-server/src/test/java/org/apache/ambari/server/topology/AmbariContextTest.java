@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptySet;
 import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
@@ -77,6 +78,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -137,7 +139,7 @@ public class AmbariContextTest {
   private static final Set<String> group1Hosts = ImmutableSet.of(HOST1, HOST2);
 
   private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = EasyMock.newCapture();
-  private Setting setting = createNiceMock(Setting.class);
+  private Setting setting;
 
   @Before
   public void setUp() throws Exception {
@@ -247,8 +249,18 @@ public class AmbariContextTest {
       builderFor("service2", "s2Component1").stackId(STACK_ID).buildPartial()
     )).anyTimes();
     expect(topology.getConfiguration()).andReturn(bpConfiguration).anyTimes();
+
+    setting = new Setting(
+      map(
+        Pair.of("recovery_settings",
+          newHashSet(
+            map(Pair.of("recovery_enabled", "true")))),
+        Pair.of("service_settings",
+          newHashSet(
+            map(Pair.of("name", "service1"), Pair.of("recovery_enabled", "true"))))
+      )
+    );
     expect(topology.getSetting()).andReturn(setting).anyTimes();
-    expect(setting.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
@@ -287,13 +299,13 @@ public class AmbariContextTest {
   @After
   public void tearDown() throws Exception {
     verify(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
-        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
+        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
         cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   private void replayAll() {
     replay(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
-      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
+      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
       cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
@@ -676,5 +688,13 @@ public class AmbariContextTest {
 
     // Then
     assertFalse(topologyResolved);
+  }
+
+  private static final <K, V> Map<K, V> map(Pair<K, V>... keyValuePairs) {
+    Map<K, V> map = new HashMap<>(keyValuePairs.length);
+    for (Pair<K, V> kv: keyValuePairs) {
+      map.put(kv.getLeft(), kv.getRight());
+    }
+    return map;
   }
 }
