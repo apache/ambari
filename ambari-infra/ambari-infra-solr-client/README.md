@@ -704,7 +704,7 @@ For doing a backup + cleanup, then later migrate + restore, use the following co
 /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode backup
 /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode delete --skip-solr-client-upgrade
 # go ahead with HDP upgrade or anything else, then if you have resource / time:
-/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode migrate-restore
+/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode migrate-restore # you can use --keep-backup option, it will keep the backup data, it's more safe but you need enough pace for that
 ```
 
 Or you can execute these commands together (if you won't go with HDP upgrade after backup):
@@ -1020,6 +1020,7 @@ Usage: /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --mode <MODE> --
    -w, --wait-between-steps <seconds>     wait between different migration steps in seconds (default: 15)
    -p, --python-path                      python location, default: /usr/bin/python
    -b, --batch-interval                   seconds between batch tasks for rolling restart solr at last step (default: 60)
+   -k, --keep-backup                      keep backup data (more secure, useful if you have enough space for that)
    --skip-solr-client-upgrade             skip ambari-infra-solr-client package upgrades
    --skip-solr-server-upgrade             skip ambari-infra-solr package upgrades
    --skip-logsearch-upgrade               skip ambari-logsearch-portal and ambari-logsearch-logfeeder package upgrades

@@ -24,6 +24,7 @@ function print_help() {
    -w, --wait-between-steps <seconds>     wait between different migration steps in seconds (default: 15)
    -p, --python-path                      python location, default: /usr/bin/python
    -b, --batch-interval                   seconds between batch tasks for rolling restart solr at last step (default: 60)
+   -k, --keep-backup                      keep backup data (more secure, useful if you have enough space for that)
    --skip-solr-client-upgrade             skip ambari-infra-solr-client package upgrades
    --skip-solr-server-upgrade             skip ambari-infra-solr package upgrades
    --skip-logsearch-upgrade               skip ambari-logsearch-portal and ambari-logsearch-logfeeder package upgrades
@@ -35,8 +36,13 @@ EOF
 function handle_result() {
   local result_code=${1:?"usage: <last_command_result>"}
   local step=${2:?"usage: <step_context"}
+  local python_location=${3:?"usage: <python_location>"}
+  local start_date=${4:?"usage: <date>"}
   if [[ "$result_code" != "0" ]] ; then
-    echo "$step command failed. Stop migration commands ..."
+    end_date=$(date +%s)
+    runtime=$($python_location -c "print '%02u:%02u:%02u' % ((${end_date} - ${start_date})/3600, ((${end_date} - ${start_date})/60)%60, (${end_date} - ${start_date})%60)")
+    echo "Total Runtime: $runtime"
+    echo "$step command FAILED. Stop migration commands ..."
     exit 1
   fi
 }
@@ -63,7 +69,8 @@ function run_migrate_commands() {
   local skip_logsearch_upgrade=${8:?"usage <true|false>"}
   local skip_warnings=${9:?"usage <true|false>"}
   local batch_interval=${10:?"usage <seconds>"}
-  local verbose=${11:?"usage <true|false>"}
+  local keep_backup=${11:?"usage <true|false>"}
+  local verbose=${12:?"usage <true|false>"}
 
   local verbose_val=""
   if [[ "$verbose" == "true" ]]; then
@@ -75,11 +82,18 @@ function run_migrate_commands() {
     skip_warnings_val="--skip-warnings"
   fi
 
+  local keep_backup_val=""
+  if [[ "$verbose" == "true" ]]; then
+    keep_backup_val="--keep-backup"
+  fi
+
+  start_date=$(date +%s)
+
   # execute on: backup - all
   if [[ "$mode" == "backup" || "$mode" == "all" ]] ; then
     log_command "$python_location $script_location --ini-file $ini_file --action check-shards $verbose_val $skip_warnings_val"
     $python_location $script_location --ini-file $ini_file --action check-shards $verbose_val $skip_warnings_val
-    handle_result "$?" "Check Shards"
+    handle_result "$?" "Check Shards" "$python_location" "$start_date"
   fi
 
   # execute on: backup - delete - all
@@ -87,25 +101,25 @@ function run_migrate_commands() {
     if [[ "$skip_solr_client_upgrade" != "true" ]]; then
       log_command "$python_location $script_location --ini-file $ini_file --action upgrade-solr-clients $verbose_val"
       $python_location $script_location --ini-file $ini_file --action upgrade-solr-clients $verbose_val
-      handle_result "$?" "Upgrade Solr Clients"
+      handle_result "$?" "Upgrade Solr Clients" "$python_location" "$start_date"
     fi
     log_command "$python_location $script_location --ini-file $ini_file --action check-docs $verbose_val"
     $python_location $script_location --ini-file $ini_file --action check-docs $verbose_val
-    handle_result "$?" "Check Documents"
+    handle_result "$?" "Check Documents" "$python_location" "$start_date"
   fi
 
   # ececute on: backup - all
   if [[ "$mode" == "backup" || "$mode" == "all" ]] ; then
     log_command "$python_location $script_location --ini-file $ini_file --action backup $verbose_val"
     $python_location $script_location --ini-file $ini_file --action backup $verbose_val
-    handle_result "$?" "Backup"
+    handle_result "$?" "Backup" "$python_location" "$start_date"
   fi
 
   # execute on: delete - all
   if [[ "$mode" == "delete" || "$mode" == "all" ]] ; then
     log_command "$python_location $script_location --ini-file $ini_file --action delete-collections $verbose_val"
     $python_location $script_location --ini-file $ini_file --action delete-collections $verbose_val
-    handle_result "$?" "Delete collections"
+    handle_result "$?" "Delete collections" "$python_location" "$start_date"
   fi
 
   # execute on: delete - all
@@ -113,7 +127,7 @@ function run_migrate_commands() {
     if [[ "$skip_solr_server_upgrade" != "true" ]]; then
       log_command "$python_location $script_location --ini-file $ini_file --action upgrade-solr-instances $verbose_val"
       $python_location $script_location --ini-file $ini_file --action upgrade-solr-instances $verbose_val
-      handle_result "$?" "Upgrade Solr Instances"
+      handle_result "$?" "Upgrade Solr Instances" "$python_location" "$start_date"
     fi
   fi
 
@@ -121,30 +135,30 @@ function run_migrate_commands() {
   if [[ "$mode" == "delete" || "$mode" == "all" ]] ; then
     log_command "$python_location $script_location --ini-file $ini_file --action restart-solr $verbose_val"
     $python_location $script_location --ini-file $ini_file --action restart-solr $verbose_val
-    handle_result "$?" "Restart Solr Instances"
+    handle_result "$?" "Restart Solr Instances" "$python_location" "$start_date"
     wait $time_sleep
 
     log_command "$python_location $script_location --ini-file $ini_file --action restart-ranger $verbose_val"
     $python_location $script_location --ini-file $ini_file --action restart-ranger $verbose_val
-    handle_result "$?" "Restart Ranger Admins"
+    handle_result "$?" "Restart Ranger Admins" "$python_location" "$start_date"
     wait $time_sleep
     if [[ "$skip_logsearch_upgrade" != "true" ]]; then
       log_command "$python_location $script_location --ini-file $ini_file --action upgrade-logsearch-portal $verbose_val"
       $python_location $script_location --ini-file $ini_file --action upgrade-logsearch-portal $verbose_val
-      handle_result "$?" "Upgrade Log Search Portal"
+      handle_result "$?" "Upgrade Log Search Portal" "$python_location" "$start_date"
 
       log_command "$python_location $script_location --ini-file $ini_file --action upgrade-logfeeders $verbose_val"
       $python_location $script_location --ini-file $ini_file --action upgrade-logfeeders $verbose_val
-      handle_result "$?" "Upgrade Log Feeders"
+      handle_result "$?" "Upgrade Log Feeders" "$python_location" "$start_date"
     fi
     log_command "$python_location $script_location --ini-file $ini_file --action restart-logsearch $verbose_val"
     $python_location $script_location --ini-file $ini_file --action restart-logsearch $verbose_val
-    handle_result "$?" "Restart Log Search"
+    handle_result "$?" "Restart Log Search" "$python_location" "$start_date"
     wait $time_sleep
 
     log_command "$python_location $script_location --ini-file $ini_file --action restart-atlas $verbose_val"
     $python_location $script_location --ini-file $ini_file --action restart-atlas $verbose_val
-    handle_result "$?" "Restart Atlas Servers"
+    handle_result "$?" "Restart Atlas Servers" "$python_location" "$start_date"
     wait $time_sleep
   fi
 
@@ -152,20 +166,24 @@ function run_migrate_commands() {
   if [[ "$mode" == "migrate-restore" || "$mode" == "all" ]] ; then
     log_command "$python_location $script_location --ini-file $ini_file --action check-docs $verbose_val"
     $python_location $script_location --ini-file $ini_file --action check-docs $verbose_val
-    handle_result "$?" "Check Documents"
+    handle_result "$?" "Check Documents" "$python_location" "$start_date"
 
     log_command "$python_location $script_location --ini-file $ini_file --action migrate $verbose_val"
     $python_location $script_location --ini-file $ini_file --action migrate $verbose_val
-    handle_result "$?" "Migrate Index"
+    handle_result "$?" "Migrate Index" "$python_location" "$start_date"
 
-    log_command "$python_location $script_location --ini-file $ini_file --action restore $verbose_val"
+    log_command "$python_location $script_location --ini-file $ini_file --action restore $keep_backup_val $verbose_val"
     $python_location $script_location --ini-file $ini_file --action restore $verbose_val
-    handle_result "$?" "Restore"
+    handle_result "$?" "Restore" "$python_location" "$start_date"
 
     log_command "$python_location $script_location --ini-file $ini_file --action rolling-restart-solr $verbose_val --batch-interval $batch_interval"
     $python_location $script_location --ini-file $ini_file --action rolling-restart-solr $verbose_val --batch-interval $batch_interval
-    handle_result "$?" "Rolling Restart Solr"
+    handle_result "$?" "Rolling Restart Solr" "$python_location" "$start_date"
   fi
+
+  end_date=$(date +%s)
+  runtime=$($python_location -c "print '%02u:%02u:%02u' % ((${end_date} - ${start_date})/3600, ((${end_date} - ${start_date})/60)%60, (${end_date} - ${start_date})%60)")
+  echo "Total Runtime: $runtime"
 }
 
 function main() {
@@ -196,6 +214,10 @@ function main() {
         -b|--batch-interval)
           local BATCH_INTERVAL="$2"
           shift 2
+        ;;
+        -k|--keep-backup)
+          local KEEP_BACKUP="true"
+          shift 1
         ;;
         --skip-solr-client-upgrade)
           local SKIP_SOLR_CLIENT_UPGRADE="true"
@@ -265,6 +287,10 @@ function main() {
     SKIP_LOGSEARCH_UPGRADE="false"
   fi
 
+  if [[ -z "$KEEP_BACKUP" ]] ; then
+    KEEP_BACKUP="false"
+  fi
+
   if [[ -z "$INI_FILE" ]] ; then
     echo "ini-file argument is required (-i or --ini-file)."
     print_help
@@ -277,7 +303,7 @@ function main() {
     exit 1
   else
     if [[ "$MODE" == "delete" || "$MODE" == "backup" || "$MODE" == "migrate-restore" || "$MODE" == "all" ]]; then
-      run_migrate_commands "$MODE" "$SCRIPT_LOCATION" "$PYTHON_PATH_FOR_MIGRATION" "$INI_FILE" "$WAIT" "$SKIP_SOLR_CLIENT_UPGRADE" "$SKIP_SOLR_SERVER_UPGRADE" "$SKIP_LOGSEARCH_UPGRADE" "$SKIP_WARNINGS" "$BATCH_INTERVAL" "$VERBOSE"
+      run_migrate_commands "$MODE" "$SCRIPT_LOCATION" "$PYTHON_PATH_FOR_MIGRATION" "$INI_FILE" "$WAIT" "$SKIP_SOLR_CLIENT_UPGRADE" "$SKIP_SOLR_SERVER_UPGRADE" "$SKIP_LOGSEARCH_UPGRADE" "$SKIP_WARNINGS" "$BATCH_INTERVAL" "$KEEP_BACKUP" "$VERBOSE"
     else
       echo "mode '$MODE' is not supported"
       print_help

@@ -1774,6 +1774,8 @@ if __name__=="__main__":
   config = ConfigParser.RawConfigParser()
   config.read(options.ini_file)
 
+  command_start_time = time.time()
+
   service_filter=options.service_filter.upper().split(',') if options.service_filter is not None else ['LOGSEARCH', 'ATLAS', 'RANGER']
 
   if options.action is None:
@@ -1887,5 +1889,9 @@ if __name__=="__main__":
               ' upgrade-logfeeders | stop-logsearch | restart-solr |' \
               ' restart-logsearch | restart-ranger | restart-atlas)'
         sys.exit(1)
-
+      command_elapsed_time = time.time() - command_start_time
+      time_to_print = time.strftime("%H:%M:%S", time.gmtime(command_elapsed_time))
+      print 30 * "-"
+      print "Command elapsed time: {0}".format(time_to_print)
+      print 30 * "-"
       print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
