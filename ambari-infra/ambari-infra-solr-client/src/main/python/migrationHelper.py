@@ -61,6 +61,8 @@ GET_HOSTS_COMPONENTS_URL = '/services/{0}/components/{1}?fields=host_components'
 
 REQUESTS_API_URL = '/requests'
 BATCH_REQUEST_API_URL = "/api/v1/clusters/{0}/request_schedules"
+GET_ACTUAL_CONFIG_URL = '/configurations/service_config_versions?service_name={0}&is_current=true'
+CREATE_CONFIGURATIONS_URL = '/configurations'
 
 LIST_SOLR_COLLECTION_URL = '{0}/admin/collections?action=LIST&wt=json'
 CREATE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=CREATE&name={1}&collection.configName={2}&numShards={3}&replicationFactor={4}&maxShardsPerNode={5}&wt=json'
@@ -294,7 +296,6 @@ def create_batch_command(command, hosts, cluster, service_name, component_name, 
   request_schedules.append(request_schedule_item)
 
   return request_schedules
-
 
 def create_command_request(command, parameters, hosts, cluster, context, service=SOLR_SERVICE_NAME, component=SOLR_COMPONENT_NAME):
   request = {}
@@ -635,7 +636,84 @@ def filter_collections(options, collections):
   else:
     return collections
 
-def get_solr_urls(options, config, collection, collections_json):
+def get_infra_solr_props(config, accessor):
+  cluster = config.get('ambari_server', 'cluster')
+  service_configs = get_json(accessor, CLUSTERS_URL.format(cluster) + GET_ACTUAL_CONFIG_URL.format(SOLR_SERVICE_NAME))
+  infra_solr_props = {}
+  infra_solr_env_properties = {}
+  infra_solr_security_json_properties = {}
+  if 'items' in service_configs and len(service_configs['items']) > 0:
+    if 'configurations' in service_configs['items'][0]:
+      for config in service_configs['items'][0]['configurations']:
+        if 'type' in config and config['type'] == 'infra-solr-env':
+          infra_solr_env_properties = config['properties']
+        if 'type' in config and config['type'] == 'infra-solr-security-json':
+          infra_solr_security_json_properties = config['properties']
+  infra_solr_props['infra-solr-env'] = infra_solr_env_properties
+  infra_solr_props['infra-solr-security-json'] = infra_solr_security_json_properties
+  return infra_solr_props
+
+def insert_string_before(full_str, sub_str, insert_str):
+  idx = full_str.index(sub_str)
+  return full_str[:idx] + insert_str + full_str[idx:]
+
+def set_solr_security_management(infra_solr_props, accessor, enable = True):
+  security_props =  infra_solr_props['infra-solr-security-json']
+  check_value = "false" if enable else "true"
+  set_value = "true" if enable else "false"
+  turn_status = "on" if enable else "off"
+  if 'infra_solr_security_manually_managed' in security_props and security_props['infra_solr_security_manually_managed'] == check_value:
+    security_props['infra_solr_security_manually_managed'] = set_value
+    post_configuration = create_configs('infra-solr-security-json', security_props, 'Turn {0} security.json manaul management by migrationHelper.py'.format(turn_status))
+    apply_configs(config, accessor, post_configuration)
+  else:
+    print "Configuration 'infra-solr-security-json/infra_solr_security_manually_managed' has already set to '{0}'".format(set_value)
+
+def set_solr_name_rules(infra_solr_props, accessor, add = False):
+  """
+  Set name rules in infra-solr-env/content if not set in add mode, in non-add mode, remove it if exists
+  :param add: solr kerb name rules needs to be added (if false, it needs to be removed)
+  """
+  infra_solr_env_props =  infra_solr_props['infra-solr-env']
+  name_rules_param = "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"\n"
+
+  if 'content' in infra_solr_env_props and (name_rules_param not in infra_solr_env_props['content']) is add:
+    if add:
+      print "Adding 'SOLR_KERB_NAME_RULES' to 'infra-solr-env/content'"
+      new_content = insert_string_before(infra_solr_env_props['content'], "SOLR_KERB_KEYTAB", name_rules_param)
+      infra_solr_env_props['content'] = new_content
+      post_configuration = create_configs('infra-solr-env', infra_solr_env_props, 'Add "SOLR_KERB_NAME_RULES" by migrationHelper.py')
+      apply_configs(config, accessor, post_configuration)
+    else:
+      print "Removing 'SOLR_KERB_NAME_RULES' from 'infra-solr-env/content'"
+      new_content = infra_solr_env_props['content'].replace(name_rules_param, '')
+      infra_solr_env_props['content'] = new_content
+      post_configuration = create_configs('infra-solr-env', infra_solr_env_props, 'Remove "SOLR_KERB_NAME_RULES" by migrationHelper.py')
+      apply_configs(config, accessor, post_configuration)
+  else:
+    if add:
+      print "'SOLR_KERB_NAME_RULES' has already set in configuration 'infra-solr-env/content'"
+    else:
+      print "Configuration 'infra-solr-env/content' does not contain 'SOLR_KERB_NAME_RULES'"
+
+def apply_configs(config, accessor, post_configuration):
+  cluster = config.get('ambari_server', 'cluster')
+  desired_configs_post_body = {}
+  desired_configs_post_body["Clusters"] = {}
+  desired_configs_post_body["Clusters"]["desired_configs"] = post_configuration
+  accessor(CLUSTERS_URL.format(cluster), 'PUT', json.dumps(desired_configs_post_body))
+
+def create_configs(config_type, properties, context):
+  configs_for_posts = {}
+  configuration = {}
+  configuration['type'] = config_type
+  configuration['tag'] = "version" + str(int(round(time.time() * 1000)))
+  configuration['properties'] = properties
+  configuration['service_config_version_note'] = context
+  configs_for_posts[config_type] = configuration
+  return configs_for_posts
+
+def get_solr_urls(options, config, collection, collections_json): # TODO: use proper url from collections.json
   solr_urls = []
   solr_hosts = None
   solr_port = "8886"
@@ -1521,7 +1599,7 @@ def update_state_jsons(options, accessor, parser, config, service_filter):
     else:
       print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name)
 
-def disable_solr_authorization(options, accessor, parser, config):
+def set_solr_authorization(options, accessor, parser, config, enable_authorization, fix_kerberos_config = False):
   solr_znode='/infra-solr'
   if config.has_section('infra_solr') and config.has_option('infra_solr', 'znode'):
     solr_znode=config.get('infra_solr', 'znode')
@@ -1529,11 +1607,24 @@ def disable_solr_authorization(options, accessor, parser, config):
   if config.has_section('cluster') and config.has_option('cluster', 'kerberos_enabled'):
     kerberos_enabled=config.get('cluster', 'kerberos_enabled')
   if kerberos_enabled == 'true':
-    print "Disable Solr authorization by uploading a new security.json ..."
-    copy_znode(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("security-without-authr.json"),
+    infra_solr_props = get_infra_solr_props(config, accessor)
+    if enable_authorization:
+      print "Enable Solr security.json management by Ambari ... "
+      set_solr_security_management(infra_solr_props, accessor, enable = False)
+      if fix_kerberos_config:
+        set_solr_name_rules(infra_solr_props, accessor, False)
+    else:
+      print "Disable Solr authorization by uploading a new security.json and turn on security.json management by Ambari..."
+      set_solr_security_management(infra_solr_props, accessor, enable = True)
+      copy_znode(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("security-without-authr.json"),
              "{0}/security.json".format(solr_znode), copy_from_local=True)
+      if fix_kerberos_config:
+        set_solr_name_rules(infra_solr_props, accessor, True)
   else:
-    print "Security is not enabled. Skipping disable Solr authorization operation."
+    if fix_kerberos_config:
+      print "Security is not enabled. Skipping enable/disable Solr authorization + fix infra-solr-env kerberos config operation."
+    else:
+      print "Security is not enabled. Skipping enable/disable Solr authorization operation."
 
 def summarize_shard_check_result(check_results, skip_warnings = False, skip_index_size = False):
   warnings = 0
@@ -1611,8 +1702,9 @@ if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
 
   parser.add_option("-a", "--action", dest="action", type="string", help="delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
-              ' rolling-restart-solr | rolling-restart-atlas | rolling-restart-ranger | check-shards | check-backup-shards | disable-solr-authorization |'\
-              ' upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-solr |restart-logsearch | restart-ranger | restart-atlas")
+              ' rolling-restart-solr | rolling-restart-atlas | rolling-restart-ranger | check-shards | check-backup-shards | enable-solr-authorization | disable-solr-authorization |'\
+              ' fix-solr5-kerberos-config | fix-solr7-kerberos-config | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch |'\
+              ' restart-solr |restart-logsearch | restart-ranger | restart-atlas")
   parser.add_option("-i", "--ini-file", dest="ini_file", type="string", help="Config ini file to parse (required)")
   parser.add_option("-f", "--force", dest="force", default=False, action="store_true", help="force index upgrade even if it's the right version")
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="use for verbose logging")
@@ -1745,8 +1837,14 @@ if __name__=="__main__":
           print "ATLAS service has not found in the config or filtered out."
       elif options.action.lower() == 'rolling-restart-solr':
         rolling_restart(options, accessor, parser, config, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME, "Rolling Restart Infra Solr Instances")
+      elif options.action.lower() == 'enable-solr-authorization':
+        set_solr_authorization(options, accessor, parser, config, True)
       elif options.action.lower() == 'disable-solr-authorization':
-        disable_solr_authorization(options, accessor, parser, config)
+        set_solr_authorization(options, accessor, parser, config, False)
+      elif options.action.lower() == 'fix-solr5-kerberos-config':
+        set_solr_authorization(options, accessor, parser, config, False, True)
+      elif options.action.lower() == 'fix-solr7-kerberos-config':
+        set_solr_authorization(options, accessor, parser, config, True, True)
       elif options.action.lower() == 'check-shards':
         check_shards(options, accessor, parser, config)
       elif options.action.lower() == 'check-backup-shards':
@@ -1756,11 +1854,10 @@ if __name__=="__main__":
       else:
         parser.print_help()
         print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
-              ' rolling-restart-solr | rolling-restart-ranger | rolling-restart-atlas | check-shards | check-backup-shards | check-docs | disable-solr-authorization |' \
-              ' upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch | restart-solr |' \
+              ' rolling-restart-solr | rolling-restart-ranger | rolling-restart-atlas | check-shards | check-backup-shards | check-docs | enable-solr-authorization |'\
+              ' disable-solr-authorization | fix-solr5-kerberos-config | fix-solr7-kerberos-config | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal |' \
+              ' upgrade-logfeeders | stop-logsearch | restart-solr |' \
               ' restart-logsearch | restart-ranger | restart-atlas)'
         sys.exit(1)
-      if options.verbose:
-        print "Migration helper command ({0}) {1}FINISHED{2}".format(str(args), colors.OKGREEN, colors.ENDC)
-      else:
-        print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
+
+      print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)

@@ -764,9 +764,16 @@ See [transport old data to new collections](#viii.-transport-old-data-to-new-col
 
 #### <a id="if-solr-restarted">What to do if Solr instances restarted right after Ambari upgrade but before upgrade Solr instance packages?</a>
 
-As Solr instances won't start with the new upgraded configs (only if kerberos is enabled), you can do a small fix to make it work to just add this line to `infra-solr-env/content`:
+If you restarted Solr before backup or upgrade Solr server packages, you can fix the Solr config with the following command:
 ```bash
-SOLR_KERB_NAME_RULES="{{infra_solr_kerberos_name_rules}}"
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action fix-solr5-kerberos-config
+```
+
+That is basically add `SOLR_KERB_NAME_RULES` back to `infra-solr-env/content` and disable authorization for Solr. (upload a /security.json to /infra-solr znode without the authorization config, then turn manually managed /security.json on in order to not override /security.json again on Solr restart) After the command finished successfully, you will need to restart Solr instances.
+
+But if you added `SOLR_KERB_NAME_RULES` config to the `infra-solr-env/content`, you will require to delete that after you upgraded Solr package (and before restarting them). You can do that with the `fix-solr7-kerberos-config` action:
+```bash
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action fix-solr7-kerberos-config
 ```
 
 #### <a id="get-core-/-shard-names-with-hosts">Get core / shard names with hosts</a>
@@ -775,22 +782,15 @@ To get which hosts are related for your collections, you can check the Solr UI (
 
 #### <a id="turn-off-infra-solr-authorization">Turn off Infra Solr Authorization</a>
 
-You can turn off Solr authorization plugin with setting `infra-solr-security-json/content` Ambari configuration to `{"authentication": {"class": "org.apache.solr.security.KerberosPlugin"}}` (with that authentication will be still enabled). Then you will need to restart Solr, as that config is uploaded to the `/infra-solr/security.json` znode during startup. Other option is to use zkcli.sh of an Infra Solr to upload the security.json to the right place:
-```bash
-# Setup env for zkcli.sh
-source /etc/ambari-infra-solr/conf/infra-solr-env.sh
-# Run that command only if kerberos is enabled.
-export SOLR_ZK_CREDS_AND_ACLS="${SOLR_AUTHENTICATION_OPTS}"
-ZK_CONN_STRING=... # connection string -> zookeeper server addresses with the znode, e.g.: c7401.ambari.apache.org:2181/infra-solr
-
-/usr/lib/ambari-infra-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost $ZK_CONN_STRING -cmd put /security.json
-  '{"authentication": {"class": "org.apache.solr.security.KerberosPlugin"}}'
-```
-
-Or you can also use the `migationHelper.py` script to disable the Solr authorization (for that to keep this settings, you can disable the management of the security.json in `infra-solr-security-json` config type)
-
+You can turn off Solr authorization plugin with the `disable-solr-authorization` action (can be executed after config generation [step](#0-gather-params)):
 ```bash
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action disable-solr-authorization
+```
+
+You can re-enable it with the following command: (or set `infra-solr-security-json/infra_solr_security_manually_managed` configuration to `false`, then restart Solr)
+
+```bash
+/usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action enable-solr-authorization
 ```
 
 #### <a id="">Solr Migration Helper Script</a>
