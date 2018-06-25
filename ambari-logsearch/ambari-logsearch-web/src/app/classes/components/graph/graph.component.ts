@@ -183,6 +183,13 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
 
   protected subscriptions: Subscription[] = [];
 
+  /**
+   * This will return the information about the used levels and the connected colors and labels.
+   * The goal is to provide an easy property to the template to display the legend of the levels.
+   * @returns {LegendItem[]}
+   */
+  legendItems: LegendItem[];
+
   constructor() {
     this.utils = ServiceInjector.injector.get(UtilsService);
   }
@@ -191,6 +198,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
     this.subscriptions.push(
       Observable.fromEvent(window, 'resize').throttleTime(100).subscribe(this.onWindowResize)
     );
+    this.setLegendItems();
   }
 
   ngOnDestroy() {
@@ -210,19 +218,10 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
       && this.utils.isEmptyObject(this.labels)) {
       this.setDefaultLabels();
     }
+    if (changes.labels || changes.colors) {
+      this.setLegendItems();
+    }
     this.createGraph();
-  }
-
-  /**
-   * This will return the information about the used levels and the connected colors and labels.
-   * The goal is to provide an easy property to the template to display the legend of the levels.
-   * @returns {LegendItem[]}
-   */
-  get legendItems(): LegendItem[] {
-    return Object.keys(this.labels).map((key: string) => Object.assign({}, {
-      label: this.labels[key],
-      color: this.colors[key]
-    }));
   }
 
   onWindowResize = () => {
@@ -244,8 +243,8 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
     const data = this.data;
     const keys = Object.keys(data);
     const labels = keys.reduce((keysReduced: HomogeneousObject<string>, dataKey: string): HomogeneousObject<string> => {
-        const newKeys = Object.keys(data[dataKey]),
-          newKeysObj = newKeys.reduce((subKeys: HomogeneousObject<string>, key: string): HomogeneousObject<string> => {
+        const newKeys = Object.keys(data[dataKey]);
+        const newKeysObj = newKeys.reduce((subKeys: HomogeneousObject<string>, key: string): HomogeneousObject<string> => {
             return Object.assign(subKeys, {
               [key]: key
             });
@@ -253,6 +252,16 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
         return Object.assign(keysReduced, newKeysObj);
       }, {});
     this.labels = labels;
+    this.setLegendItems();
+  }
+
+  protected setLegendItems(): void {
+    if (this.colors && this.labels) {
+      this.legendItems = Object.keys(this.labels).map((key: string) => Object.assign({}, {
+        label: this.labels[key],
+        color: this.colors[key]
+      }));
+    }
   }
 
   protected setup(): void {

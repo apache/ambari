@@ -30,7 +30,7 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuditLog} from '@app/classes/models/audit-log';
 import {ServiceLog} from '@app/classes/models/service-log';
-import {Tab} from '@app/classes/models/tab';
+import {LogTypeTab} from '@app/classes/models/log-type-tab';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {ListItem} from '@app/classes/list-item';
@@ -52,12 +52,12 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
 
   private isFilterPanelFixedPostioned: boolean = false;
 
-  tabs: Observable<Tab[]> = this.tabsStorage.getAll().map((tabs: Tab[]) => {
-    return tabs.map((tab: Tab) => {
-      const queryParams = this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
+  tabs: Observable<LogTypeTab[]> = this.tabsStorage.getAll().map((tabs: LogTypeTab[]) => {
+    return tabs.map((tab: LogTypeTab) => {
+      const params = this.logsFilteringUtilsService.getParamsFromActiveFilter(
         tab.activeFilters, tab.appState.activeLogsType
       );
-      return Object.assign({}, tab, {queryParams});
+      return Object.assign({}, tab, {params});
     });
   });
 
@@ -75,7 +75,11 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     });
   }, {});
 
-  isServiceLogContextView: boolean = false;
+  isServiceLogContextView = false;
+
+  private activeTabId$: BehaviorSubject<string> = new BehaviorSubject(
+    this.router.routerState.snapshot.root.firstChild && this.router.routerState.snapshot.root.firstChild.params.activeTab
+  );
 
   @ViewChild('container') containerRef: ElementRef;
   @ViewChild('filtersPanel') filtersPanelRef: FiltersPanelComponent;
@@ -84,7 +88,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
   routerPath: string[] = ['/logs'];
 
   private subscriptions: Subscription[] = [];
-  private queryParamsSyncInProgress: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private paramsSyncInProgress: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   private isServiceLogsFileView$: Observable<boolean> = this.appState.getParameter('isServiceLogsFileView');
 
@@ -129,36 +133,35 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Sync from form to query params on form values change
-    this.subscriptions.push(
-      this.filtersForm.valueChanges
-        .filter(() => !this.logsContainerService.filtersFormSyncInProgress.getValue()).subscribe(this.onFiltersFormChange)
-    );
-    // change the active tab when the active tab id changed in the URL
-    this.subscriptions.push(
-      this.activatedRoute.params.map((params: {[key: string]: any}) => params && params.activeTab)
-        .subscribe(this.onActiveTabParamChange)
-    );
+    this.activatedRoute.params.first().map(params => params.activeTab).subscribe((tabId) => {
+      this.logsContainerService.setActiveTabById(tabId);
+    });
+
+    //// SYNC BETWEEN PARAMS AND FORM
     // sync to filters form when the query params changed (only when there is no other way sync)
     this.subscriptions.push(
-      this.activatedRoute.queryParams.filter(() => !this.queryParamsSyncInProgress.getValue()).subscribe(this.onQueryParamsChange)
+      this.activatedRoute.params.filter(() => !this.paramsSyncInProgress.getValue())
+        .subscribe(this.onParamsChange)
     );
-    // get the current query params and sync them if any
-    this.activatedRoute.queryParams.first().subscribe((params) => {
-      if (!Object.keys(params).length) {
-        this.syncFiltersToQueryParams(this.filtersForm.value);
-      }
-    });
-    // when the active tab id changed in the store we sync the tab filters to the query params
+    // Sync from form to params on form values change
     this.subscriptions.push(
-      this.logsStateService.getParameter('activeTabId').skip(1).subscribe(this.onActiveTabSwitched)
+      this.filtersForm.valueChanges
+        .filter(() => !this.logsContainerService.filtersFormSyncInProgress.getValue())
+        .subscribe(this.onFiltersFormChange)
     );
+    //// SYNC BETWEEN PARAMS AND FORM END
+
+    //// TAB CHANGE
+    // when the activeTabId$ behaviour subject change, this depends on the params' changes
+    this.subscriptions.push(
+      this.activeTabId$.distinctUntilChanged().subscribe(this.onActiveTabIdChange)
+    );
+
     // set the position of the filter panel depending on the scroll height: so it is fixed when it would be out from the screen
     this.subscriptions.push(
-      Observable.fromEvent(window, 'scroll').subscribe(() => {
-        this.setFixedPositionValue();
-      })
+      Observable.fromEvent(window, 'scroll').subscribe(this.setFixedPositionValue)
     );
+
   }
 
   ngOnDestroy() {
@@ -187,7 +190,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
    * The goal is to provide the single source for the parameters of 'xyz events found' message.
    * @returns {Object}
    */
-  get totalEventsFoundMessageParams(): object {
+  get totalEventsFoundMessageParams(): {totalCount: number} {
     return {
       totalCount: this.totalCount
     };
@@ -225,16 +228,8 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
    * Set the active params in the store corresponding to the URL param (activeTab)
    * @param {string} tabId The 'activeTab' segment of the URL (eg.: #/logs/serviceLogs where the serviceLogs is the activeTab parameter)
    */
-  private onActiveTabParamChange = (tabId: string): void => {
+  private onActiveTabIdChange = (tabId: string): void => {
     this.logsContainerService.setActiveTabById(tabId);
-  }
-
-  private onActiveTabSwitched = (tabId: string): void => {
-    this.tabsStorage.findInCollection((tab: Tab) => tab.id === tabId).first().subscribe((tab: Tab) => {
-      if (tab) {
-        this.syncFiltersToQueryParams(tab.activeFilters);
-      }
-    });
   }
 
   //
@@ -249,40 +244,52 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
    * Turn on the 'query params in sync' flag, so that the query to form sync don't run.
    * So when we actualize the query params to reflect the filters form values we have to turn of the back sync (query params change to form)
    */
-  private queryParamsSyncStart = (): void => {
-    this.queryParamsSyncInProgress.next(true);
+  private paramsSyncStart = (): void => {
+    this.paramsSyncInProgress.next(true);
   }
   /**
    * Turn off the 'query params in sync' flag
    */
-  private queryParamsSyncStop = (): void => {
-    this.queryParamsSyncInProgress.next(false);
+  private paramsSyncStop = (): void => {
+    this.paramsSyncInProgress.next(false);
   }
 
   /**
    * The goal is to make the app always bookmarkable.
    * @param filters
    */
-  private syncFiltersToQueryParams(filters): void {
-    const queryParams = this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
+  private syncFiltersToParams(filters): void {
+    const params = this.logsFilteringUtilsService.getParamsFromActiveFilter(
       filters, this.logsContainerService.activeLogsType
     );
-    this.queryParamsSyncStart(); // turn on the 'sync in progress' flag
-    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: queryParams })
-      .then(this.queryParamsSyncStop, this.queryParamsSyncStop) // turn off the 'sync in progress' flag
-      .catch(this.queryParamsSyncStop); // turn off the 'sync in progress' flag
+    this.paramsSyncStart(); // turn on the 'sync in progress' flag
+    this.router.navigate([params], { relativeTo: this.activatedRoute})
+      .then(this.paramsSyncStop, this.paramsSyncStop) // turn off the 'sync in progress' flag
+      .catch(this.paramsSyncStop); // turn off the 'sync in progress' flag
   }
 
-  private syncQueryParamsToFiltersForms(queryParams): void {
-    if (Object.keys(queryParams).length) {
-      const filtersFromQueryParams = this.logsFilteringUtilsService.getFilterFromQueryParams(
-        queryParams, this.logsContainerService.activeLogsType
-      );
-      this.logsContainerService.syncFiltersToFiltersForms({
+  /**
+   * This will call the LogsContainerService to reset the filter form with the given values.
+   * It will add default values where it is missing from the object.
+   * @param values {[key: string]: any} The new values for the filter form
+   */
+  private resetFiltersForm(values: {[key: string]: any}): void {
+    if (Object.keys(values).length) {
+      this.logsContainerService.resetFiltersForms({
         ...this.logsFilteringUtilsService.defaultFilterSelections,
-        ...filtersFromQueryParams
+        ...values
       });
     }
+  }
+
+  /**
+   * It will request the LogsContainerService to store the given filters to the given tab
+   * in order to apply these filters when there is no filter params in the URL.
+   * @param filters {[key: string]: any} The values for the filters form
+   * @param tabId string The tab where it should be stored (in activeFilters property)
+   */
+  private syncFilterToTabStore(filters: {[key: string]: any}, tabId: string): void {
+    this.logsContainerService.syncFiltersToTabFilters(filters, tabId);
   }
 
   /**
@@ -290,11 +297,30 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
    * @param values The new filter values. This is the raw value of the form group
    */
   private onFiltersFormChange = (filters): void => {
-    this.syncFiltersToQueryParams(filters);
+    this.syncFiltersToParams(filters);
   }
 
-  private onQueryParamsChange = (queryParams: {[key: string]: any}) => {
-    this.syncQueryParamsToFiltersForms(queryParams);
+  private onParamsChange = (params: {[key: string]: any}) => {
+    const {activeTab, ...filtersParams} = params;
+    this.tabsStorage.findInCollection((tab: LogTypeTab) => tab.id === params.activeTab)
+      .first()
+      .subscribe((tab) => {
+        if (tab) {
+          const filtersFromParams: {[key: string]: any} = this.logsFilteringUtilsService.getFilterFromParams(
+            filtersParams,
+            tab.appState.activeLogsType
+          );
+          // we dont't have to reset the form with the new values when there is tab changes
+          // because the onActiveTabIdChange will call the setActiveTabById on LogsContainerService
+          // which will reset the form to the tab's activeFilters prop.
+          // If we do reset wvery time then the form will be reseted twice with every tab changes... not a big deal anyway
+          if (this.activeTabId$.getValue() === activeTab) {
+            this.resetFiltersForm(filtersFromParams);
+          }
+          this.syncFilterToTabStore(filtersFromParams, activeTab);
+          this.activeTabId$.next(activeTab);
+        }
+      });
   }
 
   //
@@ -305,7 +331,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
    * The goal is to set the fixed position of the filter panel when it is scrolled to the top. So that the panel
    * can be always visible for the user.
    */
-  private setFixedPositionValue(): void {
+  private setFixedPositionValue = (): void => {
     const el: Element = this.containerRef.nativeElement;
     const top: number = el.getBoundingClientRect().top;
     const valueBefore: boolean = this.isFilterPanelFixedPostioned;
@@ -327,19 +353,15 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     this.logsContainerService.setCustomTimeRange(startTime, endTime);
   }
 
-  onSwitchTab(activeTab: Tab): void {
+  onSwitchTab(activeTab: LogTypeTab): void {
     this.logsContainerService.switchTab(activeTab);
   }
 
-  onCloseTab(activeTab: Tab, newActiveTab: Tab): void {
+  onCloseTab(activeTab: LogTypeTab, newActiveTab: LogTypeTab): void {
     const activateNewTab: boolean = activeTab.isActive;
     this.tabsStorage.deleteObjectInstance(activeTab);
     if (activateNewTab && newActiveTab) {
-      this.router.navigate(['/logs', newActiveTab.id], {
-        queryParams: this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
-          newActiveTab.activeFilters, newActiveTab.appState.activeLogsType
-        )
-      });
+      this.router.navigate(['/logs', ...this.logsFilteringUtilsService.getNavigationForTab(newActiveTab)]);
     }
   }
 }

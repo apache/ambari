@@ -54,7 +54,7 @@ export class FiltersPanelComponent implements OnDestroy, OnInit {
   }
 
   get filters(): HomogeneousObject<FilterCondition> {
-    return this.logsContainer.filters;
+    return this.logsContainerService.filters;
   }
 
   /**
@@ -74,14 +74,14 @@ export class FiltersPanelComponent implements OnDestroy, OnInit {
   }
 
   get queryParameterNameChange(): Subject<SearchBoxParameterTriggered> {
-    return this.logsContainer.queryParameterNameChange;
+    return this.logsContainerService.queryParameterNameChange;
   }
 
   get queryParameterAdd(): Subject<SearchBoxParameter> {
-    return this.logsContainer.queryParameterAdd;
+    return this.logsContainerService.queryParameterAdd;
   }
 
-  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef,
+  constructor(private logsContainerService: LogsContainerService, public viewContainerRef: ViewContainerRef,
               private utils: UtilsService, private appState: AppStateService) {
   }
 
@@ -94,7 +94,7 @@ export class FiltersPanelComponent implements OnDestroy, OnInit {
   }
 
   private onLogsTypeChange = (currentLogsType: LogsType): void => {
-    const logsType = this.logsContainer.logsTypeMap[currentLogsType];
+    const logsType = this.logsContainerService.logsTypeMap[currentLogsType];
     const fieldsModel: any = logsType && logsType.fieldsModel;
     let subType: string;
     let fields: Observable<any>;
@@ -117,7 +117,7 @@ export class FiltersPanelComponent implements OnDestroy, OnInit {
   }
 
   isFilterConditionDisplayed(key: string): boolean {
-    return this.logsContainer.isFilterConditionDisplayed(key);
+    return this.logsContainerService.isFilterConditionDisplayed(key);
   }
 
   updateSearchBoxValue(): void {
@@ -131,6 +131,14 @@ export class FiltersPanelComponent implements OnDestroy, OnInit {
       },
       isExclude: true
     });
+  }
+
+  private onClearBtnClick = (): void => {
+    const defaults = this.logsContainerService.isServiceLogsFileView ? {
+      components: this.logsContainerService.filtersForm.controls['components'].value,
+      hosts: this.logsContainerService.filtersForm.controls['hosts'].value
+    } : {};
+    this.logsContainerService.resetFiltersForms(defaults);
   }
 
 }

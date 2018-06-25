@@ -1,0 +1,16 @@
+@keyframes rotateplane {
+  0% {
+    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+  } 50% {
+    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+  } 100% {
+    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+  }
+}
+
+.square-spinner(@size: 40px, @background: #3FAE2A, @speed: 1.2s) {
+  width: @size;
+  height: @size;
+  background: @background;
+  animation: rotateplane @speed infinite ease-in-out;
+}

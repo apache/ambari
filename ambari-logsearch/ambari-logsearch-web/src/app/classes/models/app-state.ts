@@ -29,9 +29,6 @@ export interface AppState {
   isAuthorized: boolean;
   isInitialLoading: boolean;
   isLoginInProgress: boolean;
-  clustersDataState: DataAvailability;
-  hostsDataState: DataAvailability;
-  componentsDataState: DataAvailability;
   baseDataSetState: DataAvailability;
   activeLogsType?: LogsType;
   isServiceLogsFileView: boolean;
@@ -45,9 +42,6 @@ export const initialState: AppState = {
   isAuthorized: false,
   isInitialLoading: false,
   isLoginInProgress: false,
-  clustersDataState: DataAvailabilityValues.NOT_AVAILABLE,
-  hostsDataState: DataAvailabilityValues.NOT_AVAILABLE,
-  componentsDataState: DataAvailabilityValues.NOT_AVAILABLE,
   baseDataSetState: DataAvailabilityValues.NOT_AVAILABLE,
   activeLogsType: 'serviceLogs',
   isServiceLogsFileView: false,

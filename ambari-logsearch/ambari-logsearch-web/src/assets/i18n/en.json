@@ -48,6 +48,8 @@
   "filter.capture": "Capture",
   "filter.capture.triggeringRefresh": "Triggering auto-refresh in {{remainingSeconds}} sec",
 
+  "filters.clear": "Clear",
+
   "filter.timeRange": "Time Range",
   "filter.timeRange.quick": "Quick Ranges",
   "filter.timeRange.7d": "Last 7 days",
@@ -259,6 +261,11 @@
   "shipperConfiguration.action.update.error.message": "Error at updating the configuration.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",
   "shipperConfiguration.action.validate.title": "Validate Configuration",
   "shipperConfiguration.action.validate.success.message": "The configuration is valid.",
-  "shipperConfiguration.action.validate.error.message": "The configuration is not valid.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div><div class='error-message'>{{errorMessage}}</div>"
+  "shipperConfiguration.action.validate.error.message": "The configuration is not valid.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div><div class='error-message'>{{errorMessage}}</div>",
+
+  "dataAvaibilityState.clustersDataState.label": "Loading clusters",
+  "dataAvaibilityState.hostsDataState.label": "Loading hosts",
+  "dataAvaibilityState.componentsDataState.label": "Loading components",
+  "dataAvaibilityState.hasError.message": "We were not able to load the data. Please check your internet connection and reload the page!"
 
 }

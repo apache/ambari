@@ -22,7 +22,7 @@
         <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
       </a>
       <a *ngSwitchCase="'ROUTE_SEGMENT'" [routerLink]="getRouterLinkForTab(tab)"
-        [queryParams]="tab.queryParams || queryParams" [queryParamsHandling]="queryParamsHandling">
+        [queryParams]="queryParams" [queryParamsHandling]="queryParamsHandling">
         {{tab.label | translate}}
         <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
       </a>

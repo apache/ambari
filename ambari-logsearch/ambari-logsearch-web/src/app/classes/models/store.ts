@@ -27,11 +27,12 @@ import {BarGraph} from '@app/classes/models/bar-graph';
 import {Graph} from '@app/classes/models/graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {UserConfig} from '@app/classes/models/user-config';
-import {Tab} from '@app/classes/models/tab';
+import {LogTypeTab} from '@app/classes/models/log-type-tab';
 import {LogField} from '@app/classes/object';
 import {UtilsService} from '@app/services/utils.service';
 import {NotificationInterface} from '@modules/shared/interfaces/notification.interface';
 import {LogsState} from '@app/classes/models/logs-state';
+import { DataAvaibilityStatesModel } from '@app/modules/app-load/models/data-availability-state.model';
 
 const storeActions = {
     'ARRAY.ADD': 'ADD',
@@ -63,9 +64,10 @@ export interface AppStore {
   components: NodeItem[];
   serviceLogsFields: LogField[];
   auditLogsFields: LogField[];
-  tabs: Tab[];
+  tabs: LogTypeTab[];
   notifications: NotificationInterface[];
   logsState: LogsState;
+  dataAvailabilityStates: DataAvaibilityStatesModel;
 }
 
 export class ModelService {

@@ -24,6 +24,7 @@ import {Http} from '@angular/http';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {NotificationsService as Angular2NotificationsService} from 'angular2-notifications/src/notifications.service';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
+import {NgObjectPipesModule} from 'angular-pipes';
 
 import {TranslateService as AppTranslateService} from '@app/services/translate.service';
 
@@ -36,6 +37,7 @@ import {DropdownButtonComponent} from './components/dropdown-button/dropdown-but
 import {DropdownListComponent} from './components/dropdown-list/dropdown-list.component';
 import {FilterDropdownComponent} from './components/filter-dropdown/filter-dropdown.component';
 import {ModalComponent} from './components/modal/modal.component';
+import { DataLoadingIndicatorComponent } from '@app/modules/shared/components/data-loading-indicator/data-loading-indicator.component';
 
 @NgModule({
   imports: [
@@ -43,6 +45,7 @@ import {ModalComponent} from './components/modal/modal.component';
     CommonModule,
     FormsModule,
     BrowserAnimationsModule,
+    NgObjectPipesModule,
     TranslateModule.forChild({
       loader: {
         provide: TranslateLoader,
@@ -56,7 +59,8 @@ import {ModalComponent} from './components/modal/modal.component';
     DropdownButtonComponent,
     DropdownListComponent,
     FilterDropdownComponent,
-    ModalComponent
+    ModalComponent,
+    DataLoadingIndicatorComponent
   ],
   providers: [
     Title,
@@ -69,7 +73,8 @@ import {ModalComponent} from './components/modal/modal.component';
     DropdownButtonComponent,
     DropdownListComponent,
     FilterDropdownComponent,
-    ModalComponent
+    ModalComponent,
+    DataLoadingIndicatorComponent
   ]
 })
 export class SharedModule { }

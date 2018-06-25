@@ -66,7 +66,7 @@ export class AuthService {
         }
       }
       this.redirectUrl = '';
-    } else if (!isAuthorized) {
+    } else {
       this.router.navigate(['/login']);
     }
   }

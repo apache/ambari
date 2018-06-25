@@ -19,7 +19,7 @@ import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, Resolve, RouterStateSnapshot} from '@angular/router';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {TabsService} from '@app/services/storage/tabs.service';
-import {Tab} from '@app/classes/models/tab';
+import {LogTypeTab} from '@app/classes/models/log-type-tab';
 import {Observable} from 'rxjs/Observable';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class LogsBreadcrumbsResolverService implements Resolve<string[]> {
   resolve(route: ActivatedRouteSnapshot, routerStateSnapshot: RouterStateSnapshot): Observable<string[]> {
     const activeTabParam: string = this.routingUtilService.getParamFromActivatedRouteSnapshot(route, 'activeTab');
     const breadcrumbs: string[] = ['logs.title'];
-    return this.tabStoreService.findInCollection((tab: Tab) => tab.id === activeTabParam).first().map((tab: Tab) => {
+    return this.tabStoreService.findInCollection((tab: LogTypeTab) => tab.id === activeTabParam).first().map((tab: LogTypeTab) => {
       breadcrumbs.push(tab.label);
       return breadcrumbs;
     });

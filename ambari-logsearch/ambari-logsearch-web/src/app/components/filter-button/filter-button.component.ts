@@ -55,9 +55,9 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
     }
   }
 
-  updateSelection(updatedItem: ListItem | ListItem[]): void {
-    if (updatedItem) {
-      const items: ListItem[] = Array.isArray(updatedItem) ? updatedItem : [updatedItem];
+  updateSelection(updates: ListItem | ListItem[]): void {
+    if (updates && (!Array.isArray(updates) || updates.length)) {
+      const items: ListItem[] = Array.isArray(updates) ? updates : [updates];
       if (this.isMultipleChoice) {
         items.forEach((item: ListItem) => {
           if (this.subItems && this.subItems.length) {
@@ -75,7 +75,6 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
       }
     } else {
       this.subItems.forEach((item: ListItem) => item.isChecked = false);
-      this.selection = [];
     }
     const checkedItems = this.subItems.filter((option: ListItem): boolean => option.isChecked);
     this.selection = checkedItems;
@@ -86,15 +85,16 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
   }
 
   writeValue(items: ListItem[]) {
+    let listItems: ListItem[] = [];
     if (items && items.length) {
-      const listItems: ListItem[] = items.map((item: ListItem) => {
+      listItems = items.map((item: ListItem) => {
         return {
           ...item,
-            isChecked: true
+          isChecked: true
         };
       });
-      this.updateSelection(listItems);
     }
+    this.updateSelection(listItems);
   }
 
   registerOnChange(callback: any): void {

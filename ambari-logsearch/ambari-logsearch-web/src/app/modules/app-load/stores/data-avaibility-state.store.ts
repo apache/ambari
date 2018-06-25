@@ -16,36 +16,19 @@
  * limitations under the License.
  */
 
-import {HomogeneousObject} from '@app/classes/object';
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {AppStore, ObjectModelService, getObjectReducer} from '@app/classes/models/store';
 
-export interface Tab {
-  id: string;
-  isActive?: boolean;
-  isCloseable?: boolean;
-  label: string;
-  activeFilters?: object;
-  appState?: HomogeneousObject<any>;
+import {initialDataAvaibilityStates} from '@modules/app-load/models/data-availability-state.model';
+
+export const modelName = 'dataAvailabilityStates';
+
+@Injectable()
+export class DataAvailabilityStatesStore extends ObjectModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
+  }
 }
 
-export const initialTabs: Tab[] = [
-  {
-    id: 'serviceLogs',
-    isActive: true,
-    label: 'common.serviceLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'serviceLogs',
-      isServiceLogsFileView: false
-    }
-  },
-  {
-    id: 'auditLogs',
-    isActive: false,
-    label: 'common.auditLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'auditLogs',
-      isServiceLogsFileView: false
-    }
-  }
-];
+export const dataAvailabilityStates = getObjectReducer(modelName, initialDataAvaibilityStates);

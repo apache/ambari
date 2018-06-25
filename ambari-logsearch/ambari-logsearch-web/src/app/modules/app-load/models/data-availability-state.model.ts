@@ -15,22 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {DataAvailabilityValues} from 'app/classes/string';
 
-import {Pipe, PipeTransform} from '@angular/core';
-import {ComponentsService} from "@app/services/storage/components.service";
-import {Observable} from "rxjs/Observable";
-
-@Pipe({
-  name: 'componentLabel'
-})
-export class ComponentLabelPipe implements PipeTransform {
-
-  constructor(private componentService: ComponentsService) {
-  }
-
-  transform(name: string): Observable<string> {
-    return this.componentService.findInCollection(component => component.name === name)
-      .map(component => component ? component.label || component.name : name);
-  }
-
+export interface DataAvaibilityStatesModel {
+  clustersDataState: DataAvailabilityValues;
+  hostsDataState: DataAvailabilityValues;
+  componentsDataState: DataAvailabilityValues;
+  logFieldsDataState: DataAvailabilityValues;
 }
+
+export const initialDataAvaibilityStates: DataAvaibilityStatesModel = {
+  clustersDataState: DataAvailabilityValues.NOT_AVAILABLE,
+  hostsDataState: DataAvailabilityValues.NOT_AVAILABLE,
+  componentsDataState: DataAvailabilityValues.NOT_AVAILABLE,
+  logFieldsDataState: DataAvailabilityValues.NOT_AVAILABLE
+};

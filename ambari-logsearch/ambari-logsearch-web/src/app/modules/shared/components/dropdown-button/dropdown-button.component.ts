@@ -42,7 +42,6 @@ export class DropdownButtonComponent {
   @Input()
   showSelectedValue: boolean = true;
 
-
   @Input() options: ListItem[] = [];
 
   @Input()
@@ -85,9 +84,9 @@ export class DropdownButtonComponent {
 
   constructor(protected utils: UtilsService) {}
 
-  updateSelection(updatedItem: ListItem | ListItem[]): void {
-    if (updatedItem) {
-      const items: ListItem[] = Array.isArray(updatedItem) ? updatedItem : [updatedItem];
+  updateSelection(updates: ListItem | ListItem[]): void {
+    if (updates && (!Array.isArray(updates) || updates.length)) {
+      const items: ListItem[] = Array.isArray(updates) ? updates : [updates];
       if (this.isMultipleChoice) {
         items.forEach((item: ListItem) => {
           if (this.options && this.options.length) {
@@ -98,7 +97,7 @@ export class DropdownButtonComponent {
           }
         });
       } else {
-        const selectedItem: ListItem = Array.isArray(updatedItem) ? updatedItem[0] : updatedItem;
+        const selectedItem: ListItem = Array.isArray(updates) ? updates[0] : updates;
         this.options.forEach((item: ListItem) => {
           item.isChecked = this.utils.isEqual(item.value, selectedItem.value);
         });

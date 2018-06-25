@@ -21,6 +21,7 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 import {Observable} from 'rxjs/Observable';
 import {Options} from 'angular2-notifications/src/options.type';
 import {notificationIcons} from '@modules/shared/services/notification.service';
+import { DataAvailability, DataAvailabilityValues } from '@app/classes/string';
 
 @Component({
   selector: 'app-root',
@@ -30,6 +31,8 @@ import {notificationIcons} from '@modules/shared/services/notification.service';
 export class AppComponent {
 
   isAuthorized$: Observable<boolean> = this.appState.getParameter('isAuthorized');
+  isBaseDataAvailable$: Observable<boolean> = this.appState.getParameter('baseDataSetState')
+    .map((dataSetState: DataAvailability) => dataSetState === DataAvailabilityValues.AVAILABLE);
 
   private notificationServiceOptions: Options = {
     timeOut: 5000,

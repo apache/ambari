@@ -45,19 +45,15 @@ const appRoutes: Routes = [{
     canActivate: [AuthGuardService, TabGuard]
   }, {
     path: 'logs',
-    component: LogsContainerComponent,
-    data: {
-      breadcrumbs: 'logs.title',
-      multiClusterFilter: true
-    },
-    canActivate: [AuthGuardService, TabGuard]
+    redirectTo: '/logs/serviceLogs',
+    pathMatch: 'full'
   }, {
     path: '',
-    redirectTo: '/logs',
+    redirectTo: '/logs/serviceLogs',
     pathMatch: 'full'
   }, {
     path: '**',
-    redirectTo: '/logs'
+    redirectTo: '/logs/serviceLogs'
   }
 ];
 

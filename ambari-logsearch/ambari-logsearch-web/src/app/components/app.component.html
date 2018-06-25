@@ -17,11 +17,11 @@
 
 <header>
   <nav class="navbar" [class.authorized]="isAuthorized$ | async">
-    <h1 [ngClass]="{'full-flex-width': !(isAuthorized$ | async), 'pull-left': true}">{{'common.title' | translate}}</h1>
-    <breadcrumbs *ngIf="isAuthorized$ | async"></breadcrumbs>
-    <top-menu *ngIf="isAuthorized$ | async"></top-menu>
+    <h1 [ngClass]="{'full-flex-width': !(isAuthorized$ | async), 'pull-left': (isBaseDataAvailable$ | async)}">{{'common.title' | translate}}</h1>
+    <breadcrumbs *ngIf="(isAuthorized$ | async)" [class.hide]="!(isBaseDataAvailable$ | async)"></breadcrumbs>
+    <top-menu *ngIf="(isAuthorized$ | async) && (isBaseDataAvailable$ | async)"></top-menu>
   </nav>
 </header>
-
-<main-container></main-container>
+<data-loading-indicator *ngIf="!(isBaseDataAvailable$ | async) && (isAuthorized$ | async)"></data-loading-indicator>
+<main-container *ngIf="!(isAuthorized$ | async) || (isBaseDataAvailable$ | async)"></main-container>
 <simple-notifications [options]="notificationServiceOptions"></simple-notifications>
