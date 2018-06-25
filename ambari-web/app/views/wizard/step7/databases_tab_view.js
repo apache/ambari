@@ -95,7 +95,7 @@ App.DatabasesTabOnStep7View = Em.View.extend({
   },
 
   updateNextDisabled: function () {
-    this.set('controller.databasesTabNextEnabled', !this.get('properties').someProperty('error'));
-  }.observes('properties.@each.error')
+    this.set('controller.databasesTabNextEnabled', !this.get('properties').filterProperty('isActive').someProperty('error'));
+  }.observes('properties.@each.error', 'properties.@each.isActive')
 
 });
