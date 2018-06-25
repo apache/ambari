@@ -62,7 +62,7 @@ function run_migrate_commands() {
   local skip_solr_server_upgrade=${7:?"usage <true|false>"}
   local skip_logsearch_upgrade=${8:?"usage <true|false>"}
   local skip_warnings=${9:?"usage <true|false>"}
-  local batch_interval=${11:?"usage <seconds>"}
+  local batch_interval=${10:?"usage <seconds>"}
   local verbose=${11:?"usage <true|false>"}
 
   local verbose_val=""
