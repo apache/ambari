@@ -17,6 +17,16 @@
  */
 package org.apache.ambari.metrics.core.timeline;
 
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -331,7 +341,7 @@ public class TimelineMetricConfiguration {
   public static final String BLOCKING_STORE_FILES_KEY = "hbase.hstore.blockingStoreFiles";
 
   private Configuration hbaseConf;
-  private Configuration metricsConf;
+  private Configuration metricsConf = new Configuration();
   private Configuration metricsSslConf;
   private Configuration amsEnvConf;
   private volatile boolean isInitialized = false;
@@ -698,4 +708,34 @@ public class TimelineMetricConfiguration {
     return StringUtils.EMPTY;
   }
 
+  public long getTableTtl(String tableName) {
+
+    if (StringUtils.isEmpty(tableName)) {
+      return Long.MAX_VALUE;
+    }
+
+    switch (tableName) {
+
+      case METRICS_RECORD_TABLE_NAME:
+        return metricsConf.getInt(PRECISION_TABLE_TTL, 1 * 86400);
+      case METRICS_AGGREGATE_MINUTE_TABLE_NAME:
+        return metricsConf.getInt(HOST_MINUTE_TABLE_TTL, 7 * 86400);
+      case METRICS_AGGREGATE_HOURLY_TABLE_NAME:
+        return metricsConf.getInt(HOST_HOUR_TABLE_TTL, 30 * 86400);
+      case METRICS_AGGREGATE_DAILY_TABLE_NAME:
+        return metricsConf.getInt(HOST_DAILY_TABLE_TTL, 365 * 86400);
+      case METRICS_CLUSTER_AGGREGATE_TABLE_NAME:
+        return metricsConf.getInt(CLUSTER_SECOND_TABLE_TTL, 7 * 86400);
+      case METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME:
+        return metricsConf.getInt(CLUSTER_MINUTE_TABLE_TTL, 30 * 86400);
+      case METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME:
+        return metricsConf.getInt(CLUSTER_HOUR_TABLE_TTL, 365 * 86400);
+      case METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME:
+        return metricsConf.getInt(CLUSTER_DAILY_TABLE_TTL, 730 * 86400);
+      case CONTAINER_METRICS_TABLE_NAME:
+        return metricsConf.getInt(CONTAINER_METRICS_TTL, 14 * 86400);
+      default:
+        return Long.MAX_VALUE;
+    }
+  }
 }

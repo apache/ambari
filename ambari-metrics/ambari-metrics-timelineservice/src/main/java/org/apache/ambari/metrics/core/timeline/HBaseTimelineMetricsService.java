@@ -455,7 +455,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     for (TimelineMetricWithAggregatedValues entry : aggregationResult.getResult()) {
       aggregateMap.put(entry.getTimelineMetric(), entry.getMetricAggregate());
       hostname = hostname == null ? entry.getTimelineMetric().getHostName() : hostname;
-      break;
     }
     long timestamp = aggregationResult.getTimeInMilis();
     if (LOG.isDebugEnabled()) {

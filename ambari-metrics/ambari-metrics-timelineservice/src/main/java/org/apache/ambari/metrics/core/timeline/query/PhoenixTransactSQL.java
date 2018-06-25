@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -666,7 +667,12 @@ public class PhoenixTransactSQL {
     for (; i < precisions.length; i++) {
       long rowsPerMetric = getRowCountForPrecision(precisions[i], range, CollectionUtils.isNotEmpty(hostNames));
       if ((rowsPerMetric * metricNames.size() * numHosts) <= PhoenixHBaseAccessor.RESULTSET_LIMIT) {
-        break;
+
+        long ttl = getTtlForPrecision(precisions[i], CollectionUtils.isNotEmpty(hostNames));
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - ttl * 1000 <= condition.getStartTime()) {
+          break;
+        }
       }
     }
     if (i >= precisions.length) {
@@ -674,6 +680,41 @@ public class PhoenixTransactSQL {
     }
     return precisions[i];
   }
+
+  private static long getTtlForPrecision(Precision precision, boolean withHosts) {
+    TimelineMetricConfiguration configuration = TimelineMetricConfiguration.getInstance();
+
+    switch (precision) {
+      case SECONDS:
+        if (withHosts) {
+          return configuration.getTableTtl(METRICS_RECORD_TABLE_NAME);
+        } else {
+          return configuration.getTableTtl(METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
+        }
+
+      case MINUTES:
+        if (withHosts) {
+          return configuration.getTableTtl(METRICS_AGGREGATE_MINUTE_TABLE_NAME);
+        } else {
+          return configuration.getTableTtl(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME);
+        }
+
+      case HOURS:
+        if (withHosts) {
+          return configuration.getTableTtl(METRICS_AGGREGATE_HOURLY_TABLE_NAME);
+        } else {
+          return configuration.getTableTtl(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME);
+        }
+
+      default:
+        if (withHosts) {
+          return configuration.getTableTtl(METRICS_AGGREGATE_DAILY_TABLE_NAME);
+        } else {
+          return configuration.getTableTtl(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME);
+        }
+    }
+  }
+
 
   public static PreparedStatement prepareGetLatestMetricSqlStmt(
     Connection connection, Condition condition) throws SQLException {

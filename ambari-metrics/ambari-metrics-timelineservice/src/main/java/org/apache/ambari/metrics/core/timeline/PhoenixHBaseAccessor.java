@@ -358,8 +358,11 @@ public class PhoenixHBaseAccessor {
 
             try {
               int rows = metricRecordStmt.executeUpdate();
-            } catch (SQLException sql) {
-              LOG.error("Failed on insert records to store.", sql);
+            } catch (SQLException | NumberFormatException ex) {
+              LOG.warn("Failed on insert records to store : " + ex.getMessage());
+              LOG.warn("Metric that cannot be stored : [" + metric.getMetricName() + "," + metric.getAppId() + "]" +
+                metric.getMetricValues().toString());
+              continue;
             }
 
             if (rowCount >= PHOENIX_MAX_MUTATION_STATE_SIZE - 1) {
@@ -1469,7 +1472,7 @@ public class PhoenixHBaseAccessor {
         }
 
         rowCount++;
-        byte[] uuid =  metadataManagerInstance.getUuid(clusterMetric, false);
+        byte[] uuid =  metadataManagerInstance.getUuid(clusterMetric, true);
         if (uuid == null) {
           LOG.error("Error computing UUID for metric. Cannot write metrics : " + clusterMetric.toString());
           continue;
