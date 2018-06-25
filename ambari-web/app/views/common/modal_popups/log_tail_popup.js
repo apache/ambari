@@ -40,11 +40,11 @@ App.showLogTailPopup = function(content) {
       logSearchUrl: function() {
         var quickLink = App.QuickLinks.find().findProperty('site', 'logsearch-env'),
             logSearchServerHost = App.HostComponent.find().findProperty('componentName', 'LOGSEARCH_SERVER').get('hostName'),
-            params = '';
+            params = '';  
         if (quickLink) {
           params = 'hosts=' + encodeURIComponent(this.get('content.hostName'))
             + ';components=' + encodeURIComponent(this.get('content.logComponentName'))
-            + ';query=[{"id":0,"name":"path","label":"Path","value":"' + encodeURIComponent(this.get('content.filePath')) + '","isExclude":false}]';
+            + ';query=%5B%7B"id":0,"name":"path","label":"Path","value":"' + encodeURIComponent(this.get('content.filePath')) + '","isExclude":false%7D%5D';
           return quickLink.get('template').fmt('http', logSearchServerHost, quickLink.get('default_http_port')) + '/#/logs/serviceLogs;' + params;
         }
         return '#';

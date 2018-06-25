@@ -51,6 +51,7 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.router.events.filter((event) => event instanceof NavigationEnd).subscribe(this.onNavigationEnd)
     );
+    this.onNavigationEnd();
   }
 
   ngOnDestroy() {
