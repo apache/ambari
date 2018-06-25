@@ -83,7 +83,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
   }
 
   @Override
-  public void emitMessage(STOMPEvent event) throws AmbariException, InterruptedException {
+  public void emitMessage(STOMPEvent event) throws AmbariException {
     if (StringUtils.isEmpty(getDestination(event))) {
       throw new MessageDestinationIsNotDefinedException(event.getType());
     }

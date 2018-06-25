@@ -120,10 +120,11 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/responses")
-  public ReportsResponse handleReceiveReport(AckReport ackReport) throws HostNotRegisteredException {
+  public ReportsResponse handleReceiveReport(@Header String simpSessionId, AckReport ackReport) throws HostNotRegisteredException {
+    Long hostId = agentSessionManager.getHost(simpSessionId).getHostId();
     LOG.debug("Handling agent receive report for execution message with messageId {}, status {}, reason {}",
         ackReport.getMessageId(), ackReport.getStatus(), ackReport.getReason());
-    defaultMessageEmitterProvider.get().processReceiveReport(ackReport);
+    defaultMessageEmitterProvider.get().processReceiveReport(hostId, ackReport);
     return new ReportsResponse();
   }
 

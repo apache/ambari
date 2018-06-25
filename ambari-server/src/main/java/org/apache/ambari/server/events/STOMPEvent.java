@@ -25,11 +25,6 @@ import java.beans.Transient;
 public abstract class STOMPEvent {
 
   /**
-   * Message id is unique for original messages, but the same for all re-emitted messages.
-   */
-  private Long messageId;
-
-  /**
    * Update type.
    */
   protected final Type type;
@@ -46,15 +41,6 @@ public abstract class STOMPEvent {
   @Transient
   public String getMetricName() {
     return type.getMetricName();
-  }
-
-  @Transient
-  public Long getMessageId() {
-    return messageId;
-  }
-
-  public void setMessageId(Long messageId) {
-    this.messageId = messageId;
   }
 
   public enum Type {
