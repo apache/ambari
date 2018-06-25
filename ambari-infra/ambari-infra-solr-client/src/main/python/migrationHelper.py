@@ -713,7 +713,34 @@ def create_configs(config_type, properties, context):
   configs_for_posts[config_type] = configuration
   return configs_for_posts
 
-def get_solr_urls(options, config, collection, collections_json): # TODO: use proper url from collections.json
+def common_data(list1, list2):
+  common_data = []
+  for x in list1:
+    for y in list2:
+      if x == y:
+        common_data.append(x)
+  return common_data
+
+def filter_solr_hosts_if_match_any(splitted_solr_hosts, collection, collections_json):
+  """
+  Return common hosts if there is any match with the collection related hosts, if not then filter won't apply (e.g.: won't filter with IPs in host names)
+  """
+  collection_related_hosts = []
+  all_collection_data = get_collections_data(collections_json)
+  if collection in all_collection_data:
+    collection_data = all_collection_data[collection]
+    if 'shards' in collection_data:
+      for shard in collection_data['shards']:
+        if 'replicas' in collection_data['shards'][shard]:
+          for replica in collection_data['shards'][shard]['replicas']:
+            nodeName = collection_data['shards'][shard]['replicas'][replica]['nodeName']
+            hostName = nodeName.split(":")[0]
+            if hostName not in collection_related_hosts:
+              collection_related_hosts.append(hostName)
+  common_list = common_data(splitted_solr_hosts, collection_related_hosts)
+  return common_list if common_list else splitted_solr_hosts
+
+def get_solr_urls(options, config, collection, collections_json):
   solr_urls = []
   solr_hosts = None
   solr_port = "8886"
@@ -726,6 +753,7 @@ def get_solr_urls(options, config, collection, collections_json): # TODO: use pr
     solr_hosts = config.get('infra_solr', 'hosts')
 
   splitted_solr_hosts = solr_hosts.split(',')
+  filter_solr_hosts_if_match_any(splitted_solr_hosts, collection, collections_json)
   if options.include_solr_hosts:
     # keep only included ones, do not override any
     include_solr_hosts_list = options.include_solr_hosts.split(',')
@@ -1520,7 +1548,7 @@ def restore_collections(options, accessor, parser, config, service_filter):
       print "Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(vertex_index_collection)
 
 def reload_collections(options, accessor, parser, config, service_filter):
-  collections_json_location = config, COLLECTIONS_DATA_JSON_LOCATION.format("reload_collections.json")
+  collections_json_location = COLLECTIONS_DATA_JSON_LOCATION.format("reload_collections.json")
   collections=list_collections(options, config, collections_json_location)
   collections=filter_collections(options, collections)
   if is_ranger_available(config, service_filter):
