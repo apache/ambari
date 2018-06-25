@@ -27,7 +27,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -196,14 +195,22 @@ public abstract class MessageEmitter {
     messagesToEmit.computeIfAbsent(hostId, id -> new LinkedBlockingQueue<>());
   }
 
+  /**
+   * Is used for first emit of arrived messages. There is a single command in process per host at each time.
+   * Host will be released on agent ACK response receiving or {@link MessageNotDelivered} event firing.
+   * In case no new operations were emitted thread will sleep for a small time.
+   */
   private class MessagesToEmitMonitor implements Runnable {
 
-    private AtomicBoolean anyActionPerformed = new AtomicBoolean(false);
+    /**
+     * Is used to check any message was emitted over available hosts.
+     */
+    private boolean anyActionPerformed;
 
     @Override
     public void run() {
       while (true) {
-        anyActionPerformed.set(false);
+        anyActionPerformed = false;
         for (Long hostId : messagesToEmit.keySet()) {
           unconfirmedMessages.computeIfAbsent(hostId, id -> {
             EmitTaskWrapper event = messagesToEmit.get(hostId).poll();
@@ -211,12 +218,12 @@ public abstract class MessageEmitter {
               LOG.info("Schedule execution command emitting, retry: {}, messageId: {}",
                   event.getRetryCounter(), event.getMessageId());
               emitCompletionService.submit(new EmitMessageTask(event, false));
-              anyActionPerformed.set(true);
+              anyActionPerformed = true;
             }
             return event;
           });
         }
-        if (!anyActionPerformed.get()) {
+        if (!anyActionPerformed) {
           try {
             Thread.sleep(200);
           } catch (InterruptedException e) {
@@ -227,6 +234,11 @@ public abstract class MessageEmitter {
     }
   }
 
+  /**
+   * After first emit completion message will be scheduled to re-emit with delay.
+   * Re-emit task also should check was message already delivered.
+   * After {@link MessageEmitter#retryCount} retries limit exceeded {@link MessageNotDelivered} event will be fired.
+   */
   private class MessagesToRetryMonitor implements Runnable {
 
     @Override
@@ -265,9 +277,19 @@ public abstract class MessageEmitter {
     }
   }
 
+  /**
+   * Task to emit command.
+   */
   private class EmitMessageTask implements Callable<EmitTaskWrapper> {
 
+    /**
+     * Wrapped command to emit.
+     */
     private final EmitTaskWrapper emitTaskWrapper;
+
+    /**
+     * Should {@link #call()} check for command was successfully emitted and ACK already received.
+     */
     private final boolean checkRelevance;
 
     public EmitMessageTask(EmitTaskWrapper emitTaskWrapper, boolean checkRelevance) {
