@@ -78,12 +78,12 @@ function run_migrate_commands() {
   fi
 
   local skip_warnings_val=""
-  if [[ "$verbose" == "true" ]]; then
+  if [[ "$skip_warnings" == "true" ]]; then
     skip_warnings_val="--skip-warnings"
   fi
 
   local keep_backup_val=""
-  if [[ "$verbose" == "true" ]]; then
+  if [[ "$keep_backup" == "true" ]]; then
     keep_backup_val="--keep-backup"
   fi
 
@@ -173,7 +173,7 @@ function run_migrate_commands() {
     handle_result "$?" "Migrate Index" "$python_location" "$start_date"
 
     log_command "$python_location $script_location --ini-file $ini_file --action restore $keep_backup_val $verbose_val"
-    $python_location $script_location --ini-file $ini_file --action restore $verbose_val
+    $python_location $script_location --ini-file $ini_file --action restore $keep_backup_val $verbose_val
     handle_result "$?" "Restore" "$python_location" "$start_date"
 
     log_command "$python_location $script_location --ini-file $ini_file --action rolling-restart-solr $verbose_val --batch-interval $batch_interval"
