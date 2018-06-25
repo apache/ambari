@@ -29,7 +29,7 @@ public class AgentActionEvent extends STOMPHostEvent {
   /**
    * Host id with agent action commands will be send to.
    */
-  private Long hostId;
+  private final Long hostId;
 
   @JsonProperty("actionName")
   private AgentAction agentAction;
@@ -37,10 +37,6 @@ public class AgentActionEvent extends STOMPHostEvent {
   public AgentActionEvent(AgentAction agentAction, Long hostId) {
     super(Type.AGENT_ACTIONS);
     this.agentAction = agentAction;
-    this.hostId = hostId;
-  }
-
-  public void setHostId(Long hostId) {
     this.hostId = hostId;
   }
 

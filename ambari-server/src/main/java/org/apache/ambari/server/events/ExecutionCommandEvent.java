@@ -33,7 +33,7 @@ public class ExecutionCommandEvent extends STOMPHostEvent {
   /**
    * Host id with agent execution commands will be send to.
    */
-  private Long hostId;
+  private final Long hostId;
 
   /**
    *
@@ -47,17 +47,16 @@ public class ExecutionCommandEvent extends STOMPHostEvent {
   @JsonProperty("clusters")
   private TreeMap<String, ExecutionCommandsCluster> clusters;
 
-  public ExecutionCommandEvent(TreeMap<String, ExecutionCommandsCluster> clusters) {
+  public ExecutionCommandEvent(Long hostId, Long requiredConfigTimestamp,
+                               TreeMap<String, ExecutionCommandsCluster> clusters) {
     super(Type.COMMAND);
+    this.hostId = hostId;
+    this.requiredConfigTimestamp = requiredConfigTimestamp;
     this.clusters = clusters;
   }
 
   public TreeMap<String, ExecutionCommandsCluster> getClusters() {
     return clusters;
-  }
-
-  public void setClusters(TreeMap<String, ExecutionCommandsCluster> clusters) {
-    this.clusters = clusters;
   }
 
   @Override
@@ -78,10 +77,6 @@ public class ExecutionCommandEvent extends STOMPHostEvent {
     return result;
   }
 
-  public void setHostId(Long hostId) {
-    this.hostId = hostId;
-  }
-
   @Override
   public Long getHostId() {
     return hostId;
@@ -89,9 +84,5 @@ public class ExecutionCommandEvent extends STOMPHostEvent {
 
   public Long getRequiredConfigTimestamp() {
     return requiredConfigTimestamp;
-  }
-
-  public void setRequiredConfigTimestamp(Long requiredConfigTimestamp) {
-    this.requiredConfigTimestamp = requiredConfigTimestamp;
   }
 }
