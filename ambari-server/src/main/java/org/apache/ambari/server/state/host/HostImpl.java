@@ -1236,13 +1236,10 @@ public class HostImpl implements Host {
     int slaveCount = 0;
     int slavesRunning = 0;
 
-    StackId stackId;
     Cluster cluster = clusters.getCluster(clusterId);
-    stackId = cluster.getDesiredStackVersion();
-
-
     List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostName);
     for (ServiceComponentHost scHost : scHosts) {
+      StackId stackId = scHost.getDesiredStackId();
       ComponentInfo componentInfo =
           ambariMetaInfo.getComponent(stackId.getStackName(),
               stackId.getStackVersion(), scHost.getServiceName(),
