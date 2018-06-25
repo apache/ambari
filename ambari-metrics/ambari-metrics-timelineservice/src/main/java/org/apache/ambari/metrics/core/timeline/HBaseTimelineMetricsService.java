@@ -396,8 +396,10 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     return metricsFunctions;
   }
 
-  public void putMetricsSkipCache(TimelineMetrics metrics) throws SQLException, IOException {
+  public TimelinePutResponse putMetricsSkipCache(TimelineMetrics metrics) throws SQLException, IOException {
+    TimelinePutResponse response = new TimelinePutResponse();
     hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics, true);
+    return response;
   }
 
   @Override

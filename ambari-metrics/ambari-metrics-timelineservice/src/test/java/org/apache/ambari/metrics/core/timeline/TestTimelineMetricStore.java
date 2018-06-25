@@ -82,6 +82,11 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   }
 
   @Override
+  public TimelinePutResponse putMetricsSkipCache(TimelineMetrics metrics) throws SQLException, IOException {
+    return new TimelinePutResponse();
+  }
+
+  @Override
   public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
       throws SQLException, IOException {
     return new TimelinePutResponse();
