@@ -108,7 +108,7 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     self.logger.info("Class: %s, Method: %s. Validating Service Component Layout." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
-    return self.as_super.getServiceComponentLayoutValidations(services, hosts)
+    return self.getServiceComponentCardinalityValidations(services, hosts, "ZOOKEEPER")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     """
