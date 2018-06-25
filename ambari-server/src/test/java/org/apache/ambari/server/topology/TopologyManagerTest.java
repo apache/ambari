@@ -392,13 +392,6 @@ public class TopologyManagerTest {
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     // cluster configuration task run() isn't executed by mock executor
-    // so only INITIAL config
-    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
-        andReturn(Collections.singletonList(configurationRequest)).anyTimes();
-    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture2))).
-        andReturn(Collections.singletonList(configurationRequest2)).anyTimes();
-    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture3))).
-        andReturn(Collections.singletonList(configurationRequest3)).anyTimes();
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
     expectLastCall().anyTimes();
@@ -430,6 +423,7 @@ public class TopologyManagerTest {
         return null;
       }).
       anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(new HashSet<>());
     expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
     mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(controller).anyTimes();
@@ -437,6 +431,7 @@ public class TopologyManagerTest {
 
     mockStatic(AmbariContext.class);
     expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
+    expect(AmbariContext.getController()).andReturn(controller).anyTimes();
     PowerMock.replay(AmbariContext.class);
 
     Whitebox.setInternalState(topologyManager, "executor", executor);

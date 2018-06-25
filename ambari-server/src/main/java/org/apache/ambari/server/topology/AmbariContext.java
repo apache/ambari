@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -51,7 +50,6 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -60,7 +58,6 @@ import org.apache.ambari.server.controller.ServiceGroupRequest;
 import org.apache.ambari.server.controller.ServiceGroupResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
@@ -461,10 +458,6 @@ public class AmbariContext {
     }
   }
 
-  //todo: non topology type shouldn't be returned
-  public List<ConfigurationRequest> createConfigurationRequests(Map<String, Object> clusterProperties) {
-    return AbstractResourceProvider.getConfigurationRequests("Clusters", clusterProperties);
-  }
 
   public void setConfigurationOnCluster(final ClusterRequest clusterRequest) {
     try {
