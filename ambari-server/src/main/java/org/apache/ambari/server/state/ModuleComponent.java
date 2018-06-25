@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.Objects;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import com.google.common.base.MoreObjects;
 import com.google.gson.annotations.SerializedName;
 
 public class ModuleComponent {
@@ -31,6 +36,12 @@ public class ModuleComponent {
   private Boolean isExternal;
   @SerializedName("version")
   private String version;
+
+  /**
+   * The owning module for this module component.
+   */
+  @JsonIgnore
+  private transient Module module;
 
   public String getId() {
     return id;
@@ -72,38 +83,60 @@ public class ModuleComponent {
     this.isExternal = isExternal;
   }
 
+  @JsonIgnore
+  public Module getModule() {
+    return module;
+  }
+
+  public void setModule(Module module) {
+    this.module = module;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ModuleComponent that = (ModuleComponent) o;
 
-    if (id != null ? !id.equals(that.id) : that.id != null) return false;
-    if (name != null ? !name.equals(that.name) : that.name != null) return false;
-    if (category != null ? !category.equals(that.category) : that.category != null) return false;
-    if (isExternal != null ? !isExternal.equals(that.isExternal) : that.isExternal != null) return false;
+    if (id != null ? !id.equals(that.id) : that.id != null) {
+      return false;
+    }
+    if (name != null ? !name.equals(that.name) : that.name != null) {
+      return false;
+    }
+    if (category != null ? !category.equals(that.category) : that.category != null) {
+      return false;
+    }
+    if (isExternal != null ? !isExternal.equals(that.isExternal) : that.isExternal != null) {
+      return false;
+    }
     return version != null ? version.equals(that.version) : that.version == null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (name != null ? name.hashCode() : 0);
-    result = 31 * result + (category != null ? category.hashCode() : 0);
-    result = 31 * result + (isExternal != null ? isExternal.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
-    return result;
+    return Objects.hash(id, name, category, isExternal, version);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString() {
-    return "ModuleComponent{" +
-            "id='" + id + '\'' +
-            ", name='" + name + '\'' +
-            ", category='" + category + '\'' +
-            ", isExternal=" + isExternal +
-            ", version='" + version + '\'' +
-            '}';
+    return MoreObjects.toStringHelper(this)
+    .add("id", id)
+    .add("name", name)
+    .add("category", category)
+    .add("isExternal", isExternal)
+    .add("version", version)
+    .toString();
   }
 }

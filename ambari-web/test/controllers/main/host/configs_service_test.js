@@ -108,12 +108,20 @@ describe('App.MainHostServiceConfigsController', function () {
         return { always: Em.K };
       });
       sinon.stub(controller, 'trackRequest');
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: function () {
+          return Em.Object.create({
+            dependentServiceNames: []
+          });
+        }
+      });
     });
     afterEach(function() {
       controller.loadCurrentVersions.restore();
       controller.loadConfigTheme.restore();
       App.themesMapper.generateAdvancedTabs.restore();
       controller.trackRequest.restore();
+      App.StackService.find.restore();
     });
 		it("should set host", function () {
 			controller.set('content', {

@@ -18,7 +18,10 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -39,7 +42,6 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -114,9 +116,6 @@ public class UpgradeEntity {
   @Enumerated(value = EnumType.STRING)
   private Direction direction = Direction.UPGRADE;
 
-  @Column(name="upgrade_package", nullable = false)
-  private String upgradePackage;
-
   @Column(name="upgrade_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private UpgradeType upgradeType;
@@ -129,6 +128,12 @@ public class UpgradeEntity {
 
   @Column(name="downgrade_allowed", nullable = false)
   private Short downgradeAllowed = 1;
+
+  /**
+   * {@code true} if this upgrade is a revert, otherwise {@code false}
+   */
+  @Column(name = "is_revert", nullable = false)
+  private Short isRevert = 0;
 
   /**
    * Whether this upgrade is a candidate to be reverted. The current restriction
@@ -148,10 +153,6 @@ public class UpgradeEntity {
    */
   @Column(name = "revert_allowed", nullable = false)
   private Short revertAllowed = 0;
-
-  @Column(name="orchestration", nullable = false)
-  @Enumerated(value = EnumType.STRING)
-  private RepositoryType orchestration = RepositoryType.STANDARD;
 
   /**
    * {@code true} if the upgrade has been marked as suspended.
@@ -263,6 +264,25 @@ public class UpgradeEntity {
   }
 
   /**
+   * Gets whether this upgrade is a revert.
+   *
+   * @return {@code true} if this is a revert, {@code false} otherwise.
+   */
+  public Boolean isRevert() {
+    return isRevert != null ? (isRevert != 0) : null;
+  }
+
+  /**
+   * Sets whether this upgrade is a revert.
+   *
+   * @param isRevert
+   *          {@code true} if this is a revert, {@code false} otherwise.
+   */
+  public void setIsRevert(boolean isRevert) {
+    this.isRevert = (!isRevert ? (short) 0 : (short) 1);
+  }
+
+  /**
    * Gets whether this upgrade supports being reverted. Upgrades can be reverted
    * (downgraded after finalization) if they are either
    * {@link RepositoryType#MAINT} or {@link RepositoryType#PATCH} and have never
@@ -294,20 +314,6 @@ public class UpgradeEntity {
    */
   public void setUpgradeType(UpgradeType upgradeType) {
     this.upgradeType = upgradeType;
-  }
-
-  /**
-   * @return the upgrade package name, without the extension.
-   */
-  public String getUpgradePackage() {
-    return upgradePackage;
-  }
-
-  /**
-   * @param upgradePackage the upgrade pack to set
-   */
-  public void setUpgradePackage(String upgradePackage) {
-    this.upgradePackage = upgradePackage;
   }
 
   /**
@@ -400,56 +406,6 @@ public class UpgradeEntity {
   }
 
   /**
-   * Upgrades will always have a single version being upgraded to and downgrades
-   * will have a single version being downgraded from. This repository
-   * represents that version.
-   * <p/>
-   * When the direction is {@link Direction#UPGRADE}, this represents the target
-   * repository. <br/>
-   * When the direction is {@link Direction#DOWNGRADE}, this represents the
-   * repository being downgraded from.
-   *
-   * @return the repository version being upgraded to or downgraded from (never
-   *         {@code null}).
-   */
-  public RepositoryVersionEntity getRepositoryVersion() {
-    return null;
-  }
-
-  /**
-   * Sets the repository version for this upgrade. This value will change
-   * depending on the direction of the upgrade.
-   * <p/>
-   * When the direction is {@link Direction#UPGRADE}, this represents the target
-   * repository. <br/>
-   * When the direction is {@link Direction#DOWNGRADE}, this represents the
-   * repository being downgraded from.
-   *
-   * @param repositoryVersion
-   *          the repository version being upgraded to or downgraded from (not
-   *          {@code null}).
-   */
-  public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
-  }
-
-  /**
-   * Sets the orchestration for the upgrade.  Only different when an upgrade is a revert of a patch.
-   * In that case, the orchestration is set to PATCH even if the target repository is type STANDARD.
-   *
-   * @param type  the orchestration
-   */
-  public void setOrchestration(RepositoryType type) {
-    orchestration = type;
-  }
-
-  /**
-   * @return  the orchestration type
-   */
-  public RepositoryType getOrchestration() {
-    return orchestration;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -470,7 +426,6 @@ public class UpgradeEntity {
         .append(direction, that.direction)
         .append(suspended, that.suspended)
         .append(upgradeType, that.upgradeType)
-        .append(upgradePackage, that.upgradePackage)
         .isEquals();
   }
 
@@ -479,8 +434,67 @@ public class UpgradeEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hashCode(upgradeId, clusterId, requestId, direction, suspended, upgradeType,
-        upgradePackage);
+    return Objects.hashCode(upgradeId, clusterId, requestId, direction, suspended, upgradeType);
+  }
+
+  /**
+   * Gets the mpacks which are participating in the upgrade.
+   *
+   * @return the set of mpacks in this upgrade.
+   */
+  public Set<MpackEntity> getSourceMpacks() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<MpackEntity> mpacks = historyEntities.stream().map(
+        history -> history.getSourceMpackEntity()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
+  }
+
+  /**
+   * Gets the mpack stack IDs which are participating in the upgrade.
+   *
+   * @return the set of mpacks in this upgrade.
+   */
+  public Set<String> getSourceMpackStacks() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<String> mpacks = historyEntities.stream().map(
+        history -> history.getSourceMpackEntity().getStackId().toString()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
+  }
+
+  /**
+   * Gets the mpacks which are participating in the upgrade.
+   *
+   * @return the target set of mpacks in this upgrade.
+   */
+  public Set<MpackEntity> getTargetMpack() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<MpackEntity> mpacks = historyEntities.stream().map(
+        history -> history.getTargetMpackEntity()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
+  }
+
+  /**
+   * Gets the mpack names which are participating in the upgrade.
+   *
+   * @return the target set of mpacks in this upgrade.
+   */
+  public Set<String> getTargetMpackStacks() {
+    List<UpgradeHistoryEntity> historyEntities = getHistory();
+
+    LinkedHashSet<String> mpacks = historyEntities.stream().map(
+        history -> history.getTargetMpackEntity().getStackId().toString()).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    return mpacks;
   }
 
 }

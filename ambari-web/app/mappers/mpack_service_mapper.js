@@ -22,7 +22,7 @@ App.MpackServiceMapper = App.QuickDataMapper.create({
   component_model: App.StackServiceComponent,
 
   config: {
-    id: 'service_name',
+    id: 'id',
     stack_id: 'stack_id',
     service_name: 'service_name',
     service_type: 'service_type',
@@ -79,7 +79,6 @@ App.MpackServiceMapper = App.QuickDataMapper.create({
     var result = [];
     var stackServiceComponents = [];
     var nonInstallableServices = ['KERBEROS'];
-    var displayOrderLength = App.StackService.displayOrder.length;
     var stackService = service.StackServices;
     var serviceComponents = [];
     service.components.forEach(function (serviceComponent) {
@@ -95,7 +94,8 @@ App.MpackServiceMapper = App.QuickDataMapper.create({
       }
       stackServiceComponents.push(parsedResult);
     }, this);
-    stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
+    stackService.stack_id = `${stackService.stack_name}-${stackService.stack_version}`;
+    stackService.id = `${stackService.service_name}-${stackService.stack_id}`;
     stackService.service_components = serviceComponents;
     stackService.is_service_with_widgets = service.artifacts.someProperty('Artifacts.artifact_name', 'widgets_descriptor');
     // @todo: replace with server response value after API implementation

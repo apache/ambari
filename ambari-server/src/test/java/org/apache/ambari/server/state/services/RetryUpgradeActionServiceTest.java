@@ -257,7 +257,6 @@ public class RetryUpgradeActionServiceTest {
     upgrade.setId(1L);
     upgrade.setRequestEntity(requestEntity);
     upgrade.setClusterId(cluster.getClusterId());
-    upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
     upgradeDAO.create(upgrade);

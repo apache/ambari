@@ -509,7 +509,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // Get services from the given set of requests.
-  protected Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
+  public Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
       throws AmbariException {
     Set<ServiceResponse> response = new HashSet<>();
     for (ServiceRequest request : requests) {

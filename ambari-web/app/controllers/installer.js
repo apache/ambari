@@ -346,6 +346,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         display_name: _component.get('display_name'),
         component: _component.get('component_name'),
         serviceId: _component.get('serviceId'),
+        serviceGroupName: _component.get('mpackInstance'),
         isInstalled: false,
         host_id: hosts[_component.get('selectedHost')].id
       });
@@ -387,6 +388,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   loadCurrentHostGroups: function () {
+    this.set("content.recommendations", this.getDBProperty('recommendations'));
     this.set("content.recommendationsHostGroups", this.getDBProperty('recommendationsHostGroups'));
   },
 
@@ -428,6 +430,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       client.forEach(function (clientComponent) {
         clients.pushObject({
           component_name: clientComponent.get('componentName'),
+          service_name: _service.get('serviceName'),
+          serviceGroupName: _service.get('stackName'),
           display_name: clientComponent.get('displayName'),
           isInstalled: false
         });
@@ -1028,6 +1032,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         client.forEach(clientComponent => {
           clients.pushObject({
             component_name: clientComponent.get('componentName'),
+            service_name: service.get('serviceName'),
+            serviceGroupName: service.get('stackName'),
             display_name: clientComponent.get('displayName'),
             isInstalled: false
           });

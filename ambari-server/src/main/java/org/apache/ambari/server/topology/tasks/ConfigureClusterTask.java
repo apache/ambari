@@ -71,11 +71,18 @@ public class ConfigureClusterTask implements Callable<Boolean> {
 
     Collection<String> requiredHostGroups = getTopologyRequiredHostGroups();
 
+    String msg = null;
     if (!areHostGroupsResolved(requiredHostGroups)) {
-      String msg = "Some host groups require more hosts, cluster configuration cannot begin";
+      msg = "Some host groups require more hosts, cluster configuration cannot begin";
+    }
+      else if (topology.getConfigRecommendationStrategy().shouldUseAdvisor() && topology.getHostNames().isEmpty()) {
+      msg = "Getting config recommendations requires at least one host, cluster configuration cannot begin";
+    }
+    if (null != msg) {
       LOG.info(msg);
       throw new AsyncCallableService.RetryTaskSilently(msg);
     }
+
 
     LOG.info("All required host groups are complete, cluster configuration can now begin");
     configRequest.process();
@@ -156,7 +163,6 @@ public class ConfigureClusterTask implements Callable<Boolean> {
         }
       }
     }
-
     return allHostGroupsResolved;
   }
 

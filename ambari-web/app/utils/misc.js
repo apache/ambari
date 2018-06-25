@@ -54,11 +54,14 @@ module.exports = {
     return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
   },
 
-  sortByOrder: function (sortOrder, array) {
+  sortByOrder: function (sortOrder, array, sortOn) {
+    //provide default sortOn function if one is not passed in
+    sortOn = sortOn || (item => Em.get(item, 'id'));
+
     var sorted = [];
     for (var i = 0; i < sortOrder.length; i++)
       for (var j = 0; j < array.length; j++) {
-        if (sortOrder[i] == Em.get(array[j], 'id')) {
+        if (sortOrder[i] == sortOn(array[j])) {
           sorted.push(array[j]);
         }
       }

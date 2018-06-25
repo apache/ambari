@@ -59,6 +59,9 @@ public class UpgradePlanDetailEntity {
   @Column(name = "mpack_target_id", nullable = false, insertable = true, updatable = true)
   private Long mpackTargetId;
 
+  @Column(name = "upgrade_pack", nullable = false, insertable = true, updatable = true)
+  private String upgradePack;
+
   @ManyToOne
   @JoinColumn(name = "upgrade_plan_id", referencedColumnName = "id", nullable = false)
   private UpgradePlanEntity upgradePlanEntity;
@@ -113,6 +116,20 @@ public class UpgradePlanDetailEntity {
    */
   void setUpgradePlanEntity(UpgradePlanEntity plan) {
     upgradePlanEntity = plan;
+  }
+
+  /**
+   * @return the resolved upgrade pack name from the target mpack
+   */
+  public String getUpgradePack() {
+    return upgradePack;
+  }
+
+  /**
+   * @param pack the resolved upgrade pack from the mpack.
+   */
+  public void setUpgradePack(String pack) {
+    upgradePack = pack;
   }
 
   /**

@@ -38,6 +38,8 @@ import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 
+import com.google.common.base.MoreObjects;
+
 
 @NamedQueries({
   @NamedQuery(name = "serviceGroupById", query =
@@ -167,6 +169,17 @@ public class ServiceGroupEntity {
   public int hashCode() {
     return Objects.hash(serviceGroupId, clusterId, serviceGroupName, stack);
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("clusterId", clusterId )
+        .add("id", serviceGroupId)
+        .add("name", serviceGroupName).toString();
+  }  
 
   public ClusterEntity getClusterEntity() {
     return clusterEntity;

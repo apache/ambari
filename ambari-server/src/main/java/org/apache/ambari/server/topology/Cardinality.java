@@ -18,15 +18,27 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Objects;
+
 /**
  * Component cardinality representation.
  */
 public class Cardinality {
-  String cardinality;
-  int min = 0;
-  int max = Integer.MAX_VALUE;
-  int exact = -1;
-  boolean isAll = false;
+
+  public static final Cardinality ALL = new Cardinality("ALL");
+
+  private final String cardinality;
+  private int min = 0;
+  private int max = Integer.MAX_VALUE;
+  private int exact = -1;
+  private boolean isAll = false;
+
+  public static Cardinality of(String cardinality) {
+    if ("ALL".equals(cardinality)) {
+      return ALL;
+    }
+    return new Cardinality(cardinality);
+  }
 
   public Cardinality(String cardinality) {
     this.cardinality = cardinality;
@@ -85,6 +97,29 @@ public class Cardinality {
   }
 
   public String getValue() {
+    return cardinality;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    Cardinality other = (Cardinality) obj;
+    return Objects.equals(cardinality, other.cardinality);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(cardinality);
+  }
+
+  @Override
+  public String toString() {
     return cardinality;
   }
 }

@@ -971,7 +971,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       const serviceGroups = mpacks.map(mpack => ({
           "ServiceGroupInfo": {
             "service_group_name": mpack.name,
-            "version": mpack.id
+            "version": `${mpack.name}-${mpack.version}`
           }
         })
       );
@@ -1118,37 +1118,52 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @method createMasterHostComponents
    */
   createMasterHostComponents: function () {
-    var masterOnAllHosts = [];
+    const masterOnAllHosts = [];
 
     this.get('content.services').filterProperty('isSelected').forEach(function (service) {
-      service.get('serviceComponents').filterProperty('isRequiredOnAllHosts').forEach(function (component) {
+      service.get('serviceComponents').filterProperty('isRequiredOnAllHosts').forEach(component => {
         if (component.get('isMaster')) {
           masterOnAllHosts.push(component.get('componentName'));
         }
       }, this);
     }, this);
 
-    // create master components for only selected services.
-    var selectedMasterComponents = this.get('content.masterComponentHosts').filter(function (_component) {
-      return this.get('selectedServices').mapProperty('serviceName').contains(_component.serviceId)
-    }, this);
-    selectedMasterComponents.mapProperty('component').uniq().forEach(function (component) {
-      var hostNames = [];
+    //get unique occurrences per service group, since components in the same SG going onto multiple hosts must only be processed once
+    const uniqueMasterComponents = {};
+    this.get('content.masterComponentHosts').forEach(component => {
+      uniqueMasterComponents[`${component.component}-${component.serviceId}-${component.serviceGroupName}`] = component;
+    });
+    
+    //convert to arry for further filtering
+    const masterComponentsArray = [];
+    for (let prop in uniqueMasterComponents) {
+      masterComponentsArray.push(uniqueMasterComponents[prop]);
+    }
+    
+    //get only selected services.
+    const selectedMasterComponents = masterComponentsArray.filter(component => this.get('selectedServices').mapProperty('serviceName').contains(component.serviceId), this);
+    selectedMasterComponents.forEach(component => {
+      const componentName = component.component;
+      const serviceName = component.serviceId;
+      const serviceGroupName = component.serviceGroupName;
+
       if (masterOnAllHosts.length > 0) {
-        var compOnAllHosts = false;
-        for (var i=0; i < masterOnAllHosts.length; i++) {
-          if (component === masterOnAllHosts[i]) {
+        let compOnAllHosts = false;
+        
+        for (let i = 0; i < masterOnAllHosts.length; i++) {
+          if (componentName === masterOnAllHosts[i]) {
             compOnAllHosts = true;
             break;
           }
         }
+        
         if (!compOnAllHosts) {
-          hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
-          this.registerHostsToComponent(hostNames, component);
+          const hostNames = selectedMasterComponents.filterProperty('component', componentName).filterProperty('isInstalled', false).mapProperty('hostName');
+          this.registerHostsToComponent(hostNames, componentName, serviceName, serviceGroupName);
         }
       } else {
-        hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
-        this.registerHostsToComponent(hostNames, component);
+        const hostNames = selectedMasterComponents.filterProperty('component', componentName).filterProperty('isInstalled', false).mapProperty('hostName');
+        this.registerHostsToComponent(hostNames, componentName, serviceName, serviceGroupName);
       }
     }, this);
   },
@@ -1222,14 +1237,13 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           }
           if (!compOnAllHosts) {
             hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
-            this.registerHostsToComponent(hostNames, _slave.componentName);
+            this.registerHostsToComponent(hostNames, _slave.componentName, _slave.serviceName, _slave.serviceGroupName);
           }
         } else {
           hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
-          this.registerHostsToComponent(hostNames, _slave.componentName);
+          this.registerHostsToComponent(hostNames, _slave.componentName, _slave.serviceName, _slave.serviceGroupName);
         }
-      }
-      else {
+      } else {
         clients.forEach(function (_client) {
           hostNames = _slave.hosts.mapProperty('hostName');
           // The below logic to install clients to existing/New master hosts should not be applied to Add Host wizard.
@@ -1262,11 +1276,11 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
             }
             if (!compOnAllHosts) {
               hostNames = hostNames.uniq();
-              this.registerHostsToComponent(hostNames, _client.component_name);
+              this.registerHostsToComponent(hostNames, _client.component_name, _client.service_name, _client.serviceGroupName);
             }
           } else {
             hostNames = hostNames.uniq();
-            this.registerHostsToComponent(hostNames, _client.component_name);
+            this.registerHostsToComponent(hostNames, _client.component_name, _client.service_name, _client.serviceGroupName);
           }
         }, this);
       }
@@ -1286,18 +1300,17 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     var clients = this.get('content.clients').filterProperty('isInstalled', false);
     var clientsToMasterMap = this.getClientsMap('isMaster');
     var clientsToClientMap = this.getClientsMap('isClient');
-    var installedClients = [];
+    let installedClients = [];
 
     // Get all the installed Client components
     this.get('content.services').filterProperty('isInstalled').forEach(function (_service) {
-      var serviceClients = App.StackServiceComponent.find().filterProperty('serviceName', _service.get('serviceName')).filterProperty('isClient');
-      serviceClients.forEach(function (client) {
-        installedClients.push(client.get('componentName'));
-      }, this);
+      installedClients = App.StackServiceComponent.find().filterProperty('serviceName', _service.get('serviceName')).filterProperty('isClient');
     }, this);
 
     // Check if there is a dependency for being co-hosted between existing client and selected new master
-    installedClients.forEach(function (_clientName) {
+    installedClients.forEach(function (client) {
+      const _clientName = client.get('componentName');
+
       if (clientsToMasterMap[_clientName] || clientsToClientMap[_clientName]) {
         var hostNames = [];
         if (clientsToMasterMap[_clientName]) {
@@ -1323,8 +1336,8 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           // If a dependency for being co-hosted is derived between existing client and selected new master but that
           // dependency is already satisfied in the cluster then disregard the derived dependency
           this.removeClientsFromList(_clientName, hostNames);
-          this.registerHostsToComponent(hostNames, _clientName);
-          if(hostNames.length > 0) {
+          this.registerHostsToComponent(hostNames, _clientName, client.service_name, client.serviceGroupName);
+          if (hostNames.length > 0) {
             this.get('content.additionalClients').pushObject({hostNames: hostNames, componentName: _clientName});
           }
         }
@@ -1372,9 +1385,9 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     this.get('content.services').filterProperty('isSelected').forEach(function (service) {
       service.get('serviceComponents').filterProperty('isRequiredOnAllHosts').forEach(function (component) {
         if (service.get('isInstalled') && notInstalledHosts.length) {
-          this.registerHostsToComponent(notInstalledHosts.mapProperty('hostName'), component.get('componentName'));
+          this.registerHostsToComponent(notInstalledHosts.mapProperty('hostName'), component.componentName, component.serviceId, component.serviceGroupName);
         } else if (!service.get('isInstalled') && registeredHosts.length) {
-          this.registerHostsToComponent(registeredHosts.mapProperty('hostName'), component.get('componentName'));
+          this.registerHostsToComponent(registeredHosts.mapProperty('hostName'), component.componentName, component.serviceId, component.serviceGroupName);
         }
       }, this);
     }, this);
@@ -1383,10 +1396,11 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
     if (hiveService) {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
+      const hiveService = masterHosts.filterProperty('component', 'HIVE_SERVER');
       if (hiveDb.value === "New MySQL Database") {
-        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
+        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER', 'HIVE', hiveService.serviceGroupName);
       } else if (hiveDb.value === "New PostgreSQL Database") {
-        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'POSTGRESQL_SERVER');
+        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'POSTGRESQL_SERVER', 'HIVE', hiveService.serviceGroupName);
       }
     }
   },
@@ -1398,27 +1412,10 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @param {String} componentName
    * @method registerHostsToComponent
    */
-  registerHostsToComponent: function (hostNames, componentName) {
+  registerHostsToComponent: function (hostNames, componentName, serviceName, serviceGroupName) {
     if (!hostNames.length) return;
 
-    let serviceName;
-    let serviceGroupName;
-
     const queryStr = `Hosts/host_name.in(${hostNames.join(',')})`;
-
-    let services;
-    if (this.get('isAddHost')) {
-      services = this.get('installedServices');
-    } else {
-      services = this.get('selectedServices');
-    }
-
-    services.forEach( function (service) {
-      if (service.get('serviceComponents').findProperty('componentName', componentName)) {
-        serviceName = service.get('serviceName');
-        serviceGroupName = service.get('stackName');
-      }
-    });
 
     var data = {
       "RequestInfo": {
@@ -1645,53 +1642,59 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @method createNotification
    */
   createNotification: function () {
-    if (!this.get('isInstaller')) return;
-    var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
-      createNotification = miscConfigs.findProperty('name', 'create_notification').value;
-    if (createNotification !== 'yes') return;
-      var predefinedNotificationConfigNames = require('data/configs/alert_notification').mapProperty('name'),
-      configsForNotification = this.get('configs').filterProperty('filename', 'alert_notification');
-    var properties = {},
-      names = [
-        'ambari.dispatch.recipients',
-        'mail.smtp.host',
-        'mail.smtp.port',
-        'mail.smtp.from',
-        'mail.smtp.starttls.enable',
-        'mail.smtp.startssl.enable'
-      ];
-    if (miscConfigs.findProperty('name', 'smtp_use_auth').value == 'true') { // yes, it's not converted to boolean
-      names.pushObjects(['ambari.dispatch.credential.username', 'ambari.dispatch.credential.password']);
+    if (this.get('isInstaller')) {
+      const miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC');
+      if (miscConfigs) {
+        const createNotification = miscConfigs.findProperty('name', 'create_notification');
+        if (createNotification && createNotification.value === 'yes') {
+          const predefinedNotificationConfigNames = require('data/configs/alert_notification').mapProperty('name');
+          const configsForNotification = this.get('configs').filterProperty('filename', 'alert_notification');
+          const properties = {};
+          const names = [
+            'ambari.dispatch.recipients',
+            'mail.smtp.host',
+            'mail.smtp.port',
+            'mail.smtp.from',
+            'mail.smtp.starttls.enable',
+            'mail.smtp.startssl.enable'
+          ];
+
+          if (miscConfigs.findProperty('name', 'smtp_use_auth').value == 'true') { // yes, it's not converted to boolean
+            names.pushObjects(['ambari.dispatch.credential.username', 'ambari.dispatch.credential.password']);
+          }
+
+          names.forEach(function (name) {
+            properties[name] = miscConfigs.findProperty('name', name).value;
+          });
+
+          properties['ambari.dispatch.recipients'] = properties['ambari.dispatch.recipients'].replace(/\s/g, '').split(',');
+
+          configsForNotification.forEach(function (config) {
+            if (predefinedNotificationConfigNames.contains(config.name)) return;
+            properties[config.name] = config.value;
+          });
+
+          var apiObject = {
+            AlertTarget: {
+              name: 'Initial Notification',
+              description: 'Notification created during cluster installing',
+              global: true,
+              notification_type: 'EMAIL',
+              alert_states: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
+              properties: properties
+            }
+          };
+        
+          this.addRequestToAjaxQueue({
+            name: 'alerts.create_alert_notification',
+            data: {
+              urlParams: 'overwrite_existing=true',
+              data: apiObject
+            }
+          });
+        }
+      }
     }
-
-    names.forEach(function (name) {
-      properties[name] = miscConfigs.findProperty('name', name).value;
-    });
-
-    properties['ambari.dispatch.recipients'] = properties['ambari.dispatch.recipients'].replace(/\s/g, '').split(',');
-
-    configsForNotification.forEach(function (config) {
-      if (predefinedNotificationConfigNames.contains(config.name)) return;
-      properties[config.name] = config.value;
-    });
-
-    var apiObject = {
-      AlertTarget: {
-        name: 'Initial Notification',
-        description: 'Notification created during cluster installing',
-        global: true,
-        notification_type: 'EMAIL',
-        alert_states: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
-        properties: properties
-      }
-    };
-    this.addRequestToAjaxQueue({
-      name: 'alerts.create_alert_notification',
-      data: {
-        urlParams: 'overwrite_existing=true',
-        data: apiObject
-      }
-    });
   },
 
   /**

@@ -76,7 +76,6 @@ describe('App.HostComponentValidationMixin', function() {
       {
         opts: null,
         e: {
-          services: [],
           hosts: [],
           components: [],
           blueprint: null
@@ -85,13 +84,11 @@ describe('App.HostComponentValidationMixin', function() {
       },
       {
         opts: {
-          services: ['s1'],
           hosts: ['h1'],
           components: [{componentName: 'c1'}],
           blueprint: {recommend:{}}
         },
         e: {
-          services: ['s1'],
           hosts: ['h1'],
           components: [{componentName: 'c1'}],
           blueprint: {recommend:{}}
@@ -109,9 +106,9 @@ describe('App.HostComponentValidationMixin', function() {
   describe('#getHostComponentValidationRequest', function() {
     it('default request options checking', function() {
       mixedObject.getHostComponentValidationRequest('someData');
-      var args = helpers.findAjaxRequest('name', 'config.validations');
+      var args = helpers.findAjaxRequest('name', 'mpack.advisor.validations');
       expect(args[0]).to.be.eql({
-        name: 'config.validations',
+        name: 'mpack.advisor.validations',
         sender: mixedObject,
         data: 'someData',
         success: 'updateValidationsSuccessCallback',
@@ -131,25 +128,39 @@ describe('App.HostComponentValidationMixin', function() {
       {
         options: {
           hosts: ['h1'],
-          services: ['s1'],
-          components: [Em.Object.create({componentName: 'c1', hostName: 'h1'})],
-          blueprint: null
+          components: [
+            Em.Object.create({
+              componentName: 'c1',
+              hostName: 'h1',
+              mpackInstance: 'm1',
+              serviceInstance: 'si1'
+            })
+          ],
+          blueprint: null,
+          mpack_instances: []
         },
         e: {
-          validate: 'host_groups',
-          stackVersionUrl: '/stack/url',
-          hosts: ['h1'],
-          services: ['s1'],
-          recommendations: {
-            blueprint: {
-              host_groups: [
-                {name: 'host-group-1',components: [{name: 'c1'}]}
-              ]
-            },
-            blueprint_cluster_binding: {
-              host_groups: [
-                {name: 'host-group-1', hosts: [{fqdn: 'h1'}]}
-              ]
+          data: {
+            validate: 'host_groups',
+            hosts: ['h1'],
+            recommendations: {
+              blueprint: {
+                host_groups: [
+                  {
+                    name: 'host-group-1', components: [{
+                      name: 'c1',
+                      mpack_instance: 'm1',
+                      service_instance: 'si1' 
+                    }]
+                  }
+                ],
+                mpack_instances: []
+              },
+              blueprint_cluster_binding: {
+                host_groups: [
+                  { name: 'host-group-1', hosts: [{ fqdn: 'h1' }] }
+                ]
+              }
             }
           }
         },
@@ -158,17 +169,19 @@ describe('App.HostComponentValidationMixin', function() {
       {
         options: {
           hosts: ['h1'],
-          services: ['s1'],
           components: [Em.Object.create({componentName: 'c1', hostName: 'h1'})],
-          blueprint: { blueprint: {}}
+          blueprint: { blueprint: {} },
+          mpack_instances: []
         },
         e: {
-          validate: 'host_groups',
-          stackVersionUrl: '/stack/url',
-          hosts: ['h1'],
-          services: ['s1'],
-          recommendations: {
-            blueprint: {}
+          data: {
+            validate: 'host_groups',
+            hosts: ['h1'],
+            recommendations: {
+              blueprint: {
+                mpack_instances: []
+              }
+            }
           }
         },
         m: 'when blueprint passed it should be used instead of generated blueprint'

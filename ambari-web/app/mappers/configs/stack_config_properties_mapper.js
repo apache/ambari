@@ -127,7 +127,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
                 type : dep.StackConfigurationDependency.dependency_type,
                 name : dep.StackConfigurationDependency.dependency_name
               });
-              var service = App.StackService.find(config.StackConfigurations.service_name);
+              var service = App.StackService.find().findProperty('serviceName', config.StackConfigurations.service_name);
               var dependentService = App.config.get('serviceByConfigTypeMap')[dep.StackConfigurationDependency.dependency_type];
               if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
                 service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
@@ -136,18 +136,14 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           }
           if (Em.get(config, 'StackConfigurations.property_depends_on.length') > 0) {
             config.StackConfigurations.property_depends_on.forEach(function(dep) {
-              var service = App.StackService.find(config.StackConfigurations.service_name);
+              var service = App.StackService.find().findProperty('serviceName', config.StackConfigurations.service_name);
               var dependentService = App.config.get('serviceByConfigTypeMap')[dep.type];
               if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
                 service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
               }
             });
           }
-          /**
-           * merging stack info with that is stored on UI
-           * for now is not used; uncomment in will be needed
-           * this.mergeWithUI(config);
-           */
+
           if (this.isMiscService(config.StackConfigurations.property_type)) {
             this.handleSpecialProperties(config);
           } else {
@@ -224,17 +220,18 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   },
 
   /**
-   * defines if property should refer to MISC tab
-   * @param type
+   * Returns true if property type should be in the MISC category and appear on the Misc tab in the UI.
+   * 
+   * @param type property type to check
    * @returns {Boolean}
    */
   isMiscService: function(type) {
-    return type.length &&
-      (type.contains('USER')
-      || type.contains('GROUP')
-      || type.contains('ADDITIONAL_USER_PROPERTY')
-      || type.contains('UID')
-      || type.contains('GID'));
+    // return type.length &&
+    //   (type.contains('USER')
+    //   || type.contains('GROUP')
+    //   || type.contains('ADDITIONAL_USER_PROPERTY')
+    //   || type.contains('UID')
+    //   || type.contains('GID'));
   },
 
   /**

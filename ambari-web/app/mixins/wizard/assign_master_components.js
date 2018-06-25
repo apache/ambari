@@ -465,19 +465,9 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    */
   getRecommendationRequestData: function(options) {
     var res = this._super(options);
-    res.dataToSend.services = this.getCurrentServiceNames();
     if (!this.get('isInstallerWizard')) {
-      res.dataToSend.recommendations = this.getCurrentMasterSlaveBlueprint();
+      res.data.recommendations = this.getCurrentMasterSlaveBlueprint();
     }
-    return res;
-  },
-
-  /**
-   * @override App.HostComponentRecommendationMixin
-   */
-  getHostComponentValidationParams: function(options) {
-    var res = this._super(options);
-    res.services = this.getCurrentServiceNames();
     return res;
   },
 
@@ -530,12 +520,9 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
         self.set('backFromNextStep', true);
       }
       
-      //TODO - mpacks: Hard-coding to only ask for recommendations for first mpack. Need to change this when we are installing multiple mpacks.
-      const selectedMpacks = self.get('content.selectedMpacks');
       self.getRecommendedHosts({
-        stackName: selectedMpacks[0].name,
-        stackVersion: selectedMpacks[0].version,
-        hosts: self.getHosts()
+        hosts: self.getHosts(),
+        mpack_instances: self.get('wizardController').getMpackInstances()
       }).then(function () {
         self.loadStepCallback(self.createComponentInstallationObjects(), self);
       });
@@ -711,7 +698,11 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
         host_group.components.forEach(function(component) {
           var willBeDisplayed = true;
           var stackMasterComponent = stackMasterComponentsMap[component.name];
+          
           if (stackMasterComponent) {
+            stackMasterComponent.mpackInstance = component.mpack_instance;
+            stackMasterComponent.serviceInstance = component.service_instance;
+            
             var isMasterCreateOnConfig = this.get('mastersToCreate').contains(component.name);
             // If service is already installed and not being added as a new service then render on UI only those master components
             // that have already installed hostComponents.
@@ -757,6 +748,8 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     componentObj.component_name = componentName;
     componentObj.display_name = App.format.role(fullComponent.get('componentName'), false);
     componentObj.serviceId = fullComponent.get('serviceName');
+    componentObj.serviceInstance = fullComponent.serviceInstance;
+    componentObj.mpackInstance = fullComponent.mpackInstance;
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('mastersToMove').contains(componentName);
     componentObj.selectedHost = savedComponent ? savedComponent.hostName : hostName;
     componentObj.isInstalled = savedComponent ? savedComponent.isInstalled || (this.get('markSavedComponentsAsInstalled') && !this.get('mastersToCreate').contains(fullComponent.get('componentName'))) : false;
@@ -818,7 +811,6 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   renderComponents: function (masterComponents) {
     var installedServices = App.StackService.find().filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'); //list of shown services
     var result = [];
-    var serviceComponentId, previousComponentName;
 
     this.addNewMasters(masterComponents);
 
@@ -829,7 +821,6 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       if (masterComponent.get('isMasterWithMultipleInstances')) {
         showRemoveControl = installedServices.contains(masterComponent.get('stackService.serviceName')) &&
             (masterComponents.filterProperty('component_name', item.component_name).length > 1);
-        previousComponentName = item.component_name;
         componentObj.set('serviceComponentId', result.filterProperty('component_name', item.component_name).length + 1);
         componentObj.set("showRemoveControl", showRemoveControl);
       }
@@ -935,6 +926,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       return aValue - bValue;
     });
   },
+
   /**
    * Update dependent co-hosted components according to the change in the component host
    * @method updateCoHosts
@@ -952,7 +944,6 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       }, this);
     }, this);
   }.observes('selectedServicesMasters.@each.selectedHost'),
-
 
   /**
    * On change callback for inputs
@@ -1165,8 +1156,9 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   },
 
   recommendAndValidate: function(callback) {
-    var self = this,
-      hostNames = this.getHosts();
+    const self = this;
+    const hostNames = this.getHosts();
+    const mpackInstances = this.get('wizardController').getMpackInstances();
 
     if (this.get('validationInProgress')) {
       this.set('runQueuedValidation', true);
@@ -1175,19 +1167,14 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
 
     this.set('validationInProgress', true);
     
-    //TODO - mpacks: Hard coded to request first mpack only. Must be changed when we are installing multiple mpacks.
-    const selectedMpacks = this.get('content.selectedMpacks');
-    // load recommendations with partial request
     this.getRecommendedHosts({
       hosts: hostNames,
-      stackName: selectedMpacks[0].name,
-      stackVersion: selectedMpacks[0].version,
+      mpack_instances: mpackInstances,
       components: this.getCurrentComponentHostMap()
     }).then(function() {
       self.validateSelectedHostComponents({
         hosts: hostNames,
-        stackName: selectedMpacks[0].name,
-        stackVersion: selectedMpacks[0].version,  
+        mpack_instances: mpackInstances,
         blueprint: self.get('recommendations')
       }).then(function() {
         if (callback) {
@@ -1214,6 +1201,8 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
           Em.set(component, 'size', Em.getWithDefault(component, 'hosts.length', 0));
         } else {
           acc.push({
+            mpackInstance: Em.get(i, 'mpackInstance'),
+            serviceInstance: Em.get(i, 'serviceInstance'),
             componentName: componentName,
             hosts: [hostName],
             size: 1

@@ -19,24 +19,40 @@
 package org.apache.ambari.server.topology;
 
 public enum ConfigRecommendationStrategy {
+
   /**
    *  Configuration recommendations are always applied, overriding stack defaults and
    *  configuration defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  ALWAYS_APPLY,
+  ALWAYS_APPLY(true),
   /**
    * Configuration recommendations are ignored with this option, both for stack defaults
    * and configuration defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  NEVER_APPLY,
+  NEVER_APPLY(false),
   /**
    *  Configuration recommendations are always applied for properties listed as stack defaults,
    *  but not for configurations defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  ONLY_STACK_DEFAULTS_APPLY,
+  ONLY_STACK_DEFAULTS_APPLY(true),
   /**
    *  Configuration recommendations are always applied, overriding stack defaults but they don't
    *  override configuration defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES;
+  ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES(true);
+
+  private final boolean shouldUseAdvisor;
+
+  ConfigRecommendationStrategy(boolean shouldUseAdvisor) {
+    this.shouldUseAdvisor = shouldUseAdvisor;
+  }
+
+  public boolean shouldUseAdvisor() {
+    return shouldUseAdvisor;
+  }
+
+  public static final ConfigRecommendationStrategy getDefault() {
+    return NEVER_APPLY;
+  }
+
 }

@@ -28,7 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT)
-public class ServicePresenceCheck extends AbstractCheckDescriptor{
+public class ServicePresenceCheck extends ClusterCheck{
 
   private static final Logger LOG = LoggerFactory.getLogger(ServicePresenceCheck.class);
 
@@ -75,7 +75,7 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     Set<String> installedServices = cluster.getServicesByName().keySet();
 
@@ -85,39 +85,43 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
 
     List<String> failReasons = new ArrayList<>();
 
-    String reason = getFailReason(prerequisiteCheck, request);
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
+    String reason = getFailReason(result, request);
     for(String service: noUpgradeSupportServices){
       if (installedServices.contains(service.toUpperCase())){
-        prerequisiteCheck.getFailedOn().add(service);
+        result.getFailedOn().add(service);
         String msg = String.format(reason, service, service);
         failReasons.add(msg);
       }
     }
 
-    reason = getFailReason(KEY_SERVICE_REPLACED, prerequisiteCheck, request);
+    reason = getFailReason(KEY_SERVICE_REPLACED, result, request);
     for (Map.Entry<String, String> entry : replacedServices.entrySet()) {
       String removedService = entry.getKey();
       if(installedServices.contains(removedService.toUpperCase())){
-        prerequisiteCheck.getFailedOn().add(removedService);
+        result.getFailedOn().add(removedService);
         String newService = entry.getValue();
         String msg = String.format(reason, removedService, newService);
         failReasons.add(msg);
       }
     }
 
-    reason = getFailReason(KEY_SERVICE_REMOVED, prerequisiteCheck, request);
+    reason = getFailReason(KEY_SERVICE_REMOVED, result, request);
     for(String service: removedServices){
       if (installedServices.contains(service.toUpperCase())){
-        prerequisiteCheck.getFailedOn().add(service);
+        result.getFailedOn().add(service);
         String msg = String.format(reason, service, service);
         failReasons.add(msg);
       }
     }
 
     if(!failReasons.isEmpty()){
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(StringUtils.join(failReasons, '\n'));
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.setFailReason(StringUtils.join(failReasons, '\n'));
     }
+
+    return result;
   }
 
   /**

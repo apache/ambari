@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.resources;
 
 import java.util.Collection;
 
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
@@ -48,8 +49,7 @@ public class BlueprintResourceDefinition extends BaseResourceDefinition {
   @Override
   public Collection<String> getCreateDirectives() {
     Collection<String> directives = super.getCreateDirectives();
-    directives.add("validate_topology");
-
+    directives.add(BlueprintResourceProvider.VALIDATE_TOPOLOGY_PROPERTY_ID);
     return directives;
   }
 }

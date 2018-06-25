@@ -322,6 +322,8 @@ App.WizardStep6Controller = App.WizardStepController.extend(App.HostComponentVal
         if (serviceComponent.get('isShownOnInstallerSlaveClientPage')) {
           headers.pushObject(Em.Object.create({
             name: serviceComponent.get('componentName'),
+            serviceName: stackService.get('serviceName'),
+            serviceGroupName: stackService.get('stackName'),
             label: App.format.role(serviceComponent.get('componentName'), false),
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
@@ -335,7 +337,7 @@ App.WizardStep6Controller = App.WizardStepController.extend(App.HostComponentVal
     }, this);
     if (this.get('content.clients') && !!this.get('content.clients').length) {
       headers.pushObject(Em.Object.create({
-        name: 'CLIENT',
+        name: 'CLIENT',        
         label: App.format.role('CLIENT', false),
         allChecked: false,
         noChecked: true,

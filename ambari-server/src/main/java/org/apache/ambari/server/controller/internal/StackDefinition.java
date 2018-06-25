@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -69,6 +70,9 @@ public interface StackDefinition {
    */
   Collection<String> getServices();
 
+  Stream<Pair<StackId, ServiceInfo>> getServices(String serviceName);
+  Optional<ServiceInfo> getService(StackId stackId, String serviceName);
+
   /**
    * Get components contained in the stack for the specified service.
    *
@@ -100,9 +104,9 @@ public interface StackDefinition {
    *
    * @param service  service name
    *
-   * @return collection of all configuration types for the specified service
+   * @return set of all configuration types for the specified service
    */
-  Collection<String> getAllConfigurationTypes(String service);
+  Set<String> getAllConfigurationTypes(String service);
 
   /**
    * Get configuration types for the specified service.

@@ -30,10 +30,12 @@ import org.apache.ambari.server.state.StackId;
  */
 public interface ProvisionRequest extends TopologyRequest {
 
+  String getClusterName();
   ConfigRecommendationStrategy getConfigRecommendationStrategy();
   ProvisionAction getProvisionAction();
   String getDefaultPassword();
   Set<StackId> getStackIds();
   Collection<MpackInstance> getMpacks();
+  SecurityConfiguration getSecurityConfiguration();
 
 }

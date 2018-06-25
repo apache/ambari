@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.Collections.emptySet;
+import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -82,7 +83,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -91,7 +91,7 @@ import com.google.common.collect.ImmutableSet;
  */
 //todo: switch over to EasyMockSupport
 @Experimental(
-    feature = ExperimentalFeature.REPO_VERSION_REMOVAL,
+    feature = ExperimentalFeature.UNIT_TEST_REQUIRED,
     comment = "Add test cases for mpacks and multiple/bad versions")
 public class AmbariContextTest {
 
@@ -134,7 +134,7 @@ public class AmbariContextTest {
   private static final Map<Long, ConfigGroup> configGroups = new HashMap<>();
   private Configuration bpConfiguration = null;
   private Configuration group1Configuration = null;
-  private static final Collection<String> group1Hosts = Arrays.asList(HOST1, HOST2);
+  private static final Set<String> group1Hosts = ImmutableSet.of(HOST1, HOST2);
 
   private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = EasyMock.newCapture();
   private Setting setting = createNiceMock(Setting.class);
@@ -242,9 +242,9 @@ public class AmbariContextTest {
     expect(topology.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
     expect(topology.getServices()).andReturn(blueprintServices).anyTimes();
     expect(topology.getComponents()).andAnswer(() -> Stream.of(
-      ResolvedComponent.builder(new Component("s1Component1")).stackId(STACK_ID).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("s1Component2")).stackId(STACK_ID).serviceType("service1").buildPartial(),
-      ResolvedComponent.builder(new Component("s2Component1")).stackId(STACK_ID).serviceType("service2").buildPartial()
+      builderFor("service1", "s1Component1").stackId(STACK_ID).buildPartial(),
+      builderFor("service1", "s1Component2").stackId(STACK_ID).buildPartial(),
+      builderFor("service2", "s2Component1").stackId(STACK_ID).buildPartial()
     )).anyTimes();
     expect(topology.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(topology.getSetting()).andReturn(setting).anyTimes();
@@ -465,7 +465,7 @@ public class AmbariContextTest {
 
     reset(group1Info);
     expect(group1Info.getConfiguration()).andReturn(group1Configuration).anyTimes();
-    Collection<String> groupHosts = ImmutableList.of(HOST1, HOST2, "pending_host"); // pending_host is not registered with the cluster
+    Set<String> groupHosts = ImmutableSet.of(HOST1, HOST2, "pending_host"); // pending_host is not registered with the cluster
     expect(group1Info.getHostNames()).andReturn(groupHosts).anyTimes(); // there are 3 hosts for the host group
     // replay all mocks
     replayAll();

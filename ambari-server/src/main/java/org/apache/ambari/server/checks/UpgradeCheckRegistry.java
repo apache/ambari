@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.slf4j.Logger;
@@ -48,7 +50,7 @@ public class UpgradeCheckRegistry {
   /**
    * The list of upgrade checks to run through.
    */
-  private Set<AbstractCheckDescriptor> m_upgradeChecks = new TreeSet<>(
+  private Set<PreUpgradeCheck> m_upgradeChecks = new TreeSet<>(
     new PreUpgradeCheckComparator());
 
   /**
@@ -57,7 +59,7 @@ public class UpgradeCheckRegistry {
    * @param upgradeCheck
    *          the check to register (not {@code null}).
    */
-  public void register(AbstractCheckDescriptor upgradeCheck) {
+  public void register(PreUpgradeCheck upgradeCheck) {
     m_upgradeChecks.add(upgradeCheck);
   }
 
@@ -66,11 +68,15 @@ public class UpgradeCheckRegistry {
    *
    * @return
    */
-  public List<AbstractCheckDescriptor> getUpgradeChecks() {
+  public List<PreUpgradeCheck> getUpgradeChecks() {
     return new ArrayList<>(m_upgradeChecks);
   }
 
-  public List<AbstractCheckDescriptor> getServiceLevelUpgradeChecks(UpgradePack upgradePack, Map<String, ServiceInfo> services) {
+  @Experimental(
+      feature = ExperimentalFeature.UPGRADE_PACK_PRE_CHECKS,
+      comment = "Need a different way to register these and inject configs into them")
+  public List<PreUpgradeCheck> getServiceLevelUpgradeChecks(UpgradePack upgradePack,
+      Map<String, ServiceInfo> services) {
     List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
     List<String> missingChecks = new ArrayList<>();
     for (String prerequisiteCheck : prerequisiteChecks) {
@@ -79,7 +85,7 @@ public class UpgradeCheckRegistry {
       }
     }
 
-    List<AbstractCheckDescriptor> checks = new ArrayList<>(missingChecks.size());
+    List<PreUpgradeCheck> checks = new ArrayList<>(missingChecks.size());
     if (missingChecks.isEmpty()) {
       return checks;
     }
@@ -116,7 +122,7 @@ public class UpgradeCheckRegistry {
       }
       try {
         if (clazz != null) {
-          AbstractCheckDescriptor upgradeCheck = (AbstractCheckDescriptor) clazz.newInstance();
+          PreUpgradeCheck upgradeCheck = (PreUpgradeCheck) clazz.newInstance();
           checks.add(upgradeCheck);
         }
       } catch (Exception exception) {
@@ -127,7 +133,7 @@ public class UpgradeCheckRegistry {
   }
 
   private boolean isRegistered(String prerequisiteCheck) {
-    for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
+    for (PreUpgradeCheck descriptor: m_upgradeChecks){
       if (prerequisiteCheck.equals(descriptor.getClass().getName())){
         return true;
       }
@@ -140,10 +146,10 @@ public class UpgradeCheckRegistry {
    * @param upgradePack Upgrade pack object with the list of required checks to be included
    * @return
    */
-  public List<AbstractCheckDescriptor> getFilteredUpgradeChecks(UpgradePack upgradePack){
+  public List<PreUpgradeCheck> getFilteredUpgradeChecks(UpgradePack upgradePack) {
     List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
-    List<AbstractCheckDescriptor> resultCheckDescriptor = new ArrayList<>();
-    for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
+    List<PreUpgradeCheck> resultCheckDescriptor = new ArrayList<>();
+    for (PreUpgradeCheck descriptor : m_upgradeChecks) {
       if (descriptor.isRequired(upgradePack.getType())) {
         resultCheckDescriptor.add(descriptor);
       } else if (prerequisiteChecks.contains(descriptor.getClass().getName())){
@@ -155,19 +161,18 @@ public class UpgradeCheckRegistry {
 
   /**
    * THe {@link PreUpgradeCheckComparator} class is used to compare
-   * {@link AbstractCheckDescriptor} based on their {@link UpgradeCheck}
-   * annotations.
+   * {@link PreUpgradeCheck} based on their {@link UpgradeCheck} annotations.
    */
   private static final class PreUpgradeCheckComparator implements
-      Comparator<AbstractCheckDescriptor> {
+      Comparator<PreUpgradeCheck> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int compare(AbstractCheckDescriptor check1, AbstractCheckDescriptor check2) {
-      Class<? extends AbstractCheckDescriptor> clazz1 = check1.getClass();
-      Class<? extends AbstractCheckDescriptor> clazz2 = check2.getClass();
+    public int compare(PreUpgradeCheck check1, PreUpgradeCheck check2) {
+      Class<? extends PreUpgradeCheck> clazz1 = check1.getClass();
+      Class<? extends PreUpgradeCheck> clazz2 = check2.getClass();
 
       UpgradeCheck annotation1 = clazz1.getAnnotation(UpgradeCheck.class);
       UpgradeCheck annotation2 = clazz2.getAnnotation(UpgradeCheck.class);

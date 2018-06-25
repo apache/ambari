@@ -21,32 +21,35 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.apache.ambari.server.checks.CheckDescription;
+import org.apache.ambari.server.checks.PreUpgradeCheck;
 
 /**
  * Contains information about performed prerequisite check. Newly initialized
- * {@link PrerequisiteCheck} instances are always set to
+ * {@link UpgradeCheckResult} instances are always set to
  * {@link PrereqCheckStatus#PASS}.
  */
-public class PrerequisiteCheck {
-  private final CheckDescription m_description;
-  private final String m_clusterName;
+public class UpgradeCheckResult {
+  private PreUpgradeCheck m_upgradeCheck;
   private PrereqCheckStatus m_status = PrereqCheckStatus.PASS;
   private String m_failReason = "";
   private LinkedHashSet<String> m_failedOn = new LinkedHashSet<>();
   private List<Object> m_failedDetail = new ArrayList<>();
 
-  public PrerequisiteCheck(CheckDescription description, String clusterName) {
-    m_description = description;
-    m_clusterName = clusterName;
+  public UpgradeCheckResult(PreUpgradeCheck check) {
+    m_upgradeCheck = check;
+  }
+
+  public UpgradeCheckResult(PreUpgradeCheck check, PrereqCheckStatus status) {
+    m_upgradeCheck = check;
+    m_status = status;
   }
 
   public String getId() {
-    return m_description.name();
+    return m_upgradeCheck.getCheckDescrption().name();
   }
 
   public String getDescription() {
-    return m_description.getText();
+    return m_upgradeCheck.getCheckDescrption().getText();
   }
 
   public PrereqCheckStatus getStatus() {
@@ -78,10 +81,6 @@ public class PrerequisiteCheck {
   }
 
   public PrereqCheckType getType() {
-    return m_description.getType();
-  }
-
-  public String getClusterName() {
-    return m_clusterName;
+    return m_upgradeCheck.getType();
   }
 }

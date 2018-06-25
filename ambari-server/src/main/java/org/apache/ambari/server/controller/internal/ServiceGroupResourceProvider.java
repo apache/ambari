@@ -322,7 +322,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   }
 
   // Get services from the given set of requests.
-  protected Set<ServiceGroupResponse> getServiceGroups(Set<ServiceGroupRequest> requests)
+  public Set<ServiceGroupResponse> getServiceGroups(Set<ServiceGroupRequest> requests)
     throws AmbariException {
     Set<ServiceGroupResponse> response = new HashSet<>();
     for (ServiceGroupRequest request : requests) {

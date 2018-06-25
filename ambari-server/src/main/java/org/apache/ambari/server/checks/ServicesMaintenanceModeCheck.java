@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -24,8 +25,9 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Singleton;
@@ -38,7 +40,7 @@ import com.google.inject.Singleton;
     group = UpgradeCheckGroup.MAINTENANCE_MODE,
     order = 6.0f,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
+public class ServicesMaintenanceModeCheck extends ClusterCheck {
 
   /**
    * Constructor.
@@ -48,19 +50,26 @@ public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public UpgradeCheckResult perform(PrereqCheckRequest request) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
+    Map<ServiceGroup, Set<String>> serviceGroupsInUpgrade = getServicesInUpgrade(request);
 
-    for (String serviceName : servicesInUpgrade) {
-      final Service service = cluster.getService(serviceName);
-      if (!service.isClientOnlyService() && service.getMaintenanceState() == MaintenanceState.ON) {
-        prerequisiteCheck.getFailedOn().add(service.getName());
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
+    for (ServiceGroup serviceGroup : serviceGroupsInUpgrade.keySet()) {
+      for( String serviceName : serviceGroupsInUpgrade.get(serviceGroup) ) {  
+        final Service service = cluster.getService(serviceName);
+        if (!service.isClientOnlyService() && service.getMaintenanceState() == MaintenanceState.ON) {
+          result.getFailedOn().add(service.getName());
+        }
       }
     }
-    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
+  
+    if (!result.getFailedOn().isEmpty()) {
+      result.setStatus(PrereqCheckStatus.FAIL);
+      result.setFailReason(getFailReason(result, request));
     }
+
+    return result;
   }
 }

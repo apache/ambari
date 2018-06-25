@@ -23,7 +23,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.ScopeAnnotation;
@@ -31,7 +30,7 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link UpgradeCheck} annotation is used to provide ordering and grouping
- * to any {@link AbstractCheckDescriptor} instance.
+ * to any {@link ClusterCheck} instance.
  * <p/>
  * Classes marked with this annotation should also be {@link Singleton}. They
  * will be discovered on the classpath and then registered with the
@@ -70,14 +69,4 @@ public @interface UpgradeCheck {
    *         defined in the upgrade pack or an empty array for none.
    */
   UpgradeType[] required() default {};
-
-
-  /**
-   * The valid orchestration repository type that this check if valid for. By
-   * default, a check is valid for all orchestration types.
-   *
-   * @return the repository types that the check is valid for.
-   */
-  RepositoryType[] orchestration() default { RepositoryType.STANDARD, RepositoryType.PATCH,
-      RepositoryType.MAINT, RepositoryType.SERVICE };
 }

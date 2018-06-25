@@ -824,7 +824,8 @@ describe('App.InstallerController', function () {
         {
           "component_name": "name",
           "display_name": "dname",
-          "isInstalled": false
+          "isInstalled": false,
+          "service_name": "i1"
         }
       ]);
     });
@@ -854,7 +855,8 @@ describe('App.InstallerController', function () {
             display_name: 'n1',
             component_name: 'c1',
             serviceId: 1,
-            selectedHost: 'h1'
+            selectedHost: 'h1',
+            mpackInstance: 'm1'
           })
         ])
       });
@@ -865,7 +867,8 @@ describe('App.InstallerController', function () {
           "component": "c1",
           "serviceId": 1,
           "isInstalled": false,
-          "host_id": 11
+          "host_id": 11,
+          "serviceGroupName": "m1"
         }
       ]);
     });

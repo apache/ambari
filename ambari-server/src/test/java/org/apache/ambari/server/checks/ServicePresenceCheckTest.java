@@ -23,12 +23,14 @@ import java.util.Map;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -77,12 +79,14 @@ public class ServicePresenceCheckTest {
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
         m_check.getClass().getName())).thenReturn(checkProperties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    Mockito.when(upgradePlan.getUpgradeType()).thenReturn(UpgradeType.ROLLING);
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    m_check.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    UpgradeCheckResult result = m_check.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.PASS, result.getStatus());
   }
 
   @Test
@@ -101,12 +105,14 @@ public class ServicePresenceCheckTest {
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
         m_check.getClass().getName())).thenReturn(checkProperties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    Mockito.when(upgradePlan.getUpgradeType()).thenReturn(UpgradeType.ROLLING);
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    m_check.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult result = m_check.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
   }
 
   @Test
@@ -129,12 +135,14 @@ public class ServicePresenceCheckTest {
         prerequisiteCheckConfig.getCheckProperties(m_check.getClass().getName())).thenReturn(
             checkProperties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    Mockito.when(upgradePlan.getUpgradeType()).thenReturn(UpgradeType.ROLLING);
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    m_check.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult result = m_check.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
   }
 
   @Test
@@ -155,12 +163,14 @@ public class ServicePresenceCheckTest {
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
         m_check.getClass().getName())).thenReturn(checkProperties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    Mockito.when(upgradePlan.getUpgradeType()).thenReturn(UpgradeType.ROLLING);
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    m_check.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult result = m_check.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
   }
 
   @Test
@@ -184,12 +194,14 @@ public class ServicePresenceCheckTest {
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
         m_check.getClass().getName())).thenReturn(checkProperties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    Mockito.when(upgradePlan.getUpgradeType()).thenReturn(UpgradeType.ROLLING);
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    m_check.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult result = m_check.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
   }
 
   @Test
@@ -211,12 +223,14 @@ public class ServicePresenceCheckTest {
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
         m_check.getClass().getName())).thenReturn(checkProperties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    Mockito.when(upgradePlan.getUpgradeType()).thenReturn(UpgradeType.ROLLING);
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    m_check.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult result = m_check.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
   }
 
   @Test
@@ -241,11 +255,13 @@ public class ServicePresenceCheckTest {
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
         m_check.getClass().getName())).thenReturn(checkProperties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
+    Mockito.when(upgradePlan.getUpgradeType()).thenReturn(UpgradeType.ROLLING);
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    m_check.perform(check, request);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    UpgradeCheckResult result = m_check.perform(request);
+    Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
   }
 }

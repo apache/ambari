@@ -33,9 +33,12 @@ describe('App.ConfigsSaverMixin', function() {
   });
 
   describe("#currentServices", function () {
+    var findProperty = sinon.stub().returns({});
 
     beforeEach(function() {
-      sinon.stub(App.StackService, 'find').returns({});
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: findProperty
+      });
     });
 
     afterEach(function() {
@@ -45,7 +48,7 @@ describe('App.ConfigsSaverMixin', function() {
     it("should return currentServices", function() {
       mixin.set('content.serviceName', 'S1');
       expect(mixin.get('currentServices')).to.be.eql([{}]);
-      expect(App.StackService.find.calledWith('S1')).to.be.true;
+      expect(findProperty.calledWith('serviceName', 'S1')).to.be.true;
     });
   });
 
@@ -614,7 +617,9 @@ describe('App.ConfigsSaverMixin', function() {
   describe("#allowSaveCoreSite()", function () {
 
     it("empty currentServices", function() {
-      mixin.set('currentServices', []);
+      mixin.reopen({
+        currentServices: []
+      });
       expect(mixin.allowSaveCoreSite()).to.be.false;
     });
 
@@ -1129,9 +1134,13 @@ describe('App.ConfigsSaverMixin', function() {
 
     beforeEach(function() {
       sinon.stub(App.config, 'textareaIntoFileConfigs');
-      sinon.stub(App.StackService, 'find').returns(Em.Object.create({
-        configTypes: {'k1': 't1'}
-      }));
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: function () {
+          return Em.Object.create({
+            configTypes: { 'k1': 't1' }
+          });
+        }
+      });
       sinon.stub(App.config, 'getOriginalFileName').returns('file1');
       this.mockSave = sinon.stub(mixin, 'saveSiteConfigs');
       this.mockJSON = sinon.stub(mixin, 'generateDesiredConfigsJSON');

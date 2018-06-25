@@ -40,7 +40,7 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.utils.SetUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  *
@@ -82,9 +82,6 @@ public class Grouping {
 
   @XmlElement(name="parallel-scheduler")
   public ParallelScheduler parallelScheduler;
-
-  @XmlElement(name="scope")
-  public UpgradeScope scope = UpgradeScope.ANY;
 
   @XmlTransient
   public LifecycleType lifecycle;
@@ -159,7 +156,7 @@ public class Grouping {
       // Add the processing component
       Task t = resolveTask(context, pc);
       if (null != t) {
-        TaskWrapper tw = new TaskWrapper(service, pc.name, hostsType.getHosts(), params, Collections.singletonList(t));
+        TaskWrapper tw = new TaskWrapper(service, pc.name, hostsType.getHosts(), params, t);
         addTasksToStageInBatches(Collections.singletonList(tw), t.getActionVerb(), context, service, pc, params);
       }
 
@@ -191,7 +188,7 @@ public class Grouping {
       List<TaskWrapper> subTasks = new ArrayList<>();
       for (TaskWrapper tw : tasks) {
         // If an of this TaskWrapper's tasks must be on its own stage, write out the previous subtasks if possible into one complete stage.
-        if (tw.isAnyTaskSequential()) {
+        if (tw.isSequential()) {
           if (!subTasks.isEmpty()) {
             groupedTasks.add(subTasks);
             subTasks = new ArrayList<>();
@@ -219,12 +216,12 @@ public class Grouping {
      * @param params Params to add to the stage.
      */
     private void addTasksToStageInBatches(List<TaskWrapper> tasks, String verb, UpgradeContext ctx, String service, ProcessingComponent pc, Map<String, String> params) {
-      if (tasks == null || tasks.isEmpty() || tasks.get(0).getTasks() == null || tasks.get(0).getTasks().isEmpty()) {
+      if (tasks == null || tasks.isEmpty() || tasks.get(0).getTask() == null) {
         return;
       }
 
       // Our assumption is that all of the tasks in the StageWrapper are of the same type.
-      StageWrapper.Type type = tasks.get(0).getTasks().get(0).getStageWrapperType();
+      StageWrapper.Type type = tasks.get(0).getTask().getStageWrapperType();
 
       // Expand some of the TaskWrappers into multiple based on the batch size.
       for (TaskWrapper tw : tasks) {
@@ -245,13 +242,14 @@ public class Grouping {
         for (Set<String> hostSubset : hostSets) {
           batchNum++;
 
-          String stageText = getStageText(verb, ctx.getComponentDisplay(service, pc.name), hostSubset, batchNum, numBatchesNeeded);
+          String stageText = getStageText(verb, ctx.getDisplayName(null, service, pc.name),
+              hostSubset, batchNum, numBatchesNeeded);
 
           StageWrapper stage = new StageWrapper(
               type,
               stageText,
               params,
-              new TaskWrapper(service, pc.name, hostSubset, params, tw.getTasks()));
+              new TaskWrapper(service, pc.name, hostSubset, params, tw.getTask()));
           m_stages.add(stage);
         }
       }
@@ -277,7 +275,7 @@ public class Grouping {
         tasks.add(new TaskWrapper(
             service, "", Collections.emptySet(), new ServiceCheckTask()));
 
-        displays.add(upgradeContext.getServiceDisplay(service));
+        displays.add(upgradeContext.getDisplayName(null, service));
       }
 
       if (upgradeContext.getDirection().isUpgrade() && m_serviceCheck
@@ -324,34 +322,8 @@ public class Grouping {
   }
 
   private static class TaskBucket {
-    private StageWrapper.Type type;
     private List<Task> tasks = new ArrayList<>();
     private TaskBucket(Task initial) {
-      switch (initial.getType()) {
-        case CONFIGURE:
-        case SERVER_ACTION:
-        case MANUAL:
-          type = StageWrapper.Type.SERVER_SIDE_ACTION;
-          break;
-        case EXECUTE:
-          type = StageWrapper.Type.UPGRADE_TASKS;
-          break;
-        case CONFIGURE_FUNCTION:
-          type = StageWrapper.Type.CONFIGURE;
-          break;
-        case RESTART:
-          type = StageWrapper.Type.RESTART;
-          break;
-        case START:
-          type = StageWrapper.Type.START;
-          break;
-        case STOP:
-          type = StageWrapper.Type.STOP;
-          break;
-        case SERVICE_CHECK:
-          type = StageWrapper.Type.SERVICE_CHECK;
-          break;
-      }
       tasks.add(initial);
     }
   }
@@ -420,7 +392,7 @@ public class Grouping {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("name", name)
         .add("title", title)
         .toString();

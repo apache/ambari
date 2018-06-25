@@ -43,7 +43,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -63,7 +63,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.DEFAULT,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
+public class ServiceCheckValidityCheck extends ClusterCheck {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceCheckValidityCheck.class);
 
@@ -89,7 +89,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+  public UpgradeCheckResult perform(PrereqCheckRequest request)
       throws AmbariException {
 
     ServiceConfigDAO serviceConfigDAO = serviceConfigDAOProvider.get();
@@ -150,17 +150,21 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
       }
     }
 
+    UpgradeCheckResult result = new UpgradeCheckResult(this);
+
     if (!failures.isEmpty()) {
-      prerequisiteCheck.getFailedDetail().addAll(failures);
+      result.getFailedDetail().addAll(failures);
 
       LinkedHashSet<String> failedServiceNames = failures.stream().map(
           failure -> failure.serviceName).collect(Collectors.toCollection(LinkedHashSet::new));
 
-      prerequisiteCheck.setFailedOn(failedServiceNames);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      String failReason = getFailReason(prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(failedServiceNames, ", ")));
+      result.setFailedOn(failedServiceNames);
+      result.setStatus(PrereqCheckStatus.FAIL);
+      String failReason = getFailReason(result, request);
+      result.setFailReason(String.format(failReason, StringUtils.join(failedServiceNames, ", ")));
     }
+
+    return result;
   }
 
   private boolean hasAtLeastOneComponentVersionAdvertised(Service service) {

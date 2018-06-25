@@ -42,7 +42,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
    * @throws InvalidTopologyException if required password properties are missing and no
    *                                  default is specified via 'default_password'
    */
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
 
     Map<String, Map<String, Set<String>>> missingPasswords = validateRequiredPasswords(topology);
 
@@ -51,6 +51,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
           "properties in the cluster or host group configurations or include 'default_password' field in request. " +
           missingPasswords);
     }
+    return topology;
   }
 
   /**

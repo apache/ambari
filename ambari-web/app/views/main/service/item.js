@@ -353,7 +353,7 @@ App.MainServiceItemView = Em.View.extend({
   hasMetricTab: function() {
     let serviceName = this.get('controller.content.serviceName');
     let graphs = require('data/service_graph_config')[serviceName.toLowerCase()];
-    return graphs || App.StackService.find(serviceName).get('isServiceWithWidgets');
+    return graphs || App.StackService.find().findProperty('serviceName', serviceName).get('isServiceWithWidgets');
   }.property('controller.content.serviceName'),
 
   didInsertElement: function () {

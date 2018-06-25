@@ -1069,8 +1069,10 @@ describe("App.MainServiceInfoConfigsController", function () {
       createService('YARN', ['HIVE'])
     ];
     beforeEach(function() {
-      sinon.stub(App.StackService, 'find', function(serviceName) {
-        return stackServices.findProperty('serviceName', serviceName);
+      sinon.stub(App.StackService, 'find').returns({
+        findProperty: function (prop, serviceName) {
+          return stackServices.findProperty('serviceName', serviceName);
+        }
       });
     });
     afterEach(function() {

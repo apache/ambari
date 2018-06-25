@@ -18,7 +18,7 @@
 
 
 var App = require('app');
-
+var blueprintUtils = require('utils/blueprint');
 require('models/host');
 
 App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingMixin, {
@@ -553,21 +553,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     };
     this.saveClusterStatus(clusterStatus);
 
-    const serviceGroups = this.get('content.serviceGroups');
-    
-    const installPromises = serviceGroups.map(sg => {
-      data.serviceGroupName = sg;
-
-      return App.ajax.send({
-        name: isRetry ? 'common.host_components.update' : 'common.services.update',
-        sender: this,
-        data: data,
-        success: 'installServicesSuccessCallback',
-        error: 'installServicesErrorCallback'
-      })
-    })
-
-    $.when(...installPromises).then(callback, callback);
+    return App.ajax.send({
+      name: isRetry ? 'common.host_components.update' : 'common.services.update.all',
+      sender: this,
+      data: data,
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
+    }).then(callback, callback);
   },
 
   installServicesSuccessCallback: function (jsonData) {
@@ -940,20 +932,21 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @param stepController
    */
   saveSlaveComponentHosts: function (stepController) {
-    var hosts = stepController.get('hosts'),
-      dbHosts = this.getDBProperty('hosts'),
-      headers = stepController.get('headers');
+    const hosts = stepController.get('hosts');
+    const dbHosts = this.getDBProperty('hosts');
+    const headers = stepController.get('headers');
 
-    var formattedHosts = Ember.Object.create();
+    const formattedHosts = Ember.Object.create();
     headers.forEach(function (header) {
       formattedHosts.set(header.get('name'), []);
     });
 
     hosts.forEach(function (host) {
+      const checkboxes = host.checkboxes;
 
-      var checkboxes = host.checkboxes;
       headers.forEach(function (header) {
-        var cb = checkboxes.findProperty('title', header.get('label'));
+        const cb = checkboxes.findProperty('title', header.get('label'));
+
         if (cb.checked) {
           formattedHosts.get(header.get('name')).push({
             group: 'Default',
@@ -964,13 +957,15 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       });
     });
 
-    var slaveComponentHosts = [];
+    const slaveComponentHosts = [];
 
     headers.forEach(function (header) {
       slaveComponentHosts.push({
         componentName: header.get('name'),
         displayName: header.get('label').replace(/\s/g, ''),
-        hosts: formattedHosts.get(header.get('name'))
+        hosts: formattedHosts.get(header.get('name')),
+        serviceName: header.get('serviceName'),
+        serviceGroupName: header.get('serviceGroupName')
       });
     });
 
@@ -1705,5 +1700,81 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         });
       }
     });
+  },
+
+  /**
+   * Return mpack_instances data needed for mpack advisor recommendations requests.
+   * This is basically service groups formatted as required by the mpack advisor API.
+   */
+  getMpackInstances: function (configs) {
+    const mpackInstances = {};
+    const selectedServices = this.get('content.selectedServices');
+    
+    selectedServices.forEach(service => {
+      //these will be defined by the user in the future
+      const serviceGroupName = service.mpackName;
+      const serviceInstanceName = service.name;
+
+      if (!mpackInstances[serviceGroupName]) {
+        mpackInstances[serviceGroupName] = {
+          name: serviceGroupName,
+          type: service.mpackName,
+          version: service.mpackVersion,
+          service_instances: []
+        };
+      }
+
+      const serviceInstance = {
+        name: serviceInstanceName,
+        type: service.name
+      };
+
+      //configs will be passed if we are building a request for configs recommendations/validations
+      //it will not be passed if we are building a request for host recommendations/validations
+      if (configs) {
+        const configurations = this.getConfigsForServiceInstance(service.name, service.mpackName, service.mpackVersion, configs);
+        if (configurations) {
+          serviceInstance.configurations = configurations;
+        }
+      }  
+
+      mpackInstances[serviceGroupName].service_instances.push(serviceInstance);
+    });
+
+    const mpack_instances = [];
+    for (let prop in mpackInstances) {
+      mpack_instances.push(mpackInstances[prop]);
+    }
+
+    return mpack_instances;
+  },
+
+  /**
+   * Returns configs specific to the given service, stack, and stack version formatted as a blueprint fragment.
+   * This is used to build out the Mpack Advisor config recommendation/validation request.
+   * This is also used to get the "MISC" configs (configs not specific to a service).
+   * 
+   * @param {string} serviceName The name/type of the service to get configs for.
+   * @param {string} stackName The name of the stack/mpack to get configs for.
+   * @param {string} stackVersion The version of the stack/mpack to get configs for.
+   * @param {array} configs List of configs to be filtered. This is typically all configs loaded from the stack information.
+   */
+  getConfigsForServiceInstance: function (serviceName, stackName, stackVersion, configs) {
+    const serviceConfigs = configs.findProperty('serviceName', serviceName);
+    
+    if (serviceConfigs) {
+      let serviceInstanceConfigs;
+      
+      if (stackName && stackVersion) {
+        serviceInstanceConfigs = serviceConfigs.configs.filter(config => (config.stackName === stackName && config.stackVersion === stackVersion) || config.stackName === undefined);
+      } else {
+        serviceInstanceConfigs = serviceConfigs.configs;
+      }  
+
+      serviceConfigs.set('configs', serviceInstanceConfigs);
+      return blueprintUtils.buildConfigsJSON([serviceConfigs]); //buildConfigsJSON() expects an array
+    }
+
+    return null;
   }
 });

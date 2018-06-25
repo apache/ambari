@@ -57,7 +57,9 @@ import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceGroupRequest;
+import org.apache.ambari.server.controller.ServiceGroupResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
+import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
@@ -92,6 +94,7 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
@@ -206,7 +209,6 @@ public class AmbariContext {
   }
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
-
     Set<StackId> stackIds = topology.getStackIds();
     createAmbariClusterResource(clusterName, stackIds, securityType, topology.getSetting().getClusterSettings());
     createAmbariServiceAndComponentResources(topology, clusterName);
@@ -302,6 +304,20 @@ public class AmbariContext {
     } catch (Exception e) {
       // just log as this won't prevent cluster from being provisioned correctly
       LOG.error("Unable to update state of services during cluster provision: " + e, e);
+    }
+  }
+
+  public Set<ServiceResponse> getServices(String clusterName) {
+    try {
+      ServiceGroupRequest serviceGroupRequest = new ServiceGroupRequest(clusterName, null, null);
+      Set<ServiceGroupResponse> serviceGroups = getServiceGroupResourceProvider().getServiceGroups(ImmutableSet.of(serviceGroupRequest));
+      Set<ServiceRequest> serviceRequests = serviceGroups.stream().
+        map(sg -> new ServiceRequest(clusterName, sg.getServiceGroupName(), null, null, null, null)).
+        collect(toSet());
+      return getServiceResourceProvider().getServices(serviceRequests);
+    }
+    catch (AmbariException ex) {
+      throw new RuntimeException("Failed to load service groups and services", ex);
     }
   }
 

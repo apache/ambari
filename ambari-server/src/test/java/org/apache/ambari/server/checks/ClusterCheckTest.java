@@ -29,12 +29,13 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -52,7 +53,7 @@ import junit.framework.Assert;
  */
 @Ignore
 @Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
-public class AbstractCheckDescriptorTest extends EasyMockSupport {
+public class ClusterCheckTest extends EasyMockSupport {
   @Mock
   private Clusters clusters;
 
@@ -69,7 +70,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
 
   @Test
   public void testFormatEntityList() {
-    AbstractCheckDescriptor check = new TestCheckImpl(PrereqCheckType.HOST);
+    ClusterCheck check = new TestCheckImpl(PrereqCheckType.HOST);
 
     Assert.assertEquals("", check.formatEntityList(null));
 
@@ -113,6 +114,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     Set<String> missingServiceList = Sets.newHashSet("MISSING_SERVICE");
 
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
     expect(cluster.getServicesByName()).andReturn(services).atLeastOnce();
     expect(cluster.getServices()).andReturn(services.values()).anyTimes();
 
@@ -122,7 +124,10 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     replayAll();
 
     TestCheckImpl check = new TestCheckImpl(PrereqCheckType.SERVICE);
-    PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     // case, where we need at least one service to be present
     check.setApplicableServices(oneServiceList);
@@ -157,6 +162,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     Set<String> oneServiceList = Sets.newHashSet("SERVICE1");
 
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
     expect(cluster.getServicesByName()).andReturn(services).atLeastOnce();
     expect(cluster.getServices()).andReturn(services.values()).anyTimes();
 
@@ -168,7 +174,10 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     replayAll();
 
     TestCheckImpl check = new TestCheckImpl(PrereqCheckType.SERVICE);
-    PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
+    UpgradePlanEntity upgradePlan = createNiceMock(UpgradePlanEntity.class);
+    expect(upgradePlan.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+
+    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
 
     // since the check is for SERVICE2, it should not match even though its
     // installed since the repository is only for SERVICE1
@@ -206,7 +215,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
       group = UpgradeCheckGroup.DEFAULT,
       order = 1.0f,
       required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
-  private class TestCheckImpl extends AbstractCheckDescriptor {
+  private class TestCheckImpl extends ClusterCheck {
     private PrereqCheckType m_type;
     private Set<String> m_applicableServices = Sets.newHashSet();
 
@@ -228,8 +237,9 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     }
 
     @Override
-    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+    public UpgradeCheckResult perform(PrereqCheckRequest request)
         throws AmbariException {
+      return new UpgradeCheckResult(this);
     }
 
     /**
@@ -246,7 +256,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
   }
 
   @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f, required = { UpgradeType.ROLLING })
-  private class RollingTestCheckImpl extends AbstractCheckDescriptor {
+  private class RollingTestCheckImpl extends ClusterCheck {
     private PrereqCheckType m_type;
 
     RollingTestCheckImpl(PrereqCheckType type) {
@@ -262,13 +272,14 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     }
 
     @Override
-    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+    public UpgradeCheckResult perform(PrereqCheckRequest request)
         throws AmbariException {
+      return new UpgradeCheckResult(this);
     }
   }
 
   @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
-  private class NotRequiredCheckTest extends AbstractCheckDescriptor {
+  private class NotRequiredCheckTest extends ClusterCheck {
     private PrereqCheckType m_type;
 
     NotRequiredCheckTest(PrereqCheckType type) {
@@ -284,8 +295,9 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     }
 
     @Override
-    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+    public UpgradeCheckResult perform(PrereqCheckRequest request)
         throws AmbariException {
+      return new UpgradeCheckResult(this);
     }
   }
 }

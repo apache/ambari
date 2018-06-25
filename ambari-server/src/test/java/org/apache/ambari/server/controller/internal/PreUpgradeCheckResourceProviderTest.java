@@ -38,7 +38,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.checks.ClusterCheck;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -124,7 +124,7 @@ public class PreUpgradeCheckResourceProviderTest {
 
     expect(upgradeHelper.suggestUpgradePack("Cluster100", currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.EXPRESS, "upgrade_pack11")).andReturn(upgradePack);
 
-    List<AbstractCheckDescriptor> upgradeChecksToRun = new LinkedList<>();
+    List<ClusterCheck> upgradeChecksToRun = new LinkedList<>();
     List<String> prerequisiteChecks = new LinkedList<>();
     prerequisiteChecks.add("org.apache.ambari.server.sample.checks.SampleServiceCheck");
     expect(upgradePack.getPrerequisiteCheckConfig()).andReturn(config);
@@ -144,9 +144,8 @@ public class PreUpgradeCheckResourceProviderTest {
     Request request = PropertyHelper.getReadRequest(new HashSet<>());
     PredicateBuilder builder = new PredicateBuilder();
     Predicate predicate = builder.property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals("upgrade_pack11").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(UpgradeType.EXPRESS).and()
-        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID).equals("1").toPredicate();
+        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PLAN_ID).equals("1").toPredicate();
 
 
     System.out.println("PreUpgradeCheckResourceProvider - " + provider);

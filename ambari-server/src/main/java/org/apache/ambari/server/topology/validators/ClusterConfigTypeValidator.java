@@ -30,7 +30,7 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfigTypeValidator.class);
 
   @Override
-  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+  public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
 
     // config types in from the request / configuration is always set in the request instance
     Set<String> topologyClusterConfigTypes = new HashSet<>(topology.getConfiguration().getAllConfigTypes());
@@ -38,7 +38,7 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
 
     if (topologyClusterConfigTypes.isEmpty()) {
       LOGGER.debug("No config types to be checked.");
-      return;
+      return topology;
     }
 
     // collecting all config types for services in the blueprint (from the related stack)
@@ -60,5 +60,6 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
       LOGGER.error("The following config typess are wrong: {}", invalidConfigTypes);
       throw new InvalidTopologyException("The following configuration types are invalid: " + invalidConfigTypes);
     }
+    return topology;
   }
 }

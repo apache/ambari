@@ -15,37 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.stack.upgrade;
+package org.apache.ambari.server.controller;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
-
-import com.google.gson.annotations.SerializedName;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 
 /**
- * Indicates the scope of a group or task
+ * Used for building dependency injected instances of
+ * {@link PrereqCheckRequest}s.
  */
-@XmlEnum
-public enum UpgradeScope {
+public interface PrereqCheckRequestFactory {
 
   /**
-   * Used only when completely upgrading the cluster.
+   * Creates a new {@link PrereqCheckRequest} based off of a supplied upgrade
+   * plan.
+   *
+   * @param upgradePlanEntity
+   *          the upgrade plan
+   * @return the upgrade check request
    */
-  @XmlEnumValue("COMPLETE")
-  @SerializedName("rolling_upgrade")
-  COMPLETE,
+  PrereqCheckRequest createNew(UpgradePlanEntity upgradePlanEntity);
 
-  /**
-   * Used only when partially upgrading the cluster.
-   */
-  @XmlEnumValue("PARTIAL")
-  @SerializedName("partial")
-  PARTIAL,
-
-  /**
-   * Used for any scoped upgrade.
-   */
-  @XmlEnumValue("ANY")
-  @SerializedName("any")
-  ANY;
 }

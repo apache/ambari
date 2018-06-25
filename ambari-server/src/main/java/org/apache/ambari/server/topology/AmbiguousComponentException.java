@@ -15,11 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.events;
+package org.apache.ambari.server.topology;
 
-public class ClusterComponentsRepoChangedEvent extends ClusterEvent {
+import java.util.Set;
 
-  public ClusterComponentsRepoChangedEvent(long clusterId) {
-    super(AmbariEventType.SERVICE_COMPONENT_REPO_CHANGE, clusterId);
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang3.tuple.Pair;
+
+public class AmbiguousComponentException extends IllegalStateException {
+
+  AmbiguousComponentException(Set<Pair<StackId, ServiceInfo>> serviceMatches) {
+    super(formatResolutionProblemMessage(serviceMatches));
   }
+
+  private static String formatResolutionProblemMessage(Set<Pair<StackId, ServiceInfo>> serviceMatches) {
+    if (serviceMatches.isEmpty()) {
+      return "No service found";
+    }
+
+    return "Multiple services found: " + serviceMatches;
+  }
+
 }

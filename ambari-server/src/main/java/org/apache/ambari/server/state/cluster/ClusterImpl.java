@@ -163,7 +163,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -1420,15 +1419,6 @@ public class ClusterImpl implements Cluster {
     clusterEntity = clusterDAO.merge(clusterEntity);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @Transactional
-  public List<Host> transitionHostsToInstalling() throws AmbariException {
-    return Lists.newArrayList();
-  }
-
   @Override
   @Transactional
   public void setCurrentStackVersion(StackId stackId) throws AmbariException {
@@ -1610,14 +1600,10 @@ public class ClusterImpl implements Cluster {
     }
     clusterGlobalLock.writeLock().lock();
     try {
-      if (!serviceConfigs.containsKey(serviceId)) {
-        ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = new ConcurrentHashMap<>();
-        serviceConfigs.put(serviceId, allServiceConfigs);
-      }
-      ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(serviceId);
-      allServiceConfigs.put(config.getType(), new ConcurrentHashMap<>());
-      allServiceConfigs.get(config.getType()).put(config.getTag(), config);
-      serviceConfigs.put(serviceId,allServiceConfigs);
+      serviceConfigs
+        .computeIfAbsent(serviceId, __ -> new ConcurrentHashMap<>())
+        .computeIfAbsent(config.getType(), __ -> new ConcurrentHashMap<>())
+        .put(config.getTag(), config);
     } finally {
         clusterGlobalLock.writeLock().unlock();
     }
@@ -3394,6 +3380,9 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
+  @Experimental(
+      feature = ExperimentalFeature.VERSION_REPORTING,
+      comment = "This needs to be changed to include service groups and to use the module component version")
   public Map<String, Map<String, String>> getComponentVersionMap() {
     Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
 

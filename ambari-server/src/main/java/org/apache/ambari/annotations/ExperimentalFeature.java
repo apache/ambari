@@ -40,19 +40,24 @@ public enum ExperimentalFeature {
   MULTI_SERVICE,
 
   /**
+   * Component version reporting, storage, and comparison.
+   */
+  VERSION_REPORTING,
+
+  /**
    * For code that is for upgrading Mpacks.  Use this to mark code that may ultimately
    * be removed.
    */
   MPACK_UPGRADES,
 
   /**
-   * Used to mark code that is required for successful removal and refactoring
-   * when repo versions are dropped.
-   */
-  REPO_VERSION_REMOVAL,
-
-  /**
    * Use this annotation when a test needs to be written.
    */
-  UNIT_TEST_REQUIRED;
+  UNIT_TEST_REQUIRED,
+
+  /**
+   * Loading and dealing with upgrade checks dynamically and injecting
+   * configurations into them.
+   */
+  UPGRADE_PACK_PRE_CHECKS;
 }
