@@ -125,6 +125,10 @@ class ServiceAdvisor(DefaultStackAdvisor):
     return []
 
   def getServiceComponentCardinalityValidations(self, services, hosts, service_name):
+    """
+    Returns an array of Validation objects about issues with the hostnames to which components are assigned.
+    This should detect cardinality Validation issues.
+    """
     items = []
     hostsSet = set(self.getActiveHosts(
       [host["Hosts"] for host in hosts["items"]]))  # [host["Hosts"]["host_name"] for host in hosts["items"]]
@@ -132,8 +136,10 @@ class ServiceAdvisor(DefaultStackAdvisor):
 
     target_service = None
     for service in services["services"]:
-      if service["StackServices"]["service_name"] is service_name:
+      if service["StackServices"]["service_name"] == service_name:
         target_service = service
+    if not target_service:
+      return []
     componentsList = target_service["components"]
 
     # Validating cardinality
