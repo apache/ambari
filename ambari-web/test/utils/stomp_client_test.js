@@ -68,11 +68,13 @@ describe('App.StompClient', function () {
     beforeEach(function () {
       sinon.stub(stomp, 'getHostName').returns('test');
       sinon.stub(stomp, 'isSecure').returns(false);
+      sinon.stub(stomp, 'getPathname').returns('/');
     });
     afterEach(function () {
       stomp.getHostName.restore();
       stomp.isSecure.restore();
       stomp.getPort.restore();
+      stomp.getPathname.restore();
     });
     it('should return WebSocket instance', function() {
       sinon.stub(stomp, 'getPort').returns(':8080');
@@ -88,11 +90,13 @@ describe('App.StompClient', function () {
     beforeEach(function () {
       sinon.stub(stomp, 'getHostName').returns('test');
       sinon.stub(stomp, 'isSecure').returns(false);
+      sinon.stub(stomp, 'getPathname').returns('/gateway/default/ambari/');
     });
     afterEach(function () {
       stomp.getHostName.restore();
       stomp.isSecure.restore();
       stomp.getPort.restore();
+      stomp.getPathname.restore();
     });
     it('should return socket url for websocket', function() {
       sinon.stub(stomp, 'getPort').returns(':8080');
@@ -101,6 +105,10 @@ describe('App.StompClient', function () {
     it('should return socket url for sockjs', function() {
       sinon.stub(stomp, 'getPort').returns('');
       expect(stomp.getSocketUrl('{protocol}://{hostname}{port}', false)).to.equal('http://test');
+    });
+    it('should return socket url for websocket with proxy pathname', function() {
+      sinon.stub(stomp, 'getPort').returns(':8443');
+      expect(stomp.getSocketUrl('{protocol}://{hostname}{port}{pathname}', true)).to.equal('ws://test:8443/gateway/default/ambari/');
     });
   });
 
