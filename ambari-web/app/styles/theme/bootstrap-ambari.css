@@ -1143,8 +1143,6 @@ input.radio:checked + label:after {
   z-index: 100;
   top: 0;
   left: 50px;
-  max-height: calc(100% - 100px);
-  overflow-y: scroll;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.submenu-li > a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li > a {
