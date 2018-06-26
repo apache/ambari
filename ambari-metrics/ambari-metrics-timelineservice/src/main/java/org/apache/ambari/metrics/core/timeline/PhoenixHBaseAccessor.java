@@ -1106,7 +1106,6 @@ public class PhoenixHBaseAccessor {
     if (condition.getPrecision().equals(Precision.SECONDS)) {
       TimelineMetric metric = TIMELINE_METRIC_READ_HELPER.getTimelineMetricFromResultSet(rs);
       if (metric == null) {
-        LOG.warn("Metric not found for the generated UUID.");
         return;
       }
       if (f != null && f.getSuffix() != null) { //Case : Requesting "._rate" for precision data

@@ -78,7 +78,7 @@ public class TimelineWebServices {
   private static final Log LOG = LogFactory.getLog(TimelineWebServices.class);
   
   private TimelineMetricStore timelineMetricStore;
-  private static final String FAKE_METRIC_APPID = "amssmoketestfake";
+  private static final String SMOKETEST_METRIC_APP_ID = "amssmoketestfake";
 
   @Inject
   public TimelineWebServices(TimelineMetricStore timelineMetricStore) {
@@ -151,7 +151,7 @@ public class TimelineWebServices {
           TimelineUtils.dumpTimelineRecordtoJSON(metrics, true));
       }
 
-      if (CollectionUtils.isNotEmpty(metrics.getMetrics()) && metrics.getMetrics().get(0).getAppId().equals(FAKE_METRIC_APPID)) {
+      if (CollectionUtils.isNotEmpty(metrics.getMetrics()) && metrics.getMetrics().get(0).getAppId().equals(SMOKETEST_METRIC_APP_ID)) {
         return timelineMetricStore.putMetricsSkipCache(metrics);
       } else {
         return timelineMetricStore.putMetrics(metrics);
