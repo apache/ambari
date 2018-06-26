@@ -48,6 +48,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.metrics.core.timeline.TimelineMetricServiceSummary;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
@@ -77,6 +78,7 @@ public class TimelineWebServices {
   private static final Log LOG = LogFactory.getLog(TimelineWebServices.class);
   
   private TimelineMetricStore timelineMetricStore;
+  private static final String SMOKETEST_METRIC_APP_ID = "amssmoketestfake";
 
   @Inject
   public TimelineWebServices(TimelineMetricStore timelineMetricStore) {
@@ -149,7 +151,11 @@ public class TimelineWebServices {
           TimelineUtils.dumpTimelineRecordtoJSON(metrics, true));
       }
 
-      return timelineMetricStore.putMetrics(metrics);
+      if (CollectionUtils.isNotEmpty(metrics.getMetrics()) && metrics.getMetrics().get(0).getAppId().equals(SMOKETEST_METRIC_APP_ID)) {
+        return timelineMetricStore.putMetricsSkipCache(metrics);
+      } else {
+        return timelineMetricStore.putMetrics(metrics);
+      }
 
     } catch (Exception e) {
       LOG.error("Error saving metrics.", e);

@@ -98,7 +98,9 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
 
     while (rs.next()) {
       TimelineClusterMetric currentMetric = readHelper.fromResultSet(rs);
-
+      if (currentMetric == null) {
+        continue;
+      }
       MetricClusterAggregate currentHostAggregate =
         isClusterPrecisionInputTable ?
           readHelper.getMetricClusterAggregateFromResultSet(rs) :

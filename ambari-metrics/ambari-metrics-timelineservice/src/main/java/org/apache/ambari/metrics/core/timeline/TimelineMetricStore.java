@@ -69,6 +69,16 @@ public interface TimelineMetricStore {
   TimelinePutResponse putMetrics(TimelineMetrics metrics) throws SQLException, IOException;
 
   /**
+   * Stores metric information to the timeline store without any buffering of data.
+   *
+   * @param metrics An {@link TimelineMetrics}.
+   * @return An {@link org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse}.
+   * @throws SQLException, IOException
+   */
+  TimelinePutResponse putMetricsSkipCache(TimelineMetrics metrics) throws SQLException, IOException;
+
+
+  /**
    * Store container metric into the timeline tore
    */
   TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)

@@ -160,6 +160,10 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
         // If rows belong to same host combine them before slicing. This
         // avoids issues across rows that belong to same hosts but get
         // counted as coming from different ones.
+        if (nextMetric == null) {
+          continue;
+        }
+        
         if (metric.equalsExceptTime(nextMetric)) {
           metric.addMetricValues(nextMetric.getMetricValues());
         } else {

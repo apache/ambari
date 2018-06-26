@@ -92,6 +92,9 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     while (rs.next()) {
       TimelineMetric currentMetric =
         readHelper.getTimelineMetricKeyFromResultSet(rs);
+      if (currentMetric == null) {
+        continue;
+      }
       MetricHostAggregate currentHostAggregate =
         readHelper.getMetricHostAggregateFromResultSet(rs);
 

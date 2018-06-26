@@ -378,7 +378,7 @@ def ams(name=None, action=None):
       # Remove spnego configs from core-site if platform does not have python-kerberos library
       truncated_core_site = {}
       truncated_core_site.update(params.config['configurations']['core-site'])
-      if is_spnego_enabled(params) and is_redhat_centos_6_plus() == False:
+      if is_spnego_enabled(params):
         truncated_core_site.pop('hadoop.http.authentication.type')
         truncated_core_site.pop('hadoop.http.filter.initializers')
 
@@ -407,6 +407,7 @@ def ams(name=None, action=None):
 
   elif name == 'monitor':
 
+    # TODO Uncomment when SPNEGO support has been added to AMS service check and Grafana.
     if is_spnego_enabled(params) and is_redhat_centos_6_plus():
       try:
         import kerberos
@@ -540,7 +541,7 @@ def is_spnego_enabled(params):
       and 'hadoop.http.authentication.type' in params.config['configurations']['core-site'] \
       and params.config['configurations']['core-site']['hadoop.http.authentication.type'] == "kerberos" \
       and 'hadoop.http.filter.initializers' in params.config['configurations']['core-site'] \
-      and params.config['configurations']['core-site']['hadoop.http.filter.initializers'] == "org.apache.hadoop.security.AuthenticationFilterInitializer":
+      and "org.apache.hadoop.security.AuthenticationFilterInitializer" in params.config['configurations']['core-site']['hadoop.http.filter.initializers']:
     return True
   return False
 
