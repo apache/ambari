@@ -59,7 +59,7 @@ logger.addHandler(handler)
 
 class colors:
   OKGREEN = '\033[92m'
-  WARNING = '\033[93m'
+  WARNING = '\033[38;5;214m'
   FAIL = '\033[91m'
   ENDC = '\033[0m'
 
@@ -282,6 +282,11 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
 
   cluster_config = get_cluster_configs(blueprint)
   solr_hosts = get_solr_hosts(options, accessor)
+
+  if solr_hosts and host not in solr_hosts:
+    print "{0}WARNING{1}: Host '{2}' is not found in Infra Solr hosts ({3}). Migration commands won't work from here."\
+      .format(colors.WARNING, colors.ENDC, host, ','.join(solr_hosts))
+
   zookeeper_hosts = get_zookeeper_server_hosts(options, accessor)
 
   security_enabled = is_security_enabled(cluster_config)
