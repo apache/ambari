@@ -139,7 +139,7 @@
       fi
 
       # Add libraries to the hadoop classpath - some may not need a colon as they already include it
-      export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}
+      export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${JAVA_JDBC_LIBS}
 
       # Setting path to hdfs command line
       export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}

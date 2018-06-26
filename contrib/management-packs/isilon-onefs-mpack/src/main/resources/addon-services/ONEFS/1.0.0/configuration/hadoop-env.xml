@@ -376,7 +376,7 @@ fi
 MAPREDUCE_LIBS={{mapreduce_libs_path}}
 
 # Add libraries to the hadoop classpath - some may not need a colon as they already include it
-export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
+export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
 
 if [ -d "/usr/lib/tez" ]; then
   export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*:/etc/tez/conf
