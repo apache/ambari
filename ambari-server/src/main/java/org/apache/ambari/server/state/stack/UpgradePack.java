@@ -102,7 +102,7 @@ public class UpgradePack {
    * Tag is optional and can be {@code null}, use {@code isDowngradeAllowed} getter instead.
    */
   @XmlElement(name = "downgrade-allowed", required = false, defaultValue = "true")
-  private boolean downgradeAllowed;
+  private boolean downgradeAllowed = true;
 
   /**
    * {@code true} to automatically skip service check failures. The default is

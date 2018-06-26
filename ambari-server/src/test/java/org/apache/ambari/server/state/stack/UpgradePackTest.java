@@ -89,6 +89,33 @@ public class UpgradePackTest {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
+  /**
+   * Tests that boolean values are property serialized in the upgrade pack.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testIsDowngradeAllowed() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    assertTrue(upgrades.size() > 0);
+
+    String upgradePackWithoutDowngrade = "upgrade_test_no_downgrade";
+    boolean foundAtLeastOnePackWithoutDowngrade = false;
+
+    for (String key : upgrades.keySet()) {
+      UpgradePack upgradePack = upgrades.get(key);
+      if (upgradePack.getName().equals(upgradePackWithoutDowngrade)) {
+        foundAtLeastOnePackWithoutDowngrade = true;
+        assertFalse(upgradePack.isDowngradeAllowed());
+        continue;
+      }
+
+      assertTrue(upgradePack.isDowngradeAllowed());
+    }
+
+    assertTrue(foundAtLeastOnePackWithoutDowngrade);
+  }
+
   @Test
   public void testExistence() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
