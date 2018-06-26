@@ -93,7 +93,7 @@ class HivePreUpgrade(Script):
     
     classpath = format("{source_dir}/hive2/lib/*:{source_dir}/hadoop/*:{source_dir}/hadoop/lib/*:{source_dir}/hadoop-mapreduce/*:{source_dir}/hadoop-mapreduce/lib/*:{target_dir}/hive/lib/hive-pre-upgrade.jar:{source_dir}/hive/conf")
     cmd = format("{java64_home}/bin/java -Djavax.security.auth.useSubjectCredsOnly=false -cp {classpath} org.apache.hadoop.hive.upgrade.acid.PreUpgradeTool -execute")
-    Execute(cmd, user = "hive")
+    Execute(cmd, user = params.hive_user)
 
 if __name__ == "__main__":
   HivePreUpgrade().execute()
