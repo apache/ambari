@@ -53,10 +53,10 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
   }
 
   public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
-    T hostData = data.get(hostId);
-    if (hostData == null) {
-      updateLock.lock();
-      try {
+    updateLock.lock();
+    try {
+      T hostData = data.get(hostId);
+      if (hostData == null) {
         hostData = data.get(hostId);
         if (hostData == null) {
           hostData = getCurrentData(hostId);
@@ -65,11 +65,11 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
           }
           data.put(hostId, hostData);
         }
-      } finally {
-        updateLock.unlock();
       }
+      return hostData;
+    } finally {
+      updateLock.unlock();
     }
-    return hostData;
   }
 
   /**
