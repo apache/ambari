@@ -5893,4 +5893,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     return new HostRepositories(hostRepositories, componentsRepos);
   }
+
+  @Override
+  public Map<String, String> getClusterEnvConfigurationByStackId(StackId stackId) {
+    final Map<String, String> clusterEnvConfigs = new HashMap<>();
+    final Map<String, Cluster> clusterMap = clusters.getClusters() == null ? new HashMap<>() : clusters.getClusters();
+    for (Cluster cluster : clusterMap.values()) {
+      if (cluster.getCurrentStackVersion().equals(stackId)) {
+        clusterEnvConfigs.putAll(cluster.getDesiredConfigByType(ConfigHelper.CLUSTER_ENV).getProperties());
+        break;
+      }
+    }
+    return clusterEnvConfigs;
+  }
 }

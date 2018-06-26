@@ -34,6 +34,7 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorC
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.logging.Log;
@@ -54,14 +55,15 @@ public class StackAdvisorHelper {
   public static String pythonStackAdvisorScript;
   private final AmbariMetaInfo metaInfo;
   private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
+  private final AmbariManagementController ambariManagementController;
 
   /* Monotonically increasing requestid */
   private int requestId = 0;
   private StackAdvisorRunner saRunner;
 
   @Inject
-  public StackAdvisorHelper(Configuration conf, StackAdvisorRunner saRunner,
-                            AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler) throws IOException {
+  public StackAdvisorHelper(Configuration conf, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler,
+      AmbariManagementController ambariManagementController) throws IOException {
     this.recommendationsDir = conf.getRecommendationsDir();
     this.recommendationsArtifactsLifetime = conf.getRecommendationsArtifactsLifetime();
     this.recommendationsArtifactsRolloverMax = conf.getRecommendationsArtifactsRolloverMax();
@@ -70,6 +72,7 @@ public class StackAdvisorHelper {
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
     this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
+    this.ambariManagementController = ambariManagementController;
   }
 
   /**
@@ -101,10 +104,10 @@ public class StackAdvisorHelper {
     StackAdvisorCommand<ValidationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
       command = new ComponentLayoutValidationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
       command = new ConfigurationValidationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));
@@ -142,19 +145,19 @@ public class StackAdvisorHelper {
     StackAdvisorCommand<RecommendationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
       command = new ComponentLayoutRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     } else if (requestType == StackAdvisorRequestType.SSO_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_SSO, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     } else if (requestType == StackAdvisorRequestType.KERBEROS_CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(StackAdvisorCommandType.RECOMMEND_CONFIGURATIONS_FOR_KERBEROS, recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES) {
       command = new ConfigurationDependenciesRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));

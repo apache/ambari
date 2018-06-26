@@ -55,8 +55,10 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequestExc
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -83,6 +85,8 @@ public class StackAdvisorCommandTest {
   private TemporaryFolder temp = new TemporaryFolder();
   @Mock
   AmbariServerConfigurationHandler ambariServerConfigurationHandler;
+  @Mock
+  AmbariManagementController ambariManagementController;
 
   @Before
   public void setUp() throws IOException {
@@ -318,6 +322,22 @@ public class StackAdvisorCommandTest {
     assertEquals(expectedLdapConfig, servicesRootNode);
   }
 
+  @Test
+  public void testPopulateClusterEnvConfig() throws Exception {
+    final TestStackAdvisorCommand command = new TestStackAdvisorCommand(temp.newFolder("recommendationDir"), "1w", ServiceInfo.ServiceAdvisorType.PYTHON, 0,
+        mock(StackAdvisorRunner.class), mock(AmbariMetaInfo.class));
+    final StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+        .build();
+    final StackId stackId = new StackId(request.getStackName(), request.getStackVersion());
+    final Map<String, String> clusterEnvProperties = new HashMap<>();
+    clusterEnvProperties.put("security_enabled", "true");
+    when(ambariManagementController.getClusterEnvConfigurationByStackId(stackId)).thenReturn(clusterEnvProperties);
+    final JsonNode servicesRootNode = json("{}");
+    command.populateClusterEnvConfig((ObjectNode) servicesRootNode, request);
+    final JsonNode expectedClusterEnvConfig = json("{\"cluster-env\":{\"properties\":{\"security_enabled\":\"true\"}}}");
+    assertEquals(expectedClusterEnvConfig, servicesRootNode);
+  }
+
   private static String jsonString(Object obj) throws IOException {
     return new ObjectMapper().writeValueAsString(obj);
   }
@@ -346,7 +366,7 @@ public class StackAdvisorCommandTest {
   class TestStackAdvisorCommand extends StackAdvisorCommand<TestResource> {
     public TestStackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType,
                                    int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-      super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
+      super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo, ambariServerConfigurationHandler, ambariManagementController);
     }
 
     @Override
