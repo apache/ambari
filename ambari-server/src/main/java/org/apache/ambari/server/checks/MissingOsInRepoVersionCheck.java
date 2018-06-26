@@ -43,7 +43,7 @@ import com.google.inject.Singleton;
 @Singleton
 @UpgradeCheck(
   group = UpgradeCheckGroup.REPOSITORY_VERSION,
-  required = { UpgradeType.NON_ROLLING })
+  required = { UpgradeType.NON_ROLLING, UpgradeType.ROLLING })
 public class MissingOsInRepoVersionCheck extends AbstractCheckDescriptor {
   public static final String SOURCE_OS = "source_os";
   public static final String TARGET_OS = "target_os";
