@@ -92,9 +92,9 @@
   <div class="wizard-footer col-md-12">
     <div class="btn-area">
       {{#if view.showBackButton}}
-        {{view App.WizardBackButton action="back" target="controller"}}
+        {{view App.WizardBackButton action="back" target="controller" data-qa="wizard-back"}}
       {{/if}}
-      {{view App.WizardNextButton buttonId="submit-kerberos-step3" action="done" target="controller"}}
+      {{view App.WizardNextButton buttonId="submit-kerberos-step3" action="done" target="controller" data-qa="wizard-next"}}
     </div>
   </div>
 </div>
