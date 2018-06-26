@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableMap;
  * done for Stack Upgrades.
  */
 public class CheckDescription {
-
   public static CheckDescription CLIENT_RETRY = new CheckDescription("CLIENT_RETRY",
     PrereqCheckType.SERVICE,
     "Client Retry Properties",
@@ -399,6 +398,16 @@ public class CheckDescription {
                   "Visit the Kerberos administrator page to set the credential. " +
                   "This is needed so the KDC administrator credential may be stored long enough to ensure it will be around if needed during the upgrade process.")
           .build());
+
+
+  public static final CheckDescription MISSING_OS_IN_REPO_VERSION = new CheckDescription("MISSING_OS_IN_REPO_VERSION",
+    PrereqCheckType.CLUSTER,
+    "Missing OS in repository version.",
+    new ImmutableMap.Builder<String, String>()
+      .put(MissingOsInRepoVersionCheck.SOURCE_OS, "The source version must have an entry for each OS type in the cluster")
+      .put(MissingOsInRepoVersionCheck.TARGET_OS, "The target version must have an entry for each OS type in the cluster")
+      .build());
+
 
   private String m_name;
   private PrereqCheckType m_type;
