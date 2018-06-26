@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -43,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.ambari.annotations.Experimental;
@@ -75,11 +77,13 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -87,6 +91,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * AmbariContext unit tests
@@ -137,6 +142,9 @@ public class AmbariContextTest {
   private Configuration bpConfiguration = null;
   private Configuration group1Configuration = null;
   private static final Set<String> group1Hosts = ImmutableSet.of(HOST1, HOST2);
+
+  private Capture<String> clusterSettingKeys;
+  private Capture<String> clusterSettingValues;
 
   private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = EasyMock.newCapture();
   private Setting setting;
@@ -272,7 +280,13 @@ public class AmbariContextTest {
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
-    expect(metaInfo.getClusterProperties()).andReturn(emptySet()).anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(
+      Sets.newHashSet(
+        property("command_retry_enabled", "true"),
+        property("commands_to_retry", "INSTALL,START"),
+        property("command_retry_max_time_in_sec", "600")
+      )
+    ).anyTimes();
 
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(clusters.getClusterById(CLUSTER_ID)).andReturn(cluster).anyTimes();
@@ -282,8 +296,11 @@ public class AmbariContextTest {
     Map<String, Host> clusterHosts = ImmutableMap.of(HOST1, host1, HOST2, host2);
     expect(clusters.getHostsForCluster(CLUSTER_NAME)).andReturn(clusterHosts).anyTimes();
 
+    clusterSettingKeys = EasyMock.newCapture(CaptureType.ALL);
+    clusterSettingValues = EasyMock.newCapture(CaptureType.ALL);
     expect(cluster.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
+    expect(cluster.addClusterSetting(capture(clusterSettingKeys), capture(clusterSettingValues))).andReturn(null).anyTimes();
 
     expect(host1.getHostId()).andReturn(1L).anyTimes();
     expect(host2.getHostId()).andReturn(2L).anyTimes();
@@ -401,6 +418,21 @@ public class AmbariContextTest {
     assertEquals("STARTED", startProperties.get(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID));
     assertEquals(new EqualsPredicate<>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME),
         installPredicateCapture.getValue());
+
+    // verify that cluster settings has been configured with values coming from both defaults and the topology
+    Map<String, String> recordedClusterSettings = IntStream.range(0, clusterSettingKeys.getValues().size())
+      .boxed()
+      .map(i -> Pair.of(clusterSettingKeys.getValues().get(i), clusterSettingValues.getValues().get(i)))
+      .collect(toMap(p -> p.getLeft(), p -> p.getRight()));
+
+    assertEquals(
+      ImmutableMap.of(
+        "command_retry_enabled", "true",
+        "commands_to_retry", "INSTALL,START",
+        "command_retry_max_time_in_sec", "600",
+        "recovery_enabled", "true"),
+      recordedClusterSettings
+    );
   }
 
   @Test
@@ -696,5 +728,12 @@ public class AmbariContextTest {
       map.put(kv.getLeft(), kv.getRight());
     }
     return map;
+  }
+
+  private static PropertyInfo property(String name, String value) {
+    PropertyInfo info = new PropertyInfo();
+    info.setName(name);
+    info.setValue(value);
+    return info;
   }
 }

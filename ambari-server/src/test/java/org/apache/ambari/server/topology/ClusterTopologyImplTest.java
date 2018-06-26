@@ -21,6 +21,8 @@ package org.apache.ambari.server.topology;
 import static java.util.Arrays.asList;
 import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.mock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,9 +37,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang3.tuple.Pair;
@@ -45,14 +50,22 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for ClusterTopologyImpl.
  */
 @SuppressWarnings("unchecked")
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({AmbariContext.class})
 public class ClusterTopologyImplTest {
 
   private static final String CLUSTER_NAME = "cluster_name";
@@ -80,6 +93,8 @@ public class ClusterTopologyImplTest {
     "group4", ImmutableSet.of(
       builderFor("any_service", "component5"))
   );
+  private final AmbariManagementController controller = mock(AmbariManagementController.class);
+  private final AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
   private BlueprintBasedClusterProvisionRequest provisionRequest;
 
   private Configuration configuration;
@@ -89,9 +104,15 @@ public class ClusterTopologyImplTest {
   public void setUp() throws Exception {
     configuration = new Configuration(new HashMap<>(),
       new HashMap<>());
-    bpconfiguration = new Configuration(new HashMap<>(),
+    bpconfiguration = new Configuration(
+      Maps.newHashMap(ImmutableMap.of(
+        "cluster-env",
+        Maps.newHashMap(ImmutableMap.of(
+          "commands_to_retry", "INSTALL",
+          "command_retry_max_time_in_sec", "500",
+          "unknown_property_that_should_not_become_cluster_setting", "some_value"))
+      )),
       new HashMap<>());
-
     HostGroupInfo group1Info = new HostGroupInfo("group1");
     HostGroupInfo group2Info = new HostGroupInfo("group2");
     HostGroupInfo group3Info = new HostGroupInfo("group3");
@@ -145,13 +166,27 @@ public class ClusterTopologyImplTest {
       expect(hostGroup.getName()).andReturn(name).anyTimes();
       expect(blueprint.getHostGroup(name)).andReturn(hostGroup).anyTimes();
     }
+    expect(blueprint.getSetting()).andReturn(new Setting(new HashMap<>()));
 
     expect(group1.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group2.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group3.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group4.getConfiguration()).andReturn(configuration).anyTimes();
 
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(
+      Sets.newHashSet(
+        propertyInfo("command_retry_enabled", "true"),
+        propertyInfo("commands_to_retry", "INSTALL,START"),
+        propertyInfo("command_retry_max_time_in_sec", "600"))).anyTimes();
+
     replayAll();
+
+    PowerMock.mockStatic(AmbariContext.class);
+    AmbariContext.getController();
+    expectLastCall().andReturn(controller).anyTimes();
+    PowerMock.replay(AmbariContext.class);
+
 
     provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, null, blueprint, new TestTopologyRequest());
   }
@@ -165,7 +200,7 @@ public class ClusterTopologyImplTest {
   }
 
   private void replayAll() {
-    replay(ambariContext, stack, blueprint, group1, group2, group3, group4);
+    replay(ambariContext, stack, blueprint, group1, group2, group3, group4, controller, metaInfo);
   }
 
 
@@ -244,6 +279,23 @@ public class ClusterTopologyImplTest {
     assertFalse(topology.isComponentHadoopCompatible("ZOOKEEPER_CLIENT"));
   }
 
+  @Test
+  public void testAdjustTopology() throws Exception {
+    ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
+    Map<String, String> clusterSettings = topology.getSetting().getClusterSettings();
+    assertEquals(
+      ImmutableMap.of(
+        "commands_to_retry", "INSTALL",
+        "command_retry_max_time_in_sec", "500"),
+      clusterSettings
+    );
+    assertEquals(
+      ImmutableMap.of("", ""),
+      topology.getConfiguration().getFullProperties().get("cluster-env")
+    );
+  }
+
+
   private ServiceInfo aHCFSWith(ComponentInfo... components) {
     ServiceInfo service = aServiceWith(components);
     service.setServiceType(ServiceInfo.HADOOP_COMPATIBLE_FS);
@@ -260,6 +312,13 @@ public class ClusterTopologyImplTest {
     ComponentInfo component = new ComponentInfo();
     component.setName(name);
     return component;
+  }
+
+  private static PropertyInfo propertyInfo(String name, String value) {
+    PropertyInfo info = new PropertyInfo();
+    info.setName(name);
+    info.setValue(value);
+    return info;
   }
 
   private class TestTopologyRequest implements ProvisionRequest {
