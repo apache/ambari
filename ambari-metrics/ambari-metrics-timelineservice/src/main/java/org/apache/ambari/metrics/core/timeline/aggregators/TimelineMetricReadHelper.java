@@ -53,6 +53,9 @@ public class TimelineMetricReadHelper {
   public TimelineMetric getTimelineMetricFromResultSet(ResultSet rs)
     throws SQLException, IOException {
     TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
+    if (metric == null) {
+      return null;
+    }
     TreeMap<Long, Double> sortedByTimeMetrics = PhoenixHBaseAccessor.readMetricFromJSON(rs.getString("METRICS"));
     metric.setMetricValues(sortedByTimeMetrics);
     return metric;
@@ -110,6 +113,9 @@ public class TimelineMetricReadHelper {
 
     byte[] uuid = rs.getBytes("UUID");
     TimelineMetric metric = metadataManagerInstance.getMetricFromUuid(uuid);
+    if (metric == null) {
+      return null;
+    }
     if (ignoreInstance) {
       metric.setInstanceId(null);
     }
@@ -147,7 +153,9 @@ public class TimelineMetricReadHelper {
 
     byte[] uuid = rs.getBytes("UUID");
     TimelineMetric timelineMetric = metadataManagerInstance.getMetricFromUuid(uuid);
-
+    if (timelineMetric == null) {
+      return null;
+    }
     return new TimelineClusterMetric(
       timelineMetric.getMetricName(),
       timelineMetric.getAppId(),
