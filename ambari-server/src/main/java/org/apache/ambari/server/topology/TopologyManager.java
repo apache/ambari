@@ -275,6 +275,8 @@ public class TopologyManager {
                                                String rawRequestBody) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
 
+    ambariContext.downloadMissingMpacks(request.getAllMpacks());
+
     ClusterTopology initialTopology = ambariContext.createClusterTopology(request);
     final ClusterTopology topology = request.shouldValidateTopology()
       ? topologyValidatorService.validate(initialTopology) // FIXME known stacks validation is too late here

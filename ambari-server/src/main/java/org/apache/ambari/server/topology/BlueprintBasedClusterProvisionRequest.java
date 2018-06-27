@@ -56,8 +56,6 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
       addAll(blueprint.getMpacks()).
       addAll(request.getMpacks()).build();
 
-    ambariContext.downloadMissingMpacks(mpacks);
-
     stack = ambariContext.composeStacks(stackIds);
 
     securityConfiguration = processSecurityConfiguration(securityConfigurationFactory);
