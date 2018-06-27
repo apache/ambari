@@ -56,10 +56,21 @@
     </xs:restriction>
   </xs:simpleType>
   
+  <!-- Cooresponds to the SecurityType enumeration -->
   <xs:simpleType name="security-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="none" />
       <xs:enumeration value="kerberos" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Cooresponds to the KDCType enumeration -->
+  <xs:simpleType name="kdc-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NONE" />
+      <xs:enumeration value="MIT" />
+      <xs:enumeration value="AD" />
+      <xs:enumeration value="IPA" />
     </xs:restriction>
   </xs:simpleType>
 
@@ -92,6 +103,7 @@
     <xs:complexContent>
       <xs:extension base="abstract-condition-type">  
         <xs:attribute name="type" type="security-type" use="required"/>
+        <xs:attribute name="kdc-type" type="kdc-type" use="optional"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

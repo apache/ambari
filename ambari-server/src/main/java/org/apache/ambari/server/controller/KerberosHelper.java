@@ -798,6 +798,20 @@ public interface KerberosHelper {
    * @return a map of configuration types to sets of property names
    */
   Map<String, Set<String>> translateConfigurationSpecifications(Collection<String> configurationSpecifications);
+  
+  /**
+   * Gathers the Kerberos-related data from configurations and stores it in a new KerberosDetails
+   * instance.
+   *
+   * @param cluster          the relevant Cluster
+   * @param manageIdentities a Boolean value indicating how to override the configured behavior
+   *                         of managing Kerberos identities; if null the configured behavior
+   *                         will not be overridden
+   * @return a new KerberosDetails with the collected configuration data
+   * @throws AmbariException
+   */
+  KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
+    throws KerberosInvalidConfigurationException, AmbariException;  
 
   /**
    * Types of Kerberos descriptors related to where the data is stored.

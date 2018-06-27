@@ -57,6 +57,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.KerberosDetails;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
@@ -69,6 +70,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stack.StackManagerMock;
@@ -2342,7 +2344,13 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
+    KerberosDetails kerberosDetails = createNiceMock(KerberosDetails.class);
+    expect(kerberosDetails.getKdcType()).andReturn(KDCType.NONE).atLeastOnce();
+    replay(kerberosDetails);
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING, false);
+    expect(context.getKerberosDetails()).andReturn(kerberosDetails).atLeastOnce();
+    replay(context);
 
     // initially, no conditions should be met, so only 1 group should be
     // available
@@ -2378,7 +2386,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     cluster.setSecurityType(SecurityType.KERBEROS);
 
     groups = m_upgradeHelper.createSequence(upgrade, context);
-    assertEquals(4, groups.size());
+    assertEquals(5, groups.size());
   }
 
   /**
@@ -2785,6 +2793,18 @@ public class UpgradeHelperTest extends EasyMockSupport {
    */
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction, UpgradeType type){
     return getMockUpgradeContext(cluster, direction, type, repositoryVersion2210);
+  }
+
+  /**
+   * @param cluster
+   * @param direction
+   * @param type
+   * @param replay
+   * @return
+   */
+  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction, UpgradeType type, boolean replay){
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion2210,
+        RepositoryType.STANDARD, cluster.getServices().keySet(), m_masterHostResolver, replay);
   }
 
   /**
