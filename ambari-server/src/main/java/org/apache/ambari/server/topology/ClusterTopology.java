@@ -49,11 +49,6 @@ public interface ClusterTopology {
   void setClusterId(Long clusterId);
 
   /**
-   * @return the cluster name
-   */
-  String getClusterName();
-
-  /**
    * Get the blueprint associated with the cluster.
    *
    * @return associated blueprint
@@ -257,4 +252,6 @@ public interface ClusterTopology {
   ClusterTopology withAdditionalComponents(Map<String, Set<ResolvedComponent>> additionalComponents) throws InvalidTopologyException;
 
   Set<String> getHostNames();
+
+  SecurityConfiguration getSecurity();
 }

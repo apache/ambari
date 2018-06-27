@@ -51,12 +51,12 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   public BlueprintBasedClusterProvisionRequest(AmbariContext ambariContext, SecurityConfigurationFactory securityConfigurationFactory, Blueprint blueprint, ProvisionRequest request) {
     this.blueprint = blueprint;
     this.request = request;
-
     stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), request.getStackIds()));
-    stack = ambariContext.composeStacks(stackIds);
     mpacks = ImmutableSet.<MpackInstance>builder().
       addAll(blueprint.getMpacks()).
       addAll(request.getMpacks()).build();
+
+    stack = ambariContext.composeStacks(stackIds);
 
     securityConfiguration = processSecurityConfiguration(securityConfigurationFactory);
 
@@ -101,11 +101,6 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   }
 
   @Override
-  public SecurityConfiguration getSecurityConfiguration() {
-    return securityConfiguration;
-  }
-
-  @Override
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
     return blueprint.getHostGroupsForComponent(component);
   }
@@ -117,18 +112,18 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   }
 
   @Override
+  public SecurityConfiguration getSecurityConfiguration() {
+    return securityConfiguration;
+  }
+
+  @Override
   public BlueprintEntity toEntity() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public Long getClusterId() {
-    return null;
-  }
-
-  @Override
-  public String getClusterName() {
-    return request.getClusterName();
+    return request.getClusterId();
   }
 
   @Override
@@ -194,4 +189,9 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   public boolean ensureKerberosClientIsPresent() {
     return blueprint.ensureKerberosClientIsPresent();
   }
+
+  public Set<MpackInstance> getAllMpacks() {
+    return mpacks;
+  }
+
 }

@@ -75,10 +75,13 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   public static final String SERVICE_GROUP_CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_id";
   public static final String SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
   public static final String SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
-  public static final String SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
+  public static final String SERVICE_GROUP_NAME = "service_group_name";
+  public static final String SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_GROUP_NAME;
   public static final String SERVICE_GROUP_MPACK_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
-  public static final String SERVICE_GROUP_MPACK_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_name";
-  public static final String SERVICE_GROUP_MPACK_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_version";
+  public static final String MPACK_NAME = "mpack_name";
+  public static final String SERVICE_GROUP_MPACK_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + MPACK_NAME;
+  public static final String MPACK_VERSION = "mpack_version";
+  public static final String SERVICE_GROUP_MPACK_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + MPACK_VERSION;
 
   /**
    * The pieces of the Mpack (ID, name, version) should be broken out - there's

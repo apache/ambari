@@ -28,6 +28,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -44,10 +45,10 @@ import com.google.common.collect.ImmutableSet;
 public class DownloadMpacksTask {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMpacksTask.class);
 
-  private MpackResourceProvider mpackResourceProvider;
+  private ResourceProvider mpackResourceProvider;
   private AmbariMetaInfo ambariMetaInfo;
 
-  public DownloadMpacksTask(MpackResourceProvider mpackResourceProvider, AmbariMetaInfo ambariMetaInfo) {
+  public DownloadMpacksTask(ResourceProvider mpackResourceProvider, AmbariMetaInfo ambariMetaInfo) {
     this.mpackResourceProvider = mpackResourceProvider;
     this.ambariMetaInfo = ambariMetaInfo;
   }

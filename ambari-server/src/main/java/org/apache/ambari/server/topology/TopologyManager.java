@@ -48,7 +48,6 @@ import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
-import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
@@ -145,9 +144,6 @@ public class TopologyManager {
   private final Object initializationLock = new Object();
 
   @Inject
-  private SecurityConfigurationFactory securityConfigurationFactory;
-
-  @Inject
   private ConfigureClusterTaskFactory configureClusterTaskFactory;
 
   @Inject
@@ -158,9 +154,6 @@ public class TopologyManager {
 
   @Inject
   private TopologyValidatorService topologyValidatorService;
-
-  @Inject
-  private ComponentResolver resolver;
 
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
@@ -282,21 +275,15 @@ public class TopologyManager {
                                                String rawRequestBody) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
 
-    MpackResourceProvider mpackResourceProvider = (MpackResourceProvider)
-      AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Mpack);
-    new DownloadMpacksTask(mpackResourceProvider, AmbariServer.getController().getAmbariMetaInfo()).
-      downloadMissingMpacks(request.getAllMpacks());
+    ambariContext.downloadMissingMpacks(request.getAllMpacks());
 
-    BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
-    Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
-
-    ClusterTopology initialTopology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
-    final String clusterName = request.getClusterName();
-    final SecurityConfiguration securityConfiguration = provisionRequest.getSecurity();
-
+    ClusterTopology initialTopology = ambariContext.createClusterTopology(request);
     final ClusterTopology topology = request.shouldValidateTopology()
       ? topologyValidatorService.validate(initialTopology) // FIXME known stacks validation is too late here
       : initialTopology;
+
+    final String clusterName = request.getClusterName();
+    final SecurityConfiguration securityConfiguration = topology.getSecurity();
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
@@ -335,8 +322,11 @@ public class TopologyManager {
 
     clusterTopologyMap.put(clusterId, topology);
 
-    addClusterConfigRequest(logicalRequest, topology, new ClusterConfigurationRequest(ambariContext, topology, true,
-      stackAdvisorBlueprintProcessor, securityConfiguration.getType() == SecurityType.KERBEROS));
+    ClusterConfigurationRequest configurationRequest = new ClusterConfigurationRequest(ambariContext, topology,
+      stackAdvisorBlueprintProcessor, securityConfiguration.getType() == SecurityType.KERBEROS
+    );
+    configurationRequest.setInitialConfigurations();
+    addClusterConfigRequest(logicalRequest, topology, configurationRequest);
 
     // Process the logical request
     processRequest(request, topology, logicalRequest);
@@ -367,7 +357,7 @@ public class TopologyManager {
    * one.
    * @param quickLinksProfileJson the quicklinks profile in Json format
    */
-  void saveOrUpdateQuickLinksProfile(String quickLinksProfileJson) {
+  private void saveOrUpdateQuickLinksProfile(String quickLinksProfileJson) {
     SettingEntity settingEntity = settingDAO.findByName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE);
     // create new
     if (null == settingEntity) {
@@ -391,7 +381,7 @@ public class TopologyManager {
   private void submitCredential(String clusterName, Credential credential) {
 
     ResourceProvider provider =
-        ambariContext.getClusterController().ensureResourceProvider(Resource.Type.Credential);
+        AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Credential);
 
     Map<String, Object> properties = new HashMap<>();
     properties.put(CredentialResourceProvider.CREDENTIAL_CLUSTER_NAME_PROPERTY_ID, clusterName);
@@ -586,14 +576,13 @@ public class TopologyManager {
     throws InvalidTopologyException, AmbariException {
 
     // persist quick links profile if present
-    if (null != request.getQuickLinksProfileJson()) {
-      saveOrUpdateQuickLinksProfile(request.getQuickLinksProfileJson());
+    String quickLinksProfileJson = request.getQuickLinksProfileJson();
+    if (null != quickLinksProfileJson) {
+      saveOrUpdateQuickLinksProfile(quickLinksProfileJson);
     }
 
     // create and persist topology request
-    LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, logicalRequestId);
-
-    return logicalRequest;
+    return processAndPersistTopologyRequest(request, topology, logicalRequestId);
 
   }
 
@@ -1005,16 +994,18 @@ public class TopologyManager {
     boolean configChecked = false;
     for (Map.Entry<ClusterTopology, List<LogicalRequest>> requestEntry : persistedRequests.entrySet()) {
       ClusterTopology topology = requestEntry.getKey();
-      clusterTopologyMap.put(topology.getClusterId(), topology);
+      Long clusterId = topology.getClusterId();
+      clusterTopologyMap.put(clusterId, topology);
       // update provision request cache
-      LogicalRequest provisionRequest = persistedState.getProvisionRequest(topology.getClusterId());
-      if(provisionRequest != null) {
-        clusterProvisionWithBlueprintCreateRequests.put(topology.getClusterId(), provisionRequest);
-        clusterProvisionWithBlueprintCreationFinished.put(topology.getClusterId(),
-                isLogicalRequestFinished(clusterProvisionWithBlueprintCreateRequests.get(topology.getClusterId())));
-      }
 
+      LogicalRequest provisionRequest = null;
       for (LogicalRequest logicalRequest : requestEntry.getValue()) {
+        if (logicalRequest.getType() == TopologyRequest.Type.PROVISION) {
+          provisionRequest = logicalRequest;
+          boolean finished = isLogicalRequestFinished(clusterProvisionWithBlueprintCreateRequests.get(clusterId));
+          clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
+          clusterProvisionWithBlueprintCreationFinished.put(clusterId, finished);
+        }
         allRequests.put(logicalRequest.getRequestId(), logicalRequest);
         if (logicalRequest.hasPendingHostRequests()) {
           outstandingRequests.add(logicalRequest);
@@ -1040,18 +1031,18 @@ public class TopologyManager {
 
       if (!configChecked) {
         configChecked = true;
-        if (!ambariContext.isTopologyResolved(topology.getClusterId())) {
+        if (!ambariContext.isTopologyResolved(clusterId)) {
           if (provisionRequest == null) {
             LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, but provision request missing, skipping cluster config request");
           } else if (provisionRequest.isFinished()) {
             LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, but provision request is finished, skipping cluster config request");
           } else {
             LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
-            ClusterConfigurationRequest configRequest = new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+            ClusterConfigurationRequest configRequest = new ClusterConfigurationRequest(ambariContext, topology, stackAdvisorBlueprintProcessor);
             addClusterConfigRequest(provisionRequest, topology, configRequest);
           }
         } else {
-          getOrCreateTopologyTaskExecutor(topology.getClusterId()).start();
+          getOrCreateTopologyTaskExecutor(clusterId).start();
         }
       }
     }

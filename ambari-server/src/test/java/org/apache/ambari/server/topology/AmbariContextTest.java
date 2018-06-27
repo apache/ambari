@@ -46,6 +46,7 @@ import java.util.stream.Stream;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -58,6 +59,8 @@ import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -82,9 +85,11 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.powermock.api.easymock.PowerMock;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.util.Providers;
 
 /**
  * AmbariContext unit tests
@@ -149,7 +154,7 @@ public class AmbariContextTest {
     Class<AmbariContext> clazz = AmbariContext.class;
     Field f = clazz.getDeclaredField("controller");
     f.setAccessible(true);
-    f.set(null, controller);
+    f.set(context, Providers.of(controller));
 
     f = clazz.getDeclaredField("clusterController");
     f.setAccessible(true);
@@ -262,6 +267,7 @@ public class AmbariContextTest {
     expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
     expect(metaInfo.getClusterProperties()).andReturn(emptySet()).anyTimes();
 
+    expect(clusters.getCluster(CLUSTER_ID)).andReturn(cluster).anyTimes();
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(clusters.getClusterById(CLUSTER_ID)).andReturn(cluster).anyTimes();
     expect(clusters.getHost(HOST1)).andReturn(host1).anyTimes();
@@ -537,7 +543,7 @@ public class AmbariContextTest {
     replayAll();
 
     // verify that wait returns successfully with empty updated list passed in
-    context.waitForConfigurationResolution(CLUSTER_NAME, Collections.emptySet());
+    context.waitForConfigurationResolution(CLUSTER_ID, Collections.emptySet());
   }
 
   @Test
@@ -571,7 +577,7 @@ public class AmbariContextTest {
 
     // verify that wait returns successfully with non-empty list
     // with all configuration types tagged as "TOPOLOGY_RESOLVED"
-    context.waitForConfigurationResolution(CLUSTER_NAME, testUpdatedConfigTypes);
+    context.waitForConfigurationResolution(CLUSTER_ID, testUpdatedConfigTypes);
   }
 
   @Test
@@ -677,4 +683,36 @@ public class AmbariContextTest {
     // Then
     assertFalse(topologyResolved);
   }
+
+  @Test
+  public void testProvisionCluster_downloadMissingMpack() throws Exception {
+    PowerMock.mockStatic(AmbariContext.class);
+    expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
+
+    // given
+    MpackInstance mpack1 = new MpackInstance("HDPCORE", "HDPCORE", "1.0.0.0", "http://mpacks.org/hdpcore", Configuration.createEmpty());
+    MpackInstance mpack2 = new MpackInstance("HDF", "HDF", "3.3.0", "http://mpacks.org/hdf", Configuration.createEmpty());
+    expect(metaInfo.getStack(mpack1.getStackId())).andReturn(null);
+    expect(metaInfo.getStack(mpack2.getStackId())).andThrow(new StackAccessException("Testing missing stack"));
+
+    MpackResourceProvider mpackResourceProvider = createNiceMock(MpackResourceProvider.class);
+    expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
+
+    Capture<Request> mpackRequestCapture = Capture.newInstance();
+    expect(mpackResourceProvider.createResources(capture(mpackRequestCapture)))
+      .andReturn(new RequestStatusImpl(null, null, null))
+      .once();
+
+    PowerMock.replay(AmbariContext.class);
+    replay(clusterController, metaInfo, mpackResourceProvider);
+
+    // when
+    context.downloadMissingMpacks(ImmutableSet.of(mpack1, mpack2));
+
+    // then
+    Set<Map<String, Object>> requests = mpackRequestCapture.getValue().getProperties();
+    assertEquals(1, requests.size());
+    assertEquals(mpack2.getUrl(), requests.iterator().next().get(MpackResourceProvider.MPACK_URI));
+  }
+
 }
