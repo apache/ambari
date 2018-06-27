@@ -278,7 +278,9 @@ class ActionQueue(threading.Thread):
     logger.info("Command execution metadata - taskId = {taskId}, retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}, log_output = {log_command_output}".
                  format(taskId=taskId, retryAble=retryAble, retryDuration=retryDuration, log_command_output=log_command_output))
     command_canceled = False
+
     self.cancelEvent.clear()
+    self.taskIdsToCancel.discard(taskId) # for case of command reschedule (e.g. command and cancel for the same taskId are send at the same time)
 
     while retryDuration >= 0:
       if taskId in self.taskIdsToCancel:
