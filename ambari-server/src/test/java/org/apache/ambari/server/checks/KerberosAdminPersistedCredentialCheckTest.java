@@ -245,6 +245,7 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
         bind(ArtifactDAO.class).toInstance(createNiceMock(ArtifactDAO.class));
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(UpgradeHelper.class).toInstance(upgradeHelper);
+        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
 
         bind(CredentialStoreService.class).toInstance(createMock(CredentialStoreService.class));
       }

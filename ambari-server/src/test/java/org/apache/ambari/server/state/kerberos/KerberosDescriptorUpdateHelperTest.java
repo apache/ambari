@@ -40,6 +40,7 @@ import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
@@ -118,6 +119,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
         bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
         bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
+        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
       }
     });
 
