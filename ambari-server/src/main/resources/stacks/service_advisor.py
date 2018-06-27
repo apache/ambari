@@ -107,6 +107,15 @@ class ServiceAdvisor(DefaultStackAdvisor):
     """
     return self.getServiceConfigurationRecommendations(configurations, clusterSummary, services, hosts)
 
+  def getActiveHosts(self, hosts):
+    """ Filters the list of specified hosts object and returns
+        a list of hosts which are not in maintenance mode. """
+    hostsList = []
+    if hosts is not None:
+      hostsList = [host['host_name'] for host in hosts
+                   if host.get('maintenance_state') is None or host.get('maintenance_state') == "OFF"]
+    return hostsList
+
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
     Returns an array of Validation objects about issues with the hostnames to which components are assigned.
@@ -114,6 +123,65 @@ class ServiceAdvisor(DefaultStackAdvisor):
     The default validations are in stack_advisor.py getComponentLayoutValidations function.
     """
     return []
+
+  def getServiceComponentCardinalityValidations(self, services, hosts, service_name):
+    """
+    Returns an array of Validation objects about issues with the hostnames to which components are assigned.
+    This should detect cardinality Validation issues.
+    """
+    items = []
+    hostsSet = set(self.getActiveHosts(
+      [host["Hosts"] for host in hosts["items"]]))  # [host["Hosts"]["host_name"] for host in hosts["items"]]
+    hostsCount = len(hostsSet)
+
+    target_service = None
+    for service in services["services"]:
+      if service["StackServices"]["service_name"] == service_name:
+        target_service = service
+    if not target_service:
+      return []
+    componentsList = target_service["components"]
+
+    # Validating cardinality
+    for component in componentsList:
+      if component["StackServiceComponents"]["cardinality"] is not None:
+        componentName = component["StackServiceComponents"]["component_name"]
+        componentDisplayName = component["StackServiceComponents"]["display_name"]
+        componentHosts = []
+        if component["StackServiceComponents"]["hostnames"] is not None:
+          componentHosts = [componentHost for componentHost in component["StackServiceComponents"]["hostnames"] if
+                            componentHost in hostsSet]
+        componentHostsCount = len(componentHosts)
+        cardinality = str(component["StackServiceComponents"]["cardinality"])
+        # cardinality types: null, 1+, 1-2, 1, ALL
+        message = None
+        if "+" in cardinality:
+          hostsMin = int(cardinality[:-1])
+          if componentHostsCount < hostsMin:
+            message = "at least {0} {1} components should be installed in cluster.".format(hostsMin,
+                                                                                           componentDisplayName)
+        elif "-" in cardinality:
+          nums = cardinality.split("-")
+          hostsMin = int(nums[0])
+          hostsMax = int(nums[1])
+          if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
+            message = "between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax,
+                                                                                                  componentDisplayName)
+        elif "ALL" == cardinality:
+          if componentHostsCount != hostsCount:
+            message = "{0} component should be installed on all hosts in cluster.".format(componentDisplayName)
+        else:
+          if componentHostsCount != int(cardinality):
+            message = "exactly {0} {1} components should be installed in cluster.".format(int(cardinality),
+                                                                                          componentDisplayName)
+
+        if message is not None:
+          message = "You have selected {0} {1} components. Please consider that {2}".format(componentHostsCount,
+                                                                                            componentDisplayName,
+                                                                                            message)
+          items.append(
+            {"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
+    return items
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     """

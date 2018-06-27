@@ -102,7 +102,7 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
     """
 
-    return []
+    return self.getServiceComponentCardinalityValidations(services, hosts, "LOGSEARCH")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     putLogSearchProperty = self.putProperty(configurations, "logsearch-properties", services)

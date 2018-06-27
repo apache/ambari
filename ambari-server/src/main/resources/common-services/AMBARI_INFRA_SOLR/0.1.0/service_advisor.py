@@ -102,7 +102,7 @@ class Ambari_Infra_SolrServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
     """
 
-    return []
+    return self.getServiceComponentCardinalityValidations(services, hosts, "AMBARI_INFRA_SOLR")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     """
