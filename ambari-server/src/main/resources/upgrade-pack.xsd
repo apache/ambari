@@ -56,7 +56,7 @@
     </xs:restriction>
   </xs:simpleType>
   
-  <!-- Cooresponds to the SecurityType enumeration -->
+  <!-- Corresponds to the SecurityType enumeration -->
   <xs:simpleType name="security-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="none" />
@@ -64,7 +64,7 @@
     </xs:restriction>
   </xs:simpleType>
 
-  <!-- Cooresponds to the KDCType enumeration -->
+  <!-- Corresponds to the KDCType enumeration -->
   <xs:simpleType name="kdc-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="none" />
