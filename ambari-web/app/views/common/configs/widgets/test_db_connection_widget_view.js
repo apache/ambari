@@ -295,7 +295,8 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
       KERBEROS: ['kdc_hosts'],
       RANGER: ranger && ranger.compareCurrentVersion('0.5') > -1 ?
         ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
-        ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
+        ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver'],
+      RANGER_KMS: ['db_user', 'db_password', 'ranger.ks.jpa.jdbc.url', 'ranger.ks.jpa.jdbc.driver']
     };
     return propertiesMap[this.get('parentView.content.serviceName')];
   }.property(),
