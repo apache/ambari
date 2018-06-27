@@ -103,12 +103,6 @@ public class UpgradePack {
   @XmlElement(name = "downgrade-allowed", required = false)
   private boolean downgradeAllowed = true;
 
-  /**
-   * {@code true} to automatically skip service check failures. The default is
-   * {@code false}.
-   */
-  @XmlElement(name = "skip-service-check-failures")
-  private boolean skipServiceCheckFailures = false;
 
   @XmlTransient
   private Map<String, List<String>> m_orders = null;
@@ -185,25 +179,6 @@ public class UpgradePack {
    */
   public String getTargetStack() {
     return targetStack;
-  }
-
-  /**
-   * Gets whether skippable components that failed are automatically skipped.
-   *
-   * @return the skipComponentFailures
-   */
-  public boolean isComponentFailureAutoSkipped() {
-    return skipFailures;
-  }
-
-  /**
-   * Gets whether skippable service checks that failed are automatically
-   * skipped.
-   *
-   * @return the skipServiceCheckFailures
-   */
-  public boolean isServiceCheckFailureAutoSkipped() {
-    return skipServiceCheckFailures;
   }
 
   /**

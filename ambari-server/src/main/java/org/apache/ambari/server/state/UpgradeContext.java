@@ -48,6 +48,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.PreUpgradeCheckResourceProvider;
+import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -58,6 +59,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.dao.UpgradePlanDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -222,17 +224,24 @@ public class UpgradeContext {
   @Inject
   private Configuration configuration;
 
+  /**
+   * Constructor for {@link UpgradeContextFactory#create(Cluster, Map)} that is used
+   * when making an upgrade context from {@link UpgradeResourceProvider}
+   */
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster,
-      @Assisted Map<String, Object> upgradeRequestMap, Gson gson, UpgradeHelper upgradeHelper,
-      UpgradeDAO upgradeDAO, ConfigHelper configHelper)
+      @Assisted Map<String, Object> upgradeRequestMap, Gson gson,
+      AmbariMetaInfo metaInfo,
+      UpgradeHelper upgradeHelper, UpgradeDAO upgradeDAO, ConfigHelper configHelper,
+      UpgradePlanDAO upgradePlanDAO)
       throws AmbariException {
     // injected constructor dependencies
     m_gson = gson;
-    m_upgradeHelper = upgradeHelper;
     m_upgradeDAO = upgradeDAO;
     m_cluster = cluster;
+    m_metaInfo = metaInfo;
     m_isRevert = upgradeRequestMap.containsKey(UPGRADE_REVERT_UPGRADE_ID);
+
 
     if (m_isRevert) {
       m_revertUpgradeId = Long.valueOf(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
@@ -292,7 +301,13 @@ public class UpgradeContext {
       // !!! direction can ONLY be an downgrade on revert
       m_direction = Direction.DOWNGRADE;
     } else {
-      UpgradePlanEntity upgradePlan = null;
+      if (!upgradeRequestMap.containsKey(UPGRADE_PLAN_ID)) {
+        throw new AmbariException("An upgrade can only be started from an Upgrade Plan.");
+      }
+
+      Long upgradePlanId = Long.valueOf(upgradeRequestMap.get(UPGRADE_PLAN_ID).toString());
+      UpgradePlanEntity upgradePlan = upgradePlanDAO.findByPK(upgradePlanId);
+
       m_direction = upgradePlan.getDirection();
 
       // depending on the direction, we must either have a target repository or an upgrade we are downgrading from
@@ -341,8 +356,8 @@ public class UpgradeContext {
     // optionally skip failures - this can be supplied on either the request or
     // in the upgrade pack explicitely, however the request will always override
     // the upgrade pack if explicitely specified
-    boolean skipComponentFailures = m_upgradePack.isComponentFailureAutoSkipped();
-    boolean skipServiceCheckFailures = m_upgradePack.isServiceCheckFailureAutoSkipped();
+    boolean skipComponentFailures = false;
+    boolean skipServiceCheckFailures = false;
 
     // only override the upgrade pack if set on the request
     if (upgradeRequestMap.containsKey(UPGRADE_SKIP_FAILURES)) {
@@ -370,7 +385,8 @@ public class UpgradeContext {
   }
 
   /**
-   * Constructor.
+   * Constructor for {@link UpgradeContextFactory#create(Cluster, UpgradeEntity)} that
+   * loads an upgrade context from storage.
    *
    * @param cluster
    *          the cluster that the upgrade is for
@@ -782,7 +798,7 @@ public class UpgradeContext {
    * @throws AmbariException
    */
   private UpgradeType calculateUpgradeType(Map<String, Object> upgradeRequestMap,
-                                           UpgradeEntity upgradeEntity) throws AmbariException{
+                                           UpgradeEntity upgradeEntity) throws AmbariException {
 
     UpgradeType upgradeType = UpgradeType.ROLLING;
 

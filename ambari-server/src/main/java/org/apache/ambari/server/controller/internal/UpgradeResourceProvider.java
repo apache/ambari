@@ -27,8 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -66,6 +64,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.dao.UpgradePlanDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -73,13 +72,13 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
@@ -105,6 +104,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
@@ -134,22 +134,27 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   public static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
   public static final String UPGRADE_SUSPENDED = "Upgrade/suspended";
   public static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
+  @Deprecated
   public static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
+  @Deprecated
   public static final String UPGRADE_FAIL_ON_CHECK_WARNINGS = "Upgrade/fail_on_check_warnings";
 
   /**
    * Skip slave/client component failures if the tasks are skippable.
    */
+  @Deprecated
   public static final String UPGRADE_SKIP_FAILURES = "Upgrade/skip_failures";
 
   /**
    * Skip service check failures if the tasks are skippable.
    */
+  @Deprecated
   public static final String UPGRADE_SKIP_SC_FAILURES = "Upgrade/skip_service_check_failures";
 
   /**
    * Skip manual verification tasks for hands-free upgrade/downgrade experience.
    */
+  @Deprecated
   public static final String UPGRADE_SKIP_MANUAL_VERIFICATION = "Upgrade/skip_manual_verification";
 
   /**
@@ -200,11 +205,39 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
 
-  private static final Set<String> PROPERTY_IDS = new HashSet<>();
+  private static final Set<String> PROPERTY_IDS = Sets.newHashSet(
+      UPGRADE_CLUSTER_NAME,
+      UPGRADE_PLAN_ID,
+      UPGRADE_TYPE,
+      UPGRADE_ID,
+      UPGRADE_REQUEST_ID,
+      UPGRADE_SUMMARY,
+      UPGRADE_VERSIONS,
+      UPGRADE_DIRECTION,
+      UPGRADE_DOWNGRADE_ALLOWED,
+      UPGRADE_SUSPENDED,
+      UPGRADE_SKIP_FAILURES,
+      UPGRADE_SKIP_SC_FAILURES,
+      UPGRADE_SKIP_MANUAL_VERIFICATION,
+      UPGRADE_SKIP_PREREQUISITE_CHECKS,
+      UPGRADE_FAIL_ON_CHECK_WARNINGS,
+      UPGRADE_HOST_ORDERED_HOSTS,
+      UPGRADE_REVERT_UPGRADE_ID,
+
+      REQUEST_CONTEXT_ID,
+      REQUEST_CREATE_TIME_ID,
+      REQUEST_END_TIME_ID,
+      REQUEST_EXCLUSIVE_ID,
+      REQUEST_PROGRESS_PERCENT_ID,
+      REQUEST_START_TIME_ID,
+      REQUEST_STATUS_PROPERTY_ID,
+      REQUEST_TYPE_ID);
+
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.of(
+      Resource.Type.Upgrade, UPGRADE_REQUEST_ID,
+      Resource.Type.Cluster, UPGRADE_CLUSTER_NAME);
 
   private static final String DEFAULT_REASON_TEMPLATE = "Aborting upgrade %s";
-
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
   protected static UpgradeDAO s_upgradeDAO = null;
@@ -258,39 +291,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private RequestDAO requestDAO;
 
-  static {
-    // properties
-    PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
-    PROPERTY_IDS.add(UPGRADE_PLAN_ID);
-    PROPERTY_IDS.add(UPGRADE_TYPE);
-    PROPERTY_IDS.add(UPGRADE_ID);
-    PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
-    PROPERTY_IDS.add(UPGRADE_SUMMARY);
-    PROPERTY_IDS.add(UPGRADE_VERSIONS);
-    PROPERTY_IDS.add(UPGRADE_DIRECTION);
-    PROPERTY_IDS.add(UPGRADE_DOWNGRADE_ALLOWED);
-    PROPERTY_IDS.add(UPGRADE_SUSPENDED);
-    PROPERTY_IDS.add(UPGRADE_SKIP_FAILURES);
-    PROPERTY_IDS.add(UPGRADE_SKIP_SC_FAILURES);
-    PROPERTY_IDS.add(UPGRADE_SKIP_MANUAL_VERIFICATION);
-    PROPERTY_IDS.add(UPGRADE_SKIP_PREREQUISITE_CHECKS);
-    PROPERTY_IDS.add(UPGRADE_FAIL_ON_CHECK_WARNINGS);
-    PROPERTY_IDS.add(UPGRADE_HOST_ORDERED_HOSTS);
-    PROPERTY_IDS.add(UPGRADE_REVERT_UPGRADE_ID);
-
-    PROPERTY_IDS.add(REQUEST_CONTEXT_ID);
-    PROPERTY_IDS.add(REQUEST_CREATE_TIME_ID);
-    PROPERTY_IDS.add(REQUEST_END_TIME_ID);
-    PROPERTY_IDS.add(REQUEST_EXCLUSIVE_ID);
-    PROPERTY_IDS.add(REQUEST_PROGRESS_PERCENT_ID);
-    PROPERTY_IDS.add(REQUEST_START_TIME_ID);
-    PROPERTY_IDS.add(REQUEST_STATUS_PROPERTY_ID);
-    PROPERTY_IDS.add(REQUEST_TYPE_ID);
-
-    // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_REQUEST_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, UPGRADE_CLUSTER_NAME);
-  }
+  @Inject
+  private UpgradePlanDAO upgradePlanDAO;
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeResourceProvider.class);
 
@@ -320,6 +322,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     final String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
     final Cluster cluster;
 
+    if (!requestMap.containsKey(UPGRADE_PLAN_ID)) {
+      throw new SystemException(String.format("%s must be specified", UPGRADE_PLAN_ID));
+    }
+
+    long upgradePlanId = Long.valueOf(requestMap.get(UPGRADE_PLAN_ID).toString());
+    final UpgradePlanEntity upgradePlan = upgradePlanDAO.findByPK(upgradePlanId);
+
     try {
       cluster = clusters.get().getCluster(clusterName);
     } catch (AmbariException e) {
@@ -341,7 +350,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         final UpgradeContext upgradeContext = s_upgradeContextFactory.create(cluster, requestMap);
 
         try {
-          return createUpgrade(upgradeContext);
+          return createUpgrade(upgradeContext, upgradePlan);
         } catch (Exception e) {
           LOG.error("Error appears during upgrade task submitting", e);
 
@@ -655,42 +664,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Inject variables into the
-   * {@link org.apache.ambari.server.orm.entities.UpgradeItemEntity}, whose
-   * tasks may use strings like {{configType/propertyName}} that need to be
-   * retrieved from the properties.
-   *
-   * @param configHelper
-   *          Configuration Helper
-   * @param cluster
-   *          Cluster
-   * @param upgradeItem
-   *          the item whose tasks will be injected.
-   */
-  private void injectVariables(ConfigHelper configHelper, Cluster cluster,
-      UpgradeItemEntity upgradeItem) {
-    final String regexp = "(\\{\\{.*?\\}\\})";
-
-    String task = upgradeItem.getTasks();
-    if (task != null && !task.isEmpty()) {
-      Matcher m = Pattern.compile(regexp).matcher(task);
-      while (m.find()) {
-        String origVar = m.group(1);
-        String configValue = configHelper.getPlaceholderValueFromDesiredConfigurations(cluster,
-            origVar);
-
-        if (null != configValue) {
-          task = task.replace(origVar, configValue);
-        } else {
-          LOG.error("Unable to retrieve value for {}", origVar);
-        }
-
-      }
-      upgradeItem.setTasks(task);
-    }
-  }
-
-  /**
    * Creates the upgrade. All Request/Stage/Task and Upgrade entities will exist
    * in the database when this method completes.
    * <p/>
@@ -705,16 +678,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    * @throws AuthorizationException
    */
-  protected UpgradeEntity createUpgrade(UpgradeContext upgradeContext)
+  protected UpgradeEntity createUpgrade(UpgradeContext upgradeContext, UpgradePlanEntity upgradePlan)
       throws AmbariException, AuthorizationException {
 
     UpgradePack pack = upgradeContext.getUpgradePack();
     Cluster cluster = upgradeContext.getCluster();
     Direction direction = upgradeContext.getDirection();
 
-    ConfigHelper configHelper = getManagementController().getConfigHelper();
-
-    List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, upgradeContext);
+    List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(upgradeContext, upgradePlan);
 
     if (groups.isEmpty()) {
       throw new AmbariException("There are no groupings available");
@@ -795,7 +766,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             itemEntity.setTasks(wrapper.getTasksJson());
             itemEntity.setHosts(wrapper.getHostsJson());
 
-            injectVariables(configHelper, cluster, itemEntity);
             if (makeServerSideStage(group, upgradeContext, null, req,
                 itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
               itemEntities.add(itemEntity);
@@ -807,8 +777,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           itemEntity.setTasks(wrapper.getTasksJson());
           itemEntity.setHosts(wrapper.getHostsJson());
           itemEntities.add(itemEntity);
-
-          injectVariables(configHelper, cluster, itemEntity);
 
           // upgrade items match a stage
           createStage(group, upgradeContext, null, req, itemEntity, wrapper);
