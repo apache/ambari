@@ -61,7 +61,7 @@ import com.google.common.collect.ImmutableSet;
  * ExportBlueprintRequest unit tests.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ InetAddress.class })
+@PrepareForTest({ExportBlueprintRequest.ExportedHostGroup.class})
 public class ExportBlueprintRequestTest {
   private static final String CLUSTER_NAME = "c1";
   private static final String CLUSTER_ID = "2";
