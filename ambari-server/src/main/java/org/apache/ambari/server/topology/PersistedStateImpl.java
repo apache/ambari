@@ -295,7 +295,7 @@ public class PersistedStateImpl implements PersistedState {
 
     @Override
     public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
-      return ConfigRecommendationStrategy.NEVER_APPLY;
+      return null;
     }
 
     @Override
@@ -305,7 +305,7 @@ public class PersistedStateImpl implements PersistedState {
 
     @Override
     public SecurityConfiguration getSecurityConfiguration() {
-      return SecurityConfiguration.NONE;
+      return null;
     }
   }
 
