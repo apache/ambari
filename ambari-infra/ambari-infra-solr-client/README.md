@@ -65,8 +65,8 @@ Ambari Infra Solr uses Solr 7 from Ambari 2.7.0, therefore it is required migrat
 
 ##### Prerequisites:
 - Upgrade Ambari server
-- Stop Ranger plugins (optional, but recommended, plugins won't operate anyway)
 - Do NOT restart Infra Solr after Ambari server upgrade (if you do, see [this](#if-solr-restarted))
+- There will be a small time window between backup collections and deleting collections - Ranger plugins will operate during that time, that means you can loose data during that time period. If that means a big problem in order to avoid that, you can enable to auudit to HDFS for that time.
 
 First make sure `ambari-infra-solr-client` is the latest. (If its before 2.7.x) It will contain the migrationHelper.py script at `/usr/lib/ambari-infra-solr-client` location.
 Also make sure you won't upgrade `ambari-infra-solr` until the migration has not done. (all of this should happen after `ambari-server` upgrade, also make sure to not restart `INFRA_SOLR` instances).
@@ -109,7 +109,7 @@ CONFIG_INI_LOCATION=ambari_solr_migration.ini # output of the script with requir
 Some important flags that can be added at this point;
 - `--shared-drive` : Use this flag if the location of the backup is shared between hosts (it will generate the index location as <index_location><hostname>, therefore migration commands can be parallel on different hosts)
 - `--backup-base-path`: base path of the backup. e.g. if you provide `/my/path`, the backup locations will be `/my/path/ranger` and `/my/path/atlas`, if the base path won't be the same for these, you can provie Ranger or Atlas specific ones with `--ranger-backup-base-path` and `--atlas-backup-base-path`
-- `--hdfs-base-path`: use this if index is stored hdfs, that is applied for all index, most of the time that is only used for ranger, so if that is the case ose `--ranger-hdfs-base-path` instead of this option, the value is mostly `/user/infra-solr` which means the collection itself could be at `hdfs:///user/infra-solr/ranger_audits` location
+- `--hdfs-base-path`: use this if index is stored hdfs (that does not mean that the backup is stored on hdfs, it is only the index location), that is applied for all index, most of the time that is only used for ranger, so if that is the case ose `--ranger-hdfs-base-path` instead of this option, the value is mostly `/user/infra-solr` which means the collection itself could be at `hdfs:///user/infra-solr/ranger_audits` location
 (IMPORTANT NOTE: if ranger index is stored on hdfs, make sure to use the proper `-Dsolr.hdfs.security.kerberos.principal` in `infra-solr-env/content` config, by default it points to the Infra Solr principal, but if it was set to something else before, that needs to be changed to that)
 
 The generated config file output could be something like that:
@@ -174,6 +174,7 @@ hadoop_logs_collection_name = hadoop_logs
 audit_logs_collection_name = audit_logs
 history_collection_name = history
 ```
+(NOTE: if Infra Solr is external from Ranger perspective and the Solr instances are not even located in the cluster, migrationConfigGenerator.py needs to be executed on the Infra Solr cluuster, then it won't find the Ranger service, so you will need to fill the Ranger parameters in the configuration ini file manually.`)
 
 After the file has created successfully by the script, review the configuration (e.g.: if 1 of the Solr is not up yet, and you do not want to use its REST API for operations, you can remove its host from the hosts of infra_solr section or you can change backup locations for different collections etc.). Also if it's not required to backup e.g. Atlas collections (so you are ok to drop those), you can change the `enabled` config of the collections section to `false`.
 
@@ -629,6 +630,14 @@ Next step is to restart Solr instances. That can be done on the Ambari UI, or op
 ### <a id="viii.-transport-old-data-to-new-collections">IX. Transport old data to new collections</a>
 
 Last step (that can be done any time, as you already have your data in Solr) is to transport all data from the backup collections to the live ones.
+It can be done by running `transport-old-data` action by migration helper script:
+
+```bash
+# working directory is under '/tmp/solrDataManager' folder
+/usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action transport-old-data
+```
+
+Or in the next few steps, you can see what needs to be done manually to transport old Ranger and Atlas Solr data to active collections.
 
 #### <a id="viii/1.-transport-old-data-to-ranger-collection">IX/1. Transport old data to Ranger collection</a>
 
@@ -703,7 +712,7 @@ For doing a backup + cleanup, then later migrate + restore, use the following co
 ```bash
 /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode backup
 /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode delete --skip-solr-client-upgrade
-# go ahead with HDP upgrade or anything else, then if you have resource / time:
+# go ahead with HDP upgrade or anything else, then if you have resource / time (recommended to use nohup as migrate part can take a lot of time):
 /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode migrate-restore # you can use --keep-backup option, it will keep the backup data, it's more safe but you need enough pace for that
 ```
 
@@ -749,9 +758,16 @@ Which is equivalent will execute the following migrationHelper.py commands:
 /usr/bin/python /usr/lib/ambari-infra-solr-client/migrationHelper.py --ini-file $CONFIG_INI_LOCATION --action restart-atlas
 ```
 
-##### 3. Transportsolr data from old collections to active collections (optional)
+##### 3. Transport Solr data from old collections to active collections (optional)
 
-See [transport old data to new collections](#viii.-transport-old-data-to-new-collections) step
+Run this command to transport old data to active collections:
+```bash
+# recommended to use with nohup as that command can take long time as well
+# working directory is under '/tmp/solrDataManager' folder
+/usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --ini-file $CONFIG_INI_LOCATION --mode transport
+```
+
+Or see [transport old data to new collections](#viii.-transport-old-data-to-new-collections) step
 
 ### <a id="appendix">APPENDIX</a>
 
@@ -807,11 +823,13 @@ Options:
                         and-cleanup | migrate | restore |'               '
                         rolling-restart-solr | rolling-restart-atlas |
                         rolling-restart-ranger | check-shards | check-backup-
-                        shards | disable-solr-authorization |'              '
-                        upgrade-solr-clients | upgrade-solr-instances |
-                        upgrade-logsearch-portal | upgrade-logfeeders | stop-
-                        logsearch | restart-solr |restart-logsearch | restart-
-                        ranger | restart-atlas
+                        shards | enable-solr-authorization | disable-solr-
+                        authorization |'              ' fix-solr5-kerberos-
+                        config | fix-solr7-kerberos-config | upgrade-solr-
+                        clients | upgrade-solr-instances | upgrade-logsearch-
+                        portal | upgrade-logfeeders | stop-logsearch |'
+                        ' restart-solr |restart-logsearch | restart-ranger |
+                        restart-atlas | transport-old-data
   -i INI_FILE, --ini-file=INI_FILE
                         Config ini file to parse (required)
   -f, --force           force index upgrade even if it's the right version
@@ -841,6 +859,11 @@ Options:
                         time interval between BACKUP/RESTORE status api calls
                         in the request
   --request-async       skip BACKUP/RESTORE status api calls from the command
+  --transport-read-block-size=TRANSPORT_READ_BLOCK_SIZE
+                        block size to use for reading from solr during
+                        transport
+  --transport-write-block-size=TRANSPORT_WRITE_BLOCK_SIZE
+                        number of records in the output files during transport
   --include-solr-hosts=INCLUDE_SOLR_HOSTS
                         comma separated list of included solr hosts
   --exclude-solr-hosts=EXCLUDE_SOLR_HOSTS
@@ -952,7 +975,8 @@ Options:
   -h, --help            show this help message and exit
   -m MODE, --mode=MODE  archive | delete | save
   -s SOLR_URL, --solr-url=SOLR_URL
-                        the url of the solr server including the port
+                        the url of the solr server including the port and
+                        protocol
   -c COLLECTION, --collection=COLLECTION
                         the name of the solr collection
   -f FILTER_FIELD, --filter-field=FILTER_FIELD
@@ -995,6 +1019,9 @@ Options:
   -v, --verbose
   --solr-output-collection=SOLR_OUTPUT_COLLECTION
                         target output solr collection for archive
+  --solr-output-url=SOLR_OUTPUT_URL
+                        the url of the output solr server including the port
+                        and protocol
   --exclude-fields=EXCLUDE_FIELDS
                         Comma separated list of excluded fields from json
                         response
@@ -1014,7 +1041,7 @@ Options:
 ```text
 Usage: /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --mode <MODE> --ini-file <ini_file> [additional options]
 
-   -m, --mode  <MODE>                     available migration modes: delete-only | backup-only | migrate-restore | all
+   -m, --mode  <MODE>                     available migration modes: delete-only | backup-only | migrate-restore | all | transport
    -i, --ini-file <INI_FILE>              ini-file location (used by migrationHelper.py)
    -s, --migration-script-location <file> migrateHelper.py location (default: /usr/lib/ambari-infra-solr-client/migrationHelper.py)
    -w, --wait-between-steps <seconds>     wait between different migration steps in seconds (default: 15)
