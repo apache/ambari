@@ -18,7 +18,7 @@ function print_help() {
   cat << EOF
    Usage: /usr/lib/ambari-infra-solr-client/ambariSolrMigration.sh --mode <MODE> --ini-file <ini_file> [additional options]
 
-   -m, --mode  <MODE>                     available migration modes: delete-only | backup-only | migrate-restore | all
+   -m, --mode  <MODE>                     available migration modes: delete-only | backup-only | migrate-restore | all | transport
    -i, --ini-file <INI_FILE>              ini-file location (used by migrationHelper.py)
    -s, --migration-script-location <file> migrateHelper.py location (default: /usr/lib/ambari-infra-solr-client/migrationHelper.py)
    -w, --wait-between-steps <seconds>     wait between different migration steps in seconds (default: 15)
@@ -89,6 +89,13 @@ function run_migrate_commands() {
 
   start_date=$(date +%s)
 
+  # execute on: transport
+  if [[ "$mode" == "transport" ]] ; then
+    log_command "$python_location $script_location --ini-file $ini_file --action transport-old-data $verbose_val"
+    $python_location $script_location --ini-file $ini_file --action transport-old-data $verbose_val
+    handle_result "$?" "Transport Old Solr Data" "$python_location" "$start_date"
+  fi
+
   # execute on: backup - all
   if [[ "$mode" == "backup" || "$mode" == "all" ]] ; then
     log_command "$python_location $script_location --ini-file $ini_file --action check-shards $verbose_val $skip_warnings_val"
@@ -97,7 +104,7 @@ function run_migrate_commands() {
   fi
 
   # execute on: backup - delete - all
-  if [[ "$mode" != "migrate-restore" ]] ; then
+  if [[ "$mode" == "delete" || "$mode" == "backup" || "$mode" == "all" ]] ; then
     if [[ "$skip_solr_client_upgrade" != "true" ]]; then
       log_command "$python_location $script_location --ini-file $ini_file --action upgrade-solr-clients $verbose_val"
       $python_location $script_location --ini-file $ini_file --action upgrade-solr-clients $verbose_val
@@ -302,7 +309,7 @@ function main() {
     print_help
     exit 1
   else
-    if [[ "$MODE" == "delete" || "$MODE" == "backup" || "$MODE" == "migrate-restore" || "$MODE" == "all" ]]; then
+    if [[ "$MODE" == "delete" || "$MODE" == "backup" || "$MODE" == "migrate-restore" || "$MODE" == "all" || "$MODE" == "transport" ]]; then
       run_migrate_commands "$MODE" "$SCRIPT_LOCATION" "$PYTHON_PATH_FOR_MIGRATION" "$INI_FILE" "$WAIT" "$SKIP_SOLR_CLIENT_UPGRADE" "$SKIP_SOLR_SERVER_UPGRADE" "$SKIP_LOGSEARCH_UPGRADE" "$SKIP_WARNINGS" "$BATCH_INTERVAL" "$KEEP_BACKUP" "$VERBOSE"
     else
       echo "mode '$MODE' is not supported"

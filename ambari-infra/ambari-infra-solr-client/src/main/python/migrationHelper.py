@@ -31,7 +31,9 @@ import socket
 import time
 import traceback
 import ConfigParser
+import solrDataManager as solr_data_manager
 
+from datetime import datetime, timedelta
 from random import randrange
 from subprocess import Popen, PIPE
 
@@ -133,11 +135,10 @@ def retry(func, *args, **kwargs):
     logger.info("\n{0}: waiting for {1} seconds before retyring again (retry count: {2})".format(context, delay, r+1))
     time.sleep(delay)
   print '{0} operation {1}FAILED{2}'.format(context, colors.FAIL, colors.ENDC)
-  exit(1)
+  sys.exit(1)
 
-def create_solr_api_request_command(request_url, config, output=None):
-  user='infra-solr'
-  kerberos_enabled='false'
+def get_keytab_and_principal(config):
+  kerberos_enabled = 'false'
   keytab=None
   principal=None
   if config.has_section('cluster') and config.has_option('cluster', 'kerberos_enabled'):
@@ -151,7 +152,14 @@ def create_solr_api_request_command(request_url, config, output=None):
         keytab=config.get('infra_solr', 'keytab')
       if config.has_option('infra_solr', 'principal'):
         principal=config.get('infra_solr', 'principal')
+  return keytab, principal
 
+def create_solr_api_request_command(request_url, config, output=None):
+  user='infra-solr'
+  kerberos_enabled='false'
+  if config.has_section('cluster') and config.has_option('cluster', 'kerberos_enabled'):
+    kerberos_enabled=config.get('cluster', 'kerberos_enabled')
+  keytab, principal=get_keytab_and_principal(config)
   use_infra_solr_user="sudo -u {0}".format(user)
   curl_prefix = "curl -k"
   if output is not None:
@@ -202,7 +210,7 @@ def create_infra_solr_client_command(options, config, command, appendZnode=False
 
   return solr_cli_cmd
 
-def get_random_solr_url(solr_urls, options):
+def get_random_solr_url(solr_urls, options = None):
   random_index = randrange(0, len(solr_urls))
   result = solr_urls[random_index]
   logger.debug("Use {0} solr address for next request.".format(result))
@@ -753,7 +761,7 @@ def get_solr_urls(options, config, collection, collections_json):
     solr_hosts = config.get('infra_solr', 'hosts')
 
   splitted_solr_hosts = solr_hosts.split(',')
-  filter_solr_hosts_if_match_any(splitted_solr_hosts, collection, collections_json)
+  splitted_solr_hosts = filter_solr_hosts_if_match_any(splitted_solr_hosts, collection, collections_json)
   if options.include_solr_hosts:
     # keep only included ones, do not override any
     include_solr_hosts_list = options.include_solr_hosts.split(',')
@@ -777,6 +785,26 @@ def get_solr_urls(options, config, collection, collections_json):
     solr_urls.append(solr_addr)
 
   return solr_urls
+
+def get_input_output_solr_url(src_solr_urls, target_solr_urls):
+  """
+  Choose random solr urls for the source and target collections, prefer localhost and common urls
+  """
+  def intersect(a, b):
+    return list(set(a) & set(b))
+  input_solr_urls = src_solr_urls
+  output_solr_urls = target_solr_urls
+  hostname = socket.getfqdn()
+  if any(hostname in s for s in input_solr_urls):
+    input_solr_urls = filter(lambda x: hostname in x, input_solr_urls)
+  if any(hostname in s for s in output_solr_urls):
+    output_solr_urls = filter(lambda x: hostname in x, output_solr_urls)
+  common_url_list = intersect(input_solr_urls, output_solr_urls)
+  if common_url_list:
+    input_solr_urls = common_url_list
+    output_solr_urls = common_url_list
+
+  return get_random_solr_url(input_solr_urls), get_random_solr_url(output_solr_urls)
 
 def is_atlas_available(config, service_filter):
   return 'ATLAS' in service_filter and config.has_section('atlas_collections') \
@@ -1040,6 +1068,7 @@ def evaluate_check_shard_result(collection, result, skip_index_size = False):
   all_shards = result['all_shards']
   warnings = 0
   print 30 * "-"
+  print "Number of shards: {0}".format(str(len(all_shards)))
   for shard in all_shards:
     if shard in active_shards:
       print "{0}OK{1}: Found active leader replica for {2}" \
@@ -1240,7 +1269,6 @@ def update_state_json(original_collection, collection, config, options):
     json.dump(new_state_json_data, outfile)
 
   copy_znode(options, config, "{0}/new_state.json".format(coll_data_dir), "{0}/collections/{1}/state.json".format(solr_znode, collection), copy_from_local=True)
-
 
 def delete_znodes(options, config, service_filter):
   solr_znode='/infra-solr'
@@ -1726,13 +1754,65 @@ def check_docs(options, accessor, parser, config):
   else:
     print "Check number of documents - Not found any collections."
 
+def run_solr_data_manager_on_collection(options, config, collections, src_collection, target_collection,
+                                        collections_json_location, num_docs, skip_date_usage = True):
+  if target_collection in collections and src_collection in collections:
+    source_solr_urls = get_solr_urls(options, config, src_collection, collections_json_location)
+    target_solr_urls = get_solr_urls(options, config, target_collection, collections_json_location)
+    if is_collection_empty(num_docs, src_collection):
+      print "Collection '{0}' is empty. Skipping transport data operation.".format(target_collection)
+    else:
+      src_solr_url, target_solr_url = get_input_output_solr_url(source_solr_urls, target_solr_urls)
+      keytab, principal = get_keytab_and_principal(config)
+      date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+      d = datetime.now() + timedelta(days=365)
+      end = d.strftime(date_format)
+      print "Running solrDataManager.py (solr input collection: {0}, solr output collection: {1})"\
+        .format(src_collection, target_collection)
+      solr_data_manager.verbose = options.verbose
+      solr_data_manager.set_log_level(True)
+      solr_data_manager.save("archive", src_solr_url, src_collection, "evtTime", "id", end,
+                             options.transport_read_block_size, options.transport_write_block_size,
+                             False, None, None, keytab, principal, False, "none", None, None, None,
+                             None, None, None, None, None, target_collection,
+                             target_solr_url, "_version_", skip_date_usage)
+  else:
+    print "Collection '{0}' or {1} does not exist or filtered out. Skipping transport data operation.".format(target_collection, src_collection)
+
+def transfer_old_data(options, accessor, parser, config):
+  collections_json_location = COLLECTIONS_DATA_JSON_LOCATION.format("transport_collections.json")
+  collections=list_collections(options, config, collections_json_location, include_number_of_docs=True)
+  collections=filter_collections(options, collections)
+  docs_map = get_number_of_docs_map(collections_json_location) if collections else {}
+  if is_ranger_available(config, service_filter):
+    original_ranger_collection = config.get('ranger_collection', 'ranger_collection_name')
+    backup_ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name')
+    run_solr_data_manager_on_collection(options, config, collections, backup_ranger_collection,
+                                        original_ranger_collection, collections_json_location, docs_map, skip_date_usage=False)
+  if is_atlas_available(config, service_filter):
+    original_fulltext_index_name = config.get('atlas_collections', 'fulltext_index_name')
+    backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
+    run_solr_data_manager_on_collection(options, config, collections, backup_fulltext_index_name,
+                                        original_fulltext_index_name, collections_json_location, docs_map)
+
+    original_edge_index_name = config.get('atlas_collections', 'edge_index_name')
+    backup_edge_index_name = config.get('atlas_collections', 'backup_edge_index_name')
+    run_solr_data_manager_on_collection(options, config, collections, backup_edge_index_name,
+                                        original_edge_index_name, collections_json_location, docs_map)
+
+    original_vertex_index_name = config.get('atlas_collections', 'vertex_index_name')
+    backup_vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name')
+    run_solr_data_manager_on_collection(options, config, collections, backup_vertex_index_name,
+                                        original_vertex_index_name, collections_json_location, docs_map)
+
+
 if __name__=="__main__":
   parser = optparse.OptionParser("usage: %prog [options]")
 
   parser.add_option("-a", "--action", dest="action", type="string", help="delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
               ' rolling-restart-solr | rolling-restart-atlas | rolling-restart-ranger | check-shards | check-backup-shards | enable-solr-authorization | disable-solr-authorization |'\
               ' fix-solr5-kerberos-config | fix-solr7-kerberos-config | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal | upgrade-logfeeders | stop-logsearch |'\
-              ' restart-solr |restart-logsearch | restart-ranger | restart-atlas")
+              ' restart-solr |restart-logsearch | restart-ranger | restart-atlas | transport-old-data")
   parser.add_option("-i", "--ini-file", dest="ini_file", type="string", help="Config ini file to parse (required)")
   parser.add_option("-f", "--force", dest="force", default=False, action="store_true", help="force index upgrade even if it's the right version")
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="use for verbose logging")
@@ -1747,6 +1827,8 @@ if __name__=="__main__":
   parser.add_option("--request-tries", dest="request_tries", type="int", help="number of tries for BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-time-interval", dest="request_time_interval", type="int", help="time interval between BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-async", dest="request_async", action="store_true", default=False, help="skip BACKUP/RESTORE status api calls from the command")
+  parser.add_option("--transport-read-block-size", dest="transport_read_block_size", type="string", help="block size to use for reading from solr during transport",default=10000)
+  parser.add_option("--transport-write-block-size", dest="transport_write_block_size", type="string", help="number of records in the output files during transport", default=100000)
   parser.add_option("--include-solr-hosts", dest="include_solr_hosts", type="string", help="comma separated list of included solr hosts")
   parser.add_option("--exclude-solr-hosts", dest="exclude_solr_hosts", type="string", help="comma separated list of excluded solr hosts")
   parser.add_option("--disable-solr-host-check", dest="disable_solr_host_check", action="store_true", default=False, help="Disable to check solr hosts are good for the collection backups")
@@ -1790,6 +1872,13 @@ if __name__=="__main__":
       username = config.get('ambari_server', 'username')
       password = config.get('ambari_server', 'password')
       accessor = api_accessor(host, username, password, protocol, port)
+
+      if config.has_section('infra_solr') and config.has_option('infra_solr', 'hosts'):
+        local_host = socket.getfqdn()
+        solr_hosts = config.get('infra_solr', 'hosts')
+        if solr_hosts and local_host not in solr_hosts.split(","):
+          print "{0}WARNING{1}: Host '{2}' is not found in Infra Solr hosts ({3}). Migration commands won't work from here." \
+            .format(colors.WARNING, colors.ENDC, local_host, solr_hosts)
       if options.action.lower() == 'backup':
         backup_ranger_configs(options, config, service_filter)
         backup_collections(options, accessor, parser, config, service_filter)
@@ -1881,13 +1970,17 @@ if __name__=="__main__":
         check_shards(options, accessor, parser, config, backup_shards=True)
       elif options.action.lower() == 'check-docs':
         check_docs(options, accessor, parser, config)
+      elif options.action.lower() == 'transport-old-data':
+        check_docs(options, accessor, parser, config)
+        transfer_old_data(options, accessor, parser, config)
+        check_docs(options, accessor, parser, config)
       else:
         parser.print_help()
         print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
               ' rolling-restart-solr | rolling-restart-ranger | rolling-restart-atlas | check-shards | check-backup-shards | check-docs | enable-solr-authorization |'\
               ' disable-solr-authorization | fix-solr5-kerberos-config | fix-solr7-kerberos-config | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal |' \
               ' upgrade-logfeeders | stop-logsearch | restart-solr |' \
-              ' restart-logsearch | restart-ranger | restart-atlas)'
+              ' restart-logsearch | restart-ranger | restart-atlas | transport-old-data )'
         sys.exit(1)
       command_elapsed_time = time.time() - command_start_time
       time_to_print = time.strftime("%H:%M:%S", time.gmtime(command_elapsed_time))
