@@ -73,6 +73,12 @@ def ams_service(name, action):
              action='delete',
              owner=params.ams_user)
 
+        if os.path.exists(format("{zookeeper_data_dir}")):
+          Directory(params.zookeeper_data_dir,
+                    action='delete'
+          )
+
+
       if params.security_enabled:
         kinit_cmd = format("{kinit_path_local} -kt {ams_collector_keytab_path} {ams_collector_jaas_princ};")
         daemon_cmd = format("{kinit_cmd} {cmd} start")
