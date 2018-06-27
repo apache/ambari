@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -62,6 +63,7 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -305,29 +307,82 @@ public class UpgradeHelper {
    return pack;
   }
 
+  /**
+   * Generates a list of UpgradeGroupHolder items that are used to execute either
+   * an upgrade or a downgrade.  Each lifecycle is processed one-by-one from the upgrade packs
+   *
+   * @param context
+   *          the upgrade context
+   * @param upgradePlan
+   *          the upgrade plan to execute
+   */
+  public List<UpgradeGroupHolder> createSequence(UpgradeContext context,
+      UpgradePlanEntity upgradePlan) throws AmbariException {
+
+    // !!! TODO there is a ton of work to do here for merging upgrade packs across lifecycles
+
+    List<UpgradeGroupHolder> groups = new ArrayList<>();
+
+    for (LifecycleType lifecycle : LifecycleType.ordered()) {
+
+      upgradePlan.getDetails().forEach(detail -> {
+        long mpackId = detail.getMpackTargetId();
+        StackId stackId = m_ambariMetaInfoProvider.get().getMpack(mpackId).getStackId();
+        final StackInfo stack;
+        try {
+          stack = m_ambariMetaInfoProvider.get().getStack(stackId);
+        } catch (StackAccessException e) {
+          LOG.info("Cannot access stack ");
+          return;
+        }
+        String upgradePackName = detail.getUpgradePack();
+
+        UpgradePack upgradePack = stack.getUpgradePacks().get(upgradePackName);
+        if (null == upgradePack) {
+          throw new IllegalArgumentException(
+              String.format("Upgrade detail cannot find upgrade pack %s for %s", upgradePackName, stackId));
+        }
+
+        try {
+          groups.addAll(createSequence(context, upgradePack, lifecycle));
+        } catch (AmbariException e) {
+          throw new IllegalArgumentException(e);
+        }
+      });
+    }
+
+    return groups;
+  }
 
   /**
    * Generates a list of UpgradeGroupHolder items that are used to execute either
    * an upgrade or a downgrade.
    *
-   * @param upgradePack
-   *          the upgrade pack
    * @param context
    *          the context that wraps key fields required to perform an upgrade
+   * @param upgradePack
+   *          the upgrade pack
+   * @param lifecycleType
+   *          the lifecycle type to search
    * @return the list of holders
    */
-  public List<UpgradeGroupHolder> createSequence(UpgradePack upgradePack,
-      UpgradeContext context) throws AmbariException {
+  private List<UpgradeGroupHolder> createSequence(UpgradeContext context, UpgradePack upgradePack,
+      LifecycleType lifecycleType) throws AmbariException {
 
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
+
+    List<Grouping> groupings = upgradePack.getGroups(lifecycleType, context.getDirection());
+    if (groupings.isEmpty()) {
+      return Collections.emptyList();
+    }
 
     // Note, only a Rolling Upgrade uses processing tasks.
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<>();
 
     UpgradeGroupHolder previousGroupHolder = null;
-    for (Grouping group : upgradePack.getGroups(LifecycleType.UPGRADE, context.getDirection())) {
+    for (Grouping group : groupings) {
 
       // if there is a condition on the group, evaluate it and skip scheduling
       // of this group if the condition has not been satisfied

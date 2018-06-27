@@ -103,7 +103,6 @@ class MpackPackages(Script):
       raise Fail("Failed to distribute repositories/install packages")
 
     # Initial list of versions, used to compute the new version installed
-
     try:
       ret_code = self.install_packages(package_list)
 
@@ -137,6 +136,8 @@ class MpackPackages(Script):
     packages_installed_before = []
 
     try:
+      Script.repository_util.create_repo_files()
+
       repositories = config['repositoryFile']['repositories']
       command_repos = CommandRepository(config['repositoryFile'])
       repository_ids = [repository['repoId'] for repository in repositories]
