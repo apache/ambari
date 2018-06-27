@@ -31,7 +31,7 @@
     </group>
 
     <group xsi:type="cluster" name="CLUSTER_SECURITY_CONDITION_TEST_WITH_KDC" title="Cluster Security Condition Test With KDC Type">
-      <condition xsi:type="security" type="kerberos" kdc-type="NONE"/>
+      <condition xsi:type="security" type="kerberos" kdc-type="none"/>
       <execute-stage title="Confirm 1">
         <task xsi:type="manual">
           <message>Foo</message>

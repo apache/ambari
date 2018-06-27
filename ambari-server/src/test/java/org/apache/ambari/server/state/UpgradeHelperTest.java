@@ -2387,6 +2387,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     groups = m_upgradeHelper.createSequence(upgrade, context);
     assertEquals(5, groups.size());
+
+    EasyMock.verify(kerberosDetails);
   }
 
   /**

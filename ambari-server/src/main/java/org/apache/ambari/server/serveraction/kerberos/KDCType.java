@@ -29,25 +29,25 @@ public enum KDCType {
   /**
    * Indicates not KDC type is relevant. This is expected when Ambari is not managing Kerberos identities.
    */
-  @XmlEnumValue("NONE")
+  @XmlEnumValue("none")
   NONE,
 
   /**
    * Indicates an MIT KDC (or similar)
    */
-  @XmlEnumValue("MIT")
+  @XmlEnumValue("mit-kdc")
   MIT_KDC,
 
   /**
    * Indicates a Microsoft Active Directory
    */
-  @XmlEnumValue("AD")
+  @XmlEnumValue("active-directory")
   ACTIVE_DIRECTORY,
 
   /**
    * Indicates an IPA KDC
    */
-  @XmlEnumValue("IPA")
+  @XmlEnumValue("ipa")
   IPA;
 
   /**

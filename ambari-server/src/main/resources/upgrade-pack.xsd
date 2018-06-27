@@ -67,10 +67,10 @@
   <!-- Cooresponds to the KDCType enumeration -->
   <xs:simpleType name="kdc-type">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="NONE" />
-      <xs:enumeration value="MIT" />
-      <xs:enumeration value="AD" />
-      <xs:enumeration value="IPA" />
+      <xs:enumeration value="none" />
+      <xs:enumeration value="mit-kdc" />
+      <xs:enumeration value="active-directory" />
+      <xs:enumeration value="ipa" />
     </xs:restriction>
   </xs:simpleType>
 

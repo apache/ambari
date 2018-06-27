@@ -38,6 +38,7 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -348,6 +349,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
       bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
       bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
+      bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
     }
 
     private void installDependencies() {
