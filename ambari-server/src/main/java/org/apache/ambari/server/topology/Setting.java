@@ -25,7 +25,6 @@ import static java.util.stream.Collectors.toMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -176,7 +175,7 @@ public class Setting {
       ImmutableSet.of(SETTING_NAME_CLUSTER_SETTINGS, SETTING_NAME_RECOVERY_SETTINGS);
     return settingsToExtract.stream()
       .flatMap( settingCategory ->
-        Optional.ofNullable(properties.get(settingCategory)).orElseGet(() -> emptySet()).stream())
+        properties.getOrDefault(settingCategory, emptySet()).stream())
       .flatMap( map -> map.entrySet().stream() )
       .collect(toMap(e -> e.getKey(), e -> e.getValue()));
   }

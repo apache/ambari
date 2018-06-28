@@ -85,6 +85,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -250,7 +251,7 @@ public class AmbariContext {
     Cluster cluster = getController().getClusters().getCluster(clusterName);
     Map<String, String> defaultClusterSettings =
       getController().getAmbariMetaInfo().getClusterProperties().stream()
-        .collect(toMap(p -> p.getName(), p -> p.getValue()));
+        .collect(toMap(PropertyInfo::getName, PropertyInfo::getValue));
 
     // Override default settings with those coming from blueprint / cluster template
     defaultClusterSettings.putAll(clusterSettings);

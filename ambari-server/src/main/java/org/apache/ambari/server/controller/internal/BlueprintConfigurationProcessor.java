@@ -74,18 +74,6 @@ public class BlueprintConfigurationProcessor {
    */
   public static final Pattern HOST_GROUP_PLACEHOLDER_PATTERN = Pattern.compile("%HOSTGROUP::(\\S+?)%");
 
-  private final static String COMMAND_RETRY_ENABLED_PROPERTY_NAME = "command_retry_enabled";
-
-  private final static String COMMANDS_TO_RETRY_PROPERTY_NAME = "commands_to_retry";
-
-  private final static String COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME = "command_retry_max_time_in_sec";
-
-  private final static String COMMAND_RETRY_ENABLED_DEFAULT = "true";
-
-  private final static String COMMANDS_TO_RETRY_DEFAULT = "INSTALL,START";
-
-  private final static String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
-
   private final static String CLUSTER_ENV_CONFIG_TYPE_NAME = "cluster-env";
 
   private final static String HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES = "hbase.coprocessor.master.classes";

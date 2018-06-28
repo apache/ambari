@@ -50,7 +50,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -121,36 +120,35 @@ public class ClusterTopologyImpl implements ClusterTopology {
    */
   private void adjustTopology() {
     Set<PropertyInfo> clusterProperties = ambariContext.getController().getAmbariMetaInfo().getClusterProperties();
-    Set<String> clusterSettingPropertyNames = clusterProperties.stream().map(prop -> prop.getName()).collect(toSet());
-    Map<String, String> clusterEnv = Optional
-      .ofNullable(configuration.getFullProperties().get(ConfigHelper.CLUSTER_ENV))
-      .orElse(ImmutableMap.of());
+    Set<String> clusterSettingPropertyNames = clusterProperties.stream().map(PropertyInfo::getName).collect(toSet());
+    Map<String, String> clusterEnv =
+      configuration.getFullProperties().getOrDefault(ConfigHelper.CLUSTER_ENV, ImmutableMap.of());
 
-    Set<String> convertedProperties = new HashSet<>();
-    Set<String> remainingProperties = new HashSet<>();
-    clusterEnv.entrySet().forEach( entry -> {
-      if (clusterSettingPropertyNames.contains(entry.getKey())) {
-        // Add to the cluster_settings section of the Setting object
-        setting.getProperties()
-          .computeIfAbsent(
-            Setting.SETTING_NAME_CLUSTER_SETTINGS,
-            __ -> Sets.newHashSet(Maps.newHashMap()))
-          .iterator().next()
-          .put(entry.getKey(), entry.getValue());
-        // Only remove it from cluster-env if handling this configuration has been migrated to use
-        // cluster settings.
-        if (SAFE_TO_REMOVE_FROM_CLUSTER_ENV.contains(entry.getKey())) {
-          configuration.removeProperty(ConfigHelper.CLUSTER_ENV, entry.getKey());
-        }
-        convertedProperties.add(entry.getKey());
-      }
-      else {
-        remainingProperties.add(entry.getKey());
-      }
-    });
-    LOG.info("Converted {} properties from cluster-env to cluster settings, left {} as is. Converted properties: {}," +
-      " remaining properties: {}", convertedProperties.size(), remainingProperties.size(), convertedProperties,
+    Set<String> propertiesToConvert = Sets.intersection(clusterEnv.keySet(), clusterSettingPropertyNames);
+    Set<String> remainingProperties = Sets.difference(clusterEnv.keySet(), clusterSettingPropertyNames);
+    LOG.info("Will convert {} properties from cluster-env to cluster settings, leave {} as is. Properties to convert: {}," +
+        " remaining properties: {}", propertiesToConvert.size(), remainingProperties.size(), propertiesToConvert,
       remainingProperties);
+
+    // Get cluster_settings from setting or create if not exists
+    Map<String, String> clusterSettings = setting
+      .getProperties()
+      .computeIfAbsent( Setting.SETTING_NAME_CLUSTER_SETTINGS, __ -> {
+        Set<Map<String, String>> set = new HashSet<>();
+        set.add(new HashMap<>());
+        return set;
+      })
+      .iterator()
+      .next();
+
+    // convert cluster-env to cluster settings
+    propertiesToConvert.forEach( prop -> clusterSettings.put(prop, clusterEnv.get(prop)));
+
+    // Ideally, all converted properties should be removed from cluster-env. Since legacy Ambari code sometimes
+    // still uses cluster-env only remove properties that are known to have been migrated.
+    Sets.intersection(propertiesToConvert, SAFE_TO_REMOVE_FROM_CLUSTER_ENV).forEach(
+      prop -> configuration.removeProperty(ConfigHelper.CLUSTER_ENV, prop)
+    );
   }
 
   public ClusterTopologyImpl(

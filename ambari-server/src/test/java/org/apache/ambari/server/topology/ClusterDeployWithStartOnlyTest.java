@@ -19,6 +19,9 @@ package org.apache.ambari.server.topology;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.topology.ClusterDeploymentTestCommon.CLUSTER_ID;
+import static org.apache.ambari.server.topology.ClusterDeploymentTestCommon.CLUSTER_NAME;
+import static org.apache.ambari.server.topology.ClusterDeploymentTestCommon.service;
 import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
@@ -49,7 +52,6 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
@@ -92,8 +94,6 @@ import com.google.common.collect.Sets;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AmbariContext.class, AmbariServer.class })
 public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
-  private static final String CLUSTER_NAME = "test-cluster";
-  private static final long CLUSTER_ID = 1;
   private static final String BLUEPRINT_NAME = "test-bp";
   private static final String STACK_NAME = "test-stack";
   private static final String STACK_VERSION = "test-stack-version";
@@ -465,8 +465,4 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     assertEquals(request.getHostRequests().size(), 3);
   }
 
-  private static ServiceResponse service(String serviceName, long serviceId) {
-    return new ServiceResponse(CLUSTER_ID, CLUSTER_NAME,  1L, "service-group-1", serviceId, serviceName, null, null,
-      null, null, true, true, true, true, true);
-  }
 }

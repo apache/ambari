@@ -120,7 +120,7 @@ public class BlueprintFactory {
 
     Map<String, Object> settingProperties = properties.entrySet().stream()
       .filter(entry -> SETTING_PROPERTY_ID.equals(entry.getKey()) || entry.getKey().startsWith(SETTING_PROPERTY_ID + "/"))
-      .collect(toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+      .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     Setting setting = SettingFactory.getSetting(ImmutableSet.of(settingProperties));
 
     return new BlueprintImpl(name, hostGroups, stackIds, mpackInstances, configuration, securityConfiguration, setting);
