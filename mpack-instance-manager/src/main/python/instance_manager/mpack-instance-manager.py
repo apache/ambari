@@ -30,8 +30,6 @@ GET_CONF_DIR_ACTION = 'get-conf-dir'
 GET_LOG_DIR_ACTION = 'get-log-dir'
 GET_RUN_DIR_ACTION = 'get-run-dir'
 LIST_INSTANCES_ACTION = 'list-instances'
-INDENT = 2
-
 
 def init_action_parser(action, parser):
   action_parser_map = {
@@ -121,8 +119,6 @@ def init_get_parser_options(parser):
   parser.add_option('--components-map', default=None,
                     help="map of 'component type' (eg: hive_server, metastore etc) as key and List of component instance name(s) to be given (eg: HS-1, finance_metastore) as value OR Empty map for all component instances present",
                     dest="components_map")
-  parser.add_option('-f', '--format', action="store_true",
-                    help='output json to readable text format')
 
 def main(options, args):
   action = sys.argv[1]
@@ -139,8 +135,6 @@ def main(options, args):
       parsed_components_map = ast.literal_eval(options.components_map)
   except ValueError:
     raise ValueError("Components or components-map format is invalid.")
-
-  indent = INDENT if options.format else None
 
   if action == CREATE_MPACK_INSTANCE_ACTION:
     create_mpack(mpack_name=options.mpack, mpack_version=options.mpack_version,
@@ -159,22 +153,22 @@ def main(options, args):
   elif action == GET_CONF_DIR_ACTION:
     print json.dumps(get_conf_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components_map=parsed_components_map), indent=indent)
+                       components_map=parsed_components_map))
 
   elif action == GET_LOG_DIR_ACTION:
     print json.dumps(get_log_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components_map=parsed_components_map), indent=indent)
+                       components_map=parsed_components_map))
 
   elif action == GET_RUN_DIR_ACTION:
     print json.dumps(get_run_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components_map=parsed_components_map), indent=indent)
+                       components_map=parsed_components_map))
 
   elif action == LIST_INSTANCES_ACTION:
     print json.dumps(list_instances(mpack=options.mpack, mpack_instance=options.mpack_instance,
                                       subgroup_name=options.subgroup_name, module_name=options.module_name,
-                                      components_map=parsed_components_map), indent=indent)
+                                      components_map=parsed_components_map))
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
