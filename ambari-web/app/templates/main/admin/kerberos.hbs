@@ -18,24 +18,34 @@
 {{#if dataIsLoaded}}
   {{#if securityEnabled}}
     <div>
-        <span class="text-success">{{t admin.security.enabled}}</span>
-        {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
-            {{#if App.supports.enableToggleKerberos}}
-              <button class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </button>
-              {{#unless isManualKerberos}}
-                <button class="btn btn-success" id="regenerate-keytabs" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
-                  <i class="glyphicon glyphicon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
-                {{#if App.isCredentialStorePersistent}}
-                  <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
-                {{/if}}
-              {{/unless}}
-              <br/>
-              <button href="#" {{action makeConfigsEditable target="controller"}}
-                {{bindAttr class="controller.isEditMode:hidden :btn :btn-default :pull-right"}}>
-                {{t common.edit}}
-              </button>
+      <span class="text-success">{{t admin.security.enabled}}</span>
+      {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
+        {{#if App.supports.enableToggleKerberos}}
+          <button class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </button>
+          {{#unless isManualKerberos}}
+            <button class="btn btn-success"
+                    id="regenerate-keytabs" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
+              <i class="glyphicon glyphicon-repeat"></i>&nbsp; {{t admin.kerberos.button.regenerateKeytabs}}</button>
+            {{#if App.isCredentialStorePersistent}}
+              <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
             {{/if}}
-        {{/isAuthorized}}
+          {{/unless}}
+        {{/if}}
+      {{/isAuthorized}}
+      {{#if showDownloadCsv}}
+        <button class="btn btn-success"}} {{action downloadCSV target="controller"}}>
+          <i class="glyphicon glyphicon-download-alt"></i>&nbsp; {{t admin.kerberos.wizard.step5.downloadCSV}}
+        </button>
+      {{/if}}
+      <br/>
+      {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
+        {{#if App.supports.enableToggleKerberos}}
+          <button href="#" {{action makeConfigsEditable target="controller"}}
+            {{bindAttr class="controller.isEditMode:hidden :btn :btn-default :pull-right"}}>
+            {{t common.edit}}
+          </button>
+        {{/if}}
+      {{/isAuthorized}}
     </div>
     <div id="serviceConfig">
       {{view App.ServicesConfigView}}
@@ -50,12 +60,12 @@
   {{else}}
     <div>
       <p class="muted background-text">{{t admin.security.disabled}}
-      {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
-        {{#if App.supports.enableToggleKerberos}}
-          <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
-          <br/>
-        {{/if}}
-      {{/isAuthorized}}
+        {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
+          {{#if App.supports.enableToggleKerberos}}
+            <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
+            <br/>
+          {{/if}}
+        {{/isAuthorized}}
       </p>
     </div>
   {{/if}}

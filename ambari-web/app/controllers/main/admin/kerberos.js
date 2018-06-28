@@ -655,6 +655,15 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     }).always(function() {
       self.set('isRecommendedLoaded', true);
     });
+  },
+
+  showDownloadCsv: function () {
+    var hasUpgradePrivilege = App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK');
+    return hasUpgradePrivilege;
+  }.property(),
+
+  downloadCSV: function() {
+    App.router.get('kerberosWizardStep5Controller').getCSVData(false);
   }
 
 });
