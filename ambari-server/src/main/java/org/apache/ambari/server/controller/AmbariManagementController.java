@@ -937,5 +937,12 @@ public interface AmbariManagementController {
 
   TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
       throws AmbariException;
+
+  /**
+   * @param stackId
+   *          the ID of the stack to return cluster environment configuration for
+   * @return the <code>cluster-env</code> configuration
+   */
+  Map<String, String> getClusterEnvConfigurationByStackId(StackId stackId);
 }
 

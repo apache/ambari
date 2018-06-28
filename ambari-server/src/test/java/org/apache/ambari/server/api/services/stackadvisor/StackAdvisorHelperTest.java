@@ -160,7 +160,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -196,7 +196,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -216,7 +216,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATIONS;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -236,7 +236,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -255,7 +255,7 @@ public class StackAdvisorHelperTest {
     ServiceInfo service = mock(ServiceInfo.class);
     when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
     when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
-    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null);
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
@@ -268,6 +268,6 @@ public class StackAdvisorHelperTest {
   }
 
   private static StackAdvisorHelper stackAdvisorHelperSpy(Configuration configuration, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) throws IOException {
-    return spy(new StackAdvisorHelper(configuration, saRunner, metaInfo, null));
+    return spy(new StackAdvisorHelper(configuration, saRunner, metaInfo, null, null));
   }
 }

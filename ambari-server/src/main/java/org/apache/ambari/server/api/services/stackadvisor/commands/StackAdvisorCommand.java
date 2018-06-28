@@ -45,11 +45,14 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -102,10 +105,10 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String GPL_LICENSE_ACCEPTED = "gpl-license-accepted";
   private static final String AMBARI_SERVER_PROPERTIES_PROPERTY = "ambari-server-properties";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-configuration";
+  private static final String PROPERTIES_PROPERTY = "properties";
 
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
-  private ServiceInfo.ServiceAdvisorType serviceAdvisorType;
 
   private int requestId;
   private File requestDirectory;
@@ -117,9 +120,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
+  private final AmbariManagementController ambariManagementController;
+
   @SuppressWarnings("unchecked")
   public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType, int requestId,
-                             StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler) {
+                             StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler, AmbariManagementController ambariManagementController) {
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
 
@@ -128,11 +133,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     this.recommendationsDir = recommendationsDir;
     this.recommendationsArtifactsLifetime = recommendationsArtifactsLifetime;
-    this.serviceAdvisorType = serviceAdvisorType;
     this.requestId = requestId;
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
     this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
+    this.ambariManagementController = ambariManagementController;
   }
 
   protected abstract StackAdvisorCommandType getCommandType();
@@ -205,6 +210,9 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     Map<String, Map<String, Map<String, String>>> configurations =
         request.getConfigurations();
     ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
+
+    populateClusterEnvConfig(configurationsNode, request);
+
     for (String siteName : configurations.keySet()) {
       ObjectNode siteNode = configurationsNode.putObject(siteName);
 
@@ -226,6 +234,14 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     JsonNode userContext = mapper.valueToTree(request.getUserContext());
     root.put(USER_CONTEXT_PROPERTY, userContext);
     root.put(GPL_LICENSE_ACCEPTED, request.getGplLicenseAccepted());
+  }
+
+  protected void populateClusterEnvConfig(ObjectNode root, StackAdvisorRequest request) {
+    final StackId stackId = new StackId(request.getStackName(), request.getStackVersion());
+    final JsonNode propertiesNode = mapper.convertValue(ambariManagementController.getClusterEnvConfigurationByStackId(stackId), JsonNode.class);
+    final ObjectNode clusterEnvNode = mapper.createObjectNode();
+    clusterEnvNode.put(PROPERTIES_PROPERTY, propertiesNode);
+    root.put(ConfigHelper.CLUSTER_ENV, clusterEnvNode);
   }
 
   private void populateConfigGroups(ObjectNode root,
