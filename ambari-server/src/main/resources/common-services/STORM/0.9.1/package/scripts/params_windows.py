@@ -47,12 +47,6 @@ else:
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
   actual_topology_min_replication_count = default_topology_min_replication_count
 
-if stack_is_hdp23_or_further:
-  if security_enabled:
-    storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.secure.transport']
-  else:
-    storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
-
 service_map = {
   "nimbus" : nimbus_win_service_name,
   "supervisor" : supervisor_win_service_name,

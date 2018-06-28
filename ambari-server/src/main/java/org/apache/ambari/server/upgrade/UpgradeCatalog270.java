@@ -77,6 +77,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
@@ -1042,6 +1043,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     addUserAuthenticationSequence();
     updateSolrConfigurations();
     updateAmsConfigs();
+    updateStormConfigs();
   }
 
   protected void renameAmbariInfra() throws SQLException {
@@ -1843,4 +1845,39 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     }
   }
 
+  /**
+   * Removes storm-site configs that were present for ambari needs and
+   * sets the actual property `storm.thrift.transport` to the correct value
+   * @throws AmbariException
+   */
+  protected void updateStormConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        Set<String> removeProperties = Sets.newHashSet("_storm.thrift.nonsecure.transport",
+          "_storm.thrift.secure.transport");
+        String stormSecurityClassKey = "storm.thrift.transport";
+        String stormSecurityClassValue = "org.apache.storm.security.auth.SimpleTransportPlugin";
+        String stormSite = "storm-site";
+        for (final Cluster cluster : clusterMap.values()) {
+          Config config = cluster.getDesiredConfigByType(stormSite);
+          if (config != null) {
+            Map<String, String> stormSiteProperties = config.getProperties();
+            if (stormSiteProperties.containsKey(stormSecurityClassKey)) {
+              LOG.info("Updating " + stormSecurityClassKey);
+              if (cluster.getSecurityType() == SecurityType.KERBEROS) {
+                stormSecurityClassValue = "org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin";
+              }
+              Map<String, String> updateProperty = Collections.singletonMap(stormSecurityClassKey, stormSecurityClassValue);
+              updateConfigurationPropertiesForCluster(cluster, stormSite, updateProperty, removeProperties,
+                true, false);
+            }
+          }
+        }
+      }
+    }
+  }
 }
