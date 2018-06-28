@@ -339,7 +339,7 @@ class MetaMpack:
     if not self.mpack_json:
       return None
     for module in self.mpack_json['modules']:
-      result[module['id']] = module['category']
+      result[module['id']] = str(module['category'])
 
     return result
 
@@ -597,6 +597,9 @@ class ComponentInstance(Instance):
     self.name = name
     self.component_path = component_path
     self.path_exec = path_exec
+    self.module_path = os.readlink(path_exec)
+    self.mpack_version = os.path.basename(os.path.dirname(path_exec))
+    self.module_version = os.path.basename(self.module_path)
 
   def set_new_version(self, mpack_name, mpack_version, component_type):
     mpack_path = os.path.join(ROOT_FOLDER_PATH, MPACKS_FOLDER_NAME, mpack_name, mpack_version, component_type)
@@ -686,5 +689,12 @@ class ComponentInstance(Instance):
     if output_run_dir:
       result['run_dir'] = os.path.join(self.component_path, RUN_DIRECTORY_NAME)
     if output_path:
-      result['path'] = self.path_exec
+      result['mpack_path'] = self.path_exec
+      result['module_path'] = self.module_path
+      result['instance_path'] = os.path.join(self.component_path, CURRENT_SOFTLINK_NAME)
+      result['config_dir'] = os.path.join(self.component_path, CONFIGS_DIRECTORY_NAME)
+      result['log_dir'] = os.path.join(self.component_path, LOG_DIRECTORY_NAME)
+      result['run_dir'] = os.path.join(self.component_path, RUN_DIRECTORY_NAME)
+      result['mpack_version'] = self.mpack_version
+      result['module_version'] = self.module_version
     return result

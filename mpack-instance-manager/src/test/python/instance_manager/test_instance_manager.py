@@ -344,8 +344,15 @@ class TestInstanceManager(TestCase):
                         "hdfs_server": {
                           "component-instances": {
                             "server1": {
-                              "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_server",
-                              "name": "server1"
+                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/run",
+                              "module_version": "3.1.0.0-b1",
+                              "name": "server1",
+                              "mpack_path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_server",
+                              "mpack_version": "1.0.0-b1",
+                              "instance_path": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/current",
+                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/log",
+                              "module_path": "/tmp/instance_manager_test/modules/hdfs/3.1.0.0-b1",
+                              "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/conf"
                             }
                           }
                         }
@@ -357,10 +364,17 @@ class TestInstanceManager(TestCase):
                         "hdfs_client": {
                           "component-instances": {
                             "default": {
-                              "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_client",
-                              "name": "default"
+                              "run_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/run",
+                              "module_version": "3.1.0.0-b1",
+                              "name": "default",
+                              "mpack_path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_client",
+                              "mpack_version": "1.0.0-b1",
+                              "instance_path": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/current",
+                              "log_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/log",
+                              "module_path": "/tmp/instance_manager_test/modules/hdfs-clients/3.1.0.0-b1",
+                              "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf"
                             }
-                           }
+                          }
                         }
                       },
                       "name": "hdfs-clients"
@@ -373,7 +387,7 @@ class TestInstanceManager(TestCase):
         }
       }
     }
-    self.assertEqual(conf_dir_json, expected_json)
+    self.assertDictEqual(conf_dir_json, expected_json)
 
   def test_granularity(self):
     create_mpack_with_defaults()
@@ -438,7 +452,7 @@ class TestInstanceManager(TestCase):
     expected_filter_result = {'mpacks': {'edw': {'mpack-instances': {'eCommerce': {'name': 'eCommerce', 'subgroups': {
       'default': {'modules': {'hdfs': {'category': 'SERVER', 'name': 'hdfs', 'components': {'hdfs_server': {
         'component-instances': {
-          'server2': {'path': '/tmp/instance_manager_test/mpacks/edw/1.0.0-b1/hdfs_server', 'name': 'server2'}}}}}}}}}}}}}
+          'server2': {'run_dir': '/tmp/instance_manager_test/instances/edw/eCommerce/default/hdfs/hdfs_server/server2/run', 'module_version': '3.1.0.0-b1', 'name': 'server2', 'mpack_path': '/tmp/instance_manager_test/mpacks/edw/1.0.0-b1/hdfs_server', 'mpack_version': '1.0.0-b1', 'instance_path': '/tmp/instance_manager_test/instances/edw/eCommerce/default/hdfs/hdfs_server/server2/current', 'log_dir': '/tmp/instance_manager_test/instances/edw/eCommerce/default/hdfs/hdfs_server/server2/log', 'module_path': '/tmp/instance_manager_test/modules/hdfs/3.1.0.0-b1', 'config_dir': '/tmp/instance_manager_test/instances/edw/eCommerce/default/hdfs/hdfs_server/server2/conf'}}}}}}}}}}}}}
     self.assertEquals(expected_filter_result, filter_by_component_instance_name_json)
 
   def test_validation(self):
