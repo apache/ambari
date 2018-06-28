@@ -25,7 +25,7 @@
           {{#unless isManualKerberos}}
             <button class="btn btn-success"
                     id="regenerate-keytabs" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
-              <i class="glyphicon glyphicon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
+              <i class="glyphicon glyphicon-repeat"></i>&nbsp; {{t admin.kerberos.button.regenerateKeytabs}}</button>
             {{#if App.isCredentialStorePersistent}}
               <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
             {{/if}}
