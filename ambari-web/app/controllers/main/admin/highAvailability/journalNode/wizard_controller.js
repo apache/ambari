@@ -25,6 +25,8 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
 
   totalSteps: 7,
 
+  displayName: Em.I18n.t('admin.manageJournalNode.wizard.header'),
+
   /**
    * Used for hiding back button in wizard
    */
