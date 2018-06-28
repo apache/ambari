@@ -16,21 +16,36 @@
  * limitations under the License.
  */
 
-import {Pipe, PipeTransform} from '@angular/core';
-import {ComponentsService} from "@app/services/storage/components.service";
-import {Observable} from "rxjs/Observable";
+import {HomogeneousObject} from '@app/classes/object';
 
-@Pipe({
-  name: 'componentLabel'
-})
-export class ComponentLabelPipe implements PipeTransform {
-
-  constructor(private componentService: ComponentsService) {
-  }
-
-  transform(name: string): Observable<string> {
-    return this.componentService.findInCollection(component => component.name === name)
-      .map(component => component ? component.label || component.name : name);
-  }
-
+export interface LogTypeTab {
+  id: string;
+  isActive?: boolean;
+  isCloseable?: boolean;
+  label: string;
+  activeFilters?: object;
+  appState?: HomogeneousObject<any>;
 }
+
+export const initialTabs: LogTypeTab[] = [
+  {
+    id: 'serviceLogs',
+    isActive: true,
+    label: 'common.serviceLogs',
+    activeFilters: null,
+    appState: {
+      activeLogsType: 'serviceLogs',
+      isServiceLogsFileView: false
+    }
+  },
+  {
+    id: 'auditLogs',
+    isActive: false,
+    label: 'common.auditLogs',
+    activeFilters: null,
+    appState: {
+      activeLogsType: 'auditLogs',
+      isServiceLogsFileView: false
+    }
+  }
+];

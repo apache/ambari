@@ -16,21 +16,19 @@
  * limitations under the License.
  */
 
-import {Pipe, PipeTransform} from '@angular/core';
-import {ComponentsService} from "@app/services/storage/components.service";
-import {Observable} from "rxjs/Observable";
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {AppStore, ObjectModelService, getObjectReducer} from '@app/classes/models/store';
 
-@Pipe({
-  name: 'componentLabel'
-})
-export class ComponentLabelPipe implements PipeTransform {
+import {initialDataAvaibilityStates} from '@modules/app-load/models/data-availability-state.model';
 
-  constructor(private componentService: ComponentsService) {
+export const modelName = 'dataAvailabilityStates';
+
+@Injectable()
+export class DataAvailabilityStatesStore extends ObjectModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
   }
-
-  transform(name: string): Observable<string> {
-    return this.componentService.findInCollection(component => component.name === name)
-      .map(component => component ? component.label || component.name : name);
-  }
-
 }
+
+export const dataAvailabilityStates = getObjectReducer(modelName, initialDataAvaibilityStates);

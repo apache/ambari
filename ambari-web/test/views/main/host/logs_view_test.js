@@ -90,12 +90,12 @@ describe('App.MainHostLogsView', function() {
           {
             fileName: 'file1',
             filePath: 'f1',
-            linkTail: '/#logs/serviceLogs?hosts=host1&components=l1&query=%5B%7B\"id\":0,\"name\":\"path\",\"label\":\"Path\",\"value\":\"f1\",\"isExclude\":false%7D%5D'
+            linkTail: '/#/logs/serviceLogs;hosts=host1;components=l1;query=%5B%7B"id":0,"name":"path","label":"Path","value":"f1","isExclude":false%7D%5D'
           },
           {
             fileName: 'file1',
             filePath: 'f2',
-            linkTail: '/#logs/serviceLogs?hosts=host1&components=l1&query=%5B%7B\"id\":0,\"name\":\"path\",\"label\":\"Path\",\"value\":\"f2\",\"isExclude\":false%7D%5D'
+            linkTail: '/#/logs/serviceLogs;hosts=host1;components=l1;query=%5B%7B"id":0,"name":"path","label":"Path","value":"f2","isExclude":false%7D%5D'
           }
         ],
         fileNamesFilterValue: 'f1,f2'

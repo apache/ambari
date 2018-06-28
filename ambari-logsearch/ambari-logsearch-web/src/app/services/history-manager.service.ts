@@ -24,7 +24,7 @@ import {SearchBoxParameter, TimeUnitListItem} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {History} from '@app/classes/models/app-state';
-import {Tab} from '@app/classes/models/tab';
+import {LogTypeTab} from '@app/classes/models/log-type-tab';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -116,7 +116,7 @@ export class HistoryManagerService {
     });
 
     // set default history state for each tab
-    tabs.mapCollection((tab: Tab): Tab => {
+    tabs.mapCollection((tab: LogTypeTab): LogTypeTab => {
       const currentTabAppState = tab.appState || {};
       const nextTabAppState = Object.assign({}, currentTabAppState, {history: this.initialHistory});
       return Object.assign({}, tab, {

@@ -30,7 +30,6 @@
       height: 40px;
       background-color: #3FAE2A;
 
-      margin: 100px auto;
       -webkit-animation: rotateplane 1.2s infinite ease-in-out;
       animation: rotateplane 1.2s infinite ease-in-out;
     }
@@ -53,9 +52,24 @@
             -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
           }
     }
+    .indicator-wrapper {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      justify-content: center;
+    }
+    .indicator-wrapper div {
+      margin: .5em 0;
+    }
   </style>
 </head>
 <body>
-  <app-root><div class="spinner"></div></app-root>
+  <app-root>
+    <div class="indicator-wrapper">
+      <div>Loading Log Search...</div>
+      <div class="spinner"></div>
+    </div>
+  </app-root>
 </body>
 </html>

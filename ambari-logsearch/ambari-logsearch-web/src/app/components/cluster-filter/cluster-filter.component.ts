@@ -27,8 +27,9 @@ import {ClusterSelectionService} from '@app/services/storage/cluster-selection.s
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {FilterDropdownComponent} from '@modules/shared/components/filter-dropdown/filter-dropdown.component';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
-import {AppStateService} from '@app/services/storage/app-state.service';
 import {DataAvailabilityValues} from '@app/classes/string';
+import { DataAvailabilityStatesStore } from '@modules/app-load/stores/data-avaibility-state.store';
+import { DataStateStoreKeys } from '@app/modules/app-load/services/app-load.service';
 
 @Component({
   selector: 'cluster-filter',
@@ -56,7 +57,7 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
     private router: Router,
     private clusterSelectionStoreService: ClusterSelectionService,
     private routingUtilsService: RoutingUtilsService,
-    private appStateService: AppStateService
+    private dataAvaibilityStateStore: DataAvailabilityStatesStore
   ) { }
 
   ngOnInit() {
@@ -113,7 +114,7 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
           isChecked: true
         });
       }
-      this.appStateService.getParameter('clustersDataState')
+      this.dataAvaibilityStateStore.getParameter(DataStateStoreKeys.CLUSTERS_DATA_KEY)
         .filter((state: DataAvailabilityValues) => state === DataAvailabilityValues.AVAILABLE)
         .first()
         .subscribe(() => {

@@ -20,7 +20,8 @@ import {CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router} from '
 import {Observable} from 'rxjs/Observable';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {TabsService} from '@app/services/storage/tabs.service';
-import {Tab} from '@app/classes/models/tab';
+import {LogTypeTab} from '@app/classes/models/log-type-tab';
+import { LogsFilteringUtilsService } from '@app/services/logs-filtering-utils.service';
 
 @Injectable()
 export class TabGuard implements CanActivate {
@@ -28,19 +29,22 @@ export class TabGuard implements CanActivate {
   constructor (
     private routingUtilsService: RoutingUtilsService,
     private router: Router,
-    private tabsStorageService: TabsService
+    private tabsStorageService: TabsService,
+    private logsFilteringUtilsService: LogsFilteringUtilsService
   ) {}
 
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
     const activeTabParam: string = this.routingUtilsService.getParamFromActivatedRouteSnapshot(state.root, 'activeTab');
-    return this.tabsStorageService.getAll().switchMap((tabs: Tab[]) => {
+    return this.tabsStorageService.getAll().switchMap((tabs: LogTypeTab[]) => {
       if (!activeTabParam && tabs && tabs.length) {
-        const tabId = (tabs.find((currentTab) => currentTab.isActive) || tabs[0]).id;
-        this.router.navigate(['/logs', tabId]);
+        const tab = tabs.find((currentTab: LogTypeTab) => currentTab.isActive);
+        if (tab) {
+          this.router.navigate(['/logs', ...this.logsFilteringUtilsService.getNavigationForTab(tab)]);
+        }
       }
-      const canActivate: boolean = !!activeTabParam && !!tabs.find((tab: Tab) => tab.id === activeTabParam);
+      const canActivate: boolean = !!activeTabParam && !!tabs.find((tab: LogTypeTab) => tab.id === activeTabParam);
       return Observable.of(canActivate);
     });
   }

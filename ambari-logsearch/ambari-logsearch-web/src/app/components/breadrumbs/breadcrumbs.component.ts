@@ -51,6 +51,7 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.router.events.filter((event) => event instanceof NavigationEnd).subscribe(this.onNavigationEnd)
     );
+    this.onNavigationEnd();
   }
 
   ngOnDestroy() {
@@ -94,7 +95,9 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
 
   onNavigationEnd = (): void => {
     this.crumbs = this.getCrumbsFromRouterStateSnapshot(this.router.routerState.snapshot.root);
-    this.setPageTite(this.crumbs[this.crumbs.length - 1].text);
+    if (this.crumbs.length) {
+      this.setPageTite(this.crumbs[this.crumbs.length - 1].text);
+    }
   }
 
 }

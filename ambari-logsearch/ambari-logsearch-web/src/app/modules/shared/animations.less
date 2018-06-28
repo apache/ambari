@@ -15,37 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {HomogeneousObject} from '@app/classes/object';
-
-export interface Tab {
-  id: string;
-  isActive?: boolean;
-  isCloseable?: boolean;
-  label: string;
-  activeFilters?: object;
-  appState?: HomogeneousObject<any>;
+@keyframes rotateplane {
+  0% {
+    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+  } 50% {
+    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+  } 100% {
+    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+  }
 }
 
-export const initialTabs: Tab[] = [
-  {
-    id: 'serviceLogs',
-    isActive: true,
-    label: 'common.serviceLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'serviceLogs',
-      isServiceLogsFileView: false
-    }
-  },
-  {
-    id: 'auditLogs',
-    isActive: false,
-    label: 'common.auditLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'auditLogs',
-      isServiceLogsFileView: false
-    }
-  }
-];
+.square-spinner(@size: 40px, @background: #3FAE2A, @speed: 1.2s) {
+  width: @size;
+  height: @size;
+  background: @background;
+  animation: rotateplane @speed infinite ease-in-out;
+}

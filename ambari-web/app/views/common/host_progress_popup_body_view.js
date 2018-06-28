@@ -1141,7 +1141,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     var relationType,
         componentName,
         hostName,
-        linkTailTpl = '/#logs/serviceLogs?hosts={0}&components={2}&query=%5B%7B"id":0,"name":"path","label":"Path","value":"{1}","isExclude":false%7D%5D';
+        linkTailTpl = '/#/logs/serviceLogs;hosts={0};components={2};query=%5B%7B"id":0,"name":"path","label":"Path","value":"{1}","isExclude":false%7D%5D';
 
     if (this.get('openedTask.id')) {
       relationType = this._determineRoleRelation(this.get('openedTask'));
@@ -1163,7 +1163,11 @@ App.HostProgressPopupBodyView = App.TableView.extend({
                 tabClassName: tabClassName,
                 tabClassNameSelector: '.' + tabClassName,
                 displayedFileName: fileUtils.fileNameFromPath(logFileName),
-                linkTail: linkTailTpl.format(hostName, logFileName, logComponentName),
+                linkTail: linkTailTpl.format(
+                  encodeURIComponent(hostName),
+                  encodeURIComponent(logFileName),
+                  encodeURIComponent(logComponentName)
+                ),
                 isActive: false
               });
             }));

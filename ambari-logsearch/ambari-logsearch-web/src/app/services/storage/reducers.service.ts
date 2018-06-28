@@ -34,6 +34,7 @@ import {userConfigs} from '@app/services/storage/user-configs.service';
 import {tabs} from '@app/services/storage/tabs.service';
 import {clusterSelections} from '@app/services/storage/cluster-selection.service';
 import {logsState} from '@app/services/storage/logs-state.service';
+import {dataAvailabilityStates} from '@modules/app-load/stores/data-avaibility-state.store';
 
 export const reducers = {
   appSettings,
@@ -52,7 +53,8 @@ export const reducers = {
   auditLogsFields,
   tabs,
   clusterSelections,
-  logsState
+  logsState,
+  dataAvailabilityStates
 };
 
 export function reducer(state: any, action: any) {

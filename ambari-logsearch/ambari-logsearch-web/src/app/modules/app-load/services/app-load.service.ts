@@ -32,9 +32,28 @@ import {HostsService} from 'app/services/storage/hosts.service';
 import {NodeItem} from 'app/classes/models/node-item';
 import {ComponentsService} from 'app/services/storage/components.service';
 import {DataAvailabilityValues} from 'app/classes/string';
+import { DataAvaibilityStatesModel } from '@app/modules/app-load/models/data-availability-state.model';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-avaibility-state.store';
+
+// @ToDo create a separate data state enrty in the store with keys of the model names
+export enum DataStateStoreKeys {
+  CLUSTERS_DATA_KEY = 'clustersDataState',
+  HOSTS_DATA_KEY = 'hostsDataState',
+  COMPONENTS_DATA_KEY = 'componentsDataState',
+  LOG_FIELDS_DATA_KEY = 'logFieldsDataState',
+  BASE_DATA_SET_KEY = 'baseDataSetState',
+};
+
+export const baseDataKeys: DataStateStoreKeys[] = [
+  DataStateStoreKeys.CLUSTERS_DATA_KEY,
+  DataStateStoreKeys.HOSTS_DATA_KEY,
+  DataStateStoreKeys.COMPONENTS_DATA_KEY
+];
 
 @Injectable()
 export class AppLoadService {
+
+  baseDataAvailibilityState$: Observable<DataAvailabilityValues>;
 
   constructor(
     private httpClient: HttpClientService,
@@ -44,27 +63,77 @@ export class AppLoadService {
     private auditLogsFieldsService: AuditLogsFieldsService,
     private translationService: TranslateService,
     private hostStoreService: HostsService,
-    private componentsStorageService: ComponentsService
+    private componentsStorageService: ComponentsService,
+    private dataAvaibilityStateStore: DataAvailabilityStatesStore
   ) {
     this.appStateService.getParameter('isAuthorized').subscribe(this.initOnAuthorization);
     this.appStateService.setParameter('isInitialLoading', true);
+
+    Observable.combineLatest(
+      this.appStateService.getParameter(DataStateStoreKeys.CLUSTERS_DATA_KEY),
+      this.appStateService.getParameter(DataStateStoreKeys.COMPONENTS_DATA_KEY),
+      this.appStateService.getParameter(DataStateStoreKeys.HOSTS_DATA_KEY)
+    ).subscribe(this.onDataAvailibilityChange);
+
+    this.baseDataAvailibilityState$ = this.dataAvaibilityStateStore.getAll()
+      .map((dataAvailabilityState: DataAvaibilityStatesModel): DataAvailabilityValues => {
+        const values: DataAvailabilityValues[] = Object.keys(dataAvailabilityState)
+          .filter((key: DataStateStoreKeys): boolean => baseDataKeys.indexOf(key) > -1)
+          .map((key): DataAvailabilityValues => dataAvailabilityState[key]);
+        let nextDataState: DataAvailabilityValues = DataAvailabilityValues.NOT_AVAILABLE;
+        if (values.indexOf(DataAvailabilityValues.ERROR) > -1) {
+          nextDataState = DataAvailabilityValues.ERROR;
+        }
+        if (values.indexOf(DataAvailabilityValues.LOADING) > -1) {
+          nextDataState = DataAvailabilityValues.LOADING;
+        }
+        if ( values.filter((value: DataAvailabilityValues) => value !== DataAvailabilityValues.AVAILABLE).length === 0 ) {
+          nextDataState = DataAvailabilityValues.AVAILABLE;
+        }
+        return nextDataState;
+      });
+      this.baseDataAvailibilityState$.subscribe(this.onBaseDataAvailabilityChange);
+  }
+
+  onDataAvailibilityChange = (dataAvailabilityStates: DataAvailabilityValues[]): void => {
+    const baseDataAvailability: DataAvailabilityValues = dataAvailabilityStates
+      .reduce((availabeState, dataState: DataAvailabilityValues): DataAvailabilityValues => {
+        if (dataState === DataAvailabilityValues.ERROR || availabeState === DataAvailabilityValues.ERROR) {
+          return DataAvailabilityValues.ERROR;
+        }
+        if (availabeState === DataAvailabilityValues.LOADING || dataState === DataAvailabilityValues.LOADING) {
+          return DataAvailabilityValues.LOADING;
+        }
+        if (availabeState === DataAvailabilityValues.AVAILABLE && dataState === DataAvailabilityValues.AVAILABLE) {
+          return DataAvailabilityValues.AVAILABLE;
+        }
+        return DataAvailabilityValues.NOT_AVAILABLE;
+      }, DataAvailabilityValues.AVAILABLE);
+  }
+
+  onBaseDataAvailabilityChange = (baseDataAvailibilityState: DataAvailabilityValues): void => {
+    this.appStateService.setParameter(DataStateStoreKeys.BASE_DATA_SET_KEY, baseDataAvailibilityState);
+  }
+
+  private setDataAvaibility(dataKey: string, availabilityState: DataAvailabilityValues) {
+    this.dataAvaibilityStateStore.setParameter(dataKey, availabilityState);
   }
 
   loadClusters(): Observable<Response> {
     this.clustersStorage.clear();
-    this.appStateService.setParameter('clustersDataState', DataAvailabilityValues.LOADING);
+    this.setDataAvaibility(DataStateStoreKeys.CLUSTERS_DATA_KEY, DataAvailabilityValues.LOADING);
     const response$: Observable<Response> = this.httpClient.get('clusters').filter((response: Response) => response.ok).first();
     response$.subscribe(
       (response: Response) => {
         const clusterNames = response.json();
         if (clusterNames) {
           this.clustersStorage.addInstances(clusterNames);
-          this.appStateService.setParameter('clustersDataState', DataAvailabilityValues.AVAILABLE);
+          this.setDataAvaibility(DataStateStoreKeys.CLUSTERS_DATA_KEY, DataAvailabilityValues.AVAILABLE);
         }
       },
       (errorResponse: Response) => {
         this.clustersStorage.addInstances([]);
-        this.appStateService.setParameter('clustersDataState', DataAvailabilityValues.ERROR);
+        this.setDataAvaibility(DataStateStoreKeys.CLUSTERS_DATA_KEY, DataAvailabilityValues.ERROR);
       }
     );
     return response$;
@@ -76,18 +145,18 @@ export class AppLoadService {
 
   loadHosts(): Observable<Response> {
     this.hostStoreService.clear();
-    this.appStateService.setParameter('hostsDataState', DataAvailabilityValues.LOADING);
+    this.setDataAvaibility(DataStateStoreKeys.HOSTS_DATA_KEY, DataAvailabilityValues.LOADING);
     const response$ = this.httpClient.get('hosts').filter((response: Response) => response.ok);
     response$.subscribe((response: Response): void => {
       const jsonResponse = response.json(),
         hosts = jsonResponse && jsonResponse.vNodeList;
       if (hosts) {
         this.hostStoreService.addInstances(hosts);
-        this.appStateService.setParameter('hostsDataState', DataAvailabilityValues.AVAILABLE);
+        this.setDataAvaibility(DataStateStoreKeys.HOSTS_DATA_KEY, DataAvailabilityValues.AVAILABLE);
       }
     }, () => {
       this.hostStoreService.addInstances([]);
-      this.appStateService.setParameter('hostsDataState', DataAvailabilityValues.ERROR);
+      this.setDataAvaibility(DataStateStoreKeys.HOSTS_DATA_KEY, DataAvailabilityValues.ERROR);
     });
     return response$;
   }
@@ -97,7 +166,7 @@ export class AppLoadService {
   }
 
   loadComponents(): Observable<[{[key: string]: any}, {[key: string]: any}]> {
-    this.appStateService.setParameter('componentsDataState', DataAvailabilityValues.LOADING);
+    this.setDataAvaibility(DataStateStoreKeys.COMPONENTS_DATA_KEY, DataAvailabilityValues.LOADING);
     const responseComponentsData$: Observable<Response> = this.httpClient.get('components').first()
       .filter((response: Response) => response.ok)
       .map((response: Response) => response.json());
@@ -121,7 +190,7 @@ export class AppLoadService {
       });
       if (components) {
         this.componentsStorageService.addInstances(components);
-        this.appStateService.setParameter('componentsDataState', DataAvailabilityValues.AVAILABLE);
+        this.setDataAvaibility(DataStateStoreKeys.COMPONENTS_DATA_KEY, DataAvailabilityValues.AVAILABLE);
       }
     });
     return responses$;
@@ -148,20 +217,16 @@ export class AppLoadService {
     responses$.subscribe(([serviceLogsFieldsResponse, auditLogsFieldsResponse]: [LogField[], AuditFieldsDefinitionSet]) => {
       this.serviceLogsFieldsService.addInstances(serviceLogsFieldsResponse);
       this.auditLogsFieldsService.setParameters(auditLogsFieldsResponse);
+      this.setDataAvaibility(DataStateStoreKeys.LOG_FIELDS_DATA_KEY, DataAvailabilityValues.AVAILABLE);
     });
     return responses$;
   }
 
   initOnAuthorization = (isAuthorized): void => {
     if (isAuthorized) {
-      this.appStateService.setParameter('baseDataSetState', DataAvailabilityValues.LOADING);
-      Observable.combineLatest(
-        this.loadClusters(),
-        this.loadHosts(),
-        this.loadComponents()
-      ).first().subscribe(() => {
-        this.appStateService.setParameter('baseDataSetState', DataAvailabilityValues.AVAILABLE);
-      });
+        this.loadClusters();
+        this.loadHosts();
+        this.loadComponents();
     } else {
       this.clearClusters();
       this.clearHosts();

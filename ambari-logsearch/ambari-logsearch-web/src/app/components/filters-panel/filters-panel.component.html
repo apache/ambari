@@ -51,5 +51,7 @@
                    label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
                    [subItems]="filters.levels.options" [isMultipleChoice]="true" [isRightAlign]="true"
                    [useDropDownLocalFilter]="true"></filter-button>
+    <menu-button class="clear-filter-btn" iconClass="fa fa-times" label="{{'filters.clear' | translate}}"
+    (buttonClick)="onClearBtnClick($event)"></menu-button>
   </div>
 </form>

@@ -37,6 +37,7 @@ import {appState} from '@app/services/storage/app-state.service';
 import {components} from '@app/services/storage/components.service';
 import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {appSettings} from '@app/services/storage/app-settings.service';
+import { UtilsService } from '@app/services/utils.service';
 
 describe('TabGuard', () => {
   beforeEach(() => {
@@ -65,7 +66,8 @@ describe('TabGuard', () => {
         RoutingUtilsService,
         LogsFilteringUtilsService,
         LogsStateService,
-        TabsService
+        TabsService,
+        UtilsService
       ]
     });
   });

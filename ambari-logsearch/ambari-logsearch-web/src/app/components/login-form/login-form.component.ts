@@ -17,13 +17,11 @@
  */
 
 import {Component, ViewChild, OnInit, OnDestroy} from '@angular/core';
-import {Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/finally';
 import {Subscription} from 'rxjs/Subscription';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
-import {NotificationService, NotificationType} from '@modules/shared/services/notification.service';
 import {TranslateService} from '@ngx-translate/core';
 import {FormGroup} from '@angular/forms';
 
@@ -52,7 +50,6 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private appState: AppStateService,
-    private notificationService: NotificationService,
     private translateService: TranslateService
   ) {}
 
