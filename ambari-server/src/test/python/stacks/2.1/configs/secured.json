@@ -835,7 +835,9 @@
             "storm_ui_keytab" : "/etc/security/keytabs/spnego.service.keytab",
             "storm_ui_principal_name" : "HTTP/_HOST",
             "nimbus_seeds_supported" : "false",
-            "storm_logs_supported": "false"
+            "storm_logs_supported": "false",
+            "nimbus_principal_name": "nimbus/_HOST",
+            "nimbus_keytab": "/etc/security/keytabs/nimbus.service.keytab"
         }, 
         "falcon-env": {
             "falcon_port": "15000", 

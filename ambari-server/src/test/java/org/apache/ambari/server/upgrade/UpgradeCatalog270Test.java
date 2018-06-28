@@ -205,6 +205,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
@@ -324,6 +325,7 @@ public class UpgradeCatalog270Test {
     Method updateKerberosDescriptorArtifacts = UpgradeCatalog270.class.getSuperclass().getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateSolrConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateSolrConfigurations");
     Method updateAmsConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateAmsConfigs");
+    Method updateStormConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateStormConfigs");
 
     UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
         .addMockedMethod(showHcatDeletedUserMessage)
@@ -339,6 +341,7 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(updateKerberosDescriptorArtifacts)
         .addMockedMethod(updateSolrConfigurations)
         .addMockedMethod(updateAmsConfigurations)
+        .addMockedMethod(updateStormConfigurations)
         .createMock();
 
 
@@ -377,6 +380,9 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.updateAmsConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog270.updateStormConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog270);
@@ -1531,4 +1537,119 @@ public class UpgradeCatalog270Test {
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
 
+  @Test
+  public void testStormConfigs() throws Exception {
+
+    Map<String, String> stormProperties = new HashMap<String, String>() {
+      {
+        put("_storm.thrift.nonsecure.transport", "org.apache.storm.security.auth.SimpleTransportPlugin");
+        put("_storm.thrift.secure.transport", "org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin");
+        put("storm.thrift.transport", "{{storm_thrift_transport}}");
+        put("storm.zookeeper.port", "2181");
+      }
+    };
+    Map<String, String> newStormProperties = new HashMap<String, String>() {
+      {
+        put("storm.thrift.transport", "org.apache.storm.security.auth.SimpleTransportPlugin");
+        put("storm.zookeeper.port", "2181");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockStormSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("storm-site")).andReturn(mockStormSite).atLeastOnce();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
+    expect(mockStormSite.getProperties()).andReturn(stormProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+
+    replay(injector, clusters, mockStormSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog270(injector2).updateStormConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newStormProperties, updatedProperties).areEqual());
+
+  }
+
+  @Test
+  public void testStormConfigsWithKerberos() throws Exception {
+
+    Map<String, String> stormProperties = new HashMap<String, String>() {
+      {
+        put("_storm.thrift.nonsecure.transport", "org.apache.storm.security.auth.SimpleTransportPlugin");
+        put("_storm.thrift.secure.transport", "org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin");
+        put("storm.thrift.transport", "{{storm_thrift_transport}}");
+        put("storm.zookeeper.port", "2181");
+      }
+    };
+    Map<String, String> newStormProperties = new HashMap<String, String>() {
+      {
+        put("storm.thrift.transport", "org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin");
+        put("storm.zookeeper.port", "2181");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockStormSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("storm-site")).andReturn(mockStormSite).atLeastOnce();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(mockStormSite.getProperties()).andReturn(stormProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+
+    replay(injector, clusters, mockStormSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog270(injector2).updateStormConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newStormProperties, updatedProperties).areEqual());
+
+  }
 }
