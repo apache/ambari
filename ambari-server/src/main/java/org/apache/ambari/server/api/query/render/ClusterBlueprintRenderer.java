@@ -66,7 +66,6 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ClusterTopologyImpl;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
@@ -491,7 +490,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
   protected ClusterTopology createClusterTopology(TreeNode<Resource> clusterNode)
       throws InvalidTopologyTemplateException, InvalidTopologyException {
-    return new ClusterTopologyImpl(controller.getAmbariContext(), new ExportBlueprintRequest(clusterNode));
+    AmbariContext ambariContext = controller.getAmbariContext();
+    return ambariContext.createClusterTopology(new ExportBlueprintRequest(clusterNode));
   }
 
   /**

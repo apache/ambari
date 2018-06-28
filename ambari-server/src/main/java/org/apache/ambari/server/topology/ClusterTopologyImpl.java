@@ -38,8 +38,8 @@ import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
+import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -63,8 +63,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   private final Set<StackId> stackIds;
   private final StackDefinition stack;
+  private final SecurityConfiguration securityConfig;
   private Long clusterId;
-  private String clusterName;
   private final Blueprint blueprint;
   private final Configuration configuration;
   private final ConfigRecommendationStrategy configRecommendationStrategy;
@@ -77,20 +77,25 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final Map<String, Set<ResolvedComponent>> resolvedComponents;
   private final Setting setting;
 
-  public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
+  public ClusterTopologyImpl(
+    AmbariContext ambariContext,
+    ExportBlueprintRequest topologyRequest,
+    StackDefinition stack
+  ) throws InvalidTopologyException {
     this.ambariContext = ambariContext;
     this.clusterId = topologyRequest.getClusterId();
     this.blueprint = topologyRequest.getBlueprint();
     this.setting = blueprint.getSetting();
     this.configuration = topologyRequest.getConfiguration();
     configRecommendationStrategy = ConfigRecommendationStrategy.getDefault();
-    provisionAction = topologyRequest instanceof BaseClusterRequest ? ((BaseClusterRequest) topologyRequest).getProvisionAction() : INSTALL_AND_START; // FIXME
+    securityConfig = blueprint.getSecurity();
 
+    provisionAction = null;
     provisionRequest = null;
     defaultPassword = null;
-    stackIds = ImmutableSet.copyOf(
-      Sets.union(topologyRequest.getStackIds(), topologyRequest.getBlueprint().getStackIds()));
-    stack = ambariContext.composeStacks(stackIds);
+
+    stackIds = topologyRequest.getStackIds();
+    this.stack = stack;
     resolvedComponents = ImmutableMap.of();
 
     checkForDuplicateHosts(topologyRequest.getHostGroupInfo());
@@ -115,7 +120,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
    * Currently it extract configuration from cluster-env and transforms it into cluster settings.
    */
   private void adjustTopology() {
-    Set<PropertyInfo> clusterProperties = AmbariContext.getController().getAmbariMetaInfo().getClusterProperties();
+    Set<PropertyInfo> clusterProperties = ambariContext.getController().getAmbariMetaInfo().getClusterProperties();
     Set<String> clusterSettingPropertyNames = clusterProperties.stream().map(prop -> prop.getName()).collect(toSet());
     Map<String, String> clusterEnv = Optional
       .ofNullable(configuration.getFullProperties().get(ConfigHelper.CLUSTER_ENV))
@@ -148,24 +153,23 @@ public class ClusterTopologyImpl implements ClusterTopology {
       remainingProperties);
   }
 
-  // FIXME 2. replayed request should simply be a provision or scale request
-  // FIXME 3. do not create a ClusterTopologyImpl for scale request -- create for original provision request only
   public ClusterTopologyImpl(
     AmbariContext ambariContext,
     BlueprintBasedClusterProvisionRequest request,
     Map<String, Set<ResolvedComponent>> resolvedComponents
   ) throws InvalidTopologyException {
     this.ambariContext = ambariContext;
+    this.clusterId = request.getClusterId();
     this.blueprint = request.getBlueprint();
     this.configuration = request.getConfiguration();
     this.provisionRequest = request;
     this.resolvedComponents = resolvedComponents;
-    clusterName = request.getClusterName();
     configRecommendationStrategy =
       Optional.ofNullable(request.getConfigRecommendationStrategy()).orElse(ConfigRecommendationStrategy.getDefault());
     provisionAction = request.getProvisionAction();
+    securityConfig = request.getSecurity();
 
-    defaultPassword = provisionRequest.getDefaultPassword();
+    defaultPassword = request.getDefaultPassword();
     stackIds = request.getStackIds();
     stack = request.getStack();
     setting = request.getSetting();
@@ -203,11 +207,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Long getClusterId() {
     return clusterId;
-  }
-
-  @Override
-  public String getClusterName() {
-    return clusterName;
   }
 
   @Override
@@ -391,6 +390,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public boolean isClusterKerberosEnabled() {
     return ambariContext.isClusterKerberosEnabled(getClusterId());
+  }
+
+  @Override
+  public SecurityConfiguration getSecurity() {
+    return securityConfig;
   }
 
   @Override

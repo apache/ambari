@@ -50,6 +50,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
@@ -57,11 +58,17 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.StackManagerMock;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
+import org.apache.ambari.server.topology.DefaultStackFactory;
 import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.StackComponentResolver;
+import org.apache.ambari.server.topology.StackFactory;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
@@ -103,8 +110,6 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         PartialNiceMockBinder.newBuilder(KerberosDescriptorUpdateHelperTest.this).addConfigsBindings()
             .addFactoriesInstallBinding().build().configure(binder());
 
-        install(new FactoryModuleBuilder().build(StackManagerFactory.class));
-
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
@@ -112,7 +117,10 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         bind(Configuration.class).toInstance(configuration);
         bind(ExtensionLinkDAO.class).toInstance(createNiceMock(ExtensionLinkDAO.class));
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
         bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+        bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+        bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
         bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
@@ -127,6 +135,8 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
         bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
         bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
+        bind(ComponentResolver.class).to(StackComponentResolver.class);
+        bind(StackFactory.class).to(DefaultStackFactory.class);
       }
     });
 

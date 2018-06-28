@@ -193,6 +193,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
     expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
     PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(controller).anyTimes();
     PowerMock.replay(AmbariServer.class);
@@ -8191,9 +8192,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     BlueprintBasedClusterProvisionRequest request = new BlueprintBasedClusterProvisionRequest(ambariContext, securityFactory, bp, topologyRequestMock);
 
-    ClusterTopologyImpl clusterTopology = new ClusterTopologyImpl(ambariContext, request, resolvedComponents);
-    clusterTopology.setClusterId(1L);
-    return clusterTopology;
+    return new ClusterTopologyImpl(ambariContext, request, resolvedComponents);
   }
 
   private class TestHostGroup {

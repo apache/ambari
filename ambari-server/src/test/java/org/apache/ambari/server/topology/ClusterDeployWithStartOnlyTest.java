@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyBoolean;
@@ -35,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -44,7 +44,6 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -182,8 +181,8 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
   @Mock
   private ComponentResolver componentResolver;
 
-  @Mock
-  private AmbariMetaInfo metaInfo;
+  @Mock(type = MockType.NICE)
+  private ClusterTopology clusterTopology;
 
   private final Configuration stackConfig = new Configuration(new HashMap<>(),
     new HashMap<>());
@@ -272,9 +271,6 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Arrays.asList(group1, group2)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component4")).andReturn(Collections.singleton(group2)).anyTimes();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
-    expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
-    expect(ambariContext.getServices(anyString())).andReturn(
-      Sets.newHashSet(service("service1", 1L), service("service2", 2L))).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
@@ -307,9 +303,9 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getServiceForConfigType("service1-site")).andReturn("service1").anyTimes();
     expect(stack.getServiceForConfigType("service2-site")).andReturn("service2").anyTimes();
-    expect(stack.getDependenciesForComponent(anyString())).andReturn(Collections.emptySet()).anyTimes();
-    expect(stack.getExcludedConfigurationTypes("service1")).andReturn(Collections.emptySet()).anyTimes();
-    expect(stack.getExcludedConfigurationTypes("service2")).andReturn(Collections.emptySet()).anyTimes();
+    expect(stack.getDependenciesForComponent(anyString())).andReturn(emptySet()).anyTimes();
+    expect(stack.getExcludedConfigurationTypes("service1")).andReturn(emptySet()).anyTimes();
+    expect(stack.getExcludedConfigurationTypes("service2")).andReturn(emptySet()).anyTimes();
     expect(stack.getServiceForComponent("component1")).andReturn("service1").anyTimes();
     expect(stack.getServiceForComponent("component2")).andReturn("service2").anyTimes();
     expect(stack.getServiceForComponent("component3")).andReturn("service1").anyTimes();
@@ -323,7 +319,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getProvisionAction()).andReturn(ProvisionAction.START_ONLY).anyTimes();
-    expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.getSecurityConfiguration()).andReturn(SecurityConfiguration.NONE).anyTimes();
     expect(request.shouldValidateTopology()).andReturn(true).anyTimes();
     expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
     expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
@@ -366,7 +362,6 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
     PowerMock.replay(AmbariServer.class);
     PowerMock.mockStatic(AmbariContext.class);
-    expect(AmbariContext.getController()).andReturn(managementController).anyTimes();
     expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
     PowerMock.replay(AmbariContext.class);
     expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
@@ -376,12 +371,14 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(artifactResourceProvider.createResources(anyObject())).andReturn(completedStatus).anyTimes();
     expect(managementController.getAmbariEventPublisher()).andReturn(createNiceMock(AmbariEventPublisher.class)).anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
-    expect(metaInfo.getClusterProperties()).andReturn(new HashSet<>());
     expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
 
+    expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
+    expect(ambariContext.getServices(anyString())).andReturn(
+      Sets.newHashSet(service("service1", 1L), service("service2", 2L))).anyTimes();
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
+    expect(ambariContext.getController()).andReturn(managementController).anyTimes();
     //todo: don't ignore param
     ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE));
     expectLastCall().once();
@@ -395,6 +392,17 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
       anyString(), eq(AmbariContext.TaskType.INSTALL), anyBoolean())).andReturn(hostRoleCommandInstallComponent3).times(3);
     expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component4"),
       anyString(), eq(AmbariContext.TaskType.INSTALL), anyBoolean())).andReturn(hostRoleCommandInstallComponent4).times(2);
+    expect(ambariContext.createClusterTopology(request)).andReturn(clusterTopology);
+
+    expect(clusterTopology.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
+    expect(clusterTopology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
+    expect(clusterTopology.getSetting()).andReturn(new Setting(ImmutableMap.of())).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getProvisionAction()).andReturn(ProvisionAction.START_ONLY).anyTimes();
+    expect(clusterTopology.getAmbariContext()).andReturn(ambariContext).anyTimes();
+    expect(clusterTopology.getConfiguration()).andReturn(bpConfiguration).anyTimes();
+    expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
+    expect(clusterTopology.getStackIds()).andReturn(ImmutableSet.of(new StackId(STACK_NAME, STACK_VERSION))).anyTimes();
 
     expect(hostRoleCommandInstallComponent3.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getRole()).andReturn(Role.valueOf("component3")).atLeastOnce();
@@ -421,7 +429,6 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(hostRoleCommandStartComponent2.getRoleCommand()).andReturn(RoleCommand.START).atLeastOnce();
     expect(hostRoleCommandStartComponent2.getRole()).andReturn(Role.NAMENODE).atLeastOnce();
     expect(hostRoleCommandStartComponent2.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
-
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
     expectLastCall().times(3);

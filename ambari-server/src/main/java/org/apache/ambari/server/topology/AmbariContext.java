@@ -46,8 +46,8 @@ import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -60,6 +60,7 @@ import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
+import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestImpl;
@@ -73,6 +74,7 @@ import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.NoSuchStackException;
@@ -125,12 +127,23 @@ public class AmbariContext {
   @Inject
   private Provider<ConfigHelper> configHelper;
 
-  private static AmbariManagementController controller;
-  private static ClusterController clusterController;
+  @Inject
+  private ComponentResolver resolver;
+
+  @Inject
+  private SecurityConfigurationFactory securityConfigurationFactory;
+
+  @Inject
+  private Provider<AmbariMetaInfo> ambariMetaInfo;
+
+  @Inject
+  private Provider<AmbariManagementController> controller;
+
   //todo: task id's.  Use existing mechanism for getting next task id sequence
   private final static AtomicLong nextTaskId = new AtomicLong(10000);
   static final String DEFAULT_SERVICE_GROUP_NAME = "default_service_group"; // exposed for test
 
+  private static ClusterController clusterController;
   private static HostRoleCommandFactory hostRoleCommandFactory;
   private static HostResourceProvider hostResourceProvider;
   private static ServiceGroupResourceProvider serviceGroupResourceProvider;
@@ -371,14 +384,11 @@ public class AmbariContext {
     return getController().getActionManager().getNextRequestId();
   }
 
-  public synchronized static AmbariManagementController getController() {
-    if (controller == null) {
-      controller = AmbariServer.getController();
-    }
-    return controller;
+  public AmbariManagementController getController() {
+    return controller.get();
   }
 
-  public synchronized static ClusterController getClusterController() {
+  public static ClusterController getClusterController() {
     if (clusterController == null) {
       clusterController = ClusterControllerHelper.getClusterController();
     }
@@ -387,6 +397,23 @@ public class AmbariContext {
 
   public static void init(HostRoleCommandFactory factory) {
     hostRoleCommandFactory = factory;
+  }
+
+  public ClusterTopology createClusterTopology(ExportBlueprintRequest request) throws InvalidTopologyException {
+    StackDefinition stack = composeStacks(request.getStackIds());
+    Blueprint bp = request.getBlueprint();
+    return new ClusterTopologyImpl(this, request, stack);
+  }
+
+  public ClusterTopology createClusterTopology(ProvisionRequest request) throws InvalidTopologyException {
+    BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(this, securityConfigurationFactory, request.getBlueprint(), request);
+    Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
+    return new ClusterTopologyImpl(this, provisionRequest, resolved);
+  }
+
+  public void downloadMissingMpacks(Set<MpackInstance> mpacks) {
+      ResourceProvider resourceProvider = getClusterController().ensureResourceProvider(Resource.Type.Mpack);
+    new DownloadMpacksTask(resourceProvider, ambariMetaInfo.get()).downloadMissingMpacks(mpacks);
   }
 
   public void registerHostWithConfigGroup(final String hostName, final ClusterTopology topology, final String groupName) {
@@ -478,13 +505,13 @@ public class AmbariContext {
    * Verifies that all desired configurations have reached the resolved state
    *   before proceeding with the install
    *
-   * @param clusterName name of the cluster
+   * @param clusterId ID of the cluster
    * @param updatedConfigTypes set of config types that are required to be in the TOPOLOGY_RESOLVED state
    *
    * @throws AmbariException upon any system-level error that occurs
    */
-  public void waitForConfigurationResolution(String clusterName, Set<String> updatedConfigTypes) throws AmbariException {
-    Cluster cluster = getController().getClusters().getCluster(clusterName);
+  public void waitForConfigurationResolution(Long clusterId, Set<String> updatedConfigTypes) throws AmbariException {
+    Cluster cluster = getController().getClusters().getCluster(clusterId);
     boolean shouldWaitForResolution = true;
     while (shouldWaitForResolution) {
       int numOfRequestsStillRequiringResolution = 0;
