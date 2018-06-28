@@ -60,7 +60,7 @@ class ServiceCheck(Script):
 
     if under_rep_cmd_code > 0:
       raise Fail("Error encountered when attempting find under replicated partitions: {0}".format(under_rep_cmd_out))
-    elif len(under_rep_cmd_out) > 0 and "TOPIC" in under_rep_cmd_out:
+    elif len(under_rep_cmd_out) > 0 and "Topic" in under_rep_cmd_out:
       raise Fail("Under replicated partitions found: {0}".format(under_rep_cmd_out))
 
   def read_kafka_config(self):
