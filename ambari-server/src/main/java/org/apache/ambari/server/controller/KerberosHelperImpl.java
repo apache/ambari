@@ -2452,19 +2452,11 @@ public class KerberosHelperImpl implements KerberosHelper {
     return requestStageContainer;
   }
 
-
   /**
-   * Gathers the Kerberos-related data from configurations and stores it in a new KerberosDetails
-   * instance.
-   *
-   * @param cluster          the relevant Cluster
-   * @param manageIdentities a Boolean value indicating how to override the configured behavior
-   *                         of managing Kerberos identities; if null the configured behavior
-   *                         will not be overridden
-   * @return a new KerberosDetails with the collected configuration data
-   * @throws AmbariException
+   * {@inheritDoc}
    */
-  private KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
+  @Override
+  public KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
     throws KerberosInvalidConfigurationException, AmbariException {
 
     KerberosDetails kerberosDetails = new KerberosDetails();
@@ -3542,13 +3534,13 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (!hosts.isEmpty()) {
         Map<String, String> requestParams = new HashMap<>();
-       
+
         ActionExecutionContext actionExecContext = createActionExecutionContext(
-            cluster.getClusterName(), 
-            SET_KEYTAB, 
+            cluster.getClusterName(),
+            SET_KEYTAB,
             createRequestResourceFilters(hosts),
-            requestParams, 
-            retryAllowed);        
+            requestParams,
+            retryAllowed);
 
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
           requestParams, null);
@@ -3582,11 +3574,11 @@ public class KerberosHelperImpl implements KerberosHelper {
         Map<String, String> requestParams = new HashMap<>();
 
         ActionExecutionContext actionExecContext = createActionExecutionContext(
-            cluster.getClusterName(), 
-            CHECK_KEYTABS, 
+            cluster.getClusterName(),
+            CHECK_KEYTABS,
             createRequestResourceFilters(hostsToInclude),
-            requestParams, 
-            retryAllowed);        
+            requestParams,
+            retryAllowed);
 
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
       }
@@ -3832,7 +3824,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     /**
      * Creates an {@link ActionExecutionContext} where some of the common values are pre-initialized.
-     * 
+     *
      * @param clusterName
      * @param commandName
      * @param resourceFilters
@@ -4374,72 +4366,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
 
       return requestStageContainer.getLastStageId();
-    }
-  }
-
-  /**
-   * KerberosDetails is a helper class to hold the details of the relevant Kerberos-specific
-   * configurations so they may be passed around more easily.
-   */
-  private static class KerberosDetails {
-    private String defaultRealm;
-    private KDCType kdcType;
-    private Map<String, String> kerberosEnvProperties;
-    private SecurityType securityType;
-    private Boolean manageIdentities;
-
-    public void setDefaultRealm(String defaultRealm) {
-      this.defaultRealm = defaultRealm;
-    }
-
-    public String getDefaultRealm() {
-      return defaultRealm;
-    }
-
-    public void setKdcType(KDCType kdcType) {
-      this.kdcType = kdcType;
-    }
-
-    public KDCType getKdcType() {
-      return kdcType;
-    }
-
-    public void setKerberosEnvProperties(Map<String, String> kerberosEnvProperties) {
-      this.kerberosEnvProperties = kerberosEnvProperties;
-    }
-
-    public Map<String, String> getKerberosEnvProperties() {
-      return kerberosEnvProperties;
-    }
-
-    public void setSecurityType(SecurityType securityType) {
-      this.securityType = securityType;
-    }
-
-    public SecurityType getSecurityType() {
-      return securityType;
-    }
-
-    public boolean manageIdentities() {
-      if (manageIdentities == null) {
-        return (kerberosEnvProperties == null) ||
-          !"false".equalsIgnoreCase(kerberosEnvProperties.get(MANAGE_IDENTITIES));
-      } else {
-        return manageIdentities;
-      }
-    }
-
-    public void setManageIdentities(Boolean manageIdentities) {
-      this.manageIdentities = manageIdentities;
-    }
-
-    public boolean createAmbariPrincipal() {
-      return (kerberosEnvProperties == null) ||
-        !"false".equalsIgnoreCase(kerberosEnvProperties.get(CREATE_AMBARI_PRINCIPAL));
-    }
-
-    public String getPreconfigureServices() {
-      return (kerberosEnvProperties == null) ? "" : kerberosEnvProperties.get(PRECONFIGURE_SERVICES);
     }
   }
 }

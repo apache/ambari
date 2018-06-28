@@ -22,11 +22,17 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.KerberosDetails;
+import org.apache.ambari.server.serveraction.kerberos.KDCType;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * The {@link SecurityCondition} class is used to represent that the cluster has
@@ -38,6 +44,8 @@ import com.google.common.base.Objects;
 @XmlAccessorType(XmlAccessType.FIELD)
 public final class SecurityCondition extends Condition {
 
+  private static final Logger LOG = LoggerFactory.getLogger(SecurityCondition.class);
+
   /**
    * The type of security which much be enabled.
    */
@@ -45,11 +53,21 @@ public final class SecurityCondition extends Condition {
   public SecurityType securityType;
 
   /**
+   * The type of Kerberos when the type of security is
+   * {@link SecurityType#KERBEROS}.
+   */
+  @XmlAttribute(name = "kdc-type", required = false)
+  public KDCType kdctype;
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", securityType).omitNullValues().toString();
+    return MoreObjects.toStringHelper(this)
+        .add("type", securityType)
+        .add("kdcType", kdctype)
+        .omitNullValues().toString();
   }
 
   /**
@@ -58,7 +76,36 @@ public final class SecurityCondition extends Condition {
   @Override
   public boolean isSatisfied(UpgradeContext upgradeContext) {
     Cluster cluster = upgradeContext.getCluster();
-    return cluster.getSecurityType() == securityType;
+
+    // if the security types don't match, then don't process any further
+    if (cluster.getSecurityType() != securityType) {
+      return false;
+    }
+
+    switch( securityType ) {
+      case KERBEROS:
+        // if KDC type is specified, then match on it
+        if( null != kdctype ) {
+          try {
+            KerberosDetails kerberosDetails = upgradeContext.getKerberosDetails();
+            return kerberosDetails.getKdcType() == kdctype;
+          } catch (AmbariException | KerberosInvalidConfigurationException kerberosException) {
+            LOG.error(
+                "Unable to determine if this upgrade condition is met because there was a problem parsing the Kerberos configruations for the KDC Type",
+                kerberosException);
+            return false;
+          }
+        }
+
+        // security type matches Kerberos, return true
+        return true;
+      case NONE:
+        // nothing to do here is the security type is NONE
+        return true;
+      default:
+        // nothing to do here if it's an unknown type
+        return true;
+    }
   }
 }
 

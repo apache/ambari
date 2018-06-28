@@ -48,6 +48,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.KerberosDetails;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.PreUpgradeCheckResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -64,6 +66,7 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
@@ -82,7 +85,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
@@ -246,6 +249,13 @@ public class UpgradeContext {
    */
   @Inject
   private UpgradeDAO m_upgradeDAO;
+
+  /**
+   * Providers information about the Kerberization of a cluster, such as
+   * {@link KerberosDetails}.
+   */
+  @Inject
+  private KerberosHelper m_kerberosHelper;
 
   /**
    * Used as a quick way to tell if the upgrade is to revert a patch.
@@ -917,7 +927,7 @@ public class UpgradeContext {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("direction", m_direction)
         .add("type", m_type)
         .add("target", m_repositoryVersion).toString();
@@ -1030,6 +1040,23 @@ public class UpgradeContext {
   public StackId getSourceStack() {
     RepositoryVersionEntity repo = m_sourceRepositoryMap.values().iterator().next();
     return repo.getStackId();
+  }
+
+  /**
+   * Gets Kerberos information about a cluster. It should only be invoked if the
+   * cluster's security type is set to {@link SecurityType#KERBEROS}, otherwise
+   * it will throw an {@link AmbariException}.
+   *
+   * @return the Kerberos related details of a cluster.
+   * @throws KerberosInvalidConfigurationException
+   *           if the {@code kerberos-env} or {@code krb5-conf}} configurations
+   *           can't be parsed.
+   * @throws AmbariException
+   *           if the cluster is not Kerberized.
+   */
+  public KerberosDetails getKerberosDetails()
+      throws KerberosInvalidConfigurationException, AmbariException {
+    return m_kerberosHelper.getKerberosDetails(m_cluster, null);
   }
 
   /**

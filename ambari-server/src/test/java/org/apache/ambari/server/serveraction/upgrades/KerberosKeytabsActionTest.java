@@ -71,7 +71,6 @@ public class KerberosKeytabsActionTest {
   public void setup() throws Exception {
 
     m_clusters = EasyMock.createMock(Clusters.class);
-    m_kerberosHelper = EasyMock.createMock(KerberosHelper.class);
     UnitOfWork unitOfWork = EasyMock.createMock(UnitOfWork.class);
 
     Map<String, String> mockProperties = new HashMap<String, String>() {{
@@ -97,7 +96,6 @@ public class KerberosKeytabsActionTest {
         PartialNiceMockBinder.newBuilder().addClustersBinding().build().configure(binder());
 
         bind(Clusters.class).toInstance(m_clusters);
-        bind(KerberosHelper.class).toInstance(m_kerberosHelper);
         bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
         bind(UpgradeHelper.class).toInstance(EasyMock.createNiceMock(UpgradeHelper.class));
         bind(StackManagerFactory.class).toInstance(EasyMock.createNiceMock(StackManagerFactory.class));
@@ -107,6 +105,8 @@ public class KerberosKeytabsActionTest {
         bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
       }
     });
+
+    m_kerberosHelper = m_injector.getInstance(KerberosHelper.class);
   }
 
   @Test

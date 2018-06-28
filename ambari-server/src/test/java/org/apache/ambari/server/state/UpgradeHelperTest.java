@@ -57,6 +57,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.KerberosDetails;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
@@ -69,6 +70,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stack.StackManagerMock;
@@ -2342,7 +2344,13 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
+    KerberosDetails kerberosDetails = createNiceMock(KerberosDetails.class);
+    expect(kerberosDetails.getKdcType()).andReturn(KDCType.NONE).atLeastOnce();
+    replay(kerberosDetails);
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING, false);
+    expect(context.getKerberosDetails()).andReturn(kerberosDetails).atLeastOnce();
+    replay(context);
 
     // initially, no conditions should be met, so only 1 group should be
     // available
@@ -2378,7 +2386,9 @@ public class UpgradeHelperTest extends EasyMockSupport {
     cluster.setSecurityType(SecurityType.KERBEROS);
 
     groups = m_upgradeHelper.createSequence(upgrade, context);
-    assertEquals(4, groups.size());
+    assertEquals(5, groups.size());
+
+    EasyMock.verify(kerberosDetails);
   }
 
   /**
@@ -2778,20 +2788,70 @@ public class UpgradeHelperTest extends EasyMockSupport {
   }
 
   /**
+   * Builds a mock upgrade context using the following parameters:
+   * <ul>
+   * <li>{@link #repositoryVersion2110}
+   * <li>{@link RepositoryType#STANDARD}
+   * <li>All cluster services
+   * <li>The mock master host resolve, {@link #m_masterHostResolver}
+   * </ul>
+   *
    * @param cluster
+   *          the cluster for the upgrade
    * @param direction
+   *          the upgrade direction
    * @param type
-   * @return
+   *          the type of upgrade
+   * @return a mock {@link UpgradeContext} which has already been replayed and
+   *         is ready to use.
    */
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction, UpgradeType type){
     return getMockUpgradeContext(cluster, direction, type, repositoryVersion2210);
   }
 
   /**
+   * Builds a mock upgrade context using the following parameters:
+   * <ul>
+   * <li>{@link #repositoryVersion2110}
+   * <li>{@link RepositoryType#STANDARD}
+   * <li>All cluster services
+   * <li>The mock master host resolve, {@link #m_masterHostResolver}
+   * </ul>
+   *
    * @param cluster
+   *          the cluster for the upgrade
    * @param direction
+   *          the upgrade direction
    * @param type
-   * @return
+   *          the type of upgrade
+   * @param replay
+   *          {@code true} to replay the mock object before returning it,
+   *          {@code false} otherwise.
+   * @return a mock {@link UpgradeContext}
+   */
+  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction, UpgradeType type, boolean replay){
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion2210,
+        RepositoryType.STANDARD, cluster.getServices().keySet(), m_masterHostResolver, replay);
+  }
+
+  /**
+   * Builds a mock upgrade context using the following parameters:
+   * <ul>
+   * <li>{@link RepositoryType#STANDARD}
+   * <li>All cluster services
+   * <li>The mock master host resolve, {@link #m_masterHostResolver}
+   * </ul>
+   *
+   * @param cluster
+   *          the cluster for the upgrade
+   * @param direction
+   *          the upgrade direction
+   * @param type
+   *          the type of upgrade
+   * @param repositoryVersion
+   *          the repository version to use for the upgrade or downgrade.
+   * @return a mock {@link UpgradeContext} which has already been replayed and
+   *         is ready to use.
    */
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
       UpgradeType type, RepositoryVersionEntity repositoryVersion) {
@@ -2801,10 +2861,26 @@ public class UpgradeHelperTest extends EasyMockSupport {
   }
 
   /**
+   * Builds a mock upgrade context using the following parameters:
+   * <ul>
+   * <li>The mock master host resolve, {@link #m_masterHostResolver}
+   * </ul>
+   *
    * @param cluster
+   *          the cluster for the upgrade
    * @param direction
+   *          the upgrade direction
    * @param type
-   * @return
+   *          the type of upgrade
+   * @param repositoryVersion
+   *          the repository version to use for the upgrade or downgrade.
+   * @param repositoryType
+   *          the type of repository for the upgrade (patch, standard, etc).
+   * @param services
+   *          the services participating in the upgrade. This should typically
+   *          be all services, unless the {@link RepositoryType#PATCH} is used.
+   * @return a mock {@link UpgradeContext} which has already been replayed and
+   *         is ready to use.
    */
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
       UpgradeType type, RepositoryVersionEntity repositoryVersion, RepositoryType repositoryType,
@@ -2814,10 +2890,22 @@ public class UpgradeHelperTest extends EasyMockSupport {
   }
 
   /**
+   * Builds a mock upgrade context using the following parameters:
+   * <ul>
+   * <li>{@link RepositoryType#STANDARD}
+   * <li>All cluster services
+   * </ul>
+   *
    * @param cluster
+   *          the cluster for the upgrade
    * @param direction
+   *          the upgrade direction
    * @param type
-   * @return
+   *          the type of upgrade
+   * @param repositoryVersion
+   *          the repository version to use for the upgrade or downgrade.
+   * @return a mock {@link UpgradeContext} which has already been replayed and
+   *         is ready to use.
    */
   private UpgradeContext getMockUpgradeContextNoReplay(Cluster cluster, Direction direction,
       UpgradeType type, RepositoryVersionEntity repositoryVersion) {
@@ -2828,12 +2916,29 @@ public class UpgradeHelperTest extends EasyMockSupport {
   }
 
   /**
+   * Builds a mock upgrade context using only the supplied method arguments.
+   *
    * @param cluster
+   *          the cluster for the upgrade
    * @param direction
+   *          the upgrade direction
    * @param type
+   *          the type of upgrade
+   * @param repositoryVersion
+   *          the repository version to use for the upgrade or downgrade.
    * @param repositoryType
+   *          the type of repository for the upgrade (patch, standard, etc).
    * @param services
-   * @return
+   *          the services participating in the upgrade. This should typically
+   *          be all services, unless the {@link RepositoryType#PATCH} is used
+   * @param resolver
+   *          the master hsot resolver to use when determining how to
+   *          orchestrate hosts.
+   * @param replay
+   *          {@code true} to replay the mock object before returning it,
+   *          {@code false} otherwise.
+   * @return a mock {@link UpgradeContext} which has already been replayed and
+   *         is ready to use.
    */
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
       UpgradeType type, RepositoryVersionEntity repositoryVersion, final RepositoryType repositoryType,

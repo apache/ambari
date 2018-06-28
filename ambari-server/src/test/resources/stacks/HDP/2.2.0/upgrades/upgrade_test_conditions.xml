@@ -30,6 +30,15 @@
       </execute-stage>
     </group>
 
+    <group xsi:type="cluster" name="CLUSTER_SECURITY_CONDITION_TEST_WITH_KDC" title="Cluster Security Condition Test With KDC Type">
+      <condition xsi:type="security" type="kerberos" kdc-type="none"/>
+      <execute-stage title="Confirm 1">
+        <task xsi:type="manual">
+          <message>Foo</message>
+        </task>
+      </execute-stage>
+    </group>
+
     <group name="ZOOKEEPER_CONFIG_CONDITION_TEST" title="ZooKeeper Config Condition Test">
       <condition xsi:type="config" type="foo-site" property="foo-property" value="foo-value" comparison="equals"/>
       <skippable>true</skippable>

@@ -35,6 +35,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
@@ -121,7 +122,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addAlertDefinitionBinding() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(Cluster.class).toInstance(createNiceMock(Cluster.class));
           binder.bind(DaoUtils.class).toInstance(createNiceMock(DaoUtils.class));
           binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
@@ -132,7 +133,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addAmbariMetaInfoBinding(AmbariManagementController ambariManagementController) {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(PersistedState.class).toInstance(easyMockSupport.createNiceMock(PersistedState.class));
           binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
           binder.bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
@@ -147,6 +148,7 @@ public class PartialNiceMockBinder implements Module {
           binder.bind(CredentialStoreService.class).toInstance(easyMockSupport.createNiceMock(CredentialStoreService.class));
           binder.bind(AmbariManagementController.class).toInstance(ambariManagementController);
           binder.bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
+          binder.bind(KerberosHelper.class).toInstance(easyMockSupport.createNiceMock(KerberosHelper.class));
       });
       addConfigsBindings();
       addFactoriesInstallBinding();
@@ -173,7 +175,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addDBAccessorBinding(DBAccessor dbAccessor) {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(dbAccessor);
@@ -184,7 +186,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addDBAccessorBinding() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(easyMockSupport.createNiceMock(DBAccessor.class));
@@ -202,7 +204,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addHostRoleCommandsConfigsBindings() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_ENABLED)).to(true);
           binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_SIZE)).to(10000L);
           binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES)).to(30L);
@@ -211,7 +213,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addActionSchedulerConfigsBindings() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
           binder.bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(1L);
       });
@@ -219,14 +221,14 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addActionDBAccessorConfigsBindings() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) ->
+      configurers.add((Binder binder) ->
           binder.bindConstant().annotatedWith(Names.named("executionCommandCacheSize")).to(10000L)
       );
       return this;
     }
 
     public Builder addFactoriesInstallBinding() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
           binder.install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
           binder.install(new FactoryModuleBuilder().build(RequestFactory.class));
