@@ -37,14 +37,20 @@ module.exports = Em.Object.extend({
   client: null,
 
   /**
+   * @const
    * @type {string}
    */
-  webSocketUrl: '{protocol}://{hostname}{port}/api/stomp/v1/websocket',
+  DEFAULT_PATH_PREFIX: '/api/stomp/v1/',
 
   /**
    * @type {string}
    */
-  sockJsUrl: '{protocol}://{hostname}{port}/api/stomp/v1',
+  webSocketUrl: '{protocol}://{hostname}{port}{pathname}websocket',
+
+  /**
+   * @type {string}
+   */
+  sockJsUrl: '{protocol}://{hostname}{port}{pathname}',
 
   /**
    * sockJs should use only alternative options as transport in case when websocket supported but connection fails
@@ -126,9 +132,23 @@ module.exports = Em.Object.extend({
   getSocketUrl: function(template, isWebsocket) {
     const hostname = this.getHostName();
     const isSecure = this.isSecure();
+    //if pathname longer than default "/" then proxy used
+    const isProxyUsed = this.getPathname().length > 1;
+    const pathname = isProxyUsed ? this.getPathname() : this.get('DEFAULT_PATH_PREFIX');
     const protocol = isWebsocket ? (isSecure ? 'wss' : 'ws') : (isSecure ? 'https' : 'http');
     const port = this.getPort();
-    return template.replace('{hostname}', hostname).replace('{protocol}', protocol).replace('{port}', port);
+    return template
+      .replace('{hostname}', hostname)
+      .replace('{protocol}', protocol)
+      .replace('{port}', port)
+      .replace('{pathname}', pathname);
+  },
+
+  /**
+   * @returns {string}
+   */
+  getPathname: function() {
+    return window.location.pathname;
   },
 
   getHostName: function () {
