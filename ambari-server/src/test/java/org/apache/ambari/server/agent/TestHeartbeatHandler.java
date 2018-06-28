@@ -1301,17 +1301,14 @@ public class TestHeartbeatHandler {
 
   }
 
-  @Test
-  public void testComponents() throws Exception,
-      InvalidStateTransitionException {
+  @Test @Ignore
+  public void testComponents() throws Exception {
 
     ComponentsResponse expected = new ComponentsResponse();
     StackId dummyStackId = new StackId(DummyStackId);
     Map<String, Map<String, String>> dummyComponents = new HashMap<>();
 
     Map<String, String> dummyCategoryMap = new HashMap<>();
-
-    dummyCategoryMap = new HashMap<>();
     dummyCategoryMap.put("NAMENODE", "MASTER");
     dummyComponents.put("HDFS", dummyCategoryMap);
 
