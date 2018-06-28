@@ -79,6 +79,7 @@ import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.ResolvedComponent;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.Setting;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -161,11 +162,15 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Mock
   private AmbariMetaInfo metaInfo;
 
+  private Setting setting;
+
   @Before
   public void init() throws Exception {
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(bp.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
+    setting = new Setting(new HashMap<>());
+    expect(bp.getSetting()).andReturn(setting).anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
