@@ -22,6 +22,7 @@ from instance_manager import *
 import optparse
 import sys
 import ast
+import json
 
 CREATE_MPACK_INSTANCE_ACTION = 'create-mpack-instance'
 SET_MPACK_INSTANCE_ACTION = 'set-mpack-instance'
@@ -29,6 +30,7 @@ GET_CONF_DIR_ACTION = 'get-conf-dir'
 GET_LOG_DIR_ACTION = 'get-log-dir'
 GET_RUN_DIR_ACTION = 'get-run-dir'
 LIST_INSTANCES_ACTION = 'list-instances'
+INDENT = 2
 
 
 def init_action_parser(action, parser):
@@ -119,7 +121,8 @@ def init_get_parser_options(parser):
   parser.add_option('--components-map', default=None,
                     help="map of 'component type' (eg: hive_server, metastore etc) as key and List of component instance name(s) to be given (eg: HS-1, finance_metastore) as value OR Empty map for all component instances present",
                     dest="components_map")
-
+  parser.add_option('-f', '--format', action="store_true",
+                    help='output json to readable text format')
 
 def main(options, args):
   action = sys.argv[1]
@@ -137,6 +140,8 @@ def main(options, args):
   except ValueError:
     raise ValueError("Components or components-map format is invalid.")
 
+  indent = INDENT if options.format else None
+
   if action == CREATE_MPACK_INSTANCE_ACTION:
     create_mpack(mpack_name=options.mpack, mpack_version=options.mpack_version,
                  mpack_instance=options.mpack_instance,
@@ -152,25 +157,24 @@ def main(options, args):
                        components_map=parsed_components_map)
 
   elif action == GET_CONF_DIR_ACTION:
-    print get_conf_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
+    print json.dumps(get_conf_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components_map=parsed_components_map)
+                       components_map=parsed_components_map), indent=indent)
 
   elif action == GET_LOG_DIR_ACTION:
-    print get_log_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
+    print json.dumps(get_log_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components_map=parsed_components_map)
+                       components_map=parsed_components_map), indent=indent)
 
   elif action == GET_RUN_DIR_ACTION:
-    print get_run_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
+    print json.dumps(get_run_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components_map=parsed_components_map)
+                       components_map=parsed_components_map), indent=indent)
 
   elif action == LIST_INSTANCES_ACTION:
-    print list_instances(mpack=options.mpack, mpack_instance=options.mpack_instance,
-                         subgroup_name=options.subgroup_name, module_name=options.module_name,
-                         components_map=parsed_components_map)
-
+    print json.dumps(list_instances(mpack=options.mpack, mpack_instance=options.mpack_instance,
+                                      subgroup_name=options.subgroup_name, module_name=options.module_name,
+                                      components_map=parsed_components_map), indent=indent)
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
