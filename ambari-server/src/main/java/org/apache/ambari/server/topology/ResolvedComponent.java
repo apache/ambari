@@ -65,6 +65,13 @@ public interface ResolvedComponent {
     return serviceName().orElseGet(this::serviceType);
   }
 
+  static ResolvedComponent clearInstanceNames(ResolvedComponent component) {
+    return component.toBuilder()
+      .clearServiceGroupName()
+      .clearServiceName()
+      .build();
+  }
+
   /**
    * Starts building a {@code ResolvedComponent} for the given component.
    */

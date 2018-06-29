@@ -344,7 +344,7 @@ public class AmbariCustomCommandExecutionHelper {
       stage.addHostRoleExecutionCommand(host, Role.valueOf(componentName),
           RoleCommand.CUSTOM_COMMAND,
           new ServiceComponentHostOpInProgressEvent(componentName, hostName, nowTimestamp),
-          cluster, serviceGroup.getMpackId(), serviceGroupName, serviceName, retryAllowed,
+          cluster, serviceGroup.getMpackId(), serviceGroupName, serviceInfo.getName(), serviceName, retryAllowed,
           autoSkipFailure);
 
       Map<String, Map<String, String>> configurations =
@@ -854,7 +854,7 @@ public class AmbariCustomCommandExecutionHelper {
     stage.addHostRoleExecutionCommand(host, Role.valueOf(smokeTestRole),
         RoleCommand.SERVICE_CHECK,
         new ServiceComponentHostOpInProgressEvent(componentName, hostname, nowTimestamp),
-        cluster, serviceGroup.getMpackId(), serviceGroupName, serviceName, retryAllowed,
+        cluster, serviceGroup.getMpackId(), serviceGroupName, serviceInfo.getName(), serviceName, retryAllowed,
         autoSkipFailure);
 
     HostRoleCommand hrc = stage.getHostRoleCommand(hostname, smokeTestRole);

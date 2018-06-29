@@ -79,10 +79,10 @@ class ExecutionCommand(object):
 
   def get_module_name(self):
     """
-    Retrieve service name from command.json, i.e 'zookeeper', 'hdfs'
-    :return: service name
+    Retrieve service type from command.json, eg. 'zookeeper', 'hdfs'
+    :return: service type
     """
-    return self.__get_value("serviceName")
+    return self.__get_value("serviceType")
 
   def get_component_type(self):
     """
@@ -93,10 +93,12 @@ class ExecutionCommand(object):
 
   def get_component_instance_name(self):
     """
-    At this time it returns hardcoded 'default' name
-    :return: 'default' string
+    Retrieve service name from command.json, eg. 'zk1'
+    :return: service name
     """
-    return "default"
+    if '_CLIENTS' in self.get_module_name(): # FIXME temporary hack
+      return 'default'
+    return self.__get_value("serviceName") # multi-service, but not multi-component per service
 
   def get_servicegroup_name(self):
     """

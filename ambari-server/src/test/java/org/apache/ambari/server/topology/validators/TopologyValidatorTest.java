@@ -42,6 +42,7 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ClusterTopologyImpl;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.ResolvedComponent;
@@ -164,7 +165,7 @@ public class TopologyValidatorTest extends EasyMockSupport {
       .anyTimes();
     Capture<ResolvedComponent> componentCapture = newCapture();
     expect(topology.getHostGroupsForComponent(capture(componentCapture)))
-      .andAnswer(() -> hostGroups.entrySet().stream().filter(each -> each.getValue().contains(componentCapture.getValue())).map(Map.Entry::getKey).collect(toSet()))
+      .andAnswer(() -> ClusterTopologyImpl.getHostGroupsForComponent(hostGroups, componentCapture.getValue()))
       .anyTimes();
     expect(topology.getHostGroups()).andReturn(hostGroups.keySet()).anyTimes();
 

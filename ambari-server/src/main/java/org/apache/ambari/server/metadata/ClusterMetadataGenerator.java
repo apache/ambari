@@ -146,8 +146,6 @@ public class ClusterMetadataGenerator {
 
   public MetadataUpdateEvent getClusterMetadata(Cluster cl) throws AmbariException {
     SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-    StackId stackId = cl.getDesiredStackVersion();
-
     SecurityType securityType = cl.getSecurityType();
 
     MetadataCluster metadataCluster = new MetadataCluster(securityType,
@@ -180,11 +178,11 @@ public class ClusterMetadataGenerator {
     return new MetadataUpdateEvent(metadataClusters, null);
   }
 
-  public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceName) throws AmbariException {
+  public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceGroupName, String serviceName) throws AmbariException {
     SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
-      getMetadataServiceLevelParams(cl.getService(serviceName)),
+      getMetadataServiceLevelParams(cl.getService(serviceGroupName, serviceName)),
       new TreeMap<>());
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
@@ -210,22 +208,22 @@ public class ClusterMetadataGenerator {
 
     StackId serviceStackId = service.getStackId();
 
-    ServiceInfo serviceInfo = ambariMetaInfo.getService(serviceStackId.getStackName(),
-      serviceStackId.getStackVersion(), service.getName());
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(serviceStackId.getStackName(), serviceStackId.getStackVersion(), service.getServiceType());
     Long statusCommandTimeout = null;
     if (serviceInfo.getCommandScript() != null) {
       statusCommandTimeout = new Long(getStatusCommandTimeout(serviceInfo));
     }
 
-    String servicePackageFolder = serviceInfo.getServicePackageFolder();
-
-    serviceLevelParams.put(serviceInfo.getName(), new MetadataServiceInfo(serviceInfo.getVersion(),
-      serviceInfo.isCredentialStoreEnabled(), statusCommandTimeout, servicePackageFolder));
+    serviceLevelParams.put(service.getName(), new MetadataServiceInfo(
+      serviceInfo.getName(), serviceInfo.getVersion(),
+      serviceInfo.isCredentialStoreEnabled(), statusCommandTimeout,
+      serviceInfo.getServicePackageFolder()
+    ));
 
     return serviceLevelParams;
   }
 
-  public TreeMap<String, String> getMetadataAmbariLevelParams() throws AmbariException {
+  public TreeMap<String, String> getMetadataAmbariLevelParams() {
     TreeMap<String, String> ambariLevelParams = new TreeMap<>();
     ambariLevelParams.put(JDK_LOCATION, ambariConfig.getJdkResourceUrl());
     ambariLevelParams.put(JAVA_HOME, ambariConfig.getJavaHome());

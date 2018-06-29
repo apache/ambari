@@ -90,9 +90,9 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   }
 
   @Subscribe
-  public void onServiceCreate(ServiceInstalledEvent serviceInstalledEvent) throws AmbariException {
-    Cluster cluster = m_clusters.get().getCluster(serviceInstalledEvent.getClusterId());
-    updateData(metadataGenerator.getClusterMetadataOnServiceInstall(cluster, serviceInstalledEvent.getServiceName()));
+  public void onServiceCreate(ServiceInstalledEvent event) throws AmbariException {
+    Cluster cluster = m_clusters.get().getCluster(event.getClusterId());
+    updateData(metadataGenerator.getClusterMetadataOnServiceInstall(cluster, event.getServiceGroupName(), event.getServiceName()));
   }
 
   @Subscribe

@@ -265,11 +265,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   @Override
   public Set<String> getHostGroupsForComponent(ResolvedComponent component) {
-    return resolvedComponents.entrySet().stream()
-      .filter(e -> e.getValue().stream()
-        .anyMatch(each -> Objects.equals(each, component)))
-      .map(Map.Entry::getKey)
-      .collect(toSet());
+    return getHostGroupsForComponent(resolvedComponents, component);
   }
 
   @Override
@@ -331,7 +327,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Collection<String> getServices() {
     return getComponents()
-      .map(ResolvedComponent::effectiveServiceName)
+      .map(ResolvedComponent::serviceType)
       .collect(toSet());
   }
 
@@ -573,5 +569,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
       throw new InvalidTopologyException("The following hosts are mapped to multiple host groups: " + duplicates + "." +
         " Be aware that host names are converted to lowercase, case differences are ignored in Ambari deployments.");
     }
+  }
+
+  // exposed for test
+  public static Set<String> getHostGroupsForComponent(Map<String, Set<ResolvedComponent>> hostGroups, ResolvedComponent component) {
+    return hostGroups.entrySet().stream()
+      .filter(e -> e.getValue().stream()
+        .map(ResolvedComponent::clearInstanceNames)
+        .anyMatch(each -> Objects.equals(each, component)))
+      .map(Map.Entry::getKey)
+      .collect(toSet());
   }
 }
