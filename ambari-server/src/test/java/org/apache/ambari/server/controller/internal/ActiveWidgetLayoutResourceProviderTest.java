@@ -149,6 +149,11 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
     updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
+  @Test
+  public void testUpdateResources_NoUserName_Self() throws Exception {
+    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1", false);
+  }
+
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_NonAdministrator_Other() throws Exception {
     updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
@@ -255,6 +260,10 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
   }
 
   private void updateResourcesTest(Authentication authentication, String requestedUsername) throws Exception {
+    updateResourcesTest(authentication, requestedUsername, true);
+  }
+
+  private void updateResourcesTest(Authentication authentication, String requestedUsername, boolean setUserName) throws Exception {
     Injector injector = createInjector();
 
     Capture<? extends String> widgetLayoutJsonCapture = newCapture();
@@ -293,7 +302,9 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
     HashMap<String, Object> requestProps = new HashMap<>();
     requestProps.put(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT, widgetLayouts);
-    requestProps.put(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, requestedUsername);
+    if (setUserName) {
+      requestProps.put(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, requestedUsername);
+    }
 
     Request request = PropertyHelper.getUpdateRequest(requestProps, null);
 
