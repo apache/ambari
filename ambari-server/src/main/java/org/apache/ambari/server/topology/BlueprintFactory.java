@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_MPACK_INSTANCE_PROPERTY;
@@ -57,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Create a Blueprint instance.
@@ -115,7 +117,11 @@ public class BlueprintFactory {
     Collection<HostGroup> hostGroups = processHostGroups(properties);
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
             properties.get(CONFIGURATION_PROPERTY_ID));
-    Setting setting = SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTING_PROPERTY_ID));
+
+    Map<String, Object> settingProperties = properties.entrySet().stream()
+      .filter(entry -> SETTING_PROPERTY_ID.equals(entry.getKey()) || entry.getKey().startsWith(SETTING_PROPERTY_ID + "/"))
+      .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Setting setting = SettingFactory.getSetting(ImmutableSet.of(settingProperties));
 
     return new BlueprintImpl(name, hostGroups, stackIds, mpackInstances, configuration, securityConfiguration, setting);
   }

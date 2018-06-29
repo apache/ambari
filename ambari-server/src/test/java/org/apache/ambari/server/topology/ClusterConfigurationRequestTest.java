@@ -143,7 +143,7 @@ public class ClusterConfigurationRequestTest {
     Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos(null, "defaultTestValue", null);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
-    assertEquals(2, updatedConfigTypes.size());
+    assertEquals(1, updatedConfigTypes.size());
   }
 
   /**
@@ -158,7 +158,7 @@ public class ClusterConfigurationRequestTest {
       "defaultTestValue", null);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
-    assertEquals(2, updatedConfigTypes.size());
+    assertEquals(1, updatedConfigTypes.size());
 
   }
 
@@ -174,7 +174,7 @@ public class ClusterConfigurationRequestTest {
       "defaultTestValue", null);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
-    assertEquals(1, updatedConfigTypes.size());
+    assertEquals(0, updatedConfigTypes.size());
   }
 
   /**
@@ -188,7 +188,7 @@ public class ClusterConfigurationRequestTest {
     Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos("testPropertyValue", null, null);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
-    assertEquals(1, updatedConfigTypes.size());
+    assertEquals(0, updatedConfigTypes.size());
   }
 
   @Test
@@ -202,7 +202,7 @@ public class ClusterConfigurationRequestTest {
     Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos(null, "defaultTestValue", kerberosConfig);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
-    assertEquals(1, updatedConfigTypes.size());
+    assertEquals(0, updatedConfigTypes.size());
   }
 
   @Test
@@ -216,7 +216,7 @@ public class ClusterConfigurationRequestTest {
     Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos(null, "defaultTestValue", kerberosConfig);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
-    assertEquals(1, updatedConfigTypes.size());
+    assertEquals(0, updatedConfigTypes.size());
   }
 
   private Capture<? extends Set<String>> testProcessWithKerberos(String blueprintPropertyValue, String
@@ -277,9 +277,7 @@ public class ClusterConfigurationRequestTest {
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
-    expect(ambariContext.createConfigurationRequests(EasyMock.anyObject())).andReturn(Collections
-      .emptyList()).anyTimes();
-   Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().map(
+    Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().map(
       serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
           null, null, null, null, false, false, false, false, false)
     ).collect(toSet());
@@ -352,8 +350,6 @@ public class ClusterConfigurationRequestTest {
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(ambariContext.getClusterName(1L)).andReturn(CLUSTER_NAME).anyTimes();
-    expect(ambariContext.createConfigurationRequests(EasyMock.anyObject())).andReturn(Collections
-      .emptyList()).anyTimes();
     Set<ServiceResponse> services = IntStream.range(0, serviceNames.size()).boxed().
       map(
         serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),

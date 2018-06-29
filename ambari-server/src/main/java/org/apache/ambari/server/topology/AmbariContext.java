@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -50,7 +50,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -59,7 +58,6 @@ import org.apache.ambari.server.controller.ServiceGroupRequest;
 import org.apache.ambari.server.controller.ServiceGroupResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
@@ -90,6 +88,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
@@ -222,21 +221,21 @@ public class AmbariContext {
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
     Set<StackId> stackIds = topology.getStackIds();
-    createAmbariClusterResource(clusterName, stackIds, securityType);
+    createAmbariClusterResource(clusterName, stackIds, securityType, topology.getSetting().getClusterSettings());
     createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
-  private void createAmbariClusterResource(String clusterName, Set<StackId> stackIds, SecurityType securityType) {
+  private void createAmbariClusterResource(String clusterName, Set<StackId> stackIds, SecurityType securityType,
+                                           Map<String, String> clusterSettings) {
     String stackInfo = stackIds.iterator().next().toString(); // temporary
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
-
     try {
       RetryHelper.executeWithRetry(() -> {
         getController().createCluster(clusterRequest);
         return null;
       });
 
-      addDefaultClusterSettings(clusterName);
+      addClusterSettings(clusterName, clusterSettings);
     } catch (AmbariException e) {
       LOG.error("Failed to create Cluster resource: ", e);
       if (e.getCause() instanceof DuplicateResourceException) {
@@ -248,10 +247,17 @@ public class AmbariContext {
   }
 
   // FIXME temporarily add default cluster settings -- should be provided by ClusterImpl itself
-  private void addDefaultClusterSettings(String clusterName) throws AmbariException {
+  private void addClusterSettings(String clusterName, Map<String, String> clusterSettings) throws AmbariException {
     Cluster cluster = getController().getClusters().getCluster(clusterName);
-    for (PropertyInfo p : getController().getAmbariMetaInfo().getClusterProperties()) {
-      cluster.addClusterSetting(p.getName(), p.getValue());
+    Map<String, String> defaultClusterSettings =
+      getController().getAmbariMetaInfo().getClusterProperties().stream()
+        .collect(toMap(PropertyInfo::getName, PropertyInfo::getValue));
+
+    // Override default settings with those coming from blueprint / cluster template
+    defaultClusterSettings.putAll(clusterSettings);
+
+    for (Map.Entry<String, String> setting : defaultClusterSettings.entrySet()) {
+      cluster.addClusterSetting(setting.getKey(), setting.getValue());
     }
   }
 
@@ -268,8 +274,16 @@ public class AmbariContext {
       .collect(toSet());
 
     Set<ServiceComponentRequest> componentRequests = topology.getComponents()
-      .map(c -> new ServiceComponentRequest(clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.componentName(), c.componentName(),
-        topology.getSetting().getRecoveryEnabled(c.effectiveServiceName(), c.componentName()))) // FIXME settings by service type or name?
+      .map( c ->
+            new ServiceComponentRequest(
+              clusterName,
+              c.effectiveServiceGroupName(),
+              c.effectiveServiceName(),
+              c.componentName(),
+              c.componentName(),
+              State.INIT.name(),
+              topology.getSetting().getRecoveryEnabled(c.effectiveServiceName(), c.componentName()))
+      ) // FIXME settings by service type or name?
       .collect(toSet());
 
     try {
@@ -399,7 +413,7 @@ public class AmbariContext {
   }
 
   public void downloadMissingMpacks(Set<MpackInstance> mpacks) {
-    ResourceProvider resourceProvider = getClusterController().ensureResourceProvider(Resource.Type.Mpack);
+      ResourceProvider resourceProvider = getClusterController().ensureResourceProvider(Resource.Type.Mpack);
     new DownloadMpacksTask(resourceProvider, ambariMetaInfo.get()).downloadMissingMpacks(mpacks);
   }
 
@@ -472,10 +486,6 @@ public class AmbariContext {
     }
   }
 
-  //todo: non topology type shouldn't be returned
-  public List<ConfigurationRequest> createConfigurationRequests(Map<String, Object> clusterProperties) {
-    return AbstractResourceProvider.getConfigurationRequests("Clusters", clusterProperties);
-  }
 
   public void setConfigurationOnCluster(final ClusterRequest clusterRequest) {
     try {

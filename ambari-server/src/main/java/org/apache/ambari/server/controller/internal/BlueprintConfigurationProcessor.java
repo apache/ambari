@@ -74,18 +74,6 @@ public class BlueprintConfigurationProcessor {
    */
   public static final Pattern HOST_GROUP_PLACEHOLDER_PATTERN = Pattern.compile("%HOSTGROUP::(\\S+?)%");
 
-  private final static String COMMAND_RETRY_ENABLED_PROPERTY_NAME = "command_retry_enabled";
-
-  private final static String COMMANDS_TO_RETRY_PROPERTY_NAME = "commands_to_retry";
-
-  private final static String COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME = "command_retry_max_time_in_sec";
-
-  private final static String COMMAND_RETRY_ENABLED_DEFAULT = "true";
-
-  private final static String COMMANDS_TO_RETRY_DEFAULT = "INSTALL,START";
-
-  private final static String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
-
   private final static String CLUSTER_ENV_CONFIG_TYPE_NAME = "cluster-env";
 
   private final static String HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES = "hbase.coprocessor.master.classes";
@@ -449,7 +437,6 @@ public class BlueprintConfigurationProcessor {
 
     // Explicitly set any properties that are required but not currently provided in the stack definition.
     setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
-    setRetryConfiguration(clusterConfig, configTypesUpdated);
     setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
     addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getStack());
 
@@ -2954,41 +2941,6 @@ public class BlueprintConfigurationProcessor {
       }
     }
   }
-
-  /**
-   * This method ensures that Ambari command retry is enabled if not explicitly overridden in
-   * cluster-env by the Blueprint or Cluster Creation template.  The new dynamic provisioning model
-   * requires that retry be enabled for most multi-node clusters, to this method sets reasonable defaults
-   * in order to preserve backwards compatibility and to simplify Blueprint creation.
-   *
-   * If the retry-specific properties in cluster-env are not set, then the config processor
-   * will set these values to defaults in cluster-env.
-   *
-   * @param configuration cluster configuration
-   */
-  private static void setRetryConfiguration(Configuration configuration, Set<String> configTypesUpdated) {
-    boolean wasUpdated = false;
-
-    if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_ENABLED_PROPERTY_NAME) == null) {
-      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_ENABLED_PROPERTY_NAME, COMMAND_RETRY_ENABLED_DEFAULT);
-      wasUpdated = true;
-    }
-
-    if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMANDS_TO_RETRY_PROPERTY_NAME) == null) {
-      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMANDS_TO_RETRY_PROPERTY_NAME, COMMANDS_TO_RETRY_DEFAULT);
-      wasUpdated = true;
-    }
-
-    if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME) == null) {
-      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT);
-      wasUpdated = true;
-    }
-
-    if (wasUpdated) {
-      configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
-    }
-  }
-
 
   /**
    * Sets the read-only properties for stack features & tools, overriding

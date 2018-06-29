@@ -2588,15 +2588,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             (commandParams.get(CLUSTER_PHASE_PROPERTY).equals(CLUSTER_PHASE_INITIAL_INSTALL) ||
             commandParams.get(CLUSTER_PHASE_PROPERTY).equals(CLUSTER_PHASE_INITIAL_START))) {
           String retryEnabledStr =
-              configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
-                                                             ConfigHelper.CLUSTER_ENV_RETRY_ENABLED);
+            cluster.getClusterSetting(ConfigHelper.COMMAND_RETRY_ENABLED).getClusterSettingValue();
           String commandsStr =
-              configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
-                                                             ConfigHelper.CLUSTER_ENV_RETRY_COMMANDS);
+            cluster.getClusterSetting(ConfigHelper.COMMANDS_TO_RETRY).getClusterSettingValue();
           String retryMaxTimeStr =
-              configHelper.getValueFromDesiredConfigurations(cluster,
-                                                             ConfigHelper.CLUSTER_ENV,
-                                                             ConfigHelper.CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC);
+            cluster.getClusterSetting(ConfigHelper.COMMAND_RETRY_MAX_TIME_IN_SEC).getClusterSettingValue();
           if (StringUtils.isNotEmpty(retryEnabledStr)) {
             retryEnabled = Boolean.TRUE.toString().equals(retryEnabledStr);
           }

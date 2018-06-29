@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.state.ConfigHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -191,6 +192,40 @@ public class SettingTest {
   public void testAutoSkipFailureUnspecified() {
     Setting setting = new Setting(ImmutableMap.of());
     assertFalse(setting.shouldSkipFailure());
+  }
+
+  @Test
+  public void testGetClusterSettings() throws Exception {
+    Setting setting = new Setting(
+      ImmutableMap.of(
+        "cluster_settings",
+        ImmutableSet.of(
+          ImmutableMap.of(
+            ConfigHelper.COMMAND_RETRY_ENABLED, "true"),
+          ImmutableMap.of(
+            ConfigHelper.COMMAND_RETRY_MAX_TIME_IN_SEC, "600",
+            ConfigHelper.COMMANDS_TO_RETRY, "INSTALL,START")),
+        "recovery_settings",
+        ImmutableSet.of(
+          ImmutableMap.of(
+            Setting.SETTING_NAME_RECOVERY_ENABLED, "true",
+            "recovery_type", "AUTO_START"),
+          ImmutableMap.of(
+            "recovery_lifetime_max_count", "1024",
+            "recovery_max_count", "6"))
+      ));
+
+    Map<String, String> expectedClusterSettings = ImmutableMap.<String, String>builder()
+      .put(ConfigHelper.COMMAND_RETRY_ENABLED, "true")
+      .put(ConfigHelper.COMMAND_RETRY_MAX_TIME_IN_SEC, "600")
+      .put(ConfigHelper.COMMANDS_TO_RETRY, "INSTALL,START")
+      .put(Setting.SETTING_NAME_RECOVERY_ENABLED, "true")
+      .put("recovery_type", "AUTO_START")
+      .put("recovery_lifetime_max_count", "1024")
+      .put("recovery_max_count", "6")
+      .build();
+
+    assertEquals(expectedClusterSettings, setting.getClusterSettings());
   }
 
 }

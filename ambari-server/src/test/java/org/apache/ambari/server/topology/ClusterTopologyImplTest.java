@@ -32,9 +32,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang3.tuple.Pair;
@@ -52,6 +55,8 @@ import org.junit.runner.RunWith;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for ClusterTopologyImpl.
@@ -106,14 +111,23 @@ public class ClusterTopologyImplTest extends EasyMockSupport {
     "group4", ImmutableSet.of(
       builderFor("any_service", "component5"))
   );
+  private final AmbariManagementController controller = mock(AmbariManagementController.class);
+  private final AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
   private BlueprintBasedClusterProvisionRequest provisionRequest;
 
   private Configuration bpconfiguration;
 
   @Before
   public void setUp() throws Exception {
-    bpconfiguration = Configuration.createEmpty();
-
+    bpconfiguration = new Configuration(
+      Maps.newHashMap(ImmutableMap.of(
+        "cluster-env",
+        Maps.newHashMap(ImmutableMap.of(
+          "commands_to_retry", "INSTALL",
+          "command_retry_max_time_in_sec", "500",
+          "unknown_property_that_should_not_become_cluster_setting", "some_value"))
+      )),
+      new HashMap<>());
     HostGroupInfo group1Info = new HostGroupInfo("group1");
     HostGroupInfo group2Info = new HostGroupInfo("group2");
     HostGroupInfo group3Info = new HostGroupInfo("group3");
@@ -158,6 +172,7 @@ public class ClusterTopologyImplTest extends EasyMockSupport {
     expect(stack.getServicesForComponent("ZOOKEEPER_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aServiceWith(aComponent("ZOOKEEPER_CLIENT"))))).anyTimes();
 
     expect(ambariContext.composeStacks(STACK_IDS)).andReturn(stack).anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
 
     expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
@@ -167,11 +182,19 @@ public class ClusterTopologyImplTest extends EasyMockSupport {
       expect(hostGroup.getName()).andReturn(name).anyTimes();
       expect(blueprint.getHostGroup(name)).andReturn(hostGroup).anyTimes();
     }
+    expect(blueprint.getSetting()).andReturn(new Setting(new HashMap<>()));
 
     expect(group1.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group2.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group3.getConfiguration()).andReturn(configuration).anyTimes();
     expect(group4.getConfiguration()).andReturn(configuration).anyTimes();
+
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(
+      Sets.newHashSet(
+        propertyInfo("command_retry_enabled", "true"),
+        propertyInfo("commands_to_retry", "INSTALL,START"),
+        propertyInfo("command_retry_max_time_in_sec", "600"))).anyTimes();
 
     replayAll();
 
@@ -260,6 +283,29 @@ public class ClusterTopologyImplTest extends EasyMockSupport {
 
     assertTrue(topology.isComponentHadoopCompatible("ONEFS_CLIENT"));
     assertFalse(topology.isComponentHadoopCompatible("ZOOKEEPER_CLIENT"));
+  }
+
+  @Test
+  public void testAdjustTopology() throws Exception {
+    ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
+    Map<String, String> clusterSettings = topology.getSetting().getClusterSettings();
+    assertEquals(
+      ImmutableMap.of(
+        "commands_to_retry", "INSTALL",
+        "command_retry_max_time_in_sec", "500"),
+      clusterSettings
+    );
+    assertEquals(
+      ImmutableMap.of("unknown_property_that_should_not_become_cluster_setting", "some_value"),
+      topology.getConfiguration().getFullProperties().get("cluster-env")
+    );
+  }
+
+  private static PropertyInfo propertyInfo(String name, String value) {
+    PropertyInfo info = new PropertyInfo();
+    info.setName(name);
+    info.setValue(value);
+    return info;
   }
 
   private ServiceInfo aHCFSWith(ComponentInfo... components) {

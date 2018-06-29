@@ -105,15 +105,14 @@ public class ConfigHelper {
    */
   public static final String HBASE_SITE = "hbase-site";
   public static final String HDFS_SITE = "hdfs-site";
-  public static final String HIVE_SITE = "hive-site";
   public static final String YARN_SITE = "yarn-site";
   public static final String CLUSTER_ENV = "cluster-env";
   public static final String CLUSTER_SETTINGS = "cluster-settings";
   public static final String CLUSTER_ENV_ALERT_REPEAT_TOLERANCE = "alerts_repeat_tolerance";
-  public static final String CLUSTER_ENV_RETRY_ENABLED = "command_retry_enabled";
+  public static final String COMMAND_RETRY_ENABLED = "command_retry_enabled";
   public static final String SERVICE_CHECK_TYPE = "service_check_type";
-  public static final String CLUSTER_ENV_RETRY_COMMANDS = "commands_to_retry";
-  public static final String CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC = "command_retry_max_time_in_sec";
+  public static final String COMMANDS_TO_RETRY = "commands_to_retry";
+  public static final String COMMAND_RETRY_MAX_TIME_IN_SEC = "command_retry_max_time_in_sec";
   public static final String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
   public static final String CLUSTER_ENV_STACK_NAME_PROPERTY = "stack_name";
   public static final String CLUSTER_ENV_STACK_FEATURES_PROPERTY = "stack_features";

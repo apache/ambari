@@ -396,19 +396,13 @@ public class TopologyManagerTest {
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     // cluster configuration task run() isn't executed by mock executor
-    // so only INITIAL config
-    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
-        andReturn(Collections.singletonList(configurationRequest)).anyTimes();
-    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture2))).
-        andReturn(Collections.singletonList(configurationRequest2)).anyTimes();
-    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture3))).
-        andReturn(Collections.singletonList(configurationRequest3)).anyTimes();
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
     expectLastCall().anyTimes();
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_ID);
     expectLastCall().anyTimes();
     expect(ambariContext.getServices(anyString())).andReturn(services).anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
 
     expect(resourceProvider.createResources((anyObject()))).andReturn(new RequestStatusImpl(null, null, null)).anyTimes(); // persist raw request
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
@@ -433,6 +427,7 @@ public class TopologyManagerTest {
         return null;
       }).
       anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(new HashSet<>());
     expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
     mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(controller).anyTimes();
