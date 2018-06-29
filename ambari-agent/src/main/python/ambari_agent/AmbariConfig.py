@@ -231,8 +231,8 @@ class AmbariConfig:
     Possible policy values are:
 
     * keep - Keep all command-*.json files
-    * remove - Remove command-*.json files if the operation was successful
-    * remove_on_success - Remove all command-*.json files when no longer needed
+    * remove - Remove all command-*.json files when no longer needed
+    * remove_on_success - Remove command-*.json files if the operation was successful
 
     The policy value is expected to be set in the Ambari agent's ambari-agent.ini file, under the
     [agent] section.

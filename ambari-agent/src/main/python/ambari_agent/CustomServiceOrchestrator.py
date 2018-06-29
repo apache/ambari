@@ -318,8 +318,11 @@ class CustomServiceOrchestrator():
     """
     incremented_commands_for_component = False
 
-    # Make sure the return data has been initialized
+    # Make sure the return variable has been initialized
     ret = None
+
+    # Make sure the json_path variable has been initialized
+    json_path = None
 
     try:
       command = self.generate_command(command_header)
