@@ -318,6 +318,9 @@ class CustomServiceOrchestrator():
     """
     incremented_commands_for_component = False
 
+    # Make sure the return data has been initialized
+    ret = None
+
     try:
       command = self.generate_command(command_header)
       script_type = command['commandParams']['script_type']
@@ -455,6 +458,43 @@ class CustomServiceOrchestrator():
     finally:
       if incremented_commands_for_component:
         self.commands_for_component_in_progress[cluster_id][command['role']] -= 1
+
+      # Conditionally remove the command-*.json file if it exists
+      if os.path.exists(json_path):
+        command_file_retention_policy = self.config.command_file_retention_policy
+
+        if command_file_retention_policy == self.config.COMMAND_FILE_RETENTION_POLICY_REMOVE:
+          remove_command_file = True
+          logger.info(
+            'Removing %s due to the command_file_retention_policy, %s',
+            json_path, command_file_retention_policy
+          )
+        elif command_file_retention_policy == self.config.COMMAND_FILE_RETENTION_POLICY_REMOVE_ON_SUCCESS:
+          if ret and ('exitcode' in ret):
+            exit_code = ret['exitcode']
+            if exit_code == 0:
+              remove_command_file = True
+              logger.info(
+                'Removing %s due to the command_file_retention_policy, %s, and exit code, %d',
+                json_path, command_file_retention_policy, exit_code
+              )
+            else:
+              remove_command_file = False
+              logger.info(
+                'Not removing %s due to the command_file_retention_policy, %s, and exit code, %d',
+                json_path, command_file_retention_policy, exit_code
+              )
+          else:
+            remove_command_file = False
+            logger.info(
+              'Not Removing %s due to the command_file_retention_policy, %s, and a missing exit code value',
+              json_path, command_file_retention_policy
+            )
+        else:
+          remove_command_file = False
+
+        if remove_command_file:
+          os.remove(json_path)
 
     return ret
 
