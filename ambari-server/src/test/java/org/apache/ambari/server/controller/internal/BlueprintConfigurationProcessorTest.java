@@ -7064,7 +7064,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, String> atlasProperties = new HashMap<>();
     atlasProperties.put("atlas.enableTLS", "false");
-    atlasProperties.put("atlas.server.bind.address", "localhost");
     atlasProperties.put("atlas.server.http.port", "21000");
     properties.put("application-properties", atlasProperties);
 
@@ -7109,7 +7108,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("org.apache.atlas.hive.hook.HiveHook", clusterConfig.getPropertyValue("hive-site", "hive.exec.post.hooks"));
     assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
     assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
-    assertEquals("host1", clusterConfig.getPropertyValue("application-properties", "atlas.server.bind.address"));
   }
 
   @Test
@@ -7120,7 +7118,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("application-properties", atlasProperties);
     // use https
     atlasProperties.put("atlas.enableTLS", "true");
-    atlasProperties.put("atlas.server.bind.address", "localhost");
     atlasProperties.put("atlas.server.https.port", "99999");
     Map<String, String> atlasEnv = new HashMap<>();
 
