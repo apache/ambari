@@ -119,7 +119,7 @@ def init_get_parser_options(parser):
   parser.add_option('--components-map', default=None,
                     help="map of 'component type' (eg: hive_server, metastore etc) as key and List of component instance name(s) to be given (eg: HS-1, finance_metastore) as value OR Empty map for all component instances present",
                     dest="components_map")
-  
+
 
 def main(options, args):
   action = sys.argv[1]
@@ -168,8 +168,9 @@ def main(options, args):
 
   elif action == LIST_INSTANCES_ACTION:
     print list_instances(mpack=options.mpack, mpack_instance=options.mpack_instance,
-                                      subgroup_name=options.subgroup_name, module_name=options.module_name,
-                                      components_map=parsed_components_map)
+                         subgroup_name=options.subgroup_name, module_name=options.module_name,
+                         components_map=parsed_components_map)
+
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
