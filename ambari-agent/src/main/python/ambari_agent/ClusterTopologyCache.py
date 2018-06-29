@@ -47,6 +47,7 @@ class ClusterTopologyCache(ClusterCache):
     self.current_host_ids_to_cluster = {}
     self.cluster_local_components = {}
     self.cluster_host_info = None
+    self.component_version_map = {}
     super(ClusterTopologyCache, self).__init__(cluster_cache_dir)
 
   def get_cache_name(self):
@@ -74,6 +75,7 @@ class ClusterTopologyCache(ClusterCache):
 
     for cluster_id, cluster_topology in self.iteritems():
       self.cluster_local_components[cluster_id] = []
+      self.component_version_map[cluster_id] = defaultdict(lambda:defaultdict(lambda: {}))
 
       if not self.current_host_ids_to_cluster[cluster_id]:
         continue
@@ -82,6 +84,9 @@ class ClusterTopologyCache(ClusterCache):
 
       if 'components' in self[cluster_id]:
         for component_dict in self[cluster_id].components:
+          if 'version' in component_dict.commandParams:
+            self.component_version_map[cluster_id][component_dict.serviceName][component_dict.componentName] = component_dict.commandParams.version
+
           if 'hostIds' in component_dict and current_host_id in component_dict.hostIds:
             if current_host_id in component_dict.hostIds:
               self.cluster_local_components[cluster_id].append(component_dict.componentName)
@@ -132,6 +137,9 @@ class ClusterTopologyCache(ClusterCache):
 
   def get_cluster_local_components(self, cluster_id):
     return self.cluster_local_components[cluster_id]
+
+  def get_cluster_component_version_map(self, cluster_id):
+    return self.component_version_map[cluster_id]
 
   def get_host_info_by_id(self, cluster_id, host_id):
     """
