@@ -662,7 +662,7 @@ def init_ldap_properties_list_reqd(properties, options):
     LdapPropTemplate(properties, options.ldap_ssl, "ambari.ldap.connectivity.use_ssl", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
     LdapPropTemplate(properties, options.ldap_user_class, "ambari.ldap.attributes.user.object_class", "User object class* {0}: ", REGEX_ANYTHING, False, "person"),
     LdapPropTemplate(properties, options.ldap_user_attr, "ambari.ldap.attributes.user.name_attr", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
-    LdapPropTemplate(properties, options.ldap_group_class, "ambari.ldap.attributes.group.object_class", "Group object class* {0}: ", REGEX_ANYTHING, False, "ou=groups,dc=ambari,dc=apache,dc=org"),
+    LdapPropTemplate(properties, options.ldap_group_class, "ambari.ldap.attributes.group.object_class", "Group object class* {0}: ", REGEX_ANYTHING, False, "posixGroup"),
     LdapPropTemplate(properties, options.ldap_group_attr, "ambari.ldap.attributes.group.name_attr", "Group name attribute* {0}: ", REGEX_ANYTHING, False, "cn"),
     LdapPropTemplate(properties, options.ldap_member_attr, "ambari.ldap.attributes.group.member_attr", "Group member attribute* {0}: ", REGEX_ANYTHING, False, "memberUid"),
     LdapPropTemplate(properties, options.ldap_dn, "ambari.ldap.attributes.dn_attr", "Distinguished name attribute* {0}: ", REGEX_ANYTHING, False, "dn"),

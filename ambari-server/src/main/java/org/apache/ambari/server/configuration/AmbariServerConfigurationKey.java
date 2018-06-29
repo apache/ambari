@@ -51,7 +51,7 @@ public enum AmbariServerConfigurationKey {
   USER_SEARCH_BASE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.user.search_base", PLAINTEXT, "dc=ambari,dc=apache,dc=org", "The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled."),
   USER_BASE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.search_user_base", PLAINTEXT, "ou=people,dc=ambari,dc=apache,dc=org", "The filter used when searching for users in LDAP."),
 
-  GROUP_OBJECT_CLASS(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.group.object_class", PLAINTEXT, "ou=groups,dc=ambari,dc=apache,dc=org", "The filter used when searching for groups in LDAP."),
+  GROUP_OBJECT_CLASS(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.group.object_class", PLAINTEXT, "posixGroup", "Specifies the LDAP object class value that defines groups in the directory service."),
   GROUP_NAME_ATTRIBUTE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.group.name_attr", PLAINTEXT, "cn", "The attribute used to determine the group name in LDAP."),
   GROUP_MEMBER_ATTRIBUTE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.group.member_attr", PLAINTEXT, "member", "The LDAP attribute which identifies group membership."),
   GROUP_SEARCH_BASE(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.attributes.group.search_base", PLAINTEXT, "dc=ambari,dc=apache,dc=org", "The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled."),
