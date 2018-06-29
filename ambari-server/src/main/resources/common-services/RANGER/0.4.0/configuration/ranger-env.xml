@@ -103,7 +103,7 @@
   </property>
   <property>
     <name>admin_password</name>
-    <value>admin</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description>This is the password for default admin user that is used for creating ambari user in Ranger Admin</description>
     <value-attributes>
