@@ -687,6 +687,10 @@ def update_ldap_configuration(options, properties, ldap_property_value_map):
   request_data['Configuration']['properties'] = ldap_property_value_map
   perform_changes_via_rest_api(properties, admin_login, admin_password, SETUP_LDAP_CONFIG_URL, 'PUT', request_data)
 
+LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY = "ambari.ldap.connectivity.trust_store.type"
+LDAP_SSL_TRUSTSTORE_PATH_PROPERTY = "ambari.ldap.connectivity.trust_store.path"
+LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY = "ambari.ldap.connectivity.trust_store.password"
+
 def setup_ldap(options):
   logger.info("Setup LDAP.")
 
@@ -723,17 +727,16 @@ def setup_ldap(options):
 
   ldap_property_list_opt = [LDAP_MGR_USERNAME_PROPERTY,
                             LDAP_MGR_PASSWORD_PROPERTY,
-                            SSL_TRUSTSTORE_TYPE_PROPERTY,
-                            SSL_TRUSTSTORE_PATH_PROPERTY,
-                            SSL_TRUSTSTORE_PASSWORD_PROPERTY]
+                            LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY,
+                            LDAP_SSL_TRUSTSTORE_PATH_PROPERTY,
+                            LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
-  ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY,
-                                SSL_TRUSTSTORE_PASSWORD_PROPERTY]
+  ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY, LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
   LDAP_MGR_DN_DEFAULT = None
 
-  SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
-  SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
+  SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
+  SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, LDAP_SSL_TRUSTSTORE_PATH_PROPERTY)
 
   ldap_property_value_map = {}
   for ldap_prop in ldap_property_list_reqd:
@@ -785,19 +788,19 @@ def setup_ldap(options):
 
       ts_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password", options.trust_store_password)
 
-      ldap_property_value_map[SSL_TRUSTSTORE_TYPE_PROPERTY] = ts_type
-      ldap_property_value_map[SSL_TRUSTSTORE_PATH_PROPERTY] = ts_path
-      ldap_property_value_map[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
+      ldap_property_value_map[LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY] = ts_type
+      ldap_property_value_map[LDAP_SSL_TRUSTSTORE_PATH_PROPERTY] = ts_path
+      ldap_property_value_map[LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
       pass
-    elif properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY):
+    elif properties.get_property(LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY):
       print 'The TrustStore is already configured: '
-      print '  ' + SSL_TRUSTSTORE_TYPE_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
-      print '  ' + SSL_TRUSTSTORE_PATH_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
-      print '  ' + SSL_TRUSTSTORE_PASSWORD_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+      print '  ' + LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY + ' = ' + properties.get_property(LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY)
+      print '  ' + LDAP_SSL_TRUSTSTORE_PATH_PROPERTY + ' = ' + properties.get_property(LDAP_SSL_TRUSTSTORE_PATH_PROPERTY)
+      print '  ' + LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY + ' = ' + properties.get_property(LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY)
       if get_YN_input("Do you want to remove these properties [y/n] (y)? ", True, options.trust_store_reconfigure):
-        properties.removeOldProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
-        properties.removeOldProp(SSL_TRUSTSTORE_PATH_PROPERTY)
-        properties.removeOldProp(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+        properties.removeOldProp(LDAP_SSL_TRUSTSTORE_TYPE_PROPERTY)
+        properties.removeOldProp(LDAP_SSL_TRUSTSTORE_PATH_PROPERTY)
+        properties.removeOldProp(LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY)
     pass
   pass
 
@@ -827,7 +830,7 @@ def setup_ldap(options):
       if ts_password:
         encrypted_passwd = encrypt_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, options)
         if ts_password != encrypted_passwd:
-          ldap_property_value_map[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = encrypted_passwd
+          ldap_property_value_map[LDAP_SSL_TRUSTSTORE_PASSWORD_PROPERTY] = encrypted_passwd
       pass
     pass
 
