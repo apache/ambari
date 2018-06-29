@@ -2105,4 +2105,8 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  App.TestAliases.testAsComputedEqual(installerStep7Controller, 'isInstallWizard', 'content.controllerName', 'installerController');
+
+  App.TestAliases.testAsComputedEqual(installerStep7Controller, 'isAddServiceWizard', 'content.controllerName', 'addServiceController');
+
 });

@@ -100,9 +100,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * Is installer controller used
    * @type {bool}
    */
-  isInstallWizard: function () {
-    return this.get('content.controllerName') === 'installerController';
-  }.property('content.controllerName'),
+  isInstallWizard: Em.computed.equal('content.controllerName', 'installerController'),
+
+  /**
+   * Is add service controller used
+   * @type {bool}
+   */
+  isAddServiceWizard: Em.computed.equal('content.controllerName', 'addServiceController'),
 
   /**
    * List of config groups
@@ -168,7 +172,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @type {boolean}
    */
   supportsPreInstallChecks: function () {
-    return App.get('supports.preInstallChecks') && 'installerController' === this.get('content.controllerName');
+    return App.get('supports.preInstallChecks') && this.get('isInstallWizard');
   }.property('App.supports.preInstallChecks', 'wizardController.name'),
 
   /**
@@ -218,7 +222,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   installedServiceNames: function () {
     var serviceNames = this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
-    if (this.get('content.controllerName') !== 'installerController') {
+    if (!this.get('isInstallWizard')) {
       serviceNames = serviceNames.filter(function (_serviceName) {
         return !App.get('services.noConfigTypes').contains(_serviceName);
       });
@@ -610,7 +614,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.updateConfigAttributesFromThemes();
     this.checkHostOverrideInstaller();
     this.selectProperService();
-    var isInstallerWizard = (this.get("content.controllerName") === 'installerController');
+    var isInstallerWizard = this.get('isInstallWizard');
     var isRangerServiceAbsent =  rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected');
     if (isRangerServiceAbsent) {
       var isExternalRangerSetup;
@@ -1630,11 +1634,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
               this.hide();
               parent.hide();
               // go back to step 5: assign masters and disable default navigation warning
-              if ('installerController' === self.get('content.controllerName')) {
+              if (self.get('isInstallWizard')) {
                 App.router.get('installerController').gotoStep(5, true);
               }
               else {
-                if ('addServiceController' === self.get('content.controllerName')) {
+                if (self.get('isAddServiceWizard')) {
                   App.router.get('addServiceController').gotoStep(2, true);
                 }
               }
@@ -1801,21 +1805,24 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   postSubmit: function () {
-    var self = this;
     this.set('submitButtonClicked', true);
     if (this.get('isInstallWizard')) {
       this.serverSideValidationCallback();
     } else {
-      this.serverSideValidation().done(function () {
-        self.serverSideValidationCallback();
-      }).fail(function (value) {
+      this.serverSideValidation().done(() => {
+        this.serverSideValidationCallback();
+      }).fail(value => {
         if ("invalid_configs" === value) {
-          self.set('submitButtonClicked', false);
+          if (this.get('isAddServiceWizard')) {
+            this.get('configErrorList.issues').clear();
+            this.get('configErrorList.criticalIssues').clear();
+          }
+          this.set('submitButtonClicked', false);
           App.set('router.nextBtnClickInProgress', false);
         } else {
           // Failed due to validation mechanism failure.
           // Should proceed with other checks
-          self.serverSideValidationCallback();
+          this.serverSideValidationCallback();
         }
       });
     }
