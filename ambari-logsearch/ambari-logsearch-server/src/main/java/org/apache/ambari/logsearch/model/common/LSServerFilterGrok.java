@@ -33,7 +33,6 @@ public class LSServerFilterGrok extends LSServerFilter {
   @JsonProperty("log4j_format")
   private String log4jFormat;
 
-  @NotNull
   @JsonProperty("multiline_pattern")
   private String multilinePattern;
 
