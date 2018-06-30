@@ -58,6 +58,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl.SupportedCustomOperation;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -120,6 +121,7 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -2187,10 +2189,12 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     cluster.setSecurityType(SecurityType.KERBEROS);
 
+    Capture<Map<String,String>> requestPropertyMapCapture = EasyMock.newCapture();
+
     RequestStageContainer requestStageContainer = createNiceMock(RequestStageContainer.class);
     expect(requestStageContainer.getStages()).andReturn(Lists.newArrayList()).once();
 
-    expect(kerberosHelperMock.executeCustomOperations(eq(cluster), EasyMock.anyObject(),
+    expect(kerberosHelperMock.executeCustomOperations(eq(cluster), EasyMock.capture(requestPropertyMapCapture),
         EasyMock.anyObject(RequestStageContainer.class), eq(null))).andReturn(
             requestStageContainer).once();
 
@@ -2205,6 +2209,11 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     } catch (IllegalArgumentException illegalArgumentException) {
       // ignore
     }
+
+    Map<String, String> requestPropertyMap = requestPropertyMapCapture.getValue();
+    assertEquals("true", requestPropertyMap.get(KerberosHelper.ALLOW_RETRY));
+    assertEquals("true", requestPropertyMap.get(KerberosHelper.DIRECTIVE_IGNORE_CONFIGS));
+    assertEquals("missing", SupportedCustomOperation.REGENERATE_KEYTABS.name().toLowerCase());
 
     verifyAll();
   }
