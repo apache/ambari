@@ -2213,7 +2213,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Map<String, String> requestPropertyMap = requestPropertyMapCapture.getValue();
     assertEquals("true", requestPropertyMap.get(KerberosHelper.ALLOW_RETRY));
     assertEquals("true", requestPropertyMap.get(KerberosHelper.DIRECTIVE_IGNORE_CONFIGS));
-    assertEquals("missing", SupportedCustomOperation.REGENERATE_KEYTABS.name().toLowerCase());
+    assertEquals("missing", requestPropertyMap.get(SupportedCustomOperation.REGENERATE_KEYTABS.name().toLowerCase()));
 
     verifyAll();
   }
