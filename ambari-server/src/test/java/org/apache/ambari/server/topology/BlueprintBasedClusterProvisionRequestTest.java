@@ -17,11 +17,18 @@
  */
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.StackDefinition;
@@ -35,6 +42,16 @@ public class BlueprintBasedClusterProvisionRequestTest {
 
   private static final StackId STACK_ID = new StackId("HDP-2.6");
   private static final Set<StackId> STACK_IDS = ImmutableSet.of(STACK_ID);
+
+  private static final String HDPCORE = "HDPCORE";
+  private static final String EDW = "EDW";
+  private static final String ODS = "ODS";
+  private static final String ODS_MARKETING = "ODS MARKETING";
+  private static final String ODS_RND = "ODS R&D";
+  private static final String V10 = "1.0.0.0";
+  private static final String V11 = "1.1.0.0";
+  private static final String URI_FROM_BLUEPRINT = "http://from.blueprint";
+  private static final String URI_FROM_PROVISION_REQUEST = "http://from.provision.request";
 
   @Test(expected = IllegalArgumentException.class) // THEN
   public void clusterCannotRelaxBlueprintSecurity() {
@@ -51,6 +68,70 @@ public class BlueprintBasedClusterProvisionRequestTest {
     // WHEN
     new BlueprintBasedClusterProvisionRequest(context, null, blueprint, request);
   }
+
+  @Test
+  public void mergeMpacks() throws Exception {
+    // GIVEN
+    Collection<MpackInstance> blueprintMpacks = ImmutableSet.of(
+      mpack(HDPCORE, HDPCORE, V10, URI_FROM_BLUEPRINT),  // this will be overridden
+      mpack(ODS, ODS_MARKETING, V10, URI_FROM_BLUEPRINT),
+      mpack(EDW, EDW, V10, URI_FROM_BLUEPRINT));
+    Collection<MpackInstance> clusterTemplateMpacks = ImmutableSet.of(
+      mpack(HDPCORE, HDPCORE, V10, URI_FROM_PROVISION_REQUEST),
+      mpack(ODS, ODS_RND, V10, URI_FROM_PROVISION_REQUEST),
+      mpack(EDW, EDW, V11, URI_FROM_PROVISION_REQUEST));
+
+    // WHEN
+    BlueprintBasedClusterProvisionRequest request = createRequest(blueprintMpacks, clusterTemplateMpacks);
+
+    // THEN
+    assertEquals(5, request.getAllMpacks().size()); // one less than bp + cluster req combined due to one override
+    Map<MpackInstance.Key, MpackInstance> mpacks =
+      request.getAllMpacks().stream().collect(toMap(MpackInstance::getKey, Function.identity()));
+    assertEquals(
+      URI_FROM_BLUEPRINT,
+      mpacks.get(new MpackInstance.Key(ODS, ODS_MARKETING, V10)).getUrl());
+    assertEquals(
+      URI_FROM_BLUEPRINT,
+      mpacks.get(new MpackInstance.Key(EDW, EDW, V10)).getUrl());
+    assertEquals(
+      "mpack definition in blueprint was not properly overriden from cluster template",
+      URI_FROM_PROVISION_REQUEST,
+      mpacks.get(new MpackInstance.Key(HDPCORE, HDPCORE, V10)).getUrl());
+    assertEquals(
+      URI_FROM_PROVISION_REQUEST,
+      mpacks.get(new MpackInstance.Key(ODS, ODS_RND, V10)).getUrl());
+    assertEquals(
+      URI_FROM_PROVISION_REQUEST,
+      mpacks.get(new MpackInstance.Key(EDW, EDW, V11)).getUrl());
+  }
+
+  private BlueprintBasedClusterProvisionRequest createRequest(Collection<MpackInstance> blueprintMpacks,
+                                                              Collection<MpackInstance> clusterTemplateMpacks) {
+    Blueprint blueprint = createNiceMock(Blueprint.class);
+    SecurityConfiguration secure = new SecurityConfiguration(SecurityType.NONE);
+    expect(blueprint.getSecurity()).andReturn(secure).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(
+      blueprintMpacks.stream()
+        .map( MpackInstance::getStackId )
+        .collect(toSet()))
+      .anyTimes();
+    expect(blueprint.getMpacks()).andReturn(blueprintMpacks).anyTimes();
+
+    ProvisionClusterRequest request = createNiceMock(ProvisionClusterRequest.class);
+    expect(request.getSecurityConfiguration()).andReturn(SecurityConfiguration.NONE).anyTimes();
+    expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(request.getMpacks()).andReturn(clusterTemplateMpacks).anyTimes();
+
+    AmbariContext context = createNiceMock(AmbariContext.class);
+    StackDefinition stack = createNiceMock(StackDefinition.class);
+    expect(context.composeStacks(anyObject())).andReturn(stack).anyTimes();
+
+    replay(context, stack, blueprint, request);
+
+    return new BlueprintBasedClusterProvisionRequest(context, null, blueprint, request);
+  }
+
 
   private ProvisionClusterRequest insecureCluster() {
     ProvisionClusterRequest request = createNiceMock(ProvisionClusterRequest.class);
@@ -69,4 +150,7 @@ public class BlueprintBasedClusterProvisionRequestTest {
     return blueprint;
   }
 
+  private static final MpackInstance mpack(String name, String type, String version, String uri) {
+    return new MpackInstance(name, type, version, uri, null);
+  }
 }

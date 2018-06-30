@@ -152,7 +152,7 @@ public class ClusterTemplateArtifactPasswordReplacer {
     List<Map<String, Object>> mpackInstances =
       (List<Map<String, Object>>)artifactData.getOrDefault("mpack_instances", emptyList());
     return mpackInstances.stream().
-      map(mpackMap -> new StackId((String)mpackMap.get("name"), (String)mpackMap.get("version"))).
+      map(mpackMap -> new StackId((String)mpackMap.get("type"), (String)mpackMap.get("version"))).
       collect(toList());
   }
 
