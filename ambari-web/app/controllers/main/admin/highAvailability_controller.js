@@ -65,6 +65,10 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
   enableRMHighAvailability: function () {
     //Prerequisite Checks
     var message = [];
+
+    if (hostComponents.findProperty('componentName', 'RESOURCEMANAGER').get('workStatus') !== 'STARTED') {
+      message.push(Em.I18n.t('admin.rm_highAvailability.error.resourceManagerStarted'));
+    }
     if (App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
       message.push(Em.I18n.t('admin.rm_highAvailability.error.zooKeeperNum'));
     }

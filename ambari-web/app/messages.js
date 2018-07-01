@@ -1457,6 +1457,7 @@ Em.I18n.translations = {
   'admin.highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable NameNode HA.',
   'admin.rm_highAvailability.error.hostsNum':'You must have at least 3 hosts in your cluster to enable ResourceManager HA.',
   'admin.rm_highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable ResourceManager HA.',
+  'admin.rm_highAvailability.error.resourceManagerStarted':'ResourceManager must be running before you enable ResourceManager HA.',
   'admin.rm_highAvailability.closePopup':'Enable ResourceManager HA Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert enabling ResourceManager HA as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
   'admin.highAvailability.wizard.header':'Enable NameNode HA Wizard',
