@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.state.StackId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 public class MpackInstance implements Configurable {
   @JsonProperty("name")
@@ -144,6 +146,53 @@ public class MpackInstance implements Configurable {
     return mpackInstanceEntity;
   }
 
+  public Key getKey() {
+    return new Key(this);
+  }
+
+  /**
+   * Represents the 'business key' of (all properties that uniquely identifies) an mpack instance.
+   */
+  public static class Key {
+    public final String name;
+    public final String type;
+    public final String version;
+
+    Key(MpackInstance instance) {
+      this(instance.getMpackName(), instance.getMpackType(), instance.getMpackVersion());
+    }
+
+    Key(String name, String type, String version) {
+      this.name = name;
+      this.type = type;
+      this.version = version;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Key key = (Key) o;
+      return Objects.equals(name, key.name) &&
+        Objects.equals(type, key.type) &&
+        Objects.equals(version, key.version);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(name, type, version);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+        .add("name", name)
+        .add("type", type)
+        .add("version", version)
+        .toString();
+    }
+  }
+
   /**
    * Used during conversion to {@link MpackInstanceEntity}. Sets the common properties that are shared across all
    * {@link MpackInstanceEntity} subclasses. Bidirectional relations are handled for {@link  MpackInstanceConfigEntity},
@@ -175,7 +224,7 @@ public class MpackInstance implements Configurable {
 
   public static MpackInstance fromEntity(MpackInstanceEntity entity) {
     MpackInstance mpack = new MpackInstance(entity.getMpackName(), entity.getMpackType(), entity.getMpackVersion(), entity.getMpackUri(), BlueprintImpl.fromConfigEntities(entity.getConfigurations()));
-    for (MpackInstanceServiceEntity serviceEntity: entity.getServiceInstances()) {
+    for (MpackInstanceServiceEntity serviceEntity : entity.getServiceInstances()) {
       ServiceInstance serviceInstance = new ServiceInstance();
       serviceInstance.setName(serviceEntity.getName());
       serviceInstance.setType(serviceEntity.getType());
@@ -185,6 +234,5 @@ public class MpackInstance implements Configurable {
     }
     return mpack;
   }
-
 
 }

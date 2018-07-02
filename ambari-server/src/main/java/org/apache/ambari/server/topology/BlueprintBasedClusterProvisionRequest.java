@@ -18,6 +18,7 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,9 +53,8 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
     this.blueprint = blueprint;
     this.request = request;
     stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), request.getStackIds()));
-    mpacks = ImmutableSet.<MpackInstance>builder().
-      addAll(blueprint.getMpacks()).
-      addAll(request.getMpacks()).build();
+
+    mpacks = mergeMpacks(blueprint.getMpacks(), request.getMpacks());
 
     stack = ambariContext.composeStacks(stackIds);
 
@@ -63,6 +63,23 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
     if (securityConfiguration.getType() == SecurityType.KERBEROS) {
       ensureKerberosClientIsPresent();
     }
+  }
+
+  /**
+   * Override mpacks from blueprint with mpacks from provision cluster request that have the same type, name
+   * and version (this triplet needs to be unique)
+   */
+  Set<MpackInstance> mergeMpacks(Collection<MpackInstance> blueprintMpacks, Collection<MpackInstance> clusterTemplateMpacks) {
+    Map<MpackInstance.Key, MpackInstance> mpackInstanceMap = new HashMap<>();
+    blueprintMpacks.forEach(mpack -> mpackInstanceMap.put(mpack.getKey(), mpack));
+    clusterTemplateMpacks.forEach( mpack -> {
+      MpackInstance.Key key = mpack.getKey();
+      if (mpackInstanceMap.containsKey(key)) {
+        LOG.info("Overriding mpack from blueprint with mpack from provision cluster request: {}", key);
+      }
+      mpackInstanceMap.put(key, mpack);
+    });
+    return ImmutableSet.copyOf(mpackInstanceMap.values());
   }
 
   @Override
@@ -193,5 +210,4 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   public Set<MpackInstance> getAllMpacks() {
     return mpacks;
   }
-
 }
