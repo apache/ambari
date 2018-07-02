@@ -1185,11 +1185,11 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     this.getRecommendedHosts({
       hosts: hostNames,
       components: this.getCurrentComponentHostMap()
-    }).then(function() {
+    }).done(function() {
       self.validateSelectedHostComponents({
         hosts: hostNames,
         blueprint: self.get('recommendations')
-      }).then(function() {
+      }).always(function() {
         if (callback) {
           callback();
         }
@@ -1199,7 +1199,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
           self.recommendAndValidate(callback);
         }
       });
-    }, true);
+    });
   },
 
   getCurrentComponentHostMap: function() {
