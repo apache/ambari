@@ -18,20 +18,19 @@
 package org.apache.ambari.server.events.listeners.upgrade;
 
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -50,42 +49,41 @@ import com.google.inject.Provider;
 @RunWith(EasyMockRunner.class)
 public class StackUpgradeFinishListenerTest extends EasyMockSupport {
 
-  private static final String INVALID_NEW_VERSION = "1.2.3.4-5678";
-  private static final String VALID_NEW_VERSION = "2.4.0.0-1000";
-  private static final String SERVICE_COMPONENT_NAME = "Some component name";
-  private static final String SERVICE_NAME = "Service name";
-  private static final Long CLUSTER_ID = 1L;
-  private static final String UNKNOWN_VERSION = "UNKNOWN";
-  private static final String VALID_PREVIOUS_VERSION = "2.2.0.0";
-  private static final RepositoryVersionEntity DUMMY_REPOSITORY_VERSION_ENTITY = new RepositoryVersionEntity();
-  private static final UpgradeEntity DUMMY_UPGRADE_ENTITY = new UpgradeEntity();
   public static final String STACK_NAME = "HDP-2.4.0.0";
   public static final String STACK_VERSION = "2.4.0.0";
 
-  private Cluster cluster;
-  private ServiceComponentHost sch;
-  private Service service;
-  private ServiceComponent serviceComponent;
   private VersionEventPublisher publisher = new VersionEventPublisher();
+
+  private Cluster cluster;
 
   @TestSubject
   private StackUpgradeFinishListener listener = new StackUpgradeFinishListener(publisher);
 
-  @Mock(type = MockType.NICE)
+  @Mock(type = MockType.NICE, fieldName = "roleCommandOrderProvider")
   private Provider<RoleCommandOrderProvider> roleCommandOrderProviderProviderMock;
+
+  @Mock(type = MockType.NICE, fieldName = "ambariMetaInfo")
+  private Provider<AmbariMetaInfo> ambariMetaInfoProvider = null;
 
   @Before
   public void setup() throws Exception {
+    AmbariMetaInfo ami = createNiceMock(AmbariMetaInfo.class);
+
     cluster = createNiceMock(Cluster.class);
-    serviceComponent = createNiceMock(ServiceComponent.class);
-    service = createNiceMock(Service.class);
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+    Service service = createNiceMock(Service.class);
     Map<String, Service> services = new HashMap<>();
-    services.put("mock_service",service);
     Map<String, ServiceComponent> components = new HashMap<>();
+
+    services.put("mock_service",service);
     components.put("mock_component", serviceComponent);
 
     expect(cluster.getServices()).andReturn(services);
     expect(service.getServiceComponents()).andReturn(components);
+    expect(ambariMetaInfoProvider.get()).andReturn(ami);
+    ami.reconcileAlertDefinitions(cluster,true);
+    expectLastCall();
+
     serviceComponent.updateComponentInfo();
     service.updateServiceInfo();
   }
