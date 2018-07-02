@@ -20,6 +20,7 @@ limitations under the License.
 # Python Imports
 import os
 import shutil
+import traceback
 
 
 # Ambari Commons & Resource Management Imports
@@ -68,12 +69,19 @@ class HivePreUpgrade(Script):
     dump_dir = "/etc/hive/dbdump"
     dump_file = format("{dump_dir}/hive-{stack_version_formatted}-{type}-dump.sql")
     command = format("mkdir -p {dump_dir}; " + command)
+    success = False
+    
     if is_db_here:
-      Execute(command, user = "root")
-      Logger.info(format("Hive Metastore database backup created at {dump_file}"))
-    else:
+      try:
+        Execute(command, user = "root")
+        Logger.info(format("Hive Metastore database backup created at {dump_file}"))
+        success = True
+      except:
+        traceback.print_exc()
+    
+    if not success:
       Logger.warning("MANUAL DB DUMP REQUIRED!!")
-      Logger.warning(format("Hive Metastore is using an external {hive_metastore_db_type} database, the connection url is {hive_jdbc_connection_url}."))
+      Logger.warning(format("Hive Metastore is using a(n) {hive_metastore_db_type} database, the connection url is {hive_jdbc_connection_url}."))
       Logger.warning("Please log in to that host, and create a db backup manually by executing the following command:")
       Logger.warning(format("\"{command}\""))
 
