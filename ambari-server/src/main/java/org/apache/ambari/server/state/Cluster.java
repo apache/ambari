@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +133,7 @@ public interface Cluster {
    * @return collection of hosts that are associated with this cluster
    */
   Collection<Host> getHosts();
+  default Set<String> getHostNames() { return getHosts().stream().map(Host::getHostName).collect(toSet()); }
 
   /**
    * Get all of the hosts running the provided service and component.
