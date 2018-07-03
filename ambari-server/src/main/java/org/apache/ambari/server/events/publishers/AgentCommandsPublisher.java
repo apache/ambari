@@ -89,10 +89,10 @@ public class AgentCommandsPublisher {
       }
       for (Map.Entry<Long, TreeMap<String, ExecutionCommandsCluster>> hostEntry : executionCommandsClusters.entrySet()) {
         Long hostId = hostEntry.getKey();
-        ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostEntry.getValue());
-        executionCommandEvent.setHostId(hostId);
-        executionCommandEvent.setRequiredConfigTimestamp(agentConfigsHolder
-            .initializeDataIfNeeded(hostId, true).getTimestamp());
+        ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostId,
+            agentConfigsHolder
+                .initializeDataIfNeeded(hostId, true).getTimestamp(),
+            hostEntry.getValue());
         STOMPUpdatePublisher.publish(executionCommandEvent);
       }
     }
@@ -189,7 +189,9 @@ public class AgentCommandsPublisher {
             if (targetHost.equalsIgnoreCase(hostName)) {
 
               if (SET_KEYTAB.equalsIgnoreCase(command)) {
+                String principal = resolvedPrincipal.getPrincipal();
                 String keytabFilePath = resolvedKeytab.getFile();
+                LOG.info("Processing principal {} for host {} and keytab file path {}", principal, hostName, keytabFilePath);
 
                 if (keytabFilePath != null) {
 
@@ -198,7 +200,6 @@ public class AgentCommandsPublisher {
 
                   if (keytabFile.canRead()) {
                     Map<String, String> keytabMap = new HashMap<>();
-                    String principal = resolvedPrincipal.getPrincipal();
 
                     keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
                     keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, principal);
@@ -219,6 +220,9 @@ public class AgentCommandsPublisher {
                     keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
 
                     kcp.add(keytabMap);
+                  } else {
+                    LOG.warn("Keytab file for principal {} and host {} can not to be read at path {}",
+                        principal, hostName, keytabFile.getAbsolutePath());
                   }
                 }
               } else if (REMOVE_KEYTAB.equalsIgnoreCase(command) || CHECK_KEYTABS.equalsIgnoreCase(command)) {

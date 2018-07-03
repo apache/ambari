@@ -108,15 +108,17 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
   }
 
   @Override
-  protected boolean handleUpdate(AlertDefinitionsAgentUpdateEvent update) throws AmbariException {
+  protected AlertDefinitionsAgentUpdateEvent handleUpdate(AlertDefinitionsAgentUpdateEvent current, AlertDefinitionsAgentUpdateEvent update) throws AmbariException {
     Map<Long, AlertCluster> updateClusters = update.getClusters();
     if (updateClusters.isEmpty()) {
-      return false;
+      return null;
     }
+    AlertDefinitionsAgentUpdateEvent result = null;
 
     Long hostId = update.getHostId();
     boolean changed = false;
-    Map<Long, AlertCluster> existingClusters = getData(hostId).getClusters();
+    Map<Long, AlertCluster> existingClusters = current.getClusters();
+    Map<Long, AlertCluster> mergedClusters = new HashMap<>();
 
     switch (update.getEventType()) {
       case UPDATE:
@@ -124,12 +126,27 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
         if (!existingClusters.keySet().containsAll(updateClusters.keySet())) {
           LOG.info("Unknown clusters in update, perhaps cluster was removed previously");
         }
+        for (Map.Entry<Long, AlertCluster> e : existingClusters.entrySet()) {
+          Long clusterId = e.getKey();
+          if (!updateClusters.containsKey(clusterId)) {
+            mergedClusters.put(clusterId, e.getValue());
+          }
+        }
         for (Map.Entry<Long, AlertCluster> e : updateClusters.entrySet()) {
-          if (update.getEventType().equals(DELETE) && CollectionUtils.isEmpty(e.getValue().getAlertDefinitions())) {
-            existingClusters.remove(e.getKey());
-            changed = true;
+          Long clusterId = e.getKey();
+          if (existingClusters.containsKey(clusterId)) {
+            if (update.getEventType().equals(DELETE) && CollectionUtils.isEmpty(e.getValue().getAlertDefinitions())) {
+              changed = true;
+            } else {
+              AlertCluster mergedCluster = existingClusters.get(e.getKey()).handleUpdate(update.getEventType(), e.getValue());
+              if (mergedCluster != null) {
+                mergedClusters.put(clusterId, mergedCluster);
+                changed = true;
+              }
+            }
           } else {
-            changed |= existingClusters.get(e.getKey()).handleUpdate(update.getEventType(), e.getValue());
+            mergedClusters.put(clusterId, e.getValue());
+            changed = true;
           }
         }
         LOG.debug("Handled {} of alerts for {} cluster(s) on host with id {}, changed = {}", update.getEventType(), updateClusters.size(), hostId, changed);
@@ -139,7 +156,8 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
           if (!Sets.intersection(existingClusters.keySet(), updateClusters.keySet()).isEmpty()) {
             throw new AmbariException("Existing clusters in create");
           }
-          existingClusters.putAll(updateClusters);
+          mergedClusters.putAll(existingClusters);
+          mergedClusters.putAll(updateClusters);
           LOG.debug("Handled {} of alerts for {} cluster(s)", update.getEventType(), updateClusters.size());
           changed = true;
         }
@@ -148,8 +166,10 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
         LOG.warn("Unhandled event type {}", update.getEventType());
         break;
     }
-
-    return changed;
+    if (changed) {
+      result = new AlertDefinitionsAgentUpdateEvent(CREATE, mergedClusters, current.getHostName(), hostId);
+    }
+    return result;
   }
 
   @Subscribe

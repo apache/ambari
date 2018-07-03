@@ -42,7 +42,7 @@ public class HostLevelParamsUpdateEvent extends STOMPHostEvent implements Hashab
   /**
    * Host identifier.
    */
-  private Long hostId;
+  private final Long hostId;
 
   /**
    * Host level parameters by clusters.
@@ -50,13 +50,14 @@ public class HostLevelParamsUpdateEvent extends STOMPHostEvent implements Hashab
   @JsonProperty("clusters")
   private final Map<String, HostLevelParamsCluster> hostLevelParamsClusters;
 
-  public HostLevelParamsUpdateEvent(Map<String, HostLevelParamsCluster> hostLevelParamsClusters) {
+  public HostLevelParamsUpdateEvent(Long hostId, Map<String, HostLevelParamsCluster> hostLevelParamsClusters) {
     super(Type.HOSTLEVELPARAMS);
+    this.hostId = hostId;
     this.hostLevelParamsClusters = hostLevelParamsClusters;
   }
 
-  public HostLevelParamsUpdateEvent(String clusterId, HostLevelParamsCluster hostLevelParamsCluster) {
-    this(Collections.singletonMap(clusterId, hostLevelParamsCluster));
+  public HostLevelParamsUpdateEvent(Long hostId, String clusterId, HostLevelParamsCluster hostLevelParamsCluster) {
+    this(hostId, Collections.singletonMap(clusterId, hostLevelParamsCluster));
   }
 
   @Override
@@ -70,11 +71,7 @@ public class HostLevelParamsUpdateEvent extends STOMPHostEvent implements Hashab
   }
 
   public static HostLevelParamsUpdateEvent emptyUpdate() {
-    return new HostLevelParamsUpdateEvent(null);
-  }
-
-  public void setHostId(Long hostId) {
-    this.hostId = hostId;
+    return new HostLevelParamsUpdateEvent(null, null);
   }
 
   @Override
@@ -83,7 +80,7 @@ public class HostLevelParamsUpdateEvent extends STOMPHostEvent implements Hashab
   }
 
   public Map<String, HostLevelParamsCluster> getHostLevelParamsClusters() {
-    return hostLevelParamsClusters;
+    return hostLevelParamsClusters == null ? null : Collections.unmodifiableMap(hostLevelParamsClusters);
   }
 
   @Override

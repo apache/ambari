@@ -147,7 +147,7 @@ public class AmbariCustomCommandExecutionHelperTest {
         EasyMock.anyObject(Map.class))).andReturn(Collections.EMPTY_SET);
 
     EasyMock.expect(configHelper.getHostActualConfigs(EasyMock.anyLong())).andReturn(
-        new AgentConfigsUpdateEvent(new TreeMap<>())).anyTimes();
+        new AgentConfigsUpdateEvent(null, new TreeMap<>())).anyTimes();
 
     EasyMock.replay(configHelper);
 
@@ -544,7 +544,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
 
     EasyMock.expect(configHelper.getHostActualConfigs(EasyMock.anyLong())).andReturn(
-        new AgentConfigsUpdateEvent(new TreeMap<>())).anyTimes();
+        new AgentConfigsUpdateEvent(null, new TreeMap<>())).anyTimes();
 
     EasyMock.replay(configHelper);
 
