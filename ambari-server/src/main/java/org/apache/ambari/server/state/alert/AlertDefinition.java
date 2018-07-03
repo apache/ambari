@@ -25,9 +25,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.lang.StringUtils;
 
@@ -428,12 +430,13 @@ public class AlertDefinition {
   }
 
   /**
-   * Collect the host names fromthe cluster where the given alert is allowed to run.
+   * Collect the host names from the cluster where the given alert is allowed to run.
    * A host is able to run an alert if the service component of the alert is installed on that particular host.
    * In case of AMBARI server alerts or AGGREGATE alerts, an empty host set is returned.
    * @return matching host names
    */
-  public Set<String> matchingHosts(Cluster cluster) {
+  public Set<String> matchingHosts(Clusters clusters) throws AmbariException {
+    Cluster cluster = clusters.getCluster(clusterId);
     if (source.getType() == SourceType.AGGREGATE) {
       return emptySet();
     }

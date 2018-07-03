@@ -138,7 +138,7 @@ public class AlertDefinitionsUIUpdateListener {
     LOG.info("{} alert definition '{}'", eventType, alertDefinition);
     Cluster cluster = clusters.get().getCluster(alertDefinition.getClusterId());
     helper.get().invalidateHosts(alertDefinition); // do we need to invalidate, what's the purpose of this?
-    for (String hostName : alertDefinition.matchingHosts(cluster)) {
+    for (String hostName : alertDefinition.matchingHosts(clusters.get())) {
       alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(eventType, alertDefinition.getClusterId(),
           Collections.singletonMap(alertDefinition.getDefinitionId(), alertDefinition), hostName);
     }
