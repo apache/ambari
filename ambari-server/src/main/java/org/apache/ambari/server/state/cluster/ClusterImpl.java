@@ -2246,18 +2246,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Collection<Host> getHosts() {
-    Map<String, Host> hosts;
-
-    try {
-      //todo: why the hell does this method throw AmbariException???
-      //todo: this is ridiculous that I need to get hosts for this cluster from Clusters!!!
-      //todo: should I getHosts using the same logic as the other getHosts call?  At least that doesn't throw AmbariException.
-      hosts =  clusters.getHostsForCluster(clusterName);
-    } catch (AmbariException e) {
-      //todo: in what conditions is AmbariException thrown?
-      throw new RuntimeException("Unable to get hosts for cluster: " + clusterName, e);
-    }
-    return hosts == null ? Collections.emptyList() : hosts.values();
+    return clusters.getHostsForCluster(clusterName).values();
   }
 
   private ClusterHealthReport getClusterHealthReport(
