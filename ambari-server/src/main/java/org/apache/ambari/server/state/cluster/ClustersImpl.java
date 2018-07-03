@@ -706,9 +706,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public Map<String, Host> getHostsForCluster(String clusterName)
-      throws AmbariException {
-
+  public Map<String, Host> getHostsForCluster(String clusterName) {
     Map<String, Host> hosts = new HashMap<>();
     for (Host h : getClusterHostsMap().get(clusterName)) {
       hosts.put(h.getHostName(), h);
