@@ -1954,54 +1954,54 @@ export const mockDataGet = {
         'post_map_values': {
           'callerContext': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'req_caller_id'
               }
             }
           ],
           'src': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'resource'
               }
             }
           ],
           'allowed': [
             {
-              'map_fieldvalue': {
+              'map_field_value': {
                 'pre_value': 'true',
                 'post_value': '1'
               }
             },
             {
-              'map_fieldvalue': {
+              'map_field_value': {
                 'pre_value': 'false',
                 'post_value': '0'
               }
             },
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'result'
               }
             }
           ],
           'ip': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'cliIP'
               }
             }
           ],
           'proto': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'cliType'
               }
             }
           ],
           'cmd': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'action'
               }
             }
@@ -2025,42 +2025,42 @@ export const mockDataGet = {
         'post_map_values': {
           'k_authType': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'proxyAuthType'
               }
             }
           ],
           'p_authType': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'authType'
               }
             }
           ],
           'x_user': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'reqUser'
               }
             }
           ],
           'k_user': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'proxyUsers'
               }
             }
           ],
           'p_user': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'reqUser'
               }
             }
           ],
           'user': [
             {
-              'map_fieldname': {
+              'map_field_name': {
                 'new_field_name': 'reqUser'
               }
             }
