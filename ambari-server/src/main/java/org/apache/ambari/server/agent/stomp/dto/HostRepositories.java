@@ -44,15 +44,7 @@ public class HostRepositories {
     return repositories;
   }
 
-  public void setRepositories(SortedMap<Long, CommandRepository> repositories) {
-    this.repositories = repositories;
-  }
-
   public SortedMap<String, Long> getComponentRepos() {
     return componentRepos;
-  }
-
-  public void setComponentRepos(SortedMap<String, Long> componentRepos) {
-    this.componentRepos = componentRepos;
   }
 }

@@ -2747,6 +2747,9 @@ public class KerberosHelperImpl implements KerberosHelper {
 
             if (allowedStates.contains(host.getState())) {
               hostNames.add(hostname);
+            } else {
+              LOG.warn("Host {} was excluded due {} state is not allowed. Allowed states: {}", hostname, host.getState(),
+                  allowedStates);
             }
           }
 
@@ -4277,6 +4280,8 @@ public class KerberosHelperImpl implements KerberosHelper {
         for (Host host : clusterHosts) {
           if (host.getState() == HostState.HEALTHY) {
             hosts.add(host.getHostName());
+          } else {
+            LOG.warn("Host {} was excluded due {} state", host.getHostName(), host.getState());
           }
         }
       }

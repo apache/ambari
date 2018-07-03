@@ -214,7 +214,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                     // There is nothing to do for this since it must already exist and we don't want to
                     // regenerate the keytab
                     message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", resolvedPrincipal.getPrincipal());
-                    LOG.debug(message);
+                    LOG.info(message);
                   } else {
                     if (cachedKeytabPath == null) {
                       message = String.format("Failed to create keytab for %s, missing cached file", resolvedPrincipal.getPrincipal());
@@ -241,7 +241,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                         ensureAmbariOnlyAccess(destinationKeytabFile);
 
                         message = String.format("Successfully created keytab file for %s at %s", resolvedPrincipal.getPrincipal(), destinationKeytabFile.getAbsolutePath());
-                        LOG.debug(message);
+                        LOG.info(message);
                         auditEventBuilder.withPrincipal(resolvedPrincipal.getPrincipal()).withHostName(hostName).withKeyTabFilePath(destinationKeytabFile.getAbsolutePath());
                       } else {
                         message = String.format("Failed to create keytab file for %s at %s", resolvedPrincipal.getPrincipal(), destinationKeytabFile.getAbsolutePath());
