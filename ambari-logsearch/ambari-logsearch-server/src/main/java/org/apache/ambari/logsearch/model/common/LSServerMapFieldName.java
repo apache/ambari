@@ -31,7 +31,7 @@ import io.swagger.annotations.ApiModel;
 public class LSServerMapFieldName extends LSServerMapField {
   @Override
   public String getName() {
-    return "map_fieldname";
+    return "map_field_name";
   }
 
   @NotNull
