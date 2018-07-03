@@ -574,6 +574,18 @@ describe('App.config', function() {
   describe('#textareaIntoFileConfigs', function () {
     var res, cs;
     beforeEach(function () {
+      var stackConfigs = [
+        Em.Object.create({
+          name: 'n1',
+          value: 'v1',
+          savedValue: 'v1',
+          serviceName: 'YARN',
+          filename: 'capacity-scheduler.xml',
+          isFinal: true,
+          group: null
+        })
+      ];
+      sinon.stub(App.configsCollection, 'getAll').returns(stackConfigs);
       res = [
         Em.Object.create({
           name: 'n1',
@@ -582,6 +594,7 @@ describe('App.config', function() {
           serviceName: 'YARN',
           filename: 'capacity-scheduler.xml',
           isFinal: true,
+          isUserProperty: false,
           group: null
         }),
         Em.Object.create({
@@ -591,6 +604,7 @@ describe('App.config', function() {
           serviceName: 'YARN',
           filename: 'capacity-scheduler.xml',
           isFinal: true,
+          isUserProperty: true,
           group: null
         })
       ];
@@ -609,6 +623,10 @@ describe('App.config', function() {
         'description': 'Capacity Scheduler properties',
         'displayType': 'capacityScheduler'
       });
+    });
+
+    afterEach(function () {
+      App.configsCollection.getAll.restore();
     });
 
     it('generate capacity scheduler', function () {
