@@ -28,16 +28,16 @@ import com.google.gson.annotations.SerializedName;
 
 @ShipperConfigTypeDescription(
     name = "Map Field Value",
-    description = "The name of the mapping element should be map_fieldvalue. The value json element should contain the following parameter:"
+    description = "The name of the mapping element should be map_field_value. The value json element should contain the following parameter:"
 )
 public class MapFieldValueDescriptorImpl extends MapFieldDescriptorImpl implements MapFieldValueDescriptor {
   @Override
   public String getJsonName() {
-    return "map_fieldvalue";
+    return "map_field_value";
   }
 
   @ShipperConfigElementDescription(
-    path = "/filter/[]/post_map_values/{field_name}/[]/map_fieldvalue/pre_value",
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_field_value/pre_value",
     type = "string",
     description = "The value that the field must match (ignoring case) to be mapped",
     examples = {"old_value"}
@@ -47,7 +47,7 @@ public class MapFieldValueDescriptorImpl extends MapFieldDescriptorImpl implemen
   private String preValue;
 
   @ShipperConfigElementDescription(
-      path = "/filter/[]/post_map_values/{field_name}/[]/map_fieldvalue/post_value",
+      path = "/filter/[]/post_map_values/{field_name}/[]/map_field_value/post_value",
       type = "string",
       description = "The value to which the field is modified to",
       examples = {"new_value"}

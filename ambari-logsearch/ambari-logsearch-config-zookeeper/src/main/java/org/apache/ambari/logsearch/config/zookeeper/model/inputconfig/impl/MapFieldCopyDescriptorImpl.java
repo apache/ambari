@@ -33,7 +33,7 @@ import com.google.gson.annotations.SerializedName;
 public class MapFieldCopyDescriptorImpl extends MapFieldDescriptorImpl implements MapFieldCopyDescriptor {
   @Override
   public String getJsonName() {
-    return "map_fieldcopy";
+    return "map_field_copy";
   }
 
   @ShipperConfigElementDescription(

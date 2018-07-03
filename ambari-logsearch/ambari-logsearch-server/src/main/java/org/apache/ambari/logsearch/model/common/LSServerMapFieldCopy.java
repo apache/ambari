@@ -31,7 +31,7 @@ import io.swagger.annotations.ApiModel;
 public class LSServerMapFieldCopy extends LSServerMapField {
   @Override
   public String getName() {
-    return "map_fieldcopy";
+    return "map_field_copy";
   }
 
   @NotNull

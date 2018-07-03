@@ -27,7 +27,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**
- * Helper class to convert betweeb json string and InputConfig class.
+ * Helper class to convert between json string and InputConfig class.
  */
 public class InputConfigGson {
   public static Gson gson;

@@ -57,13 +57,13 @@ public class PostMapValuesAdapter implements JsonDeserializer<List<PostMapValues
         case "map_date":
           mappers.add(context.deserialize(m.getValue(), MapDateDescriptorImpl.class));
           break;
-        case "map_fieldcopy":
+        case "map_field_copy":
           mappers.add(context.deserialize(m.getValue(), MapFieldCopyDescriptorImpl.class));
           break;
-        case "map_fieldname":
+        case "map_field_name":
           mappers.add(context.deserialize(m.getValue(), MapFieldNameDescriptorImpl.class));
           break;
-        case "map_fieldvalue":
+        case "map_field_value":
           mappers.add(context.deserialize(m.getValue(), MapFieldValueDescriptorImpl.class));
           break;
         case "map_anonymize":
@@ -97,7 +97,7 @@ public class PostMapValuesAdapter implements JsonDeserializer<List<PostMapValues
   private JsonElement createMapperObject(PostMapValuesImpl postMapValues, JsonSerializationContext context) {
     JsonObject jsonObject = new JsonObject();
     for (MapFieldDescriptor m : postMapValues.getMappers()) {
-      jsonObject.add(((MapFieldDescriptorImpl)m).getJsonName(), context.serialize(m));
+      jsonObject.add(m.getJsonName(), context.serialize(m));
     }
     return jsonObject;
   }

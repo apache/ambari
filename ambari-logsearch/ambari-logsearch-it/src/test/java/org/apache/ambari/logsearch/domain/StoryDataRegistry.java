@@ -18,11 +18,28 @@
  */
 package org.apache.ambari.logsearch.domain;
 
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputAdapter;
 import org.apache.solr.client.solrj.SolrClient;
 import org.jbehave.web.selenium.WebDriverProvider;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
 public class StoryDataRegistry {
   public static final StoryDataRegistry INSTANCE = new StoryDataRegistry();
+
+  public static final String CLUSTER = "cl1";
+  public static final String LOGSEARCH_GLOBAL_CONFIG = "[\n" +
+          "    {\n" +
+          "      \"add_fields\": {\n" +
+          "        \"cluster\": \""+ CLUSTER +"\"\n" +
+          "      },\n" +
+          "      \"source\": \"file\",\n" +
+          "      \"tail\": \"true\",\n" +
+          "      \"gen_event_md5\": \"true\"\n" +
+          "    }\n" +
+          "]";
+
 
   private SolrClient solrClient;
   private boolean logsearchContainerStarted = false;
@@ -38,6 +55,9 @@ public class StoryDataRegistry {
   private WebDriverProvider webDriverProvider;
 
   private StoryDataRegistry() {
+    JsonParser jsonParser = new JsonParser();
+    JsonElement globalConfigJsonElement = jsonParser.parse(LOGSEARCH_GLOBAL_CONFIG);
+    InputAdapter.setGlobalConfigs(globalConfigJsonElement.getAsJsonArray());
   }
 
   public String getDockerHost() {
@@ -114,5 +134,9 @@ public class StoryDataRegistry {
 
   public void setShellScriptFolder(String shellScriptFolder) {
     this.shellScriptFolder = shellScriptFolder;
+  }
+
+  public WebClient logsearchClient() {
+    return new WebClient(dockerHost, logsearchPort);
   }
 }
