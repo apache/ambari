@@ -185,10 +185,8 @@ public interface Clusters {
    * Gets all the hosts associated with the cluster
    * @param clusterName The name of the cluster
    * @return <code>Map</code> containing host name and <code>Host</code>
-   * @throws AmbariException
    */
-  Map<String, Host> getHostsForCluster(String clusterName)
-      throws AmbariException;
+  Map<String, Host> getHostsForCluster(String clusterName);
 
   /**
    * Gets all the host Ids associated with the cluster

@@ -22,7 +22,6 @@ import static org.apache.ambari.server.events.AlertDefinitionEventType.UPDATE;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Provider;
 
@@ -137,13 +136,14 @@ public class AlertDefinitionsUIUpdateListener {
 
   private void handleSingleDefinitionChange(AlertDefinitionEventType eventType, AlertDefinition alertDefinition) throws AmbariException {
     LOG.info("{} alert definition '{}'", eventType, alertDefinition);
-    Set<String> hosts = helper.get().invalidateHosts(alertDefinition);
-    for (String hostName : hosts) {
+    Cluster cluster = clusters.get().getCluster(alertDefinition.getClusterId());
+    helper.get().invalidateHosts(alertDefinition); // do we need to invalidate, what's the purpose of this?
+    for (String hostName : alertDefinition.matchingHosts(clusters.get())) {
       alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(eventType, alertDefinition.getClusterId(),
           Collections.singletonMap(alertDefinition.getDefinitionId(), alertDefinition), hostName);
     }
     if (alertDefinition.getName().equals(AMBARI_STALE_ALERT_NAME)) {
-      for (Host host : clusters.get().getCluster(alertDefinition.getClusterId()).getHosts()) {
+      for (Host host : cluster.getHosts()) {
         alertDefinitionsHolder.provideStaleAlertDefinitionUpdateEvent(eventType, alertDefinition.getClusterId(),
             alertHelper.getWaitFactorMultiplier(alertDefinition), host.getHostName());
       }
