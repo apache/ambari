@@ -232,7 +232,17 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     hostDetails: Em.Route.extend({
 
       breadcrumbs: {
-        labelBindingPath: 'App.router.mainHostDetailsController.content.hostName'
+        itemView: Em.View.extend({
+          tagName: "a",
+          contentBinding: 'App.router.mainHostDetailsController.content',
+          isActive: Em.computed.equal('content.passiveState', 'OFF'),
+          click: function() {
+            App.router.transitionTo('hosts.hostDetails.summary', this.get('content'));
+          },
+          template: Em.Handlebars.compile('<span class="host-breadcrumb">{{view.content.hostName}}</span>' +
+            '<span rel="HealthTooltip" {{bindAttr class="view.content.healthClass view.content.healthIconClass :icon"}} ' +
+            'data-placement="bottom" {{bindAttr data-original-title="view.content.healthToolTip" }}></span>')
+        })
       },
 
       route: '/:host_id',
