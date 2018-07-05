@@ -114,6 +114,13 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       }
     }
 
+    //Fix required by QA (Ambari does not pick the existing hive database from the jdbc url set)
+    if (['oozie.service.JPAService.jdbc.url__oozie-site', 'javax.jdo.option.ConnectionURL__hive-site'].contains(config.get('id'))) {
+      controller.set('recommendationsInProgress', true);
+      controller.runServerSideValidation().done(function () {
+        controller.set('recommendationsInProgress', false)
+      });
+    }
     return $.Deferred().resolve().promise();
   },
 
