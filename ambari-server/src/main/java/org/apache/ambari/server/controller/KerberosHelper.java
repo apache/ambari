@@ -61,9 +61,25 @@ public interface KerberosHelper {
    */
   String DIRECTIVE_COMPONENTS = "regenerate_components";
   /**
-   * directive used to pass host list to regenerate keytabs on
+   * directive used to indicate configurations are not to be updated (if set to "true") when regenerating
+   * keytab files
+   * @deprecated use {@link #DIRECTIVE_CONFIG_UPDATE_POLICY}
    */
   String DIRECTIVE_IGNORE_CONFIGS = "ignore_config_updates";
+  /**
+   * directive used to indicate how to handle configuration updates when regenerating keytab files
+   *
+   * expected values:
+   * <ul>
+   * <li>none</li>
+   * <li>identities_only</li>
+   * <li>new_and_identities</li>
+   * <li>all</li>
+   * </ul>
+   *
+   * @see UpdateConfigurationPolicy
+   */
+  String DIRECTIVE_CONFIG_UPDATE_POLICY = "config_update_policy";
   /**
    * directive used to indicate that the enable Kerberos operation should proceed even if the
    * cluster's security type is not changing
