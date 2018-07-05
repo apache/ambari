@@ -128,14 +128,14 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   /**
    * The key property ids for a Blueprint resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Blueprint, BLUEPRINT_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a Blueprint resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       BLUEPRINT_NAME_PROPERTY_ID,
       STACK_NAME_PROPERTY_ID,
       STACK_VERSION_PROPERTY_ID,

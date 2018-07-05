@@ -214,7 +214,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
-  protected static UpgradeDAO s_upgradeDAO = null;
+  static UpgradeDAO s_upgradeDAO;
 
   @Inject
   private static Provider<AmbariMetaInfo> s_metaProvider = null;

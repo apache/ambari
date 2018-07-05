@@ -106,7 +106,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       PRIVILEGE_ID,
       PERMISSION_NAME,
       PERMISSION_LABEL,
@@ -137,7 +137,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   }
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
+  private static final Set<String> pkPropertyIds = new HashSet<String>() {
     {
       add(PRIVILEGE_ID);
     }
@@ -146,7 +146,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.User, USER_NAME)
       .put(Resource.Type.UserPrivilege, PRIVILEGE_ID)
       .build();

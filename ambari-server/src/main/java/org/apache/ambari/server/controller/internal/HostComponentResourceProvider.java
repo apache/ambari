@@ -137,7 +137,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   /**
    * The key property ids for a HostComponent resource.
    */
-  public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  public static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME)
       .put(Resource.Type.Host, HOST_NAME)
       .put(Resource.Type.HostComponent, COMPONENT_NAME)
@@ -147,7 +147,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   /**
    * The property ids for a HostComponent resource.
    */
-  protected static Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = Sets.newHashSet(
       ROLE_ID,
       CLUSTER_NAME,
       SERVICE_NAME,

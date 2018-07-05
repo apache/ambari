@@ -116,18 +116,18 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   /**
    * primary key fields
    */
-  public static Set<String> pkPropertyIds = new HashSet<>();
+  public static final Set<String> pkPropertyIds = new HashSet<>();
 
   /**
    * map of resource type to fk field
    */
-  public static Map<Resource.Type, String> keyPropertyIds =
+  public static final Map<Resource.Type, String> keyPropertyIds =
     new HashMap<>();
 
   /**
    * resource properties
    */
-  public static Set<String> propertyIds = new HashSet<>();
+  public static final Set<String> propertyIds = new HashSet<>();
 
   /**
    * name of the kerberos descriptor artifact.

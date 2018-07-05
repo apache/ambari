@@ -81,9 +81,9 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   private static final String REPOSITORY_STACK_VALUE                           = "stack_value";
 
-  private static Set<String> pkPropertyIds = Collections.singleton(REPOSITORY_VERSION_ID_PROPERTY_ID);
+  private static final Set<String> pkPropertyIds = Collections.singleton(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
-  static Set<String> propertyIds = Sets.newHashSet(
+  static final Set<String> propertyIds = Sets.newHashSet(
     REPOSITORY_STACK_VALUE,
     REPOSITORY_VERSION_ID_PROPERTY_ID,
     REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
@@ -95,7 +95,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
     REPOSITORY_VERSION_SERVICES,
     REPOSITORY_VERSION_STACK_SERVICES);
 
-  static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
+  static final Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
     .put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID)
     .put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)
     .put(Type.Upgrade, REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID)

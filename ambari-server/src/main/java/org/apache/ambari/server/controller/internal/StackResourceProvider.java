@@ -50,14 +50,14 @@ public class StackResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The key property ids for a Stack resource.
    */
-  protected static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  protected static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Stack, STACK_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a Stack resource.
    */
-  protected static Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = Sets.newHashSet(
       STACK_NAME_PROPERTY_ID);
 
   protected StackResourceProvider(AmbariManagementController managementController) {

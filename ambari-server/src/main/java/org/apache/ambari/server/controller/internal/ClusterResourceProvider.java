@@ -132,14 +132,14 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   /**
    * The key property ids for a cluster resource.
    */
-  protected static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  protected static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a cluster resource.
    */
-  protected static Set<String> propertyIds = new HashSet<>();
+  protected static final Set<String> propertyIds = new HashSet<>();
 
   /**
    * Used to serialize to/from json.

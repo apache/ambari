@@ -103,10 +103,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_HAS_CHILDREN                   = "RepositoryVersions/has_children";
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = Sets.newHashSet(REPOSITORY_VERSION_ID_PROPERTY_ID);
+  private static final Set<String> pkPropertyIds = Sets.newHashSet(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = Sets.newHashSet(
+  public static final Set<String> propertyIds = Sets.newHashSet(
       REPOSITORY_VERSION_ID_PROPERTY_ID,
       REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
       REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
@@ -126,7 +126,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_RESOLVED_PROPERTY_ID);
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
+  public static final Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
       .put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID)
       .put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)
       .put(Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID)

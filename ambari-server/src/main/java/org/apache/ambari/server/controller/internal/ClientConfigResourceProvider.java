@@ -116,7 +116,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   /**
    * The key property ids for a ClientConfig resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, COMPONENT_CLUSTER_NAME_PROPERTY_ID)
       .put(Resource.Type.Service, COMPONENT_SERVICE_NAME_PROPERTY_ID)
       .put(Resource.Type.Component, COMPONENT_COMPONENT_NAME_PROPERTY_ID)
@@ -126,7 +126,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   /**
    * The property ids for a ClientConfig resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       COMPONENT_CLUSTER_NAME_PROPERTY_ID,
       COMPONENT_SERVICE_NAME_PROPERTY_ID,
       COMPONENT_COMPONENT_NAME_PROPERTY_ID,

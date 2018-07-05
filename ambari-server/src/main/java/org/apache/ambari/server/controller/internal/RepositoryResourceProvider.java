@@ -69,7 +69,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID   = PropertyHelper.getPropertyId("Repositories", "applicable_services");
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
+  private static final Set<String> pkPropertyIds = new HashSet<String>() {
     {
       add(REPOSITORY_STACK_NAME_PROPERTY_ID);
       add(REPOSITORY_STACK_VERSION_PROPERTY_ID);
@@ -79,7 +79,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   };
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
+  public static final Set<String> propertyIds = new HashSet<String>() {
     {
       add(REPOSITORY_REPO_NAME_PROPERTY_ID);
       add(REPOSITORY_DISTRIBUTION_PROPERTY_ID);
@@ -102,7 +102,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   };
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  public static final Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Resource.Type.Stack, REPOSITORY_STACK_NAME_PROPERTY_ID);
       put(Resource.Type.StackVersion, REPOSITORY_STACK_VERSION_PROPERTY_ID);

@@ -77,13 +77,13 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
   public static final String ID = "id";
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<>();
+  private static final Set<String> pkPropertyIds = new HashSet<>();
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<>();
+  public static final Set<String> propertyIds = new HashSet<>();
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<>();
+  public static final Map<Type, String> keyPropertyIds = new HashMap<>();
 
   static {
     pkPropertyIds.add(WIDGETLAYOUT_ID_PROPERTY_ID);

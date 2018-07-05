@@ -60,7 +60,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The key property ids for a StackVersion resource.
    */
-  protected static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  protected static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Stack, STACK_NAME_PROPERTY_ID)
       .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
       .build();
@@ -68,7 +68,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a StackVersion resource.
    */
-  protected static Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = Sets.newHashSet(
       STACK_VERSION_PROPERTY_ID,
       STACK_NAME_PROPERTY_ID,
       STACK_MIN_VERSION_PROPERTY_ID,

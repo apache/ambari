@@ -163,7 +163,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The key property ids for a Host resource.
    */
-  public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  public static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Host, HOST_HOST_NAME_PROPERTY_ID)
       .put(Resource.Type.Cluster, HOST_CLUSTER_NAME_PROPERTY_ID)
       .build();
@@ -171,7 +171,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The property ids for a Host resource.
    */
-  public static Set<String> propertyIds = Sets.newHashSet(
+  public static final Set<String> propertyIds = Sets.newHashSet(
       HOST_CLUSTER_NAME_PROPERTY_ID,
       HOST_CPU_COUNT_PROPERTY_ID,
       HOST_DESIRED_CONFIGS_PROPERTY_ID,

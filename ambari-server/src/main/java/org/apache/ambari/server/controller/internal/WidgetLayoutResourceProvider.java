@@ -76,17 +76,17 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   }
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
+  private static final Set<String> pkPropertyIds = new HashSet<String>() {
     {
       add(WIDGETLAYOUT_ID_PROPERTY_ID);
     }
   };
 
   @SuppressWarnings("serial")
-  private static ReadWriteLock lock = new ReentrantReadWriteLock();
+  private static final ReadWriteLock lock = new ReentrantReadWriteLock();
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
+  public static final Set<String> propertyIds = new HashSet<String>() {
     {
       add(WIDGETLAYOUT_ID_PROPERTY_ID);
       add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID);
@@ -100,7 +100,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   };
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  public static final Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Type.WidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID);
       put(Type.Cluster, WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);

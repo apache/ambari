@@ -80,14 +80,14 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
+  private static final Set<String> pkPropertyIds = new HashSet<String>() {
     {
       add(WIDGET_ID_PROPERTY_ID);
     }
   };
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
+  public static final Set<String> propertyIds = new HashSet<String>() {
     {
       add(WIDGET_ID_PROPERTY_ID);
       add(WIDGET_WIDGET_NAME_PROPERTY_ID);
@@ -105,7 +105,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   };
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  public static final Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Type.Widget, WIDGET_ID_PROPERTY_ID);
       put(Type.Cluster, WIDGET_CLUSTER_NAME_PROPERTY_ID);

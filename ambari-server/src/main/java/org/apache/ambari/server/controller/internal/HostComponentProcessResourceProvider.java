@@ -68,7 +68,7 @@ public class HostComponentProcessResourceProvider extends ReadOnlyResourceProvid
   /**
    * The key property ids for a HostComponentProcess resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME)
       .put(Resource.Type.Host, HOST_NAME)
       .put(Resource.Type.Component, COMPONENT_NAME)
@@ -79,7 +79,7 @@ public class HostComponentProcessResourceProvider extends ReadOnlyResourceProvid
   /**
    * The property ids for a HostComponentProcess resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       NAME,
       STATUS,
       CLUSTER_NAME,

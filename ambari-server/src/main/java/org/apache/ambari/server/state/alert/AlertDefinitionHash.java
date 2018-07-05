@@ -75,7 +75,7 @@ public class AlertDefinitionHash {
   /**
    * The hash returned when there are no definitions to hash.
    */
-  public static String NULL_MD5_HASH = "37a6259cc0c1dae299a7866489dff0bd";
+  public static final String NULL_MD5_HASH = "37a6259cc0c1dae299a7866489dff0bd";
 
   /**
    * DAO for retrieving {@link AlertDefinitionEntity} instances.

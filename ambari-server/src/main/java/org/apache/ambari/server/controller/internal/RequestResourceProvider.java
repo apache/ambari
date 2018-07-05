@@ -151,7 +151,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   /**
    * The key property ids for a Request resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Request, REQUEST_ID_PROPERTY_ID)
       .put(Resource.Type.Cluster, REQUEST_CLUSTER_NAME_PROPERTY_ID)
       .build();

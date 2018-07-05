@@ -58,10 +58,10 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultServiceCalculatedState.class);
 
   @Inject
-  protected static Provider<Clusters> clustersProvider = null;
+  private static Provider<Clusters> clustersProvider;
 
   @Inject
-  protected static Provider<AmbariManagementController> managementControllerProvider = null;
+  static Provider<AmbariManagementController> managementControllerProvider;
 
 
   // Get the State of a host component

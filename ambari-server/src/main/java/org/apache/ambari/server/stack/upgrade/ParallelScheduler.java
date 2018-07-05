@@ -24,8 +24,8 @@ import javax.xml.bind.annotation.XmlElement;
  */
 public class ParallelScheduler {
 
-  // This setting can be overriden using ambari.properties file
-  public static int DEFAULT_MAX_DEGREE_OF_PARALLELISM = Integer.MAX_VALUE;
+  // This setting can be overridden using ambari.properties file
+  public static final int DEFAULT_MAX_DEGREE_OF_PARALLELISM = Integer.MAX_VALUE;
 
   @XmlElement(name="max-degree-of-parallelism")
   public int maxDegreeOfParallelism = DEFAULT_MAX_DEGREE_OF_PARALLELISM;
