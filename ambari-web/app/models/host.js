@@ -61,6 +61,8 @@ App.Host = DS.Model.extend({
    */
   selected:DS.attr('boolean'),
 
+  isActive: Em.computed.equal('passiveState', 'OFF'),
+
   criticalWarningAlertsCount: function() {
     const alertsSummary = this.get('alertsSummary');
     return alertsSummary ? (alertsSummary.CRITICAL || 0) + (alertsSummary.WARNING || 0) : 0;

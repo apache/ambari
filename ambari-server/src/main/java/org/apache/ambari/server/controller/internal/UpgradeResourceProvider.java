@@ -52,6 +52,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteCommandJson;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl.SupportedCustomOperation;
+import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -857,6 +858,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               Map<String, String> requestProperties = new HashMap<>();
               requestProperties.put(SupportedCustomOperation.REGENERATE_KEYTABS.name().toLowerCase(), "missing");
               requestProperties.put(KerberosHelper.ALLOW_RETRY, Boolean.TRUE.toString().toLowerCase());
+              requestProperties.put(KerberosHelper.DIRECTIVE_CONFIG_UPDATE_POLICY, UpdateConfigurationPolicy.NEW_AND_IDENTITIES.name());
 
               // add stages to the upgrade which will regenerate missing keytabs only
               req = s_kerberosHelper.get().executeCustomOperations(cluster, requestProperties, req, null);
