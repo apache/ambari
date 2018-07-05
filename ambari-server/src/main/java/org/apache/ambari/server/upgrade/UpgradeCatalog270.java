@@ -253,6 +253,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
+  // Broken constraints added by Views
+  public static final String FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME = "fk_hostcomponentdesiredstate_component_name";
+  public static final String FK_HOSTCOMPONENTSTATE_COMPONENT_NAME = "fk_hostcomponentstate_component_name";
+  public static final String FK_SERVICECOMPONENTDESIREDSTATE_SERVICE_NAME = "fk_servicecomponentdesiredstate_service_name";
+
   static final String YARN_SERVICE = "YARN";
 
   @Inject
@@ -297,6 +302,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    dropBrokenFKs();
     updateStageTable();
     updateRequestTable();
     addOpsDisplayNameColumnToHostRoleCommand();
@@ -939,6 +945,12 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
     // Delete the temporary table
     dbAccessor.dropTable(temporaryTable);
+  }
+
+  private void dropBrokenFKs() throws SQLException {
+    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME);
+    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, FK_HOSTCOMPONENTSTATE_COMPONENT_NAME);
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, FK_SERVICECOMPONENTDESIREDSTATE_SERVICE_NAME);
   }
 
   protected void updateStageTable() throws SQLException {

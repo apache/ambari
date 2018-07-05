@@ -34,10 +34,13 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_SEQUENCE
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_HOSTCOMPONENTSTATE_COMPONENT_NAME;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_HOST_ID;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_KEYTAB_PATH;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_PRINCIPAL_NAME;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_SERVICE_PRINCIPAL;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_SERVICECOMPONENTDESIREDSTATE_SERVICE_NAME;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.HOSTS_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.HOST_ID_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KERBEROS_KEYTAB_PRINCIPAL_TABLE;
@@ -88,6 +91,7 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_DISPLAY
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_USER_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SECURITY_STATE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SERVICE_COMPONENT_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SERVICE_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SERVICE_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.STAGE_DISPLAY_STATUS_COLUMN;
@@ -394,6 +398,14 @@ public class UpgradeCatalog270Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
+    // dropBrokenFKs
+    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME);
+    expectLastCall().once();
+    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, FK_HOSTCOMPONENTSTATE_COMPONENT_NAME);
+    expectLastCall().once();
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, FK_SERVICECOMPONENTDESIREDSTATE_SERVICE_NAME);
+    expectLastCall().once();
+
     // updateStageTable
     Capture<DBAccessor.DBColumnInfo> updateStageTableCaptures = newCapture(CaptureType.ALL);
     dbAccessor.addColumn(eq(STAGE_TABLE), capture(updateStageTableCaptures));
