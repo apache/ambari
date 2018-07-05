@@ -1,0 +1,1676 @@
+"{
+  \"services\" : [ {
+    \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HADOOP_CLIENTS\",
+    \"StackServices\" : {
+      \"service_name\" : \"HADOOP_CLIENTS\",
+      \"service_version\" : \"3.0.0.0-b210\",
+      \"stack_name\" : \"ODS\",
+      \"stack_version\" : \"1.0.0-b340\"
+    },
+    \"components\" : [ {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HADOOP_CLIENTS/components/HADOOP_CLIENT\",
+      \"StackServiceComponents\" : {
+        \"advertise_version\" : true,
+        \"bulk_commands_display_name\" : \"\",
+        \"bulk_commands_master_component_name\" : \"\",
+        \"cardinality\" : \"1+\",
+        \"component_category\" : \"CLIENT\",
+        \"component_name\" : \"HADOOP_CLIENT\",
+        \"component_type\" : null,
+        \"component_version\" : \"3.0.0.0-b210\",
+        \"custom_commands\" : [ ],
+        \"decommission_allowed\" : false,
+        \"display_name\" : \"Hadoop Client\",
+        \"has_bulk_commands_definition\" : false,
+        \"is_client\" : true,
+        \"is_master\" : false,
+        \"reassign_allowed\" : false,
+        \"recovery_enabled\" : false,
+        \"rolling_restart_supported\" : false,
+        \"service_name\" : \"HADOOP_CLIENTS\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"hostnames\" : [ ]
+      },
+      \"dependencies\" : [ ]
+    } ],
+    \"configurations\" : [ ]
+  }, {
+    \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE\",
+    \"StackServices\" : {
+      \"service_name\" : \"HBASE\",
+      \"service_version\" : \"2.0.0.0-b243\",
+      \"stack_name\" : \"ODS\",
+      \"stack_version\" : \"1.0.0-b340\",
+      \"advisor_name\" : \"HBASEServiceAdvisor\",
+      \"advisor_path\" : \"/var/lib/ambari-server/resources/stacks/ODS/1.0.0-b340/services/HBASE/service_advisor.py\"
+    },
+    \"components\" : [ {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/components/HBASE_MASTER\",
+      \"StackServiceComponents\" : {
+        \"advertise_version\" : true,
+        \"bulk_commands_display_name\" : \"\",
+        \"bulk_commands_master_component_name\" : \"\",
+        \"cardinality\" : \"1+\",
+        \"component_category\" : \"MASTER\",
+        \"component_name\" : \"HBASE_MASTER\",
+        \"component_type\" : null,
+        \"component_version\" : \"2.0.0.0-b243\",
+        \"custom_commands\" : [ \"DECOMMISSION\" ],
+        \"decommission_allowed\" : false,
+        \"display_name\" : \"HBase Master\",
+        \"has_bulk_commands_definition\" : false,
+        \"is_client\" : false,
+        \"is_master\" : true,
+        \"reassign_allowed\" : false,
+        \"recovery_enabled\" : false,
+        \"rolling_restart_supported\" : false,
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"hostnames\" : [ ]
+      },
+      \"dependencies\" : [ {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/components/HBASE_MASTER/dependencies/HADOOP_CLIENT\",
+        \"Dependencies\" : {
+          \"component_name\" : \"HADOOP_CLIENT\",
+          \"conditions\" : [ ],
+          \"dependent_component_name\" : \"HBASE_MASTER\",
+          \"dependent_service_name\" : \"HBASE\",
+          \"scope\" : \"host\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/components/HBASE_MASTER/dependencies/ZOOKEEPER_SERVER\",
+        \"Dependencies\" : {
+          \"component_name\" : \"ZOOKEEPER_SERVER\",
+          \"conditions\" : [ ],
+          \"dependent_component_name\" : \"HBASE_MASTER\",
+          \"dependent_service_name\" : \"HBASE\",
+          \"scope\" : \"cluster\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      } ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/components/HBASE_REGIONSERVER\",
+      \"StackServiceComponents\" : {
+        \"advertise_version\" : true,
+        \"bulk_commands_display_name\" : \"RegionServers\",
+        \"bulk_commands_master_component_name\" : \"HBASE_MASTER\",
+        \"cardinality\" : \"1+\",
+        \"component_category\" : \"SLAVE\",
+        \"component_name\" : \"HBASE_REGIONSERVER\",
+        \"component_type\" : null,
+        \"component_version\" : \"2.0.0.0-b243\",
+        \"custom_commands\" : [ ],
+        \"decommission_allowed\" : true,
+        \"display_name\" : \"RegionServer\",
+        \"has_bulk_commands_definition\" : true,
+        \"is_client\" : false,
+        \"is_master\" : false,
+        \"reassign_allowed\" : false,
+        \"recovery_enabled\" : false,
+        \"rolling_restart_supported\" : false,
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"hostnames\" : [ ]
+      },
+      \"dependencies\" : [ ]
+    } ],
+    \"configurations\" : [ {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/REPOSITORY_CONFIG_PASSWORD\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"REPOSITORY_CONFIG_PASSWORD\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/REPOSITORY_CONFIG_USERNAME\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-hbase-plugin-properties\",
+          \"name\" : \"ranger-hbase-plugin-enabled\"
+        }, {
+          \"type\" : \"hbase-env\",
+          \"name\" : \"hbase_user\"
+        } ],
+        \"property_name\" : \"REPOSITORY_CONFIG_USERNAME\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/common.name.for.certificate\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"common.name.for.certificate\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/content\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"content\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/content\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"content\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-log4j.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/dfs.domain.socket.path\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"dfs.domain.socket.path\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/external_admin_password\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"external_admin_password\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/external_admin_username\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"external_admin_username\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/external_ranger_admin_password\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"external_ranger_admin_password\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/external_ranger_admin_username\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"external_ranger_admin_username\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.bucketcache.ioengine\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.bucketcache.ioengine\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.bucketcache.percentage.in.combinedcache\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.bucketcache.percentage.in.combinedcache\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.bucketcache.size\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.bucketcache.size\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.bulkload.staging.dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.bulkload.staging.dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.client.keyvalue.maxsize\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.client.keyvalue.maxsize\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.client.retries.number\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.client.retries.number\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.client.scanner.caching\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.client.scanner.caching\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.cluster.distributed\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.cluster.distributed\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.coprocessor.master.classes\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-hbase-plugin-properties\",
+          \"name\" : \"ranger-hbase-plugin-enabled\"
+        }, {
+          \"type\" : \"hbase-site\",
+          \"name\" : \"hbase.security.authorization\"
+        } ],
+        \"property_name\" : \"hbase.coprocessor.master.classes\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.coprocessor.region.classes\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-hbase-plugin-properties\",
+          \"name\" : \"ranger-hbase-plugin-enabled\"
+        }, {
+          \"type\" : \"hbase-site\",
+          \"name\" : \"hbase.security.authentication\"
+        }, {
+          \"type\" : \"hbase-site\",
+          \"name\" : \"hbase.security.authorization\"
+        } ],
+        \"property_name\" : \"hbase.coprocessor.region.classes\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.coprocessor.regionserver.classes\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"hbase-site\",
+          \"name\" : \"hbase.security.authorization\"
+        } ],
+        \"property_name\" : \"hbase.coprocessor.regionserver.classes\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.defaults.for.version.skip\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.defaults.for.version.skip\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hregion.majorcompaction\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hregion.majorcompaction\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hregion.majorcompaction.jitter\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hregion.majorcompaction.jitter\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hregion.max.filesize\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hregion.max.filesize\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hregion.memstore.block.multiplier\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hregion.memstore.block.multiplier\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hregion.memstore.flush.size\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hregion.memstore.flush.size\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hregion.memstore.mslab.enabled\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hregion.memstore.mslab.enabled\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hstore.blockingStoreFiles\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hstore.blockingStoreFiles\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hstore.compaction.max\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hstore.compaction.max\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.hstore.compactionThreshold\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.hstore.compactionThreshold\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.local.dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.local.dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.master.info.bindAddress\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.master.info.bindAddress\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.master.info.port\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.master.info.port\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.master.namespace.init.timeout\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.master.namespace.init.timeout\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.master.port\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.master.port\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.master.ui.readonly\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.master.ui.readonly\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.master.wait.on.regionservers.timeout\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.master.wait.on.regionservers.timeout\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.region.server.rpc.scheduler.factory.class\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"hbase-env\",
+          \"name\" : \"phoenix_sql_enabled\"
+        } ],
+        \"property_name\" : \"hbase.region.server.rpc.scheduler.factory.class\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.regionserver.executor.openregion.threads\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.regionserver.executor.openregion.threads\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.regionserver.global.memstore.size\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.regionserver.global.memstore.size\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.regionserver.handler.count\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.regionserver.handler.count\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.regionserver.info.port\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.regionserver.info.port\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.regionserver.port\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.regionserver.port\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.regionserver.wal.codec\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"hbase-env\",
+          \"name\" : \"phoenix_sql_enabled\"
+        } ],
+        \"property_name\" : \"hbase.regionserver.wal.codec\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.rootdir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.rootdir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.rpc.controllerfactory.class\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"hbase-env\",
+          \"name\" : \"phoenix_sql_enabled\"
+        } ],
+        \"property_name\" : \"hbase.rpc.controllerfactory.class\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.rpc.protection\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.rpc.protection\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.rpc.timeout\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.rpc.timeout\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.security.authentication\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.security.authentication\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.security.authentication/dependencies/hbase.coprocessor.region.classes\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.coprocessor.region.classes\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"hbase.security.authentication\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      } ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.security.authorization\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-hbase-plugin-properties\",
+          \"name\" : \"ranger-hbase-plugin-enabled\"
+        } ],
+        \"property_name\" : \"hbase.security.authorization\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.security.authorization/dependencies/hbase.coprocessor.master.classes\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.coprocessor.master.classes\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"hbase.security.authorization\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.security.authorization/dependencies/hbase.coprocessor.region.classes\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.coprocessor.region.classes\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"hbase.security.authorization\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.security.authorization/dependencies/hbase.coprocessor.regionserver.classes\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.coprocessor.regionserver.classes\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"hbase.security.authorization\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      } ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.superuser\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"hbase-env\",
+          \"name\" : \"hbase_user\"
+        } ],
+        \"property_name\" : \"hbase.superuser\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.tmp.dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.tmp.dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.zookeeper.property.clientPort\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.zookeeper.property.clientPort\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.zookeeper.quorum\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.zookeeper.quorum\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase.zookeeper.useMulti\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase.zookeeper.useMulti\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_java_io_tmpdir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_java_io_tmpdir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_log_dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_log_dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_log_maxbackupindex\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_log_maxbackupindex\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-log4j.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_log_maxfilesize\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_log_maxfilesize\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-log4j.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_master_heapsize\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_master_heapsize\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_max_direct_memory_size\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_max_direct_memory_size\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_pid_dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_pid_dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_principal_name\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_principal_name\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_regionserver_heapsize\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_regionserver_heapsize\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_regionserver_shutdown_timeout\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_regionserver_shutdown_timeout\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_regionserver_xmn_max\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_regionserver_xmn_max\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_regionserver_xmn_ratio\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_regionserver_xmn_ratio\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_security_log_maxbackupindex\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_security_log_maxbackupindex\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-log4j.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_security_log_maxfilesize\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_security_log_maxfilesize\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-log4j.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_user\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_user\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_user/dependencies/REPOSITORY_CONFIG_USERNAME\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"REPOSITORY_CONFIG_USERNAME\",
+          \"dependency_type\" : \"ranger-hbase-plugin-properties\",
+          \"property_name\" : \"hbase_user\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_user/dependencies/hbase.superuser\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.superuser\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"hbase_user\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      } ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_user_keytab\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_user_keytab\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_user_nofile_limit\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_user_nofile_limit\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hbase_user_nproc_limit\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hbase_user_nproc_limit\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/hfile.block.cache.size\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"hfile.block.cache.size\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/phoenix.functions.allowUserDefinedFunctions\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"hbase-env\",
+          \"name\" : \"phoenix_sql_enabled\"
+        } ],
+        \"property_name\" : \"phoenix.functions.allowUserDefinedFunctions\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/phoenix.query.timeoutMs\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"phoenix.query.timeoutMs\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/phoenix_sql_enabled\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"phoenix_sql_enabled\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-env.xml\"
+      },
+      \"dependencies\" : [ {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/phoenix_sql_enabled/dependencies/hbase.region.server.rpc.scheduler.factory.class\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.region.server.rpc.scheduler.factory.class\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"phoenix_sql_enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/phoenix_sql_enabled/dependencies/hbase.regionserver.wal.codec\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.regionserver.wal.codec\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"phoenix_sql_enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/phoenix_sql_enabled/dependencies/hbase.rpc.controllerfactory.class\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.rpc.controllerfactory.class\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"phoenix_sql_enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/phoenix_sql_enabled/dependencies/phoenix.functions.allowUserDefinedFunctions\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"phoenix.functions.allowUserDefinedFunctions\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"phoenix_sql_enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      } ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/policy_user\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-env\",
+          \"name\" : \"ranger_user\"
+        } ],
+        \"property_name\" : \"policy_user\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger-hbase-plugin-enabled\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-env\",
+          \"name\" : \"ranger-hbase-plugin-enabled\"
+        } ],
+        \"property_name\" : \"ranger-hbase-plugin-enabled\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-plugin-properties.xml\"
+      },
+      \"dependencies\" : [ {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger-hbase-plugin-enabled/dependencies/REPOSITORY_CONFIG_USERNAME\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"REPOSITORY_CONFIG_USERNAME\",
+          \"dependency_type\" : \"ranger-hbase-plugin-properties\",
+          \"property_name\" : \"ranger-hbase-plugin-enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger-hbase-plugin-enabled/dependencies/hbase.coprocessor.master.classes\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.coprocessor.master.classes\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"ranger-hbase-plugin-enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger-hbase-plugin-enabled/dependencies/hbase.coprocessor.region.classes\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.coprocessor.region.classes\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"ranger-hbase-plugin-enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      }, {
+        \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger-hbase-plugin-enabled/dependencies/hbase.security.authorization\",
+        \"StackConfigurationDependency\" : {
+          \"dependency_name\" : \"hbase.security.authorization\",
+          \"dependency_type\" : \"hbase-site\",
+          \"property_name\" : \"ranger-hbase-plugin-enabled\",
+          \"service_name\" : \"HBASE\",
+          \"stack_name\" : \"ODS\",
+          \"stack_version\" : \"1.0.0-b340\"
+        }
+      } ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger.plugin.hbase.ambari.cluster.name\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"ranger.plugin.hbase.ambari.cluster.name\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger.plugin.hbase.policy.cache.dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"ranger.plugin.hbase.policy.cache.dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-security.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger.plugin.hbase.policy.pollIntervalMs\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"ranger.plugin.hbase.policy.pollIntervalMs\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-security.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger.plugin.hbase.policy.rest.ssl.config.file\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"ranger.plugin.hbase.policy.rest.ssl.config.file\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-security.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger.plugin.hbase.policy.rest.url\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"admin-properties\",
+          \"name\" : \"policymgr_external_url\"
+        } ],
+        \"property_name\" : \"ranger.plugin.hbase.policy.rest.url\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-security.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger.plugin.hbase.policy.source.impl\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"ranger.plugin.hbase.policy.source.impl\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-security.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/ranger.plugin.hbase.service.name\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"ranger.plugin.hbase.service.name\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-security.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/security.admin.protocol.acl\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"security.admin.protocol.acl\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-policy.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/security.client.protocol.acl\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"security.client.protocol.acl\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-policy.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/security.masterregion.protocol.acl\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"security.masterregion.protocol.acl\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-policy.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.destination.hdfs\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-env\",
+          \"name\" : \"xasecure.audit.destination.hdfs\"
+        } ],
+        \"property_name\" : \"xasecure.audit.destination.hdfs\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.destination.hdfs.batch.filespool.dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.audit.destination.hdfs.batch.filespool.dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.destination.hdfs.dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-env\",
+          \"name\" : \"xasecure.audit.destination.hdfs.dir\"
+        } ],
+        \"property_name\" : \"xasecure.audit.destination.hdfs.dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.destination.solr\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-env\",
+          \"name\" : \"xasecure.audit.destination.solr\"
+        } ],
+        \"property_name\" : \"xasecure.audit.destination.solr\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.destination.solr.batch.filespool.dir\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.audit.destination.solr.batch.filespool.dir\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.destination.solr.urls\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-admin-site\",
+          \"name\" : \"ranger.audit.solr.urls\"
+        } ],
+        \"property_name\" : \"xasecure.audit.destination.solr.urls\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.destination.solr.zookeepers\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ {
+          \"type\" : \"ranger-admin-site\",
+          \"name\" : \"ranger.audit.solr.zookeepers\"
+        } ],
+        \"property_name\" : \"xasecure.audit.destination.solr.zookeepers\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.is.enabled\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.audit.is.enabled\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.audit.provider.summary.enabled\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.audit.provider.summary.enabled\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-audit.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.hbase.update.xapolicies.on.grant.revoke\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.hbase.update.xapolicies.on.grant.revoke\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-security.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.policymgr.clientssl.keystore\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.policymgr.clientssl.keystore\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-policymgr-ssl.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.policymgr.clientssl.keystore.credential.file\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.policymgr.clientssl.keystore.credential.file\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-policymgr-ssl.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.policymgr.clientssl.keystore.password\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.policymgr.clientssl.keystore.password\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-policymgr-ssl.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.policymgr.clientssl.truststore\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.policymgr.clientssl.truststore\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-policymgr-ssl.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.policymgr.clientssl.truststore.credential.file\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.policymgr.clientssl.truststore.credential.file\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-policymgr-ssl.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/xasecure.policymgr.clientssl.truststore.password\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"xasecure.policymgr.clientssl.truststore.password\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"ranger-hbase-policymgr-ssl.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/zookeeper.recovery.retry\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"zookeeper.recovery.retry\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/zookeeper.session.timeout\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"zookeeper.session.timeout\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    }, {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE/configurations/zookeeper.znode.parent\",
+      \"StackConfigurations\" : {
+        \"property_depends_on\" : [ ],
+        \"property_name\" : \"zookeeper.znode.parent\",
+        \"service_name\" : \"HBASE\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"type\" : \"hbase-site.xml\"
+      },
+      \"dependencies\" : [ ]
+    } ]
+  }, {
+    \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE_CLIENTS\",
+    \"StackServices\" : {
+      \"service_name\" : \"HBASE_CLIENTS\",
+      \"service_version\" : \"2.0.0.0-b243\",
+      \"stack_name\" : \"ODS\",
+      \"stack_version\" : \"1.0.0-b340\"
+    },
+    \"components\" : [ {
+      \"href\" : \"/api/v1/stacks/ODS/versions/1.0.0-b340/services/HBASE_CLIENTS/components/HBASE_CLIENT\",
+      \"StackServiceComponents\" : {
+        \"advertise_version\" : true,
+        \"bulk_commands_display_name\" : \"\",
+        \"bulk_commands_master_component_name\" : \"\",
+        \"cardinality\" : \"1+\",
+        \"component_category\" : \"CLIENT\",
+        \"component_name\" : \"HBASE_CLIENT\",
+        \"component_type\" : null,
+        \"component_version\" : \"2.0.0.0-b243\",
+        \"custom_commands\" : [ ],
+        \"decommission_allowed\" : false,
+        \"display_name\" : \"HBase Client\",
+        \"has_bulk_commands_definition\" : false,
+        \"is_client\" : true,
+        \"is_master\" : false,
+        \"reassign_allowed\" : false,
+        \"recovery_enabled\" : false,
+        \"rolling_restart_supported\" : false,
+        \"service_name\" : \"HBASE_CLIENTS\",
+        \"stack_name\" : \"ODS\",
+        \"stack_version\" : \"1.0.0-b340\",
+        \"hostnames\" : [ ]
+      },
+      \"dependencies\" : [ ]
+    } ],
+    \"configurations\" : [ ]
+  } ],
+  \"configurations\" : { },
+  \"changed-configurations\" : [ ],
+  \"user-context\" : { },
+  \"gpl-license-accepted\" : false,
+  \"ambari-server-properties\" : {
+    \"server.stages.parallel\" : \"true\",
+    \"client.threadpool.size.max\" : \"25\",
+    \"server.os_family\" : \"redhat7\",
+    \"jdk1.7.home\" : \"/usr/jdk64/\",
+    \"recommendations.artifacts.lifetime\" : \"1w\",
+    \"views.request.read.timeout.millis\" : \"10000\",
+    \"common.services.path\" : \"/var/lib/ambari-server/resources/common-services\",
+    \"kerberos.keytab.cache.dir\" : \"/var/lib/ambari-server/data/cache\",
+    \"server.execution.scheduler.isClustered\" : \"false\",
+    \"bootstrap.script\" : \"/usr/lib/ambari-server/lib/ambari_server/bootstrap.py\",
+    \"resources.dir\" : \"/var/lib/ambari-server/resources\",
+    \"server.jdbc.user.passwd\" : \"/etc/ambari-server/conf/password.dat\",
+    \"mpacks-v2.staging.path\" : \"/var/lib/ambari-server/resources/mpacks-v2\",
+    \"jdk1.8.home\" : \"/usr/jdk64/\",
+    \"java.releases.ppc64le\" : \"\",
+    \"agent.task.timeout\" : \"900\",
+    \"jdk1.8.dest-file\" : \"jdk-8u112-linux-x64.tar.gz\",
+    \"jdk1.7.jcpol-url\" : \"http://public-repo-1.hortonworks.com/ARTIFACTS/UnlimitedJCEPolicyJDK7.zip\",
+    \"shared.resources.dir\" : \"/usr/lib/ambari-server/lib/ambari_commons/resources\",
+    \"agent.stack.retry.tries\" : \"5\",
+    \"java.home\" : \"/usr/jdk64/jdk1.8.0_112\",
+    \"bootstrap.setup_agent.script\" : \"/usr/lib/ambari-server/lib/ambari_server/setupAgent.py\",
+    \"jdk1.8.re\" : \"(jdk.*)/jre\",
+    \"views.http.strict-transport-security\" : \"max-age=31536000\",
+    \"views.http.x-content-type-options\" : \"nosniff\",
+    \"views.http.x-frame-options\" : \"SAMEORIGIN\",
+    \"server.python.log.name\" : \"ambari-server-command.log\",
+    \"mpackrecommendations.dir\" : \"/var/run/ambari-server/mpack-recommendations\",
+    \"jdk.download.supported\" : \"true\",
+    \"rolling.upgrade.skip.packages.prefixes\" : \"\",
+    \"user.inactivity.timeout.default\" : \"0\",
+    \"jdk1.7.url\" : \"http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-7u67-linux-x64.tar.gz\",
+    \"ambari-server.user\" : \"root\",
+    \"custom.action.definitions\" : \"/var/lib/ambari-server/resources/custom_action_definitions\",
+    \"server.os_type\" : \"centos7\",
+    \"server.persistence.type\" : \"local\",
+    \"views.http.charset\" : \"utf-8\",
+    \"security.server.disabled.ciphers\" : \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384|TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384|TLS_RSA_WITH_AES_256_CBC_SHA256|TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384|TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384|TLS_DHE_RSA_WITH_AES_256_CBC_SHA256|TLS_DHE_DSS_WITH_AES_256_CBC_SHA256|TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA|TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA|TLS_RSA_WITH_AES_256_CBC_SHA|TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA|TLS_ECDH_RSA_WITH_AES_256_CBC_SHA|TLS_DHE_RSA_WITH_AES_256_CBC_SHA|TLS_DHE_DSS_WITH_AES_256_CBC_SHA|TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256|TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256|TLS_RSA_WITH_AES_128_CBC_SHA256|TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256|TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256|TLS_DHE_RSA_WITH_AES_128_CBC_SHA256|TLS_DHE_DSS_WITH_AES_128_CBC_SHA256|TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA|TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA|TLS_RSA_WITH_AES_128_CBC_SHA|TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA|TLS_ECDH_RSA_WITH_AES_128_CBC_SHA|TLS_DHE_RSA_WITH_AES_128_CBC_SHA|TLS_DHE_DSS_WITH_AES_128_CBC_SHA|TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA|TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA|TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA|TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA|SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA|SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA|TLS_EMPTY_RENEGOTIATION_INFO_SCSV|TLS_DH_anon_WITH_AES_256_CBC_SHA256|TLS_ECDH_anon_WITH_AES_256_CBC_SHA|TLS_DH_anon_WITH_AES_256_CBC_SHA|TLS_DH_anon_WITH_AES_128_CBC_SHA256|TLS_ECDH_anon_WITH_AES_128_CBC_SHA|TLS_DH_anon_WITH_AES_128_CBC_SHA|TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA|SSL_DH_anon_WITH_3DES_EDE_CBC_SHA|SSL_RSA_WITH_DES_CBC_SHA|SSL_DHE_RSA_WITH_DES_CBC_SHA|SSL_DHE_DSS_WITH_DES_CBC_SHA|SSL_DH_anon_WITH_DES_CBC_SHA|SSL_RSA_EXPORT_WITH_DES40_CBC_SHA|SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA|SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA|SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA|TLS_RSA_WITH_NULL_SHA256|TLS_ECDHE_ECDSA_WITH_NULL_SHA|TLS_ECDHE_RSA_WITH_NULL_SHA|SSL_RSA_WITH_NULL_SHA|TLS_ECDH_ECDSA_WITH_NULL_SHA|TLS_ECDH_RSA_WITH_NULL_SHA|TLS_ECDH_anon_WITH_NULL_SHA|SSL_RSA_WITH_NULL_MD5|TLS_KRB5_WITH_3DES_EDE_CBC_SHA|TLS_KRB5_WITH_3DES_EDE_CBC_MD5|TLS_KRB5_WITH_DES_CBC_SHA|TLS_KRB5_WITH_DES_CBC_MD5|TLS_KRB5_EXPORT_WITH_DES_CBC_40_SHA|TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5\",
+    \"views.http.cache-control\" : \"no-store\",
+    \"http.strict-transport-security\" : \"max-age=31536000\",
+    \"jdk1.7.re\" : \"(jdk.*)/jre\",
+    \"http.charset\" : \"utf-8\",
+    \"extensions.path\" : \"/var/lib/ambari-server/resources/extensions\",
+    \"jce.download.supported\" : \"true\",
+    \"kerberos.operation.verify.kdc.trust\" : \"true\",
+    \"server.fqdn.service.url\" : \"http://169.254.169.254/latest/meta-data/public-hostname\",
+    \"metadata.path\" : \"/var/lib/ambari-server/resources/stacks\",
+    \"views.ambari.request.connect.timeout.millis\" : \"30000\",
+    \"stackadvisor.script\" : \"/var/lib/ambari-server/resources/scripts/stack_advisor.py\",
+    \"server.jdbc.database\" : \"postgres\",
+    \"jdk1.7.dest-file\" : \"jdk-7u67-linux-x64.tar.gz\",
+    \"stack.java.home\" : \"/usr/jdk64/jdk1.8.0_112\",
+    \"server.jdbc.postgres.schema\" : \"ambari\",
+    \"server.task.timeout\" : \"1200\",
+    \"http.x-frame-options\" : \"DENY\",
+    \"gpl.license.accepted\" : \"false\",
+    \"mpacks.staging.path\" : \"/var/lib/ambari-server/resources/mpacks\",
+    \"stack.jce.name\" : \"jce_policy-8.zip\",
+    \"http.cache-control\" : \"no-store\",
+    \"ulimit.open.files\" : \"65536\",
+    \"jdk.name\" : \"jdk-8u112-linux-x64.tar.gz\",
+    \"server.version.file\" : \"/var/lib/ambari-server/resources/version\",
+    \"user.inactivity.timeout.role.readonly.default\" : \"0\",
+    \"ambari.python.wrap\" : \"ambari-python-wrap\",
+    \"local.database.user\" : \"postgres\",
+    \"webapp.dir\" : \"/usr/lib/ambari-server/web\",
+    \"server.execution.scheduler.maxDbConnections\" : \"5\",
+    \"java.releases\" : \"jdk1.8,jdk1.7\",
+    \"api.csrfPrevention.enabled\" : \"false\",
+    \"server.jdbc.connection-pool\" : \"internal\",
+    \"server.execution.scheduler.misfire.toleration.minutes\" : \"480\",
+    \"agent.threadpool.size.max\" : \"25\",
+    \"server.jdbc.database_name\" : \"ambari\",
+    \"views.skip.home-directory-check.file-system.list\" : \"wasb,adls,adl\",
+    \"jdk1.7.desc\" : \"Oracle JDK 1.7 + Java Cryptography Extension (JCE) Policy Files 7\",
+    \"stack.jdk.name\" : \"jdk-8u112-linux-x64.tar.gz\",
+    \"server.execution.scheduler.maxThreads\" : \"5\",
+    \"jce.name\" : \"jce_policy-8.zip\",
+    \"security.server.keys_dir\" : \"/var/lib/ambari-server/keys\",
+    \"server.http.session.inactive_timeout\" : \"1800\",
+    \"bootstrap.dir\" : \"/var/run/ambari-server/bootstrap\",
+    \"agent.package.install.task.timeout\" : \"1800\",
+    \"recommendations.dir\" : \"/var/run/ambari-server/stack-recommendations\",
+    \"views.ambari.request.read.timeout.millis\" : \"45000\",
+    \"http.pragma\" : \"no-cache\",
+    \"agent.stack.retry.on_repo_unavailability\" : \"false\",
+    \"jdk1.8.jcpol-url\" : \"http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip\",
+    \"check_database_skipped\" : \"false\",
+    \"server.connection.max.idle.millis\" : \"900000\",
+    \"http.x-xss-protection\" : \"1; mode=block\",
+    \"pid.dir\" : \"/var/run/ambari-server\",
+    \"jdk1.8.url\" : \"http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u112-linux-x64.tar.gz\",
+    \"views.http.pragma\" : \"no-cache\",
+    \"jdk1.8.jcpol-file\" : \"jce_policy-8.zip\",
+    \"server.tmp.dir\" : \"/var/lib/ambari-server/data/tmp\",
+    \"server.jdbc.user.name\" : \"ambari\",
+    \"server.python.log.level\" : \"INFO\",
+    \"jdk1.7.jcpol-file\" : \"UnlimitedJCEPolicyJDK7.zip\",
+    \"jdk1.8.desc\" : \"Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8\",
+    \"skip.service.checks\" : \"true\",
+    \"views.request.connect.timeout.millis\" : \"5000\",
+    \"http.x-content-type-options\" : \"nosniff\",
+    \"views.http.x-xss-protection\" : \"1; mode=block\"
+  },
+  \"ambari-server-configuration\" : { }
+}"

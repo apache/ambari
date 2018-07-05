@@ -299,7 +299,7 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
     }
   }
 
-  private void populateServiceAdvisors(ObjectNode root) {
+  protected void populateServiceAdvisors(ObjectNode root) {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
     Iterator<JsonNode> servicesIter = services.getElements();
 
