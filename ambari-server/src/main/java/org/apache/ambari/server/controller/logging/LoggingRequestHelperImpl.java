@@ -439,7 +439,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     } else {
       uriBuilder.setScheme(scheme);
       uriBuilder.setHost(hostName);
-      uriBuilder.setPort(Integer.valueOf(portNumber));
+      uriBuilder.setPort(Integer.parseInt(portNumber));
     }
     return uriBuilder;
   }

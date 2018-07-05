@@ -164,7 +164,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
         throw new InvalidTopologyTemplateException(
             "Can't specify both host_name and host_count for the same hostgroup: " + hgName);
       }
-      hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(
+      hostGroupInfo.setRequestedCount(Integer.parseInt(String.valueOf(
           properties.get(HostResourceProvider.HOST_COUNT_PROPERTY_ID))));
     } else {
       if (hostGroupInfo.getRequestedHostCount() != hostGroupInfo.getHostNames().size()) {

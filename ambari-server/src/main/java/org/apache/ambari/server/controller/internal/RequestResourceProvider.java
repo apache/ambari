@@ -423,7 +423,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     // Cluster name may be empty for custom actions
     String clusterNameStr = (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
     String requestIdStr = (String) propertyMap.get(REQUEST_ID_PROPERTY_ID);
-    long requestId = Integer.valueOf(requestIdStr);
+    long requestId = Integer.parseInt(requestIdStr);
     String requestStatusStr = (String) propertyMap.get(REQUEST_STATUS_PROPERTY_ID);
     HostRoleStatus requestStatus = null;
     if (requestStatusStr != null) {

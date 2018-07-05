@@ -698,7 +698,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
 
     @Override
     public String fromPersistId(String value) throws AmbariException {
-      return controller.getClusters().getClusterById(Long.valueOf(value)).getClusterName();
+      return controller.getClusters().getClusterById(Long.parseLong(value)).getClusterName();
     }
 
     @Override
