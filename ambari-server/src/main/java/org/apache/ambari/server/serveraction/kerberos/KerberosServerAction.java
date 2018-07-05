@@ -31,6 +31,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
@@ -100,10 +101,20 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String KDC_TYPE = "kdc_type";
 
   /**
-   * A (command parameter) property name used to hold a boolean value indicating whether configurations
-   * should be process to see if they need to be updated
+   * A (command parameter) property name used to hold the value indicating how to process
+   * configurations updates. One of the of the following values is expected:
+   * <dl>
+   * <dt>none</dt>
+   * <dd>No configurations will be updated</dd>
+   * <dt>identities_only</dt>
+   * <dd>New and updated configurations related to Kerberos identity information - principal, keytab file, and auth-to-local rule properties</dd>
+   * <dt>new_and_identities</dt>
+   * <dd>Only new configurations declared by the Kerberos descriptor and stack advisor as well as the identity-related changes</dd>
+   * <dt>all</dt>
+   * <dd>All configuration changes (default)</dd>
+   * </dl>
    */
-  public static final String UPDATE_CONFIGURATIONS = "update_configurations";
+  public static final String UPDATE_CONFIGURATION_POLICY = "update_configuration_policy";
 
   /**
    * A (command parameter) property name used to hold the note to set when applying any
@@ -194,6 +205,20 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   protected static String getCommandParameterValue(Map<String, String> commandParameters, String propertyName) {
     return ((commandParameters == null) || (propertyName == null)) ? null : commandParameters.get(propertyName);
+  }
+
+  /**
+   * Given a (command parameter) Map, attempts to safely retrieve the "update_configuration_policy" property.
+   *
+   * @param commandParameters a Map containing the dictionary of data to interrogate
+   * @return a UpdateConfigurationPolicy
+   */
+  protected static UpdateConfigurationPolicy getUpdateConfigurationPolicy(Map<String, String> commandParameters) {
+    String stringValue = getCommandParameterValue(commandParameters, UPDATE_CONFIGURATION_POLICY);
+    UpdateConfigurationPolicy value = UpdateConfigurationPolicy.translate(stringValue);
+
+    // Return UpdateConfigurationPolicy.ALL as a default value
+    return (value == null) ? UpdateConfigurationPolicy.ALL : value;
   }
 
   /**
