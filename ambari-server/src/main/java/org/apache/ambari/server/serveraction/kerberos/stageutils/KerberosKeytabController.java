@@ -133,17 +133,23 @@ public class KerberosKeytabController {
       Set<String> serviceSet = new HashSet<>();
       Set<String> componentSet = new HashSet<>();
       Set<String> serviceOnlySet = new HashSet<>();
-      serviceSet.addAll(serviceComponentFilter.keySet());
-      for (String serviceName : serviceSet) {
-        Collection<String> serviceComponents = serviceComponentFilter.get(serviceName);
-        if (serviceComponents.contains("*")) { // star means that this is filtered by whole SERVICE
+
+      // Split the filter into a service/component filter or a service-only filter.
+      for(Map.Entry<String, Collection<String>> entry: serviceComponentFilter.entrySet()) {
+        String serviceName = entry.getKey();
+        Collection<String> serviceComponents = entry.getValue();
+
+        if((serviceComponents == null) || serviceComponents.contains("*")) {
           serviceOnlySet.add(serviceName);
-          serviceSet.remove(serviceName); // remove service from regular
-        } else {
+        }
+        else {
+          serviceSet.add(serviceName);
           componentSet.addAll(serviceComponents);
         }
       }
+
       List<KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter> result = new ArrayList<>();
+      // Handle the service/component filter
       if (serviceSet.size() > 0) {
         result.add(new KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter(
           null,
@@ -152,6 +158,7 @@ public class KerberosKeytabController {
           null
         ));
       }
+      // Handler the service/* filter
       if (serviceOnlySet.size() > 0) {
         result.add(new KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter(
           null,
