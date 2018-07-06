@@ -1528,6 +1528,10 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Map<String, Config> getConfigsByServiceIdType(String configType, Long serviceId) {
+    if (serviceId == null) {
+      return getConfigsByType(configType);
+    }
+
     clusterGlobalLock.readLock().lock();
     try {
       if (!serviceConfigs.containsKey(serviceId)) {
