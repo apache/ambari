@@ -1412,6 +1412,12 @@ public class TestHeartbeatHandler {
     List<Map<String, String>> kcp;
     Map<String, String> properties;
 
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    Service hdfs = addService(cluster, HDFS);
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+
     kcp = testInjectKeytabSetKeytab("c6403.ambari.apache.org");
     Assert.assertNotNull(kcp);
     Assert.assertEquals(1, kcp.size());
@@ -1448,6 +1454,12 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testInjectKeytabNotApplicableHost() throws Exception {
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    Service hdfs = addService(cluster, HDFS);
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+
     List<Map<String, String>> kcp;
     kcp = testInjectKeytabSetKeytab("c6401.ambari.apache.org");
     Assert.assertNotNull(kcp);
@@ -1469,6 +1481,7 @@ public class TestHeartbeatHandler {
     Map<String, String> commandparams = new HashMap<>();
     commandparams.put(KerberosServerAction.AUTHENTICATED_USER_NAME, "admin");
     executionCommand.setCommandParams(commandparams);
+    executionCommand.setClusterName(DummyCluster);
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
@@ -1501,6 +1514,7 @@ public class TestHeartbeatHandler {
     Map<String, String> commandparams = new HashMap<>();
     commandparams.put(KerberosServerAction.AUTHENTICATED_USER_NAME, "admin");
     executionCommand.setCommandParams(commandparams);
+    executionCommand.setClusterName(DummyCluster);
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
@@ -1524,7 +1538,9 @@ public class TestHeartbeatHandler {
 
   private File createTestKeytabData(AgentCommandsPublisher agentCommandsPublisher) throws Exception {
     KerberosKeytabController kerberosKeytabControllerMock = createMock(KerberosKeytabController.class);
-    expect(kerberosKeytabControllerMock.getFilteredKeytabs(null,null,null)).andReturn(
+    Map<String, Collection<String>> filter = new HashMap<>();
+    filter.put("HDFS", Collections.singletonList("*"));
+    expect(kerberosKeytabControllerMock.getFilteredKeytabs(filter,null,null)).andReturn(
       Sets.newHashSet(
         new ResolvedKerberosKeytab(
           "/etc/security/keytabs/dn.service.keytab",
