@@ -203,8 +203,9 @@ class FileCache():
       else:
         raise # we are not tolerant to exceptions, command execution will fail
     finally:
-      self.currently_providing[full_path].set()
-      del self.currently_providing[full_path]
+      with self.currently_providing_dict_lock:
+        self.currently_providing[full_path].set()
+        del self.currently_providing[full_path]
 
     return full_path
 
