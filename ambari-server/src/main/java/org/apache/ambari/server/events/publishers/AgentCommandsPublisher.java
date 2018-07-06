@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +48,13 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,14 +178,15 @@ public class AgentCommandsPublisher {
    * @param targetHost a name of the host the relevant command is destined for
    * @throws AmbariException
    */
-  void injectKeytab(ExecutionCommand ec, String command, String targetHost) throws AmbariException {
+  private void injectKeytab(ExecutionCommand ec, String command, String targetHost) throws AmbariException {
     String dataDir = ec.getCommandParams().get(KerberosServerAction.DATA_DIRECTORY);
     KerberosServerAction.KerberosCommandParameters kerberosCommandParameters = new KerberosServerAction.KerberosCommandParameters(ec);
     if(dataDir != null) {
       List<Map<String, String>> kcp = ec.getKerberosCommandParams();
 
       try {
-        Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs((Map<String, Collection<String>>)kerberosCommandParameters.getServiceComponentFilter(), kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
+        Map<String, Collection<String>> serviceComponentFilter = adjustServiceComponentFilter(ec.getClusterName(), kerberosCommandParameters.getServiceComponentFilter());
+        Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
         for (ResolvedKerberosKeytab resolvedKeytab : keytabsToInject) {
           for(ResolvedKerberosPrincipal resolvedPrincipal: resolvedKeytab.getPrincipals()) {
             String hostName = resolvedPrincipal.getHostName();
@@ -210,7 +215,7 @@ public class AgentCommandsPublisher {
                     keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS, resolvedKeytab.getGroupAccess());
 
                     BufferedInputStream bufferedIn = new BufferedInputStream(new FileInputStream(keytabFile));
-                    byte[] keytabContent = null;
+                    byte[] keytabContent;
                     try {
                       keytabContent = IOUtils.toByteArray(bufferedIn);
                     } finally {
@@ -251,5 +256,33 @@ public class AgentCommandsPublisher {
       }
       ec.setKerberosCommandParams(kcp);
     }
+  }
+
+  private Map<String, Collection<String>> adjustServiceComponentFilter(String clusterName, Map<String, ? extends Collection<String>> serviceComponentFilter) throws AmbariException {
+    Map<String, Collection<String>> adjustedFilter = new HashMap<>();
+    Cluster cluster = clusters.getCluster(clusterName);
+
+    Map<String, Service> installedServices = (cluster == null) ? null : cluster.getServices();
+
+    if(!MapUtils.isEmpty(installedServices)) {
+      if (serviceComponentFilter != null) {
+        // prune off services that are not installed, or considered installed - like AMBARI
+        for(Map.Entry<String, ? extends Collection<String>> entry: serviceComponentFilter.entrySet()) {
+          String serviceName = entry.getKey();
+
+          if(installedServices.containsKey(serviceName)) {
+            adjustedFilter.put(serviceName, entry.getValue());
+          }
+        }
+      } else {
+        // return only the set of installed services
+        for(String serviceName: installedServices.keySet()) {
+          // Add an entry to indicate the service and all of it's components should be considered
+          adjustedFilter.put(serviceName, Collections.singletonList("*"));
+        }
+      }
+    }
+
+    return adjustedFilter;
   }
 }
