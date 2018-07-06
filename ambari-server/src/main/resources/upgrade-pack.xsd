@@ -404,8 +404,6 @@
     
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="target" type="xs:string" />
-        <xs:element name="target-stack" type="xs:string" />
         <xs:element name="downgrade-allowed" minOccurs="0" type="xs:boolean" />
         <xs:element name="type" type="upgrade-kind-type" />
         <xs:element name="prerequisite-checks" type="prerequisite-check-type" minOccurs="0" />

@@ -200,9 +200,6 @@ public class UpgradeHelper {
   @Inject
   private Provider<AmbariMetaInfo> m_ambariMetaInfoProvider;
 
-  @Inject
-  private Provider<Clusters> m_clusters;
-
   /**
    * Used to update the configuration properties.
    */
@@ -232,80 +229,6 @@ public class UpgradeHelper {
    */
   @Inject
   private StackDAO m_stackDAO;
-
-  /**
-   * Get right Upgrade Pack, depends on stack, direction and upgrade type
-   * information
-   *
-   * @param clusterName
-   *          The name of the cluster
-   * @param sourceStackId
-   *          the "from" stack for this upgrade/downgrade
-   * @param targetStackId
-   *          the "to" stack for this upgrade/downgrade
-   * @param direction
-   *          {@code Direction} of the upgrade
-   * @param upgradeType
-   *          The {@code UpgradeType}
-   * @param preferredUpgradePackName
-   *          For unit test, need to prefer an upgrade pack since multiple
-   *          matches can be found.
-   * @return {@code UpgradeType} object
-   * @throws AmbariException
-   */
-  public UpgradePack suggestUpgradePack(String clusterName,
-      StackId sourceStackId, StackId targetStackId, Direction direction, UpgradeType upgradeType,
-      String preferredUpgradePackName) throws AmbariException {
-
-    // Find upgrade packs based on current stack. This is where to upgrade from
-    Cluster cluster = m_clusters.get().getCluster(clusterName);
-    StackId currentStack = cluster.getCurrentStackVersion();
-
-    StackId stackForUpgradePack = targetStackId;
-
-    if (direction.isDowngrade()) {
-      stackForUpgradePack = sourceStackId;
-    }
-
-    Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(
-        currentStack.getStackName(), currentStack.getStackVersion());
-
-    UpgradePack pack = null;
-
-    if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
-      pack = packs.get(preferredUpgradePackName);
-
-      LOG.warn("Upgrade pack '{}' not found for stack {}", preferredUpgradePackName, currentStack);
-    }
-
-    // Best-attempt at picking an upgrade pack assuming within the same stack whose target stack version matches.
-    // If multiple candidates are found, raise an exception.
-    if (null == pack) {
-      for (UpgradePack upgradePack : packs.values()) {
-        if (null != upgradePack.getTargetStack()
-            && StringUtils.equals(upgradePack.getTargetStack(), stackForUpgradePack.getStackId())
-            && upgradeType == upgradePack.getType()) {
-          if (null == pack) {
-            // Pick the pack.
-            pack = upgradePack;
-          } else {
-            throw new AmbariException(
-                String.format(
-                    "Unable to perform %s. Found multiple upgrade packs for type %s and stack %s",
-                    direction.getText(false), upgradeType.toString(), stackForUpgradePack));
-          }
-        }
-      }
-    }
-
-    if (null == pack) {
-      throw new AmbariException(
-          String.format("Unable to perform %s. Could not locate %s upgrade pack for stack %s",
-              direction.getText(false), upgradeType.toString(), stackForUpgradePack));
-    }
-
-   return pack;
-  }
 
   /**
    * Generates a list of UpgradeGroupHolder items that are used to execute either
@@ -349,6 +272,7 @@ public class UpgradeHelper {
           throw new IllegalArgumentException(e);
         }
       });
+
     }
 
     return groups;

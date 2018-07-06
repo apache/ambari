@@ -24,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.Unmarshaller;
@@ -66,12 +65,6 @@ public class UpgradePack {
    * Name of the file without the extension, such as upgrade-2.2
    */
   private String name;
-
-  @XmlElement(name="target")
-  private String target;
-
-  @XmlElement(name="target-stack")
-  private String targetStack;
 
   @XmlElement(name="lifecycle")
   public List<Lifecycle> lifecycles;
@@ -126,12 +119,6 @@ public class UpgradePack {
   public void setName(String name) {
     this.name = name;
   }
-  /**
-   * @return the target version for the upgrade pack
-   */
-  public String getTarget() {
-    return target;
-  }
 
   /**
    * @return the type of upgrade, e.g., "ROLLING" or "NON_ROLLING"
@@ -172,13 +159,6 @@ public class UpgradePack {
 
     // new processing has been created, so rebuild the mappings
     initializeProcessingComponentMappings();
-  }
-
-  /**
-   * @return the target stack, or {@code null} if the upgrade is within the same stack
-   */
-  public String getTargetStack() {
-    return targetStack;
   }
 
   /**
@@ -243,15 +223,6 @@ public class UpgradePack {
    */
   public boolean isDowngradeAllowed(){
     return downgradeAllowed;
-  }
-
-  public boolean canBeApplied(String targetVersion){
-    // check that upgrade pack can be applied to selected stack
-    // converting 2.2.*.* -> 2\.2(\.\d+)?(\.\d+)?(-\d+)?
-    String regexPattern = getTarget().replaceAll("\\.", "\\\\."); // . -> \.
-    regexPattern = regexPattern.replaceAll("\\\\\\.\\*", "(\\\\\\.\\\\d+)?"); // \.* -> (\.\d+)?
-    regexPattern = regexPattern.concat("(-\\d+)?");
-    return Pattern.matches(regexPattern, targetVersion);
   }
 
   /**
