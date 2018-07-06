@@ -49,10 +49,16 @@ if os.geteuid() == 0:
       
     for root, dirs, files in unicode_walk(path, followlinks=True):
       for name in files + dirs:
-        if follow_links:
-          os.chown(os.path.join(root, name), uid, gid)
-        else:
-          os.lchown(os.path.join(root, name), uid, gid)
+        try:
+          if follow_links:
+            os.chown(os.path.join(root, name), uid, gid)
+          else:
+            os.lchown(os.path.join(root, name), uid, gid)
+        except OSError as ex:
+          # Handle race condition: file was deleted/moved while iterating by
+          # ignoring OSError: [Errno 2] No such file or directory
+          if ex.errno != errno.ENOENT:
+            raise
             
   
   def chmod(path, mode):
