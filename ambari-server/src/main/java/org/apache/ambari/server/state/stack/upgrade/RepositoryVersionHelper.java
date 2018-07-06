@@ -20,7 +20,6 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.ambari.annotations.Experimental;
@@ -42,9 +41,6 @@ import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceGroup;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,13 +64,7 @@ public class RepositoryVersionHelper {
   private Gson gson;
 
   @Inject
-  private Provider<AmbariMetaInfo> ami;
-
-  @Inject
   private Provider<Configuration> configuration;
-
-  @Inject
-  private Provider<OsFamily> os_family;
 
   @Inject Provider<Clusters> clusters;
 
@@ -110,38 +100,6 @@ public class RepositoryVersionHelper {
       repoOsEntities.add(operatingSystemEntity);
     }
     return repoOsEntities;
-  }
-
-  /**
-   * Scans the given stack for upgrade packages which can be applied to update the cluster to given repository version.
-   *
-   * @param stackName stack name
-   * @param stackVersion stack version
-   * @param repositoryVersion target repository version
-   * @param upgradeType if not {@code null} null, will only return upgrade packs whose type matches.
-   * @return upgrade pack name
-   * @throws AmbariException if no upgrade packs suit the requirements
-   */
-  public String getUpgradePackageName(String stackName, String stackVersion, String repositoryVersion, UpgradeType upgradeType) throws AmbariException {
-    final Map<String, UpgradePack> upgradePacks = ami.get().getUpgradePacks(stackName, stackVersion);
-    for (UpgradePack upgradePack : upgradePacks.values()) {
-      final String upgradePackName = upgradePack.getName();
-
-      if (null != upgradeType && upgradePack.getType() != upgradeType) {
-        continue;
-      }
-
-      // check that upgrade pack has <target> node
-      if (StringUtils.isBlank(upgradePack.getTarget())) {
-        LOG.error("Upgrade pack " + upgradePackName + " is corrupted, it should contain <target> node");
-        continue;
-      }
-      if (upgradePack.canBeApplied(repositoryVersion)) {
-        return upgradePackName;
-      }
-    }
-    throw new AmbariException("There were no suitable upgrade packs for stack " + stackName + " " + stackVersion +
-        ((null != upgradeType) ? " and upgrade type " + upgradeType : ""));
   }
 
   /**
