@@ -275,7 +275,7 @@ angular.module('ambariAdminConsole')
       $scope.osList.forEach(function(os) {
         if (os.repositories && os.selected) {
           os.repositories.forEach(function(repo) {
-            if (repo.invalidBaseUrl) {
+            if (repo.invalidBaseUrl && $scope.showRepo(repo)) {
               validBaseUrlsExist = false;
             }
           })
