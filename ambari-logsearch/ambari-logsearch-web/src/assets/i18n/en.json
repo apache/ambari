@@ -255,13 +255,13 @@
 
   "shipperConfiguration.action.add.title": "New Configuration",
   "shipperConfiguration.action.add.success.message": "New configuration has been added successfully.",
-  "shipperConfiguration.action.add.error.message": "Error at adding new configuration.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",
+  "shipperConfiguration.action.add.error.message": "Error at adding new configuration.<div class='cluster-name'>Cluster: {{cluster}}</div><div class='service-name'>Service: {{service}}</div>",
   "shipperConfiguration.action.update.title": "Update Configuration",
-  "shipperConfiguration.action.update.success.message": "The configuration has been updated successfully.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",
-  "shipperConfiguration.action.update.error.message": "Error at updating the configuration.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",
+  "shipperConfiguration.action.update.success.message": "The configuration has been updated successfully.<div class='cluster-name'>Cluster: {{cluster}}</div><div class='service-name'>Service: {{service}}</div>",
+  "shipperConfiguration.action.update.error.message": "Error at updating the configuration.<div class='cluster-name'>Cluster: {{cluster}}</div><div class='service-name'>Service: {{service}}</div>",
   "shipperConfiguration.action.validate.title": "Validate Configuration",
   "shipperConfiguration.action.validate.success.message": "The configuration is valid.",
-  "shipperConfiguration.action.validate.error.message": "The configuration is not valid.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div><div class='error-message'>{{errorMessage}}</div>",
+  "shipperConfiguration.action.validate.error.message": "The configuration is not valid.<div class='cluster-name'>Cluster: {{cluster}}</div><div class='service-name'>Service: {{service}}</div><div class='error-message'>{{errorMessage}}</div>",
 
   "dataAvaibilityState.clustersDataState.label": "Loading clusters",
   "dataAvaibilityState.hostsDataState.label": "Loading hosts",
