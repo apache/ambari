@@ -1243,10 +1243,6 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-
-      if (null == stackId && null != cluster) {
-        stackId = cluster.getDesiredStackVersion();
-      }
     }
 
     String hostParamsStageJson = StageUtils.getGson().toJson(hostParamsStage);

@@ -270,10 +270,6 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
     Assert.assertEquals(21933376, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
 
-
-    // only ask for specific properties
-    Set<String> properties = new HashSet<>();
-
     // hbase master
     resource = new ResourceImpl(Resource.Type.HostComponent);
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
@@ -282,7 +278,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // only ask for specific properties
-    properties = new HashSet<>();
+    Set<String> properties = new HashSet<>();
     properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax"));
     properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed"));
     properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax"));

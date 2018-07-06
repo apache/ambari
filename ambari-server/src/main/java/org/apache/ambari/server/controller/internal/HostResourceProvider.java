@@ -1005,7 +1005,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> hostsClusters = new HashSet<>();
     Set<String> hostNames = new HashSet<>();
     Set<Long> hostIds = new HashSet<>();
-    Set<Cluster> allClustersWithHosts = new HashSet<>();
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     for (HostRequest hostRequest : requests) {
       // Assume the user also wants to delete it entirely, including all clusters.

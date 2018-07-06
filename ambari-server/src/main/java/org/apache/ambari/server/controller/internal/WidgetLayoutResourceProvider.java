@@ -201,14 +201,11 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Resource> resources = new HashSet<>();
-    final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    List<WidgetEntity> widgetEntities = new ArrayList<>();
     List<WidgetLayoutEntity> layoutEntities = new ArrayList<>();
 
     for (Map<String, Object> propertyMap: propertyMaps) {
-      String userName = getUserName(propertyMap);
       if (propertyMap.get(WIDGETLAYOUT_ID_PROPERTY_ID) != null) {
         final Long id;
         try {
@@ -229,7 +226,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
     for (WidgetLayoutEntity layoutEntity : layoutEntities) {
       Resource resource = new ResourceImpl(Type.WidgetLayout);
       resource.setProperty(WIDGETLAYOUT_ID_PROPERTY_ID, layoutEntity.getId());
-      String clusterName = null;
+      String clusterName;
       try {
         clusterName = getManagementController().getClusters().getClusterById(layoutEntity.getClusterId()).getClusterName();
       } catch (AmbariException e) {

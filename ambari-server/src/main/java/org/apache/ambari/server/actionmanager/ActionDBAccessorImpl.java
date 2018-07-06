@@ -513,7 +513,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     long now = System.currentTimeMillis();
 
     List<Long> requestsToCheck = new ArrayList<>();
-    List<Long> abortedCommandUpdates = new ArrayList<>();
 
     List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet());
     List<HostRoleCommandEntity> commandEntitiesToMerge = new ArrayList<>();

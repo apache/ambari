@@ -38,7 +38,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
@@ -313,9 +312,7 @@ public class AlertEventPublisherTest {
         cluster.getCurrentStackVersion(), REPO_VERSION);
 
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-    service = cluster.getService(serviceName);
-
-    Assert.assertNotNull(service);
+    serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Assert.assertNotNull(cluster.getService(serviceName));
   }
 }
