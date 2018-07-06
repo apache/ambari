@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -53,15 +54,11 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
-import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
-import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
@@ -1091,38 +1088,38 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     if (MapUtils.isEmpty(clusterMap))
       return;
 
-    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
-    for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(serviceConfigEntity.getServiceName())) {
-        serviceConfigEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        serviceConfigDAO.merge(serviceConfigEntity);
-      }
-    }
+    executeInTransaction(() -> {
+      TypedQuery<ServiceConfigEntity> serviceConfigUpdate = getEntityManagerProvider().get().createQuery(
+              "UPDATE ServiceConfigEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", ServiceConfigEntity.class);
+      serviceConfigUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      serviceConfigUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      serviceConfigUpdate.executeUpdate();
+    });
 
-    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
-    for (final Cluster cluster : clusterMap.values()) {
-      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionDAO.findByService(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME)) {
-        alertDefinitionEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertDefinitionDAO.merge(alertDefinitionEntity);
+    executeInTransaction(() -> {
+      for (final Cluster cluster : clusterMap.values()) {
+        TypedQuery<AlertDefinitionEntity> alertDefinitionUpdate = getEntityManagerProvider().get().createQuery(
+                "UPDATE AlertDefinitionEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName AND clusterId = :clusterId", AlertDefinitionEntity.class);
+        alertDefinitionUpdate.setParameter("clusterId", cluster.getClusterId());
+        alertDefinitionUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+        alertDefinitionUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+        alertDefinitionUpdate.executeUpdate();
       }
-    }
+    });
 
-    AlertDispatchDAO alertDispatchDAO = injector.getInstance(AlertDispatchDAO.class);
-    for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertGroupEntity.getServiceName())) {
-        alertGroupEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertGroupEntity.setGroupName(AMBARI_INFRA_NEW_NAME);
-        alertDispatchDAO.merge(alertGroupEntity);
-      }
-    }
+    executeInTransaction(() -> {
+      TypedQuery<AlertGroupEntity> alertGroupUpdate = getEntityManagerProvider().get().createQuery("UPDATE AlertGroupEntity SET serviceName = :newServiceName, groupName = :newServiceName WHERE serviceName = :oldServiceName", AlertGroupEntity.class);
+      alertGroupUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      alertGroupUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      alertGroupUpdate.executeUpdate();
+    });
 
-    AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
-    for (AlertHistoryEntity alertHistoryEntity : alertsDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertHistoryEntity.getServiceName())) {
-        alertHistoryEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertsDAO.merge(alertHistoryEntity);
-      }
-    }
+    executeInTransaction(() -> {
+      TypedQuery<AlertHistoryEntity> alertHistoryUpdate = getEntityManagerProvider().get().createQuery("UPDATE AlertHistoryEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", AlertHistoryEntity.class);
+      alertHistoryUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      alertHistoryUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      alertHistoryUpdate.executeUpdate();
+    });
 
     // Force the clusters object to reload to ensure the renamed service is accounted for
     getEntityManagerProvider().get().getEntityManagerFactory().getCache().evictAll();
