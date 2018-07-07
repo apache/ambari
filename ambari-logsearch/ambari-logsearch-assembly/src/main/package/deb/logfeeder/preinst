@@ -24,5 +24,4 @@ fi
 if [ -d $LOGFEEDER_CONF ]; then
   mkdir -p $LOGFEEDER_CONF_BACKUP
   cp -r $LOGFEEDER_CONF/* $LOGFEEDER_CONF_BACKUP
-  rm -rf $LOGFEEDER_CONF
 fi
