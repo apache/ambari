@@ -24,5 +24,4 @@ fi
 if [ -d $LOGSEARCH_CONF ]; then
   mkdir -p $LOGSEARCH_CONF_BACKUP
   cp -r $LOGSEARCH_CONF/* $LOGSEARCH_CONF_BACKUP
-  rm -rf $LOGSEARCH_CONF
 fi

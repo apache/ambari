@@ -25,13 +25,3 @@ mkdir -p $LOGSEARCH_ETC_FOLDER
 
 ln -s $LOGSEARCH_SCRIPT_SOURCE $LOGSEARCH_SCRIPT_LINK_NAME
 #ln -s $LOGSEARCH_CONF_SOURCE $LOGSEARCH_CONF_LINK
-
-# handle old keys folder
-
-LOGSEARCH_CONF_BACKUP="/usr/lib/ambari-logsearch-portal/conf-old"
-
-if [ -d "$LOGSEARCH_CONF_BACKUP" ]; then
-  if [ -d "$LOGSEARCH_CONF_BACKUP/keys" ]; then
-    cp -r $LOGSEARCH_CONF_BACKUP/keys $LOGSEARCH_CONF_SOURCE
-  fi
-fi
