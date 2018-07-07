@@ -56,7 +56,8 @@ var serviceConfig,
         'hiddenBySubSection': false,
         'isRequiredByAgent': true,
         'isValid': false,
-        'isValidOverride': true
+        'isValidOverride': true,
+        'isNotInitialValue': true
       }),
       App.ServiceConfigProperty.create({
         'name': 'p5',
@@ -65,7 +66,8 @@ var serviceConfig,
         'hiddenBySubSection': false,
         'isRequiredByAgent': true,
         'isValid': true,
-        'isValidOverride': false
+        'isValidOverride': false,
+        'isNotInitialValue': true
       }),
       App.ServiceConfigProperty.create({
         'name': 'p6',
@@ -75,7 +77,8 @@ var serviceConfig,
         'isRequiredByAgent': false,
         'isRequired': false,
         'isValid': true,
-        'isValidOverride': false
+        'isValidOverride': false,
+        'isNotInitialValue': true
       }),
       App.ServiceConfigProperty.create({
         'name': 'p7',

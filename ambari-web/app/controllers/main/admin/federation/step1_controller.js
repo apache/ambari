@@ -24,15 +24,20 @@ App.NameNodeFederationWizardStep1Controller = Em.Controller.extend({
 
   existingNameServices: function () {
     var isMetricsLoaded = App.router.get('clusterController.isHostComponentMetricsLoaded');
-    return isMetricsLoaded ? App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name').join(', ') : '';
-  }.property('App.router.clusterController.isHostComponentMetricsLoaded'),
+    return isMetricsLoaded ? App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name') : [];
+  }.property('App.router.clusterController.isHDFSNameSpacesLoaded'),
 
-  isNameServiceIdValid: function () {
-    return validator.isValidNameServiceId(this.get('content.nameServiceId'));
-  }.property('content.nameServiceId'),
+  existingNameServicesString: function () {
+    return this.get('existingNameServices').join(', ');
+  }.property('existingNameServices.length'),
+
+  isNameServiceIdError: function () {
+    var nameServiceId = this.get('content.nameServiceId');
+    return !nameServiceId || this.get('existingNameServices').contains(nameServiceId) || !validator.isValidNameServiceId(nameServiceId);
+  }.property('content.nameServiceId', 'existingNameServices.length'),
 
   next: function () {
-    if (this.get('isNameServiceIdValid')) {
+    if (!this.get('isNameServiceIdError')) {
       App.router.send('next');
     }
   }

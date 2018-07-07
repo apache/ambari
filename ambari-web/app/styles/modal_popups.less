@@ -126,7 +126,18 @@
 
 /*90% width wizard modal window start*/
 .wizard-modal-wrapper {
+  &.disable-security-modal{
+    .modal .modal-body{
+      background-color: rgba(233, 233, 233, 0.5);
+      .wizard-content{
+        background-color: transparent;
+      }
+    }
+  }
   .modal {
+    .modal-dialog {
+      margin-top: 0;
+    }
     .modal-body {
       padding: 0;
       .wizard {

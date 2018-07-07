@@ -21,13 +21,6 @@ limitations under the License.
 import imp
 import os
 import traceback
-import re
-import socket
-import fnmatch
-import math
-
-
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, './var/lib/ambari-server/resources/stacks/')
@@ -109,7 +102,7 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
     """
 
-    return []
+    return self.getServiceComponentCardinalityValidations(services, hosts, "LOGSEARCH")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     putLogSearchProperty = self.putProperty(configurations, "logsearch-properties", services)
@@ -140,34 +133,25 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
       infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA_SOLR", "INFRA_SOLR")
       # if there is AMBARI_INFRA, calculate the min/max shards and recommendations based on the number of infra solr hosts
       if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
-        replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
-        recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
-        
         recommendedMinShards = len(infraSolrHosts)
         recommendedShards = 2 * len(infraSolrHosts)
-        recommendedMaxShards = max(3 * len(infraSolrHosts), 5)
-      # if there is no AMBARI_INFRA (i.e. external solr is used), use default values for min/max shards and recommendations
+        recommendedMaxShards = 10 * len(infraSolrHosts)
       else:
-        recommendedReplicationFactor = 2
-        
+        # if there is no AMBARI_INFRA (i.e. external solr is used), use default values for min/max shards and recommendations
         recommendedMinShards = 1
         recommendedShards = 1
         recommendedMaxShards = 100
-        
         putLogSearchCommonEnvProperty('logsearch_use_external_solr', 'true')
         
-        # recommend number of shard
-        putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
-        putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
-        putLogSearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
-      
-        putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
-        putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
-        putLogSearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
-        # recommend replication factor
-        putLogSearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
-        putLogSearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
-      
+      # recommend number of shard
+      putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
+      putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
+      putLogSearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
+
+      putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
+      putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
+      putLogSearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
+
     kerberos_authentication_enabled = self.isSecurityEnabled(services)
     # if there is no kerberos enabled hide kerberor related properties
     if not kerberos_authentication_enabled:

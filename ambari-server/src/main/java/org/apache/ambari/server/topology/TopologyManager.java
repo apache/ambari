@@ -60,6 +60,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
+import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -235,6 +236,7 @@ public class TopologyManager {
                 clusterProvisionWithBlueprintCreateRequests.get(event.getClusterId()).getRequestId(),
                 clusterTopologyMap.get(event.getClusterId()).getBlueprintName(),
                 event.getClusterId());
+        ambariEventPublisher.publish(new ClusterProvisionedEvent(event.getClusterId()));
       } else {
         LOG.info("Cluster creation request id={} using Blueprint {} failed for cluster id={}",
                 clusterProvisionWithBlueprintCreateRequests.get(event.getClusterId()).getRequestId(),
@@ -1130,4 +1132,5 @@ public class TopologyManager {
       }
     }
   }
+
 }

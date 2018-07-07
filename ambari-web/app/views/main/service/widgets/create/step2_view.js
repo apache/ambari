@@ -93,5 +93,15 @@ App.WidgetPropertySelectView = Em.Select.extend({
   }
 });
 
+App.WidgetWizardComponentDropdownView = Em.View.extend({
 
+  templateName: require('templates/main/service/widgets/create/step2_component_dropdown'),
+
+  tagName: 'li',
+
+  classNames: ['dropdown-submenu'],
+
+  displayName: ''
+
+});
 

@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Configuration for a topology entity such as a blueprint, hostgroup or cluster.
@@ -285,6 +286,42 @@ public class Configuration {
       }
     }
     return previousValue;
+  }
+
+  /**
+   * Moves the given properties from {@code sourceConfigType} to {@code targetConfigType}.
+   * If a property is already present in the target, it will be removed from the source, but not overwritten in the target.
+   *
+   * @param sourceConfigType the config type to move properties from
+   * @param targetConfigType the config type to move properties to
+   * @param propertiesToMove names of properties to be moved
+   * @return property names that were removed from the source
+   */
+  public Set<String> moveProperties(String sourceConfigType, String targetConfigType, Set<String> propertiesToMove) {
+    Set<String> moved = new HashSet<>();
+    for (String property : propertiesToMove) {
+      if (isPropertySet(sourceConfigType, property)) {
+        String value = removeProperty(sourceConfigType, property);
+        if (!isPropertySet(targetConfigType, property)) {
+          setProperty(targetConfigType, property, value);
+        }
+        moved.add(property);
+      }
+    }
+    return moved;
+  }
+
+  /**
+   * General convenience method to determine if a given property has been set in the cluster configuration
+   *
+   * @param configType the config type to check
+   * @param propertyName the property name to check
+   * @return true if the named property has been set
+   *         false if the named property has not been set
+   */
+  public boolean isPropertySet(String configType, String propertyName) {
+    return properties.containsKey(configType) && properties.get(configType).containsKey(propertyName) ||
+      parentConfiguration != null && parentConfiguration.isPropertySet(configType, propertyName);
   }
 
   /**

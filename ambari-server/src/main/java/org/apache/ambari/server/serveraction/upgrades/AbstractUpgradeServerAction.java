@@ -27,6 +27,7 @@ import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 
 /**
@@ -62,6 +63,15 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
 
   @Inject
   protected AgentConfigsHolder agentConfigsHolder;
+
+  /**
+   * Gets the injected instance of the {@link Gson} serializer/deserializer.
+   *
+   * @return the injected {@link Gson} instance.
+   */
+  protected Gson getGson() {
+    return gson;
+  }
 
   /**
    * Gets an initialized {@link UpgradeContext} for the in-progress upgrade.

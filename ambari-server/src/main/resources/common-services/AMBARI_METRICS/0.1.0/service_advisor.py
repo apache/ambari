@@ -33,15 +33,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
 PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
 
-#split points
-metricsDir = os.path.join(SCRIPT_DIR, 'package')
-print "METRICS_DIR=>" + str(metricsDir)
-serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
-customServiceMetricsDir = os.path.join(SCRIPT_DIR, '../../../dashboards/service-metrics')
-sys.path.append(os.path.join(metricsDir, 'scripts'))
-
-from split_points import FindSplitPointsForAMSRegions
-
 try:
   with open(PARENT_FILE, 'rb') as fp:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
@@ -132,7 +123,7 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
     """
 
-    return []
+    return self.getServiceComponentCardinalityValidations(services, hosts, "AMBARI_METRICS")
 
   def getAmsMemoryRecommendation(self, services, hosts):
     # MB per sink in hbase heapsize
@@ -303,6 +294,7 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
     if operatingMode == "distributed":
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
+      putAmsHbaseSiteProperty("hbase.unsafe.stream.capability.enforce", 'true')
     else:
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'false')
@@ -437,19 +429,6 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
       ams_hbase_site = configurations["ams-hbase-site"]["properties"]
     if not ams_hbase_env:
       ams_hbase_env = configurations["ams-hbase-env"]["properties"]
-
-    split_point_finder = FindSplitPointsForAMSRegions(
-      ams_hbase_site, ams_hbase_env, serviceMetricsDir, customServiceMetricsDir, operatingMode, servicesList)
-
-    result = split_point_finder.get_split_points()
-    precision_splits = ' '
-    aggregate_splits = ' '
-    if result.precision:
-      precision_splits = result.precision
-    if result.aggregate:
-      aggregate_splits = result.aggregate
-    putAmsSiteProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
-    putAmsSiteProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
 
     component_grafana_exists = False
     for service in services['services']:

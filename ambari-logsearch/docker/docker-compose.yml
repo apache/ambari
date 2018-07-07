@@ -26,7 +26,7 @@ services:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zookeeper:2888:3888
   solr:
-    image: solr:${SOLR_VERSION:-7.2.1}
+    image: solr:${SOLR_VERSION:-7.3.1}
     restart: always
     hostname: solr
     ports:
@@ -59,7 +59,7 @@ services:
       COMPONENT: logsearch
       COMPONENT_LOG: logsearch
       ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
-      DISPLAY: $DOCKERIP:0
+      DISPLAY: $DISPLAY_MAC
     volumes:
       - $AMBARI_LOCATION:/root/ambari
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs

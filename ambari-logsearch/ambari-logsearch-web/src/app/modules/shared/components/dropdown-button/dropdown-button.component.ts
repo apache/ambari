@@ -42,7 +42,6 @@ export class DropdownButtonComponent {
   @Input()
   showSelectedValue: boolean = true;
 
-
   @Input() options: ListItem[] = [];
 
   @Input()
@@ -85,18 +84,31 @@ export class DropdownButtonComponent {
 
   constructor(protected utils: UtilsService) {}
 
-  updateSelection(item: ListItem): void {
-    if (this.isMultipleChoice) {
-      this.options.find((option: ListItem): boolean => {
-        return this.utils.isEqual(option.value, item.value);
-      }).isChecked = item.isChecked;
-      const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
-      this.selection = checkedItems;
-      this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
-    } else if (!this.utils.isEqual(this.selection[0], item)) {
-      this.selection = [item];
-      this.selectItem.emit(item.value);
+  updateSelection(updates: ListItem | ListItem[]): void {
+    if (updates && (!Array.isArray(updates) || updates.length)) {
+      const items: ListItem[] = Array.isArray(updates) ? updates : [updates];
+      if (this.isMultipleChoice) {
+        items.forEach((item: ListItem) => {
+          if (this.options && this.options.length) {
+            const itemToUpdate: ListItem = this.options.find((option: ListItem) => this.utils.isEqual(option.value, item.value));
+            if (itemToUpdate) {
+              itemToUpdate.isChecked = item.isChecked;
+            }
+          }
+        });
+      } else {
+        const selectedItem: ListItem = Array.isArray(updates) ? updates[0] : updates;
+        this.options.forEach((item: ListItem) => {
+          item.isChecked = this.utils.isEqual(item.value, selectedItem.value);
+        });
+      }
+    } else {
+      this.options.forEach((item: ListItem) => item.isChecked = false);
     }
+    const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
+    this.selection = checkedItems;
+    const selectedValues = checkedItems.map((option: ListItem): any => option.value);
+    this.selectItem.emit(this.isMultipleChoice ? selectedValues : selectedValues.shift());
   }
 
 }

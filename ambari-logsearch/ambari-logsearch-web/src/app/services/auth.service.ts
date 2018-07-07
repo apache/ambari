@@ -23,8 +23,9 @@ import {Observable} from 'rxjs/Observable';
 
 import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {Router} from "@angular/router";
-import {Subscription} from "rxjs/Subscription";
+import {Router} from '@angular/router';
+import {Subscription} from 'rxjs/Subscription';
+import { Observer } from 'rxjs/Observer';
 
 export const IS_AUTHORIZED_APP_STATE_KEY: string = 'isAuthorized';
 export const IS_LOGIN_IN_PROGRESS_APP_STATE_KEY: string = 'isLoginInProgress';
@@ -35,61 +36,88 @@ export const IS_LOGIN_IN_PROGRESS_APP_STATE_KEY: string = 'isLoginInProgress';
 @Injectable()
 export class AuthService {
 
-  constructor(
-    private httpClient: HttpClientService,
-    private appState: AppStateService,
-    private router: Router
-  ) {
-    this.appStateIsAuthorizedSubscription = this.appState.getParameter(IS_AUTHORIZED_APP_STATE_KEY).subscribe(
-      this.onAppStateIsAuthorizedChanged
-    );
-  }
-
-  private appStateIsAuthorizedSubscription: Subscription;
+  private subscriptions: Subscription[] = [];
 
   /**
    * A string set by any service or component (mainly from AuthGuard service) to redirect the application after the
    * authorization done.
    * @type string
    */
-  redirectUrl: string;
+  redirectUrl: string | string[];
 
-  onAppStateIsAuthorizedChanged = (isAuthorized):void => {
-    if (isAuthorized && this.redirectUrl) {
-      this.router.navigate([this.redirectUrl]);
+  constructor(
+    private httpClient: HttpClientService,
+    private appState: AppStateService,
+    private router: Router
+  ) {
+    this.subscriptions.push(this.appState.getParameter(IS_AUTHORIZED_APP_STATE_KEY).subscribe(
+      this.onAppStateIsAuthorizedChanged
+    ));
+  }
+
+  onAppStateIsAuthorizedChanged = (isAuthorized): void => {
+    if (isAuthorized) {
+      const redirectTo = this.redirectUrl || (this.router.routerState.snapshot.url === '/login' ? '/' : null);
+      if (redirectTo) {
+        if (Array.isArray(redirectTo)) {
+          this.router.navigate(redirectTo);
+        } else {
+          this.router.navigateByUrl(redirectTo);
+        }
+      }
       this.redirectUrl = '';
+    } else {
+      this.router.navigate(['/login']);
     }
-  };
+  }
   /**
    * The single entry point to request a login action.
    * @param {string} username
    * @param {string} password
    * @returns {Observable<Response>}
    */
-  login(username: string, password: string): Observable<Response> {
+  login(username: string, password: string): Observable<Boolean> {
     this.setLoginInProgressAppState(true);
-    let obs = this.httpClient.postFormData('login', {
+    const response$ = this.httpClient.postFormData('login', {
       username: username,
       password: password
     });
-    obs.subscribe(
+    response$.subscribe(
       (resp: Response) => this.onLoginResponse(resp),
       (resp: Response) => this.onLoginError(resp)
     );
-    return obs;
+    return response$.switchMap((resp: Response) => {
+      return Observable.create((observer: Observer<boolean>) => {
+        if (resp.ok) {
+          observer.next(resp.ok);
+        } else {
+          observer.error(resp);
+        }
+        observer.complete();
+      });
+    });
   }
 
   /**
    * The single unique entry point to request a logout action
    * @returns {Observable<boolean | Error>}
    */
-  logout(): Observable<Response> {
-    let obs = this.httpClient.get('logout');
-    obs.subscribe(
+  logout(): Observable<Boolean> {
+    const response$ = this.httpClient.get('logout');
+    response$.subscribe(
       (resp: Response) => this.onLogoutResponse(resp),
       (resp: Response) => this.onLogoutError(resp)
     );
-    return obs;
+    return response$.switchMap((resp: Response) => {
+      return Observable.create((observer) => {
+        if (resp.ok) {
+          observer.next(resp.ok);
+        } else {
+          observer.error(resp);
+        }
+        observer.complete();
+      });
+    });
   }
 
   /**
@@ -115,8 +143,8 @@ export class AuthService {
    * @param resp
    */
   private onLoginResponse(resp: Response): void {
+    this.setLoginInProgressAppState(false);
     if (resp && resp.ok) {
-      this.setLoginInProgressAppState(false);
       this.setAuthorizedAppState(resp.ok);
     }
   }

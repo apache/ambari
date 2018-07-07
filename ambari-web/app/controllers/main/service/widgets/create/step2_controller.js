@@ -399,15 +399,21 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
             "name": element.name,
             "service_name": element.serviceName,
             "component_name": element.componentName,
-            "metric_path": element.metricPath
+            "metric_path": element.metricPath,
+            "tag": element.tag
           };
           if (element.hostComponentCriteria) {
             metricObj.host_component_criteria = element.hostComponentCriteria;
           }
           metrics.push(metricObj);
-
         }
-        value += element.name;
+        if (element.isOperator) {
+          // operators should have spaces around in order to differentiate them when symbol is a part of metric name
+          // e.g "metric-a" and "metric1 - metric2"
+          value += " " + element.name + " ";
+        } else {
+          value += element.name;
+        }
       }, this);
       value += '}';
     }

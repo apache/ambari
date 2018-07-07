@@ -121,18 +121,18 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     );
     TreeNode<Set<String>> serviceNode = ensureChild(serviceGroupNode, Resource.Type.Service);
     ensureChild(serviceNode, Resource.Type.Component,
-      ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID,
-      ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID,
-      ComponentResourceProvider.COMPONENT_SERVICE_TYPE_PROPERTY_ID,
-      ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-      ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
+      ComponentResourceProvider.CLUSTER_NAME,
+      ComponentResourceProvider.SERVICE_NAME,
+      ComponentResourceProvider.SERVICE_TYPE,
+      ComponentResourceProvider.COMPONENT_NAME,
+      ComponentResourceProvider.RECOVERY_ENABLED);
 
     TreeNode<Set<String>> hostNode = ensureChild(resultTree, Resource.Type.Host);
     ensureChild(hostNode, Resource.Type.HostComponent,
-      HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-      HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID,
-      HostComponentResourceProvider.HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID,
-      HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
+      HostComponentResourceProvider.COMPONENT_NAME,
+      HostComponentResourceProvider.SERVICE_NAME,
+      HostComponentResourceProvider.SERVICE_TYPE,
+      HostComponentResourceProvider.SERVICE_GROUP_NAME);
 
     return resultTree;
   }

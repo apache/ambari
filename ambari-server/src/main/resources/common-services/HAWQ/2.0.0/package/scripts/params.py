@@ -74,6 +74,7 @@ if dfs_nameservice is None:
  dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
 
 hawq_global_rm_type = default('/configurations/hawq-site/hawq_global_rm_type', None)
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,
@@ -86,7 +87,8 @@ HdfsResource = functools.partial(HdfsResource,
                                  hadoop_conf_dir = hadoop_conf_dir,
                                  hdfs_site=hdfs_site,
                                  default_fs=default_fs,
-                                 immutable_paths = get_not_managed_resources())
+                                 immutable_paths = get_not_managed_resources(),
+                                 dfs_type = dfs_type)
 
 # File partial function
 File = functools.partial(File,

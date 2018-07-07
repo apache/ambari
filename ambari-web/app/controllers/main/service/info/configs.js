@@ -352,7 +352,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   loadStep: function () {
     var serviceName = this.get('content.serviceName'), self = this;
-    App.router.get('mainController').stopPolling();
     this.clearStep();
     this.set('dependentServiceNames', this.getServicesDependencies(serviceName));
     this.trackRequestChain(this.loadConfigTheme(serviceName).always(function () {
@@ -364,16 +363,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       self.trackRequest(self.loadServiceConfigVersions());
     }));
   },
-
-  /**
-   * Turn on polling when all requests are finished
-   */
-  trackRequestsDidChange: function() {
-    var allCompleted = this.get('requestsInProgress').everyProperty('completed', true);
-    if (this.get('requestsInProgress').length && allCompleted) {
-      App.router.get('mainController').startPolling();
-    }
-  }.observes('requestsInProgress.@each.completed'),
 
   /**
    * Generate "finger-print" for current <code>stepConfigs[0]</code>
@@ -414,12 +403,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   },
 
   parseConfigData: function(data) {
-    var self = this;
-    this.loadKerberosIdentitiesConfigs().done(function(identityConfigs) {
-      self.prepareConfigObjects(data, identityConfigs);
-      self.loadCompareVersionConfigs(self.get('allConfigs')).done(function() {
-        self.addOverrides(data, self.get('allConfigs'));
-        self.onLoadOverrides(self.get('allConfigs'));
+    this.loadKerberosIdentitiesConfigs().done(identityConfigs => {
+      this.prepareConfigObjects(data, identityConfigs);
+      this.loadCompareVersionConfigs(this.get('allConfigs')).done(() => {
+        this.addOverrides(data, this.get('allConfigs'));
+        this.onLoadOverrides(this.get('allConfigs'));
+        this.updateAttributesFromTheme(this.get('content.serviceName'));
       });
     });
   },
@@ -727,6 +716,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
+    App.set('componentToBeAdded', {});
+    App.set('componentToBeDeleted', {});
     this.clearRecommendations();
     this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },

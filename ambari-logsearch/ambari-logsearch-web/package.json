@@ -31,7 +31,6 @@
     "angular-pipes": "^6.5.3",
     "angular2-moment": "^1.4.0",
     "angular2-notifications": "0.4.46",
-    "angular2-take-until-destroy": "^2.0.1",
     "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",
     "d3": "^4.10.0",

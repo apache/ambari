@@ -97,9 +97,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
    */
   selectedCategory: Em.computed.findBy('categories', 'isSelected', true),
 
-  filteredCount: function () {
-    return this.get('filteredContent').map(item => Object.keys(item.get('versions') || {}).length).reduce(Em.sum, 0);
-  }.property('filteredContent'),
+  filteredCount: Em.computed.alias('filteredContent.length'),
 
   /**
    * displaying content filtered by upgrade type and upgrade status.
@@ -206,7 +204,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
 
   didInsertElement: function () {
     this.observesCategories();
-    this.$(".accordion").on("show hide", function (e) {
+    this.$(".accordion").on("show.bs.collapse hide.bs.collapse", function (e) {
       $(e.target).siblings(".accordion-heading").find("i.accordion-toggle").toggleClass('icon-caret-right icon-caret-down');
     });
 

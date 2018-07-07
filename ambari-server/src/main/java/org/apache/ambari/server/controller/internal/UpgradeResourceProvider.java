@@ -48,6 +48,7 @@ import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteCommandJson;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -59,7 +60,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.UpgradeUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -86,6 +87,7 @@ import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -97,7 +99,6 @@ import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -283,7 +284,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static UpgradeContextFactory s_upgradeContextFactory;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
@@ -293,6 +294,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private UpgradePlanDAO upgradePlanDAO;
+
+  /**
+   * Used for creating keytab regeneration stage inside of an upgrade request.
+   */
+  @Inject
+  private static Provider<KerberosHelper> s_kerberosHelper;
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeResourceProvider.class);
 
@@ -841,7 +848,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgradeEntity.setRequestEntity(requestEntity);
     s_upgradeDAO.create(upgradeEntity);
 
-    stateUpdateEventPublisher.publish(UpgradeUpdateEvent
+    STOMPUpdatePublisher.publish(UpgradeUpdateEvent
         .formFullEvent(s_hostRoleCommandDAO, s_requestDAO, upgradeEntity, UpdateEventType.CREATE));
     cluster.setUpgradeEntity(upgradeEntity);
 
@@ -859,11 +866,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         direction.getPreposition(), upgradeContext.getServiceGroupDisplayableSummary());
 
     requestStages.setRequestContext(requestContext);
-
-    Cluster cluster = upgradeContext.getCluster();
-    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
-    String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-    requestStages.setClusterHostInfo(clusterHostInfoJson);
 
     return requestStages;
   }
@@ -974,15 +976,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     RequestResourceFilter filter = new RequestResourceFilter(DUMMY_SERVICE_GROUP, serviceName, componentName,
         new ArrayList<>(wrapper.getHosts()));
 
-    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        EXECUTE_TASK_ROLE, Collections.singletonList(filter), params);
-
-    // hosts in maintenance mode are excluded from the upgrade
-    actionContext.setMaintenanceModeHostExcluded(true);
-
-    actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
-    actionContext.setRetryAllowed(allowRetry);
-    actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
+    ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
+        EXECUTE_TASK_ROLE, stackId, Collections.singletonList(filter), params,
+        allowRetry, wrapper.getMaxTimeout(s_configuration));
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, stackId, null);
@@ -1043,6 +1039,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
+      String serviceName = tw.getService();
+      String componentName = tw.getComponent();
+
       // add each host to this stage
       //TODO pass service group name once upgrade is fixed
       filters.add(new RequestResourceFilter(DUMMY_SERVICE_GROUP, tw.getService(), tw.getComponent(),
@@ -1067,14 +1066,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
 
-    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        function, filters, commandParams);
-    actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
-    actionContext.setRetryAllowed(allowRetry);
-    actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
+    ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context, function,
+        stackId, filters, commandParams, allowRetry,
+        wrapper.getMaxTimeout(s_configuration));
 
-    // hosts in maintenance mode are excluded from the upgrade
-    actionContext.setMaintenanceModeHostExcluded(true);
+    // commands created here might be for future components which have not been
+    // added to the cluster yet
+    actionContext.setIsFutureCommand(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, stackId, null);
@@ -1127,16 +1125,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
 
-    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        "SERVICE_CHECK", filters, commandParams);
-
-    actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
-    actionContext.setRetryAllowed(allowRetry);
+    ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
+        "SERVICE_CHECK", stackId, filters, commandParams, allowRetry,
+        wrapper.getMaxTimeout(s_configuration));
     actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
-
-    // hosts in maintenance mode are excluded from the upgrade and should not be
-    // candidates for service checks
-    actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, stackId, null);
@@ -1294,6 +1286,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         break;
       }
+      case ADD_COMPONENT: {
+        AddComponentTask addComponentTask = (AddComponentTask) task;
+        String serializedTask = addComponentTask.toJson();
+        commandParams.put(AddComponentTask.PARAMETER_SERIALIZED_ADD_COMPONENT_TASK, serializedTask);
+        break;
+      }
       default:
         break;
     }
@@ -1302,16 +1300,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       return false;
     }
 
-    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        Role.AMBARI_SERVER_ACTION.toString(), Collections.emptyList(),
-        commandParams);
-
-    actionContext.setTimeout(Short.valueOf((short) -1));
-    actionContext.setRetryAllowed(group.allowRetry);
-    actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
-
-    // hosts in maintenance mode are excluded from the upgrade
-    actionContext.setMaintenanceModeHostExcluded(true);
+    ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
+        Role.AMBARI_SERVER_ACTION.toString(), stackId, Collections.emptyList(),
+        commandParams, group.allowRetry, Short.valueOf((short) -1));
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, stackId, null);
@@ -1437,7 +1428,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         // set the upgrade to suspended
         upgradeEntity.setSuspended(suspended);
         upgradeEntity = s_upgradeDAO.merge(upgradeEntity);
-        stateUpdateEventPublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO,requestDAO, upgradeEntity));
+        STOMPUpdatePublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO,requestDAO, upgradeEntity));
       } else {
         // otherwise remove the association with the cluster since it's being
         // full aborted
@@ -1446,8 +1437,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     } else if (status == HostRoleStatus.PENDING) {
       List<Long> taskIds = new ArrayList<>();
+
+      // pull back only ABORTED tasks in order to set them to PENDING - other
+      // status (such as TIMEDOUT and FAILED) must remain since they are
+      // considered to have been completed
       List<HostRoleCommandEntity> hrcEntities = s_hostRoleCommandDAO.findByRequestIdAndStatuses(
-          requestId, Sets.newHashSet(HostRoleStatus.ABORTED, HostRoleStatus.TIMEDOUT));
+          requestId, Sets.newHashSet(HostRoleStatus.ABORTED));
 
       for (HostRoleCommandEntity hrcEntity : hrcEntities) {
         taskIds.add(hrcEntity.getTaskId());
@@ -1458,7 +1453,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
       lastUpgradeItemForCluster.setSuspended(false);
       lastUpgradeItemForCluster = s_upgradeDAO.merge(lastUpgradeItemForCluster);
-      stateUpdateEventPublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO, requestDAO, lastUpgradeItemForCluster));
+      STOMPUpdatePublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO, requestDAO, lastUpgradeItemForCluster));
     }
   }
 
@@ -1476,6 +1471,49 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Experimental(feature = ExperimentalFeature.MPACK_UPGRADES, comment = "Need to implement")
   private void addComponentHistoryToUpgrade(Cluster cluster, UpgradeEntity upgrade,
       UpgradeContext upgradeContext) throws AmbariException {
+  }
+
+  /**
+   * Constructs an {@link ActionExecutionContext}, setting common parameters for
+   * all types of commands.
+   *
+   * @param cluster
+   *          the cluster
+   * @param context
+   *          the upgrade context
+   * @param role
+   *          the role for the command
+   * @param repositoryVersion
+   *          the repository version which will be used mostly for the stack ID
+   *          when building the command and resolving stack-based properties
+   *          (like hooks folders)
+   * @param resourceFilters
+   *          the filters for where the request will run
+   * @param commandParams
+   *          the command parameter map
+   * @param allowRetry
+   *          {@code true} to allow retry of the command
+   * @param timeout
+   *          the timeout for the command.
+   * @return the {@link ActionExecutionContext}.
+   */
+  private ActionExecutionContext buildActionExecutionContext(Cluster cluster,
+      UpgradeContext context, String role, StackId stackId,
+      List<RequestResourceFilter> resourceFilters, Map<String, String> commandParams,
+      boolean allowRetry, short timeout) {
+
+    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
+        role, resourceFilters, commandParams);
+
+    actionContext.setStackId(stackId);
+    actionContext.setTimeout(timeout);
+    actionContext.setRetryAllowed(allowRetry);
+    actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
+
+    // hosts in maintenance mode are excluded from the upgrade
+    actionContext.setMaintenanceModeHostExcluded(true);
+
+    return actionContext;
   }
 
   /**

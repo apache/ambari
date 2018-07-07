@@ -279,6 +279,12 @@ public class KerberosHelperImpl implements KerberosHelper {
                 throw new AmbariException(String.format("Custom operation %s can only be requested with the security type cluster property: %s", operation.name(), SecurityType.KERBEROS.name()));
               }
 
+              boolean retryAllowed = false;
+              if (requestProperties.containsKey(ALLOW_RETRY)) {
+                String allowRetryString = requestProperties.get(ALLOW_RETRY);
+                retryAllowed = Boolean.parseBoolean(allowRetryString);
+              }
+
               CreatePrincipalsAndKeytabsHandler handler = null;
 
               Set<String> hostFilter = parseHostFilter(requestProperties);
@@ -296,6 +302,8 @@ public class KerberosHelperImpl implements KerberosHelper {
               }
 
               if (handler != null) {
+                handler.setRetryAllowed(retryAllowed);
+
                 requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities),
                   serviceComponentFilter, hostFilter, null, null, requestStageContainer, handler);
               } else {
@@ -588,8 +596,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           configurations.put("clusterHostInfo", clusterHostInfoMap);
         }
 
-        Map<String, String> componentToClusterInfoMap = StageUtils.getComponentToClusterInfoKeyMap();
-
         // Iterate through the recommendations to find the recommended host assignments
         for (RecommendationResponse.HostGroup hostGroup : hostGroups) {
           Set<Map<String, String>> components = hostGroup.getComponents();
@@ -607,13 +613,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                   // If the component filter is null or the current component is found in the filter,
                   // include it in the map
                   if ((componentFilter == null) || componentFilter.contains(componentName)) {
-                    String key = componentToClusterInfoMap.get(componentName);
-
-                    if (StringUtils.isEmpty(key)) {
-                      // If not found in the componentToClusterInfoMap, then keys are assumed to be
-                      // in the form of <component_name>_hosts (lowercase)
-                      key = componentName.toLowerCase() + "_hosts";
-                    }
+                    String key = StageUtils.getClusterHostInfoKey(componentName);
 
                     Set<String> fqdns = new TreeSet<>();
 
@@ -757,7 +757,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           .forHosts(hostNames)
           .withComponentHostsMap(cluster.getServiceComponentHostMap(null, services))
           .withConfigurations(requestConfigurations)
-          .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
+          .ofType(StackAdvisorRequest.StackAdvisorRequestType.KERBEROS_CONFIGURATIONS)
           .build();
 
         try {
@@ -2452,19 +2452,11 @@ public class KerberosHelperImpl implements KerberosHelper {
     return requestStageContainer;
   }
 
-
   /**
-   * Gathers the Kerberos-related data from configurations and stores it in a new KerberosDetails
-   * instance.
-   *
-   * @param cluster          the relevant Cluster
-   * @param manageIdentities a Boolean value indicating how to override the configured behavior
-   *                         of managing Kerberos identities; if null the configured behavior
-   *                         will not be overridden
-   * @return a new KerberosDetails with the collected configuration data
-   * @throws AmbariException
+   * {@inheritDoc}
    */
-  private KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
+  @Override
+  public KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
     throws KerberosInvalidConfigurationException, AmbariException {
 
     KerberosDetails kerberosDetails = new KerberosDetails();
@@ -2726,41 +2718,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       hostParams);
 
     stage.setStageId(id);
-    return stage;
-  }
-
-  /**
-   * Creates a new stage with a single task describing the ServerAction class to invoke and the other
-   * task-related information.
-   *
-   * @param id                the new stage's id
-   * @param cluster           the relevant Cluster
-   * @param requestId         the relevant request Id
-   * @param requestContext    a String describing the stage
-   * @param commandParams     JSON-encoded command parameters
-   * @param hostParams        JSON-encoded host parameters
-   * @param actionClass       The ServeAction class that implements the action to invoke
-   * @param event             The relevant ServiceComponentHostServerActionEvent
-   * @param commandParameters a Map of command parameters to attach to the task added to the new
-   *                          stage
-   * @param commandDetail     a String declaring a descriptive name to pass to the action - null or an
-   *                          empty string indicates no value is to be set
-   * @param timeout           the timeout for the task/action  @return a newly created Stage
-   */
-  private Stage createServerActionStage(long id, Cluster cluster, long requestId,
-                                        String requestContext,
-                                        String commandParams, String hostParams,
-                                        Class<? extends ServerAction> actionClass,
-                                        ServiceComponentHostServerActionEvent event,
-                                        Map<String, String> commandParameters, String commandDetail,
-                                        Integer timeout) throws AmbariException {
-
-    Stage stage = createNewStage(id, cluster, requestId, requestContext, commandParams, hostParams);
-    stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
-      RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
-      ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
-      false, false);
-
     return stage;
   }
 
@@ -3339,6 +3296,23 @@ public class KerberosHelperImpl implements KerberosHelper {
    */
   private abstract class Handler {
 
+    /**
+     * If (@code true}, allows stages and tasks created with the handler to be
+     * retried instead of outright failing a task.
+     *
+     * @see KerberosHelper#ALLOW_RETRY
+     */
+    protected boolean retryAllowed = false;
+
+    /**
+     * Sets whether tasks created as part of this handler can be retry if they fail. If a task
+     * cannot be retried it will fail the entire request.
+     *
+     * @param retryAllowed
+     */
+    void setRetryAllowed(boolean retryAllowed) {
+      this.retryAllowed = retryAllowed;
+    }
 
     /**
      * Creates the necessary stages to complete the relevant task and stores them in the supplied
@@ -3403,7 +3377,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3427,7 +3400,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3451,7 +3423,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3475,7 +3446,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3499,7 +3469,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3523,7 +3492,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3547,7 +3515,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3568,19 +3535,22 @@ public class KerberosHelperImpl implements KerberosHelper {
       if (!hosts.isEmpty()) {
         Map<String, String> requestParams = new HashMap<>();
 
-        ActionExecutionContext actionExecContext = new ActionExecutionContext(
-          cluster.getClusterName(),
-          SET_KEYTAB,
-          createRequestResourceFilters(hosts),
-          requestParams);
+        ActionExecutionContext actionExecContext = createActionExecutionContext(
+            cluster.getClusterName(),
+            SET_KEYTAB,
+            createRequestResourceFilters(hosts),
+            requestParams,
+            retryAllowed);
+
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
           requestParams, null);
+      } else {
+        LOG.warn("Skipping {} command. No suitable hosts found", SET_KEYTAB);
       }
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3603,17 +3573,18 @@ public class KerberosHelperImpl implements KerberosHelper {
       if (!hostsToInclude.isEmpty()) {
         Map<String, String> requestParams = new HashMap<>();
 
-        ActionExecutionContext actionExecContext = new ActionExecutionContext(
-          cluster.getClusterName(),
-          CHECK_KEYTABS,
-          createRequestResourceFilters(hostsToInclude),
-          requestParams);
+        ActionExecutionContext actionExecContext = createActionExecutionContext(
+            cluster.getClusterName(),
+            CHECK_KEYTABS,
+            createRequestResourceFilters(hostsToInclude),
+            requestParams,
+            retryAllowed);
+
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
       }
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3634,7 +3605,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3685,7 +3655,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3730,7 +3699,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3754,7 +3722,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3788,7 +3755,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3812,7 +3778,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
-      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3822,6 +3787,63 @@ public class KerberosHelperImpl implements KerberosHelper {
       RequestResourceFilter reqResFilter = new RequestResourceFilter("", Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToInclude);
       requestResourceFilters.add(reqResFilter);
       return requestResourceFilters;
+    }
+
+    /**
+     * Creates a new stage with a single task describing the ServerAction class to invoke and the other
+     * task-related information.
+     *
+     * @param id                the new stage's id
+     * @param cluster           the relevant Cluster
+     * @param requestId         the relevant request Id
+     * @param requestContext    a String describing the stage
+     * @param commandParams     JSON-encoded command parameters
+     * @param hostParams        JSON-encoded host parameters
+     * @param actionClass       The ServeAction class that implements the action to invoke
+     * @param event             The relevant ServiceComponentHostServerActionEvent
+     * @param commandParameters a Map of command parameters to attach to the task added to the new
+     *                          stage
+     * @param commandDetail     a String declaring a descriptive name to pass to the action - null or an
+     *                          empty string indicates no value is to be set
+     * @param timeout           the timeout for the task/action  @return a newly created Stage
+     */
+    private Stage createServerActionStage(long id, Cluster cluster, long requestId,
+                                          String requestContext,
+                                          String commandParams, String hostParams,
+                                          Class<? extends ServerAction> actionClass,
+                                          ServiceComponentHostServerActionEvent event,
+                                          Map<String, String> commandParameters, String commandDetail,
+                                          Integer timeout) throws AmbariException {
+
+      Stage stage = createNewStage(id, cluster, requestId, requestContext, commandParams, hostParams);
+      stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
+        ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
+          retryAllowed, false);
+
+      return stage;
+    }
+
+    /**
+     * Creates an {@link ActionExecutionContext} where some of the common values are pre-initialized.
+     *
+     * @param clusterName
+     * @param commandName
+     * @param resourceFilters
+     * @param parameters
+     * @param retryAllowed
+     * @return
+     */
+    private ActionExecutionContext createActionExecutionContext(String clusterName,
+        String commandName, List<RequestResourceFilter> resourceFilters,
+        Map<String, String> parameters, boolean retryAllowed) {
+
+      ActionExecutionContext actionExecContext = new ActionExecutionContext(clusterName, SET_KEYTAB,
+          resourceFilters, parameters);
+
+      actionExecContext.setRetryAllowed(retryAllowed);
+
+      return actionExecContext;
     }
   }
 
@@ -4346,72 +4368,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
 
       return requestStageContainer.getLastStageId();
-    }
-  }
-
-  /**
-   * KerberosDetails is a helper class to hold the details of the relevant Kerberos-specific
-   * configurations so they may be passed around more easily.
-   */
-  private static class KerberosDetails {
-    private String defaultRealm;
-    private KDCType kdcType;
-    private Map<String, String> kerberosEnvProperties;
-    private SecurityType securityType;
-    private Boolean manageIdentities;
-
-    public void setDefaultRealm(String defaultRealm) {
-      this.defaultRealm = defaultRealm;
-    }
-
-    public String getDefaultRealm() {
-      return defaultRealm;
-    }
-
-    public void setKdcType(KDCType kdcType) {
-      this.kdcType = kdcType;
-    }
-
-    public KDCType getKdcType() {
-      return kdcType;
-    }
-
-    public void setKerberosEnvProperties(Map<String, String> kerberosEnvProperties) {
-      this.kerberosEnvProperties = kerberosEnvProperties;
-    }
-
-    public Map<String, String> getKerberosEnvProperties() {
-      return kerberosEnvProperties;
-    }
-
-    public void setSecurityType(SecurityType securityType) {
-      this.securityType = securityType;
-    }
-
-    public SecurityType getSecurityType() {
-      return securityType;
-    }
-
-    public boolean manageIdentities() {
-      if (manageIdentities == null) {
-        return (kerberosEnvProperties == null) ||
-          !"false".equalsIgnoreCase(kerberosEnvProperties.get(MANAGE_IDENTITIES));
-      } else {
-        return manageIdentities;
-      }
-    }
-
-    public void setManageIdentities(Boolean manageIdentities) {
-      this.manageIdentities = manageIdentities;
-    }
-
-    public boolean createAmbariPrincipal() {
-      return (kerberosEnvProperties == null) ||
-        !"false".equalsIgnoreCase(kerberosEnvProperties.get(CREATE_AMBARI_PRINCIPAL));
-    }
-
-    public String getPreconfigureServices() {
-      return (kerberosEnvProperties == null) ? "" : kerberosEnvProperties.get(PRECONFIGURE_SERVICES);
     }
   }
 }

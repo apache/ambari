@@ -13,7 +13,7 @@
         "user_list": "[\"ambari-qa\",\"hdfs\"]"
     },
     "ambariLevelParams": {
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "agent_stack_retry_count": "5", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "agent_stack_retry_on_unavailability": "false", 
@@ -23,12 +23,12 @@
         "ambari_db_rca_password": "mapred", 
         "host_sys_prepped": "false", 
         "db_name": "ambari", 
-        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources//ojdbc6.jar", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "ambari_db_rca_username": "mapred", 
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
     },
     "repositoryFile": {
         "resolved": true, 
@@ -956,6 +956,7 @@
             "content": "\n"
         },
         "ams-site": {
+            "timeline.metrics.host.inmemory.aggregation": "true",
             "timeline.metrics.host.aggregator.minute.ttl": "604800",
             "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier": "1",
             "timeline.metrics.cluster.aggregator.daily.ttl": "63072000",
@@ -993,7 +994,9 @@
             "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier": "1",
             "timeline.metrics.daily.aggregator.minute.interval": "86400",
             "timeline.metrics.cluster.aggregator.minute.interval": "120",
-            "timeline.metrics.host.aggregator.hourly.interval": "3600"
+            "timeline.metrics.host.aggregator.hourly.interval": "3600",
+            "timeline.metrics.initial.configured.master.components": "snamenode,nm,drpc_server,hive_server,resourcemanager,all,slave,webhcat_server,ganglia_server,storm_ui_server,falcon_server,hs,hive_metastore,logviewer_server,nimbus,zookeeper_server,hbase_rs,namenode,hbase_master,metrics_collector,ambari_server,supervisor,ganglia_monitor,hive_mysql",
+            "hbase_total_heapsize": 1073741824
         }
     },
     "configurationAttributes": {

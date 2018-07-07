@@ -51,6 +51,11 @@ def setup_hadoop():
               group='root',
               cd_access='a',
       )
+      Directory(format("{hadoop_pid_dir_prefix}/{hdfs_user}"),
+              owner=params.hdfs_user,
+              cd_access='a',
+      )
+
     Directory(params.hadoop_tmp_dir,
               create_parents = True,
               owner=params.hdfs_user,
@@ -65,7 +70,7 @@ def setup_hadoop():
     # if WebHDFS is not enabled we need this jar to create hadoop folders and copy tarballs to HDFS.
     if params.sysprep_skip_copy_fast_jar_hdfs:
       print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
-    elif params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+    elif params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.dfs_type):
       # for source-code of jar goto contrib/fast-hdfs-resource
       File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
            mode=0644,
@@ -218,10 +223,10 @@ def __setup_unlimited_key_jce_policy(custom_java_home, custom_jdk_name, custom_j
     Logger.info("Skipping unlimited key JCE policy check and setup since the host is sys prepped")
 
   elif not custom_jdk_name:
-    Logger.debug("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
+    Logger.info("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
 
   elif not params.unlimited_key_jce_required:
-    Logger.debug("Skipping unlimited key JCE policy check and setup since it is not required")
+    Logger.info("Skipping unlimited key JCE policy check and setup since it is not required")
 
   else:
     jcePolicyInfo = JcePolicyInfo(custom_java_home)

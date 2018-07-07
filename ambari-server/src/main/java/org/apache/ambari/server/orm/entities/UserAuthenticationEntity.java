@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Date;
-
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -36,8 +34,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -78,13 +74,11 @@ public class UserAuthenticationEntity {
 
   @Column(name = "create_time", nullable = false)
   @Basic
-  @Temporal(value = TemporalType.TIMESTAMP)
-  private Date createTime = new Date();
+  private long createTime;
 
   @Column(name = "update_time", nullable = false)
   @Basic
-  @Temporal(value = TemporalType.TIMESTAMP)
-  private Date updateTime = new Date();
+  private long updateTime ;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
@@ -114,11 +108,11 @@ public class UserAuthenticationEntity {
     this.authenticationKey = authenticationKey;
   }
 
-  public Date getCreateTime() {
+  public long getCreateTime() {
     return createTime;
   }
 
-  public Date getUpdateTime() {
+  public long getUpdateTime() {
     return updateTime;
   }
 
@@ -145,8 +139,9 @@ public class UserAuthenticationEntity {
    */
   @PrePersist
   protected void onCreate() {
-    createTime = new Date();
-    updateTime = new Date();
+    final long now = System.currentTimeMillis();
+    createTime = now;
+    updateTime = now;
   }
 
   /**
@@ -154,7 +149,7 @@ public class UserAuthenticationEntity {
    */
   @PreUpdate
   protected void onUpdate() {
-    updateTime = new Date();
+    updateTime = System.currentTimeMillis();
   }
 
   @Override

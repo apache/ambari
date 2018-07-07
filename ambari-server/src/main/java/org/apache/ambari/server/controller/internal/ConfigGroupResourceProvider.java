@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -70,6 +71,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @StaticallyInject
 public class ConfigGroupResourceProvider extends
@@ -79,57 +81,61 @@ public class ConfigGroupResourceProvider extends
   private static final Logger LOG = LoggerFactory.getLogger
     (ConfigGroupResourceProvider.class);
 
-  protected static final String CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID =
-    PropertyHelper.getPropertyId("ConfigGroup", "cluster_name");
-  protected static final String CONFIGGROUP_ID_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "id");
-  protected static final String CONFIGGROUP_NAME_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "group_name");
-  protected static final String CONFIGGROUP_TAG_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "tag");
-  protected static final String CONFIGGROUP_SERVICEGROUPNAME_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "service_group_name");
-  protected static final String CONFIGGROUP_SERVICENAME_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "service_name");
-  protected static final String CONFIGGROUP_DESC_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "description");
-  protected static final String CONFIGGROUP_SCV_NOTE_ID = PropertyHelper
-      .getPropertyId("ConfigGroup", "service_config_version_note");
-  protected static final String CONFIGGROUP_HOSTNAME_PROPERTY_ID =
-    PropertyHelper.getPropertyId(null, "host_name");
-  protected static final String CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID =
-    PropertyHelper.getPropertyId("ConfigGroup", "hosts/host_name");
-  public static final String CONFIGGROUP_HOSTS_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "hosts");
-  public static final String CONFIGGROUP_CONFIGS_PROPERTY_ID =
-    PropertyHelper.getPropertyId("ConfigGroup", "desired_configs");
-  public static final String CONFIGGROUP_VERSION_TAGS_PROPERTY_ID =
-    PropertyHelper.getPropertyId("ConfigGroup", "version_tags");
+  public static final String CONFIG_GROUP = "ConfigGroup";
+
+  public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
+  public static final String ID_PROPERTY_ID =  "id";
+  public static final String GROUP_NAME_PROPERTY_ID =  "group_name";
+  public static final String TAG_PROPERTY_ID =  "tag";
+  public static final String SERVICE_GROUP_NAME_PROPERTY_ID =  "service_group_name";
+  public static final String SERVICE_NAME_PROPERTY_ID =  "service_name";
+  public static final String DESCRIPTION_PROPERTY_ID =  "description";
+  public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID =  "service_config_version_note";
+  public static final String HOST_NAME_PROPERTY_ID = "host_name";
+  public static final String HOSTS_HOSTNAME_PROPERTY_ID = "hosts/host_name";
+  public static final String HOSTS_PROPERTY_ID =  "hosts";
+  public static final String DESIRED_CONFIGS_PROPERTY_ID = "desired_configs";
+  public static final String VERSION_TAGS_PROPERTY_ID = "version_tags";
+
+  public static final String CLUSTER_NAME = PropertyHelper.getPropertyId(CONFIG_GROUP, CLUSTER_NAME_PROPERTY_ID);
+  public static final String ID = PropertyHelper.getPropertyId(CONFIG_GROUP, ID_PROPERTY_ID);
+  public static final String GROUP_NAME = PropertyHelper.getPropertyId(CONFIG_GROUP, GROUP_NAME_PROPERTY_ID);
+  public static final String TAG = PropertyHelper.getPropertyId(CONFIG_GROUP, TAG_PROPERTY_ID);
+  public static final String SERVICE_GROUP_NAME = PropertyHelper.getPropertyId(CONFIG_GROUP, SERVICE_GROUP_NAME_PROPERTY_ID);
+  public static final String SERVICE_NAME = PropertyHelper.getPropertyId(CONFIG_GROUP, SERVICE_NAME_PROPERTY_ID);
+  public static final String DESCRIPTION = PropertyHelper.getPropertyId(CONFIG_GROUP, DESCRIPTION_PROPERTY_ID);
+  public static final String SERVICE_CONFIG_VERSION_NOTE = PropertyHelper
+      .getPropertyId(CONFIG_GROUP, SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID);
+  public static final String HOST_NAME = PropertyHelper.getPropertyId(null, HOST_NAME_PROPERTY_ID);
+  public static final String HOSTS_HOST_NAME = PropertyHelper.getPropertyId(CONFIG_GROUP, HOSTS_HOSTNAME_PROPERTY_ID);
+  public static final String HOSTS = PropertyHelper.getPropertyId(CONFIG_GROUP, HOSTS_PROPERTY_ID);
+  public static final String DESIRED_CONFIGS = PropertyHelper.getPropertyId(CONFIG_GROUP, DESIRED_CONFIGS_PROPERTY_ID);
+  public static final String VERSION_TAGS = PropertyHelper.getPropertyId(CONFIG_GROUP, VERSION_TAGS_PROPERTY_ID);
 
   /**
    * The key property ids for a ConfigGroup resource.
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.Cluster, CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
-      .put(Resource.Type.ConfigGroup, CONFIGGROUP_ID_PROPERTY_ID)
+      .put(Resource.Type.Cluster, CLUSTER_NAME)
+      .put(Resource.Type.ConfigGroup, ID)
       .build();
 
   /**
    * The property ids for a ConfigGroup resource.
    */
   private static Set<String> propertyIds = Sets.newHashSet(
-      CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID,
-      CONFIGGROUP_ID_PROPERTY_ID,
-      CONFIGGROUP_NAME_PROPERTY_ID,
-      CONFIGGROUP_TAG_PROPERTY_ID,
-      CONFIGGROUP_SERVICENAME_PROPERTY_ID,
-      CONFIGGROUP_DESC_PROPERTY_ID,
-      CONFIGGROUP_SCV_NOTE_ID,
-      CONFIGGROUP_HOSTNAME_PROPERTY_ID,
-      CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID,
-      CONFIGGROUP_HOSTS_PROPERTY_ID,
-      CONFIGGROUP_CONFIGS_PROPERTY_ID,
-      CONFIGGROUP_VERSION_TAGS_PROPERTY_ID);
+    CLUSTER_NAME,
+    ID,
+    GROUP_NAME,
+    TAG,
+    SERVICE_NAME,
+    DESCRIPTION,
+    SERVICE_CONFIG_VERSION_NOTE,
+    HOST_NAME,
+    HOSTS_HOST_NAME,
+    HOSTS,
+    DESIRED_CONFIGS,
+    VERSION_TAGS);
 
   @Inject
   private static HostDAO hostDAO;
@@ -139,6 +145,9 @@ public class ConfigGroupResourceProvider extends
    */
   @Inject
   private static ConfigFactory configFactory;
+
+  @Inject
+  private static Provider<ConfigHelper> m_configHelper;
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -200,26 +209,26 @@ public class ConfigGroupResourceProvider extends
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<>();
 
-    if (requestedIds.contains(CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID)) {
-      requestedIds.add(CONFIGGROUP_HOSTS_PROPERTY_ID);
+    if (requestedIds.contains(HOSTS_HOST_NAME)) {
+      requestedIds.add(HOSTS);
     }
 
     for (ConfigGroupResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
 
-      setResourceProperty(resource, CONFIGGROUP_ID_PROPERTY_ID,
+      setResourceProperty(resource, ID,
         response.getId(), requestedIds);
-      setResourceProperty(resource, CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID,
+      setResourceProperty(resource, CLUSTER_NAME,
         response.getClusterName(), requestedIds);
-      setResourceProperty(resource, CONFIGGROUP_NAME_PROPERTY_ID,
+      setResourceProperty(resource, GROUP_NAME,
         response.getGroupName(), requestedIds);
-      setResourceProperty(resource, CONFIGGROUP_TAG_PROPERTY_ID,
+      setResourceProperty(resource, TAG,
         response.getTag(), requestedIds);
-      setResourceProperty(resource, CONFIGGROUP_DESC_PROPERTY_ID,
+      setResourceProperty(resource, DESCRIPTION,
         response.getDescription(), requestedIds);
-      setResourceProperty(resource, CONFIGGROUP_HOSTS_PROPERTY_ID,
+      setResourceProperty(resource, HOSTS,
         response.getHosts(), requestedIds);
-      setResourceProperty(resource, CONFIGGROUP_CONFIGS_PROPERTY_ID,
+      setResourceProperty(resource, DESIRED_CONFIGS,
         response.getConfigurations(), requestedIds);
 
       resources.add(resource);
@@ -249,11 +258,11 @@ public class ConfigGroupResourceProvider extends
       ConfigGroupResponse configGroupResponse = getManagementController().getConfigGroupUpdateResults(configGroupRequest);
       Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
 
-      resource.setProperty(CONFIGGROUP_ID_PROPERTY_ID, configGroupResponse.getId());
-      resource.setProperty(CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, configGroupResponse.getClusterName());
-      resource.setProperty(CONFIGGROUP_NAME_PROPERTY_ID, configGroupResponse.getGroupName());
-      resource.setProperty(CONFIGGROUP_TAG_PROPERTY_ID, configGroupResponse.getTag());
-      resource.setProperty(CONFIGGROUP_VERSION_TAGS_PROPERTY_ID, configGroupResponse.getVersionTags());
+      resource.setProperty(ID, configGroupResponse.getId());
+      resource.setProperty(CLUSTER_NAME, configGroupResponse.getClusterName());
+      resource.setProperty(GROUP_NAME, configGroupResponse.getGroupName());
+      resource.setProperty(TAG, configGroupResponse.getTag());
+      resource.setProperty(VERSION_TAGS, configGroupResponse.getVersionTags());
 
       associatedResources.add(resource);
     }
@@ -326,7 +335,7 @@ public class ConfigGroupResourceProvider extends
     Set<Resource> associatedResources = new HashSet<>();
     for (ConfigGroupResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
-      resource.setProperty(CONFIGGROUP_ID_PROPERTY_ID, response.getId());
+      resource.setProperty(ID, response.getId());
       associatedResources.add(resource);
     }
 
@@ -513,6 +522,8 @@ public class ConfigGroupResourceProvider extends
         cluster.getClusterName(), getManagementController().getAuthName(), configGroup.getName(), request.getId());
 
     cluster.deleteConfigGroup(request.getId());
+
+    m_configHelper.get().updateAgentConfigs(Collections.singleton(request.getClusterName()));
   }
 
   private void validateRequest(ConfigGroupRequest request) {
@@ -546,6 +557,7 @@ public class ConfigGroupResourceProvider extends
     ConfigGroupFactory configGroupFactory = getManagementController()
       .getConfigGroupFactory();
 
+    Set<String> updatedClusters = new HashSet<>();
     for (ConfigGroupRequest request : requests) {
 
       Cluster cluster;
@@ -635,7 +647,10 @@ public class ConfigGroupResourceProvider extends
         configGroup.getTag(), configGroup.getDescription(), null, null);
 
       configGroupResponses.add(response);
+      updatedClusters.add(cluster.getClusterName());
     }
+
+    m_configHelper.get().updateAgentConfigs(updatedClusters);
 
     return configGroupResponses;
   }
@@ -648,6 +663,7 @@ public class ConfigGroupResourceProvider extends
 
     Clusters clusters = getManagementController().getClusters();
 
+    Set<String> updatedClusters = new HashSet<>();
     for (ConfigGroupRequest request : requests) {
 
       Cluster cluster;
@@ -756,17 +772,19 @@ public class ConfigGroupResourceProvider extends
         versionTags.add(tagsMap);
         configGroupResponse.setVersionTags(versionTags);
         getManagementController().saveConfigGroupUpdate(request, configGroupResponse);
+        updatedClusters.add(cluster.getClusterName());
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());
       }
     }
 
+    m_configHelper.get().updateAgentConfigs(updatedClusters);
   }
 
   @SuppressWarnings("unchecked")
   ConfigGroupRequest getConfigGroupRequest(Map<String, Object> properties) {
-    Object groupIdObj = properties.get(CONFIGGROUP_ID_PROPERTY_ID);
+    Object groupIdObj = properties.get(ID);
     Long groupId = null;
     if (groupIdObj != null)  {
       groupId = groupIdObj instanceof Long ? (Long) groupIdObj :
@@ -775,25 +793,25 @@ public class ConfigGroupResourceProvider extends
 
     ConfigGroupRequest request = new ConfigGroupRequest(
       groupId,
-      (String) properties.get(CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID),
-      (String) properties.get(CONFIGGROUP_NAME_PROPERTY_ID),
-      (String) properties.get(CONFIGGROUP_TAG_PROPERTY_ID),
-      (String) properties.get(CONFIGGROUP_SERVICEGROUPNAME_PROPERTY_ID),
-      (String) properties.get(CONFIGGROUP_SERVICENAME_PROPERTY_ID),
-      (String) properties.get(CONFIGGROUP_DESC_PROPERTY_ID),
+      (String) properties.get(CLUSTER_NAME),
+      (String) properties.get(GROUP_NAME),
+      (String) properties.get(TAG),
+      (String) properties.get(SERVICE_GROUP_NAME),
+      (String) properties.get(SERVICE_NAME),
+      (String) properties.get(DESCRIPTION),
       null,
       null);
 
-    request.setServiceConfigVersionNote((String) properties.get(CONFIGGROUP_SCV_NOTE_ID));
+    request.setServiceConfigVersionNote((String) properties.get(SERVICE_CONFIG_VERSION_NOTE));
 
     Map<String, Config> configurations = new HashMap<>();
     Set<String> hosts = new HashSet<>();
 
-    String hostnameKey = CONFIGGROUP_HOSTNAME_PROPERTY_ID;
-    Object hostObj = properties.get(CONFIGGROUP_HOSTS_PROPERTY_ID);
+    String hostnameKey = HOST_NAME;
+    Object hostObj = properties.get(HOSTS);
     if (hostObj == null) {
-      hostnameKey = CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID;
-      hostObj = properties.get(CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID);
+      hostnameKey = HOSTS_HOST_NAME;
+      hostObj = properties.get(HOSTS_HOST_NAME);
     }
     if (hostObj != null) {
       if (hostObj instanceof HashSet<?>) {
@@ -815,15 +833,13 @@ public class ConfigGroupResourceProvider extends
       }
     }
 
-    Object configObj = properties.get(CONFIGGROUP_CONFIGS_PROPERTY_ID);
+    Object configObj = properties.get(DESIRED_CONFIGS);
     if (configObj != null && configObj instanceof HashSet<?>) {
       try {
         Set<Map<String, Object>> configSet = (Set<Map<String, Object>>) configObj;
         for (Map<String, Object> configMap : configSet) {
-          String type = (String) configMap.get(ConfigurationResourceProvider
-            .CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-          String tag = (String) configMap.get(ConfigurationResourceProvider
-            .CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+          String type = (String) configMap.get(ConfigurationResourceProvider.TYPE);
+          String tag = (String) configMap.get(ConfigurationResourceProvider.TAG);
 
           Map<String, String> configProperties = new HashMap<>();
           Map<String, Map<String, String>> configAttributes = new HashMap<>();

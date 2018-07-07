@@ -121,18 +121,14 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
       throws AmbariException {
     CommandReport commandReport = null;
 
-    if (resolvedPrincipal != null) {
-      String dataDirectory = getDataDirectoryPath();
-      String hostName = resolvedPrincipal.getHostName();
-      for (Map.Entry<String, String> serviceMappingEntry : resolvedPrincipal.getServiceMapping().entries()){
-        String serviceName = serviceMappingEntry.getKey();
-        // distribute ambari keytabs only if host id is null, otherwise they will
-        // be distributed by usual process using ambari-agent.
+    if (resolvedPrincipal != null && StageUtils.getHostName().equals(resolvedPrincipal.getHostName())) {
+      final String hostName = resolvedPrincipal.getHostName();
+      final String dataDirectory = getDataDirectoryPath();
+      for (Map.Entry<String, String> serviceMappingEntry : resolvedPrincipal.getServiceMapping().entries()) {
         // TODO check if changes needed for multiple principals in one keytab
-        if (resolvedPrincipal.getHostId() == null && hostName != null && serviceName.equals(RootService.AMBARI.name())) {
+        if (RootService.AMBARI.name().equals(serviceMappingEntry.getKey())) {
           ResolvedKerberosKeytab keytab = resolvedPrincipal.getResolvedKerberosKeytab();
           String destKeytabFilePath = resolvedPrincipal.getResolvedKerberosKeytab().getFile();
-          hostName = StageUtils.getHostName();
           File hostDirectory = new File(dataDirectory, hostName);
           File srcKeytabFile = new File(hostDirectory, DigestUtils.sha256Hex(destKeytabFilePath));
 

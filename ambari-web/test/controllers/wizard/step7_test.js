@@ -801,6 +801,9 @@ describe('App.InstallerStep7Controller', function () {
             {selected: true, name: 'n2'},
             {selected: true, name: 'n3'}
           ],
+          tabs: [
+            Em.Object.create({isActive: true, selectedServiceName: null})
+          ],
           e: 'n2'
         },
         {
@@ -810,7 +813,34 @@ describe('App.InstallerStep7Controller', function () {
             {showConfig: false, name: 'n2'},
             {showConfig: true, name: 'n3'}
           ],
+          tabs: [
+            Em.Object.create({isActive: true, selectedServiceName: null})
+          ],
           e: 'n3'
+        },
+        {
+          name: 'addServiceController',
+          stepConfigs: [
+            {selected: true, name: 'n1'},
+            {selected: true, name: 'n2'},
+            {selected: true, name: 'n3'}
+          ],
+          tabs: [
+            Em.Object.create({isActive: true, selectedServiceName: 'n1'})
+          ],
+          e: 'n1'
+        },
+        {
+          name: 'installerController',
+          stepConfigs: [
+            {showConfig: true, name: 'n1'},
+            {showConfig: false, name: 'n2'},
+            {showConfig: true, name: 'n3'}
+          ],
+          tabs: [
+            Em.Object.create({isActive: true, selectedServiceName: 'n1'})
+          ],
+          e: 'n1'
         }
       ]).forEach(function (test) {
         describe(test.name, function () {
@@ -821,7 +851,8 @@ describe('App.InstallerStep7Controller', function () {
               wizardController: Em.Object.create({
                 name: test.name
               }),
-              stepConfigs: test.stepConfigs
+              stepConfigs: test.stepConfigs,
+              tabs: test.tabs
             });
             installerStep7Controller.selectProperService();
           });
@@ -2073,5 +2104,9 @@ describe('App.InstallerStep7Controller', function () {
     });
 
   });
+
+  App.TestAliases.testAsComputedEqual(installerStep7Controller, 'isInstallWizard', 'content.controllerName', 'installerController');
+
+  App.TestAliases.testAsComputedEqual(installerStep7Controller, 'isAddServiceWizard', 'content.controllerName', 'addServiceController');
 
 });

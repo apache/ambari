@@ -25,7 +25,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 import javax.xml.XMLConstants;
@@ -105,7 +107,7 @@ public class StackManager {
   /**
    * Map of stack id to stack info
    */
-  protected Map<String, StackInfo> stackMap = new HashMap<>();
+  protected NavigableMap<String, StackInfo> stackMap = new TreeMap<>();
   protected Map<String, ServiceModule> commonServiceModules;
   protected Map<String, StackModule> stackModules;
   protected Map<String, ExtensionModule> extensionModules;
@@ -169,7 +171,7 @@ public class StackManager {
       validateExtensionDirectory(extensionRoot);
     }
 
-    stackMap = new HashMap<>();
+    stackMap = new TreeMap<>();
     stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
     extensionMap = new HashMap<>();
     this.helper = helper;
@@ -218,7 +220,7 @@ public class StackManager {
       validateCommonServicesDirectory(commonServicesRoot);
     }
 
-    stackMap = new HashMap<>();
+    stackMap = new TreeMap<>();
 
     parseDirectories(stackRoot, commonServicesRoot, null);
 
@@ -655,8 +657,6 @@ public class StackManager {
           continue;
         }
         for (File serviceFolder : commonService.listFiles(StackDirectory.FILENAME_FILTER)) {
-          String serviceName = serviceFolder.getParentFile().getName();
-          String serviceVersion = serviceFolder.getName();
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
           if (metaInfoXml != null) {

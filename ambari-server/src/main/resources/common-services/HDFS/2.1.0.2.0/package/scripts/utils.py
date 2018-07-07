@@ -37,6 +37,7 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
 from resource_management.libraries.functions.show_logs import show_logs
+from ambari_commons.repo_manager.repo_manager_helper import check_installed_metrics_hadoop_sink_version
 from ambari_commons.inet_utils import ensure_ssl_using_protocol
 from zkfc_slave import ZkfcSlaveDefault
 
@@ -269,6 +270,9 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     daemon_cmd = as_user(cmd, user)
      
   if action == "start":
+    # Check ambari-metrics-hadoop-sink version is less than 2.7.0.0
+    check_installed_metrics_hadoop_sink_version()
+
     # remove pid file from dead process
     File(pid_file, action="delete", not_if=process_id_exists_command)
     

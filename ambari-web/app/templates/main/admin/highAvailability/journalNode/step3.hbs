@@ -17,19 +17,25 @@
 }}
 <div id="manage-journal-node-step3" class="wizard-content col-md-9">
   <h4 class="step-title">{{t admin.manageJournalNode.wizard.step3.header}}</h4>
-  {{#unless controller.isNameNodeStarted}}
+  {{#if view.errorText}}
     <p class="step-description">
-        {{t admin.highAvailability.wizard.step4.error.nameNode}}
+      {{view.errorText}}
     </p>
-  {{/unless}}
-  <p class="step-description">
-    {{{view.step3BodyText}}}
-  </p>
+  {{/if}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{#if controller.isHDFSNameSpacesLoaded}}
+        {{{view.step3BodyText}}}
+      {{else}}
+        {{view App.SpinnerView}}
+      {{/if}}
+    </div>
+  </div>
 </div>
 
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <a  {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
+    <a {{bindAttr class="controller.isDataLoadedAndNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
     <span class="pull-right btn-extra-info">{{view.nnCheckPointText}}</span>
   </div>
 </div>

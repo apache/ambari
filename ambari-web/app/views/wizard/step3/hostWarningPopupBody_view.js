@@ -284,6 +284,9 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         }
       });
     });
+    warningsArray.sort((a, b) => {
+      return b.warnings.length - a.warnings.length;
+    });
     return warningsArray;
   }.property('category', 'warningsByHost', 'bodyController.jdkCategoryWarnings', 'bodyController.repoCategoryWarnings', 'bodyController.diskCategoryWarnings', 'bodyController.hostCheckWarnings',  'bodyController.thpCategoryWarnings'),
 

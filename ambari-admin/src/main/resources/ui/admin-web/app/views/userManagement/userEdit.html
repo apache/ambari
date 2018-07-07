@@ -22,19 +22,13 @@
       <li><a href="#/userManagement?tab=users">{{'common.users' | translate}}</a></li>
       <li class="active">{{user.user_name}}</li>
     </ol>
-    <div class="pull-right">
-      <div ng-switch="isCurrentUser || user.user_type != 'LOCAL'">
-        <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'common.cannotDelete' | translate:{term: constants.user} }}">{{'common.delete' | translate:{term: constants.user} }}</button>
-        <button class="btn deleteuser-btn btn-danger" ng-switch-when="false" ng-click="deleteUser()">{{'common.delete' | translate:{term: constants.user} }}</button>
-      </div>
-    </div>
   </div>
   <hr>
   <form class="form-horizontal" role="form" >
     <div class="form-group">
-      <label class="col-sm-2 ">{{'common.type' | translate}}</label>
+      <label class="col-sm-2 one-row-value">{{'common.type' | translate}}</label>
       <div class="col-sm-10">
-        <label>{{user.userTypeName}}</label>
+        <label class="one-row-value">{{user.userTypeName}}</label>
       </div>
     </div>
     <div class="form-group">
@@ -64,7 +58,7 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="col-sm-2 ">{{getUserMembership(user.user_type)}}</label>
+      <label class="col-sm-2 one-row-value">{{getUserMembership(user.user_type)}}</label>
       <div class="col-sm-10">
         <editable-list items-source="editingGroupsList" resource-type="Group" editable="user.user_type == 'LOCAL'"></editable-list>
       </div>

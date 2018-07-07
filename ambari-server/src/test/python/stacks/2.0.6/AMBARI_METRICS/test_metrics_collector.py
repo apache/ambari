@@ -147,7 +147,7 @@ class TestMetricsCollector(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/ambari-metrics-collector/conf',
                               configurations = self.getConfig()['configurations']['ams-site'],
-                              configuration_attributes = self.getConfig()['configurationAttributes']['ams-hbase-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['ams-site']
     )
 
     self.assertResourceCalled('XmlConfig', 'ssl-server.xml',
@@ -364,6 +364,7 @@ class TestMetricsCollector(RMFTestCase):
                                   hdfs_site=self.getConfig()['configurations']['hdfs-site'],
                                   principal_name=UnknownConfigurationMock(),
                                   default_fs='hdfs://c6401.ambari.apache.org:8020',
+                                  dfs_type = '',
                                   )
         self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode', action=["create"],
                                   mode=0644, owner='ams')

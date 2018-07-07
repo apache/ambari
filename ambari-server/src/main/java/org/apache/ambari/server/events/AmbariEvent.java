@@ -119,6 +119,11 @@ public abstract class AmbariEvent {
     CLUSTER_RENAME,
 
     /**
+     * The cluster was successfully provisioned.
+     */
+    CLUSTER_PROVISIONED,
+
+    /**
      * The service component recovery enabled field changed.
      */
     SERVICE_COMPONENT_RECOVERY_CHANGED,
@@ -169,6 +174,11 @@ public abstract class AmbariEvent {
     AMBARI_CONFIGURATION_CHANGED,
 
     /**
+     * Ambari properties changed event;
+     */
+    AMBARI_PROPERTIES_CHANGED,
+
+    /**
      * JPA initialized
      */
     JPA_INITIALIZED,
@@ -189,9 +199,25 @@ public abstract class AmbariEvent {
     STALE_CONFIGS_UPDATE,
 
     /**
+     * Service component's repo has been changed..
+     */
+    SERVICE_COMPONENT_REPO_CHANGE,
+
+    /**
      * The mpack associated with a service group has changed.
      */
-    SERVICE_GROUP_MPACK_CHANGED;
+    SERVICE_GROUP_MPACK_CHANGED,
+
+
+    /**
+     * Service credential store has been enabled or disabled..
+     */
+    SERVICE_CREDENTIAL_STORE_UPDATE,
+
+    /**
+     * Message was not delivered to agent.
+     */
+    MESSAGE_NOT_DELIVERED;
   }
 
   /**

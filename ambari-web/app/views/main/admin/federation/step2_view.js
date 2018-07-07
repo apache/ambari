@@ -20,4 +20,6 @@
 var App = require('app');
 
 App.NameNodeFederationWizardStep2View = App.AssignMasterComponentsView.extend({
+  title: Em.I18n.t('admin.nameNodeFederation.wizard.step2.header'),
+  alertMessage: Em.computed.i18nFormat('admin.nameNodeFederation.wizard.step2.body', 'controller.content.nameServiceId')
 });

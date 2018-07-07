@@ -33,6 +33,7 @@ import org.apache.ambari.server.security.authentication.AccountDisabledException
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
+import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authorization.GroupType;
@@ -162,9 +163,8 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
           synchronizeGroups(unixUser, userEntity);
         }
 
-        Authentication authToken = new AmbariUserAuthentication(password, users.getUser(userEntity), users.getUserAuthorities(userEntity));
-        authToken.setAuthenticated(true);
-        return authToken;
+        AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+        return new AmbariUserAuthentication(password, userDetails, true);
       }
 
 

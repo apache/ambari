@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -83,6 +84,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceGroupFactory;
@@ -277,6 +279,13 @@ public class UpgradeCatalog252Test {
 
 
     Injector injector = getInjector(clusters, controller);
+
+    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    configHelper.updateAgentConfigs(anyObject(Set.class));
+    expectLastCall().times(2);
+
+    replay(configHelper);
+
     UpgradeCatalog252 upgradeCatalog252 = injector.getInstance(UpgradeCatalog252.class);
     upgradeCatalog252.fixLivySuperusers();
 
@@ -486,6 +495,7 @@ public class UpgradeCatalog252Test {
         binder.bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
         binder.bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
         binder.bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
+        binder.bind(ConfigHelper.class).toInstance(createStrictMock(ConfigHelper.class));
       }
     };
     return Guice.createInjector(module);

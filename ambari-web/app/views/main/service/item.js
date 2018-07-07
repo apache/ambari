@@ -65,6 +65,12 @@ App.MainServiceItemView = Em.View.extend({
        },
        {
          cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2interactive')),
+         service: 'HIVE',
+         component: 'HIVE_SERVER_INTERACTIVE'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
          service: 'ZOOKEEPER',
          component: 'ZOOKEEPER_SERVER'
@@ -92,6 +98,30 @@ App.MainServiceItemView = Em.View.extend({
          'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('OOZIE_SERVER', false)),
          service: 'OOZIE',
          component: 'OOZIE_SERVER'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_BROKER', false)),
+         service: 'DRUID',
+         component: 'DRUID_BROKER'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_ROUTER', false)),
+         service: 'DRUID',
+         component: 'DRUID_ROUTER'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_OVERLORD', false)),
+         service: 'DRUID',
+         component: 'DRUID_OVERLORD'
+       },
+       {
+         cssClass: 'glyphicon glyphicon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('DRUID_COORDINATOR', false)),
+         service: 'DRUID',
+         component: 'DRUID_COORDINATOR'
        }
      ]
    },

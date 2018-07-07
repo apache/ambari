@@ -19,12 +19,10 @@ import { Injectable } from '@angular/core';
 import {Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
-import {Store} from '@ngrx/store';
 
 import {HttpClientService} from '@app/services/http-client.service';
 import {ShipperClusterServiceConfigurationModel} from '@modules/shipper/models/shipper-cluster-service-configuration.model';
 import {ShipperClusterServiceValidationModel} from '@modules/shipper/models/shipper-cluster-service-validation.model';
-import {ShipperCluster} from '@modules/shipper/models/shipper-cluster.type';
 
 @Injectable()
 export class ShipperConfigurationService {
@@ -80,16 +78,15 @@ export class ShipperConfigurationService {
     });
   }
 
-  testConfiguration(payload: ShipperClusterServiceValidationModel): Observable<any> {
+  testConfiguration(payload: ShipperClusterServiceValidationModel): Observable<Response> {
     const requestPayload: {[key: string]: any} = {
-      shipper_config: payload.configuration,
-      log_id: payload.componentName,
-      test_entry: payload.sampleData
+      shipperConfig: encodeURIComponent(payload.configuration),
+      logId: payload.componentName,
+      testEntry: payload.sampleData
     };
     return this.httpClientService.postFormData('shipperClusterServiceConfigurationTest', requestPayload, null, {
       cluster: payload.clusterName
-    })
-    .map((response: Response) => response.json());
+    });
   }
 
 }

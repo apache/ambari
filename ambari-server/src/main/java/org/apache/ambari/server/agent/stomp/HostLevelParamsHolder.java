@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
-import java.util.Collection;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
@@ -25,11 +25,15 @@ import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
+import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.ServiceGroupMpackChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.commons.collections.MapUtils;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -55,9 +59,16 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   @Override
   public HostLevelParamsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
+    return getCurrentDataExcludeCluster(hostId, null);
+  }
+
+  public HostLevelParamsUpdateEvent getCurrentDataExcludeCluster(Long hostId, Long clusterId) throws AmbariException {
     TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
     Host host = clusters.getHostById(hostId);
     for (Cluster cl : clusters.getClustersForHost(host.getHostName())) {
+      if (clusterId != null && cl.getClusterId() == clusterId) {
+        continue;
+      }
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
           m_ambariManagementController.get().retrieveHostRepositories(cl, host),
           recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()));
@@ -70,11 +81,38 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     return hostLevelParamsUpdateEvent;
   }
 
-  @Override
-  protected boolean handleUpdate(HostLevelParamsUpdateEvent update) throws AmbariException {
-    //TODO implement update host level params process
-    setData(update, update.getHostId());
-    return true;
+
+  protected boolean handleUpdate(HostLevelParamsUpdateEvent update) {
+    boolean changed = false;
+    if (MapUtils.isNotEmpty(update.getHostLevelParamsClusters())) {
+      Long hostId = update.getHostId();
+      for (Map.Entry<String, HostLevelParamsCluster> hostLevelParamsClusterEntry : update.getHostLevelParamsClusters().entrySet()) {
+        HostLevelParamsCluster updatedCluster = hostLevelParamsClusterEntry.getValue();
+        String clusterId = hostLevelParamsClusterEntry.getKey();
+        Map<String, HostLevelParamsCluster> clusters = getData().get(hostId).getHostLevelParamsClusters();
+        if (clusters.containsKey(clusterId)) {
+          HostLevelParamsCluster cluster = clusters.get(clusterId);
+          if (!cluster.getRecoveryConfig().equals(updatedCluster.getRecoveryConfig())) {
+            cluster.setRecoveryConfig(updatedCluster.getRecoveryConfig());
+            changed = true;
+          }
+          if (!cluster.getHostRepositories().getRepositories()
+              .equals(updatedCluster.getHostRepositories().getRepositories())) {
+            cluster.getHostRepositories().setRepositories(updatedCluster.getHostRepositories().getRepositories());
+            changed = true;
+          }
+          if (!cluster.getHostRepositories().getComponentRepos()
+              .equals(updatedCluster.getHostRepositories().getComponentRepos())) {
+            cluster.getHostRepositories().setComponentRepos(updatedCluster.getHostRepositories().getComponentRepos());
+            changed = true;
+          }
+        } else {
+          clusters.put(clusterId, updatedCluster);
+          changed = true;
+        }
+      }
+    }
+    return changed;
   }
 
   @Override
@@ -86,15 +124,42 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   public void onUpgradeDesiredMpackChange(ServiceGroupMpackChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
     Long clusterId = clusterComponentsRepoChangedEvent.getClusterId();
 
+    Cluster cluster = clusters.getCluster(clusterComponentsRepoChangedEvent.getClusterId());
+    for (Host host : cluster.getHosts()) {
+      updateDataOfHost(clusterComponentsRepoChangedEvent.getClusterId(), cluster, host);
+    }
+  }
+
+  @Subscribe
+  public void onServiceComponentRecoveryChanged(ServiceComponentRecoveryChangedEvent event) throws AmbariException {
+    long clusterId = event.getClusterId();
     Cluster cluster = clusters.getCluster(clusterId);
-    Collection<Host> hosts = clusters.getCluster(clusterId).getHosts();
-    for (Host host : hosts) {
-      HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(Long.toString(clusterId),
-          new HostLevelParamsCluster(
-            m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
-            recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName())));
-      hostLevelParamsUpdateEvent.setHostId(host.getHostId());
-      updateData(hostLevelParamsUpdateEvent);
+    for (ServiceComponentHost host : cluster.getServiceComponentHosts(event.getServiceName(), event.getComponentName())) {
+      updateDataOfHost(clusterId, cluster, host.getHost());
+    }
+  }
+
+  private void updateDataOfHost(long clusterId, Cluster cluster, Host host) throws AmbariException {
+    HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(Long.toString(clusterId),
+            new HostLevelParamsCluster(
+                    m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
+                    recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName())));
+    hostLevelParamsUpdateEvent.setHostId(host.getHostId());
+    updateData(hostLevelParamsUpdateEvent);
+  }
+
+  @Subscribe
+  public void onMaintenanceModeChanged(MaintenanceModeEvent event) throws AmbariException {
+    long clusterId = event.getClusterId();
+    Cluster cluster = clusters.getCluster(clusterId);
+    if (event.getHost() != null || event.getServiceComponentHost() != null) {
+      Host host = event.getHost() != null ? event.getHost() : event.getServiceComponentHost().getHost();
+      updateDataOfHost(clusterId, cluster, host);
+    }
+    else if (event.getService() != null) {
+      for (String hostName : event.getService().getServiceHosts()) {
+        updateDataOfHost(clusterId, cluster, cluster.getHost(hostName));
+      }
     }
   }
 }

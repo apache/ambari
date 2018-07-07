@@ -21,7 +21,7 @@ var App = require('app');
 require('utils/config');
 
 App.Service = DS.Model.extend({
-  serviceName: DS.attr('string'),
+  serviceName: DS.attr('string', {defaultValue: ''}),
   displayName: Em.computed.formatRole('serviceName', true),
   serviceGroupName: DS.attr('string'),
   mpackName: DS.attr('string'),

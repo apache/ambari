@@ -108,13 +108,13 @@
         }
         
       },
-      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
-      "multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
-      "message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "log4j_format":"%d{ISO8601} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{
-            "target_date_pattern":"dd MMM yyyy HH:mm:ss"
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
           }
 
         }
@@ -184,25 +184,65 @@
         
       },
       "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
-      "multiline_pattern":"^(\\[EL%{SPACE}%{LOGLEVEL:level}\\])",
-      "message_pattern":"(?m)^\\[EL%{SPACE}%{LOGLEVEL:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
+      "multiline_pattern":"^(\\[EL%{SPACE}%{DATA:level}\\])",
+      "message_pattern":"(?m)^\\[EL%{SPACE}%{DATA:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{
             "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
           }
-
         },
-        "level":{
-          "map_fieldvalue":{
-            "pre_value":"Warning",
-            "post_value":"Warn"
+        "level":[
+          {
+            "map_fieldvalue":{
+              "pre_value":"Severe",
+              "post_value":"ERROR"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Warning",
+              "post_value":"WARN"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Finer",
+              "post_value":"WARN"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Info",
+              "post_value":"INFO"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Config",
+              "post_value":"INFO"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Fine",
+              "post_value":"DEBUG"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Finest",
+              "post_value":"TRACE"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"All",
+              "post_value":"TRACE"
+            }
           }
-
-        }
-
+        ]
       }
-
     },
     {
       "filter":"grok",
@@ -309,6 +349,11 @@
             "new_fieldname":"action"
           }
         },
+        "Service":{
+          "map_fieldname":{
+            "new_fieldname":"ws_service"
+          }
+        },
         "url":{
           "map_fieldname":{
             "new_fieldname":"resource"
@@ -324,12 +369,27 @@
             "new_fieldname":"cluster"
           }
         },
+        "Old name":{
+          "map_fieldname":{
+            "new_fieldname":"ws_old_name"
+          }
+        },
+        "New name":{
+          "map_fieldname":{
+            "new_fieldname":"ws_new_name"
+          }
+        },
         "Reason":{
           "map_fieldname":{
             "new_fieldname":"reason"
           }
         },
         "Base URL":{
+          "map_fieldname":{
+            "new_fieldname":"ws_base_url"
+          }
+        },
+        "Base url":{
           "map_fieldname":{
             "new_fieldname":"ws_base_url"
           }
@@ -348,9 +408,144 @@
             "new_fieldname":"ws_component"
           }
         },
+        "Type":{
+          "map_fieldname":{
+            "new_fieldname":"ws_type"
+          }
+        },
+        "Consecutive failures": {
+          "map_fieldname":{
+            "new_fieldname":"ws_consecutive_failures"
+          }
+        },
+        "Created Username": {
+          "map_fieldname":{
+            "new_fieldname":"ws_username"
+          }
+        },
+        "Affected username": {
+          "map_fieldname":{
+            "new_fieldname":"ws_username"
+          }
+        },
+        "Deleted Username": {
+          "map_fieldname":{
+            "new_fieldname":"ws_username"
+          }
+        },
+        "Alert group name": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alert_group_name"
+          }
+        },
+        "Alert group ID": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alert_group_id"
+          }
+        },
+        "Definition IDs": {
+          "map_fieldname":{
+            "new_fieldname":"std_alert_definition_ids"
+          }
+        },
+        "Notification ID": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alert_notification_id"
+          }
+        },
+        "Notification IDs": {
+          "map_fieldname":{
+            "new_fieldname":"std_alert_notification_ids"
+          }
+        },
+        "Notification name": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alert_notification_name"
+          }
+        },
+        "Notification type": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alert_notification_type"
+          }
+        },
+        "Members": {
+          "map_fieldname":{
+            "new_fieldname":"std_members"
+          }
+        },
+        "Description": {
+          "map_fieldname":{
+            "new_fieldname":"ws_description"
+          }
+        },
+        "Email from": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alert_email_from"
+          }
+        },
+        "Email to": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alert_email_to"
+          }
+        },
+        "Group": {
+          "map_fieldname":{
+            "new_fieldname":"ws_group"
+          }
+        },
+        "Group IDs": {
+          "map_fieldname":{
+            "new_fieldname":"std_alert_group_ids"
+          }
+        },
+        "Alert states": {
+          "map_fieldname":{
+            "new_fieldname":"std_alert_states"
+          }
+        },
+        "Blueprint": {
+          "map_fieldname":{
+            "new_fieldname":"ws_blueprint"
+          }
+        },
+        "Blueprint name": {
+          "map_fieldname":{
+            "new_fieldname":"ws_blueprint_name"
+          }
+        },
+        "State": {
+          "map_fieldname":{
+            "new_fieldname":"ws_state"
+          }
+        },
+        "Principal": {
+          "map_fieldname":{
+            "new_fieldname":"ws_principal"
+          }
+        },
+        "Alias": {
+          "map_fieldname":{
+            "new_fieldname":"ws_alias"
+          }
+        },
+        "Keytab file": {
+          "map_fieldname":{
+            "new_fieldname":"ws_keytab_file"
+          }
+        },
+        "Upgrade type":{
+          "map_fieldname":{
+            "new_fieldname":"ws_upgrade_type"
+          }
+        },
         "Details":{
           "map_fieldname":{
             "new_fieldname":"ws_details"
+          }
+        },
+        "Name":{
+          "map_fieldname":{
+            "new_fieldname":"ws_name"
           }
         },
         "Display name":{
@@ -381,6 +576,11 @@
             "new_fieldname":"ws_repo_version"
           }
         },
+        "Repo version ID":{
+          "map_fieldname":{
+            "new_fieldname":"ws_repo_version_id"
+          }
+        },
         "Repositories":{
           "map_fieldname":{
             "new_fieldname":"ws_repositories"
@@ -391,9 +591,29 @@
             "new_fieldname":"ws_request_id"
           }
         },
+        "Request id":{
+          "map_fieldname":{
+            "new_fieldname":"ws_request_id"
+          }
+        },
+        "Repository ID":{
+          "map_fieldname":{
+            "new_fieldname":"ws_repo_id"
+          }
+        },
+        "Repository name":{
+          "map_fieldname":{
+            "new_fieldname":"ws_repo_name"
+          }
+        },
         "Roles":{
           "map_fieldname":{
             "new_fieldname":"ws_roles"
+          }
+        },
+        "Permissions":{
+          "map_fieldname":{
+            "new_fieldname":"std_permissions"
           }
         },
         "Stack":{
@@ -404,6 +624,42 @@
         "Stack version":{
           "map_fieldname":{
             "new_fieldname":"ws_stack_version"
+          }
+        },
+        "Stage id":{
+          "map_fieldname":{
+            "new_fieldname":"ws_stage_id"
+          }
+        },
+        "Administrator":{
+          "map_fieldvalue":{
+            "pre_value":"yes",
+            "post_value":"1"
+          },
+          "map_fieldvalue":{
+            "pre_value":"no",
+            "post_value":"0"
+          },
+          "map_fieldname":{
+            "new_fieldname":"ws_admin"
+          }
+        },
+        "Active":{
+          "map_fieldvalue":{
+            "pre_value":"y",
+            "post_value":"1"
+          },
+          "map_fieldvalue":{
+            "pre_value":"n",
+            "post_value":"0"
+          },
+          "map_fieldname":{
+            "new_fieldname":"ws_active"
+          }
+        },
+        "Version":{
+          "map_fieldname":{
+            "new_fieldname":"ws_version"
           }
         },
         "VersionNote":{

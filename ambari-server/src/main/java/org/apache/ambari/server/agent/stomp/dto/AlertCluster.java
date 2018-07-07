@@ -59,6 +59,11 @@ public class AlertCluster {
     this.staleIntervalMultiplier = null;
   }
 
+  private AlertCluster() {
+    alertDefinitions = null;
+    hostName = null;
+  }
+
   @JsonProperty("staleIntervalMultiplier")
   public Integer getStaleIntervalMultiplier() {
     return staleIntervalMultiplier;
@@ -66,7 +71,7 @@ public class AlertCluster {
 
   @JsonProperty("alertDefinitions")
   public Collection<AlertDefinition> getAlertDefinitions() {
-    return alertDefinitions.values();
+    return alertDefinitions == null ? Collections.emptyList() : alertDefinitions.values();
   }
 
   @JsonProperty("hostName")
@@ -109,5 +114,9 @@ public class AlertCluster {
     }
 
     return changed;
+  }
+
+  public static AlertCluster emptyAlertCluster() {
+    return new AlertCluster();
   }
 }

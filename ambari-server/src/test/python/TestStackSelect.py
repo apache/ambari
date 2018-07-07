@@ -160,7 +160,11 @@ class TestStackSelect(TestCase):
         "direction":"UPGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
-        "orchestration":"STANDARD"
+        "orchestration":"STANDARD",
+        "associatedStackId":"HDP-2.5",
+        "associatedVersion":"2.5.9.9-9999",
+        "isDowngradeAllowed": True,
+        "isSwitchBits": False
       }
     }
 
@@ -198,7 +202,11 @@ class TestStackSelect(TestCase):
         "direction":"UPGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
-        "orchestration":"STANDARD"
+        "orchestration":"STANDARD",
+        "associatedStackId":"HDP-2.5",
+        "associatedVersion":"2.5.9.9-9999",
+        "isDowngradeAllowed": True,
+        "isSwitchBits": False
       }
     }
 

@@ -69,7 +69,7 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 [heartbeat]
 state_interval = 1
 dirs={ps}etc{ps}hadoop,{ps}etc{ps}hadoop{ps}conf,{ps}var{ps}run{ps}hadoop,{ps}var{ps}log{ps}hadoop
-log_lines_count=300
+log_max_symbols_size=900000
 iddle_interval_min=1
 iddle_interval_max=10
 
@@ -82,12 +82,22 @@ log_command_executes = 0
 
 class AmbariConfig:
   TWO_WAY_SSL_PROPERTY = "security.server.two_way_ssl"
+  COMMAND_FILE_RETENTION_POLICY_PROPERTY = 'command_file_retention_policy'
   AMBARI_PROPERTIES_CATEGORY = 'agentConfig'
   SERVER_CONNECTION_INFO = "{0}/connection_info"
   CONNECTION_PROTOCOL = "https"
 
   # linux open-file limit
   ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
+
+  # #### Command JSON file retention policies #####
+  # Keep all command-*.json files
+  COMMAND_FILE_RETENTION_POLICY_KEEP = 'keep'
+  # Remove command-*.json files if the operation was successful
+  COMMAND_FILE_RETENTION_POLICY_REMOVE_ON_SUCCESS = 'remove_on_success'
+  # Remove all command-*.json files when no longer needed
+  COMMAND_FILE_RETENTION_POLICY_REMOVE = 'remove'
+  # #### Command JSON file retention policies (end) #####
 
   config = None
   net = None
@@ -180,30 +190,75 @@ class AmbariConfig:
     return int(self.get('heartbeat', 'state_interval_seconds', '60'))
 
   @property
+  def log_max_symbols_size(self):
+    return int(self.get('heartbeat', 'log_max_symbols_size', '900000'))
+
+  @property
   def cache_dir(self):
     return self.get('agent', 'cache_dir', default='/var/lib/ambari-agent/cache')
 
   @property
   def cluster_cache_dir(self):
     return os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
-  @property
-  def recovery_cache_dir(self):
-    return os.path.join(self.cache_dir, FileCache.RECOVERY_CACHE_DIRECTORY)
+
   @property
   def alerts_cachedir(self):
     return os.path.join(self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
+
   @property
   def stacks_dir(self):
     return os.path.join(self.cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+
   @property
   def common_services_dir(self):
     return os.path.join(self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+
   @property
   def extensions_dir(self):
     return os.path.join(self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
+
   @property
   def host_scripts_dir(self):
     return os.path.join(self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
+
+  @property
+  def command_file_retention_policy(self):
+    """
+    Returns the Agent's command file retention policy.  This policy indicates what to do with the
+    command-*.json and status_command.json files after they are done being used to execute commands
+    from the Ambari server.
+
+    Possible policy values are:
+
+    * keep - Keep all command-*.json files
+    * remove - Remove all command-*.json files when no longer needed
+    * remove_on_success - Remove command-*.json files if the operation was successful
+
+    The policy value is expected to be set in the Ambari agent's ambari-agent.ini file, under the
+    [agent] section.
+
+    For example:
+        command_file_retention_policy=remove
+
+    However, if the value is not set, or set to an unexpected value, "keep" will be returned, since
+    this has been the (only) policy for past versions.
+
+    :rtype: string
+    :return: the command file retention policy, either "keep", "remove", or "remove_on_success"
+    """
+    policy = self.get('agent', self.COMMAND_FILE_RETENTION_POLICY_PROPERTY, default=self.COMMAND_FILE_RETENTION_POLICY_KEEP)
+    policies = [self.COMMAND_FILE_RETENTION_POLICY_KEEP,
+                self.COMMAND_FILE_RETENTION_POLICY_REMOVE,
+                self.COMMAND_FILE_RETENTION_POLICY_REMOVE_ON_SUCCESS]
+
+    if policy.lower() in policies:
+      return policy.lower()
+    else:
+      logger.warning('The configured command_file_retention_policy is invalid, returning "%s" instead: %s',
+                     self.COMMAND_FILE_RETENTION_POLICY_KEEP,
+                     policy)
+      return self.COMMAND_FILE_RETENTION_POLICY_KEEP
+
 
   # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
@@ -306,7 +361,7 @@ class AmbariConfig:
   def get_multiprocess_status_commands_executor_enabled(self):
     return bool(int(self.get('agent', 'multiprocess_status_commands_executor_enabled', 1)))
 
-  def update_configuration_from_registration(self, reg_resp):
+  def update_configuration_from_metadata(self, reg_resp):
     if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:
       if not self.has_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY):
         self.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
@@ -319,9 +374,9 @@ class AmbariConfig:
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1 by default
+    :return: protocol name, PROTOCOL_TLSv1_2 by default
     """
-    return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1")
+    return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1_2")
 
   def get_force_https_protocol_value(self):
     """
@@ -339,6 +394,10 @@ class AmbariConfig:
     :return: trusted certificates file path
     """
     return self.get('security', 'ca_cert_path', default="")
+
+  @property
+  def send_alert_changes_only(self):
+    return bool(self.get('agent', 'send_alert_changes_only', '0'))
 
 
 def isSameHostList(hostlist1, hostlist2):

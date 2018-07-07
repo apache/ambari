@@ -18,7 +18,6 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,10 +36,9 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.Version;
 
@@ -71,8 +69,7 @@ public class UserEntity {
 
   @Column(name = "create_time", nullable = false)
   @Basic
-  @Temporal(value = TemporalType.TIMESTAMP)
-  private Date createTime = new Date();
+  private long createTime;
 
   @Column(name = "active", nullable = false)
   private Integer active = 1;
@@ -211,11 +208,11 @@ public class UserEntity {
     this.localUsername = localUsername;
   }
 
-  public Date getCreateTime() {
+  public long getCreateTime() {
     return createTime;
   }
 
-  public void setCreateTime(Date createTime) {
+  public void setCreateTime(long createTime) {
     this.createTime = createTime;
   }
 
@@ -306,6 +303,14 @@ public class UserEntity {
         this.authenticationEntities.addAll(authenticationEntities);
       }
     }
+  }
+
+  /**
+   * Ensure the create time is set properly when the record is created.
+   */
+  @PrePersist
+  protected void onCreate() {
+    createTime = System.currentTimeMillis();
   }
 
   // ----- Object overrides --------------------------------------------------

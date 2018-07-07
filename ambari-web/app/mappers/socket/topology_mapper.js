@@ -53,7 +53,7 @@ App.topologyMapper = App.QuickDataMapper.create({
   applyComponentTopologyChanges: function(components, eventType) {
     components.forEach((component) => {
       component.hostNames.forEach((hostName, index) => {
-        if (eventType === 'UPDATE' && component.version === 'UNKNOWN') {
+        if (eventType === 'UPDATE' && !component.commandParams.version) {
           this.addServiceIfNew(component.serviceName);
           this.createHostComponent(component, hostName, component.publicHostNames[index]);
           App.componentsStateMapper.updateComponentCountOnCreate(component);
@@ -163,13 +163,9 @@ App.topologyMapper = App.QuickDataMapper.create({
    * @param {Array} hostComponents
    */
   updateHostComponentsOfService: function(service, hostComponents) {
-    const updatedService = {};
-    for (let i in App.serviceMapper.config) {
-      if (service.get(stringUtils.underScoreToCamelCase(i)) !== undefined) {
-        updatedService[i] = service.get(stringUtils.underScoreToCamelCase(i));
-      }
+    const cacheService = App.cache['services'].findProperty('ServiceInfo.service_name', service.get('serviceName'));
+    if (cacheService) {
+      cacheService.host_components = hostComponents;
     }
-    updatedService.host_components = hostComponents;
-    App.store.safeLoad(App.Service, updatedService);
   }
 });

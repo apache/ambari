@@ -70,13 +70,11 @@
           <tbody>
             {{#each host in view.pageContent}}
               <tr {{QAAttr "host-row"}} {{bindAttr class="host.isLast:last-row"}}>
-                  {{#view App.WizardStep6HostView hostBinding="host" }}
-                  <div class="checkbox">
-                    <span class="trim_hostname">{{host.hostName}}</span>
-                    {{#if host.hasMaster}}
-                      <i {{QAAttr "has-masters"}} class="glyphicon glyphicon-asterisks">&#10037;</i>
-                    {{/if}}
-                  </div>
+                {{#view App.WizardStep6HostView hostBinding="host" }}
+                  <span class="trim_hostname">{{host.hostName}}</span>
+                  {{#if host.hasMaster}}
+                    <i {{QAAttr "has-masters"}} class="glyphicon glyphicon-asterisks">&#10037;</i>
+                  {{/if}}
                 {{/view}}
                 {{#each checkbox in host.checkboxes}}
                   <td {{QAAttr "toggle-component"}} {{bindAttr class="checkbox.hasErrorMessage:error checkbox.hasWarnMessage:warning checkbox.component"}}>
@@ -117,12 +115,13 @@
 
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <button type="button" {{QAAttr "wizard-back"}} class="btn btn-default installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+    <button type="button" {{QAAttr "wizard-back"}} class="btn btn-default installer-back-btn pull-left" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
       &larr; {{t common.back}}
       {{#if App.router.backBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
     </button>
+    {{template "templates/wizard/installer_cancel_button"}}
     <button type="button" {{QAAttr "wizard-next"}} class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action next}}>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

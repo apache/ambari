@@ -54,7 +54,7 @@
     <name>AUTO_CLUSTER_INSTANCE</name>
     <label>Auto Cluster Instance View</label>
     <description>This view instance is auto created when the YARN service is added to a cluster.</description>
-    <stack-id>HDP-2.*</stack-id>
+    <stack-id>HDP-*</stack-id>
     <services>
       <service>YARN</service>
     </services>

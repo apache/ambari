@@ -17,11 +17,8 @@ limitations under the License.
 """
 
 import imp
-import json
 import os
 from unittest import TestCase
-
-from mock.mock import patch, MagicMock
 
 
 class TestLOGSEARCH050ServiceAdvisor(TestCase):
@@ -41,27 +38,46 @@ class TestLOGSEARCH050ServiceAdvisor(TestCase):
   with open(logserch050ServiceAdvisorPath, 'rb') as fp:
     service_advisor_impl = imp.load_module('service_advisor_impl', fp, logserch050ServiceAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
 
+  configurations = {
+    "logsearch-properties": {
+    }
+  }
+
+  clusterData = {
+    "cpu": 4,
+    "mapMemory": 3000,
+    "amMemory": 2000,
+    "reduceMemory": 2056,
+    "containers": 3,
+    "ramPerContainer": 256
+  }
+
+  hosts = {
+    "items" : [
+      {
+        "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+        "Hosts" : {
+          "cpu_count" : 1,
+          "host_name" : "c6401.ambari.apache.org",
+          "os_arch" : "x86_64",
+          "os_type" : "centos6",
+          "ph_cpu_count" : 1,
+          "public_host_name" : "c6401.ambari.apache.org",
+          "rack_info" : "/default-rack",
+          "total_mem" : 1922680
+        }
+      }
+    ]
+  }
+
   def setUp(self):
     serviceAdvisorClass = getattr(self.service_advisor_impl, 'LogSearchServiceAdvisor')
     self.serviceAdvisor = serviceAdvisorClass()
 
   def test_recommendLogsearchConfiguration(self):
-    configurations = {
-      "logsearch-properties": {
-      }
-    }
-
-    clusterData = {
-      "cpu": 4,
-      "mapMemory": 3000,
-      "amMemory": 2000,
-      "reduceMemory": 2056,
-      "containers": 3,
-      "ramPerContainer": 256
-    }
     expected = {
       'logsearch-properties': {
-        'properties': {}
+        'properties': {'logsearch.collection.service.logs.numshards': '4', 'logsearch.collection.audit.logs.numshards': '4'}, 'property_attributes': {'logsearch.collection.service.logs.numshards': {'minimum': '2', 'maximum': '20'}, 'logsearch.collection.audit.logs.numshards': {'minimum': '2', 'maximum': '20'}}
       },
       'logfeeder-env': {
         'property_attributes': {
@@ -123,25 +139,64 @@ class TestLOGSEARCH050ServiceAdvisor(TestCase):
 
     }
 
-    hosts = {
-      "items" : [
-        {
-          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6401.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6401.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
+    def return_c6401_hostname(services, service_name, component_name):
+      return ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+    self.serviceAdvisor.getComponentHostNames = return_c6401_hostname
+    self.serviceAdvisor.getServiceConfigurationRecommendations(self.configurations, self.clusterData, services, self.hosts)
+    self.assertEquals(self.configurations, expected)
+
+  def test_recommendLogsearchConfigurationWhenSolrIsExternal(self):
+    expected = {
+      'logsearch-properties': {
+        'properties': {
+          'logsearch.collection.service.logs.numshards': '1',
+          'logsearch.collection.audit.logs.numshards': '1'
+        },
+        'property_attributes': {
+          'logsearch.collection.service.logs.numshards': {'minimum': '1', 'maximum': '100'},
+          'logsearch.collection.audit.logs.numshards': {'minimum': '1', 'maximum': '100'}
+        }
+      },
+      'logsearch-env': {
+        'property_attributes': {
+          'logsearch_external_solr_kerberos_principal': {'visible': 'false'},
+          'logsearch_external_solr_kerberos_keytab': {'visible': 'false'}
+        }
+      },
+      'logfeeder-env': {
+        'property_attributes': {
+          'logfeeder_external_solr_kerberos_keytab': {'visible': 'false'},
+          'logfeeder_external_solr_kerberos_principal': {'visible': 'false'}
+        }
+      },
+      'logsearch-common-env': {
+        'properties': {
+          'logsearch_use_external_solr': 'true',
+          'logsearch_external_solr_kerberos_enabled': 'false'
+        },
+        'property_attributes': {
+          'logsearch_external_solr_kerberos_enabled': {'visible': 'false'}
+        }
+      }
+    }
+    services = {
+      "services": [],
+      "configurations": {
+        "logsearch-properties": {
+          "properties": {
+            "logsearch.collection.numshards" : "5",
+            "logsearch.collection.replication.factor": "0"
           }
         }
-      ]
+      },
+      "changed-configurations": [ ]
+
     }
     def return_c6401_hostname(services, service_name, component_name):
-      return ["c6401.ambari.apache.org"]
+      if service_name == "LOGSEARCH" and component_name == "LOGSEARCH_SERVER":
+        return ["c6401.ambari.apache.org"]
+      else:
+        return []
     self.serviceAdvisor.getComponentHostNames = return_c6401_hostname
-    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.serviceAdvisor.getServiceConfigurationRecommendations(self.configurations, self.clusterData, services, self.hosts)
+    self.assertEquals(self.configurations, expected)

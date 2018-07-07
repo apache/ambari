@@ -26,9 +26,9 @@ import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.ambari.server.events.AmbariHostUpdateEvent;
-import org.apache.ambari.server.events.AmbariUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.STOMPEvent;
+import org.apache.ambari.server.events.STOMPHostEvent;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,11 +36,11 @@ import org.slf4j.LoggerFactory;
  * Is used to saving and updating last version of event in host scope
  * @param <T> event with hash to control version
  */
-public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hashable> extends AgentDataHolder<T> {
+public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> extends AgentDataHolder<T> {
   public static final Logger LOG = LoggerFactory.getLogger(AgentHostDataHolder.class);
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   private final Map<Long, T> data = new ConcurrentHashMap<>();
 
@@ -53,37 +53,45 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
   }
 
   public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
-    T hostData = data.get(hostId);
-    if (hostData == null) {
-      hostData = getCurrentData(hostId);
-      if (regenerateHash) {
-        regenerateDataIdentifiers(hostData);
+    updateLock.lock();
+    try {
+      T hostData = data.get(hostId);
+      if (hostData == null) {
+        hostData = data.get(hostId);
+        if (hostData == null) {
+          hostData = getCurrentData(hostId);
+          if (regenerateHash) {
+            regenerateDataIdentifiers(hostData);
+          }
+          data.put(hostId, hostData);
+        }
       }
-      data.put(hostId, hostData);
+      return hostData;
+    } finally {
+      updateLock.unlock();
     }
-    return hostData;
   }
 
   /**
    * Apply an incremental update to the data (host-specific), and publish the
    * event to listeners.
    */
-  public final void updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(update.getHostId(), false);
-    if (handleUpdate(update)) {
-      T hostData = getData(update.getHostId());
-      regenerateDataIdentifiers(hostData);
-      setIdentifiersToEventUpdate(update, hostData);
-      if (update.getType().equals(AmbariUpdateEvent.Type.AGENT_CONFIGS)) {
-        LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
-      }
-      stateUpdateEventPublisher.publish(update);
-    } else {
-      // in case update does not have changes empty identifiers should be populated anyway
-      T hostData = getData(update.getHostId());
-      if (!isIdentifierValid(hostData)) {
+  public void updateData(T update) throws AmbariException {
+    //TODO need optimization for perf cluster
+    updateLock.lock();
+    try {
+      initializeDataIfNeeded(update.getHostId(), true);
+      if (handleUpdate(update)) {
+        T hostData = getData(update.getHostId());
         regenerateDataIdentifiers(hostData);
+        setIdentifiersToEventUpdate(update, hostData);
+        if (update.getType().equals(STOMPEvent.Type.AGENT_CONFIGS)) {
+          LOG.info("Configs update with hash {} will be sent to host {}", update.getHash(), hostData.getHostId());
+        }
+        STOMPUpdatePublisher.publish(update);
       }
+    } finally {
+      updateLock.unlock();
     }
   }
 
@@ -97,13 +105,13 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
   public final void resetData(Long hostId) throws AmbariException {
     T newData = getCurrentData(hostId);
     data.replace(hostId, newData);
-    stateUpdateEventPublisher.publish(newData);
+    STOMPUpdatePublisher.publish(newData);
   }
 
   /**
    * Remove data for the given host.
    */
-  public final void onHostRemoved(String hostId) {
+  public final void onHostRemoved(Long hostId) {
     data.remove(hostId);
   }
 

@@ -19,38 +19,28 @@
 package org.apache.ambari.server.agent.stomp;
 
 import java.util.Objects;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.ambari.server.events.AmbariUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.STOMPEvent;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 
 /**
  * Is used to saving and updating last version of event in cluster scope
  * @param <T> event with hash to control version
  */
-public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hashable> extends AgentDataHolder<T> {
+public abstract class AgentClusterDataHolder<T extends STOMPEvent & Hashable> extends AgentDataHolder<T> {
 
   @Inject
-  protected StateUpdateEventPublisher stateUpdateEventPublisher;
+  protected STOMPUpdatePublisher STOMPUpdatePublisher;
 
-  private T data;
-
-  //TODO perhaps need optimization
-  private Lock lock = new ReentrantLock();
+  private volatile T data;
 
   public T getUpdateIfChanged(String agentHash) throws AmbariException {
-    try {
-      lock.lock();
-      initializeDataIfNeeded(true);
-      return !Objects.equals(agentHash, data.getHash()) ? data : getEmptyData();
-    } finally {
-      lock.unlock();
-    }
+    initializeDataIfNeeded(true);
+    return !Objects.equals(agentHash, data.getHash()) ? data : getEmptyData();
   }
 
   /**
@@ -70,30 +60,34 @@ public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hasha
    * @return true if the update introduced any change
    */
   public boolean updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(false);
-    boolean changed = handleUpdate(update);
-    if (changed) {
-      regenerateHash();
-      update.setHash(getData().getHash());
-      stateUpdateEventPublisher.publish(update);
-    }
-    return changed;
-  }
-
-  protected final void regenerateHash() {
+    updateLock.lock();
     try {
-      lock.lock();
-      regenerateDataIdentifiers(data);
+      initializeDataIfNeeded(true);
+      boolean changed = handleUpdate(update);
+      if (changed) {
+        regenerateDataIdentifiers(data);
+        update.setHash(getData().getHash());
+        STOMPUpdatePublisher.publish(update);
+      }
+      return changed;
     } finally {
-      lock.unlock();
+      updateLock.unlock();
     }
   }
 
   protected final void initializeDataIfNeeded(boolean regenerateHash) throws AmbariException {
     if (data == null) {
-      data = getCurrentData();
-      if (regenerateHash) {
-        regenerateHash();
+      updateLock.lock();
+      try {
+        if (data == null) {
+          T localData = getCurrentData();
+          if (regenerateHash) {
+            regenerateDataIdentifiers(localData);
+          }
+          data = localData;
+        }
+      } finally {
+        updateLock.unlock();
       }
     }
   }

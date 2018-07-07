@@ -16,10 +16,8 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 require('controllers/main/admin/highAvailability/journalNode/step7_controller');
-
 
 describe('App.ManageJournalNodeWizardStep7Controller', function () {
   var controller;
@@ -28,19 +26,19 @@ describe('App.ManageJournalNodeWizardStep7Controller', function () {
     controller = App.ManageJournalNodeWizardStep7Controller.create();
   });
 
-  describe('#done', function() {
+  describe('#startAllServices', function() {
 
     beforeEach(function() {
-      sinon.stub(App.router, 'send');
+      sinon.stub(controller, 'startServices');
     });
 
     afterEach(function() {
-      App.router.send.restore();
+      controller.startServices.restore();
     });
 
-    it('App.router.send should be called', function() {
-      controller.done();
-      expect(App.router.send.calledWith('next')).to.be.true;
+    it('startServices should be called', function() {
+      controller.startAllServices();
+      expect(controller.startServices.calledWith(false)).to.be.true;
     });
   });
 });

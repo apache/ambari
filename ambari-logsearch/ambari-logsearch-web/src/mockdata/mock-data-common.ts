@@ -21,26 +21,26 @@ import * as randomize from 'randomatic';
 
 export const clusters: string[] = ['cl0', 'cl1', 'cl2'];
 
-export const hosts: string[] = ["c64001", "c64002", "c64003"];
+export const hosts: string[] = ['c64001', 'c64002', 'c64003'];
 
 export const services: string[] = ['hdfs', 'ambari'];
 
 export const users: string[] = ['hdfs', 'admin', 'user'];
 
 export const components = [
-  "ambari_agent",
-  "hdfs_secondarynamenode",
-  "infra_solr",
-  "logsearch_app",
-  "logsearch_feeder"
+  'ambari_agent',
+  'hdfs_secondarynamenode',
+  'infra_solr',
+  'logsearch_app',
+  'logsearch_feeder'
 ];
 
 export const levels = [
-  "INFO",
-  "WARN",
-  "ERROR",
-  "FATAL",
-  "DEBUG"
+  'INFO',
+  'WARN',
+  'ERROR',
+  'FATAL',
+  'DEBUG'
 ];
 
 export function ucFirst(str) {
@@ -55,18 +55,23 @@ export function getRandomElement(list: Array<any>) {
   return list[getRandomInt(list.length)];
 }
 
-export function generatePath(c: number = 3, addComponent: boolean | string = true, addService: boolean | string = false, folderNameMaxLength: number = 12): string {
-  let path = "/var/log";
+export function generatePath(
+  c: number = 3,
+  addComponent: boolean | string = true,
+  addService: boolean | string = false,
+  folderNameMaxLength: number = 12
+): string {
+  let path = '/var/log';
   if (addService) {
-    path += ("/" + (addService === true ? getRandomElement(services) : addService));
+    path += ('/' + (addService === true ? getRandomElement(services) : addService));
     c -= 1;
   }
   if (addComponent) {
-    path += ("/" + (addComponent === true ? getRandomElement(components) : addComponent));
+    path += ('/' + (addComponent === true ? getRandomElement(components) : addComponent));
     c -= 1;
   }
-  for (let i=0; i<c; i+=1) {
-    path += ("/" + randomize('Aa0?', getRandomInt(folderNameMaxLength), {chars: '-_'}));
+  for (let i = 0; i < c; i += 1) {
+    path += ('/' + randomize('Aa0?', getRandomInt(folderNameMaxLength), {chars: '-_'}));
   }
   return path;
 }
@@ -75,36 +80,36 @@ export function generateServiceLog(defaults?: {[key:string]: any}) {
   const component = (defaults && defaults.type) || getRandomElement(components);
   const host = (defaults && defaults.host) || getRandomElement(hosts);
   return Object.assign({
-    "id": randomize('a0', 32, {chars: '-'}),
-    "bundle_id": null,
-    "case_id": null,
-    "cluster": getRandomElement(clusters),
-    "seq_num": randomize('0', 5),
-    "log_message": randomize('a0?a0', getRandomInt(1000), {chars: " \n"}),
-    "logfile_line_number": randomize('0', 4),
-    "event_dur_ms": null,
-    "file": randomize('a0?a0', 16, {chars: '-_'}) + ".java",
-    "type": component,
-    "event_count": getRandomInt(1000),
-    "event_md5": randomize('a0', 32),
-    "message_md5": randomize('a0', 32),
-    "_ttl_": `-${getRandomInt(30)}DAYS`,
-    "_expire_at_": 1518188622956,
-    "_version_": randomize('0', 20),
-    "_router_field_": null,
-    "level": getRandomElement(levels),
-    "line_number": getRandomInt(999),
-    "logtime": moment().subtract(getRandomInt(14), 'days').valueOf(),
-    "ip": `${getRandomInt(255)}.${getRandomInt(255)}.${getRandomInt(255)}.${getRandomInt(255)}`,
-    "path": generatePath(3, component) + ".json",
-    "host": host + ".ambari.apache.org",
-    "group": host + ".ambari.apache.org"
+    'id': randomize('a0', 32, {chars: '-'}),
+    'bundle_id': null,
+    'case_id': null,
+    'cluster': getRandomElement(clusters),
+    'seq_num': randomize('0', 5),
+    'log_message': randomize('a0?a0', getRandomInt(1000), {chars: ' \n'}),
+    'logfile_line_number': randomize('0', 4),
+    'event_dur_ms': null,
+    'file': randomize('a0?a0', 16, {chars: '-_'}) + '.java',
+    'type': component,
+    'event_count': getRandomInt(1000),
+    'event_md5': randomize('a0', 32),
+    'message_md5': randomize('a0', 32),
+    '_ttl_': `-${getRandomInt(30)}DAYS`,
+    '_expire_at_': 1518188622956,
+    '_version_': randomize('0', 20),
+    '_router_field_': null,
+    'level': getRandomElement(levels),
+    'line_number': getRandomInt(999),
+    'logtime': moment().subtract(getRandomInt(14), 'days').valueOf(),
+    'ip': `${getRandomInt(255)}.${getRandomInt(255)}.${getRandomInt(255)}.${getRandomInt(255)}`,
+    'path': generatePath(3, component) + '.json',
+    'host': host + '.ambari.apache.org',
+    'group': host + '.ambari.apache.org'
   }, defaults || {});
 }
 
 export function generateAuditLog(defaults?: {[key: string]: any}) {
-  const component:string = (defaults && defaults.component)  || getRandomElement(components); // meta default
-  const service:string = (defaults && defaults.repo)  || getRandomElement(services);
+  const component: string = (defaults && defaults.component)  || getRandomElement(components); // meta default
+  const service: string = (defaults && defaults.repo)  || getRandomElement(services);
   const time = moment().subtract(getRandomInt(14), 'days');
   return Object.assign({
     policy: 'policy',
@@ -146,13 +151,36 @@ export function generateAuditLog(defaults?: {[key: string]: any}) {
     case_id: 'c0',
     log_message: `User(${getRandomElement(users)}), Operation(SERVICE_CHECK)`,
     logfile_line_number: 4,
-    message_md5: randomize('a0',20),
+    message_md5: randomize('a0', 20),
     cluster: getRandomElement(clusters),
     event_count: getRandomInt(100),
-    event_md5: randomize('0',20),
+    event_md5: randomize('0', 20),
     event_dur_ms: getRandomInt(900),
     _ttl_: '+7DAYS',
     _expire_at_: time.format(),
     _router_field_: getRandomInt(20)
   }, defaults || {});
+}
+
+export function generateDataCount(from, to, unit, gap) {
+  let current = moment(from);
+  const end = moment(to);
+  const data = [];
+  while (current.isBefore(end)) {
+    data.push({
+      name: current.toISOString(),
+      value: getRandomInt(9000)
+    });
+    current = current.add(gap, unit);
+  }
+  return data;
+}
+
+export function generateGraphData(from, to, unit, gap) {
+  return levels.map((level) => {
+    return {
+      dataCount: generateDataCount(from, to, unit, gap),
+      name: level
+    };
+  });
 }

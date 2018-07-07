@@ -31,9 +31,11 @@ class ServerResponsesListener(EventListener):
   """
   Listener of Constants.SERVER_RESPONSES_TOPIC events from server.
   """
-  def __init__(self):
-    self.listener_functions = {}
-    self.logging_handlers = {}
+  RESPONSE_STATUS_STRING = 'status'
+  RESPONSE_STATUS_SUCCESS = 'OK'
+
+  def __init__(self, initializer_module):
+    super(ServerResponsesListener, self).__init__(initializer_module)
     self.reset_responses()
 
   def on_event(self, headers, message):
@@ -46,12 +48,21 @@ class ServerResponsesListener(EventListener):
     @param message: message payload dictionary
     """
     if Constants.CORRELATION_ID_STRING in headers:
-      correlation_id = headers[Constants.CORRELATION_ID_STRING]
+      correlation_id = int(headers[Constants.CORRELATION_ID_STRING])
       self.responses.put(correlation_id, message)
 
       if correlation_id in self.listener_functions:
         self.listener_functions[correlation_id](headers, message)
         del self.listener_functions[correlation_id]
+
+      if self.RESPONSE_STATUS_STRING in message and message[self.RESPONSE_STATUS_STRING] == self.RESPONSE_STATUS_SUCCESS:
+        if correlation_id in self.listener_functions_on_success:
+          self.listener_functions_on_success[correlation_id](headers, message)
+          del self.listener_functions_on_success[correlation_id]
+      else:
+        if correlation_id in self.listener_functions_on_error:
+          self.listener_functions_on_error[correlation_id](headers, message)
+          del self.listener_functions_on_error[correlation_id]
     else:
       logger.warn("Received a message from server without a '{0}' header. Ignoring the message".format(Constants.CORRELATION_ID_STRING))
 
@@ -76,8 +87,13 @@ class ServerResponsesListener(EventListener):
 
   def reset_responses(self):
     """
-    Clear responses dictionary
+    Resets data saved on per-response basis.
+    Should be called when correlactionIds are reset to 0 aka. re-registration case.
     """
     self.responses = Utils.BlockingDictionary()
+    self.listener_functions_on_success = {}
+    self.listener_functions_on_error = {}
+    self.listener_functions = {}
+    self.logging_handlers = {}
 
 

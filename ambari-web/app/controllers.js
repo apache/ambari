@@ -88,7 +88,6 @@ require('controllers/main/admin/highAvailability/journalNode/step4_controller');
 require('controllers/main/admin/highAvailability/journalNode/step5_controller');
 require('controllers/main/admin/highAvailability/journalNode/step6_controller');
 require('controllers/main/admin/highAvailability/journalNode/step7_controller');
-require('controllers/main/admin/highAvailability/journalNode/step8_controller');
 require('controllers/main/admin/stack_upgrade_history_controller');
 require('controllers/main/admin/serviceGroups_controller');
 require('controllers/main/admin/serviceAccounts_controller');

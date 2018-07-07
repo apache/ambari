@@ -1106,12 +1106,6 @@
           "component": "livy2-client"
         }
       ],
-      "livy2": [
-        {
-          "conf_dir": "/etc/livy2/conf",
-          "current_dir": "{0}/current/livy2-client/conf"
-        }
-      ],
       "mahout": [
         {
           "conf_dir": "/etc/mahout/conf",

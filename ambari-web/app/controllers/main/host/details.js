@@ -115,6 +115,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     'ATLAS_SERVER': {
       deletePropertyName: 'deleteAtlasServer',
       hostPropertyName: 'atlasServer',
+      configTagsCallbackName: 'loadAtlasConfigs',
       configsCallbackName: 'onLoadAtlasConfigs'
     },
     'RANGER_KMS_SERVER': {
@@ -778,7 +779,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     this.loadComponentRelatedConfigs(componentsMapItem.configTagsCallbackName, componentsMapItem.configsCallbackName);
     return this.showAddComponentPopup(component, hostName, () => {
-      this.installAndReconfigureComponent(hostName, component, componentsMapItem);
+      this.installAndReconfigureComponent(this.get('content.hostName'), component, componentsMapItem);
     }, fromServiceSummary);
   },
 
@@ -830,18 +831,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }.property('fromServiceSummary'),
         anyHostsWithoutComponent: Em.computed.or('!fromServiceSummary', 'hostsWithoutComponent.length'),
         selectedHostObserver: function () {
-          hostName = this.get('selectedHost');
+          const selectedHostName = this.get('selectedHost');
           if (!self.get('content')) {
             self.set('content', {});
           }
           self.setProperties({
-            'content.hostName': hostName
+            'content.hostName': selectedHostName
           });
           if (componentsMapItem) {
             const configs = self.get('configs');
             const params = configs && configs.params || {};
             if (componentsMapItem.hostPropertyName) {
-              self.set(componentsMapItem.hostPropertyName, hostName);
+              self.set(componentsMapItem.hostPropertyName, selectedHostName);
             }
             if (componentsMapItem.addPropertyName) {
               self.set(componentsMapItem.addPropertyName, true);
@@ -960,6 +961,25 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       sender: this,
       data: {
         urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')'
+      },
+      success: params.callback
+    });
+    this.trackRequest(request);
+  },
+
+  /**
+   * Success callback for Atlas load configs request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method loadAtlasConfigs
+   */
+  loadAtlasConfigs: function (data, opt, params) {
+    var request = App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+        urlParams: '(type=application-properties&tag=' + data.Clusters.desired_configs['application-properties'].tag + ')'
       },
       success: params.callback
     });
@@ -1141,20 +1161,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadWebHCatConfigs
    */
   loadWebHCatConfigs: function (data, opt, params) {
-    var request = App.ajax.send({
-      name: 'admin.get.all_configurations',
-      sender: this,
-      data: {
-        webHCat: true,
-        urlParams: [
-          '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')',
-          '(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')',
-          '(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')',
-          '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
-        ].join('|')
-      },
-      success: params.callback
-    });
+    const urlParams = this.getUrlParamsForConfigsRequest(data, ['hive-site', 'webhcat-site', 'hive-env', 'core-site']),
+      request = App.ajax.send({
+        name: 'admin.get.all_configurations',
+        sender: this,
+        data: {
+          webHCat: true,
+          urlParams
+        },
+        success: params.callback
+      });
     this.trackRequest(request);
     return request;
   },
@@ -1167,19 +1183,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadHiveConfigs
    */
   loadHiveConfigs: function (data, opt, params) {
-    var request = App.ajax.send({
-      name: 'admin.get.all_configurations',
-      sender: this,
-      data: {
-        urlParams: [
-          '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')',
-          '(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')',
-          '(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')',
-          '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
-        ].join('|')
-      },
-      success: params.callback
-    });
+    const urlParams = this.getUrlParamsForConfigsRequest(data, ['hive-site', 'webhcat-site', 'hive-env', 'core-site']),
+      request = App.ajax.send({
+        name: 'admin.get.all_configurations',
+        sender: this,
+        data: {
+          urlParams
+        },
+        success: params.callback
+      });
     this.trackRequest(request);
     return request;
   },
@@ -1388,17 +1400,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadRangerConfigs
    */
   loadRangerConfigs: function (data, opt, params) {
-    var request = App.ajax.send({
-      name: 'admin.get.all_configurations',
-      sender: this,
-      data: {
-        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')|' +
-        '(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')|' +
-        '(type=kms-env&tag=' + data.Clusters.desired_configs['kms-env'].tag + ')|' +
-        '(type=kms-site&tag=' + data.Clusters.desired_configs['kms-site'].tag + ')'
-      },
-      success: params.callback
-    });
+    const urlParams = this.getUrlParamsForConfigsRequest(data, ['core-site', 'hdfs-site', 'kms-env', 'kms-site']),
+      request = App.ajax.send({
+        name: 'admin.get.all_configurations',
+        sender: this,
+        data: {
+          urlParams
+        },
+        success: params.callback
+      });
     this.trackRequest(request);
   },
 
@@ -1821,12 +1831,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Send command to server to run decommission on DATANODE, TASKTRACKER, NODEMANAGER, REGIONSERVER
    * @param {App.HostComponent} component
+   * @param {callback} callback
    * @method decommission
    */
-  decommission: function (component) {
+  decommission: function (component, callback) {
     var self = this;
     return App.showConfirmationPopup(function () {
       self.runDecommission.call(self, self.get('content.hostName'), component.get('service.serviceName'));
+      if (callback) {
+        callback()
+      }
     }, Em.I18n.t('question.sure.decommission').format(component.get('service.serviceName')));
   },
   /**
@@ -1851,12 +1865,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Send command to server to run recommission on DATANODE, TASKTRACKER, NODEMANAGER
    * @param {App.HostComponent} component
+   * @param {callback} callback
    * @method recommission
    */
-  recommission: function (component) {
+  recommission: function (component, callback) {
     var self = this;
     return App.showConfirmationPopup(function () {
       self.runRecommission.call(self, self.get('content.hostName'), component.get('service.serviceName'));
+      if (callback) {
+        callback()
+      }
     }, Em.I18n.t('question.sure.recommission').format(component.get('service.serviceName')));
   },
   /**
@@ -3213,5 +3231,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   regenerateKeytabFileOperationsRequestError: function () {
     App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('alerts.notifications.regenerateKeytab.host.error').format(this.content.get('hostName')));
   },
+
+  /**
+   * Returns URL parameters for configs request by certain tags
+   * @param {object} data - object with desired configs tags received from API
+   * @param {string[]} configTypes - list of config types
+   * @returns {string}
+   */
+  getUrlParamsForConfigsRequest: function (data, configTypes) {
+    return configTypes.map(type => {
+      const tag = Em.get(data, `Clusters.desired_configs.${type}.tag`);
+      return tag ? `(type=${type}&tag=${tag})` : null;
+    }).compact().join('|');
+  }
 
 });

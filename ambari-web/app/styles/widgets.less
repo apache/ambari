@@ -42,6 +42,7 @@
 
 @widget-config-override-action-color: #cbcbcb;
 @widget-config-override-action-active-color: #acacac;
+@widget-config-final-active-color: blue;
 
 @toggle-widget-handle-background-color: #f3f3f3;
 @toggle-widget-text-color: #fff;
@@ -112,6 +113,9 @@
       &.text-danger {
         color: #b94a48;
       }
+    }
+    .widget-action-final.active {
+      color: @widget-config-final-active-color;
     }
   }
   .clear-min-height {

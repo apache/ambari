@@ -63,6 +63,7 @@ import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckResult;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.SingleFileWatch;
 import org.apache.ambari.server.configuration.spring.AgentStompConfig;
 import org.apache.ambari.server.configuration.spring.ApiSecurityConfig;
 import org.apache.ambari.server.configuration.spring.ApiStompConfig;
@@ -84,6 +85,8 @@ import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvid
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
+import org.apache.ambari.server.events.AmbariPropertiesChangedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -502,11 +505,9 @@ public class AmbariServer {
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
 
-      ServletHolder resources = new ServletHolder(ServletContainer.class);
-      resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-          "com.sun.jersey.api.core.PackagesResourceConfig");
-      resources.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.resources.api.rest;");
+      File resourcesDirectory = new File(configs.getResourceDirPath());
+      ServletHolder resources = new ServletHolder(DefaultServlet.class);
+      resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 
@@ -954,6 +955,15 @@ public class AmbariServer {
 
     KerberosIdentityCleaner identityCleaner = injector.getInstance(KerberosIdentityCleaner.class);
     identityCleaner.register();
+
+    configureFileWatcher();
+  }
+
+  private void configureFileWatcher() {
+    AmbariEventPublisher ambariEventPublisher = injector.getInstance(AmbariEventPublisher.class);
+    Configuration config = injector.getInstance(Configuration.class);
+    SingleFileWatch watch = new SingleFileWatch(config.getConfigFile(), file -> ambariEventPublisher.publish(new AmbariPropertiesChangedEvent()));
+    watch.start();
   }
 
   /**

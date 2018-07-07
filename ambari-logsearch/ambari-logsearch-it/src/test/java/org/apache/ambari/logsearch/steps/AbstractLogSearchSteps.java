@@ -18,18 +18,6 @@
  */
 package org.apache.ambari.logsearch.steps;
 
-import org.apache.ambari.logsearch.domain.StoryDataRegistry;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.SolrPingResponse;
-import org.apache.solr.common.SolrDocumentList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +25,17 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
+
+import org.apache.ambari.logsearch.domain.StoryDataRegistry;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.SolrPingResponse;
+import org.apache.solr.common.SolrDocumentList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AbstractLogSearchSteps {
 
@@ -49,13 +48,15 @@ public class AbstractLogSearchSteps {
       URL location = LogSearchDockerSteps.class.getProtectionDomain().getCodeSource().getLocation();
       String ambariFolder = new File(location.toURI()).getParentFile().getParentFile().getParentFile().getParent();
       StoryDataRegistry.INSTANCE.setAmbariFolder(ambariFolder);
-      String shellScriptLocation = ambariFolder + "/ambari-logsearch/docker/logsearch-docker.sh";
+      String scriptFolder = ambariFolder + "/ambari-logsearch/docker/";
+      StoryDataRegistry.INSTANCE.setShellScriptFolder(scriptFolder);
+      String shellScriptLocation = scriptFolder + "logsearch-docker.sh";
       StoryDataRegistry.INSTANCE.setShellScriptLocation(shellScriptLocation);
-      String output = runCommand(new String[]{StoryDataRegistry.INSTANCE.getShellScriptLocation(), "start"});
+      String output = runCommand(scriptFolder, new String[]{StoryDataRegistry.INSTANCE.getShellScriptLocation(), "start"});
       LOG.info("Command output: {}", output);
       StoryDataRegistry.INSTANCE.setLogsearchContainerStarted(true);
 
-      String dockerHostFromUri = System.getProperty("docker.host") != null ? System.getProperty("docker.host") : "localhost";;
+      String dockerHostFromUri = System.getProperty("docker.host") != null ? System.getProperty("docker.host") : "localhost";
 
       StoryDataRegistry.INSTANCE.setDockerHost(dockerHostFromUri);
       checkHostAndPortReachable(dockerHostFromUri, StoryDataRegistry.INSTANCE.getLogsearchPort(), "LogSearch");
@@ -74,7 +75,7 @@ public class AbstractLogSearchSteps {
     for (int tries = 1; tries < maxTries; tries++) {
       try {
         SolrClient solrClient = new LBHttpSolrClient.Builder()
-          .withBaseSolrUrl(String.format("http://%s:%d/solr/%s_shard0_replica1",
+          .withBaseSolrUrl(String.format("http://%s:%d/solr/%s_shard1_replica_n1",
             StoryDataRegistry.INSTANCE.getDockerHost(),
             StoryDataRegistry.INSTANCE.getSolrPort(),
             StoryDataRegistry.INSTANCE.getServiceLogsCollection()))
@@ -101,10 +102,11 @@ public class AbstractLogSearchSteps {
     }
   }
 
-  protected void waitUntilSolrHasAnyData() throws IOException, SolrServerException, InterruptedException {
+  protected void waitUntilSolrHasAnyData() throws InterruptedException {
     boolean solrHasData = false;
     int maxTries = 60;
     String lastExceptionMessage = null;
+
     for (int tries = 1; tries < maxTries; tries++) {
       try {
         SolrClient solrClient = StoryDataRegistry.INSTANCE.getSolrClient();
@@ -150,10 +152,10 @@ public class AbstractLogSearchSteps {
   }
 
 
-  protected String runCommand(String[] command) {
+  protected String runCommand(String location, String[] command) {
     try {
       LOG.info("Exec command: {}", StringUtils.join(command, " "));
-      Process process = Runtime.getRuntime().exec(command);
+      Process process = Runtime.getRuntime().exec(command, null, new File(location));
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       return reader.readLine();
     } catch (Exception e) {

@@ -94,6 +94,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   }.property('componentsConfigsGrouped.@each.recoveryEnabled', 'componentsConfigsCachedMap'),
 
   parseComponentConfigs: function(componentsConfigsCached) {
+    componentsConfigsCached.sortPropertyLight('ServiceComponentInfo.service_name');
     const componentsConfigsGrouped = [];
     const servicesMap = componentsConfigsCached
       .mapProperty('ServiceComponentInfo.service_name').uniq().toWickMap();

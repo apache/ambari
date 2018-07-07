@@ -282,7 +282,7 @@ public class ClusterConfigurationRequest {
       String componentName = component.componentName();
       Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(componentName);
       // retrieve corresponding clusterInfoKey for component using StageUtils
-      String clusterInfoKey = StageUtils.getComponentToClusterInfoKeyMap().get(componentName);
+      String clusterInfoKey = StageUtils.getClusterHostInfoKey(componentName);
       if (clusterInfoKey == null) {
         clusterInfoKey = componentName.toLowerCase() + "_hosts";
       }
@@ -437,11 +437,20 @@ public class ClusterConfigurationRequest {
    */
   private void  setConfigurationsOnCluster(List<Pair<String, ClusterRequest>> serviceNamesAndRequests,
                                          String tag, Set<String> updatedConfigTypes)  {
+    String clusterName = null;
+    try {
+      clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
+    } catch (AmbariException e) {
+      LOG.error("Cannot get cluster name for clusterId = " + clusterTopology.getClusterId(), e);
+      throw new RuntimeException(e);
+    }
     // iterate over services to deploy
     for (Pair<String, ClusterRequest> serviceNameAndRequest: serviceNamesAndRequests) {
       LOG.info("Sending cluster config update request for service = " + serviceNameAndRequest.getLeft());
       ambariContext.setConfigurationOnCluster(serviceNameAndRequest.getRight());
     }
+
+    ambariContext.notifyAgentsAboutConfigsChanges(clusterName);
 
     if (tag.equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {
       // if this is a request to resolve config, then wait until resolution is completed

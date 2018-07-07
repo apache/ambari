@@ -80,12 +80,15 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
    */
   persistKey: Em.computed.format('time-range-service-{0}', 'service.serviceName'),
 
+  isLoading: false,
+
   didInsertElement: function () {
     var svcName = this.get('controller.content.serviceName');
     this.set('service', this.getServiceModel(svcName));
     var isMetricsSupported = svcName !== 'STORM' || App.get('isStormMetricsSupported');
 
-    this.get('controller').getActiveWidgetLayout();
+    this.loadActiveWidgetLayout();
+
     if (App.get('supports.customizedWidgetLayout')) {
       this.get('controller').loadWidgetLayouts();
     }
@@ -94,9 +97,18 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
       var allServices = require('data/service_graph_config');
       this.constructGraphObjects(allServices[svcName.toLowerCase()]);
     }
-    this.makeSortable();
+    this.makeSortable('#widget_layout');
+    this.makeSortable('#ns_widget_layout', true);
     this.addWidgetTooltip();
   },
+
+  loadActiveWidgetLayout: function () {
+    var isHDFS = this.get('controller.content.serviceName') === 'HDFS';
+    if (!this.get('isLoading') && (!isHDFS || (isHDFS && App.router.get('clusterController.isHostComponentMetricsLoaded')))) {
+      this.set('isLoading', true);
+      this.get('controller').getActiveWidgetLayout();
+    }
+  }.observes('App.router.clusterController.isHostComponentMetricsLoaded'),
 
   addWidgetTooltip: function() {
     Em.run.later(this, function () {
@@ -116,6 +128,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
     $("[rel='add-widget-tooltip']").tooltip('destroy');
     $('.img-thumbnail').off();
     $('#widget_layout').sortable('destroy');
+    $('#ns_widget_layout').sortable('destroy');
     $('.widget.span2p4').detach().remove();
     this.get('serviceMetricGraphs').clear();
     this.set('service', null);
@@ -263,19 +276,21 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
   /**
    * Make widgets' list sortable on New Dashboard style
    */
-  makeSortable: function () {
+  makeSortable: function (selector, isNSLayout) {
     var self = this;
-    $('html').on('DOMNodeInserted', '#widget_layout', function () {
+    var controller = this.get('controller');
+    $('html').on('DOMNodeInserted', selector, function () {
       $(this).sortable({
         items: "> div",
         cursor: "move",
         tolerance: "pointer",
         scroll: false,
         update: function () {
-          var widgets = misc.sortByOrder($("#widget_layout .widget").map(function () {
+          var layout = isNSLayout ? controller.get('selectedNSWidgetLayout') : controller.get('activeWidgetLayout');
+          var widgets = misc.sortByOrder($(selector + " .widget").map(function () {
             return this.id;
-          }), self.get('controller.widgets'));
-          self.get('controller').saveWidgetLayout(widgets);
+          }), layout.get('widgets').toArray());
+          controller.saveWidgetLayout(widgets, layout);
         },
         activate: function () {
           self.set('isMoving', true);
@@ -284,7 +299,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
           self.set('isMoving', false);
         }
       }).disableSelection();
-      $('html').off('DOMNodeInserted', '#widget_layout');
+      $('html').off('DOMNodeInserted', selector);
     });
   }
 });

@@ -429,9 +429,13 @@ class TestHiveServer(RMFTestCase):
                               create_parents = True,
                               cd_access='a',
     )
+    self.assertResourceCalled('File',
+                              '/tmp/mysql-connector-java.jar',
+                              content=DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
+                              )
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
-                                          '/usr/share/java/mysql-connector-java.jar',
+                                          '/tmp/mysql-connector-java.jar',
                                           '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path=['/bin', '/usr/bin/'],
                               sudo=True,
@@ -643,9 +647,13 @@ class TestHiveServer(RMFTestCase):
                               create_parents = True,
                               cd_access='a',
     )
+    self.assertResourceCalled('File',
+                              '/tmp/mysql-connector-java.jar',
+                              content=DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
+                              )
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
-                                          '/usr/share/java/mysql-connector-java.jar',
+                                          '/tmp/mysql-connector-java.jar',
                                           '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path=['/bin', '/usr/bin/'],
                               sudo=True,

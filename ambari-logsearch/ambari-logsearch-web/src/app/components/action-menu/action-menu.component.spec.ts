@@ -45,6 +45,12 @@ import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
 
 import {ActionMenuComponent} from './action-menu.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
 
 describe('ActionMenuComponent', () => {
   let component: ActionMenuComponent;
@@ -53,6 +59,7 @@ describe('ActionMenuComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         FormsModule,
         ReactiveFormsModule,
         ...TranslationModules,
@@ -96,7 +103,12 @@ describe('ActionMenuComponent', () => {
         HostsService,
         ServiceLogsTruncatedService,
         TabsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

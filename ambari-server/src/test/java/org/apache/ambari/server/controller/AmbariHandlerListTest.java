@@ -44,6 +44,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -62,6 +63,7 @@ public class AmbariHandlerListTest {
   private final SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
   private final SessionIdManager sessionIdManager = createNiceMock(SessionIdManager.class);
   private final SessionHandlerConfigurer sessionHandlerConfigurer = createNiceMock(SessionHandlerConfigurer.class);
+  private final SessionCache sessionCache = createNiceMock(SessionCache.class);
 
 
   @Test
@@ -74,7 +76,10 @@ public class AmbariHandlerListTest {
 
     expect(handler.getServer()).andReturn(server);
     expect(handler.getChildHandlers()).andReturn(new Handler[]{});
+    expect(handler.getSessionHandler()).andReturn(createNiceMock(SessionHandler.class));
     handler.setServer(null);
+
+    expect(sessionHandler.getSessionCache()).andReturn(sessionCache);
 
     Capture<FilterHolder> securityHeaderFilterCapture = EasyMock.newCapture();
     Capture<FilterHolder> persistFilterCapture = EasyMock.newCapture();
@@ -85,7 +90,7 @@ public class AmbariHandlerListTest {
     handler.addFilter(capture(securityFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.setAllowNullPathInfo(true);
 
-    replay(handler, server);
+    replay(handler, server, sessionHandler);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
 
@@ -99,7 +104,7 @@ public class AmbariHandlerListTest {
     Assert.assertEquals(persistFilter, persistFilterCapture.getValue().getFilter());
     Assert.assertEquals(springSecurityFilter, securityFilterCapture.getValue().getFilter());
 
-    verify(handler, server);
+    verify(handler, server, sessionHandler);
   }
 
   @Test
@@ -111,9 +116,12 @@ public class AmbariHandlerListTest {
 
     expect(handler.getServer()).andReturn(server);
     expect(handler.getChildHandlers()).andReturn(new Handler[]{});
+    expect(handler.getSessionHandler()).andReturn(createNiceMock(SessionHandler.class));
     handler.setServer(null);
 
-    replay(handler, server);
+    expect(sessionHandler.getSessionCache()).andReturn(sessionCache);
+
+    replay(handler, server, sessionHandler);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
 
@@ -129,7 +137,7 @@ public class AmbariHandlerListTest {
 
     Assert.assertFalse(handlers.contains(handler));
 
-    verify(handler, server);
+    verify(handler, server, sessionHandler);
 
   }
 

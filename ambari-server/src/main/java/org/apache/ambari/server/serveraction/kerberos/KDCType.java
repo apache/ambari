@@ -18,28 +18,36 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
+
 /**
  * Enumerates the supported KDC types
  */
+@XmlEnum
 public enum KDCType {
   /**
    * Indicates not KDC type is relevant. This is expected when Ambari is not managing Kerberos identities.
    */
+  @XmlEnumValue("none")
   NONE,
 
   /**
    * Indicates an MIT KDC (or similar)
    */
+  @XmlEnumValue("mit-kdc")
   MIT_KDC,
 
   /**
    * Indicates a Microsoft Active Directory
    */
+  @XmlEnumValue("active-directory")
   ACTIVE_DIRECTORY,
 
   /**
    * Indicates an IPA KDC
    */
+  @XmlEnumValue("ipa")
   IPA;
 
   /**

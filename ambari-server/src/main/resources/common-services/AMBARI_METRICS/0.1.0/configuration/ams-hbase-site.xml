@@ -391,9 +391,6 @@
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
     <value>{{zookeeper_clientPort}}</value>
-    <value-attributes>
-      <type>int</type>
-    </value-attributes>
     <depends-on>
       <property>
         <type>zoo.cfg</type>
@@ -615,6 +612,22 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.unsafe.stream.capability.enforce</name>
+    <value>false</value>
+    <description>
+      Controls whether HBase will check for stream capabilities (hflush/hsync).
+      Disable this if you intend to run on LocalFileSystem.
+      WARNING: Doing so may expose you to additional risk of data loss!
+    </description>
+    <depends-on>
+      <property>
+        <type>ams-site</type>
+        <name>timeline.metrics.service.operation.mode</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

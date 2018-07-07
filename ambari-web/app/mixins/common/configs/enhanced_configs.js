@@ -71,8 +71,36 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   currentlyChangedConfig: null,
 
   dependenciesGroupMessage: Em.I18n.t('popup.dependent.configs.dependencies.for.groups'),
+
   /**
-   * message fro alert box for dependent configs
+   * ConfigType-Widget map
+   * key - widget type
+   * value - widget view
+   * @type {object}
+   */
+  widgetTypeMap: {
+    checkbox: 'CheckboxConfigWidgetView',
+    combo: 'ComboConfigWidgetView',
+    directory: 'TextFieldConfigWidgetView',
+    directories: 'DirectoryConfigWidgetView',
+    list: 'ListConfigWidgetView',
+    password: 'PasswordConfigWidgetView',
+    'radio-buttons': 'RadioButtonConfigWidgetView',
+    slider: 'SliderConfigWidgetView',
+    'text-field': 'TextFieldConfigWidgetView',
+    'time-interval-spinner': 'TimeIntervalSpinnerView',
+    toggle: 'ToggleConfigWidgetView',
+    'text-area': 'StringConfigWidgetView',
+    'label': 'LabelView',
+    'test-db-connection': 'TestDbConnectionWidgetView'
+  },
+
+  configNameWidgetMixinMap: {
+    num_llap_nodes: App.NumLlapNodesWidgetMixin
+  },
+
+  /**
+   * message for alert box for dependent configs
    * @type {string}
    */
   dependenciesMessage: function() {
@@ -258,7 +286,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   loadAdditionalSites: function(sites, stepConfigs, recommendations, dataToSend, onComplete) {
     var self = this;
-    App.config.getConfigsByTypes(sites).done(function (configs) {
+    App.router.get('configurationController').getCurrentConfigsBySites(sites).done(function (configs) {
       stepConfigs = stepConfigs.concat(configs);
 
       dataToSend.recommendations = self.addRequestedConfigs(recommendations, stepConfigs);
@@ -628,5 +656,245 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   removeCurrentFromDependentList: function (config, saveRecommended) {
     var recommendation = this.getRecommendation(config.get('name'), config.get('filename'), config.get('group.name'));
     if (recommendation) this.saveRecommendation(recommendation, saveRecommended);
+  },
+
+  updateAttributesFromTheme: function (serviceName) {
+    this.prepareSectionsConfigProperties(serviceName);
+    const serviceConfigs = this.get('stepConfigs').findProperty('serviceName', serviceName).get('configs'),
+      configConditions = App.ThemeCondition.find().filter(condition => {
+        const dependentConfigName = condition.get('configName'),
+          dependentConfigFileName = condition.get('fileName'),
+          configsToDependOn = condition.getWithDefault('configs', []);
+        return serviceConfigs.some(serviceConfig => {
+          const serviceConfigName = Em.get(serviceConfig, 'name'),
+            serviceConfigFileName = Em.get(serviceConfig, 'filename');
+          return (serviceConfigName === dependentConfigName && serviceConfigFileName === dependentConfigFileName)
+            || configsToDependOn.some(config => {
+              const {configName, fileName} = config;
+              return serviceConfigName === configName && serviceConfigFileName === fileName;
+            });
+        });
+      });
+    this.updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
+  },
+
+  prepareSectionsConfigProperties: function (serviceName) {
+    const tabs = App.Tab.find().filterProperty('serviceName', serviceName);
+    tabs.forEach(tab => {
+      this.processTab(tab);
+      tab.get('sectionRows').forEach(row => {
+        row.forEach(section => {
+          section.get('subsectionRows').forEach(subRow => {
+            subRow.forEach(subsection => {
+              this.setConfigsToContainer(subsection);
+              subsection.get('subSectionTabs').forEach(subSectionTab => {
+                this.setConfigsToContainer(subSectionTab);
+              });
+            });
+          });
+        });
+      });
+    });
+  },
+
+  /**
+   * set {code} configs {code} array of subsection or subsection tab.
+   * Also correct widget should be used for each config (it's selected according to <code>widget.type</code> and
+   * <code>widgetTypeMap</code>). It may throw an error if needed widget can't be found in the <code>widgetTypeMap</code>
+   * @param containerObject
+   */
+  setConfigsToContainer: function (containerObject) {
+    containerObject.set('configs', []);
+
+    containerObject.get('configProperties').forEach(function (configId) {
+      const config = App.configsCollection.getConfig(configId);
+      if (Em.get(config, 'widgetType')) {
+        const stepConfig = this.get('stepConfigs').findProperty('serviceName', Em.get(config, 'serviceName'));
+        if (!stepConfig) return;
+
+        const configProperty = stepConfig.get('configs').findProperty('id', Em.get(config, 'id'));
+        if (!configProperty) return;
+
+        containerObject.get('configs').pushObject(configProperty);
+
+        const widget = this.getWidgetView(config);
+        Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + Em.get(config, 'widgetType'), widget);
+
+        let additionalProperties = {
+          widget,
+          stackConfigProperty: config
+        };
+
+        const configConditions = App.ThemeCondition.find().filter(_configCondition => {
+          // Filter config condition depending on the value of another config
+          const conditionalConfigs = _configCondition.getWithDefault('configs', []).filterProperty('fileName', Em.get(config, 'filename')).filterProperty('configName', Em.get(config, 'name'));
+          // Filter config condition depending on the service existence or service state
+          const serviceConfigConditionFlag = ((_configCondition.get('configName') === Em.get(config, 'name')) && (_configCondition.get('fileName') === Em.get(config, 'filename')) && (_configCondition.get('resource') === 'service'));
+          let conditions;
+
+          if (serviceConfigConditionFlag) {
+            const configCondition = {
+              configName: _configCondition.get('configName'),
+              fileName: _configCondition.get('fileName')
+            };
+            conditions = conditionalConfigs.concat(configCondition)
+          } else {
+            conditions = conditionalConfigs;
+          }
+          return (conditions && conditions.length);
+        });
+
+        if (configConditions && configConditions.length) {
+          additionalProperties.configConditions = configConditions;
+        }
+
+        const configAction = App.ConfigAction.find().filterProperty('fileName', Em.get(config, 'filename')).findProperty('configName', Em.get(config, 'name'));
+
+        if (configAction) {
+          additionalProperties.configAction = configAction;
+        }
+
+        configProperty.setProperties(additionalProperties);
+
+        if (configProperty.get('overrides')) {
+          configProperty.get('overrides').setEach('stackConfigProperty', config);
+        }
+        if (configProperty.get('compareConfigs')) {
+          configProperty.get('compareConfigs').invoke('setProperties', {
+            isComparison: false,
+            stackConfigProperty: config
+          });
+        }
+      }
+    }, this);
+  },
+
+  /**
+   *
+   * @param {object} config
+   * @returns {Em.View}
+   */
+  getWidgetView: function (config) {
+    const configWidgetType = Em.get(config, 'widgetType'),
+      name = Em.get(config, 'name'),
+      mixin = this.get('configNameWidgetMixinMap')[name],
+      viewClass = App[this.get('widgetTypeMap')[configWidgetType]];
+    return Em.isNone(mixin) ? viewClass : viewClass.extend(mixin);
+  },
+
+  updateAttributesFromConditions: function (configConditions, serviceConfigs, serviceName) {
+    let isConditionTrue;
+    configConditions.forEach(configCondition => {
+      const ifStatement = configCondition.get('if');
+      if (configCondition.get('resource') === 'config') {
+        isConditionTrue = App.configTheme.calculateConfigCondition(ifStatement, serviceConfigs);
+        if (configCondition.get('type') === 'subsection' || configCondition.get('type') === 'subsectionTab') {
+          this.changeSubsectionAttribute(configCondition, isConditionTrue);
+        } else {
+          this.changeConfigAttribute(configCondition, isConditionTrue, serviceName);
+        }
+      } else if (configCondition.get('resource') === 'service') {
+        const service = App.Service.find().findProperty('serviceName', ifStatement);
+        if (service) {
+          isConditionTrue = true;
+        } else if (!service && this.get('allSelectedServiceNames') && this.get('allSelectedServiceNames').length) {
+          isConditionTrue = this.get('allSelectedServiceNames').contains(ifStatement);
+        } else {
+          isConditionTrue = false;
+        }
+        this.changeConfigAttribute(configCondition, isConditionTrue, serviceName);
+      }
+    });
+  },
+
+  /**
+   *
+   * @param configCondition {App.ThemeCondition}
+   * @param isConditionTrue {boolean}
+   */
+  changeConfigAttribute: function (configCondition, isConditionTrue, serviceName) {
+    const conditionalConfigName = configCondition.get('configName'),
+      conditionalConfigFileName = configCondition.get('fileName'),
+      serviceConfigs = this.get('stepConfigs').findProperty('serviceName', serviceName).get('configs'),
+      action = isConditionTrue ? configCondition.get('then') : configCondition.get('else'),
+      valueAttributes = action.property_value_attributes;
+    this.set('isChangingConfigAttributes', true);
+    for (let key in valueAttributes) {
+      if (valueAttributes.hasOwnProperty(key)) {
+        const valueAttribute = App.StackConfigValAttributesMap[key] || key,
+          conditionalConfig = serviceConfigs.filterProperty('filename', conditionalConfigFileName).findProperty('name', conditionalConfigName);
+        if (conditionalConfig) {
+          if (key === 'visible') {
+            conditionalConfig.set('hiddenBySection', !valueAttributes[key]);
+          }
+          conditionalConfig.set(valueAttribute, valueAttributes[key]);
+        }
+      }
+    }
+    this.set('isChangingConfigAttributes', false);
+  },
+  /**
+   *
+   * @param subsectionCondition {App.ThemeCondition}
+   * @param isConditionTrue {boolean}
+   */
+  changeSubsectionAttribute: function (subsectionCondition, isConditionTrue) {
+    var subsectionConditionName = subsectionCondition.get('name');
+    var action = isConditionTrue ? subsectionCondition.get('then') : subsectionCondition.get('else');
+    if (subsectionCondition.get('id')) {
+      const valueAttributes = action.property_value_attributes;
+      if (valueAttributes && !Em.none(valueAttributes.visible)) {
+        let themeResource;
+        if (subsectionCondition.get('type') === 'subsection') {
+          themeResource = App.SubSection.find().find(function (subsection) {
+            return subsection.get('name') === subsectionConditionName && subsectionCondition.get('themeName') === subsection.get('themeName');
+          });
+        } else if (subsectionCondition.get('type') === 'subsectionTab') {
+          themeResource = App.SubSectionTab.find().find(function (subsectionTab) {
+            return subsectionTab.get('name') === subsectionConditionName && subsectionCondition.get('themeName') === subsectionTab.get('themeName');
+          });
+        }
+        themeResource.set('isHiddenByConfig', !valueAttributes.visible);
+        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes.visible);
+        themeResource.get('configs').setEach('hiddenBySubSection', !valueAttributes.visible);
+      }
+    }
+  },
+
+  /**
+   * Data reordering before tabs rendering.
+   * Reorder all sections/subsections into rows based on their rowIndex
+   * @param tab
+   */
+  processTab: function (tab) {
+    // process sections
+    let sectionRows = [];
+    const sections = tab.get('sections');
+    for (let j = 0; j < sections.get('length'); j++) {
+      const section = sections.objectAt(j);
+      let sectionRow = sectionRows[section.get('rowIndex')];
+      if (!sectionRow) {
+        sectionRow = sectionRows[section.get('rowIndex')] = [];
+      }
+      sectionRow.push(section);
+
+      //process subsections
+      const subsections = section.get('subSections');
+      let subsectionRows = [];
+      for (let k = 0; k < subsections.get('length'); k++) {
+        const subsection = subsections.objectAt(k);
+        let subsectionRow = subsectionRows[subsection.get('rowIndex')];
+        if (!subsectionRow) {
+          subsectionRow = subsectionRows[subsection.get('rowIndex')] = [];
+        }
+        subsectionRow.push(subsection);
+        // leave a title gap if one of the subsection on the same row within the same section has title
+        if (subsection.get('displayName')) {
+          subsectionRow.hasTitleGap = true;
+        }
+      }
+      section.set('subsectionRows', subsectionRows);
+    }
+    tab.set('sectionRows', sectionRows);
   }
 });

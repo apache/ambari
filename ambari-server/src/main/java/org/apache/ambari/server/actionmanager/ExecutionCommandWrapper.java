@@ -33,6 +33,7 @@ import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
@@ -221,11 +222,27 @@ public class ExecutionCommandWrapper {
 
       // setting repositoryFile
       final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
-      if (null == executionCommand.getRepositoryFile() && null != host && mpackId != null) {
-        MpackEntity mpackEntity = mpackDAO.findById(mpackId);
-        RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(mpackEntity, host);
-        final CommandRepository commandRepository = repoVersionHelper.getCommandRepository(mpack, osEntity);
-        executionCommand.setRepositoryFile(commandRepository);
+      final String serviceName = executionCommand.getServiceName(); // can be null on executing special RU tasks
+      if (null == executionCommand.getRepositoryFile() && null != host && null != serviceName && mpackId != null) {
+        final CommandRepository commandRepository;
+        final Service service = cluster.getService(serviceName);
+        final String componentName = executionCommand.getComponentName();
+
+        try {
+          if (null != componentName) {
+            ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+            commandRepository = repoVersionHelper.getCommandRepository(cluster, serviceComponent, host);
+          } else {
+            MpackEntity mpackEntity = mpackDAO.findById(mpackId);
+            RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(mpackEntity, host);
+            commandRepository = repoVersionHelper.getCommandRepository(mpack, osEntity);
+          }
+          executionCommand.setRepositoryFile(commandRepository);
+
+        } catch (SystemException e) {
+          LOG.debug("Unable to find command repository with a correct operating system for host {}",
+              host, e);
+        }
       }
 
     } catch (ClusterNotFoundException cnfe) {

@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -39,7 +40,9 @@ import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -48,6 +51,7 @@ import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
 import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
+import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -76,6 +80,10 @@ public class UpgradePack {
   @XmlElement(name="lifecycle")
   public List<Lifecycle> lifecycles;
 
+  @XmlElementWrapper(name="order")
+  @XmlElement(name="group")
+  private List<Grouping> groups = new ArrayList<>();
+
   @XmlElementWrapper(name="prerequisite-checks")
   @XmlElement(name="check")
   private List<PrerequisiteCheckDefinition> prerequisiteChecks;
@@ -100,18 +108,21 @@ public class UpgradePack {
    * {@code true} to allow downgrade, {@code false} to disable downgrade.
    * Tag is optional and can be {@code null}, use {@code isDowngradeAllowed} getter instead.
    */
-  @XmlElement(name = "downgrade-allowed", required = false)
+  @XmlElement(name = "downgrade-allowed", required = false, defaultValue = "true")
   private boolean downgradeAllowed = true;
 
-
-  @XmlTransient
-  private Map<String, List<String>> m_orders = null;
 
   /**
    * Initialized once by {@link #afterUnmarshal(Unmarshaller, Object)}.
    */
   @XmlTransient
   private Map<String, Map<String, ProcessingComponent>> m_process = null;
+
+  /**
+   * A mapping of SERVICE/COMPONENT to any {@link AddComponentTask} instances.
+   */
+  @XmlTransient
+  private final Map<String, AddComponentTask> m_addComponentTasks = new LinkedHashMap<>();
 
   @XmlTransient
   private boolean m_resolvedGroups = false;
@@ -339,6 +350,16 @@ public class UpgradePack {
   }
 
   /**
+   * Gets a mapping of SERVICE/COMPONENT to {@link AddComponentTask} for this
+   * upgrade pack.
+   *
+   * @return
+   */
+  public Map<String, AddComponentTask> getAddComponentTasks() {
+    return m_addComponentTasks;
+  }
+
+  /**
    * This method is called after all the properties (except IDREF) are
    * unmarshalled for this object, but before this object is set to the parent
    * object. This is done automatically by the {@link Unmarshaller}.
@@ -357,6 +378,7 @@ public class UpgradePack {
    */
   void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
     initializeProcessingComponentMappings();
+    initializeAddComponentTasks();
   }
 
   /**
@@ -385,6 +407,27 @@ public class UpgradePack {
         } else {
           LOG.warn("ProcessingService {} has null amongst it's values (total {} components)",
               svc.name, svc.components.size());
+        }
+      }
+    }
+  }
+
+  /**
+   * Builds a mapping of SERVICE/COMPONENT to {@link AddComponentTask}.
+   */
+  private void initializeAddComponentTasks() {
+    for (Grouping group : groups) {
+      if (ClusterGrouping.class.isInstance(group)) {
+        List<ExecuteStage> executeStages = ((ClusterGrouping) group).executionStages;
+        for (ExecuteStage executeStage : executeStages) {
+          Task task = executeStage.task;
+
+          // keep track of this for later ...
+          if (task.getType() == Type.ADD_COMPONENT) {
+            AddComponentTask addComponentTask = (AddComponentTask) task;
+            m_addComponentTasks.put(addComponentTask.getServiceAndComponentAsString(),
+                addComponentTask);
+          }
         }
       }
     }
@@ -598,5 +641,14 @@ public class UpgradePack {
     private List<Task> tasks = new ArrayList<>();
   }
 
-
+  /**
+   * @return true if this upgrade pack contains a group with a task that matches the given predicate
+   */
+  public boolean anyGroupTaskMatch(Predicate<Task> taskPredicate) {
+    return getAllGroups().stream()
+      .filter(ClusterGrouping.class::isInstance)
+      .flatMap(group -> ((ClusterGrouping) group).executionStages.stream())
+      .map(executeStage -> executeStage.task)
+      .anyMatch(taskPredicate);
+  }
 }

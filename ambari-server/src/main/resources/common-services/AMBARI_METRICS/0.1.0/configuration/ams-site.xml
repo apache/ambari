@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
  *
@@ -456,10 +455,9 @@
   </property>
   <property>
     <name>timeline.metrics.service.default.result.limit</name>
-    <value>15840</value>
+    <value>5760</value>
     <description>
-      Max result limit on number of rows returned. Calculated as follows:
-      22 aggregate metrics/min * 2 * 60 * 6 : Retrieve 10 SECOND data for 2 hours.
+      Max result limit on number of rows returned.
     </description>
     <display-name>Metrics service default result limit</display-name>
     <value-attributes>
@@ -540,60 +538,6 @@
       Use a groupBy aggregated query to perform host level aggregations vs
       in-memory aggregations.
     </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>timeline.metrics.host.aggregate.splitpoints</name>
-    <value> </value>
-    <description>
-      Pre-split regions using the split points corresponding to this property
-      for the precision table that stores seconds aggregate data.
-    </description>
-    <depends-on>
-      <property>
-        <type>ams-hbase-site</type>
-        <name>hbase.regionserver.global.memstore.upperLimit</name>
-      </property>
-      <property>
-        <type>ams-hbase-site</type>
-        <name>hbase.hregion.memstore.flush.size</name>
-      </property>
-      <property>
-        <type>ams-hbase-env</type>
-        <name>hbase_master_heapsize</name>
-      </property>
-      <property>
-        <type>ams-hbase-env</type>
-        <name>hbase_regionserver_heapsize</name>
-      </property>
-    </depends-on>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>timeline.metrics.cluster.aggregate.splitpoints</name>
-    <value> </value>
-    <description>
-      Pre-split regions using the split points corresponding to this property
-      for the aggregate table that stores seconds aggregate data across hosts.
-    </description>
-    <depends-on>
-      <property>
-        <type>ams-hbase-site</type>
-        <name>hbase.regionserver.global.memstore.upperLimit</name>
-      </property>
-      <property>
-        <type>ams-hbase-site</type>
-        <name>hbase.hregion.memstore.flush.size</name>
-      </property>
-      <property>
-        <type>ams-hbase-env</type>
-        <name>hbase_master_heapsize</name>
-      </property>
-      <property>
-        <type>ams-hbase-env</type>
-        <name>hbase_regionserver_heapsize</name>
-      </property>
-    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -763,7 +707,7 @@
   </property>
   <property>
     <name>timeline.metrics.downsampler.topn.metric.patterns</name>
-    <value>dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%</value>
+    <value></value>
     <description>
       Commas separated list of metric name regular expressions that are candidates for Top N downsampling.
     </description>
@@ -786,6 +730,18 @@
     <description>
       Top N function for to be used for top N downsampling (avg/max/sum)
     </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.downsampler.event.metric.patterns</name>
+    <value></value>
+    <description>
+      Commas separated list of metric name regular expressions that are like events. No interpolation will be done for such
+      metrics, and the downsampling SUM aggregators will sum the values across time instead of averaging them out.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -850,15 +806,21 @@
     </value-attributes>
   </property>
   <property>
-    <name>timeline.metrics.downsampler.event.metric.patterns</name>
-    <value></value>
+    <name>timeline.metrics.host.inmemory.aggregation.http.policy</name>
+    <value>HTTP_ONLY</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.transient.metric.patterns</name>
+    <value>topology\.%,dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%</value>
     <description>
-      Commas separated list of metric name regular expressions that are like events. No interpolation will be done for such
-      metrics, and the downsampling SUM aggregators will sum the values across time instead of averaging them out.
+      Comma separated list of metric patterns that will enable them to be stored, queried, aggregated and purged
+      separately so as to decrease pressure on low volume high density metrics aggregation.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
   </property>
+
 </configuration>

@@ -200,12 +200,12 @@ App.WidgetValueObserver = Em.Mixin.create(App.ValueObserver, {
  */
 App.ServiceConfigCalculateId = Ember.Mixin.create({
   'data-qa': Ember.computed(function () {
-    var config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
-    var label = Em.get(config, 'name') ? Em.get(config, 'name').toLowerCase().replace(/\./g, '-') : '',
-        fileName = Em.get(config, 'filename') ? Em.get(config, 'filename').toLowerCase().replace(/\./g, '-') : '',
-        group = Em.get(config, 'group.name') || 'default',
-        isOrigin = Em.getWithDefault(config, 'compareConfigs.length', 0) > 0 ? '-origin' : '';
-    return 'service-config-' + label + '-' + fileName + '-' + group + isOrigin;
+    const config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
+    const configName = Em.get(config, 'name') || '';
+    if (configName === 'content') {
+      return Em.get(config, 'id') || '';
+    }
+    return configName;
   })
 });
 
@@ -254,6 +254,7 @@ App.ServiceConfigTextFieldUserGroupWithID = Ember.View.extend(App.ServiceConfigP
   valueBinding: 'serviceConfig.value',
   placeholderBinding: 'serviceConfig.savedValue',
   classNamesBindings: 'view.fullWidth::display-inline-block',
+  isPopoverEnabled: 'false',
 
   fullWidth: false,
 
@@ -908,7 +909,7 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
   classNames: ['master-host', 'col-md-6'],
   valueBinding: 'serviceConfig.value',
 
-  template: Ember.Handlebars.compile('{{value}}')
+  template: Ember.Handlebars.compile('{{view.value}}')
 
 });
 
@@ -1177,7 +1178,7 @@ App.CheckDBConnectionView = Ember.View.extend({
       } else {
         name = 'AD';
       }
-      App.popover(this.$(), {
+      App.popover(this.$('.connection-result'), {
         title: Em.I18n.t('services.service.config.database.btn.idle'),
         content: Em.I18n.t('installer.controls.checkConnection.popover').format(name),
         placement: 'right',

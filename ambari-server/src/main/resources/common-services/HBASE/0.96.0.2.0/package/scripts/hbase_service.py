@@ -22,6 +22,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.shell import as_sudo
 from resource_management.core.resources.system import Execute, File
+from ambari_commons.repo_manager.repo_manager_helper import check_installed_metrics_hadoop_sink_version
 
 def hbase_service(
   name,
@@ -36,6 +37,9 @@ def hbase_service(
     no_op_test = as_sudo(["test", "-f", pid_file]) + format(" && ps -p `{pid_expression}` >/dev/null 2>&1")
     
     if action == 'start':
+      # Check ambari-metrics-hadoop-sink version is less than 2.7.0.0
+      check_installed_metrics_hadoop_sink_version()
+
       daemon_cmd = format("{cmd} start {role}")
       
       try:

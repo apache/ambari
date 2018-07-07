@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.constants import LOGFEEDER_CONF_DIR
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.script import get_config_lock_file
 from resource_management.libraries.functions import default
@@ -53,7 +54,7 @@ major_stack_version = get_major_version(stack_version_formatted)
 service_name = execution_command.get_module_name()
 
 # logsearch configuration
-logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_conf = LOGFEEDER_CONF_DIR
 
 agent_cache_dir = execution_command.get_agent_cache_dir()
 service_package_folder = execution_command.get_module_package_folder()
@@ -104,6 +105,16 @@ has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+
+  mount_table_xml_inclusion_file_full_path = None
+  mount_table_content = None
+  if 'viewfs-mount-table' in config['configurations']:
+    xml_inclusion_file_name = 'viewfs-mount-table.xml'
+    mount_table = config['configurations']['viewfs-mount-table']
+
+    if 'content' in mount_table and mount_table['content'].strip():
+      mount_table_xml_inclusion_file_full_path = os.path.join(hadoop_conf_dir, xml_inclusion_file_name)
+      mount_table_content = mount_table['content']
 
 link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")

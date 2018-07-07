@@ -30,7 +30,7 @@ public class HiveServiceValidator implements TopologyValidator {
   private static final String HIVE_DB_DEFAULT = "New MySQL Database";
   private static final String HIVE_DB_PROPERTY = "hive_database";
   private static final String MYSQL_SERVER_COMPONENT = "MYSQL_SERVER";
-  private static final String HIVE_SERVICE = "HIVE";
+  public static final String HIVE_SERVICE = "HIVE";
 
 
   @Override

@@ -33,6 +33,7 @@ from ambari_commons.aggregate_functions import sample_standard_deviation, mean
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
+from resource_management.libraries.functions.namenode_ha_utils import get_name_service_by_hostname
 from ambari_commons.ambari_metrics_helper import select_metric_collector_for_sink
 from ambari_agent.AmbariConfig import AmbariConfig
 
@@ -233,7 +234,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
-    name_service = configurations[NAMESERVICE_KEY]
+    name_service = get_name_service_by_hostname(hdfs_site, host_name)
 
     # look for dfs.ha.namenodes.foo
     nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
@@ -276,8 +277,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
             state = _get_ha_state_from_json(state_response)
           else:
-            state_response = get_jmx(jmx_uri, connection_timeout)
-            state = _get_ha_state_from_json(state_response)
+            state = _get_state_from_jmx(jmx_uri, connection_timeout)
 
           if state == HDFS_NN_STATE_ACTIVE:
             active_namenodes.append(namenode)
@@ -319,22 +319,25 @@ def execute(configurations={}, parameters={}, host_name=None):
                           metric_truststore_ca_certs)
   metric_collector_https_enabled = str(configurations[AMS_HTTP_POLICY]) == "HTTPS_ONLY"
 
+  _ssl_version = _get_ssl_version()
   try:
     conn = network.get_http_connection(
       collector_host,
       int(collector_port),
       metric_collector_https_enabled,
       ca_certs,
-      ssl_version=AmbariConfig.get_resolved_config().get_force_https_protocol_value()
+      ssl_version=_ssl_version
     )
     conn.request("GET", AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()
     data = response.read()
     conn.close()
-  except Exception:
+  except Exception, e:
+    logger.info(str(e))
     return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from the Ambari Metrics service."])
 
   if response.status != 200:
+    logger.info(str(data))
     return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from the Ambari Metrics service."])
 
   data_json = json.loads(data)
@@ -425,6 +428,16 @@ def valid_collector_webapp_address(webapp_address):
   return False
 
 
+def _get_state_from_jmx(jmx_uri, connection_timeout):
+  state_response = get_jmx(jmx_uri, connection_timeout)
+  state = _get_ha_state_from_json(state_response)
+  return state
+
+
+def _get_ssl_version():
+  return AmbariConfig.get_resolved_config().get_force_https_protocol_value()
+
+
 def get_jmx(query, connection_timeout):
   response = None
 
@@ -482,3 +495,4 @@ def _coerce_to_integer(value):
     return int(value)
   except ValueError:
     return int(float(value))
+

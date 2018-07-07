@@ -105,15 +105,18 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 else:
-  class HDP26ONEFSServiceAdvisor(service_advisor.ServiceAdvisor):
+  class ONEFSServiceAdvisor(service_advisor.ServiceAdvisor):
     def getServiceConfigurationRecommendations(self, configs, clusterData, services, hosts):
-      putCoreSiteProperty = self.putProperty(configs, "core-site", services)
-      putHdfsSiteProperty = self.putProperty(configs, "hdfs-site", services)
-      onefs_host = Uri.onefs(services)
-      putCoreSiteProperty("fs.defaultFS", Uri.default_fs(services).fix_host(onefs_host))
-      putHdfsSiteProperty("dfs.namenode.http-address", Uri.http_namenode(services).fix_host(onefs_host))
-      putHdfsSiteProperty("dfs.namenode.https-address", Uri.https_namenode(services).fix_host(onefs_host))
-      # self.updateYarnConfig(configs, services) TODO doesn't work possibly due to a UI bug (Couldn't retrieve 'capacity-scheduler' from services)
+      try:
+        putCoreSiteProperty = self.putProperty(configs, "core-site", services)
+        putHdfsSiteProperty = self.putProperty(configs, "hdfs-site", services)
+        onefs_host = Uri.onefs(services)
+        putCoreSiteProperty("fs.defaultFS", Uri.default_fs(services).fix_host(onefs_host))
+        putHdfsSiteProperty("dfs.namenode.http-address", Uri.http_namenode(services).fix_host(onefs_host))
+        putHdfsSiteProperty("dfs.namenode.https-address", Uri.https_namenode(services).fix_host(onefs_host))
+        # self.updateYarnConfig(configs, services) TODO doesn't work possibly due to a UI bug (Couldn't retrieve 'capacity-scheduler' from services)
+      except KeyError as e:
+        self.logger.info('Cannot get OneFS properties from config. KeyError: %s' % e)
 
     def updateYarnConfig(self, configs, services):
       if not 'YARN' in self.installedServices(services): return
@@ -137,4 +140,3 @@ else:
       validation_errors.extend(self.toConfigurationValidationProblems(CoreSite(services).validate(), 'core-site'))
       validation_errors.extend(self.toConfigurationValidationProblems(HdfsSite(services).validate(), 'hdfs-site'))
       return validation_errors
-

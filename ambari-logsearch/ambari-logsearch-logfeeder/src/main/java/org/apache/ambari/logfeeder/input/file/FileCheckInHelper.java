@@ -58,6 +58,9 @@ public class FileCheckInHelper {
       }
       inputFile.getLastCheckPointTimeMSs().put(inputMarker.getBase64FileKey(), currMS);
 
+      if (inputFile.getMaxAgeMin() != 0) {
+        jsonCheckPoint.put("max_age_min", inputFile.getMaxAgeMin().toString());
+      }
       jsonCheckPoint.put("line_number", "" + new Integer(inputMarker.getLineNumber()));
       jsonCheckPoint.put("last_write_time_ms", "" + new Long(currMS));
       jsonCheckPoint.put("last_write_time_date", new Date());
@@ -87,7 +90,6 @@ public class FileCheckInHelper {
         LOG, Level.ERROR);
     }
   }
-
 
 
 }

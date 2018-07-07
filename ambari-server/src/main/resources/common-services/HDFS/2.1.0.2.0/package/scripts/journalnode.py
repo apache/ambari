@@ -85,7 +85,7 @@ class JournalNodeDefault(JournalNode):
   def configure(self, env):
     import params
 
-    Directory(params.jn_edits_dir,
+    Directory(params.jn_edits_dirs,
               create_parents = True,
               cd_access="a",
               owner=params.hdfs_user,

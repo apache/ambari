@@ -19,30 +19,32 @@ package org.apache.ambari.server.security.authentication;
 
 import java.util.Collection;
 
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
-import org.apache.ambari.server.security.authorization.User;
-import org.apache.ambari.server.security.authorization.UserIdAuthentication;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class AmbariUserAuthentication implements Authentication, UserIdAuthentication {
+public class AmbariUserAuthentication implements Authentication {
 
-  private String serializedToken;
-  private User user;
-  private Collection<AmbariGrantedAuthority> userAuthorities;
-  private boolean authenticated = false;
+  private final String serializedToken;
+  private final AmbariUserDetails userDetails;
 
-  public AmbariUserAuthentication(String token, User user, Collection<AmbariGrantedAuthority> userAuthorities) {
+  private boolean authenticated;
+
+  public AmbariUserAuthentication(String token, AmbariUserDetails userDetails) {
+    this(token, userDetails, false);
+  }
+
+  public AmbariUserAuthentication(String token, AmbariUserDetails userDetails, boolean authenticated) {
     this.serializedToken = token;
-    this.user = user;
-    this.userAuthorities = userAuthorities;
+    this.userDetails = userDetails;
+    this.authenticated = authenticated;
   }
 
   @Override
   @JsonIgnore
-  public Collection<? extends AmbariGrantedAuthority> getAuthorities() {
-    return userAuthorities;
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return (userDetails == null) ? null : userDetails.getAuthorities();
   }
 
   @Override
@@ -56,8 +58,8 @@ public class AmbariUserAuthentication implements Authentication, UserIdAuthentic
   }
 
   @Override
-  public User getPrincipal() {
-    return user;
+  public AmbariUserDetails getPrincipal() {
+    return userDetails;
   }
 
   @Override
@@ -72,11 +74,10 @@ public class AmbariUserAuthentication implements Authentication, UserIdAuthentic
 
   @Override
   public String getName() {
-    return user.getUserName();
+    return (userDetails == null) ? null : userDetails.getUsername();
   }
 
-  @Override
   public Integer getUserId() {
-    return user.getUserId();
+    return (userDetails == null) ? null : userDetails.getUserId();
   }
 }

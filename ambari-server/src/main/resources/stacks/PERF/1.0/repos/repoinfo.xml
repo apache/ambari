@@ -17,7 +17,91 @@
 -->
 <reposinfo>
   <latest>/var/lib/ambari-server/resources/stacks/PERF/1.0/hdp_urlinfo.json</latest>
-  <os family="redhat6">
+  <os family="redhat7">
+    <repo>
+      <baseurl>http://foo-1.0.1.0-1</baseurl>
+      <repoid>PERF-1.0</repoid>
+      <reponame>PERF</reponame>
+      <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://foo2</baseurl>
+      <repoid>PERF-UTILS-1.0</repoid>
+      <reponame>PERF-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="redhat-ppc7">
+    <repo>
+      <baseurl>http://foo-1.0.1.0-1</baseurl>
+      <repoid>PERF-1.0</repoid>
+      <reponame>PERF</reponame>
+      <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://foo2</baseurl>
+      <repoid>PERF-UTILS-1.0</repoid>
+      <reponame>PERF-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="amazonlinux2">
+    <repo>
+      <baseurl>http://foo-1.0.1.0-1</baseurl>
+      <repoid>PERF-1.0</repoid>
+      <reponame>PERF</reponame>
+      <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://foo2</baseurl>
+      <repoid>PERF-UTILS-1.0</repoid>
+      <reponame>PERF-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="suse12">
+    <repo>
+      <baseurl>http://foo-1.0.1.0-1</baseurl>
+      <repoid>PERF-1.0</repoid>
+      <reponame>PERF</reponame>
+      <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://foo2</baseurl>
+      <repoid>PERF-UTILS-1.0</repoid>
+      <reponame>PERF-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="debian9">
+    <repo>
+      <baseurl>http://foo-1.0.1.0-1</baseurl>
+      <repoid>PERF-1.0</repoid>
+      <reponame>PERF</reponame>
+      <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://foo2</baseurl>
+      <repoid>PERF-UTILS-1.0</repoid>
+      <reponame>PERF-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="ubuntu14">
+    <repo>
+      <baseurl>http://foo-1.0.1.0-1</baseurl>
+      <repoid>PERF-1.0</repoid>
+      <reponame>PERF</reponame>
+      <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://foo2</baseurl>
+      <repoid>PERF-UTILS-1.0</repoid>
+      <reponame>PERF-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="ubuntu16">
     <repo>
       <baseurl>http://foo-1.0.1.0-1</baseurl>
       <repoid>PERF-1.0</repoid>

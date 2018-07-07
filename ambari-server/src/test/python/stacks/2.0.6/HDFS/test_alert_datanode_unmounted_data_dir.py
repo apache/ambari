@@ -54,8 +54,9 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     sys.path.append(file_path)
     global alert
     import alert_datanode_unmounted_data_dir as alert
-  
-  def test_missing_configs(self):
+
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
+  def test_missing_configs(self, get_and_cache_mount_points_mock):
     """
     Check that the status is UNKNOWN when configs are missing.
     """
@@ -71,10 +72,11 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs)
     self.assertNotEqual(status, RESULT_STATE_UNKNOWN)
 
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
-  def test_mount_history_file_does_not_exist(self, is_dir_mock, exists_mock, get_mount_mock):
+  def test_mount_history_file_does_not_exist(self, is_dir_mock, exists_mock, get_mount_mock, get_and_cache_mount_points_mock):
     """
     Test that the status is WARNING when the data dirs are mounted on root, but the mount history file
     does not exist.
@@ -93,11 +95,12 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("{0} was not found".format(DATA_DIR_MOUNT_HIST_FILE_PATH) in messages[0])
 
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
-  def test_all_dirs_on_root(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock):
+  def test_all_dirs_on_root(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock, get_and_cache_mount_points_mock):
     """
     Test that the status is OK when all drives are mounted on the root partition
     and this coincides with the expected values.
@@ -119,11 +122,12 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("The following data dir(s) are valid" in messages[0])
 
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
-  def test_match_expected(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock):
+  def test_match_expected(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock, get_and_cache_mount_points_mock):
     """
     Test that the status is OK when the mount points match the expected values.
     """
@@ -144,11 +148,12 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("The following data dir(s) are valid" in messages[0])
 
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
-  def test_critical_one_root_one_mounted(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock):
+  def test_critical_one_root_one_mounted(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock, get_and_cache_mount_points_mock):
     """
     Test that the status is CRITICAL when the history file is missing
     and at least one data dir is on a mount and at least one data dir is on the root partition.
@@ -168,11 +173,12 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("Detected at least one data dir on a mount point, but these are writing to the root partition:\n/grid/0/data\n/grid/1/data" in messages[0])
 
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
-  def test_critical_unmounted(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock):
+  def test_critical_unmounted(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock, get_and_cache_mount_points_mock):
     """
     Test that the status is CRITICAL when the history file exists and one of the dirs
     became unmounted.
@@ -196,11 +202,12 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue("Detected data dir(s) that became unmounted and are now writing to the root partition:\n/grid/1/data" in messages[0])
 
 
+  @patch("resource_management.libraries.functions.file_system.get_and_cache_mount_points")
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
-  def test_file_uri_and_meta_tags(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock):
+  def test_file_uri_and_meta_tags(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock, get_and_cache_mount_points_mock):
     """
     Test that the status is OK when the locations include file:// schemes and meta tags.
     """

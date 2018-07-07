@@ -35,14 +35,19 @@ App.ConfigVersionsDropdownView = Em.View.extend({
   displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
 
   didInsertElement: function() {
-    this.$().on("shown.bs.dropdown", function() {
+    this.$().on("shown.bs.dropdown", () => {
       const versionsBlock = $(this).find('.versions-list');
       if (versionsBlock.height() < versionsBlock.prop('scrollHeight')) {
         versionsBlock.addClass('bottom-shadow');
       } else {
         versionsBlock.removeClass('bottom-shadow');
       }
+      App.tooltip(this.$('[data-toggle="tooltip"]'));
     });
+  },
+
+  willDestroyElement: function() {
+    this.$('[data-toggle="tooltip"]').tooltip('destroy');
   },
 
   mainClickAction: function (event) {

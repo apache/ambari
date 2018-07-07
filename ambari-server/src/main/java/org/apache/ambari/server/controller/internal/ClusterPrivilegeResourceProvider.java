@@ -50,29 +50,28 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
    */
   protected static ClusterDAO clusterDAO;
 
-  /**
-   * Cluster privilege property id constants.
-   */
-  protected static final String PRIVILEGE_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("PrivilegeInfo", "cluster_name");
+  protected static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
+
+  protected static final String CLUSTER_NAME = PrivilegeResourceProvider.PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME_PROPERTY_ID;
 
   /**
    * The property ids for a privilege resource.
    */
   private static Set<String> propertyIds = Sets.newHashSet(
-      PRIVILEGE_CLUSTER_NAME_PROPERTY_ID,
-      PRIVILEGE_ID_PROPERTY_ID,
-      PERMISSION_NAME_PROPERTY_ID,
-      PERMISSION_NAME_PROPERTY_ID,
-      PERMISSION_LABEL_PROPERTY_ID,
-      PRINCIPAL_NAME_PROPERTY_ID,
-      PRINCIPAL_TYPE_PROPERTY_ID);
+      CLUSTER_NAME,
+      PRIVILEGE_ID,
+      PERMISSION_NAME,
+      PERMISSION_NAME,
+      PERMISSION_LABEL,
+      PRINCIPAL_NAME,
+      PRINCIPAL_TYPE);
 
   /**
    * The key property ids for a privilege resource.
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.Cluster, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID)
-      .put(Resource.Type.ClusterPrivilege, PRIVILEGE_ID_PROPERTY_ID)
+      .put(Resource.Type.Cluster, CLUSTER_NAME)
+      .put(Resource.Type.ClusterPrivilege, PRIVILEGE_ID)
       .build();
 
   // ----- Constructors ------------------------------------------------------
@@ -116,7 +115,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
   @Override
   public Map<Long, ClusterEntity> getResourceEntities(Map<String, Object> properties) {
 
-    String clusterName = (String) properties.get(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
+    String clusterName = (String) properties.get(CLUSTER_NAME);
 
     if (clusterName == null) {
       Map<Long, ClusterEntity> resourceEntities = new HashMap<>();
@@ -134,7 +133,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
 
   @Override
   public Long getResourceEntityId(Predicate predicate) {
-    final String clusterName = getQueryParameterValue(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, predicate).toString();
+    final String clusterName = getQueryParameterValue(CLUSTER_NAME, predicate).toString();
     final ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
     return clusterEntity.getResource().getId();
   }
@@ -153,7 +152,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
     Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, requestedIds);
     if (resource != null) {
       ClusterEntity clusterEntity = resourceEntities.get(privilegeEntity.getResource().getId());
-      setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
+      setResourceProperty(resource, CLUSTER_NAME, clusterEntity.getClusterName(), requestedIds);
     }
     return resource;
   }

@@ -80,7 +80,7 @@ App.MainHostDetailsView = Em.View.extend({
         label: this.t('passiveState.turn' + onOff)
       });
     }
-    if (App.get('isKerberosEnabled')){
+    if (App.get('isKerberosEnabled') && App.get('supports.regenerateKeytabsOnSingleHost')){
       var actionMap = App.HostComponentActionMap.getMap(this);
       result.push(actionMap.REGENERATE_KEYTAB_FILE_OPERATIONS);
     }    

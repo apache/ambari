@@ -24,6 +24,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewVersionService;
+import org.apache.ambari.server.controller.internal.ViewVersionResourceProvider;
 import org.apache.ambari.server.view.configuration.ParameterConfig;
 import org.apache.ambari.view.ViewDefinition;
 
@@ -48,7 +49,7 @@ public class ViewVersionResponse implements ApiModel {
    * Returns wrapper class instance for view version information
    * @return {@link #viewVersionInfo}
    */
-  @ApiModelProperty(name = "ViewVersionInfo")
+  @ApiModelProperty(name = ViewVersionResourceProvider.VIEW_VERSION_INFO)
   public ViewVersionInfo getViewVersionInfo() {
     return viewVersionInfo;
   }
@@ -113,6 +114,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns archive string
      * @return  archive
      */
+    @ApiModelProperty(name = ViewVersionResourceProvider.ARCHIVE_PROPERTY_ID)
     public String getArchive() {
       return archive;
     }
@@ -121,7 +123,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns build number
      * @return build number
      */
-    @ApiModelProperty(name = "build_number")
+    @ApiModelProperty(name = ViewVersionResourceProvider.BUILD_NUMBER_PROPERTY_ID)
     public String getBuildNumber() {
       return buildNumber;
     }
@@ -131,7 +133,7 @@ public class ViewVersionResponse implements ApiModel {
      * @return {@code true} if cluster is configurable
      *         {@code false} otherwise.
      */
-    @ApiModelProperty(name = "cluster_configurable")
+    @ApiModelProperty(name = ViewVersionResourceProvider.CLUSTER_CONFIGURABLE_PROPERTY_ID)
     public boolean isClusterConfigurable() {
       return clusterConfigurable;
     }
@@ -148,6 +150,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns view label
      * @return view label
      */
+    @ApiModelProperty(name = ViewVersionResourceProvider.LABEL_PROPERTY_ID)
     public String getLabel() {
       return label;
     }
@@ -156,7 +159,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns masker class
      * @return masker class
      */
-    @ApiModelProperty(name = "masker_class")
+    @ApiModelProperty(name = ViewVersionResourceProvider.MASKER_CLASS_PROPERTY_ID)
     public String getMaskerClass() {
       return maskerClass;
     }
@@ -165,7 +168,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns maximum ambari version
      * @return maximum ambari version
      */
-    @ApiModelProperty(name = "max_ambari_version")
+    @ApiModelProperty(name = ViewVersionResourceProvider.MAX_AMBARI_VERSION_PROPERTY_ID)
     public String getMaxAmbariVersion() {
       return maxAmbariVersion;
     }
@@ -174,7 +177,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns minimum ambari version
      * @return minimum ambari version
      */
-    @ApiModelProperty(name = "min_ambari_version")
+    @ApiModelProperty(name = ViewVersionResourceProvider.MIN_AMBARI_VERSION_PROPERTY_ID)
     public String getMinAmbariVersion() {
       return minAmbariVersion;
     }
@@ -183,6 +186,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns view parameters
      * @return list of {@link ParameterConfig}
      */
+    @ApiModelProperty(name = ViewVersionResourceProvider.PARAMETERS_PROPERTY_ID)
     public List<ParameterConfig> getParameters() {
       return parameters;
     }
@@ -191,6 +195,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns view status
      * @return {@link ViewDefinition.ViewStatus}
      */
+    @ApiModelProperty(name = ViewVersionResourceProvider.STATUS_PROPERTY_ID)
     public ViewDefinition.ViewStatus getStatus() {
       return status;
     }
@@ -199,7 +204,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns views status details
      * @return status details
      */
-    @ApiModelProperty(name = "status_detail")
+    @ApiModelProperty(name = ViewVersionResourceProvider.STATUS_DETAIL_PROPERTY_ID)
     public String getStatusDetail() {
       return statusDetail;
     }
@@ -209,6 +214,7 @@ public class ViewVersionResponse implements ApiModel {
      * @return {@code true} if system view
      *         {@code false} otherwise.
      */
+    @ApiModelProperty(name = ViewVersionResourceProvider.SYSTEM_PROPERTY_ID)
     public boolean isSystem() {
       return system;
     }
@@ -217,6 +223,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns view version
      * @return view version
      */
+    @ApiModelProperty(name = ViewVersionResourceProvider.VERSION_PROPERTY_ID)
     public String getVersion() {
       return version;
     }
@@ -225,7 +232,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns view name
      * @return view name
      */
-    @ApiModelProperty(name = "view_name")
+    @ApiModelProperty(name = ViewVersionResourceProvider.VIEW_NAME_PROPERTY_ID)
     public String getViewName() {
       return viewName;
     }

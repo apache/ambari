@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Host can be identified by AgentConfigsUpdateEvent#hostName.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements Hashable {
+public class HostLevelParamsUpdateEvent extends STOMPHostEvent implements Hashable {
 
   /**
    * Actual version hash.
@@ -80,6 +80,10 @@ public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements
   @Override
   public Long getHostId() {
     return hostId;
+  }
+
+  public Map<String, HostLevelParamsCluster> getHostLevelParamsClusters() {
+    return hostLevelParamsClusters;
   }
 
   @Override

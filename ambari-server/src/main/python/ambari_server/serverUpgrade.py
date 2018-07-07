@@ -45,12 +45,12 @@ from ambari_server.serverConfiguration import configDefaults, get_resources_loca
   AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir, write_gpl_license_accepted, set_property
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
-from ambari_server.utils import compare_versions
-from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
+from ambari_server.utils import compare_versions, get_json_url_from_repo_file, update_latest_in_repoinfos_for_all_stacks
+from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, get_ssl_context
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.setupMpacks import replay_mpack_logs
-from ambari_commons.logging_utils import get_debug_mode,   set_debug_mode_from_options
+from ambari_commons.logging_utils import get_debug_mode, set_debug_mode_from_options, get_silent
 
 logger = logging.getLogger(__name__)
 
@@ -123,8 +123,11 @@ def change_objects_owner(args):
 
 def run_schema_upgrade(args):
   db_title = get_db_type(get_ambari_properties()).title
+  silent = get_silent()
+  default_answer = 'y' if silent else 'n'
+  default_value = silent
   confirm = get_YN_input("Ambari Server configured for %s. Confirm "
-                        "you have made a backup of the Ambari Server database [y/n] (y)? " % db_title, True)
+                         "you have made a backup of the Ambari Server database [y/n] (%s)? " % (db_title, default_answer), default_value)
 
   if not confirm:
     print_error_msg("Database backup is not confirmed")
@@ -313,6 +316,15 @@ def upgrade(args):
   # we need that to support new dynamic jdbc names for upgraded ambari
   add_jdbc_properties(properties)
 
+  json_url = get_json_url_from_repo_file()
+  if json_url:
+    print "Ambari repo file contains latest json url {0}, updating stacks repoinfos with it...".format(json_url)
+    properties = get_ambari_properties()
+    stack_root = get_stack_location(properties)
+    update_latest_in_repoinfos_for_all_stacks(stack_root, json_url)
+  else:
+    print "Ambari repo file doesn't contain latest json url, skipping repoinfos modification"
+
 
 def add_jdbc_properties(properties):
   for db_name in CUSTOM_JDBC_DB_NAMES:
@@ -379,7 +391,7 @@ def set_current(options):
   request.get_method = lambda: 'PUT'
 
   try:
-    response = urllib2.urlopen(request)
+    response = urllib2.urlopen(request, context=get_ssl_context(properties))
   except urllib2.HTTPError, e:
     code = e.getcode()
     content = e.read()

@@ -103,6 +103,13 @@ public class CheckDescription {
       .put(ClusterCheck.DEFAULT,
           "The last upgrade attempt did not complete. {{fails}}").build());
 
+  public static CheckDescription INSTALL_PACKAGES_CHECK = new CheckDescription("INSTALL_PACKAGES_CHECK",
+    PrereqCheckType.CLUSTER,
+    "Install packages must be re-run",
+    new ImmutableMap.Builder<String, String>()
+      .put(ClusterCheck.DEFAULT,
+          "Re-run Install Packages before starting upgrade").build());
+
   public static CheckDescription CONFIG_MERGE = new CheckDescription("CONFIG_MERGE",
     PrereqCheckType.CLUSTER,
     "Configuration Merge Check",
@@ -135,8 +142,7 @@ public class CheckDescription {
           "After upgrading, %s can be reinstalled")
       .put(ServicePresenceCheck.KEY_SERVICE_REMOVED,
           "The %s service is currently installed on the cluster. " +
-          "This service is removed from the new release and must be removed before the upgrade can continue. " +
-          "After upgrading, %s can be installed").build());
+          "This service is removed from the new release and must be removed before the upgrade can continue.").build());
 
   public static CheckDescription AUTO_START_DISABLED = new CheckDescription("AUTO_START_DISABLED",
     PrereqCheckType.CLUSTER,
@@ -164,11 +170,25 @@ public class CheckDescription {
           .build());
 
   public static CheckDescription COMPONENTS_EXIST_IN_TARGET_REPO = new CheckDescription("COMPONENTS_EXIST_IN_TARGET_REPO",
-      PrereqCheckType.CLUSTER,
-      "Verify Cluster Components Exist In Target Repository",
+    PrereqCheckType.CLUSTER,
+    "Check installed services which are not supported in the installed stack",
+    new ImmutableMap.Builder<String, String>()
+      .put(ComponentsExistInRepoCheck.AUTO_REMOVE, "The following services and/or components do not exist in the target stack and will be automatically removed during the upgrade.")
+      .put(ComponentsExistInRepoCheck.MANUAL_REMOVE, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
+      .build()
+    );
+
+  public static CheckDescription DRUID_HA_WARNING = new CheckDescription(
+      "DRUID_HA",
+      PrereqCheckType.SERVICE,
+      "Druid Downtime During Upgrade",
       new ImmutableMap.Builder<String, String>()
-        .put(ClusterCheck.DEFAULT, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
-          .build());
+          .put(
+              ClusterCheck.DEFAULT,
+              "High Availability is not enabled for Druid. Druid Service may have some downtime during upgrade. Deploy multiple instances of %s in the Cluster to avoid any downtime."
+          )
+          .build()
+  );
 
   public static CheckDescription VALID_SERVICES_INCLUDED_IN_REPOSITORY = new CheckDescription("VALID_SERVICES_INCLUDED_IN_REPOSITORY",
       PrereqCheckType.CLUSTER,
@@ -176,6 +196,36 @@ public class CheckDescription {
       new ImmutableMap.Builder<String, String>()
         .put(ClusterCheck.DEFAULT,
             "The following services are included in the upgrade but the repository is missing their dependencies:\n%s").build());
+
+  public static CheckDescription ATLAS_MIGRATION_PROPERTY_CHECK = new CheckDescription("ATLAS_MIGRATION_PROPERTY_CHECK",
+    PrereqCheckType.SERVICE, "Check for Atlas Migration Property before upgrade.",
+      new ImmutableMap.Builder<String,String>().put(ClusterCheck.DEFAULT,
+        "The property atlas.migration.data.filename is missing from application-properties. Do not use atlas conf path ie /etc/atlas/conf as the value." +
+        "After upgrading Atlas will no longer support TitanDB, instead it will support JanusGraph." +
+        "Hence need to migrate existing data to newer formats post upgrade. " +
+        "To migrate existing data, Kindly refer and follow Apache Atlas documentation for 1.0 release.").build());
+
+  public static CheckDescription KERBEROS_ADMIN_CREDENTIAL_CHECK = new CheckDescription("KERBEROS_ADMIN_CREDENTIAL_CHECK",
+      PrereqCheckType.CLUSTER,
+      "The KDC administrator credentials need to be stored in Ambari persisted credential store.",
+      new ImmutableMap.Builder<String, String>()
+          .put(KerberosAdminPersistedCredentialCheck.KEY_PERSISTED_STORE_NOT_CONFIGURED,
+              "Ambari's credential store has not been configured.  " +
+                  "This is needed so the KDC administrator credential may be stored long enough to ensure it will be around if needed during the upgrade process.")
+          .put(KerberosAdminPersistedCredentialCheck.KEY_CREDENTIAL_NOT_STORED,
+              "The KDC administrator credential has not been stored in the persisted credential store. " +
+                  "Visit the Kerberos administrator page to set the credential. " +
+                  "This is needed so the KDC administrator credential may be stored long enough to ensure it will be around if needed during the upgrade process.")
+          .build());
+
+
+  public static final CheckDescription MISSING_OS_IN_REPO_VERSION = new CheckDescription("MISSING_OS_IN_REPO_VERSION",
+    PrereqCheckType.CLUSTER,
+    "Missing OS in repository version.",
+    new ImmutableMap.Builder<String, String>()
+      .put(MissingOsInRepoVersionCheck.SOURCE_OS, "The source version must have an entry for each OS type in the cluster")
+      .put(MissingOsInRepoVersionCheck.TARGET_OS, "The target version must have an entry for each OS type in the cluster")
+      .build());
 
   /**
    * A unique identifier.

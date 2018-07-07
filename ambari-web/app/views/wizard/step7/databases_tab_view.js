@@ -27,6 +27,11 @@ App.DatabasesTabOnStep7View = Em.View.extend({
     return App.Tab.find().filterProperty('themeName', 'database');
   }.property(),
 
+  /**
+   * @type {Array}
+   */
+  properties: [],
+
   configsView: null,
 
   didInsertElement: function () {
@@ -43,16 +48,13 @@ App.DatabasesTabOnStep7View = Em.View.extend({
       supportsConfigLayout: true,
       willDestroyElement: function () {
         $('.loading').append(Em.I18n.t('app.loadingPlaceholder'));
+        App.store.fastCommit();
       },
       didInsertElement: function () {
         $('.loading').empty();
         this._super();
       },
-      tabs: function () {
-        var tabs = this.get('tabModels');
-        this.processTabs(tabs);
-        return tabs;
-      }.property('tabModels'),
+      tabs: Em.computed.alias('tabModels'),
       hideTabs: function () {
         this.get('tabs').forEach(function (tab) {
           tab.set('isHidden', tab.get('isConfigsPrepared') && tab.get('isHiddenByFilter'));
@@ -67,6 +69,33 @@ App.DatabasesTabOnStep7View = Em.View.extend({
         currentTab.set('isActive', true);
       }
     }));
-  }
+    this.setLocalProperties();
+  },
+
+  setLocalProperties: function() {
+    if (this.get('controller.stepConfigsCreated')) {
+      var properties = [];
+      this.get('tabs').forEach((tab) => {
+        if (tab.get('isCategorized')) {
+          tab.get('sections').forEach((section) => {
+            section.get('subSections').forEach((row) => {
+              row.get('configProperties').forEach((id) => {
+                var config = App.configsCollection.getConfig(id);
+                var stepConfig = config && this.get('controller.stepConfigs').findProperty('serviceName', Em.get(config, 'serviceName')).get('configs').findProperty('name', Em.get(config, 'name'));
+                if (stepConfig) {
+                  properties.push(stepConfig);
+                }
+              });
+            });
+          });
+        }
+      });
+      this.set('properties', properties);
+    }
+  },
+
+  updateNextDisabled: function () {
+    this.set('controller.databasesTabNextEnabled', !this.get('properties').filterProperty('isActive').someProperty('error'));
+  }.observes('properties.@each.error', 'properties.@each.isActive')
 
 });

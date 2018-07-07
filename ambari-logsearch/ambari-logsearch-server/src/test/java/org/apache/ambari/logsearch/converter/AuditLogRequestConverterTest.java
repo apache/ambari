@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.AuditLogQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,22 +40,22 @@ public class AuditLogRequestConverterTest extends AbstractRequestConverterTest {
   @Test
   public void testConvert() {
     // GIVEN
-    AuditLogRequest request = new AuditLogRequest();
+    AuditLogRequest request = new AuditLogQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setUserList("joe,steven");
     // WHEN
     SimpleQuery simpleQuery = underTest.convert(request);
     SolrQuery queryResult = new DefaultQueryParser().doConstructSolrQuery(simpleQuery);
     // THEN
-    assertEquals("?q=*%3A*&start=0&rows=25&fq=repo%3A%28logsearch_app+secure_log%29&fq=-repo%3A%28hst_agent+system_message%29" +
-        "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=cluster%3Acl1&fq=reqUser%3A%28joe+steven%29&sort=evtTime+desc%2Cseq_num+desc",
+    assertEquals("?q=*%3A*&start=0&rows=25&fq=repo%3A%28logsearch_app+OR+secure_log%29&fq=-repo%3A%28hst_agent+OR+system_message%29" +
+        "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=cluster%3Acl1&fq=reqUser%3A%28joe+OR+steven%29&sort=evtTime+desc%2Cseq_num+desc",
       queryResult.toQueryString());
   }
 
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    AuditLogRequest request = new AuditLogRequest();
+    AuditLogRequest request = new AuditLogQueryRequest();
     // WHEN
     SimpleQuery simpleQuery = underTest.convert(request);
     SolrQuery queryResult = new DefaultQueryParser().doConstructSolrQuery(simpleQuery);

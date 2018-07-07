@@ -41,15 +41,38 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
-    <solr.version>7.2.1</solr.version>
+    <solr.version>7.3.1</solr.version>
     <hadoop.version>3.0.0</hadoop.version>
     <common.io.version>2.5</common.io.version>
+    <zookeeper.version>3.4.6.2.3.0.0-2557</zookeeper.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
     <skipSurefireTests>false</skipSurefireTests>
   </properties>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org</url>
+  </organization>
+  <issueManagement>
+    <system>jira</system>
+    <url>https://issues.apache.org/jira/browse/AMBARI</url>
+  </issueManagement>
+
   <repositories>
+    <repository>
+      <id>apache-hadoop</id>
+      <name>hdp</name>
+      <url>http://repo.hortonworks.com/content/groups/public/</url>
+    </repository>
     <repository>
       <id>oss.sonatype.org</id>
       <name>OSS Sonatype Staging</name>
@@ -221,6 +244,7 @@
             <exclude>**/*.txt</exclude>
             <exclude>**/*.story</exclude>
             <exclude>**/*.editorconfig</exclude>
+            <exclude>**/*.iml</exclude>
             <exclude>**/src/vendor/**</exclude>
             <exclude>**/yarn.lock</exclude>
             <exclude>**/docker/Profile</exclude>
@@ -278,6 +302,11 @@
         <groupId>io.netty</groupId>
         <artifactId>netty</artifactId>
         <version>3.10.5.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>${zookeeper.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

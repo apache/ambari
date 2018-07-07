@@ -206,7 +206,6 @@ describe('App.MainServiceInfoMetricsView', function() {
       sinon.spy(mock, 'on');
       sinon.spy(mock, 'off');
       sinon.spy(mock, 'sortable');
-      view.makeSortable();
     });
     afterEach(function() {
       window.$.restore();
@@ -216,14 +215,17 @@ describe('App.MainServiceInfoMetricsView', function() {
     });
 
     it("on() should be called", function() {
+      view.makeSortable('#widget_layout');
       expect(mock.on.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
     });
 
     it("sortable() should be called", function() {
-      expect(mock.sortable.calledOnce).to.be.true;
+      view.makeSortable('#widget_layout');
+      expect(mock.sortable.called).to.be.true;
     });
 
     it("off() should be called", function() {
+      view.makeSortable('#widget_layout');
       expect(mock.off.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
     });
   });
@@ -234,7 +236,7 @@ describe('App.MainServiceInfoMetricsView', function() {
       sinon.stub(view, 'constructGraphObjects', Em.K);
       this.mock = sinon.stub(App, 'get');
       sinon.stub(view, 'getServiceModel');
-      sinon.stub(view.get('controller'), 'getActiveWidgetLayout');
+      sinon.stub(view, 'loadActiveWidgetLayout');
       sinon.stub(view.get('controller'), 'loadWidgetLayouts');
       sinon.stub(view, 'makeSortable');
       sinon.stub(view, 'addWidgetTooltip');
@@ -245,7 +247,7 @@ describe('App.MainServiceInfoMetricsView', function() {
       view.constructGraphObjects.restore();
       this.mock.restore();
       view.getServiceModel.restore();
-      view.get('controller').getActiveWidgetLayout.restore();
+      view.loadActiveWidgetLayout.restore();
       view.get('controller').loadWidgetLayouts.restore();
       view.makeSortable.restore();
       view.addWidgetTooltip.restore();
@@ -261,11 +263,11 @@ describe('App.MainServiceInfoMetricsView', function() {
     });
     it("makeSortable should be called", function() {
       view.didInsertElement();
-      expect(view.makeSortable.calledOnce).to.be.true;
+      expect(view.makeSortable.called).to.be.true;
     });
-    it("getActiveWidgetLayout should be called", function() {
+    it("loadActiveWidgetLayout should be called", function() {
       view.didInsertElement();
-      expect(view.get('controller').getActiveWidgetLayout.calledOnce).to.be.true;
+      expect(view.loadActiveWidgetLayout.called).to.be.true;
     });
 
     describe("serviceName is null, metrics not supported, widgets not supported", function() {

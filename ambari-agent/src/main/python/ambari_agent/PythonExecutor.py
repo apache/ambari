@@ -51,6 +51,7 @@ class PythonExecutor(object):
     self.python_process_has_been_killed = False
     self.tmpDir = tmpDir
     self.config = config
+    self.log_max_symbols_size = self.config.log_max_symbols_size
     pass
 
 
@@ -189,12 +190,10 @@ class PythonExecutor(object):
     return python_command
 
   def condenseOutput(self, stdout, stderr, retcode, structured_out):
-    log_lines_count = self.config.get('heartbeat', 'log_lines_count')
-
     result = {
       "exitcode": retcode,
-      "stdout": self.grep.tail(stdout, log_lines_count) if log_lines_count else stdout,
-      "stderr": self.grep.tail(stderr, log_lines_count) if log_lines_count else stderr,
+      "stdout": self.grep.tail_by_symbols(stdout, self.log_max_symbols_size) if self.log_max_symbols_size else stdout,
+      "stderr": self.grep.tail_by_symbols(stderr, self.log_max_symbols_size) if self.log_max_symbols_size else stderr,
       "structuredOut" : structured_out
     }
 

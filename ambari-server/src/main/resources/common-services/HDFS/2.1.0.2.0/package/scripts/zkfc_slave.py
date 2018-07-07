@@ -35,6 +35,7 @@ from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import Fail, ComponentIsNotRunning
+from resource_management.core.resources.system import Execute
 
 
 class ZkfcSlave(Script):
@@ -53,6 +54,18 @@ class ZkfcSlave(Script):
     hdfs("zkfc_slave")
     utils.set_up_zkfc_security(params)
     pass
+
+  def format(self, env):
+    import params
+    env.set_params(params)
+
+    utils.set_up_zkfc_security(params)
+
+    Execute("hdfs zkfc -formatZK -nonInteractive",
+            returns=[0, 2], # Returns 0 on success ; Returns 2 if zkfc is already formatted
+            user=params.hdfs_user,
+            logoutput=True
+    )
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZkfcSlaveDefault(ZkfcSlave):
@@ -137,19 +150,6 @@ class ZkfcSlaveDefault(ZkfcSlave):
     env.set_params(params)
     if check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version_for_stack_feature_checks):
       stack_select.select_packages(params.version)
-      
-  def format(self, env):
-    import params
-    env.set_params(params)
-
-    try:
-      self.status(env)
-      raise Fail("ZKFC is running. Cannot format it.")
-    except ComponentIsNotRunning:
-      Execute("hdfs zkfc -formatZK",
-              user=params.hdfs_user,
-              logoutput=True
-      )
 
 def initialize_ha_zookeeper(params):
   try:

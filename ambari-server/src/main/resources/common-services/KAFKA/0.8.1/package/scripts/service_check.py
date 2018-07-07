@@ -44,23 +44,28 @@ class ServiceCheck(Script):
     if topic_exists_cmd_code > 0:
       raise Fail("Error encountered when attempting to list topics: {0}".format(topic_exists_cmd_out))
 
+    if not params.kafka_delete_topic_enable:
+      Logger.info('Kafka delete.topic.enable is not enabled. Skipping topic creation: %s' % topic)
+      return
 
-  # run create topic command only if the topic doesn't exists
-    
-    delete_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --delete --topic {topic}")
-    create_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic {topic} --partitions 1 --replication-factor 1")
-    if topic in topic_exists_cmd_out:
-      # run delete topic and recreate the topic command only if the topic exists
-      command = source_cmd + " ; " + delete_topic_cmd + ";" + create_topic_cmd
-    else:
-      # run create topic command 
+    # run create topic command only if the topic doesn't exists
+    if topic not in topic_exists_cmd_out:
+      create_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic {topic} --partitions 1 --replication-factor 1")
       command = source_cmd + " ; " + create_topic_cmd
-    Logger.info("Running kafka create topic command: %s" % command)
-    call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists", user=params.kafka_user)
+      Logger.info("Running kafka create topic command: %s" % command)
+      call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists", user=params.kafka_user)
+
+    under_rep_cmd = format("{kafka_home}/bin/kafka-topics.sh --describe --zookeeper {kafka_config[zookeeper.connect]} --under-replicated-partitions")
+    under_rep_cmd_code, under_rep_cmd_out = shell.call(under_rep_cmd, logoutput=True, quiet=False, user=params.kafka_user)
+
+    if under_rep_cmd_code > 0:
+      raise Fail("Error encountered when attempting find under replicated partitions: {0}".format(under_rep_cmd_out))
+    elif len(under_rep_cmd_out) > 0 and "Topic" in under_rep_cmd_out:
+      raise Fail("Under replicated partitions found: {0}".format(under_rep_cmd_out))
 
   def read_kafka_config(self):
     import params
-    
+
     kafka_config = {}
     content = sudo.read_file(params.conf_dir + "/server.properties")
     for line in content.splitlines():
@@ -69,7 +74,7 @@ class ServiceCheck(Script):
 
       key, value = line.split("=")
       kafka_config[key] = value.replace("\n", "")
-    
+
     return kafka_config
 
 if __name__ == "__main__":

@@ -742,17 +742,20 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    * @return {Object}
    */
   createComponentInstallationObject: function(fullComponent, hostName, savedComponent) {
-    var componentName = fullComponent.get('componentName');
-
-    var componentObj = {};
+    const componentName = fullComponent.get('componentName'),
+      resultingHostName = savedComponent ? savedComponent.hostName : hostName;
+    let componentObj = {};
     componentObj.component_name = componentName;
     componentObj.display_name = App.format.role(fullComponent.get('componentName'), false);
     componentObj.serviceId = fullComponent.get('serviceName');
     componentObj.serviceInstance = fullComponent.serviceInstance;
     componentObj.mpackInstance = fullComponent.mpackInstance;
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('mastersToMove').contains(componentName);
-    componentObj.selectedHost = savedComponent ? savedComponent.hostName : hostName;
+    componentObj.selectedHost = resultingHostName;
     componentObj.isInstalled = savedComponent ? savedComponent.isInstalled || (this.get('markSavedComponentsAsInstalled') && !this.get('mastersToCreate').contains(fullComponent.get('componentName'))) : false;
+    if (this.get('content.controllerName') === 'reassignMasterController' && componentName === 'NAMENODE' && App.get('hasNameNodeFederation')) {
+      componentObj.nameSpace = App.HostComponent.find(`${componentName}_${resultingHostName}`).get('haNameSpace');
+    }
     return componentObj;
   },
 
@@ -816,7 +819,37 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
 
     masterComponents.forEach(function (item) {
       var masterComponent = App.StackServiceComponent.find().findProperty('componentName', item.component_name);
-      var componentObj = Em.Object.create(item);
+      var componentObj = Em.Object.create(item, item.nameSpace ? {
+        allMasters: result,
+        /**
+         * Namespace of NameNode for enabled HDFS federation.
+         * If a new host is assigned to component, looking for other NameNodes
+         * to find which namespace has a 'free' host after this assignment.
+         * NameNodes with new host assigned are excluded from this process
+         * since moving more than one component at once is not allowed.
+         */
+        nameSpace: function () {
+          const hostComponent = App.HostComponent.find(`${this.get('component_name')}_${this.get('selectedHost')}`);
+          if (hostComponent.get('isLoaded')) {
+            return hostComponent.get('haNameSpace');
+          } else {
+            let nameSpacesCounts = {};
+            const allNameSpaces = this.get('allMasters').filter(masterComponent => {
+              return masterComponent.get('serviceComponentId') !== this.get('serviceComponentId')
+                && App.HostComponent.find(`${masterComponent.get('component_name')}_${masterComponent.get('selectedHost')}`).get('isLoaded')
+                && masterComponent.get('nameSpace');
+            }).mapProperty('nameSpace');
+            allNameSpaces.forEach(nameSpace => {
+              const currentCount = nameSpacesCounts[nameSpace];
+              nameSpacesCounts[nameSpace] = currentCount ? currentCount + 1 : 1;
+            });
+            const nameSpacesWithMissingHost = Object.keys(nameSpacesCounts).filter(key => nameSpacesCounts[key] === 1);
+            if (nameSpacesWithMissingHost.length === 1) {
+              return nameSpacesWithMissingHost[0];
+            }
+          }
+        }.property('allMasters.@each.selectedHost')
+      } : {});
       var showRemoveControl;
       if (masterComponent.get('isMasterWithMultipleInstances')) {
         showRemoveControl = installedServices.contains(masterComponent.get('stackService.serviceName')) &&

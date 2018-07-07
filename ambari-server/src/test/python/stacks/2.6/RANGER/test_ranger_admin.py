@@ -148,16 +148,16 @@ class TestRangerAdmin(RMFTestCase):
                               mode = 0644,
                               )
 
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',only_if = 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --check-config --config-set ranger_audits --retry 30 --interval 5',)
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --download-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',only_if = 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --check-config --config-set ranger_audits --retry 30 --interval 5',)
 
     self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_ranger_audits_0.[0-9]*/solrconfig.xml',content = InlineTemplate(self.getConfig()['configurations']['ranger-solr-configuration']['content']),
                                     only_if = 'test -d /tmp/solr_config_ranger_audits_0.[0-9]*',)
 
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --upload-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',
                                     only_if = 'test -d /tmp/solr_config_ranger_audits_0.[0-9]*',)
 
 
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /usr/hdp/current/ranger-admin/contrib/solr_for_audit_setup/conf --config-set ranger_audits --retry 30 --interval 5')
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --upload-config --config-dir /usr/hdp/current/ranger-admin/contrib/solr_for_audit_setup/conf --config-set ranger_audits --retry 30 --interval 5')
     self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_ranger_audits_0.[0-9]*',
                                     action=['delete'],
                                     create_parents=True)
@@ -167,10 +167,10 @@ class TestRangerAdmin(RMFTestCase):
                                          "\'{\"set-user-role\": {\"hbase@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"nn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"knox@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"rangerkms@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"kafka@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"hive@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"nifi@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"storm@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"yarn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"]}}\' -s -o /dev/null -w\'%{http_code}\' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
                               logoutput = True, tries = 30, try_sleep = 10, user='infra-solr')
 
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
 
-    self.assertResourceCalled('Execute','ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr/configs/ranger_audits --secure-znode --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr/collections/ranger_audits --secure-znode --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
+    self.assertResourceCalled('Execute','ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr/configs/ranger_audits --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --secure-znode --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr/collections/ranger_audits --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --secure-znode --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
 
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
       owner = 'ranger',
@@ -193,7 +193,7 @@ class TestRangerAdmin(RMFTestCase):
                               )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
                               mode = 0644
                               )
 
@@ -252,7 +252,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -380,12 +380,6 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
-    self.assertResourceCalled('File', '/etc/ranger/admin/rangeradmin.jceks',
-      owner = 'ranger',
-      group = 'ranger',
-      mode = 0640
-    )
-
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'trustStoreAlias', '-value', 'changeit', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
@@ -395,6 +389,14 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/admin/rangeradmin.jceks',
       owner = 'ranger',
       group = 'ranger',
+      only_if = 'test -e /etc/ranger/admin/rangeradmin.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/admin/.rangeradmin.jceks.crc',
+      owner = 'ranger',
+      group = 'ranger',
+      only_if = 'test -e /etc/ranger/admin/.rangeradmin.jceks.crc',
       mode = 0640
     )
 
@@ -430,7 +432,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -558,12 +560,6 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
-    self.assertResourceCalled('File', '/etc/ranger/admin/rangeradmin.jceks',
-      owner = 'ranger',
-      group = 'ranger',
-      mode = 0640
-    )
-
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'trustStoreAlias', '-value', 'changeit', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
@@ -573,6 +569,14 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/admin/rangeradmin.jceks',
       owner = 'ranger',
       group = 'ranger',
+      only_if = 'test -e /etc/ranger/admin/rangeradmin.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/admin/.rangeradmin.jceks.crc',
+      owner = 'ranger',
+      group = 'ranger',
+      only_if = 'test -e /etc/ranger/admin/.rangeradmin.jceks.crc',
       mode = 0640
     )
 

@@ -132,6 +132,13 @@ public interface KerberosHelper {
   String PRECONFIGURE_SERVICES = "preconfigure_services";
 
   /**
+   * If {@code true}, then this will create the stages and tasks as being
+   * retry-able. A failure during Kerberos operations will not cause the entire
+   * request to be aborted.
+   */
+  String ALLOW_RETRY = "allow_retry_on_failure";
+
+  /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
    * <p/>
    * The cluster "security_type" property is used to determine the security state of the cluster.
@@ -791,6 +798,20 @@ public interface KerberosHelper {
    * @return a map of configuration types to sets of property names
    */
   Map<String, Set<String>> translateConfigurationSpecifications(Collection<String> configurationSpecifications);
+  
+  /**
+   * Gathers the Kerberos-related data from configurations and stores it in a new KerberosDetails
+   * instance.
+   *
+   * @param cluster          the relevant Cluster
+   * @param manageIdentities a Boolean value indicating how to override the configured behavior
+   *                         of managing Kerberos identities; if null the configured behavior
+   *                         will not be overridden
+   * @return a new KerberosDetails with the collected configuration data
+   * @throws AmbariException
+   */
+  KerberosDetails getKerberosDetails(Cluster cluster, Boolean manageIdentities)
+    throws KerberosInvalidConfigurationException, AmbariException;  
 
   /**
    * Types of Kerberos descriptors related to where the data is stored.

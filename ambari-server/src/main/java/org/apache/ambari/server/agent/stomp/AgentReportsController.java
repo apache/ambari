@@ -22,23 +22,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Provider;
 import javax.ws.rs.WebApplicationException;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.HostNotRegisteredException;
 import org.apache.ambari.server.agent.AgentReport;
 import org.apache.ambari.server.agent.AgentReportsProcessor;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ComponentStatus;
 import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.stomp.dto.AckReport;
 import org.apache.ambari.server.agent.stomp.dto.CommandStatusReports;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReport;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReports;
 import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
+import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -51,6 +56,10 @@ import com.google.inject.Injector;
 @MessageMapping("/reports")
 public class AgentReportsController {
   private static final Logger LOG = LoggerFactory.getLogger(AgentReportsController.class);
+
+  @Autowired
+  private Provider<DefaultMessageEmitter> defaultMessageEmitterProvider;
+
   private final HeartBeatHandler hh;
   private final AgentSessionManager agentSessionManager;
   private final AgentReportsProcessor agentReportsProcessor;
@@ -62,7 +71,7 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/component_status")
-  public void handleComponentReportStatus(@Header String simpSessionId, ComponentStatusReports message)
+  public ReportsResponse handleComponentReportStatus(@Header String simpSessionId, ComponentStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
     List<ComponentStatus> statuses = new ArrayList<>();
     for (Map.Entry<String, List<ComponentStatusReport>> clusterReport : message.getComponentStatusReports().entrySet()) {
@@ -78,10 +87,11 @@ public class AgentReportsController {
 
     agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
         statuses, null, null));
+    return new ReportsResponse();
   }
 
   @MessageMapping("/commands_status")
-  public void handleCommandReportStatus(@Header String simpSessionId, CommandStatusReports message)
+  public ReportsResponse handleCommandReportStatus(@Header String simpSessionId, CommandStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
     List<CommandReport> statuses = new ArrayList<>();
     for (Map.Entry<String, List<CommandReport>> clusterReport : message.getClustersComponentReports().entrySet()) {
@@ -90,20 +100,32 @@ public class AgentReportsController {
 
     agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
         null, statuses, null));
+    return new ReportsResponse();
   }
 
   @MessageMapping("/host_status")
-  public void handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
+  public ReportsResponse handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
     agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
         null, null, message));
+    return new ReportsResponse();
   }
 
   @MessageMapping("/alerts_status")
-  public void handleAlertsStatus(@Header String simpSessionId, Alert[] message) throws AmbariException {
+  public ReportsResponse handleAlertsStatus(@Header String simpSessionId, Alert[] message) throws AmbariException {
     String hostName = agentSessionManager.getHost(simpSessionId).getHostName();
     List<Alert> alerts = Arrays.asList(message);
-    LOG.info("Handling {} alerts status for host {}", alerts.size(), hostName);
+    LOG.debug("Handling {} alerts status for host {}", alerts.size(), hostName);
     hh.getHeartbeatProcessor().processAlerts(hostName, alerts);
+    return new ReportsResponse();
+  }
+
+  @MessageMapping("/responses")
+  public ReportsResponse handleReceiveReport(@Header String simpSessionId, AckReport ackReport) throws HostNotRegisteredException {
+    Long hostId = agentSessionManager.getHost(simpSessionId).getHostId();
+    LOG.debug("Handling agent receive report for execution message with messageId {}, status {}, reason {}",
+        ackReport.getMessageId(), ackReport.getStatus(), ackReport.getReason());
+    defaultMessageEmitterProvider.get().processReceiveReport(hostId, ackReport);
+    return new ReportsResponse();
   }
 
 }

@@ -233,11 +233,8 @@ public interface Clusters {
 
   /**
    * Publish event set of hosts were removed
-   * @param clusters
-   * @param hostNames
-   * @throws AmbariException
    */
-  void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames)
+  void publishHostsDeletion(Set<Long> hostIds, Set<String> hostNames)
       throws AmbariException;
 
   /**
@@ -285,4 +282,9 @@ public interface Clusters {
    */
   void invalidate(Cluster cluster);
 
+  /**
+   * Invalidates all clusters by retrieving each from the database and refreshing all of its internal
+   * stateful collections.
+   */
+  void invalidateAllClusters();
 }

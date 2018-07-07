@@ -54,6 +54,10 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
     return configHelper.getHostActualConfigs(hostId);
   }
 
+  public AgentConfigsUpdateEvent getCurrentDataExcludeCluster(Long hostId, Long clusterId) throws AmbariException {
+    return configHelper.getHostActualConfigsExcludeCluster(hostId, clusterId);
+  }
+
   protected boolean handleUpdate(AgentConfigsUpdateEvent update) throws AmbariException {
     setData(update, update.getHostId());
     return true;
@@ -87,8 +91,6 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
 
   @Override
   protected void regenerateDataIdentifiers(AgentConfigsUpdateEvent data) {
-    data.setHash(null);
-    data.setTimestamp(null);
     data.setHash(getHash(data));
     data.setTimestamp(System.currentTimeMillis());
   }

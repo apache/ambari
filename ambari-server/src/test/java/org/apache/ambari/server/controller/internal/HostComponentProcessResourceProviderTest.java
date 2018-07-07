@@ -61,11 +61,11 @@ public class HostComponentProcessResourceProviderTest {
         }});
 
     PredicateBuilder pb = new PredicateBuilder().property(
-        HostComponentProcessResourceProvider.HC_PROCESS_CLUSTER_NAME_ID).equals("c1").and();
+        HostComponentProcessResourceProvider.CLUSTER_NAME).equals("c1").and();
     pb = pb.property(
-        HostComponentProcessResourceProvider.HC_PROCESS_HOST_NAME_ID).equals("h1").and();
+        HostComponentProcessResourceProvider.HOST_NAME).equals("h1").and();
     Predicate predicate = pb.property(
-        HostComponentProcessResourceProvider.HC_PROCESS_COMPONENT_NAME_ID).equals("comp1").toPredicate();
+        HostComponentProcessResourceProvider.COMPONENT_NAME).equals("comp1").toPredicate();
     
     Request request = PropertyHelper.getReadRequest(Collections.emptySet());
     
@@ -75,9 +75,9 @@ public class HostComponentProcessResourceProviderTest {
     Resource res = resources.iterator().next();
     
     Assert.assertNotNull(res.getPropertyValue(
-        HostComponentProcessResourceProvider.HC_PROCESS_NAME_ID));
+        HostComponentProcessResourceProvider.NAME));
     Assert.assertNotNull(res.getPropertyValue(
-        HostComponentProcessResourceProvider.HC_PROCESS_STATUS_ID));
+        HostComponentProcessResourceProvider.STATUS));
   }
   
   @Test
@@ -87,11 +87,11 @@ public class HostComponentProcessResourceProviderTest {
     ResourceProvider provider = init();
 
     PredicateBuilder pb = new PredicateBuilder().property(
-        HostComponentProcessResourceProvider.HC_PROCESS_CLUSTER_NAME_ID).equals("c1").and();
+        HostComponentProcessResourceProvider.CLUSTER_NAME).equals("c1").and();
     pb = pb.property(
-        HostComponentProcessResourceProvider.HC_PROCESS_HOST_NAME_ID).equals("h1").and();
+        HostComponentProcessResourceProvider.HOST_NAME).equals("h1").and();
     Predicate predicate = pb.property(
-        HostComponentProcessResourceProvider.HC_PROCESS_COMPONENT_NAME_ID).equals("comp1").toPredicate();
+        HostComponentProcessResourceProvider.COMPONENT_NAME).equals("comp1").toPredicate();
     
     Request request = PropertyHelper.getReadRequest(Collections.emptySet());
     
@@ -119,11 +119,11 @@ public class HostComponentProcessResourceProviderTest {
         }});        
 
     PredicateBuilder pb = new PredicateBuilder().property(
-        HostComponentProcessResourceProvider.HC_PROCESS_CLUSTER_NAME_ID).equals("c1").and();
+        HostComponentProcessResourceProvider.CLUSTER_NAME).equals("c1").and();
     pb = pb.property(
-        HostComponentProcessResourceProvider.HC_PROCESS_HOST_NAME_ID).equals("h1").and();
+        HostComponentProcessResourceProvider.HOST_NAME).equals("h1").and();
     Predicate predicate = pb.property(
-        HostComponentProcessResourceProvider.HC_PROCESS_COMPONENT_NAME_ID).equals("comp1").toPredicate();
+        HostComponentProcessResourceProvider.COMPONENT_NAME).equals("comp1").toPredicate();
     
     Request request = PropertyHelper.getReadRequest(Collections.emptySet());
     
@@ -132,8 +132,8 @@ public class HostComponentProcessResourceProviderTest {
     Assert.assertEquals(Integer.valueOf(3), Integer.valueOf(resources.size()));
     
     for (Resource r : resources) {
-      Assert.assertNotNull(r.getPropertyValue(HostComponentProcessResourceProvider.HC_PROCESS_NAME_ID));
-      Assert.assertNotNull(r.getPropertyValue(HostComponentProcessResourceProvider.HC_PROCESS_STATUS_ID));
+      Assert.assertNotNull(r.getPropertyValue(HostComponentProcessResourceProvider.NAME));
+      Assert.assertNotNull(r.getPropertyValue(HostComponentProcessResourceProvider.STATUS));
     }
   }
   
