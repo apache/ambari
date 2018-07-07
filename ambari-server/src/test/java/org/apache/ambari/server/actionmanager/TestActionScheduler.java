@@ -2910,10 +2910,13 @@ public class TestActionScheduler {
 
     HostRoleCommand hrc1 = hostRoleCommandFactory.create("h1", Role.NAMENODE, null, RoleCommand.EXECUTE);
     hrc1.setStatus(HostRoleStatus.COMPLETED);
+    hrc1.setExecutionCommandWrapper(new ExecutionCommandWrapper(new ExecutionCommand()));
     HostRoleCommand hrc3 = hostRoleCommandFactory.create("h1", Role.AMBARI_SERVER_ACTION, null, RoleCommand.CUSTOM_COMMAND);
     hrc3.setStatus(HostRoleStatus.HOLDING);
+    hrc3.setExecutionCommandWrapper(new ExecutionCommandWrapper(new ExecutionCommand()));
     HostRoleCommand hrc4 = hostRoleCommandFactory.create("h1", Role.FLUME_HANDLER, null, RoleCommand.EXECUTE);
     hrc4.setStatus(HostRoleStatus.PENDING);
+    hrc4.setExecutionCommandWrapper(new ExecutionCommandWrapper(new ExecutionCommand()));
 
     List<HostRoleCommand> hostRoleCommands = Arrays.asList(hrc1, hrc3, hrc4);
 
@@ -2944,10 +2947,13 @@ public class TestActionScheduler {
 
     HostRoleCommand hrc1 = hostRoleCommandFactory.create("h1", Role.NAMENODE, null, RoleCommand.EXECUTE);
     hrc1.setStatus(HostRoleStatus.COMPLETED);
+    hrc1.setExecutionCommandWrapper(new ExecutionCommandWrapper(new ExecutionCommand()));
     HostRoleCommand hrc3 = hostRoleCommandFactory.create(null, Role.AMBARI_SERVER_ACTION, null, RoleCommand.CUSTOM_COMMAND);
     hrc3.setStatus(HostRoleStatus.IN_PROGRESS);
+    hrc3.setExecutionCommandWrapper(new ExecutionCommandWrapper(new ExecutionCommand()));
     HostRoleCommand hrc4 = hostRoleCommandFactory.create("h1", Role.FLUME_HANDLER, null, RoleCommand.EXECUTE);
     hrc4.setStatus(HostRoleStatus.PENDING);
+    hrc4.setExecutionCommandWrapper(new ExecutionCommandWrapper(new ExecutionCommand()));
 
     List<HostRoleCommand> hostRoleCommands = Arrays.asList(hrc1, hrc3, hrc4);
 

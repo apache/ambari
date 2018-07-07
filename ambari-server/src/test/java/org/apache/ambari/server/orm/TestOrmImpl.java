@@ -188,7 +188,7 @@ public class TestOrmImpl extends Assert {
 
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
     clusterServiceEntity.setClusterEntity(cluster);
-    clusterServiceEntity.setServiceGroupEntity(serviceGroup);
+    //clusterServiceEntity.setServiceGroupEntity(serviceGroup);
     clusterServiceEntity.setServiceName(serviceName);
     clusterServiceEntity.setServiceType(serviceName);
 
