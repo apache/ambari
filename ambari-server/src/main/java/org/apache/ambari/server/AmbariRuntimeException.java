@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,33 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agent.stomp.dto;
 
+package org.apache.ambari.server;
 
-import org.apache.ambari.server.agent.RecoveryConfig;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class HostLevelParamsCluster {
-
-  @JsonProperty("hostRepositories")
-  private HostRepositories hostRepositories;
-
-  @JsonProperty("recoveryConfig")
-  private RecoveryConfig recoveryConfig;
-
-  public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig) {
-    this.hostRepositories = hostRepositories;
-    this.recoveryConfig = recoveryConfig;
-  }
-
-  public HostRepositories getHostRepositories() {
-    return hostRepositories;
-  }
-
-  public RecoveryConfig getRecoveryConfig() {
-    return recoveryConfig;
+/**
+ * Ambari unchecked exception.
+ */
+public class AmbariRuntimeException extends RuntimeException {
+  public AmbariRuntimeException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

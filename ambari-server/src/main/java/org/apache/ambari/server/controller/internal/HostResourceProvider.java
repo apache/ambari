@@ -571,12 +571,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             addedHost.getHostName(),
             addedHost.getRackInfo(),
             addedHost.getIPv4()));
-        HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(clusterId, new HostLevelParamsCluster(
+        HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(addedHost.getHostId(),
+            clusterId,
+            new HostLevelParamsCluster(
             getManagementController().retrieveHostRepositories(cl, addedHost),
             recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
                 addedHost.getHostName())
         ));
-        hostLevelParamsUpdateEvent.setHostId(addedHost.getHostId());
         hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
       }
     }

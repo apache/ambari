@@ -128,7 +128,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
     }
     clusterEnvProperties.put(KerberosHelper.SECURITY_ENABLED_PROPERTY_NAME, "true");
 
-    processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToRemove);
+    processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToRemove, kerberosDescriptor, getUpdateConfigurationPolicy(commandParameters));
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }

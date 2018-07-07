@@ -279,36 +279,49 @@ public class KerberosHelperImpl implements KerberosHelper {
                 throw new AmbariException(String.format("Custom operation %s can only be requested with the security type cluster property: %s", operation.name(), SecurityType.KERBEROS.name()));
               }
 
+              KerberosServerAction.OperationType operationType;
+              if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
+                operationType = KerberosServerAction.OperationType.RECREATE_ALL;
+              } else if ("missing".equalsIgnoreCase(value)) {
+                operationType = KerberosServerAction.OperationType.CREATE_MISSING;
+              } else {
+                throw new AmbariException(String.format("Unexpected directive value: %s", value));
+              }
+
               boolean retryAllowed = false;
               if (requestProperties.containsKey(ALLOW_RETRY)) {
                 String allowRetryString = requestProperties.get(ALLOW_RETRY);
                 retryAllowed = Boolean.parseBoolean(allowRetryString);
               }
 
-              CreatePrincipalsAndKeytabsHandler handler = null;
-
               Set<String> hostFilter = parseHostFilter(requestProperties);
               Map<String, Set<String>> serviceComponentFilter = parseComponentFilter(requestProperties);
 
-              boolean updateConfigurations = !requestProperties.containsKey(DIRECTIVE_IGNORE_CONFIGS)
-                || !"true".equalsIgnoreCase(requestProperties.get(DIRECTIVE_IGNORE_CONFIGS));
+              UpdateConfigurationPolicy updateConfigurationsPolicy = UpdateConfigurationPolicy.ALL;
+              if(requestProperties.containsKey(DIRECTIVE_CONFIG_UPDATE_POLICY)) {
+                String policyValue = requestProperties.get(DIRECTIVE_CONFIG_UPDATE_POLICY);
+                updateConfigurationsPolicy = UpdateConfigurationPolicy.translate(policyValue);
+
+                if(updateConfigurationsPolicy== null) {
+                  throw new AmbariException(String.format("Unexpected comfiguration policy value: %s", policyValue));
+                }
+              }
+              else if(requestProperties.containsKey(DIRECTIVE_IGNORE_CONFIGS)) {
+                if("true".equalsIgnoreCase(requestProperties.get(DIRECTIVE_IGNORE_CONFIGS))) {
+                  // This really means to no update existing properties. However, we need to ensure
+                  // that Kerberos identity specific configurations are updated or added to make
+                  // sure all is consistent.
+                  updateConfigurationsPolicy = UpdateConfigurationPolicy.NEW_AND_IDENTITIES;
+                }
+              }
 
               boolean forceAllHosts = (hostFilter == null) || (hostFilter.contains("*"));
 
-              if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
-                handler = new CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType.RECREATE_ALL, updateConfigurations, forceAllHosts, true);
-              } else if ("missing".equalsIgnoreCase(value)) {
-                handler = new CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType.CREATE_MISSING, updateConfigurations, forceAllHosts, true);
-              }
+              CreatePrincipalsAndKeytabsHandler handler = new CreatePrincipalsAndKeytabsHandler(operationType, updateConfigurationsPolicy, forceAllHosts, true);
+              handler.setRetryAllowed(retryAllowed);
 
-              if (handler != null) {
-                handler.setRetryAllowed(retryAllowed);
-
-                requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities),
+              requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities),
                   serviceComponentFilter, hostFilter, null, null, requestStageContainer, handler);
-              } else {
-                throw new AmbariException(String.format("Unexpected directive value: %s", value));
-              }
 
               break;
 
@@ -368,9 +381,17 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                 Set<String> hostFilter, Collection<String> identityFilter, Set<String> hostsToForceKerberosOperations,
                                                 RequestStageContainer requestStageContainer, Boolean manageIdentities)
     throws AmbariException, KerberosOperationException {
-    return handle(cluster, getKerberosDetails(cluster, manageIdentities), serviceComponentFilter, hostFilter, identityFilter,
-      hostsToForceKerberosOperations, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType.DEFAULT, false, false,
-        false));
+    return handle(cluster,
+        getKerberosDetails(cluster, manageIdentities),
+        serviceComponentFilter,
+        hostFilter,
+        identityFilter,
+        hostsToForceKerberosOperations,
+        requestStageContainer,
+        new CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType.DEFAULT,
+            UpdateConfigurationPolicy.NONE,
+            false,
+            false));
   }
 
   @Override
@@ -1112,8 +1133,14 @@ public class KerberosHelperImpl implements KerberosHelper {
   public RequestStageContainer createTestIdentity(Cluster cluster, Map<String, String> commandParamsStage,
                                                   RequestStageContainer requestStageContainer)
     throws KerberosOperationException, AmbariException {
-    return handleTestIdentity(cluster, getKerberosDetails(cluster, null), commandParamsStage, requestStageContainer,
-      new CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType.DEFAULT, false, false, false));
+    return handleTestIdentity(cluster,
+        getKerberosDetails(cluster, null),
+        commandParamsStage,
+        requestStageContainer,
+        new CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType.DEFAULT,
+            UpdateConfigurationPolicy.NONE,
+            false,
+            false));
   }
 
   @Override
@@ -2747,6 +2774,9 @@ public class KerberosHelperImpl implements KerberosHelper {
 
             if (allowedStates.contains(host.getState())) {
               hostNames.add(hostname);
+            } else {
+              LOG.warn("Host {} was excluded due {} state is not allowed. Allowed states: {}", hostname, host.getState(),
+                  allowedStates);
             }
           }
 
@@ -3890,7 +3920,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       Map<String, String> commandParameters = new HashMap<>();
       commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
       commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_NOTE, "Enabling Kerberos");
-      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATIONS, "true");
+      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_POLICY, UpdateConfigurationPolicy.ALL.name());
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
       commandParameters.put(KerberosServerAction.INCLUDE_AMBARI_IDENTITY, (kerberosDetails.createAmbariPrincipal()) ? "true" : "false");
       commandParameters.put(KerberosServerAction.PRECONFIGURE_SERVICES, kerberosDetails.getPreconfigureServices());
@@ -3986,7 +4016,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       Map<String, String> commandParameters = new HashMap<>();
       commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
       commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_NOTE, "Disabling Kerberos");
-      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATIONS, "true");
+      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_POLICY, UpdateConfigurationPolicy.ALL.name());
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
       if (dataDirectory != null) {
         commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
@@ -4083,10 +4113,9 @@ public class KerberosHelperImpl implements KerberosHelper {
     private KerberosServerAction.OperationType operationType;
 
     /**
-     * A boolean value indicating whether to update service configurations (<code>true</code>)
-     * or ignore any potential configuration changes (<code>false</code>).
+     * A UpdateConfigurationPolicy indicating how to handle configuration changes.
      */
-    private boolean updateConfigurations;
+    private UpdateConfigurationPolicy updateConfigurationPolicy;
 
     /**
      * A boolean value indicating whether to include all hosts (<code>true</code>) when setting up
@@ -4106,19 +4135,20 @@ public class KerberosHelperImpl implements KerberosHelper {
      * CreatePrincipalsAndKeytabsHandler constructor to set whether this instance should be used to
      * regenerate all keytabs or just the ones that have not been distributed
      *
-     * @param operationType         The type of Kerberos operation being performed
-     * @param updateConfigurations  A boolean value indicating whether to update service configurations
-     *                              (<code>true</code>) or ignore any potential configuration changes
-     * @param forceAllHosts         A boolean value indicating whether to include all hosts (<code>true</code>)
-     *                              when setting up agent-side tasks or to select only the hosts found to be
-     *                              relevant (<code>false</code>)
-     * @param includeAmbariIdentity A boolean value indicating whether to include Ambari server
-     *                              identity (<code>true</code>) or ignore it (<code>false</code>)
+     * @param operationType             The type of Kerberos operation being performed
+     * @param updateConfigurationPolicy The policy to use when updating configurations
+     *                                  (<code>true</code>) or ignore any potential configuration changes
+     * @param forceAllHosts             A boolean value indicating whether to include all hosts (<code>true</code>)
+     *                                  when setting up agent-side tasks or to select only the hosts found to be
+     *                                  relevant (<code>false</code>)
+     * @param includeAmbariIdentity     A boolean value indicating whether to include Ambari server
+     *                                  identity (<code>true</code>) or ignore it (<code>false</code>)
      */
-    CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType operationType, boolean updateConfigurations,
+    CreatePrincipalsAndKeytabsHandler(KerberosServerAction.OperationType operationType,
+                                      UpdateConfigurationPolicy updateConfigurationPolicy,
                                       boolean forceAllHosts, boolean includeAmbariIdentity) {
       this.operationType = operationType;
-      this.updateConfigurations = updateConfigurations;
+      this.updateConfigurationPolicy = updateConfigurationPolicy;
       this.forceAllHosts = forceAllHosts;
       this.includeAmbariIdentity = includeAmbariIdentity;
     }
@@ -4175,9 +4205,9 @@ public class KerberosHelperImpl implements KerberosHelper {
       commandParameters.put(KerberosServerAction.OPERATION_TYPE, (operationType == null) ? KerberosServerAction.OperationType.DEFAULT.name() : operationType.name());
       commandParameters.put(KerberosServerAction.INCLUDE_AMBARI_IDENTITY, (processAmbariIdentity) ? "true" : "false");
 
-      if (updateConfigurations) {
+      if (updateConfigurationPolicy != UpdateConfigurationPolicy.NONE) {
         commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_NOTE, "Updated Kerberos-related configurations");
-        commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATIONS, "true");
+        commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_POLICY, updateConfigurationPolicy.name());
       }
 
       List<String> hostsToInclude = calculateHosts(cluster, serviceComponentHosts, hostsWithValidKerberosClient, forceAllHosts);
@@ -4218,7 +4248,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           roleCommandOrder, requestStageContainer, hostsToInclude);
       }
 
-      if (updateConfigurations) {
+      if (updateConfigurationPolicy != UpdateConfigurationPolicy.NONE) {
         // *****************************************************************
         // Create stage to update configurations of services
         addUpdateConfigurationsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
@@ -4279,6 +4309,8 @@ public class KerberosHelperImpl implements KerberosHelper {
         for (Host host : clusterHosts) {
           if (host.getState() == HostState.HEALTHY) {
             hosts.add(host.getHostName());
+          } else {
+            LOG.warn("Host {} was excluded due {} state", host.getHostName(), host.getState());
           }
         }
       }
@@ -4350,6 +4382,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         }
 
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
+        commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_POLICY, UpdateConfigurationPolicy.ALL.name());
 
         // *****************************************************************
         // Create stage to create principals

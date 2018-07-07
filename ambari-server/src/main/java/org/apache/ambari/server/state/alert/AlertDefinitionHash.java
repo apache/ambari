@@ -361,18 +361,9 @@ public class AlertDefinitionHash {
       return Collections.emptySet();
     }
 
-    Map<String, Host> hosts = null;
     String clusterName = cluster.getClusterName();
+    Map<String, Host> hosts = m_clusters.get().getHostsForCluster(clusterName);
     Set<String> affectedHosts = new HashSet<>();
-
-    try {
-      hosts = m_clusters.get().getHostsForCluster(clusterName);
-    } catch (AmbariException ambariException) {
-      LOG.error("Unable to lookup hosts for cluster named {}", clusterName,
-          ambariException);
-
-      return affectedHosts;
-    }
 
     String ambariServiceName = RootService.AMBARI.name();
     String agentComponentName = RootComponent.AMBARI_AGENT.name();

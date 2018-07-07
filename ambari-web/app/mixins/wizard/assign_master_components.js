@@ -1204,12 +1204,12 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       hosts: hostNames,
       mpack_instances: mpackInstances,
       components: this.getCurrentComponentHostMap()
-    }).then(function() {
+    }).done(function() {
       self.validateSelectedHostComponents({
         hosts: hostNames,
         mpack_instances: mpackInstances,
         blueprint: self.get('recommendations')
-      }).then(function() {
+      }).always(function() {
         if (callback) {
           callback();
         }
@@ -1219,7 +1219,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
           self.recommendAndValidate(callback);
         }
       });
-    }, true);
+    });
   },
 
   getCurrentComponentHostMap: function() {

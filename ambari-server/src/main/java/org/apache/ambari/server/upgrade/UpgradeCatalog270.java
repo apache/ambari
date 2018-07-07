@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -53,15 +54,15 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
-import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
-import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
@@ -253,6 +254,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
+  // Broken constraints added by Views
+  public static final String FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME = "fk_hostcomponentdesiredstate_component_name";
+  public static final String FK_HOSTCOMPONENTSTATE_COMPONENT_NAME = "fk_hostcomponentstate_component_name";
+  public static final String FK_SERVICECOMPONENTDESIREDSTATE_SERVICE_NAME = "fk_servicecomponentdesiredstate_service_name";
+
   static final String YARN_SERVICE = "YARN";
 
   @Inject
@@ -297,6 +303,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    dropBrokenFKs();
     updateStageTable();
     updateRequestTable();
     addOpsDisplayNameColumnToHostRoleCommand();
@@ -941,6 +948,12 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     dbAccessor.dropTable(temporaryTable);
   }
 
+  private void dropBrokenFKs() throws SQLException {
+    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME);
+    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, FK_HOSTCOMPONENTSTATE_COMPONENT_NAME);
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, FK_SERVICECOMPONENTDESIREDSTATE_SERVICE_NAME);
+  }
+
   protected void updateStageTable() throws SQLException {
     dbAccessor.addColumn(STAGE_TABLE,
       new DBAccessor.DBColumnInfo(STAGE_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
@@ -1046,30 +1059,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     updateStormConfigs();
   }
 
-  protected void renameAmbariInfra() throws SQLException {
+  protected void renameAmbariInfra() {
     LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR");
-    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK);
-    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK);
-    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
-    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
-    try {
-      dbAccessor.updateTable(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-    } finally {
-      dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
-        SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
-        SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-        COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-        COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-    }
-
-
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
     if (clusters == null)
@@ -1079,41 +1070,108 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     if (MapUtils.isEmpty(clusterMap))
       return;
 
-    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
-    for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(serviceConfigEntity.getServiceName())) {
-        serviceConfigEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        serviceConfigDAO.merge(serviceConfigEntity);
-      }
-    }
+    EntityManager entityManager = getEntityManagerProvider().get();
+    ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    ServiceDesiredStateDAO serviceDesiredStateDAO = injector.getInstance(ServiceDesiredStateDAO.class);
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
 
-    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
     for (final Cluster cluster : clusterMap.values()) {
-      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionDAO.findByService(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME)) {
-        alertDefinitionEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertDefinitionDAO.merge(alertDefinitionEntity);
-      }
+      // TODO: [AMP] Revisit logic
+//      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(cluster.getClusterId());
+//      if (clusterServiceEntity == null)
+//        continue;
+//
+//      List<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities =
+//              new ArrayList<>(clusterServiceEntity.getServiceComponentDesiredStateEntities());
+//      ServiceDesiredStateEntity serviceDesiredStateEntity = clusterServiceEntity.getServiceDesiredStateEntity();
+//
+//      List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findByService(AMBARI_INFRA_OLD_NAME);
+//      List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities = new ArrayList<>();
+//
+//
+//      for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity : clusterServiceEntity.getServiceComponentDesiredStateEntities()) {
+//        hostComponentDesiredStateEntities.addAll(
+//                hostComponentDesiredStateDAO.findByIndex(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME, serviceComponentDesiredStateEntity.getComponentName()));
+//      }
+//
+//      for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
+//        hostComponentStateDAO.remove(hostComponentStateEntity);
+//        entityManager.detach(hostComponentStateEntity);
+//        hostComponentStateEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+//      }
+//
+//      for (HostComponentDesiredStateEntity hostComponentDesiredStateEntity : hostComponentDesiredStateEntities) {
+//        hostComponentDesiredStateDAO.remove(hostComponentDesiredStateEntity);
+//        entityManager.detach(hostComponentDesiredStateEntity);
+//        hostComponentDesiredStateEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+//      }
+//
+//      clusterServiceEntity.getServiceComponentDesiredStateEntities().clear();
+//      for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity : serviceComponentDesiredStateEntities) {
+//        serviceComponentDesiredStateDAO.remove(serviceComponentDesiredStateEntity);
+//        entityManager.detach(serviceComponentDesiredStateEntity);
+//        serviceComponentDesiredStateEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+//      }
+//
+//      if (serviceDesiredStateEntity != null) {
+//        clusterServiceEntity.setServiceDesiredStateEntity(null);
+//        serviceDesiredStateDAO.remove(serviceDesiredStateEntity);
+//        entityManager.detach(serviceDesiredStateEntity);
+//        serviceDesiredStateEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+//      }
+//
+//      clusterServiceDAO.remove(clusterServiceEntity);
+//      entityManager.detach(clusterServiceEntity);
+//
+//      clusterServiceEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+//      clusterServiceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
+//      clusterServiceDAO.create(clusterServiceEntity);
+//
+//      for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity : serviceComponentDesiredStateEntities)
+//        serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
+//      for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities)
+//        hostComponentStateDAO.create(hostComponentStateEntity);
+//      for (HostComponentDesiredStateEntity hostComponentDesiredStateEntity : hostComponentDesiredStateEntities)
+//        hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
     }
 
-    AlertDispatchDAO alertDispatchDAO = injector.getInstance(AlertDispatchDAO.class);
-    for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertGroupEntity.getServiceName())) {
-        alertGroupEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertGroupEntity.setGroupName(AMBARI_INFRA_NEW_NAME);
-        alertDispatchDAO.merge(alertGroupEntity);
-      }
-    }
+    executeInTransaction(() -> {
+      TypedQuery<ServiceConfigEntity> serviceConfigUpdate = entityManager.createQuery(
+              "UPDATE ServiceConfigEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", ServiceConfigEntity.class);
+      serviceConfigUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      serviceConfigUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      serviceConfigUpdate.executeUpdate();
+    });
 
-    AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
-    for (AlertHistoryEntity alertHistoryEntity : alertsDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertHistoryEntity.getServiceName())) {
-        alertHistoryEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertsDAO.merge(alertHistoryEntity);
+    executeInTransaction(() -> {
+      for (final Cluster cluster : clusterMap.values()) {
+        TypedQuery<AlertDefinitionEntity> alertDefinitionUpdate = entityManager.createQuery(
+                "UPDATE AlertDefinitionEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName AND clusterId = :clusterId", AlertDefinitionEntity.class);
+        alertDefinitionUpdate.setParameter("clusterId", cluster.getClusterId());
+        alertDefinitionUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+        alertDefinitionUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+        alertDefinitionUpdate.executeUpdate();
       }
-    }
+    });
+
+    executeInTransaction(() -> {
+      TypedQuery<AlertGroupEntity> alertGroupUpdate = entityManager.createQuery("UPDATE AlertGroupEntity SET serviceName = :newServiceName, groupName = :newServiceName WHERE serviceName = :oldServiceName", AlertGroupEntity.class);
+      alertGroupUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      alertGroupUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      alertGroupUpdate.executeUpdate();
+    });
+
+    executeInTransaction(() -> {
+      TypedQuery<AlertHistoryEntity> alertHistoryUpdate = entityManager.createQuery("UPDATE AlertHistoryEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", AlertHistoryEntity.class);
+      alertHistoryUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      alertHistoryUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      alertHistoryUpdate.executeUpdate();
+    });
 
     // Force the clusters object to reload to ensure the renamed service is accounted for
-    getEntityManagerProvider().get().getEntityManagerFactory().getCache().evictAll();
+    entityManager.getEntityManagerFactory().getCache().evictAll();
     clusters.invalidateAllClusters();
   }
 
