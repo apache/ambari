@@ -148,7 +148,10 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
       $t('common.deleteConfirmation', {
         instanceType: $t('common.user').toLowerCase(),
         instanceName: '"' + user.user_name + '"'
-      })
+      }),
+      null,
+      null,
+      {primaryClass: 'btn-danger'}
     ).then(function () {
       Cluster.getPrivilegesForResource({
         nameFilter: user.user_name,

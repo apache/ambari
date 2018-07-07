@@ -30,6 +30,7 @@ from ambari_agent.Utils import Utils
 from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 from ambari_agent.listeners.TopologyEventListener import TopologyEventListener
 from ambari_agent.listeners.ConfigurationEventListener import ConfigurationEventListener
+from ambari_agent.listeners.AgentActionsListener import AgentActionsListener
 from ambari_agent.listeners.MetadataEventListener import MetadataEventListener
 from ambari_agent.listeners.CommandsEventListener import CommandsEventListener
 from ambari_agent.listeners.HostLevelParamsEventListener import HostLevelParamsEventListener
@@ -57,25 +58,29 @@ class HeartbeatThread(threading.Thread):
     self.config = initializer_module.config
 
     # listeners
-    self.server_responses_listener = ServerResponsesListener()
-    self.commands_events_listener = CommandsEventListener(initializer_module.action_queue)
-    self.metadata_events_listener = MetadataEventListener(initializer_module.metadata_cache)
-    self.topology_events_listener = TopologyEventListener(initializer_module.topology_cache)
-    self.configuration_events_listener = ConfigurationEventListener(initializer_module.configurations_cache)
-    self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module.host_level_params_cache, initializer_module.recovery_manager)
-    self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module.alert_definitions_cache, initializer_module.alert_scheduler_handler)
-    self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener]
+    self.server_responses_listener = initializer_module.server_responses_listener
+    self.commands_events_listener = CommandsEventListener(initializer_module)
+    self.metadata_events_listener = MetadataEventListener(initializer_module)
+    self.topology_events_listener = TopologyEventListener(initializer_module)
+    self.configuration_events_listener = ConfigurationEventListener(initializer_module)
+    self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module)
+    self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module)
+    self.agent_actions_events_listener = AgentActionsListener(initializer_module)
+    self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener]
 
     self.post_registration_requests = [
-    (Constants.TOPOLOGY_REQUEST_ENDPOINT, initializer_module.topology_cache, self.topology_events_listener),
-    (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener),
-    (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener),
-    (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener),
-    (Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener)
+    (Constants.TOPOLOGY_REQUEST_ENDPOINT, initializer_module.topology_cache, self.topology_events_listener, Constants.TOPOLOGIES_TOPIC),
+    (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener, Constants.METADATA_TOPIC),
+    (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener, Constants.CONFIGURATIONS_TOPIC),
+    (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener, Constants.HOST_LEVEL_PARAMS_TOPIC),
+    (Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener, Constants.ALERTS_DEFINITIONS_TOPIC)
     ]
     self.responseId = 0
     self.file_cache = initializer_module.file_cache
     self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
+    self.post_registration_actions = [self.file_cache.reset, initializer_module.component_status_executor.clean_not_existing_clusters_info,
+                                      initializer_module.alert_status_reporter.clean_not_existing_clusters_info, initializer_module.host_status_reporter.clean_cache]
+
 
 
   def run(self):
@@ -127,7 +132,7 @@ class HeartbeatThread(threading.Thread):
 
     self.handle_registration_response(response)
 
-    for endpoint, cache, listener in self.post_registration_requests:
+    for endpoint, cache, listener, subscribe_to in self.post_registration_requests:
       # should not hang forever on these requests
       response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
       try:
@@ -136,11 +141,18 @@ class HeartbeatThread(threading.Thread):
         logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
         raise
 
+      self.subscribe_to_topics([subscribe_to])
+
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
-    self.file_cache.reset()
+
+    self.run_post_registration_actions()
     self.initializer_module.is_registered = True
     # now when registration is done we can expose connection to other threads.
     self.initializer_module._connection = self.connection
+
+  def run_post_registration_actions(self):
+    for post_registration_action in self.post_registration_actions:
+      post_registration_action()
 
   def unregister(self):
     """
@@ -189,10 +201,6 @@ class HeartbeatThread(threading.Thread):
     else:
       self.responseId = serverId
 
-    if 'restartAgent' in response and response['restartAgent'].lower() == "true":
-      logger.warn("Restarting the agent by the request from server")
-      Utils.restartAgent(self.stop_event)
-
   def get_heartbeat_body(self):
     """
     Heartbeat body to be send to server
@@ -237,7 +245,7 @@ class HeartbeatThread(threading.Thread):
     """
     def presend_hook(correlation_id):
       if log_handler:
-        self.server_responses_listener.logging_handlers[str(correlation_id)] = log_handler 
+        self.server_responses_listener.logging_handlers[correlation_id] = log_handler
            
     try:
       correlation_id = self.connection.send(message=message, destination=destination, presend_hook=presend_hook)
@@ -247,6 +255,6 @@ class HeartbeatThread(threading.Thread):
       raise
 
     try:
-      return self.server_responses_listener.responses.blocking_pop(str(correlation_id), timeout=timeout)
+      return self.server_responses_listener.responses.blocking_pop(correlation_id, timeout=timeout)
     except BlockingDictionary.DictionaryPopTimeout:
       raise Exception("{0} seconds timeout expired waiting for response from server at {1} to message from {2}".format(timeout, Constants.SERVER_RESPONSES_TOPIC, destination))

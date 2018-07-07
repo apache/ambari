@@ -1534,6 +1534,10 @@ public class ClusterTest {
     createDefaultCluster(Sets.newHashSet("host-1"), stackId);
 
     Cluster cluster = clusters.getCluster("c1");
+
+    cluster.setCurrentStackVersion(stackId);
+    cluster.setDesiredStackVersion(stackId);
+
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
 
     // make sure the stacks are different

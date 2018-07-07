@@ -19,10 +19,12 @@ limitations under the License.
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.functions.decorator import retry
+from resource_management.libraries.functions.generate_logfeeder_input_config import generate_logfeeder_input_config
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.functions.security_commons import update_credential_provider_path, HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME
 
@@ -137,6 +139,7 @@ def setup_logsearch():
   Execute(("chmod", "-R", "ugo+r", format("{logsearch_server_conf}/solr_configsets")),
           sudo=True
           )
+  generate_logfeeder_input_config('logsearch', Template("input.config-logsearch.json.j2", extra_imports=[default]))
   check_znode()
 
   if params.security_enabled and not params.logsearch_use_external_solr:
@@ -155,4 +158,5 @@ def check_znode():
     solr_znode=params.logsearch_solr_zk_znode,
     java64_home=params.java64_home,
     retry=30, interval=5,
-    java_opts=params.zk_security_opts if params.security_enabled else None)
+    java_opts=params.zk_security_opts if params.security_enabled else None,
+    jaas_file=params.logsearch_jaas_file)

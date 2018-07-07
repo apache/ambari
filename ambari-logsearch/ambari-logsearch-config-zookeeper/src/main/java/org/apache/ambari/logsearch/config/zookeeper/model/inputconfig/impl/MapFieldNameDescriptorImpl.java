@@ -28,22 +28,22 @@ import com.google.gson.annotations.SerializedName;
 
 @ShipperConfigTypeDescription(
     name = "Map Field Name",
-    description = "The name of the mapping element should be map_fieldname. The value json element should contain the following parameter:"
+    description = "The name of the mapping element should be map_field_name. The value json element should contain the following parameter:"
 )
 public class MapFieldNameDescriptorImpl extends MapFieldDescriptorImpl implements MapFieldNameDescriptor {
   @Override
   public String getJsonName() {
-    return "map_fieldname";
+    return "map_field_name";
   }
 
   @ShipperConfigElementDescription(
-    path = "/filter/[]/post_map_values/{field_name}/[]/map_fieldname/new_field_name",
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_field_name/new_field_name",
     type = "string",
     description = "The name of the renamed field",
     examples = {"new_name"}
   )
   @Expose
-  @SerializedName("new_fieldname")
+  @SerializedName("new_field_name")
   private String newFieldName;
 
   @Override

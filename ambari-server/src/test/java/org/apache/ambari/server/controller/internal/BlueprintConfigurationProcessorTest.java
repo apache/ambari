@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -78,6 +79,7 @@ import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.ResolvedComponent;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.Setting;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -157,11 +159,18 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Mock(type = MockType.NICE)
   private SecurityConfigurationFactory securityFactory;
 
+  @Mock
+  private AmbariMetaInfo metaInfo;
+
+  private Setting setting;
+
   @Before
   public void init() throws Exception {
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(bp.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
+    setting = new Setting(new HashMap<>());
+    expect(bp.getSetting()).andReturn(setting).anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
@@ -183,17 +192,20 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
   
-   stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
+    stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
 
+    expect(metaInfo.getClusterProperties()).andReturn(ImmutableSet.of()).anyTimes();
 
     expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
     expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
     PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(controller).anyTimes();
     PowerMock.replay(AmbariServer.class);
     expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
     expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
     Set<String> properties = new HashSet<>();
     properties.add("core-site/hadoop.security.auth_to_local");
@@ -2171,13 +2183,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("128m", updatedVal2);
 
     assertEquals("Incorrect number of config types updated",
-      3, configTypesUpdated.size());
+      2, configTypesUpdated.size());
     assertTrue("Expected config type not updated",
       configTypesUpdated.contains("oozie-env"));
     assertTrue("Expected config type not updated",
       configTypesUpdated.contains("yarn-site"));
-    assertTrue("Expected config type not updated",
-      configTypesUpdated.contains("cluster-env"));
   }
 
   @Test
@@ -2731,79 +2741,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     List<String> hostArray = Arrays.asList(newValue.split(","));
     Assert.assertTrue(hostArray.containsAll(hosts1) && hosts1.containsAll(hostArray));
-  }
-
-  @Test
-  public void testDoUpdateForClusterVerifyRetrySettingsDefault() throws Exception {
-    Map<String, Map<String, String>> configProperties =
-      new HashMap<>();
-
-    HashMap<String, String> clusterEnvProperties = new HashMap<>();
-    configProperties.put("cluster-env", clusterEnvProperties);
-
-    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
-
-    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup), NEVER_APPLY);
-
-    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-
-    Set<String> updatedConfigTypes =
-      updater.doUpdateForClusterCreate();
-
-    // after update, verify that the retry properties for commands and installs are set as expected
-    assertEquals("Incorrect number of properties added to cluster-env for retry",
-      3, clusterEnvProperties.size());
-    assertEquals("command_retry_enabled was not set to the expected default",
-      "true", clusterEnvProperties.get("command_retry_enabled"));
-    assertEquals("commands_to_retry was not set to the expected default",
-      "INSTALL,START", clusterEnvProperties.get("commands_to_retry"));
-    assertEquals("command_retry_max_time_in_sec was not set to the expected default",
-      "600", clusterEnvProperties.get("command_retry_max_time_in_sec"));
-
-    assertEquals("Incorrect number of config types updated by this operation",
-      1, updatedConfigTypes.size());
-
-    assertTrue("Expected type not included in the updated set",
-      updatedConfigTypes.contains("cluster-env"));
-  }
-
-  @Test
-  public void testDoUpdateForClusterVerifyRetrySettingsCustomized() throws Exception {
-    Map<String, Map<String, String>> configProperties =
-      new HashMap<>();
-
-    HashMap<String, String> clusterEnvProperties = new HashMap<>();
-    configProperties.put("cluster-env", clusterEnvProperties);
-
-    clusterEnvProperties.put("command_retry_enabled", "false");
-    clusterEnvProperties.put("commands_to_retry", "TEST");
-    clusterEnvProperties.put("command_retry_max_time_in_sec", "1");
-
-
-    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
-
-    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup), NEVER_APPLY);
-
-    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-
-    Set<String> updatedConfigTypes =
-      updater.doUpdateForClusterCreate();
-
-    // after update, verify that the retry properties for commands and installs are set as expected
-    // in this case, the customer-provided overrides should be honored, rather than the retry defaults
-    assertEquals("Incorrect number of properties added to cluster-env for retry",
-      3, clusterEnvProperties.size());
-    assertEquals("command_retry_enabled was not set to the expected default",
-      "false", clusterEnvProperties.get("command_retry_enabled"));
-    assertEquals("commands_to_retry was not set to the expected default",
-      "TEST", clusterEnvProperties.get("commands_to_retry"));
-    assertEquals("command_retry_max_time_in_sec was not set to the expected default",
-      "1", clusterEnvProperties.get("command_retry_max_time_in_sec"));
-
-    assertEquals("Incorrect number of config types updated",
-      0, updatedConfigTypes.size());
   }
 
   @Test
@@ -5349,9 +5286,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     // verify that correct configuration types were listed as updated in the returned set
     assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      3, updatedConfigTypes.size());
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
+      2, updatedConfigTypes.size());
     assertTrue("Expected config type not found in updated set",
       updatedConfigTypes.contains("hdfs-site"));
     assertTrue("Expected config type not found in updated set",
@@ -5423,9 +5358,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     // verify that correct configuration types were listed as updated in the returned set
     assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      2, updatedConfigTypes.size());
-    assertTrue("Expected config type 'cluster-env' not found in updated set",
-      updatedConfigTypes.contains("cluster-env"));
+      1, updatedConfigTypes.size());
     assertTrue("Expected config type 'hdfs-site' not found in updated set",
       updatedConfigTypes.contains("hdfs-site"));
   }
@@ -8216,7 +8149,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     throws InvalidTopologyException {
 
 
-    replay(stack, serviceInfo, ambariContext, configHelper, controller, kerberosHelper, kerberosDescriptor, clusters, cluster);
+    replay(stack, serviceInfo, ambariContext, configHelper, controller, kerberosHelper, kerberosDescriptor, clusters,
+      cluster, metaInfo);
 
     Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
     Map<String, HostGroup> allHostGroups = new HashMap<>();
@@ -8263,9 +8197,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     BlueprintBasedClusterProvisionRequest request = new BlueprintBasedClusterProvisionRequest(ambariContext, securityFactory, bp, topologyRequestMock);
 
-    ClusterTopologyImpl clusterTopology = new ClusterTopologyImpl(ambariContext, request, resolvedComponents);
-    clusterTopology.setClusterId(1L);
-    return clusterTopology;
+    return new ClusterTopologyImpl(ambariContext, request, resolvedComponents);
   }
 
   private class TestHostGroup {

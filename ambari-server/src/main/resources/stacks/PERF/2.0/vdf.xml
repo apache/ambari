@@ -54,16 +54,16 @@
   </manifest>
   <available-services/>
   <repository-info>
-    <os family="redhat6">
+    <os family="redhat7">
       <package-version>2_6_2_0_*</package-version>
       <repo>
-        <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.2.0</baseurl>
+        <baseurl>http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.2.0</baseurl>
         <repoid>PERF-2.0</repoid>
         <reponame>PERF</reponame>
         <unique>true</unique>
       </repo>
       <repo>
-        <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6</baseurl>
+        <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos7</baseurl>
         <repoid>PERF-UTILS-2.0</repoid>
         <reponame>PERF-UTILS</reponame>
         <unique>false</unique>

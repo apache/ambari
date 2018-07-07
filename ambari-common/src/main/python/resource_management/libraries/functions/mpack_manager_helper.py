@@ -25,7 +25,7 @@ from instance_manager import create_mpack, set_mpack_instance, get_conf_dir, get
 CONFIG_DIR_KEY_NAME = 'config_dir'
 LOG_DIR_KEY_NAME = 'log_dir'
 RUN_DIR_KEY_NAME = 'run_dir'
-PATH_KEY_NAME = 'path'
+PATH_KEY_NAME = 'mpack_path'
 COMPONENTS_PLURAL_KEY_NAME = 'components'
 COMPONENT_INSTANCES_PLURAL_KEY_NAME = 'component-instances'
 

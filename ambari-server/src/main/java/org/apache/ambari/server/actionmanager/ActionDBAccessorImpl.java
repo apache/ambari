@@ -48,7 +48,7 @@ import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.events.publishers.TaskEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -138,7 +138,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   AuditLogger auditLogger;
 
   @Inject
-  StateUpdateEventPublisher stateUpdateEventPublisher;
+  STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   TopologyManager topologyManager;
@@ -214,6 +214,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public Collection<HostRoleCommandEntity> abortOperation(long requestId) {
+    Collection<HostRoleCommandEntity> abortedHostRoleCommands = Collections.emptyList();
     long now = System.currentTimeMillis();
 
     // only request commands which actually need to be aborted; requesting all
@@ -235,10 +236,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     // no need to merge if there's nothing to merge
     if (!commands.isEmpty()) {
-      return hostRoleCommandDAO.mergeAll(commands);
+      abortedHostRoleCommands = hostRoleCommandDAO.mergeAll(commands);
     }
     endRequest(requestId);
-    return Collections.emptyList();
+    return abortedHostRoleCommands;
   }
 
   /* (non-Javadoc)
@@ -435,7 +436,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     TaskCreateEvent taskCreateEvent = new TaskCreateEvent(hostRoleCommands);
     taskEventPublisher.publish(taskCreateEvent);
     List<HostRoleCommandEntity> hostRoleCommandEntities = hostRoleCommandDAO.findByRequest(requestEntity.getRequestId());
-    stateUpdateEventPublisher.publish(new RequestUpdateEvent(requestEntity,
+    STOMPUpdatePublisher.publish(new RequestUpdateEvent(requestEntity,
         hostRoleCommandDAO, topologyManager, clusterName, hostRoleCommandEntities));
   }
 

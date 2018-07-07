@@ -58,7 +58,8 @@
               <commandScript>
                 <script>scripts/infra_solr.py</script>
                 <scriptType>PYTHON</scriptType>
-                <timeout>1200</timeout>
+                <background>true</background>
+                <timeout>36000</timeout>
               </commandScript>
             </customCommand>
             <customCommand>
@@ -69,6 +70,15 @@
                 <scriptType>PYTHON</scriptType>
                 <timeout>36000</timeout>
                 <background>true</background>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>UPGRADE_SOLR_INSTANCE</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
               </commandScript>
             </customCommand>
           </customCommands>
@@ -108,6 +118,17 @@
             <script>scripts/infra_solr_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>UPGRADE_SOLR_CLIENT</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/infra_solr_client.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>3600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <configFiles>
             <configFile>
               <type>env</type>
@@ -124,7 +145,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>ambari-infra-solr-client</name>
@@ -138,7 +159,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>ambari-infra-solr-client</name>

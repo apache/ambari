@@ -51,7 +51,10 @@
                   </div>
                   <div class="col-md-8">
                     <div class="label-description">
-                      <p class="label-text">{{widget.widgetName}}</p>
+                      <p class="label-text">
+                        {{widget.widgetName}}
+                        {{#if widget.tag}} - {{widget.tag}}{{/if}}
+                      </p>
                       <p class="is-shared-icon pull-right">
                         {{#if widget.isShared}}
                           <i class="glyphicon glyphicon-group" rel="shared-icon-tooltip"
@@ -63,7 +66,7 @@
                     {{! buttons }}
                     <div class="widget-section-actions align-right">
                       {{#if widget.added}}
-                        <button type="button" class="btn added-btn" {{action "hideWidget" widget target="controller"}} >
+                        <button type="button" class="btn added-btn" {{action "hideWidgetBrowser" widget target="controller"}} >
                           <i class="glyphicon glyphicon-ok"></i> &nbsp; {{t dashboard.widgets.browser.action.added}}
                         </button>
                       {{else}}

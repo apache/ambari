@@ -1101,4 +1101,3 @@ kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.count
 kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.1MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.meanRate
 kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.5MinuteRate
-kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.5MinuteRate

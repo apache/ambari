@@ -30,6 +30,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Test the SettingFactory class
  */
@@ -54,6 +57,29 @@ public class SettingFactoryTest {
     Set<Map<String, String>> propertyValues = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
     assertEquals(propertyValues.size(), 1);
     assertEquals(propertyValues.iterator().next().get(Setting.SETTING_NAME_RECOVERY_ENABLED), "true");
+  }
+
+  /**
+   * Test creating setting defined in {"settings/recovery_settings" -> { ... } } style maps (typically coming from
+   * REST API).
+   */
+  @Test
+  public void testGetSettingFromSlashedPropertymaps() {
+    Set<Map<String, String>> clusterSettings =
+      ImmutableSet.of(
+        ImmutableMap.of("command_retry_enabled", "true",
+                        "commands_to_retry", "INSTALL,START"));
+
+    Map<String, Object> propertyMap = ImmutableMap.of(
+      "settings/recovery_settings",
+        ImmutableSet.of(ImmutableMap.of("recovery_enabled", "true")),
+      "settings/cluster_settings", clusterSettings
+    );
+    Setting setting = SettingFactory.getSetting(ImmutableSet.of(propertyMap));
+
+    assertEquals("true", setting.getRecoveryEnabled("any service", "any component"));
+    assertEquals(clusterSettings, setting.getProperties().get("cluster_settings"));
+
   }
 
   /**
@@ -134,4 +160,5 @@ public class SettingFactoryTest {
 
     return setting;
   }
+
 }

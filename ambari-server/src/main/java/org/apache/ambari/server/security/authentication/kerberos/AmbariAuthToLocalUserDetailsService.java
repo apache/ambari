@@ -28,8 +28,11 @@ import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.AccountDisabledException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
+import org.apache.ambari.server.security.authentication.AmbariUserDetails;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authentication.UserNotFoundException;
+import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.commons.collections.CollectionUtils;
@@ -38,7 +41,6 @@ import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -67,9 +69,8 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
    *
    * @param configuration the Ambari configuration data
    * @param users         the Ambari users access object
-   * @throws AmbariException if an error occurs parsing the user-provided auth-to-local rules
    */
-  AmbariAuthToLocalUserDetailsService(Configuration configuration, Users users) throws AmbariException {
+  AmbariAuthToLocalUserDetailsService(Configuration configuration, Users users) {
     AmbariKerberosAuthenticationProperties properties = configuration.getKerberosAuthenticationProperties();
     String authToLocalRules = properties.getAuthToLocalRules();
 
@@ -198,10 +199,10 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
         throw e;
       } else {
         // Do not give away information about the existence or status of a user
-        throw new AmbariAuthenticationException(username, "Unexpected error due to missing JWT token", false);
+        throw new InvalidUsernamePasswordCombinationException(username, false, e);
       }
     }
 
-    return new User(username, "", users.getUserAuthorities(userEntity));
+    return new AmbariUserDetails(new User(userEntity), null, users.getUserAuthorities(userEntity));
   }
 }

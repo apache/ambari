@@ -63,7 +63,7 @@ class YumManagerProperties(GenericManagerProperties):
   }
 
   verify_dependency_cmd = [repo_manager_bin, '-d', '0', '-e', '0', 'check', 'dependencies']
-  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{{version}}-%{{release}}"]
+  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{version}-%{release}\n"]
 
   remove_without_dependencies_cmd = ['rpm', '-e', '--nodeps']
 
@@ -202,9 +202,13 @@ class YumManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
 
-    if context.is_upgrade or context.use_repos or not self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command was executed with no package name")
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
       if context.use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(sorted(context.use_repos.keys()))
@@ -222,6 +226,8 @@ class YumManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     context.is_upgrade = True
     return self.install_package(name, context)
@@ -233,7 +239,11 @@ class YumManager(GenericManager):
     :type name str
     :type context ambari_commons.shell.RepoCallContext
     :type ignore_dependencies bool
+
+    :raise ValueError if name is empty
     """
+    if not name:
+      raise ValueError("Remove command were executed with no package name passed")
     if self._check_existence(name):
       if ignore_dependencies:
         cmd = self.properties.remove_without_dependencies_cmd + [name]
@@ -263,6 +273,7 @@ class YumManager(GenericManager):
     yum in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
+
     if os.geteuid() == 0:
       return self.yum_check_package_available(name)
     else:
@@ -345,7 +356,7 @@ class YumManager(GenericManager):
 
   def get_installed_package_version(self, package_name):
     version = None
-    cmd = list(self.properties.installed_package_version_command) + ["\"{0}\"".format(package_name)]
+    cmd = list(self.properties.installed_package_version_command) + [package_name]
 
     result = shell.subprocess_executor(cmd)
 

@@ -21,6 +21,7 @@ import os
 import time
 import threading
 import collections
+import traceback
 from functools import wraps
 from ambari_agent.ExitHelper import ExitHelper
 
@@ -155,12 +156,15 @@ class Utils(object):
 
   @staticmethod
   def restartAgent(stop_event, graceful_stop_timeout=30):
-    from ambari_agent import main
-    main.EXIT_CODE_ON_STOP = AGENT_AUTO_RESTART_EXIT_CODE
+    ExitHelper().exitcode = AGENT_AUTO_RESTART_EXIT_CODE
     stop_event.set()
 
     t = threading.Timer( graceful_stop_timeout, ExitHelper().exit, [AGENT_AUTO_RESTART_EXIT_CODE])
     t.start()
+
+  @staticmethod
+  def get_traceback_as_text(ex):
+    return ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
 
 class ImmutableDictionary(dict):
   def __init__(self, dictionary):

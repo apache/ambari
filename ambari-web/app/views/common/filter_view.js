@@ -296,13 +296,14 @@ var componentFieldView = Ember.View.extend({
 /**
  * Simple select control for wrapperView
  */
-var selectFieldView = Ember.Select.extend({
-  classNames: ['input-sm', 'form-control'],
-  selectionBinding: 'parentView.selected',
-  contentBinding: 'parentView.content',
-  optionValuePath: "content.value",
-  optionLabelPath: "content.label"
-});
+var getSelectFieldView = function() {
+  return App.DropdownView.extend({
+    selectionBinding: 'parentView.selected',
+    contentBinding: 'parentView.content',
+    optionValuePath: "value",
+    optionLabelPath: "label"
+  });
+};
 
 /**
  * Result object, which will be accessible outside
@@ -318,7 +319,6 @@ module.exports = {
    * And also controls views if need it
    */
   textFieldView: textFieldView,
-  selectFieldView: selectFieldView,
   componentFieldView: componentFieldView,
 
   /**
@@ -357,8 +357,8 @@ module.exports = {
    */
   createSelectView: function (config) {
     config.fieldType = config.fieldType || 'input-medium';
-    config.filterView = selectFieldView.extend({
-      classNames: config.fieldType.split(','),
+    config.filterView = getSelectFieldView().extend({
+      classNames: config.fieldType.split(',').concat('display-inline-block'),
       attributeBindings: ['disabled', 'multiple'],
       disabled: false
     });

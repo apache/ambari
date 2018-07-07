@@ -45,7 +45,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         cache_service_list, plugin_audit_properties, plugin_audit_attributes,
                         plugin_security_properties, plugin_security_attributes,
                         plugin_policymgr_ssl_properties, plugin_policymgr_ssl_attributes,
-                        component_list, audit_db_is_enabled, credential_file, 
+                        component_list, audit_db_is_enabled, credential_file,
                         xa_audit_db_password, ssl_truststore_password,
                         ssl_keystore_password, api_version=None, stack_version_override = None, skip_if_rangeradmin_down = True,
                         is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
@@ -79,21 +79,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
   if plugin_enabled:
 
-    service_name_exist = False
-    policycache_path = os.path.join('/etc', 'ranger', repo_name, 'policycache')
-    try:
-      for cache_service in cache_service_list:
-        policycache_json_file = format('{policycache_path}/{cache_service}_{repo_name}.json')
-        if os.path.isfile(policycache_json_file) and os.path.getsize(policycache_json_file) > 0:
-          with open(policycache_json_file) as json_file:
-            json_data = json.load(json_file)
-            if 'serviceName' in json_data and json_data['serviceName'] == repo_name:
-              service_name_exist = True
-              Logger.info("Skipping Ranger API calls, as policy cache file exists for {0}".format(service_name))
-              Logger.warning("If service name for {0} is not created on Ranger Admin UI, then to re-create it delete policy cache file: {1}".format(service_name, policycache_json_file))
-              break
-    except Exception, err:
-      Logger.error("Error occurred while fetching service name from policy cache file.\nError: {0}".format(err))
+    service_name_exist = get_policycache_service_name(service_name, repo_name, cache_service_list)
 
     if not service_name_exist:
       if api_version is not None and api_version == 'v2':
@@ -111,7 +97,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                                               policy_user)
 
     current_datetime = datetime.now()
-    
+
     File(format('{component_conf_dir}/ranger-security.xml'),
       owner = component_user,
       group = component_group,
@@ -174,7 +160,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
-        mode=0744) 
+        mode=0744)
     else:
       XmlConfig("ranger-policymgr-ssl.xml",
         conf_dir=component_conf_dir,
@@ -182,10 +168,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
-        mode=0744) 
-
-    # creating symblink should be done by rpm package
-    # setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
+        mode=0744)
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,
@@ -193,8 +176,8 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
   else:
     File(format('{component_conf_dir}/ranger-security.xml'),
-      action="delete"      
-    )    
+      action="delete"
+    )
 
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
@@ -240,15 +223,35 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
     mode = 0640
   )
 
-def setup_core_site_for_required_plugins(component_user, component_group, create_core_site_path, configurations = {}, configuration_attributes = {}):
-  XmlConfig('core-site.xml',
+  dot_jceks_crc_file_path = os.path.join(os.path.dirname(credential_file), "." + os.path.basename(credential_file) + ".crc")
+
+  File(dot_jceks_crc_file_path,
+    owner = component_user,
+    group = component_group,
+    only_if = format("test -e {dot_jceks_crc_file_path}"),
+    mode = 0640
+  )
+
+def setup_configuration_file_for_required_plugins(component_user, component_group, create_core_site_path,
+                                                  configurations={}, configuration_attributes={}, file_name='core-site.xml',
+                                                  xml_include_file=None, xml_include_file_content=None):
+  XmlConfig(file_name,
     conf_dir = create_core_site_path,
     configurations = configurations,
     configuration_attributes = configuration_attributes,
     owner = component_user,
     group = component_group,
-    mode = 0644
+    mode = 0644,
+    xml_include_file = xml_include_file
   )
+
+  if xml_include_file_content:
+    File(xml_include_file,
+         owner=component_user,
+         group=component_group,
+         content=xml_include_file_content
+         )
+
 
 def get_audit_configs(config):
   xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR'].lower()
@@ -299,3 +302,22 @@ def generate_ranger_service_config(ranger_plugin_properties):
       custom_service_config_dict[modify_key_name] = value
 
   return custom_service_config_dict
+
+def get_policycache_service_name(service_name, repo_name, cache_service_list):
+  service_name_exist_flag = False
+  policycache_path = os.path.join('/etc', 'ranger', repo_name, 'policycache')
+  try:
+    for cache_service in cache_service_list:
+      policycache_json_file = format('{policycache_path}/{cache_service}_{repo_name}.json')
+      if os.path.isfile(policycache_json_file) and os.path.getsize(policycache_json_file) > 0:
+        with open(policycache_json_file) as json_file:
+          json_data = json.load(json_file)
+          if 'serviceName' in json_data and json_data['serviceName'] == repo_name:
+            Logger.info("Skipping Ranger API calls, as policy cache file exists for {0}".format(service_name))
+            Logger.warning("If service name for {0} is not created on Ranger Admin, then to re-create it delete policy cache file: {1}".format(service_name, policycache_json_file))
+            service_name_exist_flag = True
+            break
+  except Exception, err:
+    Logger.error("Error occurred while fetching service name from policy cache file.\nError: {0}".format(err))
+
+  return service_name_exist_flag

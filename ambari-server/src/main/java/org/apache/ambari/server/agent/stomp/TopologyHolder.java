@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.ServiceGroupMpackChangedEvent;
 import org.apache.ambari.server.events.TopologyAgentUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -42,6 +43,8 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -49,6 +52,8 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> {
+
+  private final static Logger LOG = LoggerFactory.getLogger(TopologyHolder.class);
 
   @Inject
   private AmbariManagementControllerImpl ambariManagementController;
@@ -103,11 +108,10 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
             TopologyComponent topologyComponent = TopologyComponent.newBuilder()
                 .setComponentName(sch.getServiceComponentName())
                 .setServiceName(sch.getServiceName())
-                .setVersion(sch.getVersion())
                 .setHostIds(hostOrderIds)
                 .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(cl.getClusterId(), serviceName,
                     componentName, cl.getSecurityType()))
-                .setCommandParams(ambariManagementController.getTopologyCommandParams(cl.getClusterId(), serviceName, componentName))
+                .setCommandParams(ambariManagementController.getTopologyCommandParams(cl.getClusterId(), serviceName, componentName, sch))
                 .build();
             topologyComponents.add(topologyComponent);
           }
@@ -116,7 +120,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
       topologyClusters.put(Long.toString(cl.getClusterId()),
           new TopologyCluster(topologyComponents, topologyHosts));
     }
-    return new TopologyUpdateEvent(topologyClusters, TopologyUpdateEvent.EventType.CREATE);
+    return new TopologyUpdateEvent(topologyClusters, UpdateEventType.CREATE);
   }
 
   @Override
@@ -131,7 +135,8 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         copiedUpdate.getEventType()
       );
       prepareAgentTopology(topologyAgentUpdateEvent);
-      stateUpdateEventPublisher.publish(topologyAgentUpdateEvent);
+      LOG.debug("Publishing Topology Agent Update Event hash={}", topologyAgentUpdateEvent.getHash());
+      STOMPUpdatePublisher.publish(topologyAgentUpdateEvent);
     }
 
     return changed;
@@ -140,14 +145,14 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
   @Override
   protected boolean handleUpdate(TopologyUpdateEvent update) throws AmbariException {
     boolean changed = false;
-    TopologyUpdateEvent.EventType eventType = update.getEventType();
+    UpdateEventType eventType = update.getEventType();
     for (Map.Entry<String, TopologyCluster> updatedCluster : update.getClusters().entrySet()) {
       String clusterId = updatedCluster.getKey();
       TopologyCluster cluster = updatedCluster.getValue();
       if (getData().getClusters().containsKey(clusterId)) {
-        if (eventType.equals(TopologyUpdateEvent.EventType.DELETE) &&
-            CollectionUtils.isEmpty(getData().getClusters().get(clusterId).getTopologyComponents()) &&
-            CollectionUtils.isEmpty(getData().getClusters().get(clusterId).getTopologyHosts())) {
+        if (eventType.equals(UpdateEventType.DELETE) &&
+            CollectionUtils.isEmpty(cluster.getTopologyComponents()) &&
+            CollectionUtils.isEmpty(cluster.getTopologyHosts())) {
           getData().getClusters().remove(clusterId);
           changed = true;
         } else {
@@ -159,7 +164,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
           }
         }
       } else {
-        if (eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
+        if (eventType.equals(UpdateEventType.UPDATE)) {
           getData().getClusters().put(clusterId, cluster);
           changed = true;
         } else {
@@ -173,11 +178,15 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
   private void prepareAgentTopology(TopologyUpdateEvent topologyUpdateEvent) {
     if (topologyUpdateEvent.getClusters() != null) {
       for (TopologyCluster topologyCluster : topologyUpdateEvent.getClusters().values()) {
-        for (TopologyComponent topologyComponent : topologyCluster.getTopologyComponents()) {
-          topologyComponent.setHostNames(new HashSet<>());
-          topologyComponent.setPublicHostNames(new HashSet<>());
+        if (CollectionUtils.isNotEmpty(topologyCluster.getTopologyComponents())) {
+          for (TopologyComponent topologyComponent : topologyCluster.getTopologyComponents()) {
+            topologyComponent.setHostNames(new HashSet<>());
+            topologyComponent.setPublicHostNames(new HashSet<>());
+            topologyComponent.setLastComponentState(null);
+          }
         }
-        if (topologyUpdateEvent.getEventType().equals(TopologyUpdateEvent.EventType.DELETE)) {
+        if (topologyUpdateEvent.getEventType().equals(UpdateEventType.DELETE)
+            && CollectionUtils.isNotEmpty(topologyCluster.getTopologyHosts())) {
           for (TopologyHost topologyHost : topologyCluster.getTopologyHosts()) {
             topologyHost.setHostName(null);
           }
@@ -199,7 +208,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
     topologyCluster.setTopologyComponents(getTopologyComponentRepos(clusterId));
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     topologyUpdates.put(Long.toString(clusterId), topologyCluster);
-    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates, TopologyUpdateEvent.EventType.UPDATE);
+    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates, UpdateEventType.UPDATE);
     updateData(topologyUpdateEvent);
   }
 
@@ -220,8 +229,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
           TopologyComponent topologyComponent = TopologyComponent.newBuilder()
               .setComponentName(sch.getServiceComponentName())
               .setServiceName(sch.getServiceName())
-              .setVersion(sch.getVersion())
-              .setCommandParams(ambariManagementController.getTopologyCommandParams(cl.getClusterId(), serviceName, componentName))
+              .setCommandParams(ambariManagementController.getTopologyCommandParams(cl.getClusterId(), serviceName, componentName, sch))
               .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(clusterId,
                   serviceName, componentName, cl.getSecurityType()))
               .build();

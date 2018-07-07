@@ -185,3 +185,81 @@ class TestCommandStatusDict:#(TestCase):
                     'actionId': '1-1', 'taskId': 5, 'exitCode': 777}]
       }
     self.assertEquals(report, expected)
+
+  def test_size_approved(self):
+    # as json: '{"status": "IN_PROGRESS", "structuredOut": "structured_out.tmp", "taskId": 5}', length=77
+    command_in_progress_report = {
+      'status': 'IN_PROGRESS',
+      'taskId': 5,
+      'structuredOut' : 'structured_out.tmp',
+    }
+    mock = MagicMock()
+    command_statuses = CommandStatusDict(mock)
+    self.assertEqual(command_statuses.size_approved(command_in_progress_report, 78), True)
+    self.assertEqual(command_statuses.size_approved(command_in_progress_report, 77), True)
+    self.assertEqual(command_statuses.size_approved(command_in_progress_report, 76), False)
+
+  def test_split_reports(self):
+    # 4 reports for each cluster, general size in json = 295
+    generated_reports = \
+      {'1': [{'status': 'FAILED', 'taskId': 3},
+                   {'status': 'FAILED', 'taskId': 4},
+                   {'status': 'FAILED', 'taskId': 5},
+                   {'status': 'FAILED', 'taskId': 6}],
+       '2': [{'status': 'FAILED', 'taskId': 7},
+             {'status': 'FAILED', 'taskId': 8},
+             {'status': 'FAILED', 'taskId': 9},
+             {'status': 'FAILED', 'taskId': 10}],
+      }
+    mock = MagicMock()
+    command_statuses = CommandStatusDict(mock)
+
+    # all reports will be send at once
+    splitted_reports = []
+    for report in command_statuses.split_reports(generated_reports, 295):
+      splitted_reports.append(report)
+
+    self.assertEqual(len(splitted_reports), 1)
+    self.assertEqual(len(splitted_reports[0]), 2)
+    self.assertEqual(len(splitted_reports[0]['1']), 4)
+    self.assertEqual(len(splitted_reports[0]['2']), 4)
+
+    # all reports will be divided between two parts
+    # {'1': [{3}, {4}, {5}, {6}], '2': [{7}, {8}, {9}]}
+    # {'2': [{10}]}
+    splitted_reports = []
+    for report in command_statuses.split_reports(generated_reports, 294):
+      splitted_reports.append(report)
+
+    self.assertEqual(len(splitted_reports), 2)
+    self.assertEqual(len(splitted_reports[0]), 2)
+    self.assertEqual(len(splitted_reports[0]['1']), 4)
+    self.assertEqual(len(splitted_reports[0]['2']), 3)
+    self.assertEqual(len(splitted_reports[1]), 1)
+    self.assertEqual(len(splitted_reports[1]['2']), 1)
+
+    # all reports will be divided between 8 parts
+    # {'1': [{3}]}
+    #...
+    # {'2': [{10}]}
+    splitted_reports = []
+    for report in command_statuses.split_reports(generated_reports, 73):
+      splitted_reports.append(report)
+
+    self.assertEqual(len(splitted_reports), 8)
+    self.assertEqual(len(splitted_reports[0]), 1)
+    self.assertEqual(len(splitted_reports[0]['1']), 1)
+    self.assertEqual(len(splitted_reports[1]), 1)
+    self.assertEqual(len(splitted_reports[1]['1']), 1)
+    self.assertEqual(len(splitted_reports[2]), 1)
+    self.assertEqual(len(splitted_reports[2]['1']), 1)
+    self.assertEqual(len(splitted_reports[3]), 1)
+    self.assertEqual(len(splitted_reports[3]['1']), 1)
+    self.assertEqual(len(splitted_reports[4]), 1)
+    self.assertEqual(len(splitted_reports[4]['2']), 1)
+    self.assertEqual(len(splitted_reports[5]), 1)
+    self.assertEqual(len(splitted_reports[5]['2']), 1)
+    self.assertEqual(len(splitted_reports[6]), 1)
+    self.assertEqual(len(splitted_reports[6]['2']), 1)
+    self.assertEqual(len(splitted_reports[7]), 1)
+    self.assertEqual(len(splitted_reports[7]['2']), 1)

@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -63,17 +64,19 @@ import com.google.common.collect.Sets;
  */
 public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
 
-  protected static final String PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID = PrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID;
-  protected static final String PRIVILEGE_PERMISSION_NAME_PROPERTY_ID = PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID = PrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID;
-  protected static final String PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID = PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID = PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID;
-  protected static final String PRIVILEGE_VIEW_NAME_PROPERTY_ID = ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_VIEW_VERSION_PROPERTY_ID = ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID;
-  protected static final String PRIVILEGE_INSTANCE_NAME_PROPERTY_ID = ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_CLUSTER_NAME_PROPERTY_ID = ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_TYPE_PROPERTY_ID = AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID;
-  protected static final String PRIVILEGE_USER_NAME_PROPERTY_ID = "PrivilegeInfo/user_name";
+  protected static final String USER_NAME_PROPERTY_ID = "user_name";
+
+  protected static final String PRIVILEGE_ID = PrivilegeResourceProvider.PRIVILEGE_ID;
+  protected static final String PERMISSION_NAME = PrivilegeResourceProvider.PERMISSION_NAME;
+  protected static final String PERMISSION_LABEL = PrivilegeResourceProvider.PERMISSION_LABEL;
+  protected static final String PRINCIPAL_NAME = PrivilegeResourceProvider.PRINCIPAL_NAME;
+  protected static final String PRINCIPAL_TYPE = PrivilegeResourceProvider.PRINCIPAL_TYPE;
+  protected static final String VIEW_NAME = ViewPrivilegeResourceProvider.VIEW_NAME;
+  protected static final String VIEW_VERSION = ViewPrivilegeResourceProvider.VERSION;
+  protected static final String INSTANCE_NAME = ViewPrivilegeResourceProvider.INSTANCE_NAME;
+  protected static final String CLUSTER_NAME = ClusterPrivilegeResourceProvider.CLUSTER_NAME;
+  protected static final String TYPE = AmbariPrivilegeResourceProvider.TYPE;
+  protected static final String USER_NAME = PrivilegeResourceProvider.PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + USER_NAME_PROPERTY_ID;
 
   /**
    * Data access object used to obtain user entities.
@@ -104,17 +107,17 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
    * The property ids for a privilege resource.
    */
   private static Set<String> propertyIds = Sets.newHashSet(
-      PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID,
-      PRIVILEGE_PERMISSION_NAME_PROPERTY_ID,
-      PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID,
-      PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID,
-      PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID,
-      PRIVILEGE_VIEW_NAME_PROPERTY_ID,
-      PRIVILEGE_VIEW_VERSION_PROPERTY_ID,
-      PRIVILEGE_INSTANCE_NAME_PROPERTY_ID,
-      PRIVILEGE_CLUSTER_NAME_PROPERTY_ID,
-      PRIVILEGE_TYPE_PROPERTY_ID,
-      PRIVILEGE_USER_NAME_PROPERTY_ID);
+      PRIVILEGE_ID,
+      PERMISSION_NAME,
+      PERMISSION_LABEL,
+      PRINCIPAL_NAME,
+      PRINCIPAL_TYPE,
+      VIEW_NAME,
+      VIEW_VERSION,
+      INSTANCE_NAME,
+      CLUSTER_NAME,
+      TYPE,
+      USER_NAME);
 
   /**
    * Static initialization.
@@ -136,7 +139,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
     {
-      add(PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID);
+      add(PRIVILEGE_ID);
     }
   };
 
@@ -144,8 +147,8 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
    * The key property ids for a privilege resource.
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.User, PRIVILEGE_USER_NAME_PROPERTY_ID)
-      .put(Resource.Type.UserPrivilege, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID)
+      .put(Resource.Type.User, USER_NAME)
+      .put(Resource.Type.UserPrivilege, PRIVILEGE_ID)
       .build();
 
   private ThreadLocal<LoadingCache<Long, ClusterEntity>> clusterCache =
@@ -255,7 +258,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         RoleAuthorization.AMBARI_MANAGE_USERS);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      final String userName = (String) propertyMap.get(PRIVILEGE_USER_NAME_PROPERTY_ID);
+      final String userName = (String) propertyMap.get(USER_NAME);
 
       // Ensure that the authenticated user has authorization to get this information
       if (!isUserAdministrator && !AuthorizationHelper.getAuthenticatedName().equalsIgnoreCase(userName)) {
@@ -358,24 +361,24 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
 
 
 
-    setResourceProperty(resource, PRIVILEGE_USER_NAME_PROPERTY_ID, response.getUserName(), requestedIds);
-    setResourceProperty(resource, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID, response.getPrivilegeId(), requestedIds);
-    setResourceProperty(resource, PRIVILEGE_PERMISSION_NAME_PROPERTY_ID, response.getPermissionName(), requestedIds);
-    setResourceProperty(resource, PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID, response.getPermissionLabel(), requestedIds);
-    setResourceProperty(resource, PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID, response.getPrincipalType().name(), requestedIds);
+    setResourceProperty(resource, USER_NAME, response.getUserName(), requestedIds);
+    setResourceProperty(resource, PRIVILEGE_ID, response.getPrivilegeId(), requestedIds);
+    setResourceProperty(resource, PERMISSION_NAME, response.getPermissionName(), requestedIds);
+    setResourceProperty(resource, PERMISSION_LABEL, response.getPermissionLabel(), requestedIds);
+    setResourceProperty(resource, PRINCIPAL_TYPE, response.getPrincipalType().name(), requestedIds);
     if (response.getPrincipalName() != null) {
-      setResourceProperty(resource, PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID, response.getPrincipalName(), requestedIds);
+      setResourceProperty(resource, PRINCIPAL_NAME, response.getPrincipalName(), requestedIds);
     }
     if (response.getType() != null) {
-      setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, response.getType().name(), requestedIds);
+      setResourceProperty(resource, TYPE, response.getType().name(), requestedIds);
       switch (response.getType()) {
         case CLUSTER:
-          setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
+          setResourceProperty(resource, CLUSTER_NAME, response.getClusterName(), requestedIds);
           break;
         case VIEW:
-          setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, response.getViewName(), requestedIds);
-          setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, response.getVersion(), requestedIds);
-          setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, response.getInstanceName(), requestedIds);
+          setResourceProperty(resource, VIEW_NAME, response.getViewName(), requestedIds);
+          setResourceProperty(resource, VIEW_VERSION, response.getVersion(), requestedIds);
+          setResourceProperty(resource, INSTANCE_NAME, response.getInstanceName(), requestedIds);
           break;
       }
 

@@ -81,6 +81,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return stepController;
   },
 
+  isInstallerWizard: true,
+
   content: Em.Object.create({
     cluster: null,
     installOptions: null,
@@ -193,6 +195,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.setDBProperty('hosts', dbHosts);
   },
 
+  cancelInstall: function() {
+    return App.showConfirmationPopup(() => {
+      App.router.get('applicationController').goToAdminView();
+    });
+  },
+
   /**
    * Load data for services selected from mpacks. Will be used at <code>Download Mpacks</code> step submit action.
    *
@@ -284,7 +292,135 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   stacks: [],
 
-  setSelected: function (isStacksExistInDb) {
+  /**
+   * stack names used as auxiliary data to query stacks by name
+   */
+  stackNames: [],
+
+  /**
+   * Load stacks data from server or take exist data from in memory variable {{content.stacks}}
+   * The series of API calls will be called  When landing first time on Select Stacks page
+   * or on hitting refresh post select stacks page in installer wizard
+   */
+  loadStacks: function () {
+    var stacks = this.get('content.stacks');
+    var dfd = $.Deferred();
+    if (stacks && stacks.get('length')) {
+      App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+      dfd.resolve(true);
+    } else {
+      App.ajax.send({
+        name: 'wizard.stacks',
+        sender: this,
+        success: 'loadStacksSuccessCallback',
+        error: 'loadStacksErrorCallback'
+      }).complete(function () {
+        dfd.resolve(false);
+      });
+    }
+    return dfd.promise();
+  },
+
+  /**
+   * Send queries to load versions for each stack
+   */
+  loadStacksSuccessCallback: function (data) {
+    this.get('stacks').clear();
+    this.set('stackNames', data.items.mapProperty('Stacks.stack_name'));
+  },
+
+  /**
+   * onError callback for loading stacks data
+   */
+  loadStacksErrorCallback: function () {
+  },
+
+  /**
+   * query every stack names from server
+   * @return {Array}
+   */
+  loadStacksVersions: function () {
+    var requests = [];
+    const dfd = $.Deferred();
+    this.get('stackNames').forEach(function (stackName) {
+      requests.push(App.ajax.send({
+        name: 'wizard.stacks_versions_definitions',
+        sender: this,
+        data: {
+          stackName: stackName,
+          dfd: dfd
+        },
+        success: 'loadStacksVersionsDefinitionsSuccessCallback',
+        error: 'loadStacksVersionsErrorCallback'
+      }));
+    }, this);
+    this.set('loadStacksRequestsCounter', requests.length);
+    return dfd.promise();
+  },
+
+  /**
+   * Counter for counting number of successful requests to load stack versions
+   */
+  loadStacksRequestsCounter: 0,
+
+  /**
+   * Parse loaded data and create array of stacks objects
+   */
+  loadStacksVersionsDefinitionsSuccessCallback: function (data, opt, params) {
+    var stacks = App.db.getStacks();
+    var oses = App.db.getOses();
+    var repos = App.db.getRepos();
+    this.decrementProperty('loadStacksRequestsCounter');
+    var isStacksExistInDb = stacks && stacks.length;
+    if (isStacksExistInDb) {
+      stacks.forEach(function (_stack) {
+        var stack = data.items.findProperty('VersionDefinition.id', _stack.id);
+        if (stack) {
+          stack.VersionDefinition.is_selected = _stack.is_selected;
+        }
+      }, this);
+    }
+
+    data.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
+      // to display repos panel, should map all available operating systems including empty ones
+      var stackInfo = {};
+      stackInfo.isStacksExistInDb = isStacksExistInDb;
+      stackInfo.stacks = stacks;
+      stackInfo.oses = oses;
+      stackInfo.repos = repos;
+      this.getSupportedOSList(versionDefinition, stackInfo, params.dfd);
+    }, this);
+  },
+
+  mergeChanges: function (repos, oses, stacks) {
+    var _repos = repos || [];
+    var _oses = oses || [];
+    var _stacks = stacks || [];
+    _repos.forEach(function (repo) {
+      if (App.Repository.find(repo.id).get('isLoaded')) {
+        App.Repository.find(repo.id).set('baseUrl', repo.base_url);
+      }
+    });
+    _oses.forEach(function (os) {
+      if (App.OperatingSystem.find().findProperty('id', os.id)) {
+        App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
+      }
+    });
+    //should delete the record on going to step 2, on going back to step 1, still need the record
+    if (App.router.get('currentState.name') != "step1") {
+      App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
+        App.stackMapper.deleteRecord(os);
+      });
+    }
+    _stacks.forEach(function (_stack) {
+      var stack = App.Stack.find().findProperty('id', _stack.id);
+      if (stack) {
+        stack.set('useRedhatSatellite', _stack.use_redhat_satellite);
+      }
+    });
+  },
+
+  setSelected: function (isStacksExistInDb, dfd) {
     if (!isStacksExistInDb) {
       var stacks = App.Stack.find();
       stacks.setEach('isSelected', false);
@@ -292,6 +428,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     }
     this.set('content.stacks', App.Stack.find());
     App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+    dfd.resolve();
   },
 
   /**
@@ -557,6 +694,165 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.showAlertPopup(header, body);
   },
 
+  getSupportedOSList: function (versionDefinition, stackInfo, dfd) {
+    this.incrementProperty('loadStacksRequestsCounter');
+    return App.ajax.send({
+      name: 'wizard.step1.get_supported_os_types',
+      sender: this,
+      data: {
+        stackName: versionDefinition.VersionDefinition.stack_name,
+        stackVersion: versionDefinition.VersionDefinition.stack_version,
+        versionDefinition: versionDefinition,
+        stackInfo: stackInfo,
+        dfd: dfd
+      },
+      success: 'getSupportedOSListSuccessCallback',
+      error: 'getSupportedOSListErrorCallback'
+    });
+  },
+
+  /**
+   * onSuccess callback for getSupportedOSList.
+   */
+  getSupportedOSListSuccessCallback: function (response, request, data) {
+    var self = this;
+    var stack_default = data.versionDefinition.VersionDefinition.stack_default;
+    var existedOS = data.versionDefinition.operating_systems;
+    var existedMap = {};
+    existedOS.map(function (existedOS) {
+      existedOS.isSelected = true;
+      existedMap[existedOS.OperatingSystems.os_type] = existedOS;
+    });
+    response.operating_systems.forEach(function(supportedOS) {
+      if(!existedMap[supportedOS.OperatingSystems.os_type]) {
+        supportedOS.isSelected = false;
+        existedOS.push(supportedOS);
+      } else {
+        if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.base_url = supportedRepo.Repositories.base_url;
+                repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
+                repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
+          });
+        }
+        else{
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
+          });
+        }
+      }
+    });
+
+    App.stackMapper.map(data.versionDefinition);
+
+    if (!this.decrementProperty('loadStacksRequestsCounter')) {
+      if (data.stackInfo.dfd) {
+        data.stackInfo.dfd.resolve(data.stackInfo.response);
+      } else {
+        var versionData = this.getSelectedRepoVersionData();
+        if (versionData) {
+          this.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
+            self.mergeChanges(data.stackInfo.repos, data.stackInfo.oses, data.stackInfo.stacks);
+            App.Stack.find().setEach('isSelected', false);
+            var stackId = Em.get(versionData, 'data.VersionDefinition.available') || versionInfo.stackNameVersion + "-" + versionInfo.actualVersion;
+            App.Stack.find().findProperty('id', stackId).set('isSelected', true);
+            self.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
+          }).fail(function () {
+            self.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
+          });
+        } else {
+          this.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
+        }
+      }
+    }
+  },
+
+  /**
+   * onError callback for getSupportedOSList
+   */
+  getSupportedOSListErrorCallback: function (request, ajaxOptions, error, data, params) {
+    var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.error.title');
+    var body = "";
+    if(request && request.responseText){
+      try {
+        var json = $.parseJSON(request.responseText);
+        body = json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(header, body);
+  },
+
+  updateRepoOSInfo: function (repoToUpdate, repo) {
+    var deferred = $.Deferred();
+    var repoVersion = this.prepareRepoForSaving(repo);
+    App.ajax.send({
+      name: 'admin.stack_versions.edit.repo',
+      sender: this,
+      data: {
+        stackName: repoToUpdate.stackName,
+        stackVersion: repoToUpdate.stackVersion,
+        repoVersionId: repoToUpdate.id,
+        repoVersion: repoVersion
+      }
+    }).success(function() {
+      deferred.resolve([]);
+    }).error(function() {
+      deferred.resolve([]);
+    });
+    return deferred.promise();
+  },
+
+  /**
+   * transform repo data into json for
+   * saving changes to repository version
+   * @param {Em.Object} repo
+   * @returns {{operating_systems: Array}}
+   */
+  prepareRepoForSaving: function(repo) {
+    var repoVersion = { "operating_systems": [] };
+    var ambariManagedRepositories = !repo.get('useRedhatSatellite');
+    var k = 0;
+    repo.get('operatingSystems').forEach(function (os) {
+      if (os.get('isSelected')) {
+        repoVersion.operating_systems.push({
+          "OperatingSystems": {
+            "os_type": os.get("osType"),
+            "ambari_managed_repositories": ambariManagedRepositories
+          },
+          "repositories": []
+        });
+        os.get('repositories').forEach(function (repository) {
+          if (!(repository.get('isGPL') && _.isEmpty(repository.get('baseUrl')))) {
+            repoVersion.operating_systems[k].repositories.push({
+              "Repositories": {
+                "base_url": repository.get('baseUrl'),
+                "repo_id": repository.get('repoId'),
+                "repo_name": repository.get('repoName'),
+                "components": repository.get('components'),
+                "tags": repository.get('tags'),
+                "distribution": repository.get('distribution'),
+                "applicable_services" : repository.get('applicable_services')
+              }
+            });
+          }
+        });
+        k++;
+      }
+    });
+    return repoVersion;
+  },
+
   /**
    * Check validation of the customized local urls
    */
@@ -669,6 +965,31 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         type: 'sync',
         callback: function () {
           this.load('installOptions');
+          var dfd = $.Deferred();
+
+          this.loadStacks().done(function(stacksLoaded) {
+            App.router.get('clusterController').loadAmbariProperties().always(function() {
+              dfd.resolve(stacksLoaded);
+            });
+          });
+
+          return dfd.promise();
+        }
+      },
+      {
+        type: 'async',
+        callback: function (stacksLoaded) {
+          var dfd = $.Deferred();
+
+          if (!stacksLoaded) {
+            this.loadStacksVersions().done(function () {
+              dfd.resolve(true);
+            });
+          } else {
+            dfd.resolve(stacksLoaded);
+          }
+
+          return dfd.promise();
         }
       }
     ],
@@ -916,6 +1237,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.clearStorageData();
     this.clearServiceConfigProperties();
     App.router.get('userSettingsController').postUserPref('show_bg', true);
+    App.themesMapper.resetModels();
   },
 
   /**

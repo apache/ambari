@@ -78,12 +78,6 @@ The following are the properties which can be used to configure Ambari.
 | api.ssl | Determines whether SSL is used in for secure connections to Ambari. When enabled, ambari-server setup-https must be run in order to properly configure keystores. |`false` | 
 | auditlog.enabled | Determines whether audit logging is enabled. |`true` | 
 | auditlog.logger.capacity | The size of the worker queue for audit logger events.<br/><br/> This property is related to `auditlog.enabled`. |`10000` | 
-| authentication.jwt.audiences | A list of the JWT audiences expected. Leaving this blank will allow for any audience.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
-| authentication.jwt.cookieName | The name of the cookie which will be used to extract the JWT token from the request.<br/><br/> This property is related to `authentication.jwt.enabled`. |`hadoop-jwt` | 
-| authentication.jwt.enabled | Determines whether to use JWT authentication when connecting to remote Hadoop resources. |`false` | 
-| authentication.jwt.originalUrlParamName | The original URL to use when constructing the logic URL for JWT.<br/><br/> This property is related to `authentication.jwt.enabled`. |`originalUrl` | 
-| authentication.jwt.providerUrl | The URL for authentication of the user in the absence of a JWT token when handling a JWT request.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
-| authentication.jwt.publicKey | The public key to use when verifying the authenticity of a JWT token.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
 | authentication.kerberos.auth_to_local.rules | The auth-to-local rules set to use when translating a user's principal name to a local user name during authentication via SPNEGO. |`DEFAULT` | 
 | authentication.kerberos.enabled | Determines whether to use Kerberos (SPNEGO) authentication when connecting Ambari. |`false` | 
 | authentication.kerberos.spnego.keytab.file | The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO |`/etc/security/keytabs/spnego.service.keytab` | 

@@ -74,3 +74,17 @@ class Grep:
       length = len(lines)
       tailed = lines[length - n:]
       return "".join(tailed)
+
+  def tail_by_symbols(self, string, n):
+    """
+    Copies last n symbols with trimming by rows from string to result. Also, string trim is performed.
+    """
+    stripped_string = string.strip()
+    lines = stripped_string.splitlines(True)
+    tailed = []
+    for line in reversed(lines):
+      if len("".join(tailed) + line) <= n:
+        tailed[:0] = line
+      else:
+        break
+    return "".join(tailed)

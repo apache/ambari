@@ -46,7 +46,7 @@ class FirewallLinux(Firewall):
       return UbuntuFirewallChecks()
     elif self.OS_TYPE == OSConst.OS_FEDORA and int(self.OS_VERSION) >= 18:
       return Fedora18FirewallChecks()
-    elif OSCheck.is_redhat_family() and int(self.OS_VERSION) >= 7:
+    elif OSCheck.is_redhat_family():
       return RedHat7FirewallChecks()
     elif OSCheck.is_suse_family():
       return SuseFirewallChecks()

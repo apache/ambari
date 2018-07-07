@@ -255,5 +255,16 @@ module.exports = {
     return string.split('_').map(function(word) {
       return word.toLowerCase().capitalize();
     }).join(' ');
+  },
+
+  /**
+   *
+   * @param {string} string
+   * @param {RegExp} regexp
+   */
+  unicodeEscape: function (string, regexp = /[\s\S]/g) {
+    return string.replace(regexp, function (escape) {
+      return '\\u' + ('0000' + escape.charCodeAt().toString(16)).slice(-4);
+    });
   }
 };

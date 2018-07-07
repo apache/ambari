@@ -41,7 +41,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.LocalUriInfo;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorException;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorRequest;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorResponse;
@@ -49,7 +48,6 @@ import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorRunner;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.topology.Configuration;
@@ -191,13 +189,8 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
    *
    * @param root The JSON document that will become service.json when passed to the stack advisor engine
    */
-  void populateAmbariConfiguration(ObjectNode root) throws NoSuchResourceException {
-    Map<String, RootServiceComponentConfiguration> config = ambariServerConfigurationHandler.getConfigurations(null);
-    Map<String, Map<String,String>> result = new HashMap<>();
-    for (String category : config.keySet()) {
-      result.put(category, config.get(category).getProperties());
-    }
-    root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, mapper.valueToTree(result));
+  void populateAmbariConfiguration(ObjectNode root) {
+    root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, mapper.valueToTree(ambariServerConfigurationHandler.getConfigurations()));
   }
 
   /* Reads cluster level configurations (eg: cluster-settings).

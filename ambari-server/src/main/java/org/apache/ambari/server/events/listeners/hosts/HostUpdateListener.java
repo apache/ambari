@@ -31,7 +31,7 @@ import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
@@ -53,7 +53,7 @@ public class HostUpdateListener {
   private Map<Long, Map<String, HostUpdateEvent>> hosts = new HashMap<>();
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -88,7 +88,7 @@ public class HostUpdateListener {
       }
       hostUpdateEvent.setLastHeartbeatTime(lastHeartbeatTime);
 
-      stateUpdateEventPublisher.publish(HostUpdateEvent.createHostStatusUpdate(hostUpdateEvent.getClusterName(),
+      STOMPUpdatePublisher.publish(HostUpdateEvent.createHostStatusUpdate(hostUpdateEvent.getClusterName(),
           hostUpdateEvent.getHostName(),
           hostUpdateEvent.getHostStatus(),
           hostUpdateEvent.getLastHeartbeatTime()));
@@ -113,7 +113,7 @@ public class HostUpdateListener {
       }
       hostUpdateEvent.setLastHeartbeatTime(lastHeartbeatTime);
 
-      stateUpdateEventPublisher.publish(HostUpdateEvent.createHostStateUpdate(hostUpdateEvent.getClusterName(),
+      STOMPUpdatePublisher.publish(HostUpdateEvent.createHostStateUpdate(hostUpdateEvent.getClusterName(),
           hostUpdateEvent.getHostName(),
           hostUpdateEvent.getHostState(),
           hostUpdateEvent.getLastHeartbeatTime()));
@@ -146,7 +146,7 @@ public class HostUpdateListener {
     }
     hostUpdateEvent.setAlertsSummary(summary);
 
-    stateUpdateEventPublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
+    STOMPUpdatePublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
         hostName, summary));
   }
 
@@ -169,10 +169,10 @@ public class HostUpdateListener {
         MaintenanceState maintenanceState = event.getMaintenanceState();
         hostUpdateEvent.setMaintenanceState(maintenanceState);
 
-        stateUpdateEventPublisher.publish(HostUpdateEvent.createHostMaintenanceStatusUpdate(hostUpdateEvent.getClusterName(),
+        STOMPUpdatePublisher.publish(HostUpdateEvent.createHostMaintenanceStatusUpdate(hostUpdateEvent.getClusterName(),
             hostName, maintenanceState, summary));
       } else {
-        stateUpdateEventPublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
+        STOMPUpdatePublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
             hostName, summary));
       }
     } else if (event.getService()!= null) {
@@ -187,7 +187,7 @@ public class HostUpdateListener {
         }
         hostUpdateEvent.setAlertsSummary(summary);
 
-        stateUpdateEventPublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
+        STOMPUpdatePublisher.publish(HostUpdateEvent.createHostAlertsUpdate(hostUpdateEvent.getClusterName(),
             hostName, summary));
       }
     }

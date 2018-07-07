@@ -74,7 +74,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
-[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1
+[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1_2
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
@@ -125,7 +125,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = "PROTOCOL_TLSv1"
+  force_https_protocol = "PROTOCOL_TLSv1_2"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -481,24 +481,41 @@ class Script(object):
 
     return Script.stack_version_from_distro_select
 
-
-  def get_package_from_available(self, name, available_packages_in_repos):
+  def get_package_from_available(self, name, available_packages_in_repos=None):
     """
     This function matches package names with ${stack_version} placeholder to actual package names from
     Ambari-managed repository.
     Package names without ${stack_version} placeholder are returned as is.
     """
+
     if STACK_VERSION_PLACEHOLDER not in name:
       return name
+
+    if not available_packages_in_repos:
+      available_packages_in_repos = self.load_available_packages()
+
+    from resource_management.libraries.functions.default import default
+
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
     package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter)) + "$"
+    repo = default('/repositoryFile', None)
+    name_with_version = None
+
+    if repo:
+      command_repo = CommandRepository(repo)
+      version_str = command_repo.version_string.replace('.', package_delimiter).replace("-", package_delimiter)
+      name_with_version = name.replace(STACK_VERSION_PLACEHOLDER, version_str)
+
     for package in available_packages_in_repos:
       if re.match(package_regex, package):
         return package
-    Logger.warning("No package found for {0}({1})".format(name, package_regex))
 
+    if name_with_version:
+      raise Fail("No package found for {0}(expected name: {1})".format(name, name_with_version))
+    else:
+      raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
 
-  def format_package_name(self, name, repo_version=None):
+  def format_package_name(self, name):
     from resource_management.libraries.functions.default import default
     """
     This function replaces ${stack_version} placeholder with actual version.  If the package
@@ -527,11 +544,7 @@ class Script(object):
       package_version = default("hostLevelParams/package_version", None)
 
     if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
-      self.load_available_packages()
-      package_name = self.get_package_from_available(name, self.available_packages_in_repos)
-      if package_name is None:
-        raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
-      return package_name
+      return self.get_package_from_available(name)
 
     if package_version is not None:
       package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
@@ -603,7 +616,7 @@ class Script(object):
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1 by default
+    :return: protocol name, PROTOCOL_TLSv1_2 by default
     """
     return Script.force_https_protocol
 
@@ -769,29 +782,40 @@ class Script(object):
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
+    config = self.get_config()
+
+    service_name = config['serviceName'] if 'serviceName' in config else None
+    repos = CommandRepository(config['repositoryFile'])
+    repo_ids = [repo.repo_id for repo in repos.items]
+    Logger.info("Command repositories: {0}".format(", ".join(repo_ids)))
+    repos.items = [x for x in repos.items if (not x.applicable_services or service_name in x.applicable_services) ]
+    applicable_repo_ids = [repo.repo_id for repo in repos.items]
+    Logger.info("Applicable repositories: {0}".format(", ".join(applicable_repo_ids)))
+
+
     pkg_provider = ManagerFactory.get()
     try:
-      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
+      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(repos)
     except Exception as err:
       Logger.exception("Unable to load available packages")
       self.available_packages_in_repos = []
+    return self.available_packages_in_repos
 
-  def create_component_instance(self):
-    # should be used only when mpack-instance-manager is available
-    from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
-    config = self.get_config()
-    execution_command = self.get_execution_command()
-    mpack_name = execution_command.get_mpack_name()
-    mpack_version = execution_command.get_mpack_version()
-    mpack_instance_name = execution_command.get_servicegroup_name()
-    module_name = execution_command.get_module_name()
-    component_type = execution_command.get_component_type()
-    component_instance_name = execution_command.get_component_instance_name()
+def create_component_instance(self):
+  # should be used only when mpack-instance-manager is available
+  from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
+  config = self.get_config()
+  execution_command = self.get_execution_command()
+  mpack_name = execution_command.get_mpack_name()
+  mpack_version = execution_command.get_mpack_version()
+  mpack_instance_name = execution_command.get_servicegroup_name()
+  module_name = execution_command.get_module_name()
+  component_type = execution_command.get_component_type()
+  component_instance_name = execution_command.get_component_instance_name()
 
-    create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
-                              module_name=module_name, components_instance_type=component_type,
-                              component_instance_name=component_instance_name)
-
+  create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
+                            module_name=module_name, components_instance_type=component_type,
+                            component_instance_name=component_instance_name)
 
   def install_packages(self, env):
     """

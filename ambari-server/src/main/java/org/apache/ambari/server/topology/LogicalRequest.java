@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
@@ -71,29 +70,27 @@ public class LogicalRequest extends Request {
   private static final AtomicLong hostIdCounter = new AtomicLong(1);
 
   private final static Logger LOG = LoggerFactory.getLogger(LogicalRequest.class);
+  private final TopologyRequest request;
 
 
-  public LogicalRequest(Long id, TopologyRequest request, ClusterTopology topology)
-      throws AmbariException {
-
-    //todo: abstract usage of controller, etc ...
+  public LogicalRequest(Long id, TopologyRequest request, ClusterTopology topology) {
     super(id, topology.getClusterId(), getController().getClusters());
 
-    setRequestContext(String.format("Logical Request: %s", request.getDescription()));
-
+    this.request = request;
     this.topology = topology;
+
+    setRequestContext(String.format("Logical Request: %s", request.getDescription()));
     createHostRequests(request, topology);
   }
 
   public LogicalRequest(Long id, TopologyRequest request, ClusterTopology topology,
-                        TopologyLogicalRequestEntity requestEntity) throws AmbariException {
-
-    //todo: abstract usage of controller, etc ...
+                        TopologyLogicalRequestEntity requestEntity) {
     super(id, topology.getClusterId(), getController().getClusters());
 
-    setRequestContext(String.format("Logical Request: %s", request.getDescription()));
-
+    this.request = request;
     this.topology = topology;
+
+    setRequestContext(String.format("Logical Request: %s", request.getDescription()));
     createHostRequests(topology, requestEntity);
   }
 
@@ -160,6 +157,10 @@ public class LogicalRequest extends Request {
       commands.addAll(new ArrayList<>(hostRequest.getLogicalTasks()));
     }
     return commands;
+  }
+
+  public TopologyRequest.Type getType() {
+    return request.getType();
   }
 
   public Collection<String> getReservedHosts() {

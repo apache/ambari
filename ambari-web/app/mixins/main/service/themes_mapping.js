@@ -32,15 +32,21 @@ App.ThemesMappingMixin = Em.Mixin.create({
    * @method loadConfigTheme
    */
   loadConfigTheme: function(serviceName) {
-    return App.ajax.send({
-      name: 'configs.theme',
-      sender: this,
-      data: {
-        serviceName: serviceName,
-        stackVersionUrl: App.get('stackVersionURL')
-      },
-      success: '_saveThemeToModel'
-    });
+    const dfd = $.Deferred();
+    if (App.Tab.find().mapProperty('serviceName').contains(serviceName)) {
+      dfd.resolve();
+    } else {
+      App.ajax.send({
+        name: 'configs.theme',
+        sender: this,
+        data: {
+          serviceName: serviceName,
+          stackVersionUrl: App.get('stackVersionURL')
+        },
+        success: '_saveThemeToModel'
+      }).complete(dfd.resolve);
+    }
+    return dfd.promise();
   },
 
   /**

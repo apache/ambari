@@ -18,14 +18,19 @@ limitations under the License.
 """
 
 import sys
+from ambari_commons.repo_manager import ManagerFactory
+from ambari_commons.shell import RepoCallContext
 from resource_management.core.logger import Logger
+from resource_management.core.source import Template
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.generate_logfeeder_input_config import generate_logfeeder_input_config
 
 from collection import backup_collection, restore_collection
 from migrate import migrate_index
@@ -48,13 +53,21 @@ class InfraSolr(Script):
     env.set_params(params)
     self.configure(env)
 
+    generate_logfeeder_input_config('ambari-infra', Template("input.config-ambari-infra.json.j2", extra_imports=[default]))
+
     setup_solr_znode_env()
-    start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' >> {infra_solr_log} 2>&1') \
-            if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} >> {infra_solr_log} 2>&1')
+    start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' 2>&1') \
+            if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} 2>&1')
+
+    check_process = format("{sudo} test -f {infra_solr_pidfile} && {sudo} pgrep -F {infra_solr_pidfile}")
+
+    piped_start_cmd = format('{start_cmd} | tee {infra_solr_log}') + '; (exit "${PIPESTATUS[0]}")'
     Execute(
-      start_cmd,
+      piped_start_cmd,
       environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
-      user=params.infra_solr_user
+      user=params.infra_solr_user,
+      not_if=check_process,
+      logoutput=True
     )
 
   def stop(self, env, upgrade_type=None):
@@ -62,10 +75,12 @@ class InfraSolr(Script):
     env.set_params(params)
 
     try:
-      Execute(format('{solr_bindir}/solr stop -all >> {infra_solr_log}'),
+      stop_cmd=format('{solr_bindir}/solr stop -all')
+      piped_stop_cmd=format('{stop_cmd} | tee {infra_solr_log}') + '; (exit "${PIPESTATUS[0]}")'
+      Execute(piped_stop_cmd,
               environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
               user=params.infra_solr_user,
-              only_if=format("test -f {prev_infra_solr_pidfile}")
+              logoutput=True
               )
 
       File(params.prev_infra_solr_pidfile,
@@ -132,6 +147,25 @@ class InfraSolr(Script):
 
   def migrate(self, env):
     migrate_index(env)
+
+  def upgrade_solr_instance(self, env):
+    pkg_provider = ManagerFactory.get()
+    context = RepoCallContext()
+    context.log_output = True
+    pkg_provider.remove_package('ambari-infra-solr', context, ignore_dependencies=True)
+    pkg_provider.upgrade_package('ambari-infra-solr', context)
+
+  def get_log_folder(self):
+    import params
+    return params.infra_solr_log_dir
+
+  def get_user(self):
+    import params
+    return params.infra_solr_user
+
+  def get_pid_files(self):
+    import status_params
+    return [status_params.infra_solr_pidfile]
 
 if __name__ == "__main__":
   InfraSolr().execute()

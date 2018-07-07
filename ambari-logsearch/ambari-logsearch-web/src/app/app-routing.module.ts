@@ -21,28 +21,39 @@ import {RouterModule, Routes} from '@angular/router';
 import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
 import {LoginFormComponent} from '@app/components/login-form/login-form.component';
 import {AuthGuardService} from '@app/services/auth-guard.service';
+import {TabGuard} from '@app/services/tab.guard';
+import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
+import {LoginScreenGuardService} from '@app/services/login-screen-guard.service';
 
 const appRoutes: Routes = [{
     path: 'login',
     component: LoginFormComponent,
     data: {
       breadcrumbs: 'login.title'
-    }
+    },
+    canActivate: [LoginScreenGuardService]
   }, {
-    path: 'logs',
+    path: 'logs/:activeTab',
     component: LogsContainerComponent,
     data: {
-      multiClusterFilter: true,
-      breadcrumbs: 'logs.title'
+      breadcrumbs: 'logs.title',
+      multiClusterFilter: true
     },
-    canActivate: [AuthGuardService]
+    resolve: {
+      breadcrumbs: LogsBreadcrumbsResolverService
+    },
+    canActivate: [AuthGuardService, TabGuard]
+  }, {
+    path: 'logs',
+    redirectTo: '/logs/serviceLogs',
+    pathMatch: 'full'
   }, {
     path: '',
-    redirectTo: '/logs',
+    redirectTo: '/logs/serviceLogs',
     pathMatch: 'full'
   }, {
     path: '**',
-    redirectTo: '/logs'
+    redirectTo: '/logs/serviceLogs'
   }
 ];
 
@@ -50,7 +61,7 @@ const appRoutes: Routes = [{
   imports: [
     RouterModule.forRoot(
       appRoutes,
-      { enableTracing: false } // <-- debugging purposes only
+      { enableTracing: false, useHash: true }
     )
   ],
   exports: [

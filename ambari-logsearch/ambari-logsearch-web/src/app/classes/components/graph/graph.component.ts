@@ -17,38 +17,22 @@
  */
 
 import {
-  AfterViewInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input, Output, EventEmitter
+  AfterViewInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input, Output, EventEmitter, OnInit, OnDestroy
 } from '@angular/core';
 import * as d3 from 'd3';
 import * as d3sc from 'd3-scale-chromatic';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/operator/throttleTime';
 import {
-  GraphPositionOptions, GraphMarginOptions, GraphTooltipInfo, LegendItem, GraphEventData, GraphEmittedEvent
+GraphPositionOptions, GraphMarginOptions, GraphTooltipInfo, LegendItem, GraphEventData, GraphEmittedEvent
 } from '@app/classes/graph';
 import {HomogeneousObject} from '@app/classes/object';
 import {ServiceInjector} from '@app/classes/service-injector';
 import {UtilsService} from '@app/services/utils.service';
+import {Subscription} from 'rxjs/Subscription';
 
-export class GraphComponent implements AfterViewInit, OnChanges {
-
-  constructor() {
-    this.utils = ServiceInjector.injector.get(UtilsService);
-  }
-
-  ngAfterViewInit() {
-    this.graphContainer = this.graphContainerRef.nativeElement;
-    this.tooltip = this.tooltipRef.nativeElement;
-    this.host = d3.select(this.graphContainer);
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    const dataChange = changes.data;
-    if (dataChange && dataChange.currentValue && !this.utils.isEmptyObject(dataChange.currentValue)
-      && (!dataChange.previousValue || this.utils.isEmptyObject(dataChange.previousValue))
-      && this.utils.isEmptyObject(this.labels)) {
-      this.setDefaultLabels();
-    }
-    this.createGraph();
-  }
+export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestroy {
 
   @Input()
   data: HomogeneousObject<HomogeneousObject<number>> = {};
@@ -197,16 +181,51 @@ export class GraphComponent implements AfterViewInit, OnChanges {
    */
   private tooltipOnTheLeft: boolean = false;
 
+  protected subscriptions: Subscription[] = [];
+
   /**
    * This will return the information about the used levels and the connected colors and labels.
    * The goal is to provide an easy property to the template to display the legend of the levels.
    * @returns {LegendItem[]}
    */
-  get legendItems(): LegendItem[] {
-    return Object.keys(this.labels).map((key: string) => Object.assign({}, {
-      label: this.labels[key],
-      color: this.colors[key]
-    }));
+  legendItems: LegendItem[];
+
+  constructor() {
+    this.utils = ServiceInjector.injector.get(UtilsService);
+  }
+
+  ngOnInit() {
+    this.subscriptions.push(
+      Observable.fromEvent(window, 'resize').throttleTime(100).subscribe(this.onWindowResize)
+    );
+    this.setLegendItems();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
+  ngAfterViewInit() {
+    this.graphContainer = this.graphContainerRef.nativeElement;
+    this.tooltip = this.tooltipRef.nativeElement;
+    this.host = d3.select(this.graphContainer);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    const dataChange = changes.data;
+    if (dataChange && dataChange.currentValue && !this.utils.isEmptyObject(dataChange.currentValue)
+      && (!dataChange.previousValue || this.utils.isEmptyObject(dataChange.previousValue))
+      && this.utils.isEmptyObject(this.labels)) {
+      this.setDefaultLabels();
+    }
+    if (changes.labels || changes.colors) {
+      this.setLegendItems();
+    }
+    this.createGraph();
+  }
+
+  onWindowResize = () => {
+    this.createGraph();
   }
 
   protected createGraph(): void {
@@ -221,27 +240,37 @@ export class GraphComponent implements AfterViewInit, OnChanges {
    * Method that sets default labels map object based on data if no custom one is specified
    */
   protected setDefaultLabels() {
-    const data = this.data,
-      keys = Object.keys(data),
-      labels = keys.reduce((keys: HomogeneousObject<string>, dataKey: string): HomogeneousObject<string> => {
-        const newKeys = Object.keys(data[dataKey]),
-          newKeysObj = newKeys.reduce((subKeys: HomogeneousObject<string>, key: string): HomogeneousObject<string> => {
+    const data = this.data;
+    const keys = Object.keys(data);
+    const labels = keys.reduce((keysReduced: HomogeneousObject<string>, dataKey: string): HomogeneousObject<string> => {
+        const newKeys = Object.keys(data[dataKey]);
+        const newKeysObj = newKeys.reduce((subKeys: HomogeneousObject<string>, key: string): HomogeneousObject<string> => {
             return Object.assign(subKeys, {
               [key]: key
             });
         }, {});
-        return Object.assign(keys, newKeysObj);
+        return Object.assign(keysReduced, newKeysObj);
       }, {});
     this.labels = labels;
+    this.setLegendItems();
+  }
+
+  protected setLegendItems(): void {
+    if (this.colors && this.labels) {
+      this.legendItems = Object.keys(this.labels).map((key: string) => Object.assign({}, {
+        label: this.labels[key],
+        color: this.colors[key]
+      }));
+    }
   }
 
   protected setup(): void {
     const margin = this.margin;
     if (this.utils.isEmptyObject(this.colors)) {
       // set default color scheme for different values if no custom colors specified
-      const keys = Object.keys(this.labels),
-        keysCount = keys.length,
-        specterLength = keysCount > 2 ? keysCount : 3; // length of minimal available spectral scheme is 3
+      const keys = Object.keys(this.labels);
+      const keysCount = keys.length;
+      const specterLength = keysCount > 2 ? keysCount : 3; // length of minimal available spectral scheme is 3
       let colorsArray;
       if (keysCount > 2) {
         colorsArray = Array.from(d3sc.schemeSpectral[keysCount]);
@@ -260,9 +289,7 @@ export class GraphComponent implements AfterViewInit, OnChanges {
         keys = Object.keys(keysWithColors);
       this.orderedColors = keys.reduce((array: string[], key: string): string[] => [...array, keysWithColors[key]], []);
     }
-    if (!this.width) {
-      this.width = this.graphContainer.clientWidth - margin.left - margin.right;
-    }
+    this.width = this.graphContainer.clientWidth - margin.left - margin.right;
     const xScale = this.isTimeGraph ? d3.scaleTime() : d3.scaleLinear();
     const yScale = d3.scaleLinear();
     const xScaleWithRange = this.reverseXRange ? xScale.range([this.width, 0]) : xScale.range([0, this.width]);
@@ -297,14 +324,16 @@ export class GraphComponent implements AfterViewInit, OnChanges {
    * It draws the svg representation of the x axis. The goal is to set the ticks here, add the axis to the svg element
    * and set the position of the axis.
    * @param {number} ticksCount - optional parameter which sets number of ticks explicitly
+   * @param {number} leftOffset
    */
-  protected drawXAxis(ticksCount?: number): void {
+  protected drawXAxis(ticksCount?: number, leftOffset?: number): void {
     const axis = d3.axisBottom(this.xScale).tickFormat(this.xAxisTickFormatter).tickPadding(this.tickPadding);
     if (ticksCount) {
       axis.ticks(ticksCount);
     }
     this.xAxis = axis;
-    this.svg.append('g').attr('class', `axis ${this.xAxisClassName}`).attr('transform', `translate(0,${this.height})`)
+    this.svg.append('g').attr('class', `axis ${this.xAxisClassName}`)
+      .attr('transform', `translate(${leftOffset || 0}, ${this.height})`)
       .call(this.xAxis);
     if (this.xTickContextMenu.observers.length) {
       this.svg.selectAll(`.${this.xAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
@@ -330,7 +359,7 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     this.svg.append('g').attr('class', `axis ${this.yAxisClassName}`).call(this.yAxis);
     if (this.yTickContextMenu.observers.length) {
       this.svg.selectAll(`.${this.yAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
-        const tick = this.emitFormattedYTick ? this.yAxisTickFormatter(tickValue, index): tickValue,
+        const tick = this.emitFormattedYTick ? this.yAxisTickFormatter(tickValue, index) : tickValue,
           nativeEvent = d3.event;
         this.yTickContextMenu.emit({tick, nativeEvent});
         event.preventDefault();
@@ -352,7 +381,7 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     } else {
       return Number.isInteger(tick) ? tick.toFixed(0) : undefined;
     }
-  };
+  }
 
   /**
    * Function that formats the labels for Y axis ticks.
@@ -368,7 +397,7 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     } else {
       return Number.isInteger(tick) ? tick.toFixed(0) : undefined;
     }
-  };
+  }
 
   /**
    * The goal is to handle the mouse over event on the svg elements so that we can populate the tooltip info object
@@ -380,7 +409,7 @@ export class GraphComponent implements AfterViewInit, OnChanges {
   protected handleMouseOver = (d: GraphEventData, index: number, elements: HTMLElement[]): void => {
     this.setTooltipDataFromChartData(d);
     this.setTooltipPosition();
-  };
+  }
 
   /**
    * The goal is to handle the movement of the mouse over the svg elements, so that we can set the position of
@@ -388,14 +417,14 @@ export class GraphComponent implements AfterViewInit, OnChanges {
    */
   protected handleMouseMove = (): void => {
     this.setTooltipPosition();
-  };
+  }
 
   /**
    * The goal is to reset the tooltipInfo object so that the tooltip will be hidden.
    */
   protected handleMouseOut = (): void => {
     this.tooltipInfo = {};
-  };
+  }
 
   /**
    * The goal is set the tooltip

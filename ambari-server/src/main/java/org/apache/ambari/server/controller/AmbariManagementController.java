@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
@@ -262,6 +263,26 @@ public interface AmbariManagementController {
    */
   RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                               Map<String, String> requestProperties)
+      throws AmbariException, AuthorizationException;
+
+  /**
+   * Update the cluster identified by the given request object with the
+   * values carried by the given request object.
+   *
+   *
+   * @param requests          request objects which define which cluster to
+   *                          update and the values to set
+   * @param requestProperties request specific properties independent of resource
+   *
+   * @param fireAgentUpdates  should agent updates (configurations, metadata etc.) be fired inside
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
+   */
+  RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
+                                              Map<String, String> requestProperties, boolean fireAgentUpdates)
       throws AmbariException, AuthorizationException;
 
   /**
@@ -661,7 +682,35 @@ public interface AmbariManagementController {
                              Map<State, List<ServiceComponent>> changedComponents,
                              Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
                              Collection<ServiceComponentHost> ignoredHosts,
-                             boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs) throws AmbariException;
+
+  /**
+   * Add stages to the request.
+   *
+   * @param requestStages       Stages currently associated with request
+   * @param cluster             cluster being acted on
+   * @param requestProperties   the request properties
+   * @param requestParameters   the request parameters; may be null
+   * @param changedServices     the services being changed; may be null
+   * @param changedComponents   the components being changed
+   * @param changedHosts        the hosts being changed
+   * @param ignoredHosts        the hosts to be ignored
+   * @param runSmokeTest        indicates whether or not the smoke tests should be run
+   * @param reconfigureClients  indicates whether or not the clients should be reconfigured
+   * @param useGeneratedConfigs indicates whether or not the actual configs should be a part of the stage
+   * @param useClusterHostInfo  indicates whether or not the cluster topology info  should be a part of the stage
+   *
+   * @return request stages
+   *
+   * @throws AmbariException if stages can't be created
+   */
+  RequestStageContainer addStages(RequestStageContainer requestStages, Cluster cluster, Map<String, String> requestProperties,
+                             Map<String, String> requestParameters,
+                             Map<State, List<Service>> changedServices,
+                             Map<State, List<ServiceComponent>> changedComponents,
+                             Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                             Collection<ServiceComponentHost> ignoredHosts,
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs, boolean useClusterHostInfo) throws AmbariException;
 
   /**
    * Getter for the url of JDK, stored at server resources folder
@@ -1010,5 +1059,7 @@ public interface AmbariManagementController {
 
   HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException;
 
+  TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
+      throws AmbariException;
 }
 

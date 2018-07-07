@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -362,6 +363,8 @@ public class HostImpl implements Host {
       } catch (AmbariException e1) {
         LOG.error("Unable to restore last valid host components status for host", e1);
       }
+      // initialize agent times in the last time to prevent setting registering/heartbeat times for failed registration.
+      host.updateHostTimestamps(e);
     }
   }
 
@@ -1248,16 +1251,21 @@ public class HostImpl implements Host {
       String status = scHost.getState().name();
 
       String category = componentInfo.getCategory();
+      if (category == null) {
+        LOG.warn("In stack {}-{} service {} component {} category is null!",
+                stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(), scHost.getServiceComponentName());
+        continue;
+      }
 
       if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, this)) {
-        if (category.equals("MASTER")) {
+        if (Objects.equals("MASTER", category)) {
           ++masterCount;
-          if (status.equals("STARTED")) {
+          if (Objects.equals("STARTED", status)) {
             ++mastersRunning;
           }
-        } else if (category.equals("SLAVE")) {
+        } else if (Objects.equals("SLAVE", category)) {
           ++slaveCount;
-          if (status.equals("STARTED")) {
+          if (Objects.equals("STARTED", status)) {
             ++slavesRunning;
           }
         }
@@ -1279,16 +1287,18 @@ public class HostImpl implements Host {
   @Transactional
   public void updateHost(HostRegistrationRequestEvent e) {
     importHostInfo(e.hostInfo);
-    setLastRegistrationTime(e.registrationTime);
-    //Initialize heartbeat time and timeInState with registration time.
-    setLastHeartbeatTime(e.registrationTime);
-    setLastAgentStartTime(e.agentStartTime);
     setLastAgentEnv(e.agentEnv);
-    setTimeInState(e.registrationTime);
     setAgentVersion(e.agentVersion);
     setPublicHostName(e.publicHostName);
-    setTimeInState(System.currentTimeMillis());
     setState(HostState.INIT);
+  }
+
+  @Transactional
+  public void updateHostTimestamps(HostRegistrationRequestEvent e) {
+    setLastHeartbeatTime(e.registrationTime);
+    setLastRegistrationTime(e.registrationTime);
+    setLastAgentStartTime(e.agentStartTime);
+    setTimeInState(e.registrationTime);
   }
 }
 

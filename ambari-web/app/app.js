@@ -68,6 +68,17 @@ module.exports = Em.Application.create({
   havePermissions: function (authRoles) {
     var result = false;
 
+    authRoles = $.map(authRoles.split(","), $.trim);
+
+    // When Upgrade running(not suspended) only operations related to upgrade should be allowed
+    if ((!this.get('upgradeSuspended') &&
+      !authRoles.contains('CLUSTER.UPGRADE_DOWNGRADE_STACK') &&
+      !authRoles.contains('CLUSTER.MANAGE_USER_PERSISTED_DATA')) &&
+      !App.get('supports.opsDuringRollingUpgrade') &&
+      !['NOT_REQUIRED', 'COMPLETED'].contains(this.get('upgradeState')) ||
+      !App.auth){
+      return false;
+    }
     if (App.auth) {
       authRoles = $.map(authRoles.split(","), $.trim);
 
@@ -175,7 +186,7 @@ module.exports = Em.Application.create({
   }.property('router.clusterController.dataLoadList.services', 'router.clusterController.isServiceContentFullyLoaded'),
 
   hasNameNodeFederation: function () {
-    return App.HDFSService.find().objectAt(0).get('masterComponentGroups.length') > 1;
+    return App.HDFSService.find('HDFS').get('masterComponentGroups.length') > 1;
   }.property('router.clusterController.isHostComponentMetricsLoaded', 'router.clusterController.isHDFSNameSpacesLoaded'),
 
   /**

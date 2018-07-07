@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server;
 
-import org.apache.ambari.server.events.AmbariUpdateEvent;
+import org.apache.ambari.server.events.STOMPEvent;
 
 @SuppressWarnings("serial")
 public class MessageDestinationIsNotDefinedException extends ObjectNotFoundException {
 
-  public MessageDestinationIsNotDefinedException(AmbariUpdateEvent.Type eventType) {
-    super(String.format("No destination defined for message with {} type", eventType));
+  public MessageDestinationIsNotDefinedException(STOMPEvent.Type eventType) {
+    super(String.format("No destination defined for message with %s type", eventType));
   }
 }

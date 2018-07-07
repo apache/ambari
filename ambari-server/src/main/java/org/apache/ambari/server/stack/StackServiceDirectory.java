@@ -26,6 +26,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 
@@ -54,6 +56,8 @@ public class StackServiceDirectory extends ServiceDirectory {
    * repository directory
    */
   @Nullable
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   private String repoDir;
 
   /**
@@ -72,6 +76,8 @@ public class StackServiceDirectory extends ServiceDirectory {
    * @return the repository xml file if exists or null
    */
   @Nullable
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   public RepositoryXml getRepoFile() {
     return repoFile;
   }
@@ -82,6 +88,8 @@ public class StackServiceDirectory extends ServiceDirectory {
    * @return the repository directory if exists or null
    */
   @Nullable
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   public String getRepoDir() {
     return repoDir;
   }

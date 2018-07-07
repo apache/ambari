@@ -314,6 +314,7 @@ default_fs = default("/configurations/core-site/fs.defaultFS", None)
 hdfs_site = config['configurations']['hdfs-site'] if has_namenode else None
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin") if has_namenode else None
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 import functools
 # create partial functions with common arguments for every HdfsResource call
@@ -328,7 +329,8 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs
+  default_fs = default_fs,
+  dfs_type = dfs_type
 )
 
 local_component_list = default("/localComponents", [])

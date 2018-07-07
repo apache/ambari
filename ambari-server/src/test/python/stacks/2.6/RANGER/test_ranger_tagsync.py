@@ -192,6 +192,14 @@ class TestRangerTagsync(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/tagsync/rangercred.jceks',
       owner = 'ranger',
       group = 'ranger',
+      only_if = 'test -e /etc/ranger/tagsync/rangercred.jceks',
+      mode = 0640,
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/tagsync/.rangercred.jceks.crc',
+      owner = 'ranger',
+      group = 'ranger',
+      only_if = 'test -e /etc/ranger/tagsync/.rangercred.jceks.crc',
       mode = 0640,
     )
 
@@ -243,9 +251,16 @@ class TestRangerTagsync(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/tagsync/atlascred.jceks',
       owner = 'ranger',
       group = 'ranger',
+      only_if = 'test -e /etc/ranger/tagsync/atlascred.jceks',
       mode = 0640,
     )
 
+    self.assertResourceCalled('File', '/etc/ranger/tagsync/.atlascred.jceks.crc',
+      owner = 'ranger',
+      group = 'ranger',
+      only_if = 'test -e /etc/ranger/tagsync/.atlascred.jceks.crc',
+      mode = 0640,
+    )
 
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/ranger-tagsync/conf/atlas-application.properties',
       properties = self.getConfig()['configurations']['tagsync-application-properties'],

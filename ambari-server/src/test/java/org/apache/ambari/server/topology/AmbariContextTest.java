@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.topology;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.ambari.server.topology.StackComponentResolverTest.builderFor;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -34,7 +36,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,10 +43,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -58,6 +61,8 @@ import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -74,17 +79,26 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.inject.util.Providers;
 
 /**
  * AmbariContext unit tests
@@ -93,6 +107,8 @@ import com.google.common.collect.ImmutableSet;
 @Experimental(
     feature = ExperimentalFeature.UNIT_TEST_REQUIRED,
     comment = "Add test cases for mpacks and multiple/bad versions")
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AmbariContext.class)
 public class AmbariContextTest {
 
   private static final String BP_NAME = "testBP";
@@ -128,7 +144,7 @@ public class AmbariContextTest {
   private static final Host host1 = createNiceMock(Host.class);
   private static final Host host2 = createNiceMock(Host.class);
   private static final ConfigFactory configFactory = createNiceMock(ConfigFactory.class);
-  private static final Service mockService1 = createStrictMock(Service.class);
+//  private static final Service mockService1 = createStrictMock(Service.class);
 
   private static final Collection<String> blueprintServices = new HashSet<>();
   private static final Map<Long, ConfigGroup> configGroups = new HashMap<>();
@@ -136,44 +152,27 @@ public class AmbariContextTest {
   private Configuration group1Configuration = null;
   private static final Set<String> group1Hosts = ImmutableSet.of(HOST1, HOST2);
 
+  private Capture<String> clusterSettingKeys;
+  private Capture<String> clusterSettingValues;
+
   private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = EasyMock.newCapture();
-  private Setting setting = createNiceMock(Setting.class);
+  private Setting setting;
 
   @Before
   public void setUp() throws Exception {
     reset(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
       hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
+      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory, metaInfo);
 
     // "inject" context state
-    Class<AmbariContext> clazz = AmbariContext.class;
-    Field f = clazz.getDeclaredField("controller");
-    f.setAccessible(true);
-    f.set(null, controller);
-
-    f = clazz.getDeclaredField("clusterController");
-    f.setAccessible(true);
-    f.set(null, clusterController);
-
-    f = clazz.getDeclaredField("hostResourceProvider");
-    f.setAccessible(true);
-    f.set(null, hostResourceProvider);
-
-    f = clazz.getDeclaredField("serviceGroupResourceProvider");
-    f.setAccessible(true);
-    f.set(null, serviceGroupResourceProvider);
-
-    f = clazz.getDeclaredField("serviceResourceProvider");
-    f.setAccessible(true);
-    f.set(null, serviceResourceProvider);
-
-    f = clazz.getDeclaredField("componentResourceProvider");
-    f.setAccessible(true);
-    f.set(null, componentResourceProvider);
-
-    f = clazz.getDeclaredField("hostComponentResourceProvider");
-    f.setAccessible(true);
-    f.set(null, hostComponentResourceProvider);
+    Whitebox.setInternalState(context, "controller", Providers.of(controller));
+    Whitebox.setInternalState(context, "ambariMetaInfo", Providers.of(metaInfo));
+    Whitebox.setInternalState(AmbariContext.class, "clusterController", clusterController);
+    Whitebox.setInternalState(AmbariContext.class, "hostResourceProvider", hostResourceProvider);
+    Whitebox.setInternalState(AmbariContext.class, "serviceGroupResourceProvider", serviceGroupResourceProvider);
+    Whitebox.setInternalState(AmbariContext.class, "serviceResourceProvider", serviceResourceProvider);
+    Whitebox.setInternalState(AmbariContext.class, "componentResourceProvider", componentResourceProvider);
+    Whitebox.setInternalState(AmbariContext.class, "hostComponentResourceProvider", hostComponentResourceProvider);
 
     // bp configuration
     Map<String, Map<String, String>> bpProperties = new HashMap<>();
@@ -247,8 +246,18 @@ public class AmbariContextTest {
       builderFor("service2", "s2Component1").stackId(STACK_ID).buildPartial()
     )).anyTimes();
     expect(topology.getConfiguration()).andReturn(bpConfiguration).anyTimes();
+
+    setting = new Setting(
+      map(
+        Pair.of("recovery_settings",
+          newHashSet(
+            map(Pair.of("recovery_enabled", "true")))),
+        Pair.of("service_settings",
+          newHashSet(
+            map(Pair.of("name", "service1"), Pair.of("recovery_enabled", "true"))))
+      )
+    );
     expect(topology.getSetting()).andReturn(setting).anyTimes();
-    expect(setting.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
@@ -260,8 +269,15 @@ public class AmbariContextTest {
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
-    expect(metaInfo.getClusterProperties()).andReturn(emptySet()).anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(
+      Sets.newHashSet(
+        property("command_retry_enabled", "true"),
+        property("commands_to_retry", "INSTALL,START"),
+        property("command_retry_max_time_in_sec", "600")
+      )
+    ).anyTimes();
 
+    expect(clusters.getCluster(CLUSTER_ID)).andReturn(cluster).anyTimes();
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(clusters.getClusterById(CLUSTER_ID)).andReturn(cluster).anyTimes();
     expect(clusters.getHost(HOST1)).andReturn(host1).anyTimes();
@@ -270,8 +286,11 @@ public class AmbariContextTest {
     Map<String, Host> clusterHosts = ImmutableMap.of(HOST1, host1, HOST2, host2);
     expect(clusters.getHostsForCluster(CLUSTER_NAME)).andReturn(clusterHosts).anyTimes();
 
+    clusterSettingKeys = EasyMock.newCapture(CaptureType.ALL);
+    clusterSettingValues = EasyMock.newCapture(CaptureType.ALL);
     expect(cluster.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
+    expect(cluster.addClusterSetting(capture(clusterSettingKeys), capture(clusterSettingValues))).andReturn(null).anyTimes();
 
     expect(host1.getHostId()).andReturn(1L).anyTimes();
     expect(host2.getHostId()).andReturn(2L).anyTimes();
@@ -281,20 +300,19 @@ public class AmbariContextTest {
 
     expect(configGroup1.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_1)).anyTimes();
     expect(configGroup2.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_2)).anyTimes();
-
   }
 
   @After
   public void tearDown() throws Exception {
     verify(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
-        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
+        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters, cluster,
+        group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   private void replayAll() {
     replay(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
-      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
-      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
+      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters, cluster,
+      group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   @Test
@@ -389,6 +407,21 @@ public class AmbariContextTest {
     assertEquals("STARTED", startProperties.get(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID));
     assertEquals(new EqualsPredicate<>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME),
         installPredicateCapture.getValue());
+
+    // verify that cluster settings has been configured with values coming from both defaults and the topology
+    Map<String, String> recordedClusterSettings = IntStream.range(0, clusterSettingKeys.getValues().size())
+      .boxed()
+      .map(i -> Pair.of(clusterSettingKeys.getValues().get(i), clusterSettingValues.getValues().get(i)))
+      .collect(toMap(p -> p.getLeft(), p -> p.getRight()));
+
+    assertEquals(
+      ImmutableMap.of(
+        "command_retry_enabled", "true",
+        "commands_to_retry", "INSTALL,START",
+        "command_retry_max_time_in_sec", "600",
+        "recovery_enabled", "true"),
+      recordedClusterSettings
+    );
   }
 
   @Test
@@ -537,7 +570,7 @@ public class AmbariContextTest {
     replayAll();
 
     // verify that wait returns successfully with empty updated list passed in
-    context.waitForConfigurationResolution(CLUSTER_NAME, Collections.emptySet());
+    context.waitForConfigurationResolution(CLUSTER_ID, Collections.emptySet());
   }
 
   @Test
@@ -571,7 +604,7 @@ public class AmbariContextTest {
 
     // verify that wait returns successfully with non-empty list
     // with all configuration types tagged as "TOPOLOGY_RESOLVED"
-    context.waitForConfigurationResolution(CLUSTER_NAME, testUpdatedConfigTypes);
+    context.waitForConfigurationResolution(CLUSTER_ID, testUpdatedConfigTypes);
   }
 
   @Test
@@ -677,4 +710,53 @@ public class AmbariContextTest {
     // Then
     assertFalse(topologyResolved);
   }
+
+  private static final <K, V> Map<K, V> map(Pair<K, V>... keyValuePairs) {
+    Map<K, V> map = new HashMap<>(keyValuePairs.length);
+    for (Pair<K, V> kv: keyValuePairs) {
+      map.put(kv.getLeft(), kv.getRight());
+    }
+    return map;
+  }
+
+  private static PropertyInfo property(String name, String value) {
+    PropertyInfo info = new PropertyInfo();
+    info.setName(name);
+    info.setValue(value);
+    return info;
+  }
+
+  @Test
+  public void testProvisionCluster_downloadMissingMpack() throws Exception {
+    PowerMock.mockStatic(AmbariContext.class);
+    expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
+    PowerMock.replay(AmbariContext.class);
+
+    // given
+    MpackInstance mpack1 = new MpackInstance("HDPCORE", "HDPCORE", "1.0.0.0", "http://mpacks.org/hdpcore", Configuration.createEmpty());
+    MpackInstance mpack2 = new MpackInstance("HDF", "HDF", "3.3.0", "http://mpacks.org/hdf", Configuration.createEmpty());
+    reset(metaInfo);
+    expect(metaInfo.getStack(mpack1.getStackId())).andReturn(null);
+    expect(metaInfo.getStack(mpack2.getStackId())).andThrow(new StackAccessException("Testing missing stack"));
+
+    MpackResourceProvider mpackResourceProvider = createNiceMock(MpackResourceProvider.class);
+    expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
+
+    Capture<Request> mpackRequestCapture = Capture.newInstance();
+    expect(mpackResourceProvider.createResources(capture(mpackRequestCapture)))
+      .andReturn(new RequestStatusImpl(null, null, null))
+      .once();
+
+    replay(mpackResourceProvider);
+    replayAll();
+
+    // when
+    context.downloadMissingMpacks(ImmutableSet.of(mpack1, mpack2));
+
+    // then
+    Set<Map<String, Object>> requests = mpackRequestCapture.getValue().getProperties();
+    assertEquals(1, requests.size());
+    assertEquals(mpack2.getUrl(), requests.iterator().next().get(MpackResourceProvider.MPACK_URI));
+  }
+
 }

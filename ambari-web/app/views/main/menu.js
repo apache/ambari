@@ -176,11 +176,13 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
     this.renderOnRoute();
     App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
     App.tooltip($("[rel='serviceHealthTooltip']"), {html:true, placement:"right"});
+    App.tooltip(this.$(".passive-state-service"), {html: true, placement: "top"});
   },
 
   willDestroyElement: function() {
     App.router.location.removeObserver('lastSetURL', this, 'renderOnRoute');
     this.$(".restart-required-service").tooltip('destroy');
+    this.$(".passive-state-service").tooltip('destroy');
   },
 
   activeServiceId:null,
@@ -210,11 +212,19 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
 
     shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
 
-    alertsCount: function () {
-      return this.get('content.alertsCount') > 99 ? "99+" : this.get('content.alertsCount') ;
+    alertsCountDisplay: function () {
+      return this.get('content.alertsCount') > 99 ? "99+" : this.get('content.alertsCount');
     }.property('content.alertsCount'),
 
+    noAlerts: Em.computed.equal('content.alertsCount', 0),
+
     hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
+
+    isMasterDown: function() {
+      return this.get('content.hostComponents').filterProperty('isMaster').some((component) => {
+        return !component.get('isRunning');
+      });
+    }.property('content.hostComponents.@each.workStatus'),
 
     isClientOnlyService : function(){
       return App.get('services.clientOnly').contains(this.get('content.serviceName'));

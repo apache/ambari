@@ -17,13 +17,15 @@
 }}
 <div id="ha-step6" class="wizard-content col-md-9">
   <h4 class="step-title">{{t admin.highAvailability.wizard.step6.bodyHeader}}</h4>
-  <div class="alert alert-info">
-    {{{view.step6BodyText}}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{{view.step6BodyText}}}
+    </div>
   </div>
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <a {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
+    <button {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</button>
     <span class="pull-right btn-extra-info">{{view.jnCheckPointText}}</span>
   </div>
 </div>

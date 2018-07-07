@@ -89,18 +89,18 @@
             </td>
           </tr>
           {{/each}}
-        </tbody>
-          {{#if view.isPaginate}}
-            <tfoot>
+        {{/if}}
+      </tbody>
+        {{#if view.isPaginate}}
+          <tfoot>
             <tr>
               <td colspan="5">
                 {{view App.PaginationView}}
               </td>
             </tr>
-            </tfoot>
-          {{/if}}
-        </table>
+          </tfoot>
         {{/if}}
+      </table>
         {{#if view.isShowMore}}
           <div class="show-more" {{action requestMoreOperations}}><a href="#">{{t hostPopup.serviceInfo.showMore}}</a>
           </div>

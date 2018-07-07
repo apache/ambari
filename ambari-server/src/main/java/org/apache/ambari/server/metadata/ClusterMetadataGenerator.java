@@ -71,6 +71,7 @@ import org.apache.ambari.server.utils.StageUtils;
 
 import com.google.gson.Gson;
 
+// TODO: [AMP] Revisit and fix
 public class ClusterMetadataGenerator {
 
   private final Configuration configs;
@@ -137,11 +138,13 @@ public class ClusterMetadataGenerator {
 
       MetadataCluster metadataCluster = new MetadataCluster(securityType,
         getMetadataServiceLevelParams(cl),
-        getMetadataClusterLevelParams(cl));
+        false,
+        getMetadataClusterLevelParams(cl),
+        new TreeMap<>());
       metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
     }
 
-    return new MetadataUpdateEvent(metadataClusters, getMetadataAmbariLevelParams());
+    return new MetadataUpdateEvent(metadataClusters, getMetadataAmbariLevelParams(), null, null);
   }
 
   public MetadataUpdateEvent getClusterMetadata(Cluster cl) throws AmbariException {
@@ -152,10 +155,12 @@ public class ClusterMetadataGenerator {
 
     MetadataCluster metadataCluster = new MetadataCluster(securityType,
       getMetadataServiceLevelParams(cl),
-      getMetadataClusterLevelParams(cl));
+      false,
+      getMetadataClusterLevelParams(cl),
+      new TreeMap<>());
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
-    return new MetadataUpdateEvent(metadataClusters, null);
+    return new MetadataUpdateEvent(metadataClusters, null, null, null);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) {
@@ -163,21 +168,22 @@ public class ClusterMetadataGenerator {
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
       new TreeMap<>(),
-      getMetadataClusterLevelParams(cl));
+      false,
+      getMetadataClusterLevelParams(cl), new TreeMap<>());
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
-    return new MetadataUpdateEvent(metadataClusters, null);
+    return new MetadataUpdateEvent(metadataClusters, null, null, null);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnRepoUpdate(Cluster cl) throws AmbariException {
     SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
-      getMetadataServiceLevelParams(cl),
-      new TreeMap<>());
+      getMetadataServiceLevelParams(cl), false,
+      new TreeMap<>(), new TreeMap<>());
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
-    return new MetadataUpdateEvent(metadataClusters, null);
+    return new MetadataUpdateEvent(metadataClusters, null, null, null);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceName) throws AmbariException {
@@ -185,10 +191,10 @@ public class ClusterMetadataGenerator {
 
     MetadataCluster metadataCluster = new MetadataCluster(null,
       getMetadataServiceLevelParams(cl.getService(serviceName)),
-      new TreeMap<>());
+      false, new TreeMap<>(), new TreeMap<>());
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
-    return new MetadataUpdateEvent(metadataClusters, null);
+    return new MetadataUpdateEvent(metadataClusters, null, null, null);
   }
 
   private SortedMap<String, String> getMetadataClusterLevelParams(Cluster cluster) {
@@ -220,7 +226,7 @@ public class ClusterMetadataGenerator {
     String servicePackageFolder = serviceInfo.getServicePackageFolder();
 
     serviceLevelParams.put(serviceInfo.getName(), new MetadataServiceInfo(serviceInfo.getVersion(),
-      serviceInfo.isCredentialStoreEnabled(), statusCommandTimeout, servicePackageFolder));
+      serviceInfo.isCredentialStoreEnabled(), null, statusCommandTimeout, servicePackageFolder));
 
     return serviceLevelParams;
   }

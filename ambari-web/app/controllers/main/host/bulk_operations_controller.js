@@ -164,7 +164,7 @@ App.BulkOperationsController = Em.Controller.extend({
           return App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(request, nn_hosts[0]);
         }
         if (nn_hosts.length > 1) {
-          // HA enabled
+          // HA or federation enabled
           return App.router.get('mainServiceItemController').checkNnLastCheckpointTime(request);
         }
       }
@@ -504,11 +504,12 @@ App.BulkOperationsController = Em.Controller.extend({
     var allHostsWithComponent = data.items.mapProperty('Hosts.host_name');
     var hostsWithComponent = [];
     hosts.forEach(function (host) {
-      if(allHostsWithComponent.contains(host.hostName)) {
+      const isNotHeartBeating = host.state === 'HEARTBEAT_LOST';
+      if(allHostsWithComponent.contains(host.hostName) || isNotHeartBeating) {
         hostsWithComponent.push(Em.Object.create({
           error: {
             key: host.hostName,
-            message: Em.I18n.t('hosts.bulkOperation.confirmation.add.component.skip').format(operationData.componentNameFormatted)
+            message: isNotHeartBeating ? Em.I18n.t('hosts.bulkOperation.confirmation.add.component.noHeartBeat.skip') : Em.I18n.t('hosts.bulkOperation.confirmation.add.component.skip').format(operationData.componentNameFormatted)
           },
           isCollapsed: true,
           isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
@@ -1073,6 +1074,7 @@ App.BulkOperationsController = Em.Controller.extend({
         id: host.id,
         clusterId: host.cluster_id,
         passiveState: host.passive_state,
+        state: host.state,
         hostName: host.host_name,
         hostComponents: host.host_components
       }

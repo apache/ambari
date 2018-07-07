@@ -46,7 +46,7 @@
     }, 
     "ambariLevelParams": {
         "ambari_server_host": "c6401.ambari.apache.org",
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "agent_stack_retry_count": "5", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "agent_stack_retry_on_unavailability": "false", 
@@ -56,12 +56,12 @@
         "ambari_db_rca_password": "mapred", 
         "host_sys_prepped": "false", 
         "db_name": "ambari", 
-        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources//ojdbc6.jar", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "ambari_db_rca_username": "mapred", 
         "jdk_name": "jdk-7u67-linux-x64.tar.gz", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar",
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar",
         "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
         "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
         "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
@@ -1076,7 +1076,10 @@
             "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier": "1",
             "timeline.metrics.daily.aggregator.minute.interval": "86400",
             "timeline.metrics.cluster.aggregator.minute.interval": "120",
-            "timeline.metrics.host.aggregator.hourly.interval": "3600"
+            "timeline.metrics.host.aggregator.hourly.interval": "3600",
+            "timeline.metrics.initial.configured.master.components": "drpc_server,hive_server,resourcemanager,all,webhcat_server,snamenode,storm_ui_server,falcon_server,namenode,ganglia_server,logviewer_server,hive_metastore,nimbus,zookeeper_server,historyserver,hbase_master,oozie_server,metrics_collector,supervisor,ganglia_monitor,hive_mysql,ambari_server",
+            "timeline.metrics.initial.configured.slave.components": "hbase_regionserver,datanode,nodemanager",
+            "hbase_total_heapsize": 536870912
         },
         "ams-grafana-env": {
             "metrics_grafana_log_dir": "/var/log/ambari-metrics-grafana",

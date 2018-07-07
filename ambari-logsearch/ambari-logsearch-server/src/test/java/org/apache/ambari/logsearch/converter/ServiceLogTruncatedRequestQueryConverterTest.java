@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogTruncatedRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogTruncatedQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class ServiceLogTruncatedRequestQueryConverterTest extends AbstractReques
   @Test
   public void testConvert() {
     // GIVEN
-    ServiceLogTruncatedRequest request = new ServiceLogTruncatedRequest();
+    ServiceLogTruncatedRequest request = new ServiceLogTruncatedQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setScrollType("0");
     request.setNumberRows(10);
@@ -46,15 +47,16 @@ public class ServiceLogTruncatedRequestQueryConverterTest extends AbstractReques
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
-    assertEquals("?q=*%3A*&start=0&rows=10&fq=type%3A%28logsearch_app+secure_log%29&fq=-type%3A%28hst_agent+system_message%29" +
-      "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=cluster%3Acl1&sort=logtime+desc%2Cseq_num+desc",
+    assertEquals("?q=*%3A*&start=0&rows=10&fq=type%3A%28logsearch_app+OR+secure_log%29" +
+        "&fq=-type%3A%28hst_agent+OR+system_message%29&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage" +
+        "&fq=cluster%3Acl1&sort=logtime+desc%2Cseq_num+desc",
       query.toQueryString());
   }
 
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    ServiceLogTruncatedRequest request = new ServiceLogTruncatedRequest();
+    ServiceLogTruncatedRequest request = new ServiceLogTruncatedQueryRequest();
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN

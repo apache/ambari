@@ -735,26 +735,19 @@ describe('App.BackgroundOperationsController', function () {
     });
   });
 
-  describe('#handleRequestsUpdates', function() {
+  describe('#subscribeToUpdates', function() {
     beforeEach(function() {
       sinon.stub(controller, 'requestMostRecent', Em.clb);
       sinon.stub(App.StompClient, 'subscribe');
-      sinon.stub(App.StompClient, 'unsubscribe');
     });
     afterEach(function() {
       controller.requestMostRecent.restore();
       App.StompClient.subscribe.restore();
-      App.StompClient.unsubscribe.restore();
     });
 
     it('App.StompClient.subscribe should be called', function() {
-      controller.set('isWorking', true);
+      controller.subscribeToUpdates();
       expect(App.StompClient.subscribe.calledWith('/events/requests')).to.be.true;
-    });
-
-    it('App.StompClient.unsubscribe should be called', function() {
-      controller.set('isWorking', false);
-      expect(App.StompClient.unsubscribe.calledWith('/events/requests')).to.be.true;
     });
   });
 

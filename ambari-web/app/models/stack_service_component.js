@@ -85,7 +85,7 @@ App.StackServiceComponent = DS.Model.extend({
     opt.scope = opt.scope || '*';
     var dependencies = this.get('dependencies');
     dependencies = opt.scope === '*' ? dependencies : dependencies.filterProperty('scope', opt.scope);
-    if (dependencies.length == 0) return [];
+    if (dependencies.length === 0) return [];
     installedComponents = installedComponents.map(function(each) { return App.StackServiceComponent.find(each); });
     return dependencies.filter(function (dependency) {
       return !installedComponents.some(function(each) {
@@ -133,13 +133,21 @@ App.StackServiceComponent = DS.Model.extend({
   isAddableToHost: function() {
     return this.get('isMasterAddableInstallerWizard')
       || ((this.get('isNotAddableOnlyInInstall') || this.get('isSlave') || this.get('isClient'))
-        && (!this.get('isHAComponentOnly') || (App.get('isHaEnabled') && this.get('componentName') == 'JOURNALNODE')));
+        && (!this.get('isHAComponentOnly') || (App.get('isHaEnabled') && this.get('componentName') === 'JOURNALNODE')));
   }.property('componentName'),
 
   /** @property {Boolean} isDeletable - component supports delete action **/
   isDeletable: function() {
     var ignored = [];
-    return (this.get('isAddableToHost') && !ignored.contains(this.get('componentName'))) || (this.get('componentName') == 'MYSQL_SERVER');
+    return (this.get('isAddableToHost') && !ignored.contains(this.get('componentName'))) || (this.get('componentName') === 'MYSQL_SERVER');
+  }.property('componentName'),
+
+  /**
+   * @type {boolean}
+   */
+  isInstallable: function() {
+    const notInstallable = App.get('currentStackName') === 'HDF' ? ['ACTIVITY_ANALYZER', 'ACTIVITY_EXPLORER'] : [];
+    return !notInstallable.contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isShownOnInstallerAssignMasterPage - component visible on "Assign Masters" step of Install Wizard **/
@@ -147,8 +155,8 @@ App.StackServiceComponent = DS.Model.extend({
   isShownOnInstallerAssignMasterPage: function() {
     var component = this.get('componentName');
     var mastersNotShown = ['MYSQL_SERVER', 'POSTGRESQL_SERVER', 'HIVE_SERVER_INTERACTIVE'];
-    return this.get('isMaster') && !mastersNotShown.contains(component);
-  }.property('isMaster','componentName'),
+    return this.get('isMaster') && this.get('isInstallable') && !mastersNotShown.contains(component);
+  }.property('isMaster','componentName', 'isInstallable'),
 
   /** @property {Boolean} isShownOnInstallerSlaveClientPage - component visible on "Assign Slaves and Clients" step of Install Wizard**/
   // Note: Components that are not visible on Assign Slaves and Clients Page are saved as part of host component recommendation/validation layout
@@ -198,7 +206,7 @@ App.StackServiceComponent = DS.Model.extend({
   /** @property {Number} defaultNoOfMasterHosts - default number of master hosts on Assign Master page: **/
   defaultNoOfMasterHosts: function() {
      if (this.get('isMasterAddableInstallerWizard')) {
-       return this.get('componentName') == 'ZOOKEEPER_SERVER' ? 3 : this.get('minToInstall');
+       return this.get('componentName') === 'ZOOKEEPER_SERVER' ? 3 : this.get('minToInstall');
      }
   }.property('componentName'),
 
@@ -224,7 +232,8 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   /** @property {Boolean} isNotAddableOnlyInInstall - is this component addable, except Install and Add Service Wizards  **/
-  isNotAddableOnlyInInstall: Em.computed.existsIn('componentName', ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'OOZIE_SERVER']),
+  isNotAddableOnlyInInstall: Em.computed.existsIn('componentName', ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER',
+    'OOZIE_SERVER', 'TIMELINE_READER', 'YARN_REGISTRY_DNS']),
 
   /** @property {Boolean} isNotAllowedOnSingleNodeCluster - is this component allowed on single node  **/
   isNotAllowedOnSingleNodeCluster: Em.computed.existsIn('componentName', ['HAWQSTANDBY'])
@@ -233,6 +242,4 @@ App.StackServiceComponent = DS.Model.extend({
 
 App.StackServiceComponent.FIXTURES = [];
 
-App.StackServiceComponent.coHost = {
-  'WEBHCAT_SERVER': 'HIVE_SERVER'
-};
+App.StackServiceComponent.coHost = {};

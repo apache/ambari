@@ -25,6 +25,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
+
 import status_params
 
 
@@ -115,6 +116,7 @@ infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_sol
 infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
 
 _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
+logsearch_jaas_file = None
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
@@ -217,8 +219,8 @@ logsearch_audit_logs_solrconfig_content = config['configurations']['logsearch-au
 logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['content']
 
 # Log dirs
-ambari_server_log_dir = '/var/log/ambari-server'
-ambari_agent_log_dir = '/var/log/ambari-agent'
+ambari_server_log_dir = default('/configurations/logfeeder-env/ambari_server_log_dir', "/var/log/ambari-server")
+ambari_agent_log_dir = default('/configurations/logfeeder-env/ambari_agent_log_dir', "/var/log/ambari-agent")
 
 # System logs
 logfeeder_system_messages_content = config['configurations']['logfeeder-system_log-env']['logfeeder_system_messages_content']
@@ -236,7 +238,7 @@ logsearch_admin_content = config['configurations']['logsearch-admin-json']['cont
 if 'ambari_server_host' in config['ambariLevelParams']:
   ambari_server_host = config['ambariLevelParams']['ambari_server_host']
   ambari_server_port = config['ambariLevelParams']['ambari_server_port']
-  ambari_server_use_ssl = config['ambariLevelParams']['ambari_server_use_ssl'] == 'true'
+  ambari_server_use_ssl = config['ambariLevelParams']['ambari_server_use_ssl']
   
   ambari_server_protocol = 'https' if ambari_server_use_ssl else 'http'
 
@@ -259,7 +261,7 @@ logsearch_properties['logsearch.solr.audit.logs.zk_connect_string'] = logsearch_
 
 logsearch_properties['logsearch.solr.collection.history'] = 'history'
 logsearch_properties['logsearch.solr.history.config.name'] = 'history'
-logsearch_properties['logsearch.collection.history.replication.factor'] = '1'
+logsearch_properties['logsearch.collection.history.replication.factor'] = '2'
 
 logsearch_properties['logsearch.solr.jmx.port'] = infra_solr_jmx_port
 
@@ -415,4 +417,4 @@ logsearch_server_host = ""
 logsearch_ui_port =  logsearch_https_port if logsearch_protocol == 'https' else logsearch_http_port
 if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
   logsearch_server_host = logsearch_server_hosts[0]
-smoke_logsearch_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {logsearch_protocol}://{logsearch_server_host}:{logsearch_ui_port}/ | grep 200')
+smoke_logsearch_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {logsearch_protocol}://{logsearch_server_host}:{logsearch_ui_port}/api/v1/info | grep 200')

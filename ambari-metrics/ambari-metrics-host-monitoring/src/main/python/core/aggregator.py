@@ -59,7 +59,7 @@ class Aggregator(threading.Thread):
   def stop(self):
     self.stopped = True
     if self._aggregator_process :
-      logger.info('Stopping Aggregator thread.')
+      logger.info('Shutting down Aggregator thread.')
       self._aggregator_process.terminate()
       self._aggregator_process = None
 
@@ -71,7 +71,7 @@ class AggregatorWatchdog(threading.Thread):
     threading.Thread.__init__(self)
     self._config = config
     self._stop_handler = stop_handler
-    self.URL = 'http://localhost:' + self._config.get_inmemory_aggregation_port() + self.AMS_AGGREGATOR_METRICS_CHECK_URL
+    self.URL = self._config.get_inmemory_aggregation_protocol() + '://localhost:' + self._config.get_inmemory_aggregation_port() + self.AMS_AGGREGATOR_METRICS_CHECK_URL
     self._is_ok = threading.Event()
     self.set_is_ok(True)
     self.stopped = False
@@ -106,7 +106,7 @@ class AggregatorWatchdog(threading.Thread):
 
 
   def stop(self):
-    logger.info('Stopping watcher thread.')
+    logger.info('Shutting down watcher thread.')
     self.stopped = True
 
 

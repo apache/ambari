@@ -199,6 +199,12 @@ describe('App.ServerValidatorMixin', function () {
       expect(instanceObject.createErrorMessage.bind(instanceObject, 'WRONG TYPE', null, ['msg3']))
         .to.throw(Error, 'Unknown config error type WRONG TYPE');
     });
+
+    it('password config property', function () {
+      expect(instanceObject.createErrorMessage('ERROR', $.extend({}, property, {
+        displayType: 'password'
+      })).value).to.equal('**');
+    });
   });
 });
 

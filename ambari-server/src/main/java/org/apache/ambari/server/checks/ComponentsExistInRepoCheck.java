@@ -33,14 +33,17 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentSupport;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -50,13 +53,16 @@ import com.google.inject.Singleton;
  */
 @Singleton
 @UpgradeCheck(
-    group = UpgradeCheckGroup.TOPOLOGY,
+    group = UpgradeCheckGroup.INFORMATIONAL_WARNING,
     required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
 public class ComponentsExistInRepoCheck extends ClusterCheck {
+  public static final String AUTO_REMOVE = "auto_remove";
+  public static final String MANUAL_REMOVE = "manual_remove";
+  @Inject
+  ServiceComponentSupport serviceComponentSupport;
+  @Inject
+  UpgradeHelper upgradeHelper;
 
-  /**
-   * Constructor.
-   */
   public ComponentsExistInRepoCheck() {
     super(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO);
   }

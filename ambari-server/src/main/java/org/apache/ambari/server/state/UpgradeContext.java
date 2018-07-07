@@ -46,8 +46,11 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.KerberosDetails;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.PreUpgradeCheckResourceProvider;
+import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -58,12 +61,14 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.dao.UpgradePlanDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Mpack.ModuleComponentVersionChange;
@@ -207,6 +212,13 @@ public class UpgradeContext {
   private UpgradeDAO m_upgradeDAO;
 
   /**
+   * Providers information about the Kerberization of a cluster, such as
+   * {@link KerberosDetails}.
+   */
+  @Inject
+  private KerberosHelper m_kerberosHelper;
+
+  /**
    * Used as a quick way to tell if the upgrade is to revert a patch.
    */
   private final boolean m_isRevert;
@@ -222,17 +234,24 @@ public class UpgradeContext {
   @Inject
   private Configuration configuration;
 
+  /**
+   * Constructor for {@link UpgradeContextFactory#create(Cluster, Map)} that is used
+   * when making an upgrade context from {@link UpgradeResourceProvider}
+   */
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster,
-      @Assisted Map<String, Object> upgradeRequestMap, Gson gson, UpgradeHelper upgradeHelper,
-      UpgradeDAO upgradeDAO, ConfigHelper configHelper)
+      @Assisted Map<String, Object> upgradeRequestMap, Gson gson,
+      AmbariMetaInfo metaInfo,
+      UpgradeHelper upgradeHelper, UpgradeDAO upgradeDAO, ConfigHelper configHelper,
+      UpgradePlanDAO upgradePlanDAO)
       throws AmbariException {
     // injected constructor dependencies
     m_gson = gson;
-    m_upgradeHelper = upgradeHelper;
     m_upgradeDAO = upgradeDAO;
     m_cluster = cluster;
+    m_metaInfo = metaInfo;
     m_isRevert = upgradeRequestMap.containsKey(UPGRADE_REVERT_UPGRADE_ID);
+
 
     if (m_isRevert) {
       m_revertUpgradeId = Long.valueOf(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
@@ -292,7 +311,13 @@ public class UpgradeContext {
       // !!! direction can ONLY be an downgrade on revert
       m_direction = Direction.DOWNGRADE;
     } else {
-      UpgradePlanEntity upgradePlan = null;
+      if (!upgradeRequestMap.containsKey(UPGRADE_PLAN_ID)) {
+        throw new AmbariException("An upgrade can only be started from an Upgrade Plan.");
+      }
+
+      Long upgradePlanId = Long.valueOf(upgradeRequestMap.get(UPGRADE_PLAN_ID).toString());
+      UpgradePlanEntity upgradePlan = upgradePlanDAO.findByPK(upgradePlanId);
+
       m_direction = upgradePlan.getDirection();
 
       // depending on the direction, we must either have a target repository or an upgrade we are downgrading from
@@ -341,8 +366,8 @@ public class UpgradeContext {
     // optionally skip failures - this can be supplied on either the request or
     // in the upgrade pack explicitely, however the request will always override
     // the upgrade pack if explicitely specified
-    boolean skipComponentFailures = m_upgradePack.isComponentFailureAutoSkipped();
-    boolean skipServiceCheckFailures = m_upgradePack.isServiceCheckFailureAutoSkipped();
+    boolean skipComponentFailures = false;
+    boolean skipServiceCheckFailures = false;
 
     // only override the upgrade pack if set on the request
     if (upgradeRequestMap.containsKey(UPGRADE_SKIP_FAILURES)) {
@@ -370,7 +395,8 @@ public class UpgradeContext {
   }
 
   /**
-   * Constructor.
+   * Constructor for {@link UpgradeContextFactory#create(Cluster, UpgradeEntity)} that
+   * loads an upgrade context from storage.
    *
    * @param cluster
    *          the cluster that the upgrade is for
@@ -698,6 +724,24 @@ public class UpgradeContext {
   }
 
   /**
+   * Gets Kerberos information about a cluster. It should only be invoked if the
+   * cluster's security type is set to {@link SecurityType#KERBEROS}, otherwise
+   * it will throw an {@link AmbariException}.
+   *
+   * @return the Kerberos related details of a cluster.
+   * @throws KerberosInvalidConfigurationException
+   *           if the {@code kerberos-env} or {@code krb5-conf}} configurations
+   *           can't be parsed.
+   * @throws AmbariException
+   *           if the cluster is not Kerberized.
+   */
+  public KerberosDetails getKerberosDetails()
+      throws KerberosInvalidConfigurationException, AmbariException {
+    return m_kerberosHelper.getKerberosDetails(m_cluster, null);
+  }
+
+
+  /**
    * Gets whether the service is supported in this upgrade.
    *
    * @param serviceName
@@ -782,7 +826,7 @@ public class UpgradeContext {
    * @throws AmbariException
    */
   private UpgradeType calculateUpgradeType(Map<String, Object> upgradeRequestMap,
-                                           UpgradeEntity upgradeEntity) throws AmbariException{
+                                           UpgradeEntity upgradeEntity) throws AmbariException {
 
     UpgradeType upgradeType = UpgradeType.ROLLING;
 
@@ -1177,12 +1221,49 @@ public class UpgradeContext {
     @SerializedName("targetStack")
     public String targetStack;
 
+    @SerializedName("downgradeAllowed")
+    public boolean isDowngradeAllowed = true;
+
     /**
      * A mapping of service name to service summary information for services
      * participating in the upgrade for this service group.
      */
     @SerializedName("services")
     public Map<String, UpgradeServiceSummary> services;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target repository, for a
+     * {@link Direction#DOWNGRADE} this was the repository being downgraded
+     * from.
+     */
+    @SerializedName("associatedRepositoryId")
+    public long associatedRepositoryId;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target stack, for a
+     * {@link Direction#DOWNGRADE} this was the stack that is being downgraded
+     * from.
+     */
+    @SerializedName("associatedStackId")
+    public String associatedStackId;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target versopm, for a
+     * {@link Direction#DOWNGRADE} this was the version that is being downgraded
+     * from.
+     */
+    @SerializedName("associatedVersion")
+    public String associatedVersion;
+
+    /**
+     * MAINT or PATCH upgrades are meant to just be switching the bits and no other
+     * incompatible changes.
+     */
+    @SerializedName("isSwitchBits")
+    public boolean isSwitchBits = false;
   }
 
   /**

@@ -71,7 +71,7 @@ def setup_ranger_admin(upgrade_type=None):
   copy_jdbc_connector(ranger_home)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
-    content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+    content = DownloadSource(format("{jdk_location}/{check_db_connection_jar_name}")),
     mode = 0644,
   )
 
@@ -315,23 +315,10 @@ def do_keystore_setup(upgrade_type=None):
   ranger_home = params.ranger_home
   cred_lib_path = params.cred_lib_path
 
-  if not is_empty(params.ranger_credential_provider_path):
-    ranger_credential_helper(cred_lib_path, params.ranger_jpa_jdbc_credential_alias, params.ranger_ambari_db_password, params.ranger_credential_provider_path)
-
-    File(params.ranger_credential_provider_path,
-      owner = params.unix_user,
-      group = params.unix_group,
-      mode = 0640
-    )
+  ranger_credential_helper(cred_lib_path, params.ranger_jpa_jdbc_credential_alias, params.ranger_ambari_db_password, params.ranger_credential_provider_path)
 
   if not is_empty(params.ranger_credential_provider_path) and (params.ranger_audit_source_type).lower() == 'db' and not is_empty(params.ranger_ambari_audit_db_password):
     ranger_credential_helper(cred_lib_path, params.ranger_jpa_audit_jdbc_credential_alias, params.ranger_ambari_audit_db_password, params.ranger_credential_provider_path)
-
-    File(params.ranger_credential_provider_path,
-      owner = params.unix_user,
-      group = params.unix_group,
-      mode = 0640
-    )
 
   if params.ranger_auth_method.upper() == "LDAP":
     ranger_ldap_auth_password = params.ranger_usersync_ldap_ldapbindpassword
@@ -340,12 +327,6 @@ def do_keystore_setup(upgrade_type=None):
 
     ranger_credential_helper(params.cred_lib_path, params.ranger_ldap_password_alias, ranger_ldap_auth_password, params.ranger_credential_provider_path)
 
-    File(params.ranger_credential_provider_path,
-      owner = params.unix_user,
-      group = params.unix_group,
-      mode = 0640
-    )
-
   if params.ranger_auth_method.upper() == "ACTIVE_DIRECTORY":
     ranger_ad_auth_password = params.ranger_usersync_ldap_ldapbindpassword
     if params.ranger_ad_bind_auth_password != "{{ranger_usersync_ldap_ldapbindpassword}}":
@@ -353,23 +334,20 @@ def do_keystore_setup(upgrade_type=None):
 
     ranger_credential_helper(params.cred_lib_path, params.ranger_ad_password_alias, ranger_ad_auth_password, params.ranger_credential_provider_path)
 
-    File(params.ranger_credential_provider_path,
-      owner = params.unix_user,
-      group = params.unix_group,
-      mode = 0640
-    )
-
   if params.stack_supports_secure_ssl_password:
     ranger_credential_helper(params.cred_lib_path, params.ranger_truststore_alias, params.truststore_password, params.ranger_credential_provider_path)
 
     if params.https_enabled and not params.http_enabled:
       ranger_credential_helper(params.cred_lib_path, params.ranger_https_keystore_alias, params.https_keystore_password, params.ranger_credential_provider_path)
 
-    File(params.ranger_credential_provider_path,
-      owner = params.unix_user,
-      group = params.unix_group,
-      mode = 0640
-    )
+  File(params.ranger_credential_provider_path,
+    owner = params.unix_user,
+    group = params.unix_group,
+    only_if = format("test -e {ranger_credential_provider_path}"),
+    mode = 0640
+  )
+
+  update_dot_jceks_crc_ownership(credential_provider_path = params.ranger_credential_provider_path, user = params.unix_user, group = params.unix_group)
 
 def password_validation(password):
   import params
@@ -531,10 +509,13 @@ def setup_usersync(upgrade_type=None):
   ranger_credential_helper(params.ugsync_cred_lib, 'usersync.ssl.truststore.password', params.ranger_usersync_truststore_password, params.ugsync_jceks_path)
 
   File(params.ugsync_jceks_path,
-       owner = params.unix_user,
-       group = params.unix_group,
-       mode = 0640
+      owner = params.unix_user,
+      group = params.unix_group,
+      only_if = format("test -e {ugsync_jceks_path}"),
+      mode = 0640
   )
+
+  update_dot_jceks_crc_ownership(credential_provider_path = params.ugsync_jceks_path, user = params.unix_user, group = params.unix_group)
   
   File([params.usersync_start, params.usersync_stop],
        owner = params.unix_user,
@@ -620,6 +601,7 @@ def setup_tagsync(upgrade_type=None):
     owner=params.unix_user,
     group=params.unix_group,
     mode=0644)
+
   if params.stack_supports_ranger_tagsync_ssl_xml_support:
     Logger.info("Stack supports tagsync-ssl configurations, performing the same.")
     setup_tagsync_ssl_configs()
@@ -829,10 +811,13 @@ def setup_tagsync_ssl_configs():
   ranger_credential_helper(params.tagsync_cred_lib, 'sslTrustStore', params.ranger_tagsync_truststore_password, params.ranger_tagsync_credential_file)
 
   File(params.ranger_tagsync_credential_file,
-       owner = params.unix_user,
-       group = params.unix_group,
-       mode = 0640
-       )
+      owner = params.unix_user,
+      group = params.unix_group,
+      only_if = format("test -e {ranger_tagsync_credential_file}"),
+      mode = 0640
+  )
+
+  update_dot_jceks_crc_ownership(credential_provider_path = params.ranger_tagsync_credential_file, user = params.unix_user, group = params.unix_group)
 
   # remove plain-text password from xml configs
   atlas_tagsync_ssl_copy = {}
@@ -853,10 +838,14 @@ def setup_tagsync_ssl_configs():
   ranger_credential_helper(params.tagsync_cred_lib, 'sslTrustStore', params.atlas_tagsync_truststore_password, params.atlas_tagsync_credential_file)
 
   File(params.atlas_tagsync_credential_file,
-       owner = params.unix_user,
-       group = params.unix_group,
-       mode = 0640
-       )
+      owner = params.unix_user,
+      group = params.unix_group,
+      only_if = format("test -e {atlas_tagsync_credential_file}"),
+      mode = 0640
+  )
+
+  update_dot_jceks_crc_ownership(credential_provider_path = params.atlas_tagsync_credential_file, user = params.unix_user, group = params.unix_group)
+
   Logger.info("Configuring tagsync-ssl configurations done successfully.")
 
 def update_password_configs():
@@ -870,4 +859,15 @@ def update_password_configs():
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = password_configs,
     owner = params.unix_user,
+  )
+
+def update_dot_jceks_crc_ownership(credential_provider_path, user, group):
+
+  dot_jceks_crc_file_path = os.path.join(os.path.dirname(credential_provider_path), "." + os.path.basename(credential_provider_path) + ".crc")
+
+  File(dot_jceks_crc_file_path,
+    owner = user,
+    group = group,
+    only_if = format("test -e {dot_jceks_crc_file_path}"),
+    mode = 0640
   )

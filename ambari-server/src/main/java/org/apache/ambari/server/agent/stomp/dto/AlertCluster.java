@@ -59,6 +59,11 @@ public class AlertCluster {
     this.staleIntervalMultiplier = null;
   }
 
+  private AlertCluster() {
+    alertDefinitions = null;
+    hostName = null;
+  }
+
   @JsonProperty("staleIntervalMultiplier")
   public Integer getStaleIntervalMultiplier() {
     return staleIntervalMultiplier;
@@ -66,7 +71,7 @@ public class AlertCluster {
 
   @JsonProperty("alertDefinitions")
   public Collection<AlertDefinition> getAlertDefinitions() {
-    return alertDefinitions.values();
+    return alertDefinitions == null ? Collections.emptyList() : alertDefinitions.values();
   }
 
   @JsonProperty("hostName")
@@ -74,40 +79,61 @@ public class AlertCluster {
     return hostName;
   }
 
-  public boolean handleUpdate(AlertDefinitionEventType eventType, AlertCluster update) {
+  public AlertCluster handleUpdate(AlertDefinitionEventType eventType, AlertCluster update) {
     boolean changed = false;
 
+    AlertCluster mergedCluster = null;
+    Map<Long, AlertDefinition> mergedDefinitions = new HashMap<>();
+    Integer mergedStaleIntervalMultiplier = null;
     switch (eventType) {
       case CREATE:
         // FIXME should clear map first?
       case UPDATE:
-        changed = !alertDefinitions.keySet().containsAll(update.alertDefinitions.keySet());
-        if (changed) {
-          alertDefinitions.putAll(update.alertDefinitions);
-        } else {
-          for (Map.Entry<Long, AlertDefinition> e : update.alertDefinitions.entrySet()) {
-            Long definitionId = e.getKey();
-            AlertDefinition newDefinition = e.getValue();
-            AlertDefinition oldDefinition = alertDefinitions.put(definitionId, newDefinition);
-            changed = changed || !oldDefinition.deeplyEquals(newDefinition);
+        for (Map.Entry<Long, AlertDefinition> alertDefinitionEntry : alertDefinitions.entrySet()) {
+          Long definitionId = alertDefinitionEntry.getKey();
+          if (!update.alertDefinitions.containsKey(definitionId)) {
+            mergedDefinitions.put(definitionId, alertDefinitionEntry.getValue());
+          } else {
+            AlertDefinition newDefinition = update.alertDefinitions.get(definitionId);
+            AlertDefinition oldDefinition = alertDefinitionEntry.getValue();
+            if (!oldDefinition.deeplyEquals(newDefinition)) {
+              changed = true;
+            }
+            mergedDefinitions.put(definitionId, oldDefinition);
           }
         }
         if (update.getStaleIntervalMultiplier() != null
             && !update.getStaleIntervalMultiplier().equals(staleIntervalMultiplier)) {
-          staleIntervalMultiplier = update.getStaleIntervalMultiplier();
+          mergedStaleIntervalMultiplier = update.getStaleIntervalMultiplier();
           changed = true;
+        } else {
+          mergedStaleIntervalMultiplier = staleIntervalMultiplier;
         }
         LOG.debug("Handled {} of {} alerts, changed = {}", eventType, update.alertDefinitions.size(), changed);
         break;
       case DELETE:
-        changed = alertDefinitions.keySet().removeAll(update.alertDefinitions.keySet());
+        for (Map.Entry<Long, AlertDefinition> alertDefinitionEntry : alertDefinitions.entrySet()) {
+          Long definitionId = alertDefinitionEntry.getKey();
+          if (!update.alertDefinitions.containsKey(definitionId)) {
+            mergedDefinitions.put(definitionId, alertDefinitionEntry.getValue());
+          } else {
+            changed = true;
+          }
+        }
+        mergedStaleIntervalMultiplier = staleIntervalMultiplier;
         LOG.debug("Handled {} of {} alerts", eventType, update.alertDefinitions.size());
         break;
       default:
         LOG.warn("Unhandled event type {}", eventType);
         break;
     }
+    if (changed) {
+      mergedCluster = new AlertCluster(mergedDefinitions, hostName, mergedStaleIntervalMultiplier);
+    }
+    return mergedCluster;
+  }
 
-    return changed;
+  public static AlertCluster emptyAlertCluster() {
+    return new AlertCluster();
   }
 }

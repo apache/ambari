@@ -22,6 +22,7 @@ from resource_management.libraries.script.script import Script
 from ams import ams
 from ams_service import ams_service
 from status import check_service_status
+from ambari_commons.repo_manager.repo_manager_helper import check_installed_metrics_hadoop_sink_version
 
 class AmsMonitor(Script):
   def install(self, env):
@@ -67,6 +68,11 @@ class AmsMonitor(Script):
     import params
     return params.ams_user
 
+  def check_hadoop_sink_version(self, env):
+    import params
+    check_installed_metrics_hadoop_sink_version(checked_version=params.min_hadoop_sink_version,
+                                                less_valid=False,
+                                                equal_valid=True)
 
 if __name__ == "__main__":
   AmsMonitor().execute()

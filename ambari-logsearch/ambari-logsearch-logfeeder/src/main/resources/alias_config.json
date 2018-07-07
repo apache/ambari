@@ -25,13 +25,13 @@
     "map_date": {
       "klass": "org.apache.ambari.logfeeder.mapper.MapperDate"
     },
-    "map_fieldcopy": {
+    "map_field_copy": {
       "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldCopy"
     },
-    "map_fieldname": {
+    "map_field_name": {
       "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldName"
     },
-    "map_fieldvalue": {
+    "map_field_value": {
       "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldValue"
     },
     "map_anonymize": {

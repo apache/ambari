@@ -1302,8 +1302,6 @@ public class AmbariManagementControllerTest {
     assertEquals("0", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
     assertEquals("false", ec.getCommandParams().get("command_retry_enabled"));
-    Map<String, Set<String>> chInfo = ec.getClusterHostInfo();
-    assertTrue(chInfo.containsKey("namenode_host"));
     assertFalse(ec.getCommandParams().containsKey("custom_folder"));
 
     ec = controller.getExecutionCommand(cluster,
@@ -2003,8 +2001,7 @@ public class AmbariManagementControllerTest {
 
       for (String host : stage.getHosts()) {
         for (ExecutionCommandWrapper ecw : stage.getExecutionCommands(host)) {
-          Assert.assertFalse(
-              ecw.getExecutionCommand().getHostLevelParams().get("repo_info").isEmpty());
+          Assert.assertNotNull(ecw.getExecutionCommand().getRepositoryFile());
         }
       }
     }
@@ -2727,6 +2724,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Role.HBASE_MASTER, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
     Assert.assertEquals("DECOMMISSION", execCmd.getCommandParams().get("custom_command"));
+    Assert.assertEquals(host2, execCmd.getCommandParams().get("all_decommissioned_hosts"));
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     // RS stops
@@ -2757,6 +2755,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     command = storedTasks.get(0);
     Assert.assertEquals("DECOMMISSION", execCmd.getCommandParams().get("custom_command"));
+    Assert.assertEquals(host2, execCmd.getCommandParams().get("all_decommissioned_hosts"));
     Assert.assertTrue("DECOMMISSION".equals(command.getCustomCommandName()));
     Assert.assertTrue(("DECOMMISSION, Excluded: " + host2).equals(command.getCommandDetail()));
     cmdParams = command.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
@@ -5756,6 +5755,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
     Assert.assertEquals("DECOMMISSION", execCmd.getCommandParams().get("custom_command"));
+    Assert.assertEquals(host2, execCmd.getCommandParams().get("all_decommissioned_hosts"));
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     // Decommission the other datanode
@@ -5785,6 +5785,10 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     Assert.assertEquals("DECOMMISSION", execCmd.getCommandParams().get("custom_command"));
+    Assert.assertTrue(execCmd.getCommandParams().get("all_decommissioned_hosts").contains(host1));
+    Assert.assertTrue(execCmd.getCommandParams().get("all_decommissioned_hosts").contains(host2));
+    Assert.assertTrue(execCmd.getCommandParams().get("all_decommissioned_hosts").equals(host1+","+host2) ||
+      execCmd.getCommandParams().get("all_decommissioned_hosts").equals(host2+","+host1));
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     // Recommission the other datanode  (while adding NameNode HA)
@@ -5836,6 +5840,7 @@ public class AmbariManagementControllerTest {
           || !cmdParams.get("update_files_only").equals("true")) {
         countRefresh++;
       }
+      Assert.assertEquals("", cmdParams.get("all_decommissioned_hosts"));
     }
     Assert.assertEquals(2, countRefresh);
 
@@ -6293,10 +6298,11 @@ public class AmbariManagementControllerTest {
       Assert.assertNotNull(params.get("oracle_jdbc_url"));
     }
 
-    Map<String, String> paramsCmd = stages.get(0).getOrderedHostRoleCommands().get
-      (0).getExecutionCommandWrapper().getExecutionCommand()
-      .getHostLevelParams();
-    Assert.assertNotNull(paramsCmd.get("repo_info"));
+    ExecutionCommand executionCommand = stages.get(0).getOrderedHostRoleCommands().get(
+        0).getExecutionCommandWrapper().getExecutionCommand();
+
+    Map<String, String> paramsCmd = executionCommand.getHostLevelParams();
+    Assert.assertNotNull(executionCommand.getRepositoryFile());
     Assert.assertNotNull(paramsCmd.get("clientsToUpdateConfigs"));
   }
 
@@ -6549,6 +6555,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
     Assert.assertEquals("DECOMMISSION", execCmd.getCommandParams().get("custom_command"));
+    Assert.assertEquals(host1, execCmd.getCommandParams().get("all_decommissioned_hosts"));
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 

@@ -160,6 +160,12 @@ metrics_collection_period = module_configs.get_property_value(module_name, 'ams-
 
 host_in_memory_aggregation = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation', True)
 host_in_memory_aggregation_port = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation.port', 61888)
+is_aggregation_https_enabled = False
+if module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation.http.policy', "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = None

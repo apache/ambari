@@ -19,6 +19,10 @@
 
 package org.apache.ambari.infra.solr;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -29,16 +33,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class AmbariSolrCloudCLI {
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariSolrCloudCLI.class);
 
-  private static final int ZK_CLIENT_TIMEOUT = 15000;
-  private static final int ZK_CLIENT_CONNECT_TIMEOUT = 15000;
+  private static final int ZK_CLIENT_TIMEOUT = 60000; // 1 minute
+  private static final int ZK_CLIENT_CONNECT_TIMEOUT = 60000; // 1 minute
   private static final String CREATE_COLLECTION_COMMAND = "create-collection";
   private static final String UPLOAD_CONFIG_COMMAND = "upload-config";
   private static final String DOWNLOAD_CONFIG_COMMAND = "download-config";
@@ -54,6 +54,8 @@ public class AmbariSolrCloudCLI {
   private static final String SECURITY_JSON_LOCATION = "security-json-location";
   private static final String REMOVE_ADMIN_HANDLERS = "remove-admin-handlers";
   private static final String TRANSFER_ZNODE_COMMAND = "transfer-znode";
+  private static final String DELETE_ZNODE_COMMAND = "delete-znode";
+  private static final String DUMP_COLLECTIONS_DATA_COMMAND = "dump-collections";
   private static final String CMD_LINE_SYNTAX =
     "\n./solrCloudCli.sh --create-collection -z host1:2181,host2:2181/ambari-solr -c collection -cs conf_set"
       + "\n./solrCloudCli.sh --upload-config -z host1:2181,host2:2181/ambari-solr -d /tmp/myconfig_dir -cs config_set"
@@ -61,8 +63,10 @@ public class AmbariSolrCloudCLI {
       + "\n./solrCloudCli.sh --check-config -z host1:2181,host2:2181/ambari-solr -cs config_set"
       + "\n./solrCloudCli.sh --create-shard -z host1:2181,host2:2181/ambari-solr -c collection -sn myshard"
       + "\n./solrCloudCli.sh --remove-admin-handlers -z host1:2181,host2:2181/ambari-solr -c collection"
+      + "\n./solrCloudCli.sh --dump-collections -z host1:2181,host2:2181/ambari-solr -o collection-data.json"
       + "\n./solrCloudCli.sh --create-znode -z host1:2181,host2:2181 -zn /ambari-solr"
       + "\n./solrCloudCli.sh --check-znode -z host1:2181,host2:2181 -zn /ambari-solr"
+      + "\n./solrCloudCli.sh --delete-znode -z host1:2181,host2:2181 -zn /ambari-solr"
       + "\n./solrCloudCli.sh --transfer-znode -z host1:2181,host2:2181 -cps /ambari-solr -cpd /ambari-solr-backup"
       + "\n./solrCloudCli.sh --cluster-prop -z host1:2181,host2:2181/ambari-solr -cpn urlScheme -cpn http"
       + "\n./solrCloudCli.sh --secure-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
@@ -149,6 +153,16 @@ public class AmbariSolrCloudCLI {
     final Option transferZnodeOption = Option.builder("tz")
       .longOpt(TRANSFER_ZNODE_COMMAND)
       .desc("Transfer znode (copy from/to local or to another znode)")
+      .build();
+
+    final Option deleteZnodeOption = Option.builder("dz")
+      .longOpt(DELETE_ZNODE_COMMAND)
+      .desc("Delete znode")
+      .build();
+
+    final Option dumpCollectionsOption = Option.builder("dcd")
+      .longOpt(DUMP_COLLECTIONS_DATA_COMMAND)
+      .desc("Dump collections data")
       .build();
 
     final Option shardNameOption = Option.builder("sn")
@@ -354,6 +368,17 @@ public class AmbariSolrCloudCLI {
       .desc("Flag for enable/disable kerberos (with --setup-kerberos or --setup-kerberos-plugin)")
       .build();
 
+    final Option outputOption = Option.builder("o")
+      .longOpt("output")
+      .desc("File output for collections dump")
+      .numberOfArgs(1)
+      .build();
+
+    final Option includeDocNumberOption = Option.builder("idn")
+      .longOpt("include-doc-number")
+      .desc("Include the number of docs as well in collection dump")
+      .build();
+
     options.addOption(helpOption);
     options.addOption(retryOption);
     options.addOption(removeAdminHandlerOption);
@@ -396,8 +421,12 @@ public class AmbariSolrCloudCLI {
     options.addOption(copyDestOption);
     options.addOption(saslUsersOption);
     options.addOption(checkZnodeOption);
+    options.addOption(deleteZnodeOption);
+    options.addOption(dumpCollectionsOption);
     options.addOption(setupKerberosPluginOption);
     options.addOption(securityJsonLocationOption);
+    options.addOption(outputOption);
+    options.addOption(includeDocNumberOption);
 
     AmbariSolrCloudClient solrCloudClient = null;
 
@@ -452,10 +481,17 @@ public class AmbariSolrCloudCLI {
       } else if (cli.hasOption("tz")) {
         command = TRANSFER_ZNODE_COMMAND;
         validateRequiredOptions(cli, command, zkConnectStringOption, copyScrOption, copyDestOption);
-      }else {
+      } else if (cli.hasOption("dz")) {
+        command = DELETE_ZNODE_COMMAND;
+        validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption);
+      } else if (cli.hasOption("dcd")) {
+        command = DUMP_COLLECTIONS_DATA_COMMAND;
+        validateRequiredOptions(cli, command, zkConnectStringOption, outputOption);
+      } else {
         List<String> commands = Arrays.asList(CREATE_COLLECTION_COMMAND, CREATE_SHARD_COMMAND, UPLOAD_CONFIG_COMMAND,
           DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND, SET_CLUSTER_PROP, CREATE_ZNODE, SECURE_ZNODE_COMMAND, UNSECURE_ZNODE_COMMAND,
-          SECURE_SOLR_ZNODE_COMMAND, CHECK_ZNODE, SETUP_KERBEROS_PLUGIN, REMOVE_ADMIN_HANDLERS, TRANSFER_ZNODE_COMMAND);
+          SECURE_SOLR_ZNODE_COMMAND, CHECK_ZNODE, SETUP_KERBEROS_PLUGIN, REMOVE_ADMIN_HANDLERS, TRANSFER_ZNODE_COMMAND, DELETE_ZNODE_COMMAND,
+          DUMP_COLLECTIONS_DATA_COMMAND);
         helpFormatter.printHelp(CMD_LINE_SYNTAX, options);
         exit(1, String.format("One of the supported commands is required (%s)", StringUtils.join(commands, "|")));
       }
@@ -489,6 +525,8 @@ public class AmbariSolrCloudCLI {
       String copySrc = cli.hasOption("cps") ? cli.getOptionValue("cps") : null;
       String copyDest = cli.hasOption("cpd") ? cli.getOptionValue("cpd") : null;
       String transferMode = cli.hasOption("tm") ? cli.getOptionValue("tm") : "NONE";
+      String output = cli.hasOption("o") ? cli.getOptionValue("o") : null;
+      boolean includeDocNumber = cli.hasOption("idn");
 
       AmbariSolrCloudClientBuilder clientBuilder = new AmbariSolrCloudClientBuilder()
         .withZkConnectString(zkConnectString)
@@ -515,6 +553,8 @@ public class AmbariSolrCloudCLI {
         .withTransferMode(transferMode)
         .withCopySrc(copySrc)
         .withCopyDest(copyDest)
+        .withOutput(output)
+        .withIncludeDocNumber(includeDocNumber)
         .withSecurityJsonLocation(securityJsonLocation)
         .withZnode(znode)
         .withSecure(isSecure)
@@ -590,6 +630,15 @@ public class AmbariSolrCloudCLI {
         case TRANSFER_ZNODE_COMMAND:
           solrCloudClient = clientBuilder.build();
           solrCloudClient.transferZnode();
+          break;
+        case DELETE_ZNODE_COMMAND:
+          solrCloudClient = clientBuilder.build();
+          solrCloudClient.deleteZnode();
+          break;
+        case DUMP_COLLECTIONS_DATA_COMMAND:
+          solrCloudClient = clientBuilder
+            .withSolrCloudClient().build();
+          solrCloudClient.outputCollectionData();
           break;
         default:
           throw new AmbariSolrCloudClientException(String.format("Not found command: '%s'", command));

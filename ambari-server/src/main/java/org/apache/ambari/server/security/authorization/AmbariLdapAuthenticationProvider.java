@@ -28,6 +28,7 @@ import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authentication.AccountDisabledException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
+import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.commons.collections.CollectionUtils;
@@ -108,9 +109,8 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
             }
           }
 
-          Authentication authToken = new AmbariUserAuthentication(null, users.getUser(userEntity), users.getUserAuthorities(userEntity));
-          authToken.setAuthenticated(true);
-          return authToken;
+          AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), null, users.getUserAuthorities(userEntity));
+          return new AmbariUserAuthentication(null, userDetails, true);
         }
       } catch (AuthenticationException e) {
         LOG.debug("Got exception during LDAP authentication attempt", e);

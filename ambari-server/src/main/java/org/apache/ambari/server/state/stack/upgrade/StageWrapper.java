@@ -159,7 +159,8 @@ public class StageWrapper {
     SERVICE_CHECK,
     STOP,
     START,
-    CONFIGURE
+    CONFIGURE, 
+    REGENERATE_KEYTABS;
   }
 
   /**

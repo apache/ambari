@@ -38,13 +38,14 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
-import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -148,6 +149,9 @@ public class ClustersImpl implements Clusters {
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
+
+  @Inject
+  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   @Inject
   private Provider<MetadataHolder> m_metadataHolder;
@@ -273,35 +277,49 @@ public class ClustersImpl implements Clusters {
   private void loadClustersAndHosts() {
     LOG.info("Initializing cluster and host data.");
 
-    clustersByName = new ConcurrentHashMap<>();
-    clustersById = new ConcurrentHashMap<>();
-    hostsByName = new ConcurrentHashMap<>();
-    hostsById = new ConcurrentHashMap<>();
-    hostClustersMap = new ConcurrentHashMap<>();
-    clusterHostsMap1 = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Cluster> clustersByNameTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, Cluster> clustersByIdTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Host> hostsByNameTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, Host> hostsByIdTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Set<Cluster>> hostClustersMapTemp = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Set<Host>> clusterHostsMap1Temp = new ConcurrentHashMap<>();
 
     List<HostEntity> hostEntities = hostDAO.findAll();
     for (HostEntity hostEntity : hostEntities) {
       Host host = hostFactory.create(hostEntity);
-      hostsByName.put(hostEntity.getHostName(), host);
-      hostsById.put(hostEntity.getHostId(), host);
+      hostsByNameTemp.put(hostEntity.getHostName(), host);
+      hostsByIdTemp.put(hostEntity.getHostId(), host);
     }
+    hostsByName = hostsByNameTemp;
+    hostsById = hostsByIdTemp;
 
     for (ClusterEntity clusterEntity : clusterDAO.findAll()) {
       Cluster currentCluster = clusterFactory.create(clusterEntity);
-      clustersByName.put(clusterEntity.getClusterName(), currentCluster);
-      clustersById.put(currentCluster.getClusterId(), currentCluster);
-      clusterHostsMap1.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<>()));
+      clustersByNameTemp.put(clusterEntity.getClusterName(), currentCluster);
+      clustersByIdTemp.put(currentCluster.getClusterId(), currentCluster);
+      clusterHostsMap1Temp.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<>()));
     }
+    clustersByName = clustersByNameTemp;
+    clustersById = clustersByIdTemp;
 
     for (HostEntity hostEntity : hostEntities) {
       Set<Cluster> cSet = Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>());
-      hostClustersMap.put(hostEntity.getHostName(), cSet);
+      hostClustersMapTemp.put(hostEntity.getHostName(), cSet);
 
       Host host = getHostsByName().get(hostEntity.getHostName());
       for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
-        clusterHostsMap1.get(clusterEntity.getClusterName()).add(host);
+        clusterHostsMap1Temp.get(clusterEntity.getClusterName()).add(host);
         cSet.add(clustersByName.get(clusterEntity.getClusterName()));
+      }
+    }
+    hostClustersMap = hostClustersMapTemp;
+    clusterHostsMap1 = clusterHostsMap1Temp;
+    // init host configs
+    for (Long hostId : hostsById.keySet()) {
+      try {
+        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
+      } catch (AmbariException e) {
+        LOG.error("Agent configs initialization was failed", e);
       }
     }
   }
@@ -365,7 +383,7 @@ public class ClustersImpl implements Clusters {
     TopologyCluster addedCluster = new TopologyCluster();
     addedClusters.put(Long.toString(cluster.getClusterId()), addedCluster);
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedClusters,
-        TopologyUpdateEvent.EventType.UPDATE);
+        UpdateEventType.UPDATE);
     m_topologyHolder.get().updateData(topologyUpdateEvent);
     m_metadataHolder.get().updateData(metadataGenerator.get().getClusterMetadata(cluster));
   }
@@ -476,6 +494,12 @@ public class ClustersImpl implements Clusters {
 
     if (null != hostId) {
       getHostsById().put(hostId, host);
+      // init host configs
+      try {
+        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
+      } catch (AmbariException e) {
+        LOG.error("Agent configs initialization was failed for host with id %s", hostId, e);
+      }
     }
   }
 
@@ -507,6 +531,7 @@ public class ClustersImpl implements Clusters {
     // the hosts by ID map is updated separately since the host has not yet
     // been persisted yet - the below event is what causes the persist
     getHostsByName().put(hostname, host);
+    getHostsById().put(host.getHostId(), host);
 
     getHostClustersMap().put(hostname,
         Collections.newSetFromMap(new ConcurrentHashMap<>()));
@@ -514,10 +539,6 @@ public class ClustersImpl implements Clusters {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a host to Clusters, hostname={}", hostname);
     }
-
-    // publish the event
-    HostRegisteredEvent event = new HostRegisteredEvent(hostname);
-    eventPublisher.publish(event);
   }
 
   @Override
@@ -682,9 +703,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public Map<String, Host> getHostsForCluster(String clusterName)
-      throws AmbariException {
-
+  public Map<String, Host> getHostsForCluster(String clusterName) {
     Map<String, Host> hosts = new HashMap<>();
     for (Host h : getClusterHostsMap().get(clusterName)) {
       hosts.put(h.getHostName(), h);
@@ -809,10 +828,10 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames) throws AmbariException {
+  public void publishHostsDeletion(Set<Long> hostIds, Set<String> hostNames) throws AmbariException {
     // Publish the event, using the original list of clusters that the host
     // belonged to
-    HostsRemovedEvent event = new HostsRemovedEvent(hostNames, clusters);
+    HostsRemovedEvent event = new HostsRemovedEvent(hostNames, hostIds);
     eventPublisher.publish(event);
   }
 
@@ -982,5 +1001,18 @@ public class ClustersImpl implements Clusters {
     Cluster currentCluster = clusterFactory.create(clusterEntity);
     getClustersByName().put(clusterEntity.getClusterName(), currentCluster);
     getClustersById().put(currentCluster.getClusterId(), currentCluster);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void invalidateAllClusters() {
+    if(clustersByName != null) {
+      Collection<Cluster> clusters = clustersByName.values();
+      for (Cluster cluster : clusters) {
+        invalidate(cluster);
+      }
+    }
   }
 }

@@ -18,7 +18,7 @@
 
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {ListItem} from '@app/classes/list-item';
-import {LogsType} from '@app/classes/string';
+import {DataAvailability, DataAvailabilityValues, LogsType} from '@app/classes/string';
 
 export interface History {
   items: ListItem[];
@@ -29,6 +29,7 @@ export interface AppState {
   isAuthorized: boolean;
   isInitialLoading: boolean;
   isLoginInProgress: boolean;
+  baseDataSetState: DataAvailability;
   activeLogsType?: LogsType;
   isServiceLogsFileView: boolean;
   isServiceLogContextView: boolean;
@@ -41,6 +42,7 @@ export const initialState: AppState = {
   isAuthorized: false,
   isInitialLoading: false,
   isLoginInProgress: false,
+  baseDataSetState: DataAvailabilityValues.NOT_AVAILABLE,
   activeLogsType: 'serviceLogs',
   isServiceLogsFileView: false,
   isServiceLogContextView: false,

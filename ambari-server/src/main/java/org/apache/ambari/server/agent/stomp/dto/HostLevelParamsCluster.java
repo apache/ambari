@@ -41,15 +41,7 @@ public class HostLevelParamsCluster {
     return hostRepositories;
   }
 
-  public void setHostRepositories(HostRepositories hostRepositories) {
-    this.hostRepositories = hostRepositories;
-  }
-
   public RecoveryConfig getRecoveryConfig() {
     return recoveryConfig;
-  }
-
-  public void setRecoveryConfig(RecoveryConfig recoveryConfig) {
-    this.recoveryConfig = recoveryConfig;
   }
 }

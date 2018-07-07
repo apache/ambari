@@ -280,10 +280,10 @@ class TestFileCache(TestCase):
 
   def test_build_download_url(self):
     fileCache = FileCache(self.config)
-    url = fileCache.build_download_url('http://localhost:8080/resources/',
+    url = fileCache.build_download_url('http://localhost:8080/resources',
                                        'stacks/HDP/2.1.1/hooks', 'archive.zip')
     self.assertEqual(url,
-        'http://localhost:8080/resources//stacks/HDP/2.1.1/hooks/archive.zip')
+        'http://localhost:8080/resources/stacks/HDP/2.1.1/hooks/archive.zip')
 
 
   @patch("urllib2.OpenerDirector.open")

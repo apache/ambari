@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from stacks.utils.RMFTestCase import RMFTestCase, Template, InlineTemplate
+from resource_management.libraries.functions.default import default
 
 class TestLogSearch(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "LOGSEARCH/0.5.0/package"
@@ -94,7 +95,7 @@ class TestLogSearch(RMFTestCase):
                                             'logsearch.auth.simple.enabled': 'false',
                                             'logsearch.collection.audit.logs.numshards': '10',
                                             'logsearch.collection.audit.logs.replication.factor': '1',
-                                            'logsearch.collection.history.replication.factor': '1',
+                                            'logsearch.collection.history.replication.factor': '2',
                                             'logsearch.collection.service.logs.numshards': '10',
                                             'logsearch.collection.service.logs.replication.factor': '1',
                                             'logsearch.config.zk_connect_string': 'c6401.ambari.apache.org:2181',
@@ -149,6 +150,18 @@ class TestLogSearch(RMFTestCase):
     self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/usr/lib/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo = True
     )
+
+    self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-logfeeder/conf',
+                              create_parents = True,
+                              cd_access = 'a',
+                              mode = 0755
+                              )
+
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-logfeeder/conf/input.config-logsearch.json',
+                              mode=0644,
+                              content = Template('input.config-logsearch.json.j2', extra_imports=[default])
+                              )
+
     self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 30 --interval 5')
 
 

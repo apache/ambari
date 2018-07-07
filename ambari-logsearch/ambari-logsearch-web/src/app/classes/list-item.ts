@@ -21,6 +21,7 @@ export interface ListItem {
   label?: string;
   value: any;
   iconClass?: string;
+  cssClass?: string;
   isChecked?: boolean;
   onSelect?: Function;
   isDivider?: boolean;

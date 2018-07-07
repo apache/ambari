@@ -17,10 +17,6 @@
 -->
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
-  <target>2.6.*.*</target>
-  <target-stack>HDP-2.6</target-stack>
-  <skip-failures>false</skip-failures>
-  <skip-service-check-failures>false</skip-service-check-failures>
   <type>rolling</type>
   
   <prerequisite-checks>
@@ -474,7 +470,6 @@
   <lifecycle type="finalize">
     <order>
       <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
-        <scope>COMPLETE</scope>
         <execute-stage title="Update remaining HDP stack to {{version}}">
           <task xsi:type="execute">
             <script>scripts/ru_set_all.py</script>

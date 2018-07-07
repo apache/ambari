@@ -20,26 +20,30 @@
   {{#if isLoaded}}
       <div class="row">
         <div class="col-md-3 legend-column background-text">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              {{view view.dropdownView}}
 
-          {{view view.dropdownView}}
+              {{#if controller.selectedMetric}}
 
-          {{#if controller.selectedMetric}}
-            <table class="legend">
-              {{#each slot in controller.selectedMetric.slotDefinitions}}
-                <tr>
-                  <td>
-                    <div class="tile" {{bindAttr style="slot.cssStyle"}}></div>
-                  </td>
-                  <td>{{slot.label}}</td>
-                </tr>
-              {{/each}}
-            </table>
-            {{t common.maximum}}:
-            <div id="inputMaximum" class="control-group input-group">
-              {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="form-control"}}
-              <span class="input-group-addon">{{controller.selectedMetric.units}}</span>
+                <table class="legend">
+                  {{#each slot in controller.selectedMetric.slotDefinitions}}
+                    <tr>
+                      <td>
+                        <div class="tile" {{bindAttr style="slot.cssStyle"}}></div>
+                      </td>
+                      <td>{{slot.label}}</td>
+                    </tr>
+                  {{/each}}
+                </table>
+                {{t common.maximum}}:
+                <div id="inputMaximum" class="control-group input-group">
+                  {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="form-control"}}
+                  <span class="input-group-addon">{{controller.selectedMetric.units}}</span>
+                </div>
+              {{/if}}
             </div>
-          {{/if}}
+          </div>
         </div>
         {{#if controller.activeWidget}}
           <div class="active-widget col-md-9" {{bindAttr id="activeWidget.id"}}>

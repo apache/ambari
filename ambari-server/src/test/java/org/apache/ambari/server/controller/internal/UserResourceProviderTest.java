@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -99,7 +98,7 @@ import com.google.inject.Module;
  */
 public class UserResourceProviderTest extends EasyMockSupport {
 
-  private static final Date CREATE_TIME = Calendar.getInstance().getTime();
+  private static final long CREATE_TIME = Calendar.getInstance().getTime().getTime();
 
   @Before
   public void resetMocks() {

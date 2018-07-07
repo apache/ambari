@@ -17,13 +17,13 @@ limitations under the License.
 
 """
 
+import os
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
-
 
 def setup_infra_solr(name = None):
   import params
@@ -92,6 +92,13 @@ def setup_infra_solr(name = None):
            group=params.user_group,
            mode=0640)
 
+    File(os.path.join(params.limits_conf_dir, 'infra-solr.conf'),
+         owner='root',
+         group='root',
+         mode=0644,
+         content=Template("infra-solr.conf.j2")
+         )
+
   elif name == 'client':
     solr_cloud_util.setup_solr_client(params.config)
 
@@ -113,7 +120,7 @@ def setup_solr_znode_env():
     if params.infra_solr_security_json_content and str(params.infra_solr_security_json_content).strip() \
     else format("{infra_solr_conf}/security.json") # security.json file to upload
 
-  create_ambari_solr_znode(java_opts)
+  create_ambari_solr_znode(java_opts, jaas_file)
 
   solr_cloud_util.set_cluster_prop(
     zookeeper_quorum=params.zk_quorum,
@@ -124,16 +131,16 @@ def setup_solr_znode_env():
     jaas_file=jaas_file,
     java_opts=java_opts
   )
-
-  solr_cloud_util.setup_kerberos_plugin(
-    zookeeper_quorum=params.zk_quorum,
-    solr_znode=params.infra_solr_znode,
-    jaas_file=jaas_file,
-    java64_home=params.java64_home,
-    secure=params.security_enabled,
-    security_json_location=security_json_file_location,
-    java_opts=java_opts
-  )
+  if not params.infra_solr_security_manually_managed:
+    solr_cloud_util.setup_kerberos_plugin(
+      zookeeper_quorum=params.zk_quorum,
+      solr_znode=params.infra_solr_znode,
+      jaas_file=jaas_file,
+      java64_home=params.java64_home,
+      secure=params.security_enabled,
+      security_json_location=security_json_file_location,
+      java_opts=java_opts
+    )
 
   if params.security_enabled:
     solr_cloud_util.secure_solr_znode(
@@ -147,10 +154,10 @@ def setup_solr_znode_env():
 
 
 @retry(times=30, sleep_time=5, err_class=Fail)
-def create_ambari_solr_znode(java_opts):
+def create_ambari_solr_znode(java_opts, jaas_file):
   import params
   solr_cloud_util.create_znode(
     zookeeper_quorum=params.zk_quorum,
     solr_znode=params.infra_solr_znode,
     java64_home=params.java64_home,
-    retry=30, interval=5, java_opts=java_opts)
+    retry=30, interval=5, java_opts=java_opts, jaas_file=jaas_file)

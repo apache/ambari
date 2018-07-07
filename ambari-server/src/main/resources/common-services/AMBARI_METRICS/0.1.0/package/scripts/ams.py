@@ -163,19 +163,30 @@ def ams(name=None):
               create_parents = True
     )
 
-    if params.host_in_memory_aggregation and params.log4j_props is not None:
-      File(os.path.join(params.ams_monitor_conf_dir, "log4j.properties"),
-           owner=params.ams_user,
-           content=params.log4j_props
-           )
+    if params.host_in_memory_aggregation:
+      if params.log4j_props is not None:
+        File(os.path.join(params.ams_monitor_conf_dir, "log4j.properties"),
+             owner=params.ams_user,
+             content=params.log4j_props
+             )
+        pass
 
-    XmlConfig("ams-site.xml",
+      XmlConfig("ams-site.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-site'],
               configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
               )
+
+      XmlConfig("ssl-server.xml",
+              conf_dir=params.ams_monitor_conf_dir,
+              configurations=params.config['configurations']['ams-ssl-server'],
+              configuration_attributes=params.config['configurationAttributes']['ams-ssl-server'],
+              owner=params.ams_user,
+              group=params.user_group
+              )
+      pass
 
     TemplateConfig(
       os.path.join(params.ams_monitor_conf_dir, "metric_monitor.ini"),
@@ -215,9 +226,39 @@ def ams(name=None, action=None):
               recursive_ownership = True
     )
 
+    new_ams_site = {}
+    new_ams_site.update(params.config['configurations']['ams-site'])
+    if params.clusterHostInfoDict:
+      master_components = []
+      slave_components = []
+      components = dict(params.clusterHostInfoDict).keys()
+      known_slave_components = ["nodemanager", "metrics_monitor", "datanode", "hbase_regionserver"]
+      for component in components:
+        if component and component.endswith("_hosts"):
+          component_name = component[:-6]
+        elif component and component.endswith("_host"):
+          component_name = component[:-5]
+        else:
+          continue
+        if component_name in known_slave_components:
+          slave_components.append(component_name)
+        else:
+          master_components.append(component_name)
+
+      if slave_components:
+        new_ams_site['timeline.metrics.initial.configured.slave.components'] = ",".join(slave_components)
+      if master_components:
+        if 'ambari_server' not in master_components:
+          master_components.append('ambari_server')
+        new_ams_site['timeline.metrics.initial.configured.master.components'] = ",".join(master_components)
+
+    hbase_total_heapsize_with_trailing_m = params.hbase_heapsize
+    hbase_total_heapsize = int(hbase_total_heapsize_with_trailing_m[:-1]) * 1024 * 1024
+    new_ams_site['hbase_total_heapsize'] = hbase_total_heapsize
+
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
-              configurations=params.config['configurations']['ams-site'],
+              configurations=new_ams_site,
               configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
@@ -337,7 +378,7 @@ def ams(name=None, action=None):
       # Remove spnego configs from core-site if platform does not have python-kerberos library
       truncated_core_site = {}
       truncated_core_site.update(params.config['configurations']['core-site'])
-      if is_spnego_enabled(params) and is_redhat_centos_6_plus() == False:
+      if is_spnego_enabled(params):
         truncated_core_site.pop('hadoop.http.authentication.type')
         truncated_core_site.pop('hadoop.http.filter.initializers')
 
@@ -366,6 +407,7 @@ def ams(name=None, action=None):
 
   elif name == 'monitor':
 
+    # TODO Uncomment when SPNEGO support has been added to AMS service check and Grafana.
     if is_spnego_enabled(params) and is_redhat_centos_6_plus():
       try:
         import kerberos
@@ -393,13 +435,21 @@ def ams(name=None, action=None):
            content=InlineTemplate(params.log4j_props)
            )
 
-    XmlConfig("ams-site.xml",
+      XmlConfig("ams-site.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-site'],
               configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
               )
+      XmlConfig("ssl-server.xml",
+              conf_dir=params.ams_monitor_conf_dir,
+              configurations=params.config['configurations']['ams-ssl-server'],
+              configuration_attributes=params.config['configurationAttributes']['ams-ssl-server'],
+              owner=params.ams_user,
+              group=params.user_group
+              )
+      pass
 
     Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_log_dir}")
             )
@@ -440,7 +490,7 @@ def ams(name=None, action=None):
          content=InlineTemplate(params.ams_env_sh_template)
     )
 
-    if params.metric_collector_https_enabled:
+    if params.metric_collector_https_enabled or params.is_aggregation_https_enabled:
       export_ca_certs(params.ams_monitor_conf_dir)
 
     pass
@@ -491,7 +541,7 @@ def is_spnego_enabled(params):
       and 'hadoop.http.authentication.type' in params.config['configurations']['core-site'] \
       and params.config['configurations']['core-site']['hadoop.http.authentication.type'] == "kerberos" \
       and 'hadoop.http.filter.initializers' in params.config['configurations']['core-site'] \
-      and params.config['configurations']['core-site']['hadoop.http.filter.initializers'] == "org.apache.hadoop.security.AuthenticationFilterInitializer":
+      and "org.apache.hadoop.security.AuthenticationFilterInitializer" in params.config['configurations']['core-site']['hadoop.http.filter.initializers']:
     return True
   return False
 

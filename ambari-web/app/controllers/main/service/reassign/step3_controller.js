@@ -317,7 +317,9 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
     var urlParams = [];
 
     this.get('wizardController.serviceToConfigSiteMap')[componentName].forEach(function(site){
-      urlParams.push('(type=' + site + '&tag=' + data.Clusters.desired_configs[site].tag + ')');
+      if (data.Clusters.desired_configs[site]) {
+        urlParams.push('(type=' + site + '&tag=' + data.Clusters.desired_configs[site].tag + ')');
+      }
     });
 
     // specific cases for certain components
@@ -482,7 +484,7 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
       if (additionalConfigs.hasOwnProperty(site)) {
         for (var property in additionalConfigs[site]) {
           if (additionalConfigs[site].hasOwnProperty(property)) {
-            if (App.get('isHaEnabled') && componentName === 'NAMENODE' && (property === 'fs.defaultFS' || property === 'dfs.namenode.rpc-address')) continue;
+            if (App.get('isHaEnabled') && componentName === 'NAMENODE' && (['fs.defaultFS', 'dfs.namenode.rpc-address', 'dfs.namenode.http-address', 'dfs.namenode.https-address'].contains(property))) continue;
 
             configs[site][property] = additionalConfigs[site][property].replace('<replace-value>', replaceValue);
             if (!this.get('propertiesToChange').hasOwnProperty(site)) {
@@ -543,8 +545,22 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
   _getNnInitializerSettings: function (configs) {
     var ret = {};
     if (App.get('isHaEnabled')) {
-      ret.namespaceId = configs['hdfs-site']['dfs.nameservices'];
-      ret.suffix = (configs['hdfs-site']['dfs.namenode.http-address.' + ret.namespaceId + '.nn1'].indexOf(this.get('content.reassignHosts.source')) != -1) ? 'nn1' : 'nn2';
+      const configsObject = configs['hdfs-site'],
+        nameSpaces = configsObject['dfs.nameservices'].split(','),
+        nameSpacesCount = nameSpaces.length,
+        propertyNames = Object.keys(configsObject);
+      for (let i = 0; i < nameSpacesCount; i++) {
+        const nameSpace = nameSpaces[i],
+          propertyNameStart = `dfs.namenode.http-address.${nameSpace}.`,
+          httpAddressPropertiesNames = propertyNames.filter(propertyName => propertyName.startsWith(propertyNameStart)),
+          matchingPropertyName = httpAddressPropertiesNames.find(propertyName => configsObject[propertyName].startsWith(this.get('content.reassignHosts.source')));
+        if (matchingPropertyName) {
+          const nameNodeSuffixMatch = matchingPropertyName.match(new RegExp(`${propertyNameStart}(\\w+)`));
+          ret.namespaceId = nameSpace;
+          ret.suffix = nameNodeSuffixMatch && nameNodeSuffixMatch[1];
+          break;
+        }
+      }
     }
     return ret;
   },

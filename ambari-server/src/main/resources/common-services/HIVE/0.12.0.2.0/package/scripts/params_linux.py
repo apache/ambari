@@ -244,6 +244,7 @@ else:
   hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 hive_metastore_user_passwd = unicode(hive_metastore_user_passwd) if not is_empty(hive_metastore_user_passwd) else hive_metastore_user_passwd
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
+hive_db_schma_name = config['configurations']['hive-site']['ambari.hive.db.schema.name']
 
 #HACK Temporarily use dbType=azuredb while invoking schematool
 if hive_metastore_db_type == "mssql":
@@ -579,6 +580,12 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 
 host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
 host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+is_aggregation_https_enabled = False
+if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 ########################################################
 ############# Atlas related params #####################
 ########################################################
@@ -615,7 +622,7 @@ security_param = "true" if security_enabled else "false"
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 import functools
 #create partial functions with common arguments for every HdfsResource call

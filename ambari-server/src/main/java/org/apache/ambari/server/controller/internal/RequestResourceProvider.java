@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.CLUSTER_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.COMPONENT_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_GROUP_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_NAME;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,17 +44,18 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -139,6 +140,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String INPUTS_ID = "parameters";
   public static final String EXCLUSIVE_ID = "exclusive";
   public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
+  public static final String CONTEXT = "context";
 
   private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(REQUEST_ID_PROPERTY_ID);
 
@@ -539,54 +541,49 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         throw new SystemException(msg, e);
       }
 
-      ResourceProvider resourceProvider = getResourceProvider(Resource.Type.HostComponent);
-
       Set<String> propertyIds = new HashSet<>();
-      propertyIds.add(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-      propertyIds.add(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-      propertyIds.add(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+      propertyIds.add(CLUSTER_NAME);
+      propertyIds.add(SERVICE_NAME);
+      propertyIds.add(COMPONENT_NAME);
 
       Request request = PropertyHelper.getReadRequest(propertyIds);
 
-      Predicate finalPredicate = new PredicateBuilder(filterPredicate)
-        .property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-        .property(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID).equals(serviceName).and()
-        .property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals(componentName)
-        .toPredicate();
-
       try {
-        Set<Resource> resources = resourceProvider.getResources(request, finalPredicate);
+        ClusterController clusterController = ClusterControllerHelper.getClusterController();
+        QueryResponse queryResponse = clusterController.getResources(
+          Resource.Type.HostComponent, request, filterPredicate);
+        Iterable<Resource> resourceIterable = clusterController.getIterable(
+          Resource.Type.HostComponent, queryResponse, request,
+          filterPredicate, null, null);
+        
+        // Allow request to span services / components using just the predicate
+        Map<ServiceComponentTuple, List<String>> tupleListMap = new HashMap<>();
+        for (Resource resource : resourceIterable) {
+          String hostnameStr = (String) resource.getPropertyValue(HOST_NAME);
+          if (hostnameStr != null) {
+            String computedServiceName = (String) resource.getPropertyValue(SERVICE_NAME);
+            String computedServiceGroupName = (String) resource.getPropertyValue(SERVICE_GROUP_NAME);
+            String computedComponentName = (String) resource.getPropertyValue(COMPONENT_NAME);
+            ServiceComponentTuple tuple = new ServiceComponentTuple(computedServiceGroupName, computedServiceName, computedComponentName);
 
-        if (resources != null && !resources.isEmpty()) {
-          // Allow request to span services / components using just the predicate
-          Map<ServiceComponentTuple, List<String>> dupleListMap = new HashMap<>();
-          for (Resource resource : resources) {
-            String hostnameStr = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
-            if (hostnameStr != null) {
-              String computedServiceGroupName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
-              String computedServiceName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-              String computedComponentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
-              ServiceComponentTuple duple =
-                new ServiceComponentTuple(computedServiceGroupName, computedServiceName, computedComponentName);
-
-              if (!dupleListMap.containsKey(duple)) {
-                hostList = new ArrayList<>();
-                hostList.add(hostnameStr);
-                dupleListMap.put(duple, hostList);
-              } else {
-                dupleListMap.get(duple).add(hostnameStr);
-              }
+            if (!tupleListMap.containsKey(tuple)) {
+              hostList = new ArrayList<>();
+              hostList.add(hostnameStr);
+              tupleListMap.put(tuple, hostList);
+            } else {
+              tupleListMap.get(tuple).add(hostnameStr);
             }
           }
-          if (!dupleListMap.isEmpty()) {
-            for (Map.Entry<ServiceComponentTuple, List<String>> entry : dupleListMap.entrySet()) {
-              resourceFilterList.add(new RequestResourceFilter(
-                entry.getKey().getServiceGroupName(),
-                entry.getKey().getServiceName(),
-                entry.getKey().getComponentName(),
-                entry.getValue()
-              ));
-            }
+        }
+        if (!tupleListMap.isEmpty()) {
+          for (Map.Entry<ServiceComponentTuple, List<String>> entry : tupleListMap.entrySet()) {
+            resourceFilterList.add(new RequestResourceFilter(
+              entry.getKey().getServiceGroupName(),
+              entry.getKey().getServiceName(),
+              entry.getKey().getComponentName(),
+              entry.getValue()
+            ));
+
           }
         }
       } catch (Exception e) {

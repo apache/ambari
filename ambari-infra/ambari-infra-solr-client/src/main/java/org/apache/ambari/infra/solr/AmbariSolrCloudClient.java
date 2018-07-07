@@ -22,7 +22,9 @@ import org.apache.ambari.infra.solr.commands.CheckConfigZkCommand;
 import org.apache.ambari.infra.solr.commands.CreateCollectionCommand;
 import org.apache.ambari.infra.solr.commands.CreateShardCommand;
 import org.apache.ambari.infra.solr.commands.CreateSolrZnodeZkCommand;
+import org.apache.ambari.infra.solr.commands.DeleteZnodeZkCommand;
 import org.apache.ambari.infra.solr.commands.DownloadConfigZkCommand;
+import org.apache.ambari.infra.solr.commands.DumpCollectionsCommand;
 import org.apache.ambari.infra.solr.commands.EnableKerberosPluginSolrZkCommand;
 import org.apache.ambari.infra.solr.commands.GetShardsCommand;
 import org.apache.ambari.infra.solr.commands.GetSolrHostsCommand;
@@ -76,6 +78,8 @@ public class AmbariSolrCloudClient {
   private final String transferMode;
   private final String copySrc;
   private final String copyDest;
+  private final String output;
+  private final boolean includeDocNumber;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
     this.zkConnectString = builder.zkConnectString;
@@ -102,6 +106,8 @@ public class AmbariSolrCloudClient {
     this.transferMode = builder.transferMode;
     this.copySrc = builder.copySrc;
     this.copyDest = builder.copyDest;
+    this.output = builder.output;
+    this.includeDocNumber = builder.includeDocNumber;
   }
 
   /**
@@ -126,6 +132,13 @@ public class AmbariSolrCloudClient {
       }
     }
     return getCollection();
+  }
+
+  public String outputCollectionData() throws Exception {
+    List<String> collections = listCollections();
+    String result = new DumpCollectionsCommand(getRetryTimes(), getInterval(), collections).run(this);
+    LOG.info("Dump collections response: {}", result);
+    return result;
   }
 
   /**
@@ -279,6 +292,13 @@ public class AmbariSolrCloudClient {
     return new TransferZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
   }
 
+  /**
+   * Delete znode path (and all sub nodes)
+   */
+  public boolean deleteZnode() throws Exception {
+    return new DeleteZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
+  }
+
   public String getZkConnectString() {
     return zkConnectString;
   }
@@ -373,5 +393,13 @@ public class AmbariSolrCloudClient {
 
   public String getCopyDest() {
     return copyDest;
+  }
+
+  public String getOutput() {
+    return output;
+  }
+
+  public boolean isIncludeDocNumber() {
+    return includeDocNumber;
   }
 }

@@ -35,6 +35,7 @@ import {ShipperConfigurationStore} from './stores/shipper-configuration.store';
 import {ShipperConfigurationComponent} from './components/shipper-configuration/shipper-configuration.component';
 import {ShipperClusterServiceListService} from './services/shipper-cluster-service-list.service';
 import {ShipperConfigurationService} from './services/shipper-configuration.service';
+import {ShipperGuard} from '@modules/shipper/services/shipper.guard';
 
 @NgModule({
   imports: [
@@ -59,7 +60,8 @@ import {ShipperConfigurationService} from './services/shipper-configuration.serv
   providers: [
     ShipperConfigurationStore,
     ShipperConfigurationService,
-    ShipperClusterServiceListService
+    ShipperClusterServiceListService,
+    ShipperGuard
   ]
 })
 export class ShipperModule {}

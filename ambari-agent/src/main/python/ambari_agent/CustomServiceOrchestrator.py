@@ -24,6 +24,7 @@ import ambari_simplejson as json
 import sys
 from ambari_commons import shell
 import threading
+from collections import defaultdict
 
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
@@ -32,8 +33,6 @@ from resource_management.core.utils import PasswordString
 from ambari_commons import subprocess32
 from ambari_agent.Utils import Utils
 from ambari_commons.constants import AGENT_TMP_DIR
-import hostname
-import Constants
 
 
 logger = logging.getLogger()
@@ -111,6 +110,9 @@ class CustomServiceOrchestrator():
     self.commands_in_progress_lock = threading.RLock()
     self.commands_in_progress = {}
 
+    # save count (not boolean) for parallel execution cases
+    self.commands_for_component_in_progress = defaultdict(lambda:defaultdict(lambda:0))
+
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
       logger.debug('Maps taskId=%s to pid=%s', task_id, processId)
@@ -150,6 +152,9 @@ class CustomServiceOrchestrator():
 
     conf_dir = os.path.join(self.credential_conf_dir, service_name.lower())
     return conf_dir
+
+  def commandsRunningForComponent(self, clusterId, componentName):
+    return self.commands_for_component_in_progress[clusterId][componentName] > 0
 
   def getConfigTypeCredentials(self, commandJson):
     """
@@ -209,8 +214,8 @@ class CustomServiceOrchestrator():
     :return:
     """
     configtype_credentials = {}
-    if 'configuration_credentials' in commandJson:
-      for config_type, password_properties in commandJson['configuration_credentials'].items():
+    if 'serviceLevelParams' in commandJson and 'configuration_credentials' in commandJson['serviceLevelParams']:
+      for config_type, password_properties in commandJson['serviceLevelParams']['configuration_credentials'].items():
         if config_type in commandJson['configurations']:
           value_names = []
           config = commandJson['configurations'][config_type]
@@ -276,6 +281,9 @@ class CustomServiceOrchestrator():
     if len(configtype_credentials) == 0:
       logger.info("Credential store is enabled but no property are found that can be encrypted.")
       commandJson['credentialStoreEnabled'] = "false"
+    # CS is enabled and config properties are available
+    else:
+      commandJson['credentialStoreEnabled'] = "true"
 
     for config_type, credentials in configtype_credentials.items():
       config = commandJson['configurations'][config_type]
@@ -311,11 +319,20 @@ class CustomServiceOrchestrator():
     forced_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
     """
+    incremented_commands_for_component = False
+
+    # Make sure the return variable has been initialized
+    ret = None
+
+    # Make sure the json_path variable has been initialized
+    json_path = None
+
     try:
       command = self.generate_command(command_header)
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
+      cluster_id = str(command['clusterId'])
 
       server_url_prefix = command['ambariLevelParams']['jdk_location']
 
@@ -396,6 +413,10 @@ class CustomServiceOrchestrator():
       backup_log_files = not command_name in self.DONT_BACKUP_LOGS_FOR_COMMANDS
       log_out_files = self.config.get("logging","log_out_files", default="0") != "0"
 
+      if cluster_id != '-1' and cluster_id != 'null':
+        self.commands_for_component_in_progress[cluster_id][command['role']] += 1
+        incremented_commands_for_component = True
+
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir,
@@ -440,6 +461,12 @@ class CustomServiceOrchestrator():
         'structuredOut' : '{}',
         'exitcode': 1,
       }
+    finally:
+      if incremented_commands_for_component:
+        self.commands_for_component_in_progress[cluster_id][command['role']] -= 1
+
+      self.conditionally_remove_command_file(json_path, ret)
+
     return ret
 
   def command_canceled_reason(self, task_id):
@@ -469,7 +496,17 @@ class CustomServiceOrchestrator():
     required_config_timestamp = command_header['requiredConfigTimestamp'] if 'requiredConfigTimestamp' in command_header else None
 
     command_dict = self.configuration_builder.get_configuration(cluster_id, service_name, component_name, required_config_timestamp)
+
+    # remove data populated from topology to avoid merge and just override
+    if 'clusterHostInfo' in command_header:
+      del command_dict['clusterHostInfo']
+
     command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
+
+    # topology needs to be decompressed if and only if it originates from command header
+    if 'clusterHostInfo' in command_header and command_header['clusterHostInfo']:
+      command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
+
     return command
 
   def requestComponentStatus(self, command_header):
@@ -645,4 +682,58 @@ class CustomServiceOrchestrator():
     resultList = dict(sorted(resultDict.items())).values()
 
     return resultList
+
+  def conditionally_remove_command_file(self, command_json_path, command_result):
+    """
+    Conditionally remove the specified command JSON file if it exists and if the configured
+    agent/command_file_retention_policy indicates to do so.
+
+    :param command_json_path:  the absolute path to the command JSON file
+    :param command_result: the result structure containing the exit code for the command execution
+    :rtype: bool
+    :return: True, if the command JSON file was removed; False otherwise
+    """
+    removed_command_file = False
+
+    if os.path.exists(command_json_path):
+      command_file_retention_policy = self.config.command_file_retention_policy
+
+      if command_file_retention_policy == self.config.COMMAND_FILE_RETENTION_POLICY_REMOVE:
+        remove_command_file = True
+        logger.info(
+          'Removing %s due to the command_file_retention_policy, %s',
+          command_json_path, command_file_retention_policy
+        )
+      elif command_file_retention_policy == self.config.COMMAND_FILE_RETENTION_POLICY_REMOVE_ON_SUCCESS:
+        if command_result and ('exitcode' in command_result):
+          exit_code = command_result['exitcode']
+          if exit_code == 0:
+            remove_command_file = True
+            logger.info(
+              'Removing %s due to the command_file_retention_policy, %s, and exit code, %d',
+              command_json_path, command_file_retention_policy, exit_code
+            )
+          else:
+            remove_command_file = False
+            logger.info(
+              'Not removing %s due to the command_file_retention_policy, %s, and exit code, %d',
+              command_json_path, command_file_retention_policy, exit_code
+            )
+        else:
+          remove_command_file = False
+          logger.info(
+            'Not Removing %s due to the command_file_retention_policy, %s, and a missing exit code value',
+            command_json_path, command_file_retention_policy
+          )
+      else:
+        remove_command_file = False
+
+      if remove_command_file:
+        try:
+          os.remove(command_json_path)
+          removed_command_file = True
+        except Exception, e:
+          logger.error("Failed to remove %s due to error: %s", command_json_path, str(e))
+
+    return removed_command_file
 

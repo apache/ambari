@@ -367,7 +367,7 @@ class ExecutionCommand(object):
     return self.__get_value('commandParams/phase')
 
   def get_dfs_type(self):
-    return self.__get_value('commandParams/dfs_type')
+    return self.__get_value('clusterLevelParams/dfs_type')
 
   def get_module_package_folder(self):
     return self.__get_value('commandParams/service_package_folder')

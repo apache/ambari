@@ -38,6 +38,7 @@ class ComponentStatusExecutor(threading.Thread):
     self.stop_event = initializer_module.stop_event
     self.recovery_manager = initializer_module.recovery_manager
     self.reported_component_status = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:None))) # component statuses which were received by server
+    self.server_responses_listener = initializer_module.server_responses_listener
     threading.Thread.__init__(self)
 
   def run(self):
@@ -93,34 +94,15 @@ class ComponentStatusExecutor(threading.Thread):
               service_name = component_dict.serviceName
               component_name = component_dict.componentName
 
-              command_dict = {
-                'serviceName': service_name,
-                'role': component_name,
-                'clusterId': cluster_id,
-                'commandType': 'STATUS_COMMAND',
-              }
+              # do not run status commands for the component which is starting/stopping or doing other action
+              if self.customServiceOrchestrator.commandsRunningForComponent(cluster_id, component_name):
+                logger.info("Skipping status command for {0}. Since command for it is running".format(component_name))
+                continue
 
-              component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
-              status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
+              result = self.check_component_status(cluster_id, service_name, component_name, command_name)
 
-              # log if status command failed
-              if status == LiveStatus.DEAD_STATUS:
-                stderr = component_status_result['stderr']
-                if not "ComponentIsNotRunning" in stderr and not "ClientComponentHasNoStatus" in stderr:
-                  logger.info("Status command for {0} failed:\n{1}".format(component_name, stderr))
-
-              result = {
-                'serviceName': service_name,
-                'componentName': component_name,
-                'command': command_name,
-                'status': status,
-                'clusterId': cluster_id,
-              }
-
-              if status != self.reported_component_status[cluster_id][component_name][command_name]:
-                logging.info("Status for {0} has changed to {1}".format(component_name, status))
+              if result:
                 cluster_reports[cluster_id].append(result)
-                self.recovery_manager.handle_status_change(component_name, status)
 
         self.send_updates_to_server(cluster_reports)
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
@@ -131,12 +113,57 @@ class ComponentStatusExecutor(threading.Thread):
       self.stop_event.wait(self.status_commands_run_interval)
     logger.info("ComponentStatusExecutor has successfully finished")
 
+  def check_component_status(self, cluster_id, service_name, component_name, command_name, report=False):
+    """
+    Returns components status if it has changed, otherwise None.
+    """
+
+    # if not a component
+    if self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name) is None:
+      return None
+
+    command_dict = {
+      'serviceName': service_name,
+      'role': component_name,
+      'clusterId': cluster_id,
+      'commandType': 'STATUS_COMMAND',
+    }
+
+    component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
+    status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
+
+    # log if status command failed
+    if status == LiveStatus.DEAD_STATUS:
+      stderr = component_status_result['stderr']
+      if not "ComponentIsNotRunning" in stderr and not "ClientComponentHasNoStatus" in stderr:
+        logger.info("Status command for {0} failed:\n{1}".format(component_name, stderr))
+
+    result = {
+      'serviceName': service_name,
+      'componentName': component_name,
+      'command': command_name,
+      'status': status,
+      'clusterId': cluster_id,
+    }
+
+    if status != self.reported_component_status[cluster_id][component_name][command_name]:
+      logging.info("Status for {0} has changed to {1}".format(component_name, status))
+      self.recovery_manager.handle_status_change(component_name, status)
+
+      if report:
+        self.send_updates_to_server({cluster_id: [result]})
+
+      return result
+    return None
+
   def send_updates_to_server(self, cluster_reports):
     if not cluster_reports or not self.initializer_module.is_registered:
       return
 
-    self.initializer_module.connection.send(message={'clusters': cluster_reports}, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    correlation_id = self.initializer_module.connection.send(message={'clusters': cluster_reports}, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_reported_component_status(cluster_reports)
 
+  def save_reported_component_status(self, cluster_reports):
     for cluster_id, reports in cluster_reports.iteritems():
       for report in reports:
         component_name = report['componentName']

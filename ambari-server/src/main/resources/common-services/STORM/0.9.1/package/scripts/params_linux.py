@@ -152,27 +152,22 @@ if security_enabled:
   _ambari_principal_name = default('/configurations/cluster-env/ambari_principal_name', None)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
 
-  if stack_supports_storm_kerberos:
-    storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
-    _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
-    storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',_hostname_lowercase)
-    storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
-    if _ambari_principal_name:
-      ambari_bare_jaas_principal = get_bare_principal(_ambari_principal_name)
-    _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
-    nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST', _hostname_lowercase)
-    nimbus_bare_jaas_principal = get_bare_principal(_nimbus_principal_name)
-    nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
+  storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
+  _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
+  storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',_hostname_lowercase)
+  storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
+  if _ambari_principal_name:
+    ambari_bare_jaas_principal = get_bare_principal(_ambari_principal_name)
+  _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
+  nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST', _hostname_lowercase)
+  nimbus_bare_jaas_principal = get_bare_principal(_nimbus_principal_name)
+  nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
 
 kafka_bare_jaas_principal = None
-if stack_supports_storm_kerberos:
-  if security_enabled:
-    storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.secure.transport']
-    # generate KafkaClient jaas config if kafka is kerberoized
-    _kafka_principal_name = default("/configurations/kafka-env/kafka_principal_name", None)
-    kafka_bare_jaas_principal = get_bare_principal(_kafka_principal_name)
-  else:
-    storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
+if security_enabled:
+  # generate KafkaClient jaas config if kafka is kerberoized
+  _kafka_principal_name = default("/configurations/kafka-env/kafka_principal_name", None)
+  kafka_bare_jaas_principal = get_bare_principal(_kafka_principal_name)
 
 set_instanceId = "false"
 if 'cluster-env' in config['configurations'] and \
@@ -210,6 +205,12 @@ metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink-with-c
 metric_collector_legacy_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink-legacy-with-common-*.jar"
 host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
 host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+is_aggregation_https_enabled = False
+if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 
 
 # Cluster Zookeeper quorum
@@ -403,6 +404,8 @@ hadoop_bin_dir = stack_select.get_hadoop_dir("bin") if has_namenode else None
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir() if has_namenode else None
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
+dfs_type = default("/clusterLevelParams/dfs_type", "")
+
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
@@ -418,5 +421,6 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
-  immutable_paths = get_not_managed_resources()
+  immutable_paths = get_not_managed_resources(),
+  dfs_type = dfs_type
 )

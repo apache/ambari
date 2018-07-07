@@ -466,7 +466,7 @@ public class HostResponse {
     this.recoveryReport = recoveryReport;
   }
 
-  public interface Wrapper extends ApiModel {
+  public interface HostResponseWrapper extends ApiModel {
     @ApiModelProperty(name = HostResourceProvider.RESPONSE_KEY)
     @SuppressWarnings("unused")
     HostResponse getHostResponse();

@@ -63,12 +63,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   serviceSummaryView: null,
 
-  /**
-   * @type {App.ViewInstance}
-   */
-  views: function () {
+
+  // TODO implement filtering of views related to current service
+  ///**
+  // * @type {App.ViewInstance}
+  // */
+  /*views: function () {
     return App.router.get('loggedIn') ? App.router.get('mainViewsController.visibleAmbariViews') : [];
-  }.property('App.router.mainViewsController.visibleAmbariViews.[]', 'App.router.loggedIn'),
+  }.property('App.router.mainViewsController.visibleAmbariViews.[]', 'App.router.loggedIn'),*/
 
   /**
    * @property {Object} serviceCustomViewsMap - custom views to embed
@@ -78,7 +80,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {
       HBASE: App.MainDashboardServiceHbaseView,
       HDFS: App.MainDashboardServiceHdfsView,
-      ONEFS: App.MainDashboardServiceHdfsView,
+      ONEFS: App.MainDashboardServiceOnefsView,
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       RANGER: App.MainDashboardServiceRangerView,
@@ -166,7 +168,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var self = this;
     if (!this.get('service') || this.get('service.deleteInProgress')) return;
     Em.run.once(self, 'setComponentsContent');
-  }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount'),
+  }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount', 'svc.masterComponentGroups.length'),
 
   loadServiceSummary: function () {
     var serviceName = this.get('serviceName');
@@ -214,12 +216,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       if (Em.isNone(this.get('service'))) {
         return;
       }
-      var masters = this.get('service.hostComponents').filterProperty('isMaster');
-      var slaves = this.get('service.slaveComponents').toArray();
-      var clients = this.get('service.clientComponents').toArray();
+      const masters = this.get('service.hostComponents').filterProperty('isMaster'),
+        slaves = this.get('service.slaveComponents').toArray(),
+        clients = this.get('service.clientComponents').toArray(),
+        masterGroups = this.get('svc.masterComponentGroups') ? this.get('svc.masterComponentGroups').toArray() : [];
 
-      if (this.get('mastersLength') !== masters.length) {
-        const mastersInit = this.get('mastersObj').mapProperty('components').reduce((acc, group) => {
+      if (this.get('mastersLength') !== masters.length || this.get('mastersObj.length') !== masterGroups.length) {
+        let mastersInit = this.get('mastersObj').mapProperty('components').reduce((acc, group) => {
           return [...acc, ...group];
         }, []);
         this.updateComponentList(mastersInit, masters);
@@ -286,8 +289,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   service: null,
 
   svc: function () {
-    var svc = this.get('controller.content');
-    var svcName = svc.get('serviceName');
+    let svc = this.get('controller.content');
+    const svcName = svc ? svc.get('serviceName') : null;
     if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
@@ -350,7 +353,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   alertsCount: Em.computed.alias('controller.content.alertsCount'),
 
+  hasNoAlerts: Em.computed.equal('alertsCount', 0),
+
   hasCriticalAlerts: Em.computed.alias('controller.content.hasCriticalAlerts'),
+
+  hasNonCriticalAlertsOnly: Em.computed.and('!hasNoAlerts', '!hasCriticalAlerts'),
 
   /**
    * Define if service has alert definitions defined
@@ -457,7 +464,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             } else {
               if (!groups.length) {
                 groups.push({
-                  components: []
+                  components: [],
+                  componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
+                    nameSpace: component.get('haNameSpace') || 'default',
+                    showSlaveComponents: true
+                  })
                 });
               }
               const defaultGroupComponents = groups[0].components;
@@ -469,7 +480,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             }
           }
         });
-        return groups;
+        return groups.sortProperty('name');
       default:
         return [
           {

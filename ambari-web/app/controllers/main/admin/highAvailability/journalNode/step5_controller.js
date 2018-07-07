@@ -18,6 +18,13 @@
 
 var App = require('app');
 
-App.ManageJournalNodeWizardStep5Controller = App.HighAvailabilityWizardStep6Controller.extend({
-  name : 'manageJournalNodeWizardStep5Controller'
+App.ManageJournalNodeWizardStep5Controller = Em.Controller.extend({
+  name: 'manageJournalNodeWizardStep5Controller',
+  isHDFSNameSpacesLoaded: Em.computed.alias('App.router.clusterController.isHDFSNameSpacesLoaded'),
+  isNextEnabled: Em.computed.alias('isHDFSNameSpacesLoaded'),
+  done: function () {
+    if (this.get('isNextEnabled')) {
+      App.router.send('next');
+    }
+  }
 });

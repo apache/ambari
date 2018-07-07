@@ -54,6 +54,39 @@ describe('App.InstallerController', function () {
     });
   });
 
+  describe('#getHosts', function() {
+    it ('Should return empty array', function() {
+      expect(installerController.getHosts()).to.eql([]);
+    });
+  });
+
+  describe('#loadServices', function() {
+    it ('Should resolve nothing', function() {
+      var res = installerController.loadServices();
+      res.then(function(data){
+        expect(data).to.be.undefined;
+      });
+    });
+  });
+
+  describe('#cancelInstall', function() {
+    var mock = {
+      goToAdminView: sinon.spy()
+    };
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+
+    it('goToAdminView should be called', function() {
+      var popup = installerController.cancelInstall();
+      popup.onPrimary();
+      expect(mock.goToAdminView.calledOnce).to.be.true;
+    });
+  });
+
   describe('#checkRepoURL', function() {
     var stacks = Em.A([
       Em.Object.create({
@@ -481,6 +514,62 @@ describe('App.InstallerController', function () {
 
       it('cluster info is loaded', function () {
         expect(loadCluster).to.be.true;
+      });
+    });
+
+    describe('Should load stacks', function() {
+      var loadStacks = false;
+      var checker = {
+        loadStacks: function() {
+          return {
+            done: function(callback) {
+              callback(true);
+            }
+          };
+        }
+      };
+
+      beforeEach(function () {
+        sinon.spy(checker, 'loadStacks');
+        installerController.loadMap['1'][0].callback.call(checker);
+      });
+
+      afterEach(function() {
+        checker.loadStacks.restore();
+      });
+
+      it('should call loadStacks, stack info not loaded', function () {
+        expect(checker.loadStacks.calledOnce).to.be.true;
+      });
+    });
+
+    describe('Should load stacks async', function() {
+      var checker = {
+        loadStacksVersions: Em.K
+      };
+
+      beforeEach(function () {
+        sinon.stub(checker, 'loadStacksVersions').returns({
+          done: Em.clb
+        });
+      });
+
+      afterEach(function() {
+        checker.loadStacksVersions.restore();
+      });
+
+      it('stack versions are loaded', function () {
+        installerController.loadMap['1'][1].callback.call(checker, true).then(function(data){
+          expect(data).to.be.true;
+        });
+        expect(checker.loadStacksVersions.called).to.be.false;
+      });
+
+      it('should call loadStacksVersions, stack versions not loaded', function () {
+        installerController.loadMap['1'][1].callback.call(checker, false).then(function(data){
+          expect(data).to.be.true;
+        });
+        expect(checker.loadStacksVersions.calledOnce).to.be.true;
       });
     });
 
@@ -1190,6 +1279,38 @@ describe('App.InstallerController', function () {
     it('Should return controller for the step name provided.', function () {
       var stepController = installerController.getStepController("step0");
       expect(stepController).to.equal(wizardStep0Controller);
+    });
+  });
+
+  describe('#finish', function() {
+    beforeEach(function() {
+      sinon.stub(installerController, 'setCurrentStep');
+      sinon.stub(installerController, 'clearStorageData');
+      sinon.stub(installerController, 'clearServiceConfigProperties');
+      sinon.stub(App.themesMapper, 'resetModels');
+      installerController.finish();
+    });
+    afterEach(function() {
+      installerController.setCurrentStep.restore();
+      installerController.clearStorageData.restore();
+      installerController.clearServiceConfigProperties.restore();
+      App.themesMapper.resetModels.restore();
+    });
+
+    it('setCurrentStep should be called', function() {
+      expect(installerController.setCurrentStep.calledWith('0')).to.be.true;
+    });
+
+    it('clearStorageData should be called', function() {
+      expect(installerController.clearStorageData.calledOnce).to.be.true;
+    });
+
+    it('clearServiceConfigProperties should be called', function() {
+      expect(installerController.clearServiceConfigProperties.calledOnce).to.be.true;
+    });
+
+    it('App.themesMapper.resetModels should be called', function() {
+      expect(App.themesMapper.resetModels.calledOnce).to.be.true;
     });
   });
 });

@@ -107,7 +107,7 @@ CREATE TABLE clusters (
 CREATE TABLE ambari_configuration (
   category_name VARCHAR(100) NOT NULL,
   property_name VARCHAR(100) NOT NULL,
-  property_value VARCHAR(255) NOT NULL,
+  property_value VARCHAR(2048),
   CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE hosts (
@@ -281,6 +281,11 @@ CREATE TABLE repo_tags (
   tag VARCHAR(255) NOT NULL,
   CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
+CREATE TABLE repo_applicable_services (
+  repo_definition_id BIGINT NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  CONSTRAINT FK_repo_app_service_def_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
   component_name VARCHAR(100) NOT NULL,
@@ -375,7 +380,7 @@ CREATE TABLE users (
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
   display_name VARCHAR(255) NOT NULL,
   local_username VARCHAR(255) NOT NULL,
-  create_time TIMESTAMP DEFAULT NOW(),
+  create_time BIGINT NOT NULL,
   version BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
@@ -385,9 +390,9 @@ CREATE TABLE user_authentication (
   user_authentication_id INTEGER,
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
-  authentication_key TEXT,
-  create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  authentication_key VARCHAR(2048),
+  create_time BIGINT NOT NULL,
+  update_time BIGINT NOT NULL,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
   CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
@@ -862,6 +867,7 @@ CREATE TABLE widget (
   widget_values LONGTEXT,
   properties LONGTEXT,
   cluster_id BIGINT NOT NULL,
+  tag VARCHAR(255),
   CONSTRAINT PK_widget PRIMARY KEY (id)
 );
 
@@ -1091,7 +1097,7 @@ ALTER TABLE clusters ADD CONSTRAINT FK_clusters_upgrade_id FOREIGN KEY (upgrade_
 
 -- Kerberos
 CREATE TABLE kerberos_principal (
-  principal_name VARCHAR(255) NOT NULL,
+  principal_name VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   is_service SMALLINT NOT NULL DEFAULT 1,
   cached_keytab_path VARCHAR(255),
   CONSTRAINT PK_kerberos_principal PRIMARY KEY (principal_name)
@@ -1111,7 +1117,7 @@ CREATE TABLE kerberos_keytab (
 CREATE TABLE kerberos_keytab_principal (
   kkp_id BIGINT NOT NULL DEFAULT 0,
   keytab_path VARCHAR(255) NOT NULL,
-  principal_name VARCHAR(255) NOT NULL,
+  principal_name VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   host_id BIGINT,
   is_distributed SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_kkp PRIMARY KEY (kkp_id),
@@ -1352,12 +1358,12 @@ INSERT INTO adminprincipal (principal_id, principal_type_id) VALUES
 
 -- Insert the default administrator user.
 INSERT INTO users(user_id, principal_id, user_name, display_name, local_username, create_time)
-  SELECT 1, 1, 'admin', 'Administrator', 'admin', NOW();
+  SELECT 1, 1, 'admin', 'Administrator', 'admin', UNIX_TIMESTAMP() * 1000;
 
 -- Insert the LOCAL authentication data for the default administrator user.
 -- The authentication_key value is the salted digest of the password: admin
 INSERT INTO user_authentication(user_authentication_id, user_id, authentication_type, authentication_key, create_time, update_time)
-  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', NOW(), NOW();
+  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', UNIX_TIMESTAMP() * 1000, UNIX_TIMESTAMP() * 1000;
 
 INSERT INTO adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 UNION ALL

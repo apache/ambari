@@ -23,6 +23,7 @@ var validator = require('utils/validator');
 App.Repository = DS.Model.extend({
   id:  DS.attr('string'), // This is ${osType}-${repoId}.
   repoId: DS.attr('string'),
+  originalRepoId: DS.attr('string'),
   osType: DS.attr('string'),
   baseUrl: DS.attr('string'),
   baseUrlInit: DS.attr('string'),
@@ -36,6 +37,7 @@ App.Repository = DS.Model.extend({
   distribution: DS.attr('string'),
   unique: DS.attr('boolean'),
   tags: DS.attr('array'),
+  applicable_services: DS.attr('array'),
 
   validation: DS.attr('string', {defaultValue: ''}),
   validationClassName: Em.computed.getByKey('validationClassNameMap', 'validation', ''),

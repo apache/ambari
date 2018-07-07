@@ -105,25 +105,6 @@ describe('App.MainHostView', function () {
       view.didInsertElement();
       expect(view.overlayObserver.calledOnce).to.be.true;
     });
-
-    it('isCountersUpdating should be true', function () {
-      view.didInsertElement();
-      expect(view.get('controller.isCountersUpdating')).to.be.true;
-    });
-
-    it('updateStatusCounters should be called', function () {
-      view.didInsertElement();
-      expect(view.get('controller').updateStatusCounters.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#willDestroyElement', function() {
-
-    it("isCountersUpdating should be false", function() {
-      view.set('controller.isCountersUpdating', true);
-      view.willDestroyElement();
-      expect(view.get('controller.isCountersUpdating')).to.be.false;
-    });
   });
 
   describe("#onRequestErrorHandler()", function () {

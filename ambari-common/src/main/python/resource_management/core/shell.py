@@ -90,7 +90,7 @@ def preexec_fn():
 @log_function_call
 def checked_call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
   """
   Execute the shell command and throw an exception on failure.
   @throws Fail
@@ -99,12 +99,12 @@ def checked_call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,
   return _call_wrapper(command, logoutput=logoutput, throw_on_failure=True, stdout=stdout, stderr=stderr,
                               cwd=cwd, env=env, preexec_fn=preexec_fn, user=user, wait_for_finish=wait_for_finish, 
                               on_timeout=on_timeout, timeout=timeout, path=path, sudo=sudo, on_new_line=on_new_line,
-                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy)
+                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy, returns=returns)
   
 @log_function_call
 def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
   """
   Execute the shell command despite failures.
   @return: return_code, output
@@ -112,10 +112,10 @@ def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=s
   return _call_wrapper(command, logoutput=logoutput, throw_on_failure=False, stdout=stdout, stderr=stderr,
                               cwd=cwd, env=env, preexec_fn=preexec_fn, user=user, wait_for_finish=wait_for_finish, 
                               on_timeout=on_timeout, timeout=timeout, path=path, sudo=sudo, on_new_line=on_new_line,
-                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy)
+                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy, returns=returns)
 
 @log_function_call
-def non_blocking_call(command, quiet=False, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
+def non_blocking_call(command, quiet=False, stdout=None, stderr=None,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, timeout=None, path=None, sudo=False):
   """
   Execute the shell command and don't wait until it's completion
@@ -166,7 +166,7 @@ def _call_wrapper(command, **kwargs):
 
 def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None, 
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
   """
   Execute shell command
   
@@ -212,7 +212,13 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
 
   # --noprofile is used to preserve PATH set for ambari-agent
   subprocess32_command = ["/bin/bash","--login","--noprofile","-c", command]
-  
+
+  # don't create stdout and stderr pipes, because forked process will not be able to use them if current process dies
+  # creating pipes may lead to the forked process silent crash
+  if not wait_for_finish:
+    stdout = None
+    stderr = None
+
   files_to_close = []
   if isinstance(stdout, basestring):
     stdout = open(stdout, 'wb')
@@ -303,7 +309,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
    
   code = proc.returncode
   
-  if throw_on_failure and code:
+  if throw_on_failure and not code in returns:
     err_msg = Logger.filter_text("Execution of '{0}' returned {1}. {2}".format(command_alias, code, all_output))
     raise ExecutionFailed(err_msg, code, out, err)
   
