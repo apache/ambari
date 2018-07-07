@@ -70,7 +70,7 @@ def hive(name=None):
 
   params.hive_site_config = update_credential_provider_path(params.hive_site_config,
                                                      'hive-site',
-                                                     os.path.join(params.hive_conf_dir, 'hive-site.jceks'),
+                                                     os.path.join(params.hive_config_dir, 'hive-site.jceks'),
                                                      params.hive_user,
                                                      params.user_group
                                                      )
