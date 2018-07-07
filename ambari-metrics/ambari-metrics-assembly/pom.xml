@@ -389,7 +389,10 @@
                   <defaultFilemode>644</defaultFilemode>
                   <defaultUsername>root</defaultUsername>
                   <defaultGroupname>root</defaultGroupname>
-
+                  <preinstallScriptlet>
+                    <scriptFile>${project.build.directory}/resources/rpm/sink/preinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </preinstallScriptlet>
                   <postinstallScriptlet>
                     <scriptFile>${project.build.directory}/resources/rpm/sink/postinstall.sh</scriptFile>
                     <fileEncoding>utf-8</fileEncoding>

@@ -24,7 +24,7 @@
 
 {% if has_metric_collector %}
 
-*.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+*.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink-legacy.jar
 *.sink.timeline.slave.host.name={{hostname}}
 accumulo.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 accumulo.period={{metrics_collection_period}}
