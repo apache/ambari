@@ -17,8 +17,6 @@
 -->
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
-  <target>2.6.*.*</target>
-  <target-stack>HDP-2.6</target-stack>
   <type>rolling</type>
   
   <prerequisite-checks>
