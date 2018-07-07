@@ -164,8 +164,8 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
     // request.setTargetRepositoryVersion(repositoryVersion);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
-    expect(upgradeHelper.suggestUpgradePack(eq(clusterName), anyObject(), anyObject(), eq(Direction.UPGRADE), eq(UpgradeType.ROLLING), anyObject()))
-      .andReturn(upgradePackWithRegenKeytab()).anyTimes();
+//    expect(upgradeHelper.suggestUpgradePack(eq(clusterName), anyObject(), anyObject(), eq(Direction.UPGRADE), eq(UpgradeType.ROLLING), anyObject()))
+//      .andReturn(upgradePackWithRegenKeytab()).anyTimes();
 
     DesiredConfig desiredKerberosEnv = createMock(DesiredConfig.class);
     expect(desiredKerberosEnv.getTag()).andReturn("tag").anyTimes();
