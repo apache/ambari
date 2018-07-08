@@ -113,6 +113,11 @@ def setup_logfeeder():
        content=InlineTemplate(params.logfeeder_output_config_content),
        encoding="utf-8"
        )
+  if params.logfeeder_kafka_output_enabled:
+    File(format("{logsearch_logfeeder_conf}/kafka-output.json"),
+         content=InlineTemplate(params.logfeeder_kafka_output_config_content),
+         encoding="utf-8"
+         )
 
   if params.logfeeder_system_log_enabled:
     File(format("{logsearch_logfeeder_conf}/input.config-system_messages.json"),
