@@ -25,6 +25,7 @@ then
     old_jar=$(readlink -f ${HADOOP_SINK_LINK})
     version_part=$(basename ${old_jar} | awk -F"-" '{print $7}')
     IFS=. version=(${version_part})
+    unset IFS
 
     if [[ ${version[0]} -le 2 && ${version[1]} -lt 7 ]] # backup only required on upgrade from version < 2.7
     then
@@ -33,11 +34,11 @@ then
             mkdir -p "$JAR_FILES_LEGACY_FOLDER"
         fi
         echo "Backing up Ambari metrics hadoop sink jar ${old_jar} -> $JAR_FILES_LEGACY_FOLDER/"
-        cp ${old_jar} ${JAR_FILES_LEGACY_FOLDER}/
+        cp "${old_jar}" "${JAR_FILES_LEGACY_FOLDER}/"
 
         HADOOP_SINK_LEGACY_JAR="$JAR_FILES_LEGACY_FOLDER/$(basename ${old_jar})"
         echo "Creating symlink for backup jar $HADOOP_LEGACY_LINK_NAME -> $HADOOP_SINK_LEGACY_JAR"
-        rm -f ${HADOOP_LEGACY_LINK_NAME} ; ln -s ${HADOOP_SINK_LEGACY_JAR} ${HADOOP_LEGACY_LINK_NAME}
+        rm -f "${HADOOP_LEGACY_LINK_NAME}" ; ln -s "${HADOOP_SINK_LEGACY_JAR}" "${HADOOP_LEGACY_LINK_NAME}"
     fi
 fi
 
