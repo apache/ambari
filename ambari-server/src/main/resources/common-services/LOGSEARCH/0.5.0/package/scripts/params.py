@@ -340,8 +340,18 @@ logfeeder_env_jceks_file = os.path.join(logsearch_logfeeder_conf, 'logfeeder.jce
 
 logfeeder_ambari_config_content = config['configurations']['logfeeder-ambari-config']['content']
 logfeeder_output_config_content = config['configurations']['logfeeder-output-config']['content']
+logfeeder_kafka_output_config_content = config['configurations']['logfeeder-kafka-output-config']['content']
 
-default_config_files = ','.join(['output.config.json','global.config.json'])
+logfeeder_kafka_output_enabled = False
+if 'logfeeder-kafka-output-config' in config['configurations']:
+  logfeeder_kafka_output_enabled = default('/configurations/logfeeder-kafka-output-config/logfeeder_kafka_output_enabled', False)
+  logfeeder_kafka_broker_list = default('/configurations/logfeeder-kafka-output-config/logfeeder_kafka_broker_list', 'localhost:6667')
+  logfeeder_kafka_topic = default('/configurations/logfeeder-kafka-output-config/logfeeder_kafka_topic', 'log-streaming')
+
+if logfeeder_kafka_output_enabled:
+  default_config_files = ','.join(['output.config.json','global.config.json', 'kafka-output.json'])
+else:
+  default_config_files = ','.join(['output.config.json','global.config.json'])
 
 logfeeder_grok_patterns = config['configurations']['logfeeder-grok']['default_grok_patterns']
 if config['configurations']['logfeeder-grok']['custom_grok_patterns'].strip():
@@ -394,7 +404,6 @@ logfeeder_checkpoint_folder = logfeeder_properties['logfeeder.checkpoint.folder'
 # check if logfeeder uses ssl in any way
 
 logfeeder_use_ssl = logsearch_solr_ssl_enabled or metrics_collector_protocol == 'https'
-
 
 logsearch_acls = ''
 if 'infra-solr-env' in config['configurations'] and security_enabled and not logsearch_use_external_solr:
