@@ -458,6 +458,11 @@
         "description": "ExtJS is included in the repository and automatically installed by Ambari",
         "min_version": "2.2.0.0",
         "max_version": "2.6.0.0"
+      },
+      {
+        "name": "ams_legacy_hadoop_sink",
+        "description": "Legacy AMS hadoop sink should be used",
+        "max_version": "2.6.99.99"
       }
     ]
   }
