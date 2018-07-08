@@ -16,26 +16,29 @@
 
 JAR_FILES_LEGACY_FOLDER="/usr/lib/ambari-metrics-sink-legacy"
 
-HADOOP_SINK_JAR="/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink-with-common-*jar"
+HADOOP_SINK_LINK="/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar"
 
 HADOOP_LEGACY_LINK_NAME="/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink-legacy.jar"
 
-# should iterate only once since normally there's only 1 ambari-metrics-hadoop-sink-with-common-*jar
-for f in $HADOOP_SINK_JAR;
-do
-    if [ -f "$f" ]
+if [ -f ${HADOOP_SINK_LINK} ]
+then
+    old_jar=$(readlink -f ${HADOOP_SINK_LINK})
+    version_part=$(basename ${old_jar} | awk -F"-" '{print $7}')
+    IFS=. version=(${version_part})
+
+    if [[ ${version[0]} -le 2 && ${version[1]} -lt 7 ]] # backup only required on upgrade from version < 2.7
     then
         if [ ! -d "$JAR_FILES_LEGACY_FOLDER" ]
         then
             mkdir -p "$JAR_FILES_LEGACY_FOLDER"
         fi
-        echo "Backing up Ambari metrics hadoop sink jar $f -> $JAR_FILES_LEGACY_FOLDER/"
-        cp $f $JAR_FILES_LEGACY_FOLDER/
+        echo "Backing up Ambari metrics hadoop sink jar ${old_jar} -> $JAR_FILES_LEGACY_FOLDER/"
+        cp ${old_jar} ${JAR_FILES_LEGACY_FOLDER}/
 
-        HADOOP_SINK_LEGACY_JAR="$JAR_FILES_LEGACY_FOLDER/$(basename $f)"
+        HADOOP_SINK_LEGACY_JAR="$JAR_FILES_LEGACY_FOLDER/$(basename ${old_jar})"
         echo "Creating symlink for backup jar $HADOOP_LEGACY_LINK_NAME -> $HADOOP_SINK_LEGACY_JAR"
         rm -f ${HADOOP_LEGACY_LINK_NAME} ; ln -s ${HADOOP_SINK_LEGACY_JAR} ${HADOOP_LEGACY_LINK_NAME}
     fi
-done
+fi
 
 exit 0
