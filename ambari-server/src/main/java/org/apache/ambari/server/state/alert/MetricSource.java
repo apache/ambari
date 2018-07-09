@@ -148,7 +148,11 @@ public class MetricSource extends Source {
 
       // !!! even if out of order, this is enough to fail
       return list1.equals(list2);
+    }
 
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(propertyList);
     }
 
     public String getUrlSuffix() {
