@@ -34,6 +34,7 @@ export default Ember.Object.create({
   useCytoscape : true,
   isProjectManagerEnabled : false,
   autoRestoreWorkflowEnabled : true,
+  enableHiveAction : false,
   actions: Ember.A([
     {name : "hive",supportsSchema : true, currentVersion:''},
     {name : "hive2",supportsSchema : true, currentVersion:''},

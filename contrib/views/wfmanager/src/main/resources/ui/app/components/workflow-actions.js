@@ -24,6 +24,7 @@ export default Ember.Component.extend({
   }),
   initialize : function(){
     this.set('customActionEnabled', Constants.customActionEnabled);
+    this.set('enableHiveAction', Constants.enableHiveAction);
   }.on('init'),
   actions : {
     addAction : function(type){

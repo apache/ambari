@@ -145,6 +145,12 @@
                 Spark does not support YARN Client mode.Hence, YARN Client mode value will changed in xml while importing.
             </div>
         {{/if}}
+        {{#if isHiveActionDisabled}}
+            <div class="alert alert-warning">
+                <a href="#" class="close" {{action "closeInfo" "isHiveActionDisabled"}}> × </a>
+                Hive action is currently unsupported.
+            </div>
+        {{/if}}
 
       {{#if undoAvailable}}
         <div id="alert"class="alert alert-warning workflow-error" role="alert">

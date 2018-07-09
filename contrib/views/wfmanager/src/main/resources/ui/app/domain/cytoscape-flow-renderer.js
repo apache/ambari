@@ -17,6 +17,8 @@
 
 import Ember from 'ember';
 import CytoscapeStyles from '../domain/cytoscape-style';
+import Constants from '../utils/constants';
+
 var CytoscapeRenderer= Ember.Object.extend({
   currentCyNode: null,
   staticNodes: ['start', 'end', 'placeholder'],
@@ -220,10 +222,15 @@ var CytoscapeRenderer= Ember.Object.extend({
     }.bind(this));
 
     cy.on('click', 'node', function(event) {
-      this.get("context").$(".overlay-node-actions span").hide();
-      this.get("context").$(".overlay-transition-content").hide();
       var node = event.cyTarget;
       var nodeObj = cy.$('#' + node.id());
+      if(node.data().node.actionType === 'hive' && Constants.enableHiveAction !== true) {
+        return;
+      }
+
+      this.get("context").$(".overlay-node-actions span").hide();
+      this.get("context").$(".overlay-transition-content").hide();
+
       this._showNodeEditor(node, nodeObj);
       if (!(node.data().type === 'start' || node.data().type === 'end' || node.data().type === 'placeholder' ||  node.data().type === 'kill')) {
         this.get("context").$(".overlay-node-actions, .overlay-trash-icon").show();
