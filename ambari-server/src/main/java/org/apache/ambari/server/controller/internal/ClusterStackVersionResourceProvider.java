@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
@@ -328,7 +329,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       boolean revertable = false;
       if (null != revertableUpgrade) {
         RepositoryVersionEntity revertableRepositoryVersion = revertableUpgrade.getRepositoryVersion();
-        revertable = revertableRepositoryVersion.getId() == repositoryVersionId;
+        revertable = Objects.equals(revertableRepositoryVersion.getId(), repositoryVersionId);
       }
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, revertable, requestedIds);
