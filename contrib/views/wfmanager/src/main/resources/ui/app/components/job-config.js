@@ -140,7 +140,8 @@ export default Ember.Component.extend(Validations, {
           }
         }
       } else {
-        val = self.get("workflowManagerConfigs").getWfmConfigs()[propName];
+        let tmp = self.get("workflowManagerConfigs").getWfmConfigs();
+        val = tmp ? tmp[propName] : "";
       }
       var prop= Ember.Object.create({
         name: propName,

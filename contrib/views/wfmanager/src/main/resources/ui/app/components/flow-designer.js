@@ -365,7 +365,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   importWorkflowFromString(data){
     this.showSparkMasterFieldError(data);
-
+    this.hiveActionStatus(data);
     var wfObject=this.get("workflowImporter").importWorkflow(data);
     this.set("errors", wfObject.errors);
     if (wfObject.workflow === null) {
@@ -388,6 +388,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   importWorkflowFromJSON(data){
     this.showSparkMasterFieldError(data);
+    this.hiveActionStatus(data);
     var workflowImporter=WorkflowJsonImporter.create({});
     var workflow=workflowImporter.importWorkflow(data);
     this.resetDesigner();
@@ -414,6 +415,21 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       sparkActionArray = this.migrateActionObjectToCollection(sparkActionList);
       if(sparkActionArray.findBy('spark') && this.migrateActionObjectToCollection(sparkActionArray.findBy('spark')).find(function(item){return item.spark.master === "yarn-client"})) {
         this.set('isSparkUnSupportedPropsAvailable', true);
+      }
+    }
+  },
+  hiveActionStatus(data) {
+    if(Constants.enableHiveAction) {
+      return;
+    }
+    let x2js = new X2JS();
+    let actionSettingsObj = x2js.xml_str2json(data);
+    let hiveActionList, hiveActionArray = [];
+    if(actionSettingsObj["workflow-app"] && actionSettingsObj["workflow-app"].action) {
+      hiveActionList = actionSettingsObj["workflow-app"].action;
+      hiveActionArray = this.migrateActionObjectToCollection(hiveActionList);
+      if(hiveActionArray.findBy('hive') && this.migrateActionObjectToCollection(hiveActionArray.findBy('hive'))) {
+        this.set('isHiveActionDisabled', true);
       }
     }
   },
