@@ -614,6 +614,8 @@ public class ExecutionCommand extends AgentCommand {
      */
     String UPGRADE_SUSPENDED = "upgrade_suspended";
 
+    String CLUSTER_NAME = "cluster_name";
+
     /**
      * The version of the component to send down with the command. Normally,
      * this is simply the repository version of the component. However, during

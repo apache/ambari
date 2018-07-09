@@ -5686,17 +5686,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return commandParams;
   }
 
-  public SortedMap<String, SortedMap<String,String>> getMetadataAgentConfigs() {
-    SortedMap<String, SortedMap<String,String>> agentConfigs = new TreeMap<>();
-    Map<String, Map<String,String>> agentConfigsMap = configs.getAgentConfigsMap();
-
-    for (String key : agentConfigsMap.keySet()) {
-      agentConfigs.put(key, new TreeMap<>(agentConfigsMap.get(key)));
-    }
-
-    return agentConfigs;
-  }
-
   @Override
   public HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException {
     List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(host.getHostName());
