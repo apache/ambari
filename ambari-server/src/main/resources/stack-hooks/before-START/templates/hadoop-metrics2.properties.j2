@@ -67,7 +67,11 @@ resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 {% if has_metric_collector %}
 
 *.period={{metrics_collection_period}}
+{% if metric_legacy_hadoop_sink %}
+*.sink.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink-legacy.jar
+{% else %}
 *.sink.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+{% endif %}
 *.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 *.sink.timeline.period={{metrics_collection_period}}
 *.sink.timeline.sendInterval={{metrics_report_interval}}000
