@@ -19,7 +19,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "bower": "^1.7.7",
+    "bower": "1.8.4",
     "broccoli-asset-rev": "^2.2.0",
     "babel-plugin-transform-es2015-block-scoping": "^6.24.1",
     "ember-ajax": "0.7.1",

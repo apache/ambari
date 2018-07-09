@@ -341,6 +341,7 @@ public class UpgradeCatalog270Test {
     Method updateSolrConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateSolrConfigurations");
     Method updateAmsConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateAmsConfigs");
     Method updateStormConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateStormConfigs");
+    Method clearHadoopMetrics2Content = UpgradeCatalog270.class.getDeclaredMethod("clearHadoopMetrics2Content");
 
     UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
         .addMockedMethod(showHcatDeletedUserMessage)
@@ -357,6 +358,7 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(updateSolrConfigurations)
         .addMockedMethod(updateAmsConfigurations)
         .addMockedMethod(updateStormConfigurations)
+        .addMockedMethod(clearHadoopMetrics2Content)
         .createMock();
 
 
@@ -398,6 +400,9 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.updateStormConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog270.clearHadoopMetrics2Content();
     expectLastCall().once();
 
     replay(upgradeCatalog270);
@@ -1703,6 +1708,59 @@ public class UpgradeCatalog270Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newStormProperties, updatedProperties).areEqual());
+
+  }
+
+  @Test
+  public void testClearHadoopMetrics2Content() throws Exception {
+
+    Map<String, String> oldContentProperty = new HashMap<String, String>() {
+      {
+        put("content", "# Licensed to the Apache Software Foundation (ASF) under one or more...");
+      }
+    };
+    Map<String, String> newContentProperty = new HashMap<String, String>() {
+      {
+        put("content", "");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockHadoopMetrics2Properties = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("hadoop-metrics2.properties")).andReturn(mockHadoopMetrics2Properties).atLeastOnce();
+    expect(mockHadoopMetrics2Properties.getProperties()).andReturn(oldContentProperty).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+
+    replay(injector, clusters, mockHadoopMetrics2Properties, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("getClusters", new Class[] { })
+        .addMockedMethod("createConfig")
+        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog270(injector2).clearHadoopMetrics2Content();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newContentProperty, updatedProperties).areEqual());
 
   }
 }

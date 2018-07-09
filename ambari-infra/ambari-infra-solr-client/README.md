@@ -65,6 +65,7 @@ Ambari Infra Solr uses Solr 7 from Ambari 2.7.0, therefore it is required migrat
 
 ##### Prerequisites:
 - Upgrade Ambari server
+- Make sure Solrs are up and running
 - Do NOT restart Infra Solr after Ambari server upgrade (if you do, see [this](#if-solr-restarted))
 - There will be a small time window between backup collections and deleting collections - Ranger plugins will operate during that time, that means you can loose data during that time period. If that means a big problem in order to avoid that, you can enable to auudit to HDFS for that time.
 
