@@ -44,6 +44,7 @@ class PythonExecutor(object):
   used as a singleton for a concurrent execution of python scripts
   """
   NO_ERROR = "none"
+  i = 0
 
   def __init__(self, tmpDir, config):
     self.grep = Grep()
@@ -93,14 +94,16 @@ class PythonExecutor(object):
     recreated or appended.
     The structured out file, however, is preserved during multiple invocations that use the same file.
     """
+    PythonExecutor.i += 1
+    
     pythonCommand = self.python_command(script, script_params)
-    if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("Running command %s", pprint.pformat(pythonCommand))
+    logger.info("[%d] Running command %s", PythonExecutor.i, pprint.pformat(pythonCommand))
 
     if handle is None:
       tmpout, tmperr = self.open_subprocess32_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
 
       process = self.launch_python_subprocess32(pythonCommand, tmpout, tmperr)
+      logger.info("[%d] Started process with pid = %s", PythonExecutor.i, process.pid)
       # map task_id to pid
       callback(task_id, process.pid)
       logger.debug("Launching watchdog thread")
@@ -110,6 +113,7 @@ class PythonExecutor(object):
       thread.start()
       # Waiting for the process to be either finished or killed
       process.communicate()
+      logger.info("[{0}] Process communicated {1}", PythonExecutor.i, (process.returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout))
       self.event.set()
       thread.join()
       result = self.prepare_process_result(process.returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
@@ -117,8 +121,10 @@ class PythonExecutor(object):
       if log_info_on_failure and result['exitcode']:
         self.on_failure(pythonCommand, result)
 
+      logger.info("[{0}] PE.run_file() returned {1}", PythonExecutor.i, result)
       return result
     else:
+      logger.info("[{0}] has handle", PythonExecutor.i)
       holder = Holder(pythonCommand, tmpoutfile, tmperrfile, tmpstructedoutfile, handle)
 
       background = BackgroundThread(holder, self)
@@ -176,6 +182,7 @@ class PythonExecutor(object):
       for k, v in command_env.iteritems():
         command_env[k] = str(v)
 
+    logger.info("[{0}] launch_python_subprocess32 {1}".format(PythonExecutor.i, (command, tmpout, tmperr, close_fds, self.preexec_fn)))
     return subprocess32.Popen(command,
       stdout=tmpout,
       stderr=tmperr, close_fds=close_fds, env=command_env, preexec_fn=self.preexec_fn)
