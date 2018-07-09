@@ -27,4 +27,8 @@
     <Method name="~_persistence_[gs]et_.*" />
     <Bug pattern="DM_NUMBER_CTOR,EI_EXPOSE_REP,EI_EXPOSE_REP2,NM_CONFUSING" />
   </Match>
+  <Match>
+    <Local name="~.*Entity" />
+    <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+  </Match>
 </FindBugsFilter>
