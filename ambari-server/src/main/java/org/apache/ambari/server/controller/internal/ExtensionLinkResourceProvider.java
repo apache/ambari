@@ -218,7 +218,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
       requests.add(getRequest(propertyMap));
     }
 
-    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
+    modifyResources(new Command<RequestStatusResponse>() {
       @Override
       public RequestStatusResponse invoke() throws AmbariException {
         for (ExtensionLinkRequest extensionLinkRequest : requests) {

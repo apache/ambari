@@ -1080,7 +1080,7 @@ public class UpgradeContext {
       RepositoryVersionEntity repositoryVersion) throws AmbariException {
 
     // keep track of the services which will be in this upgrade
-    Set<String> servicesForUpgrade = new HashSet<>();
+    Set<String> servicesForUpgrade;
 
     // standard repo types use all services of the cluster
     if (repositoryVersion.getType() == RepositoryType.STANDARD) {

@@ -1782,10 +1782,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       return;
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
-
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    if (clusterMap == null || clusterMap.isEmpty())
+    if (clusterMap == null || clusterMap.isEmpty()) {
       return;
+    }
 
     for (final Cluster cluster : clusterMap.values()) {
       updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {

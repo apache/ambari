@@ -248,7 +248,7 @@ public class ConfigGroupResourceProvider extends
       }
     }
 
-    RequestStatus status = updateResources(requests);
+    updateResources(requests);
 
     Set<Resource> associatedResources = new HashSet<>();
     for (ConfigGroupRequest configGroupRequest : requests) {

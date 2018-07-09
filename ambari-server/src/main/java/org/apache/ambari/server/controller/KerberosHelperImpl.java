@@ -140,9 +140,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -4017,27 +4014,6 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       return requestStageContainer.getLastStageId();
     }
-  }
-
-  private JsonObject serviceFilterToJsonObject(Map<String, ? extends Collection<String>> serviceComponentFilter) {
-    Object test = StageUtils.getGson().toJson(serviceComponentFilter);
-    if (serviceComponentFilter != null) {
-      JsonObject serviceFilter = new JsonObject();
-      for (Map.Entry<String, ? extends Collection<String>> filterEntry : serviceComponentFilter.entrySet()) {
-        if (filterEntry.getValue() != null) {
-          JsonArray components = new JsonArray();
-          for (String component : filterEntry.getValue()) {
-            components.add(new JsonPrimitive(component));
-          }
-          serviceFilter.add(filterEntry.getKey(), components);
-        } else {
-          serviceFilter.add(filterEntry.getKey(), null);
-        }
-
-      }
-      return serviceFilter;
-    }
-    return null;
   }
 
   /**

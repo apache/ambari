@@ -3195,7 +3195,7 @@ public class Configuration {
   private JsonObject readFileToJSON (String file) {
 
     // Read from File to String
-    JsonObject jsonObject = new JsonObject();
+    JsonObject jsonObject;
 
     try {
       JsonParser parser = new JsonParser();
