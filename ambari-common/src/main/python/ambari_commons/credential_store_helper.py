@@ -50,7 +50,7 @@ def get_password_from_credential_store(alias, provider_path, cs_lib_path, java_h
     # Execute a get command on the CredentialUtil CLI to get the password for the specified alias
     java_bin = '{java_home}/bin/java'.format(java_home=java_home)
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'get', alias, '-provider', provider_path)
-    cmd_result, std_out_msg  = checked_call(cmd)
+    cmd_result, std_out_msg  = checked_call(cmd, quiet=True)
     std_out_lines = std_out_msg.split('\n')
     return(std_out_lines[-1]) # Get the last line of the output, to skip warnings if any.
 
@@ -61,7 +61,7 @@ def list_aliases_from_credential_store(provider_path, cs_lib_path, java_home, jd
     # Execute a get command on the CredentialUtil CLI to list all the aliases
     java_bin = '{java_home}/bin/java'.format(java_home=java_home)
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'list', '-provider', provider_path)
-    cmd_result, std_out_msg  = checked_call(cmd)
+    cmd_result, std_out_msg  = checked_call(cmd, quiet=True)
     std_out_lines = std_out_msg.split('\n')
     return(removeloglines(std_out_lines)[1:]) # Get the last line of the output, to skip warnings if any.
 
