@@ -26,26 +26,23 @@ os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
 sys.path.append("/usr/lib/ambari-server/lib")
 
 import glob
-from logging import thread
 import re
 import tempfile
 import time
 import functools
 from xml.dom import minidom
-from xml.dom.minidom import parseString
- 
-from resource_management import *
+
+from resource_management.core import File
 from resource_management.core import shell
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
-from resource_management.core.exceptions import Fail
+from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, Directory
-from resource_management.libraries.functions.default import default
+from resource_management.core.resources.system import Execute
+from resource_management.core.source import StaticFile
+from resource_management.libraries import ConfigDictionary
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
-from resource_management import Script
+
 
 SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
  
@@ -145,9 +142,9 @@ with Environment() as env:
     oozie_user = "oozie"
     execute_path = "/usr/hdp/" + stack_version + "/hadoop/bin"
     ambari_libs_dir = "/var/lib/ambari-agent/lib"
-    hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
-    })
+    hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False,})
     fs_default = get_fs_root()
+    dfs_type = "WASB"
     yarn_home_dir = '/usr/hdp/' + stack_version + '/hadoop-yarn'
     yarn_lib_dir = yarn_home_dir + '/lib'
     yarn_service_tarball = yarn_lib_dir + '/service-dep.tar.gz'
@@ -212,10 +209,10 @@ with Environment() as env:
       )
    
    
-  def copy_tarballs_to_hdfs(source, dest, stack_select_component_name, component_user, file_owner, group_owner):
+  def copy_tarballs_to_hdfs(source, dest, component_user, file_owner, group_owner):
     """
-    :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
-    :param stack_select_component_name: Component name to get the status to determine the version
+    :param source: source on host FS
+    :param dest: destination on HDFS (or compatible)
     :param component_user: User that will execute the Hadoop commands
     :param file_owner: Owner of the files copied to HDFS (typically hdfs account)
     :param group_owner: Group owner of the files copied to HDFS (typically hadoop group)
@@ -232,12 +229,9 @@ with Environment() as env:
       Logger.warning("Could not find file: %s" % str(component_tar_source_file))
       return 1
    
-  
-   
     file_name = os.path.basename(component_tar_source_file)
     destination_file = os.path.join(component_tar_destination_folder, file_name)
     destination_file = destination_file.replace("{{ stack_version_formatted }}", stack_version)
-   
   
     kinit_if_needed = ""
     if params.security_enabled:
@@ -314,7 +308,9 @@ with Environment() as env:
     Create tarball to include YARN Service dependency jars
     """
     Logger.info(format("Creating {yarn_service_tarball}"))
-    folders = [yarn_home_dir, yarn_lib_dir, hdfs_home_dir, hdfs_lib_dir, hadoop_home_dir, hadoop_lib_dir]
+    folders = [params.yarn_home_dir, params.yarn_lib_dir, params.hdfs_home_dir, params.hdfs_lib_dir,
+               params.hadoop_home_dir,
+               params.hadoop_lib_dir]
     with closing(tarfile.open(params.yarn_service_tarball, "w:gz")) as tar:
       for folder in folders:
         for filepath in glob.glob(format("{folder}/*.jar")):
