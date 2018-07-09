@@ -49,7 +49,11 @@ hbase.extendedperiod = 3600
 
 {% if has_metric_collector %}
 
+{% if metric_legacy_hadoop_sink %}
+*.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink-legacy.jar
+{% else %}
 *.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+{% endif %}
 *.sink.timeline.slave.host.name={{hostname}}
 
 hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink

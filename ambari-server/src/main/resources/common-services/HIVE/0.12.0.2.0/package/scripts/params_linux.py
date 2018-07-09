@@ -574,6 +574,7 @@ if has_metric_collector:
   metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
   metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
   metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
+  metric_legacy_hadoop_sink = check_stack_feature(StackFeature.AMS_LEGACY_HADOOP_SINK, version_for_stack_feature_checks)
 
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)

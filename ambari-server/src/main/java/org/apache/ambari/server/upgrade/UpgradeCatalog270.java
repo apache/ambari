@@ -1062,6 +1062,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     updateSolrConfigurations();
     updateAmsConfigs();
     updateStormConfigs();
+    clearHadoopMetrics2Content();
   }
 
   protected void renameAmbariInfra() {
@@ -1936,6 +1937,32 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
               Map<String, String> updateProperty = Collections.singletonMap(stormSecurityClassKey, stormSecurityClassValue);
               updateConfigurationPropertiesForCluster(cluster, stormSite, updateProperty, removeProperties,
                 true, false);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  protected void clearHadoopMetrics2Content() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        String hadoopMetrics2ContentProperty = "content";
+        String hadoopMetrics2ContentValue = "";
+        String hadoopMetrics2ConfigType = "hadoop-metrics2.properties";
+        for (final Cluster cluster : clusterMap.values()) {
+          Config config = cluster.getDesiredConfigByType(hadoopMetrics2ConfigType);
+          if (config != null) {
+            Map<String, String> hadoopMetrics2Configs = config.getProperties();
+            if (hadoopMetrics2Configs.containsKey(hadoopMetrics2ContentProperty)) {
+              LOG.info("Updating " + hadoopMetrics2ContentProperty);
+              Map<String, String> updateProperty = Collections.singletonMap(hadoopMetrics2ContentProperty, hadoopMetrics2ContentValue);
+              updateConfigurationPropertiesForCluster(cluster, hadoopMetrics2ConfigType, updateProperty, Collections.EMPTY_SET,
+                  true, false);
             }
           }
         }
