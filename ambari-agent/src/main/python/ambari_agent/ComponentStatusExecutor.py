@@ -136,7 +136,7 @@ class ComponentStatusExecutor(threading.Thread):
     if status == LiveStatus.DEAD_STATUS:
       stderr = component_status_result['stderr']
       if not "ComponentIsNotRunning" in stderr and not "ClientComponentHasNoStatus" in stderr:
-        logger.info("Status command for {0} failed:\n{1}".format(component_name, stderr))
+        logger.info("Status command for {0} failed ({1}) :\n{2}".format(component_name, component_status_result, stderr))
 
     result = {
       'serviceName': service_name,
