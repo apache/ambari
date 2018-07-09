@@ -932,7 +932,7 @@ public class HostImpl implements Host {
 
   @Override
   public void setStatus(String status) {
-    if (this.status != status) {
+    if (!Objects.equals(this.status, status)) {
       ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), status));
     }
     this.status = status;
