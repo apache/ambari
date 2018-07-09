@@ -260,9 +260,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             }
           } else {
             // A custom action has been requested
-            ActionDefinition actionDefinition = (actionName == null)
-                ? null
-                : getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
+            ActionDefinition actionDefinition = getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
 
             Set<RoleAuthorization> permissions = (actionDefinition == null)
                 ? null

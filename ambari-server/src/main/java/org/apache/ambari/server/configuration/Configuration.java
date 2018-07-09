@@ -3143,14 +3143,9 @@ public class Configuration {
   public Map<String, String> getDatabaseConnectorNames() {
     File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
-    Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBC.longValue()) {
       LOG.info("Ambari properties config file changed.");
-      if (configLastModifiedDateForCustomJDBC != null) {
-        properties = readConfigFile();
-      } else {
-        properties = this.properties;
-      }
+      Properties properties = readConfigFile();
 
       for (String propertyName : dbConnectorPropertyNames) {
         String propertyValue = properties.getProperty(propertyName);
@@ -3172,14 +3167,9 @@ public class Configuration {
   public Map<String, String> getPreviousDatabaseConnectorNames() {
     File file = getConfigFile();
     Long currentConfigLastModifiedDate = file.lastModified();
-    Properties properties = null;
     if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBCToRemove.longValue()) {
       LOG.info("Ambari properties config file changed.");
-      if (configLastModifiedDateForCustomJDBCToRemove != null) {
-        properties = readConfigFile();
-      } else {
-        properties = this.properties;
-      }
+      Properties properties = readConfigFile();
 
       for (String propertyName : dbConnectorPropertyNames) {
         propertyName = "previous." + propertyName;
