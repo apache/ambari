@@ -326,7 +326,6 @@ class CustomServiceOrchestrator():
 
     try:
       command = self.generate_command(command_header)
-      logger.info("Generated command")
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
@@ -340,8 +339,6 @@ class CustomServiceOrchestrator():
         command_name = command['roleCommand']
       else:
         task_id = 'status'
-        
-      logger.info("[{0}]".format(task_id))
 
       if forced_command_name is not None:  # If not supplied as an argument
         command_name = forced_command_name
@@ -425,18 +422,11 @@ class CustomServiceOrchestrator():
         if log_out_files:
           script_params.append("-o")
 
-        logger.info("[{0}] python_executor.run_file({1})".format(task_id, (py_file, script_params,
-                               tmpoutfile, tmperrfile, timeout,
-                               tmpstrucoutfile, self.map_task_to_process,
-                               task_id, override_output_files, backup_log_files,
-                               handle, log_info_on_failure)))
-                               
         ret = python_executor.run_file(py_file, script_params,
                                tmpoutfile, tmperrfile, timeout,
                                tmpstrucoutfile, self.map_task_to_process,
                                task_id, override_output_files, backup_log_files = backup_log_files,
                                handle = handle, log_info_on_failure=log_info_on_failure)
-        logger.info("[{0}] python_executor.run_file() returned {1}", task_id, ret)
         # Next run_file() invocations should always append to current output
         override_output_files = False
         if ret['exitcode'] != 0:
@@ -447,7 +437,6 @@ class CustomServiceOrchestrator():
 
       # if canceled and not background command
       if handle is None:
-        logger.info("[{0}] canceled", task_id)
         cancel_reason = self.command_canceled_reason(task_id)
         if cancel_reason is not None:
           ret['stdout'] += cancel_reason
@@ -523,7 +512,6 @@ class CustomServiceOrchestrator():
      Exit code 0 means that component is running and any other exit code means that
      component is not running
     """
-    logger.info("Requesting component status {0}".format(command_header))
     override_output_files=True # by default, we override status command output
     if logger.level == logging.DEBUG:
       override_output_files = False
@@ -531,8 +519,6 @@ class CustomServiceOrchestrator():
     res = self.runCommand(command_header, self.status_commands_stdout,
                           self.status_commands_stderr, self.COMMAND_NAME_STATUS,
                           override_output_files=override_output_files, is_status_command=True)
-                          
-    logger.info("requestComponentStatus return={0}".format(res))
     return res
 
   def resolve_script_path(self, base_dir, script):
