@@ -912,7 +912,8 @@ public class HostImpl implements Host {
   @Override
   public long getTimeInState() {
     HostStateEntity hostStateEntity = getHostStateEntity();
-    return hostStateEntity != null ? hostStateEntity.getTimeInState() :  null;
+    Long timeInState = hostStateEntity != null ? hostStateEntity.getTimeInState() :  null;
+    return timeInState != null ? timeInState : 0L;
   }
 
   @Override

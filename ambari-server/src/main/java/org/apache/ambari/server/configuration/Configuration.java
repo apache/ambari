@@ -3083,7 +3083,9 @@ public class Configuration {
         LOG.error("Unable to write data into " + ambariUpgradeConfigUpdatesFilePath, e);
       } finally {
         try {
-          fileWriter.close();
+          if (fileWriter != null) {
+            fileWriter.close();
+          }
         } catch (IOException e) {
           LOG.error("Unable to close file " + ambariUpgradeConfigUpdatesFilePath, e);
         }

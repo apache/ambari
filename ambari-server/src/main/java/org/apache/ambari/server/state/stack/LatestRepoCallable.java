@@ -107,7 +107,7 @@ public class LatestRepoCallable implements Callable<Void> {
     }
 
     StackId stackId = new StackId(stack);
-    if (!latestUrlMap.containsKey(stackId.toString())) {
+    if (latestUrlMap == null || !latestUrlMap.containsKey(stackId.toString())) {
       return null;
     }
 
