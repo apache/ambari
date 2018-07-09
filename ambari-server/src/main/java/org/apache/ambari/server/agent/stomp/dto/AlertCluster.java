@@ -99,8 +99,11 @@ public class AlertCluster {
             if (!oldDefinition.deeplyEquals(newDefinition)) {
               changed = true;
             }
-            mergedDefinitions.put(definitionId, oldDefinition);
+            mergedDefinitions.put(definitionId, newDefinition);
           }
+        }
+        if (addNewAlertDefinitions(update, mergedDefinitions)) {
+          changed = true;
         }
         if (update.getStaleIntervalMultiplier() != null
             && !update.getStaleIntervalMultiplier().equals(staleIntervalMultiplier)) {
@@ -131,6 +134,21 @@ public class AlertCluster {
       mergedCluster = new AlertCluster(mergedDefinitions, hostName, mergedStaleIntervalMultiplier);
     }
     return mergedCluster;
+  }
+
+  /**
+   * Add each alert definitions from the update event which are not included in mergedDefinitions
+   * @return true if there was such an alert definition
+   */
+  private boolean addNewAlertDefinitions(AlertCluster update, Map<Long, AlertDefinition> mergedDefinitions) {
+    boolean hasNew = false;
+    for (Map.Entry<Long, AlertDefinition> each : update.alertDefinitions.entrySet()) {
+      if (!mergedDefinitions.containsKey(each.getKey())) {
+        mergedDefinitions.put(each.getKey(), each.getValue());
+        hasNew = true;
+      }
+    }
+    return hasNew;
   }
 
   public static AlertCluster emptyAlertCluster() {
