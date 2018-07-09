@@ -58,6 +58,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 
+import org.json.simple.JSONObject;
+
+
+
+
 /**
  * This is a class used to bridge the communication between the and the Oozie
  * API executing inside ambari.
@@ -154,7 +159,12 @@ public class OozieProxyImpersonator {
   @GET
   @Path("/getCurrentUserName")
   public Response getCurrentUserName() {
-    return Response.ok(viewContext.getUsername()).build();
+
+    JSONObject obj = new JSONObject();
+
+    obj.put("username", viewContext.getUsername());
+
+    return Response.ok(obj).build();
   }
 
   @GET
