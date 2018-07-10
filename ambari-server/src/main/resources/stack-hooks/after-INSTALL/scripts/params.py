@@ -23,16 +23,13 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.constants import LOGFEEDER_CONF_DIR
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.script import get_config_lock_file
-from resource_management.libraries.functions import default
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option_value
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
-from resource_management.libraries.execution_command import execution_command
-from resource_management.libraries.execution_command import module_configs
-from string import lower
 
+config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
 module_name = execution_command.get_module_name()
