@@ -801,21 +801,21 @@ class Script(object):
       self.available_packages_in_repos = []
     return self.available_packages_in_repos
 
-def create_component_instance(self):
-  # should be used only when mpack-instance-manager is available
-  from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
-  config = self.get_config()
-  execution_command = self.get_execution_command()
-  mpack_name = execution_command.get_mpack_name()
-  mpack_version = execution_command.get_mpack_version()
-  mpack_instance_name = execution_command.get_servicegroup_name()
-  module_name = execution_command.get_module_name()
-  component_type = execution_command.get_component_type()
-  component_instance_name = execution_command.get_component_instance_name()
+  def create_component_instance(self):
+    # should be used only when mpack-instance-manager is available
+    from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
+    config = self.get_config()
+    execution_command = self.get_execution_command()
+    mpack_name = execution_command.get_mpack_name()
+    mpack_version = execution_command.get_mpack_version()
+    mpack_instance_name = execution_command.get_servicegroup_name()
+    module_name = execution_command.get_module_name()
+    component_type = execution_command.get_component_type()
+    component_instance_name = execution_command.get_component_instance_name()
 
-  create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
-                            module_name=module_name, components_instance_type=component_type,
-                            component_instance_name=component_instance_name)
+    create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
+                              module_name=module_name, components_instance_type=component_type,
+                              component_instance_name=component_instance_name)
 
   def install_packages(self, env):
     """

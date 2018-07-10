@@ -1748,12 +1748,13 @@ public class UpgradeCatalog270Test {
         .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, Map<String, String>>> attributesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
-        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+        capture(attributesCapture), anyLong())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog270(injector2).clearHadoopMetrics2Content();
