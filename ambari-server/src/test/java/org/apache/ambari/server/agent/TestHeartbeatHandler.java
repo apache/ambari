@@ -1326,6 +1326,9 @@ public class TestHeartbeatHandler {
     componentMap.put("NAMENODE", nnComponent);
     service.addServiceComponent(nnComponent);
 
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
+    replay(am);
+
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am);
     // Make sure handler is not null, this has possibly been an intermittent problem in the past
     assertNotNull(handler);
