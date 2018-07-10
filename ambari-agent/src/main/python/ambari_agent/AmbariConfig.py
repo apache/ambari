@@ -110,8 +110,8 @@ class AmbariConfig:
   def get(self, section, value, default=None):
     try:
       return str(self.config.get(section, value)).strip()
-    except ConfigParser.Error, err:
-      if default != None:
+    except ConfigParser.Error as err:
+      if default is not None:
         return default
       raise err
 

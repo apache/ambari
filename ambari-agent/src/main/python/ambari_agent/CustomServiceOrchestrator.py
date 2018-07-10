@@ -20,8 +20,12 @@ limitations under the License.
 
 import logging
 import os
+from ConfigParser import NoOptionError
+
 import ambari_simplejson as json
 import sys
+
+from ambari_agent.models.commands import AgentCommand
 from ambari_commons import shell
 import threading
 from collections import defaultdict
@@ -37,7 +41,8 @@ from ambari_commons.constants import AGENT_TMP_DIR
 
 logger = logging.getLogger()
 
-class CustomServiceOrchestrator():
+
+class CustomServiceOrchestrator(object):
   """
   Executes a command for custom service. stdout and stderr are written to
   tmpoutfile and to tmperrfile respectively.
@@ -48,9 +53,6 @@ class CustomServiceOrchestrator():
   COMMAND_NAME_STATUS = "STATUS"
   CUSTOM_ACTION_COMMAND = 'ACTIONEXECUTE'
   CUSTOM_COMMAND_COMMAND = 'CUSTOM_COMMAND'
-
-  PRE_HOOK_PREFIX="before"
-  POST_HOOK_PREFIX="after"
 
   HOSTS_LIST_KEY = "all_hosts"
   PING_PORTS_KEY = "all_ping_ports"
@@ -80,6 +82,7 @@ class CustomServiceOrchestrator():
     self.configuration_builder = initializer_module.configuration_builder
     self.host_level_params_cache = initializer_module.host_level_params_cache
     self.config = initializer_module.config
+    self.hooks_orchestrator = initializer_module.hooks_orchestrator
     self.tmp_dir = self.config.get('agent', 'prefix')
     self.force_https_protocol = self.config.get_force_https_protocol_name()
     self.ca_cert_file_path = self.config.get_ca_cert_file_path()
@@ -309,7 +312,6 @@ class CustomServiceOrchestrator():
 
     return cmd_result
 
-
   def runCommand(self, command_header, tmpoutfile, tmperrfile, forced_command_name=None,
                  override_output_files=True, retry=False, is_status_command=False):
     """
@@ -318,10 +320,7 @@ class CustomServiceOrchestrator():
     """
     incremented_commands_for_component = False
 
-    # Make sure the return variable has been initialized
     ret = None
-
-    # Make sure the json_path variable has been initialized
     json_path = None
 
     try:
@@ -331,38 +330,31 @@ class CustomServiceOrchestrator():
       timeout = int(command['commandParams']['command_timeout'])
       cluster_id = str(command['clusterId'])
 
-      server_url_prefix = command['ambariLevelParams']['jdk_location']
-
       # Status commands have no taskId nor roleCommand
       if not is_status_command:
         task_id = command['taskId']
         command_name = command['roleCommand']
       else:
         task_id = 'status'
+        command_name = None
 
       if forced_command_name is not None:  # If not supplied as an argument
         command_name = forced_command_name
 
-      if command_name == self.CUSTOM_ACTION_COMMAND:
-        base_dir = self.file_cache.get_custom_actions_base_dir(server_url_prefix)
+      if command_name and command_name == self.CUSTOM_ACTION_COMMAND:
+        base_dir = self.file_cache.get_custom_actions_base_dir(command)
         script_tuple = (os.path.join(base_dir, 'scripts', script), base_dir)
-        hook_dir = None
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
           command_name = command['commandParams']['custom_command']
 
         # forces a hash challenge on the directories to keep them updated, even
         # if the return type is not used
-        self.file_cache.get_host_scripts_base_dir(server_url_prefix)
-        hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
-        base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
-        self.file_cache.get_custom_resources_subdir(command, server_url_prefix)
-
+        base_dir = self.file_cache.get_service_base_dir(command)
         script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)
 
-      tmpstrucoutfile = os.path.join(self.tmp_dir,
-                                    "structured-out-{0}.json".format(task_id))
+      tmpstrucoutfile = os.path.join(self.tmp_dir, "structured-out-{0}.json".format(task_id))
 
       # We don't support anything else yet
       if script_type.upper() != self.SCRIPT_TYPE_PYTHON:
@@ -371,30 +363,36 @@ class CustomServiceOrchestrator():
 
       # Execute command using proper interpreter
       handle = None
-      if command.has_key('__handle'):
+      if "__handle" in command:
         handle = command['__handle']
         handle.on_background_command_started = self.map_task_to_process
         del command['__handle']
 
       # If command contains credentialStoreEnabled, then
       # generate the JCEKS file for the configurations.
-      credentialStoreEnabled = False
+      credential_store_enabled = False
       if 'serviceLevelParams' in command and 'credentialStoreEnabled' in command['serviceLevelParams']:
-        credentialStoreEnabled = command['serviceLevelParams']['credentialStoreEnabled']
+        credential_store_enabled = command['serviceLevelParams']['credentialStoreEnabled']
 
-      if credentialStoreEnabled and command_name != self.COMMAND_NAME_STATUS:
+      if credential_store_enabled and command_name != self.COMMAND_NAME_STATUS:
         if 'commandBeingRetried' not in command['agentLevelParams'] or command['agentLevelParams']['commandBeingRetried'] != "true":
           self.generateJceks(command)
         else:
           logger.info("Skipping generation of jceks files as this is a retry of the command")
 
-
       json_path = self.dump_command_to_json(command, retry)
-      pre_hook_tuple = self.resolve_hook_script_path(hook_dir,
-          self.PRE_HOOK_PREFIX, command_name, script_type)
-      post_hook_tuple = self.resolve_hook_script_path(hook_dir,
-          self.POST_HOOK_PREFIX, command_name, script_type)
-      py_file_list = [pre_hook_tuple, script_tuple, post_hook_tuple]
+      hooks = self.hooks_orchestrator.resolve_hooks(command, command_name)
+      """:type hooks ambari_agent.CommandHooksOrchestrator.ResolvedHooks"""
+
+      py_file_list = []
+      if hooks:
+       py_file_list.extend(hooks.pre_hooks)
+
+      py_file_list.append(script_tuple)
+
+      if hooks:
+       py_file_list.extend(hooks.post_hooks)
+
       # filter None values
       filtered_py_file_list = [i for i in py_file_list if i]
 
@@ -402,37 +400,41 @@ class CustomServiceOrchestrator():
 
       # Executing hooks and script
       ret = None
-      from ActionQueue import ActionQueue
-      if command.has_key('commandType') and command['commandType'] == ActionQueue.BACKGROUND_EXECUTION_COMMAND and len(filtered_py_file_list) > 1:
+
+      if "commandType" in command and command['commandType'] == AgentCommand.background_execution\
+        and len(filtered_py_file_list) > 1:
+
         raise AgentException("Background commands are supported without hooks only")
 
       python_executor = self.get_py_executor(forced_command_name)
-      backup_log_files = not command_name in self.DONT_BACKUP_LOGS_FOR_COMMANDS
-      log_out_files = self.config.get("logging","log_out_files", default="0") != "0"
+      backup_log_files = command_name not in self.DONT_BACKUP_LOGS_FOR_COMMANDS
+      try:
+       log_out_files = self.config.get("logging", "log_out_files", default=None) is not None
+      except NoOptionError:
+       log_out_files = None
 
       if cluster_id != '-1' and cluster_id != 'null':
         self.commands_for_component_in_progress[cluster_id][command['role']] += 1
         incremented_commands_for_component = True
 
       for py_file, current_base_dir in filtered_py_file_list:
-        log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
+        log_info_on_failure = command_name not in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir,
                          self.force_https_protocol, self.ca_cert_file_path]
 
         if log_out_files:
           script_params.append("-o")
 
-        ret = python_executor.run_file(py_file, script_params,
-                               tmpoutfile, tmperrfile, timeout,
-                               tmpstrucoutfile, self.map_task_to_process,
-                               task_id, override_output_files, backup_log_files = backup_log_files,
-                               handle = handle, log_info_on_failure=log_info_on_failure)
+        ret = python_executor.run_file(py_file, script_params, tmpoutfile, tmperrfile, timeout,
+                                       tmpstrucoutfile, self.map_task_to_process, task_id, override_output_files,
+                                       backup_log_files=backup_log_files, handle=handle,
+                                       log_info_on_failure=log_info_on_failure)
         # Next run_file() invocations should always append to current output
         override_output_files = False
         if ret['exitcode'] != 0:
           break
 
-      if not ret: # Something went wrong
+      if not ret:
         raise AgentException("No script has been executed")
 
       # if canceled and not background command
@@ -447,15 +449,14 @@ class CustomServiceOrchestrator():
           with open(tmperrfile, "a") as f:
             f.write(cancel_reason)
 
-    except Exception, e: # We do not want to let agent fail completely
+    except Exception as e:
       exc_type, exc_obj, exc_tb = sys.exc_info()
-      message = "Caught an exception while executing "\
-        "custom service command: {0}: {1}; {2}".format(exc_type, exc_obj, str(e))
+      message = "Caught an exception while executing custom service command: {0}: {1}; {2}".format(exc_type, exc_obj, e)
       logger.exception(message)
       ret = {
-        'stdout' : message,
-        'stderr' : message,
-        'structuredOut' : '{}',
+        'stdout': message,
+        'stderr': message,
+        'structuredOut': '{}',
         'exitcode': 1,
       }
     finally:
@@ -468,7 +469,7 @@ class CustomServiceOrchestrator():
 
   def command_canceled_reason(self, task_id):
     with self.commands_in_progress_lock:
-      if self.commands_in_progress.has_key(task_id):#Background command do not push in this collection (TODO)
+      if task_id in self.commands_in_progress:
         logger.debug('Pop with taskId %s', task_id)
         pid = self.commands_in_progress.pop(task_id)
         if not isinstance(pid, (int, long)):
@@ -502,7 +503,7 @@ class CustomServiceOrchestrator():
 
     # topology needs to be decompressed if and only if it originates from command header
     if 'clusterHostInfo' in command_header and command_header['clusterHostInfo']:
-      command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
+      command['clusterHostInfo'] = self.decompress_cluster_host_info(command['clusterHostInfo'])
 
     return command
 
@@ -512,7 +513,7 @@ class CustomServiceOrchestrator():
      Exit code 0 means that component is running and any other exit code means that
      component is not running
     """
-    override_output_files=True # by default, we override status command output
+    override_output_files = True
     if logger.level == logging.DEBUG:
       override_output_files = False
 
@@ -531,154 +532,127 @@ class CustomServiceOrchestrator():
       raise AgentException(message)
     return path
 
-
-  def resolve_hook_script_path(self, stack_hooks_dir, prefix, command_name, script_type):
-    """
-    Returns a tuple(path to hook script, hook base dir) according to string prefix
-    and command name. If script does not exist, returns None
-    """
-    if not stack_hooks_dir:
-      return None
-    hook_dir = "{0}-{1}".format(prefix, command_name)
-    hook_base_dir = os.path.join(stack_hooks_dir, hook_dir)
-    hook_script_path = os.path.join(hook_base_dir, "scripts", "hook.py")
-    if not os.path.isfile(hook_script_path):
-      logger.debug("Hook script {0} not found, skipping".format(hook_script_path))
-      return None
-    return hook_script_path, hook_base_dir
-
-
   def dump_command_to_json(self, command, retry=False):
     """
     Converts command to json file and returns file path
     """
     # Now, dump the json file
     command_type = command['commandType']
-    from ActionQueue import ActionQueue  # To avoid cyclic dependency
-    if command_type == ActionQueue.STATUS_COMMAND:
+
+    if command_type == AgentCommand.status:
       # These files are frequently created, that's why we don't
       # store them all, but only the latest one
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
       task_id = command['taskId']
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
-      if command_type == ActionQueue.AUTO_EXECUTION_COMMAND:
+      if command_type == AgentCommand.auto_execution:
         file_path = os.path.join(self.tmp_dir, "auto_command-{0}.json".format(task_id))
 
     # Json may contain passwords, that's why we need proper permissions
     if os.path.isfile(file_path):
       os.unlink(file_path)
-    with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT,
-                           0600), 'w') as f:
-      content = json.dumps(command, sort_keys = False, indent = 4)
+    with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
+      content = json.dumps(command, sort_keys=False, indent=4)
       f.write(content)
     return file_path
 
-  def decompressClusterHostInfo(self, clusterHostInfo):
-    info = clusterHostInfo.copy()
-    #Pop info not related to host roles
-    hostsList = info.pop(self.HOSTS_LIST_KEY)
-    pingPorts = info.pop(self.PING_PORTS_KEY)
+  def decompress_cluster_host_info(self, cluster_host_info):
+    info = cluster_host_info.copy()
+    hosts_list = info.pop(self.HOSTS_LIST_KEY)
+    ping_ports = info.pop(self.PING_PORTS_KEY)
     racks = info.pop(self.RACKS_KEY)
     ipv4_addresses = info.pop(self.IPV4_ADDRESSES_KEY)
 
-    ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
-    ambariServerPort = info.pop(self.AMBARI_SERVER_PORT)
-    ambariServerUseSsl = info.pop(self.AMBARI_SERVER_USE_SSL)
+    ambari_server_host = info.pop(self.AMBARI_SERVER_HOST)
+    ambari_server_port = info.pop(self.AMBARI_SERVER_PORT)
+    ambari_server_use_ssl = info.pop(self.AMBARI_SERVER_USE_SSL)
 
-    decompressedMap = {}
+    decompressed_map = {}
 
-    for k,v in info.items():
+    for k, v in info.items():
       # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8]
-      indexes = self.convertRangeToList(v)
+      indexes = self.convert_range_to_list(v)
       # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
-      decompressedMap[k] = [hostsList[i] for i in indexes]
+      decompressed_map[k] = [hosts_list[i] for i in indexes]
 
-    #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
-    pingPorts = self.convertMappedRangeToList(pingPorts)
-    racks = self.convertMappedRangeToList(racks)
-    ipv4_addresses = self.convertMappedRangeToList(ipv4_addresses)
+    # Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
+    ping_ports = self.convert_mapped_range_to_list(ping_ports)
+    racks = self.convert_mapped_range_to_list(racks)
+    ipv4_addresses = self.convert_mapped_range_to_list(ipv4_addresses)
 
-    #Convert all elements to str
-    pingPorts = map(str, pingPorts)
+    ping_ports = map(str, ping_ports)
 
-    #Add ping ports to result
-    decompressedMap[self.PING_PORTS_KEY] = pingPorts
-    #Add hosts list to result
-    decompressedMap[self.HOSTS_LIST_KEY] = hostsList
-    #Add racks list to result
-    decompressedMap[self.RACKS_KEY] = racks
-    #Add ips list to result
-    decompressedMap[self.IPV4_ADDRESSES_KEY] = ipv4_addresses
-    #Add ambari-server properties to result
-    decompressedMap[self.AMBARI_SERVER_HOST] = ambariServerHost
-    decompressedMap[self.AMBARI_SERVER_PORT] = ambariServerPort
-    decompressedMap[self.AMBARI_SERVER_USE_SSL] = ambariServerUseSsl
+    decompressed_map[self.PING_PORTS_KEY] = ping_ports
+    decompressed_map[self.HOSTS_LIST_KEY] = hosts_list
+    decompressed_map[self.RACKS_KEY] = racks
+    decompressed_map[self.IPV4_ADDRESSES_KEY] = ipv4_addresses
+    decompressed_map[self.AMBARI_SERVER_HOST] = ambari_server_host
+    decompressed_map[self.AMBARI_SERVER_PORT] = ambari_server_port
+    decompressed_map[self.AMBARI_SERVER_USE_SSL] = ambari_server_use_ssl
 
-    return decompressedMap
+    return decompressed_map
 
-  # Converts from 1-3,5,6-8 to [1,2,3,5,6,7,8]
-  def convertRangeToList(self, list):
+  def convert_range_to_list(self, range_to_convert):
+    """
+    Converts from 1-3,5,6-8 to [1,2,3,5,6,7,8]
 
-    resultList = []
+    :type range_to_convert list
+    """
+    result_list = []
 
-    for i in list:
-
+    for i in range_to_convert:
       ranges = i.split(',')
 
       for r in ranges:
-        rangeBounds = r.split('-')
-        if len(rangeBounds) == 2:
+        range_bounds = r.split('-')
+        if len(range_bounds) == 2:
 
-          if not rangeBounds[0] or not rangeBounds[1]:
-            raise AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
+          if not range_bounds[0] or not range_bounds[1]:
+            raise AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got: " + str(r))
 
-
-          resultList.extend(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1))
-        elif len(rangeBounds) == 1:
-          resultList.append((int(rangeBounds[0])))
+          result_list.extend(range(int(range_bounds[0]), int(range_bounds[1]) + 1))
+        elif len(range_bounds) == 1:
+          result_list.append((int(range_bounds[0])))
         else:
-          raise AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
+          raise AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got: " + str(r))
 
-    return resultList
+    return result_list
 
-  #Converts from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
-  def convertMappedRangeToList(self, list):
+  def convert_mapped_range_to_list(self, range_to_convert):
+    """
+    Converts from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
 
-    resultDict = {}
+    :type range_to_convert list
+    """
+    result_dict = {}
 
-    for i in list:
-      valueToRanges = i.split(":")
-      if len(valueToRanges) <> 2:
+    for i in range_to_convert:
+      value_to_ranges = i.split(":")
+      if len(value_to_ranges) != 2:
         raise AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(i))
-      value = valueToRanges[0]
-      rangesToken = valueToRanges[1]
+      value = value_to_ranges[0]
+      ranges_token = value_to_ranges[1]
 
-      for r in rangesToken.split(','):
+      for r in ranges_token.split(','):
+        range_indexes = r.split('-')
 
-        rangeIndexes = r.split('-')
+        if len(range_indexes) == 2:
 
-        if len(rangeIndexes) == 2:
-
-          if not rangeIndexes[0] or not rangeIndexes[1]:
+          if not range_indexes[0] or not range_indexes[1]:
             raise AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(r))
 
-          start = int(rangeIndexes[0])
-          end = int(rangeIndexes[1])
+          start = int(range_indexes[0])
+          end = int(range_indexes[1])
 
           for k in range(start, end + 1):
-            resultDict[k] = value if not value.isdigit() else int(value)
+            result_dict[k] = value if not value.isdigit() else int(value)
 
+        elif len(range_indexes) == 1:
+          index = int(range_indexes[0])
+          result_dict[index] = value if not value.isdigit() else int(value)
 
-        elif len(rangeIndexes) == 1:
-          index = int(rangeIndexes[0])
-
-          resultDict[index] = value if not value.isdigit() else int(value)
-
-
-    resultList = dict(sorted(resultDict.items())).values()
-
-    return resultList
+    return dict(sorted(result_dict.items())).values()
 
   def conditionally_remove_command_file(self, command_json_path, command_result):
     """
@@ -729,7 +703,7 @@ class CustomServiceOrchestrator():
         try:
           os.remove(command_json_path)
           removed_command_file = True
-        except Exception, e:
+        except OSError as e:
           logger.error("Failed to remove %s due to error: %s", command_json_path, str(e))
 
     return removed_command_file
