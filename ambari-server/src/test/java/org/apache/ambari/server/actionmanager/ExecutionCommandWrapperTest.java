@@ -125,6 +125,7 @@ public class ExecutionCommandWrapperTest {
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
     ServiceGroup serviceGroup = cluster1.addServiceGroup("CORE", cluster1.getDesiredStackVersion().getStackId());
+    ormTestHelper.createMpack(cluster1.getDesiredStackVersion());
     cluster1.addService(serviceGroup, "HDFS", "HDFS");
 
     SERVICE_SITE_CLUSTER = new HashMap<>();

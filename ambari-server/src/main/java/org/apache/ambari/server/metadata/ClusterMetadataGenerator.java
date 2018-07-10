@@ -56,6 +56,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.AmbariConfig;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -160,7 +161,7 @@ public class ClusterMetadataGenerator {
       new TreeMap<>());
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
 
-    return new MetadataUpdateEvent(metadataClusters, null, null, null);
+    return new MetadataUpdateEvent(metadataClusters, null, null, UpdateEventType.UPDATE);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) {

@@ -1086,6 +1086,15 @@ public class HeartbeatProcessorTest {
 
   @Test
   public void testInstallPackagesWithId() throws Exception {
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    Service svc = cluster.getService("HDFS");
+    ServiceComponent svcComp = EasyMock.mock(ServiceComponent.class);
+    expect(svcComp.getName()).andReturn("nodemanager").anyTimes();
+    ServiceComponentHost scHost = EasyMock.mock(ServiceComponentHost.class);
+    expect(svcComp.getServiceComponentHost(EasyMock.anyString())).andReturn(scHost).anyTimes();
+    expect(scHost.getServiceComponentName()).andReturn("nodemanager").anyTimes();
+    replay(svcComp, scHost);
+    svc.addServiceComponent(svcComp);
     // required since this test method checks the DAO result of handling a
     // heartbeat which performs some async tasks
     EventBusSynchronizer.synchronizeCommandReportEventPublisher(injector);
@@ -1101,18 +1110,6 @@ public class HeartbeatProcessorTest {
 
     StackId stackId = new StackId("HDP", "0.1");
     MpackEntity mpackEntity = helper.createMpack(stackId);
-
-    ServiceComponent svcComp = EasyMock.mock(ServiceComponent.class);
-    expect(svcComp.getName()).andReturn("nodemanager").anyTimes();
-    ServiceComponentHost scHost = EasyMock.mock(ServiceComponentHost.class);
-    expect(svcComp.getServiceComponentHost(EasyMock.anyString())).andReturn(scHost).anyTimes();
-    expect(scHost.getServiceComponentName()).andReturn("nodemanager").anyTimes();
-    replay(svcComp, scHost);
-
-    Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service svc = cluster.getService("HDFS");
-    svc.addServiceComponent(svcComp);
-
 
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am);
     HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
