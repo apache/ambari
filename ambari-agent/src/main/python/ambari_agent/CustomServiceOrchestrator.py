@@ -22,6 +22,7 @@ import logging
 import os
 import ambari_simplejson as json
 import sys
+import time
 from ambari_commons import shell
 import threading
 from collections import defaultdict
@@ -86,9 +87,9 @@ class CustomServiceOrchestrator():
     self.exec_tmp_dir = AGENT_TMP_DIR
     self.file_cache = initializer_module.file_cache
     self.status_commands_stdout = os.path.join(self.tmp_dir,
-                                               'status_command_stdout.txt')
+                                               'status_command_stdout_{0}.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
-                                               'status_command_stderr.txt')
+                                               'status_command_stderr_{0}.txt')
 
     # Construct the hadoop credential lib JARs path
     self.credential_shell_lib_path = os.path.join(self.config.get('security', 'credential_lib_dir',
@@ -97,13 +98,6 @@ class CustomServiceOrchestrator():
     self.credential_conf_dir = self.config.get('security', 'credential_conf_dir', self.DEFAULT_CREDENTIAL_CONF_DIR)
 
     self.credential_shell_cmd = self.config.get('security', 'credential_shell_cmd', self.DEFAULT_CREDENTIAL_SHELL_CMD)
-
-    # Clean up old status command files if any
-    try:
-      os.unlink(self.status_commands_stdout)
-      os.unlink(self.status_commands_stderr)
-    except OSError:
-      pass # Ignore fail
     self.commands_in_progress_lock = threading.RLock()
     self.commands_in_progress = {}
 
@@ -516,9 +510,21 @@ class CustomServiceOrchestrator():
     if logger.level == logging.DEBUG:
       override_output_files = False
 
-    res = self.runCommand(command_header, self.status_commands_stdout,
-                          self.status_commands_stderr, self.COMMAND_NAME_STATUS,
-                          override_output_files=override_output_files, is_status_command=True)
+    timestamp = time.time()
+    status_commands_stdout = self.status_commands_stdout.format(timestamp)
+    status_commands_stderr = self.status_commands_stderr.format(timestamp)
+
+    try:
+      res = self.runCommand(command_header, status_commands_stdout,
+                            status_commands_stderr, self.COMMAND_NAME_STATUS,
+                            override_output_files=override_output_files, is_status_command=True)
+    finally:
+      try:
+        os.unlink(status_commands_stdout)
+        os.unlink(status_commands_stderr)
+      except OSError:
+        pass # Ignore failure
+
     return res
 
   def resolve_script_path(self, base_dir, script):
