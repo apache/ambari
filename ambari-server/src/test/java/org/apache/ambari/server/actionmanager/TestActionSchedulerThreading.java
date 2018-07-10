@@ -124,7 +124,6 @@ public class TestActionSchedulerThreading {
     // zoo-cfg for v1 on current stack
     properties.put("foo-property-1", "foo-value-1");
     Config c1 = configFactory.createNew(stackId, cluster, configType, "version-1", properties, propertiesAttributes, null);
-    //Config c1 = configFactory.createNew(cluster, configType, "version-1", properties, propertiesAttributes);
 
     // make v1 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
@@ -137,7 +136,6 @@ public class TestActionSchedulerThreading {
     // zoo-cfg for v2 on new stack
     properties.put("foo-property-2", "foo-value-2");
     Config c2 = configFactory.createNew(newStackId, cluster, configType, "version-2", properties, propertiesAttributes, null);
-    //Config c2 = configFactory.createNew(cluster, configType, "version-2", properties, propertiesAttributes);
 
     // make v2 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c2), "note-2");
