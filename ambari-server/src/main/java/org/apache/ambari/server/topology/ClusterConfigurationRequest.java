@@ -173,7 +173,7 @@ public class ClusterConfigurationRequest {
 
     Cluster cluster = getCluster();
 
-    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServices());
+    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServiceTypes());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
 
     // add clusterHostInfo containing components to hosts map, based on Topology, to use this one instead of
@@ -185,7 +185,7 @@ public class ClusterConfigurationRequest {
       // generate principals & keytabs for headless identities
       ambariContext.getController().getKerberosHelper()
         .ensureHeadlessIdentities(cluster, existingConfigurations,
-          new HashSet<>(clusterTopology.getServices()));
+          new HashSet<>(clusterTopology.getServiceTypes()));
 
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = ambariContext.getController().getKerberosHelper()

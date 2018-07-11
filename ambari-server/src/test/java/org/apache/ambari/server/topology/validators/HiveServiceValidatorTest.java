@@ -136,12 +136,12 @@ public class HiveServiceValidatorTest extends EasyMockSupport {
     expect(topology.getComponents()).andReturn(components.build().stream()
       .map(component -> builderFor("HIVE", component).buildPartial())
     ).anyTimes();
-    expect(topology.getServices()).andReturn(ImmutableSet.of("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(ImmutableSet.of("HDFS", "YARN", "HIVE")).anyTimes();
     replay(topology);
   }
 
   private void noHiveInTopology() {
-    expect(topology.getServices()).andReturn(ImmutableSet.of("HDFS", "YARN")).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(ImmutableSet.of("HDFS", "YARN")).anyTimes();
     replay(topology);
   }
 

@@ -118,7 +118,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
 
     Map<String, Map<String, Collection<String>>> requiredPropertiesForServiceByType = new HashMap<>();
 
-    for (String bpService : topology.getServices()) {
+    for (String bpService : topology.getServiceTypes()) {
       LOGGER.debug("Collecting required properties for the service: {}", bpService);
 
       Collection<Stack.ConfigProperty> requiredConfigsForService = topology.getStack().getRequiredConfigurationProperties(bpService);

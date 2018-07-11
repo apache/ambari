@@ -139,7 +139,7 @@ public interface ClusterTopology {
    *
    * @return collection of all represented service types
    */
-  Collection<String> getServices();
+  Collection<String> getServiceTypes();
 
   /**
    * Get all of the components represented in the blueprint.

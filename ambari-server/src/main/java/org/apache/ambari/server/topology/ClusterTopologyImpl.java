@@ -171,7 +171,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     stackIds = request.getStackIds();
     stack = request.getStack();
     setting = request.getSetting();
-    blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServices()));
+    blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServiceTypes()));
 
     checkForDuplicateHosts(request.getHostGroupInfo());
     registerHostGroupInfo(request.getHostGroupInfo());
@@ -325,7 +325,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public Collection<String> getServices() {
+  public Collection<String> getServiceTypes() {
     return getComponents()
       .map(ResolvedComponent::serviceType)
       .collect(toSet());
@@ -355,7 +355,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     }
     try {
       String service = getStack().getServiceForConfigType(configType);
-      return getServices().contains(service);
+      return getServiceTypes().contains(service);
     } catch (IllegalArgumentException e) {
       return false;
     }

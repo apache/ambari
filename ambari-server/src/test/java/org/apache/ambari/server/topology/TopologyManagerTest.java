@@ -313,7 +313,7 @@ public class TopologyManagerTest {
     expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Arrays.asList(group1, group2)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component4")).andReturn(Collections.singleton(group2)).anyTimes();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
-    expect(clusterTopologyMock.getServices()).andReturn(SERVICE_NAMES).anyTimes();
+    expect(clusterTopologyMock.getServiceTypes()).andReturn(SERVICE_NAMES).anyTimes();
     expect(clusterTopologyMock.getStack()).andReturn(stack).anyTimes();
     expect(clusterTopologyMock.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     expect(clusterTopologyMock.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
