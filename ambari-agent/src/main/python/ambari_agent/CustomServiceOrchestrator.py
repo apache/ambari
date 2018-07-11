@@ -456,7 +456,13 @@ class CustomServiceOrchestrator():
       if incremented_commands_for_component:
         self.commands_for_component_in_progress[cluster_id][command['role']] -= 1
 
-      self.conditionally_remove_command_file(json_path, ret)
+      if is_status_command and json_path:
+        try:
+          os.unlink(json_path)
+        except OSError:
+          pass  # Ignore failure
+      else:
+        self.conditionally_remove_command_file(json_path, ret)
 
     return ret
 
@@ -562,9 +568,8 @@ class CustomServiceOrchestrator():
     command_type = command['commandType']
     from ActionQueue import ActionQueue  # To avoid cyclic dependency
     if command_type == ActionQueue.STATUS_COMMAND:
-      # These files are frequently created, that's why we don't
-      # store them all, but only the latest one
-      file_path = os.path.join(self.tmp_dir, "status_command.json")
+      timestamp = time.time()
+      file_path = os.path.join(self.tmp_dir, "status_command_{0}.json".format(timestamp))
     else:
       task_id = command['taskId']
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
