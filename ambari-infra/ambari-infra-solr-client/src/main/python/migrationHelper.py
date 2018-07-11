@@ -157,6 +157,9 @@ def get_keytab_and_principal(config):
 
 def create_solr_api_request_command(request_url, config, output=None):
   user='infra-solr'
+  if config.has_section('infra_solr'):
+    if config.has_option('infra_solr', 'user'):
+      user=config.get('infra_solr', 'user')
   kerberos_enabled='false'
   if config.has_section('cluster') and config.has_option('cluster', 'kerberos_enabled'):
     kerberos_enabled=config.get('cluster', 'kerberos_enabled')
