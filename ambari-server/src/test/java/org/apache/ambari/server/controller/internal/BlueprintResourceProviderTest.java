@@ -63,6 +63,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -97,7 +98,8 @@ public class BlueprintResourceProviderTest {
   public ExpectedException expectedException = ExpectedException.none();
 
   private static final ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
-  private final static BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
+  private final static BlueprintDAO blueprintDao = createStrictMock(BlueprintDAO.class);
+  private final static TopologyRequestDAO topologyRequestDAO = createMock(TopologyRequestDAO.class);
   private final static BlueprintEntity entity = createStrictMock(BlueprintEntity.class);
   private final static Blueprint blueprint = createMock(Blueprint.class);
   private final static BlueprintValidator blueprintValidator = createMock(BlueprintValidator.class);
@@ -119,7 +121,7 @@ public class BlueprintResourceProviderTest {
 
   @Before
   public void resetGlobalMocks() {
-    reset(dao, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, entity);
+    reset(blueprintDao, topologyRequestDAO, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, entity);
   }
 
   @Test
@@ -143,10 +145,10 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-    dao.create(entity);
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    blueprintDao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, setting, request, managementController);
+    replay(blueprintDao, topologyRequestDAO, entity, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -165,7 +167,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, securityFactory, metaInfo, request, managementController);
+    verify(blueprintDao, topologyRequestDAO, entity, blueprintFactory, blueprint, blueprintValidator, securityFactory, metaInfo, request, managementController);
   }
 
   @Test()
@@ -218,10 +220,10 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-    dao.create(entity);
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    blueprintDao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
+    replay(blueprintDao, topologyRequestDAO, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -240,7 +242,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
+    verify(blueprintDao, topologyRequestDAO, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -258,9 +260,9 @@ public class BlueprintResourceProviderTest {
 
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(null);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, request);
+    replay(blueprintDao, topologyRequestDAO, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, request);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -294,10 +296,10 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-    dao.create(entity);
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    blueprintDao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
+    replay(blueprintDao, topologyRequestDAO, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -316,7 +318,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
+    verify(blueprintDao, topologyRequestDAO, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -335,7 +337,7 @@ public class BlueprintResourceProviderTest {
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
 
-    replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, request);
+    replay(blueprintDao, topologyRequestDAO, entity, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, request);
     // end expectations
 
     provider.createResources(request);
@@ -363,10 +365,10 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-    dao.create(entity);
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    blueprintDao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, setting, request, managementController);
+    replay(blueprintDao, topologyRequestDAO, entity, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -385,7 +387,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
+    verify(blueprintDao, topologyRequestDAO, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
   }
 
   @Test
@@ -399,13 +401,13 @@ public class BlueprintResourceProviderTest {
     results.add(entity);
 
     // set expectations
-    expect(dao.findAll()).andReturn(results);
-    replay(dao, request);
+    expect(blueprintDao.findAll()).andReturn(results);
+    replay(blueprintDao, topologyRequestDAO, request);
 
     Set<Resource> setResults = provider.getResources(request, null);
     assertEquals(1, setResults.size());
 
-    verify(dao);
+    verify(blueprintDao, topologyRequestDAO);
     validateResource(setResults.iterator().next(), false);
   }
 
@@ -427,13 +429,13 @@ public class BlueprintResourceProviderTest {
     results.add(entity);
 
     // set expectations
-    expect(dao.findAll()).andReturn(results);
-    replay(dao, request);
+    expect(blueprintDao.findAll()).andReturn(results);
+    replay(blueprintDao, topologyRequestDAO, request);
 
     Set<Resource> setResults = provider.getResources(request, null);
     assertEquals(1, setResults.size());
 
-    verify(dao);
+    verify(blueprintDao, topologyRequestDAO);
     validateResource(setResults.iterator().next(), true);
   }
 
@@ -445,10 +447,10 @@ public class BlueprintResourceProviderTest {
     BlueprintEntity blueprintEntity = createEntity(getBlueprintTestProperties().iterator().next());
 
     // set expectations
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(blueprintEntity);
-    dao.removeByName(blueprintEntity.getBlueprintName());
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(blueprintEntity);
+    blueprintDao.removeByName(blueprintEntity.getBlueprintName());
     expectLastCall();
-    replay(dao);
+    replay(blueprintDao);
 
     Predicate predicate = new EqualsPredicate<>(
       BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
@@ -464,7 +466,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(ResourceProviderEvent.Type.Delete, lastEvent.getType());
     assertNotNull(lastEvent.getPredicate());
 
-    verify(dao);
+    verify(blueprintDao);
   }
 
   @Test
@@ -488,10 +490,10 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-    dao.create(entity);
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    blueprintDao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
+    replay(blueprintDao, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -510,7 +512,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
+    verify(blueprintDao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
   }
 
   @Test
@@ -534,10 +536,10 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
-    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-    dao.create(entity);
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    blueprintDao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
+    replay(blueprintDao, entity, metaInfo, blueprintFactory, blueprint, blueprintValidator, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -556,7 +558,7 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
+    verify(blueprintDao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
   }
 
   @Test
@@ -577,7 +579,7 @@ public class BlueprintResourceProviderTest {
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
 
-    replay(dao, metaInfo, request);
+    replay(blueprintDao, metaInfo, request);
     // end expectations
 
     try {
@@ -587,7 +589,7 @@ public class BlueprintResourceProviderTest {
       //expected exception
       assertEquals(BlueprintResourceProvider.CONFIGURATION_MAP_SIZE_CHECK_ERROR_MESSAGE, e.getMessage());
     }
-    verify(dao, metaInfo, request);
+    verify(blueprintDao, metaInfo, request);
   }
 
   @Test
@@ -606,7 +608,7 @@ public class BlueprintResourceProviderTest {
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
 
-    replay(dao, metaInfo, request);
+    replay(blueprintDao, metaInfo, request);
     // end expectations
 
     try {
@@ -616,7 +618,7 @@ public class BlueprintResourceProviderTest {
       //expected exception
       assertEquals(BlueprintResourceProvider.CONFIGURATION_MAP_CHECK_ERROR_MESSAGE, e.getMessage());
     }
-    verify(dao, metaInfo, request);
+    verify(blueprintDao, metaInfo, request);
   }
 
   @Test
@@ -635,7 +637,7 @@ public class BlueprintResourceProviderTest {
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
 
-    replay(dao, metaInfo, request);
+    replay(blueprintDao, metaInfo, request);
     // end expectations
 
     try {
@@ -645,7 +647,7 @@ public class BlueprintResourceProviderTest {
       //expected exception
       assertEquals(BlueprintResourceProvider.CONFIGURATION_LIST_CHECK_ERROR_MESSAGE, e.getMessage());
     }
-    verify(dao, metaInfo, request);
+    verify(blueprintDao, metaInfo, request);
   }
 
   public static Set<Map<String, Object>> getBlueprintTestProperties() {
@@ -1186,7 +1188,7 @@ public class BlueprintResourceProviderTest {
   }
 
   private static BlueprintResourceProvider createProvider() {
-    return new BlueprintResourceProvider(blueprintValidator, blueprintFactory, dao, securityFactory, metaInfo, null);
+    return new BlueprintResourceProvider(blueprintValidator, blueprintFactory, blueprintDao, topologyRequestDAO, securityFactory, metaInfo, null);
   }
 }
 

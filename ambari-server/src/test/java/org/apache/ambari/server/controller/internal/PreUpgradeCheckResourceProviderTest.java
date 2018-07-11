@@ -63,7 +63,6 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -122,14 +121,11 @@ public class PreUpgradeCheckResourceProviderTest {
     expect(targetStackId.getStackName()).andReturn("Stack100").anyTimes();
     expect(targetStackId.getStackVersion()).andReturn("1.1").anyTimes();
 
-    expect(upgradeHelper.suggestUpgradePack("Cluster100", currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.EXPRESS, "upgrade_pack11")).andReturn(upgradePack);
-
     List<ClusterCheck> upgradeChecksToRun = new LinkedList<>();
     List<String> prerequisiteChecks = new LinkedList<>();
     prerequisiteChecks.add("org.apache.ambari.server.sample.checks.SampleServiceCheck");
     expect(upgradePack.getPrerequisiteCheckConfig()).andReturn(config);
     expect(upgradePack.getPrerequisiteChecks()).andReturn(prerequisiteChecks).anyTimes();
-    expect(upgradePack.getTarget()).andReturn("1.1.*.*").anyTimes();
 
     expect(ambariMetaInfo.getServices("Stack100", "1.0")).andReturn(allServiceInfoMap).anyTimes();
     String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();

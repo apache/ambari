@@ -63,6 +63,10 @@ prev_infra_solr_pidfile = status_params.prev_infra_solr_pidfile
 user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
+limits_conf_dir = "/etc/security/limits.d"
+infra_solr_user_nofile_limit = default("/configurations/infra-solr-env/infra_solr_user_nofile_limit", "128000")
+infra_solr_user_nproc_limit = default("/configurations/infra-solr-env/infra_solr_user_nproc_limit", "65536")
+
 # shared configs
 java_home = config['ambariLevelParams']['java_home']
 ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
@@ -102,6 +106,7 @@ if "infra-solr-env" in config['configurations']:
   infra_solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']
   infra_solr_min_mem = format(config['configurations']['infra-solr-env']['infra_solr_minmem'])
   infra_solr_max_mem = format(config['configurations']['infra-solr-env']['infra_solr_maxmem'])
+  infra_solr_java_stack_size = format(config['configurations']['infra-solr-env']['infra_solr_java_stack_size'])
   infra_solr_instance_count = len(config['clusterHostInfo']['infra_solr_hosts'])
   infra_solr_datadir = format(config['configurations']['infra-solr-env']['infra_solr_datadir'])
   infra_solr_data_resources_dir = os.path.join(infra_solr_datadir, 'resources')
@@ -117,8 +122,14 @@ if "infra-solr-env" in config['configurations']:
   infra_solr_log_dir = config['configurations']['infra-solr-env']['infra_solr_log_dir']
   infra_solr_log = format("{infra_solr_log_dir}/solr-install.log")
   solr_env_content = config['configurations']['infra-solr-env']['content']
+  infra_solr_gc_log_opts = format(config['configurations']['infra-solr-env']['infra_solr_gc_log_opts'])
+  infra_solr_gc_tune = format(config['configurations']['infra-solr-env']['infra_solr_gc_tune'])
+  infra_solr_extra_java_opts = format(default('configurations/infra-solr-env/infra_solr_extra_java_opts', ""))
 
   zk_quorum = format(default('configurations/infra-solr-env/infra_solr_zookeeper_quorum', zookeeper_quorum))
+
+if 'infra-solr-security-json' in config['configurations']:
+  infra_solr_security_manually_managed = default("/configurations/infra-solr-security-json/infra_solr_security_manually_managed", False)
 
 default_ranger_audit_users = 'nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi'
 
@@ -195,3 +206,14 @@ infra_solr_role_logsearch = default('configurations/infra-solr-security-json/inf
 infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/infra_solr_role_logfeeder', 'logfeeder_user')
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+metrics_enabled = ams_collector_hosts != ''
+if metrics_enabled:
+  metrics_http_policy = config['configurations']['ams-site']['timeline.metrics.service.http.policy']
+  ams_collector_protocol = 'http'
+  if metrics_http_policy == 'HTTPS_ONLY':
+    ams_collector_protocol = 'https'
+  ams_collector_port = str(get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
+else:
+  ams_collector_port = ''
+  ams_collector_protocol = ''

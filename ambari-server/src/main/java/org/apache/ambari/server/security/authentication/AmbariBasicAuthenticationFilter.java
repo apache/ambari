@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -44,6 +45,7 @@ import org.springframework.stereotype.Component;
  * @see AmbariDelegatingAuthenticationFilter
  */
 @Component
+@Order(3)
 public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter implements AmbariAuthenticationFilter {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariBasicAuthenticationFilter.class);
 

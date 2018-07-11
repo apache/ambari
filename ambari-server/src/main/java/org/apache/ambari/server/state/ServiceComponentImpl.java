@@ -243,7 +243,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       // broadcast the change
       ServiceComponentRecoveryChangedEvent event = new ServiceComponentRecoveryChangedEvent(
-          getClusterName(), getServiceName(), getName(), isRecoveryEnabled());
+              getClusterId(), getClusterName(), getServiceName(), getName(), isRecoveryEnabled());
       eventPublisher.publish(event);
 
     } else {
@@ -262,6 +262,9 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public Long getClusterId() { return service.getClusterId(); }
+
+  @Override
+  public String getServiceGroupName() { return service.getServiceGroupName(); }
 
   @Override
   public Long getServiceGroupId() { return service.getServiceGroupId(); }

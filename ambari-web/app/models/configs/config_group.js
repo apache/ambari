@@ -150,7 +150,7 @@ App.ServiceConfigGroup = DS.Model.extend({
 
     if (Array.isArray(this.get('properties'))) {
       this.get('properties').forEach(function (item) {
-        result += item.name + " : " + item.value + '\n';
+        result += _.escape(item.name) + " : " + _.escape(item.value) + '<br/>';
       }, this);
     }
     return result;
@@ -160,7 +160,7 @@ App.ServiceConfigGroup = DS.Model.extend({
 App.ServiceConfigGroup.FIXTURES = [];
 
 App.ServiceConfigGroup.getParentConfigGroupId = function(serviceName) {
-  return App.ServiceConfigGroup.groupId(serviceName, 'Default');
+  return App.ServiceConfigGroup.groupId(serviceName, App.ServiceConfigGroup.defaultGroupName);
 };
 
 App.ServiceConfigGroup.groupId = function(serviceName, groupName) {

@@ -77,8 +77,7 @@ public class ComponentStatusReport {
   }
 
   public enum CommandStatusCommand {
-    STATUS,
-    SECURITY_STATUS
+    STATUS
   }
 
 }

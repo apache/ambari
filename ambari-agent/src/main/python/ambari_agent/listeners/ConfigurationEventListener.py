@@ -30,8 +30,10 @@ class ConfigurationEventListener(EventListener):
   """
   Listener of Constants.CONFIGURATIONS_TOPIC events from server.
   """
-  def __init__(self, configuration_cache):
-    self.configuration_cache = configuration_cache
+  def __init__(self, initializer_module):
+    super(ConfigurationEventListener, self).__init__(initializer_module)
+    self.configurations_cache = initializer_module.configurations_cache
+    self.recovery_manager = initializer_module.recovery_manager
 
   def on_event(self, headers, message):
     """
@@ -40,13 +42,18 @@ class ConfigurationEventListener(EventListener):
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
-    self.configuration_cache.timestamp = message.pop('timestamp')
+    self.configurations_cache.timestamp = message.pop('timestamp')
 
     # this kind of response is received if hash was identical. And server does not need to change anything
     if message == {}:
       return
 
-    self.configuration_cache.rewrite_cache(message['clusters'], message['hash'])
+    self.configurations_cache.rewrite_cache(message['clusters'], message['hash'])
+
+    if message['clusters']:
+      # FIXME: Recovery manager does not support multiple cluster as of now.
+      self.recovery_manager.cluster_id = message['clusters'].keys()[0]
+      self.recovery_manager.on_config_update()
 
   def get_handled_path(self):
     return Constants.CONFIGURATIONS_TOPIC

@@ -185,10 +185,8 @@ public interface Clusters {
    * Gets all the hosts associated with the cluster
    * @param clusterName The name of the cluster
    * @return <code>Map</code> containing host name and <code>Host</code>
-   * @throws AmbariException
    */
-  Map<String, Host> getHostsForCluster(String clusterName)
-      throws AmbariException;
+  Map<String, Host> getHostsForCluster(String clusterName);
 
   /**
    * Gets all the host Ids associated with the cluster
@@ -233,11 +231,8 @@ public interface Clusters {
 
   /**
    * Publish event set of hosts were removed
-   * @param clusters
-   * @param hostNames
-   * @throws AmbariException
    */
-  void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames)
+  void publishHostsDeletion(Set<Long> hostIds, Set<String> hostNames)
       throws AmbariException;
 
   /**
@@ -285,4 +280,9 @@ public interface Clusters {
    */
   void invalidate(Cluster cluster);
 
+  /**
+   * Invalidates all clusters by retrieving each from the database and refreshing all of its internal
+   * stateful collections.
+   */
+  void invalidateAllClusters();
 }

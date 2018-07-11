@@ -269,6 +269,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     daemon_cmd = as_user(cmd, user)
      
   if action == "start":
+
     # remove pid file from dead process
     File(pid_file, action="delete", not_if=process_id_exists_command)
     

@@ -407,16 +407,20 @@ public class ClustersTest {
     clusters.addHost(h1);
     clusters.addHost(h2);
 
-    Host host1 = clusters.getHost(h1);
 
-    setOsFamily(clusters.getHost(h1), "centos", "5.9");
-    setOsFamily(clusters.getHost(h2), "centos", "5.9");
+    Host host1 = clusters.getHost(h1);
+    Host host2 = clusters.getHost(h2);
+
+    setOsFamily(host1, "centos", "5.9");
+    setOsFamily(host2, "centos", "5.9");
 
     clusters.mapAndPublishHostsToCluster(new HashSet<String>() {
       {
         addAll(Arrays.asList(h1, h2));
       }
     }, c1);
+    clusters.updateHostMappings(host1);
+    clusters.updateHostMappings(host2);
 
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);

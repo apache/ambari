@@ -54,6 +54,17 @@
               <logId>logsearch_perf</logId>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>UPGRADE_LOGSEARCH_PORTAL</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/logsearch.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <dependencies>
             <dependency>
               <name>AMBARI_INFRA_SOLR/INFRA_SOLR_CLIENT</name>
@@ -93,6 +104,18 @@
             </log>
           </logs>
 
+          <customCommands>
+            <customCommand>
+              <name>UPGRADE_LOGFEEDER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/logfeeder.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+
           <configuration-dependencies>
             <config-type>infra-solr-env</config-type>
             <config-type>logsearch-common-env</config-type>
@@ -109,7 +132,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>ambari-logsearch-logfeeder</name>
@@ -127,7 +150,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>ambari-logsearch-logfeeder</name>

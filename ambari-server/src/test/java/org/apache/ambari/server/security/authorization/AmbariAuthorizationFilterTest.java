@@ -187,10 +187,13 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/users/user2", "POST", true);
     urlTests.put("/api/v1/groups", "GET", true);
     urlTests.put("/api/v1/ldap_sync_events", "GET", false);
+    urlTests.put("/api/v1/clusters/c1/widgets", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/widgets", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/widgets", "POST", true);
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest(TestAuthenticationFactory.createClusterAdministrator(), urlTests, false);
+    performGeneralDoFilterTest(TestAuthenticationFactory.createClusterOperator(), urlTests, false);
   }
 
   @Test

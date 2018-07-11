@@ -29,9 +29,11 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,16 +47,24 @@ import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.ServiceGroupKey;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
@@ -62,10 +72,16 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.ServiceGroupFactory;
+import org.apache.ambari.server.state.ServiceGroupImpl;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
+import org.easymock.EasyMock;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -93,6 +109,15 @@ public class HeartbeatTestHelper {
   ClusterDAO clusterDAO;
 
   @Inject
+  ClusterServiceDAO clusterServiceDAO;
+
+  @Inject
+  ServiceGroupDAO serviceGroupDAO;
+
+  @Inject
+  ServiceDesiredStateDAO serviceDesiredStateDAO;
+
+  @Inject
   StackDAO stackDAO;
 
   @Inject
@@ -110,6 +135,12 @@ public class HeartbeatTestHelper {
   @Inject
   private StageFactory stageFactory;
 
+  @Inject
+  private ServiceFactory serviceFactory;
+
+  @Inject
+  private ServiceGroupFactory serviceGroupFactory;
+
   public final static StackId HDP_22_STACK = new StackId("HDP", "2.2.0");
 
   public static InMemoryDefaultTestModule getTestModule() {
@@ -118,6 +149,7 @@ public class HeartbeatTestHelper {
       @Override
       protected void configure() {
         super.configure();
+        binder().bind(STOMPUpdatePublisher.class).toInstance(EasyMock.createNiceMock(STOMPUpdatePublisher.class));
       }
     };
   }
@@ -179,13 +211,43 @@ public class HeartbeatTestHelper {
     clusterEntity.setResource(resourceEntity);
     clusterEntity.setDesiredStack(stackEntity);
 
-    clusterDAO.create(clusterEntity);
+    ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
+    serviceGroupEntity.setClusterId(clusterId);
+    serviceGroupEntity.setClusterEntity(clusterEntity);
+    serviceGroupEntity.setStack(stackEntity);
+    serviceGroupEntity.setServiceGroupName("CORE");
+    serviceGroupEntity.setServiceGroupId(1L);
+
+    ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
+    serviceDesiredStateEntity.setClusterId(clusterId);
+    serviceDesiredStateEntity.setServiceGroupId(1L);
+    serviceDesiredStateEntity.setServiceId(100L);
+
+    ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
+    clusterServiceEntity.setServiceType("HDFS");
+    clusterServiceEntity.setServiceName("HDFS");
+    clusterServiceEntity.setServiceGroupEntity(serviceGroupEntity);
+    clusterServiceEntity.setClusterId(clusterId);
+    clusterServiceEntity.setServiceId(100L);
+    clusterServiceEntity.setServiceGroupId(1L);
+    clusterServiceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
+    clusterServiceEntity.setClusterEntity(clusterEntity);
+
+    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<>();
+    clusterServiceEntities.add(clusterServiceEntity);
+    clusterEntity.setClusterServiceEntities(clusterServiceEntities);
+
+    serviceDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+    serviceGroupDAO.merge(serviceGroupEntity);
+    clusterServiceDAO.merge(clusterServiceEntity);
+    clusterDAO.merge(clusterEntity);
 
     // because this test method goes around the Clusters business object, we
     // forcefully will refresh the internal state so that any tests which
     // incorrect use Clusters after calling this won't be affected
     Clusters clusters = injector.getInstance(Clusters.class);
-    Method method = ClustersImpl.class.getDeclaredMethod("loadClustersAndHosts");
+    Method method = ClustersImpl.class.getDeclaredMethod("safelyLoadClustersAndHosts");
     method.setAccessible(true);
     method.invoke(clusters);
 
@@ -194,10 +256,14 @@ public class HeartbeatTestHelper {
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
 
+    ServiceGroup serviceGroup = serviceGroupFactory.createExisting(cluster, serviceGroupEntity);
+    Service service = serviceFactory.createExisting(cluster, serviceGroup,  clusterServiceEntity);
+    cluster.addService(service);
+    cluster.addServiceGroup(serviceGroup);
+
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(cluster, "cluster-env", "version1", configProperties, new HashMap<>());
     cluster.addDesiredConfig("user", Collections.singleton(config));
-
 
     Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");

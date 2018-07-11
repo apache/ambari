@@ -54,7 +54,7 @@ export class FilterDropdownComponent extends DropdownButtonComponent implements 
   }
 
   writeValue(items: ListItem[]) {
-    this.selection = items;
+    this.selection = items || [];
   }
 
   registerOnChange(callback: any): void {

@@ -40,8 +40,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
-    // TODO renove active_name_node_id after activeNameNode property becomes unused
-    active_name_node_id: 'active_name_node_id',
     active_name_nodes: 'active_name_nodes',
     standby_name_nodes: 'standby_name_nodes',
     journal_nodes: 'journal_nodes',
@@ -54,10 +52,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     live_data_nodes: 'live_data_nodes',
     dead_data_nodes: 'dead_data_nodes',
     decommission_data_nodes: 'decommission_data_nodes',
-    capacity_used_values: 'capacity_used_values',
-    capacity_total_values: 'capacity_total_values',
-    capacity_remaining_values: 'capacity_remaining_values',
-    capacity_non_dfs_used_values: 'capacity_non_dfs_used_values',
+    capacity_used: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityUsed',
+    capacity_total: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityTotal',
+    capacity_remaining: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityRemaining',
+    capacity_non_dfs_used: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityNonDFSUsed',
     dfs_total_blocks_values: 'dfs_total_blocks_values',
     dfs_corrupt_blocks_values: 'dfs_corrupt_blocks_values',
     dfs_missing_blocks_values: 'dfs_missing_blocks_values',
@@ -77,10 +75,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   activeNameNodeConfig: {
     name_node_start_time_values: 'metrics.runtime.StartTime',
     jvm_memory_heap_used_values: 'metrics.jvm.HeapMemoryUsed',
-    capacity_used_values: 'metrics.dfs.FSNamesystem.CapacityUsed',
-    capacity_total_values: 'metrics.dfs.FSNamesystem.CapacityTotal',
-    capacity_remaining_values: 'metrics.dfs.FSNamesystem.CapacityRemaining',
-    capacity_non_dfs_used_values: 'metrics.dfs.FSNamesystem.CapacityNonDFSUsed',
     jvm_memory_heap_max_values: 'metrics.jvm.HeapMemoryMax',
     dfs_total_blocks_values: 'metrics.dfs.FSNamesystem.BlocksTotal',
     dfs_corrupt_blocks_values: 'metrics.dfs.FSNamesystem.CorruptBlocks',
@@ -209,7 +203,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    * @type {Array}
    * @const
    */
-  ADVANCED_COMPONENTS: ['SECONDARY_NAMENODE', 'RESOURCEMANAGER', 'NAMENODE', 'HBASE_MASTER', 'RESOURCEMANAGER'],
+  ADVANCED_COMPONENTS: ['SECONDARY_NAMENODE', 'RESOURCEMANAGER', 'NAMENODE', 'HBASE_MASTER', 'RESOURCEMANAGER', 'HIVE_SERVER_INTERACTIVE'],
+
+  hostNameIpMap: {},
 
   map: function (json) {
     console.time('App.serviceMetricsMapper execution time');
@@ -224,6 +220,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       var result = [];
       var advancedHostComponents = [];
       var hostComponentIdsMap = {};
+      var hiveInteractiveServers = [];
 
       /**
        * services contains constructed service-components structure from components array
@@ -246,6 +243,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var comp = this.parseIt(host_component, this.config3);
           comp.id = id;
           comp.service_id = serviceName;
+          if (comp.component_name === 'HIVE_SERVER_INTERACTIVE') {
+            hiveInteractiveServers.push(comp);
+          }
           hostComponents.push(comp);
           if (this.get('ADVANCED_COMPONENTS').contains(comp.component_name)) {
             advancedHostComponents.push(comp);
@@ -277,6 +277,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
       App.store.safeLoadMany(this.get('model3'), hostComponents);
 
+      if (hiveInteractiveServers.length > 1) {
+        this.loadInteractiveServerStatuses(hiveInteractiveServers);
+      }
       //parse service metrics from components
       services.forEach(function (item) {
         hostComponents.filterProperty('service_id', item.ServiceInfo.service_name).mapProperty('id').forEach(function (hostComponent) {
@@ -307,6 +310,64 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       }
     }
     console.timeEnd('App.serviceMetricsMapper execution time');
+  },
+
+  loadInteractiveServerStatuses: function (hiveInteractiveServers) {
+    var self = this;
+    App.router.get('configurationController').getCurrentConfigsBySites(['hive-site', 'hive-interactive-site']).done(function (configs) {
+      var hiveWebUiPort = configs.findProperty('type', 'hive-interactive-site').properties['hive.server2.webui.port'];
+      var hostNames = hiveInteractiveServers.mapProperty('host_name');
+      var notDefinedHostIp = hostNames.find(function (hostName) {
+        return !self.get('hostNameIpMap')[hostName];
+      });
+      if (notDefinedHostIp) {
+        self.getHostNameIpMap(hostNames).done(function () {
+          self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
+        });
+      } else {
+        self.getHiveServersInteractiveStatus(hiveInteractiveServers, hiveWebUiPort);
+      }
+    });
+  },
+
+  getHostNameIpMap: function (hostNames) {
+    var self = this;
+    return App.ajax.send({
+      name: 'hosts.ips',
+      data: {
+        hostNames: hostNames
+      },
+      sender: self
+    }).success(function (data) {
+      data.items.forEach(function(hostData) {
+        var ip = hostData.Hosts.ip;
+        var hostName = hostData.Hosts.host_name;
+        self.get('hostNameIpMap')[hostName] = ip;
+      })
+    });
+  },
+
+  getHiveServersInteractiveStatus: function(hiveInteractiveServers, hiveWebUiPort) {
+    var self = this;
+    hiveInteractiveServers.forEach(function (hiveInteractiveServer) {
+      App.ajax.send({
+        name: 'hiveServerInteractive.getStatus',
+        data: {
+          hsiHost: self.hostNameIpMap[hiveInteractiveServer.host_name],
+          port: hiveWebUiPort
+        },
+        sender: self
+      }).success(function (isActive) {
+
+        var advancedName = Em.I18n.t('quick.links.label.' +  (isActive ? 'active': 'standby')) + ' ' + hiveInteractiveServer.display_name;
+        var hiveInteractiveServerComponent = App.HostComponent.find().find(function (component) {
+          return component.get('hostName') === hiveInteractiveServer.host_name && component.get('componentName') === 'HIVE_SERVER_INTERACTIVE';
+        });
+        if (hiveInteractiveServerComponent){
+          hiveInteractiveServerComponent.set('displayNameAdvanced', advancedName);
+        }
+      });
+    });
   },
 
   /**
@@ -428,6 +489,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
               hostComponent.display_name_advanced = Em.I18n.t('dashboard.services.yarn.resourceManager.standby');
               break;
           }
+        } else if (hostComponent.component_name === 'HIVE_SERVER_INTERACTIVE') {
+          var hiveInteractiveServerComponent = App.HostComponent.find().find(function (component) {
+            return component.get('hostName') === hostComponent.host_name && component.get('componentName') === 'HIVE_SERVER_INTERACTIVE';
+          });
+          if (hiveInteractiveServerComponent) {
+            hostComponent.display_name_advanced = hiveInteractiveServerComponent.get('displayNameAdvanced');
+          }
         }
         if (service) {
           if (hostComponent.display_name_advanced) {
@@ -439,6 +507,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       }
     }, this)
   },
+
+  setNameNodeMetricsProperties: function (item, hostComponent) {
+    const activeNameNodeConfig = this.activeNameNodeConfig,
+      activeNameNodeConfigKeys = Object.keys(activeNameNodeConfig);
+    activeNameNodeConfigKeys.forEach(key => {
+      item[key][Em.get(hostComponent, 'HostRoles.host_name')] = Em.get(hostComponent, activeNameNodeConfig[key]);
+    });
+  },
+
   /**
    * Map quick links to services:OOZIE,GANGLIA
    * @param finalJson
@@ -494,9 +571,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     let finalConfig = jQuery.extend({}, this.config);
     // Change the JSON so that it is easy to map
     const hdfsConfig = this.hdfsConfig,
-      activeNameNodeConfig = this.activeNameNodeConfig,
-      activeNameNodeConfigKeys = Object.keys(activeNameNodeConfig),
-      activeNameNodeConfigInitial = activeNameNodeConfigKeys.reduce((obj, key) => Object.assign({}, obj, {
+      activeNameNodeConfigInitial = Object.keys(this.activeNameNodeConfig).reduce((obj, key) => Object.assign({}, obj, {
         [key]: {}
       }), {});
     Object.assign(item, activeNameNodeConfigInitial);
@@ -530,11 +605,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
                 });
                 break;
             }
-            activeNameNodeConfigKeys.forEach(key => {
-              if (clusterIdValue && (!item[key][clusterIdValue] || haState === 'active')) {
-                item[key][clusterIdValue] = Em.get(hc, activeNameNodeConfig[key]);
-              }
-            });
+            this.setNameNodeMetricsProperties(item, hc);
           });
           unknownNameNodes.forEach(nameNode => {
             if (nameSpacesWithActiveNameNodes.contains(nameNode.clusterIdValue)) {
@@ -542,44 +613,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
             }
           });
         } else {
-          activeNameNodeConfigKeys.forEach(key => {
-            item[key].default = Em.get(firstHostComponent, activeNameNodeConfig[key]);
-          });
-        }
-
-        // TODO remove after activeNameNode property becomes unused
-        if (hostComponents.length === 2) {
-          const haState1 = Em.get(firstHostComponent, 'metrics.dfs.FSNamesystem.HAState'),
-            haState2 = Em.get(hostComponents[1], 'metrics.dfs.FSNamesystem.HAState'),
-            namenodeName1 = firstHostComponent.HostRoles.host_name,
-            namenodeName2 = hostComponents[1].HostRoles.host_name;
-          let active_name_node = [],
-            standby_name_nodes = [];
-
-          switch (haState1) {
-            case "active":
-              active_name_node.push(namenodeName1);
-              break;
-            case "standby":
-              standby_name_nodes.push(namenodeName1);
-              break;
-          }
-          switch (haState2) {
-            case "active":
-              active_name_node.push(namenodeName2);
-              break;
-            case "standby":
-              standby_name_nodes.push(namenodeName2);
-              break;
-          }
-          item.active_name_node_id = null;
-          switch (active_name_node.length) {
-            case 1:
-              item.active_name_node_id = `NAMENODE_${active_name_node[0]}`;
-              break;
-          }
-          var activeHostComponentIndex = haState2 == "active" ? 1 : 0;
-          this.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
+          this.setNameNodeMetricsProperties(item, firstHostComponent);
         }
 
         item.nameNodeComponent = component;
@@ -587,9 +621,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         // Get the live, dead & decommission nodes from string json
         if (firstHostComponent.metrics && firstHostComponent.metrics.dfs && firstHostComponent.metrics.dfs.namenode) {
           item.metrics_not_available = false;
-          var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
-          var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
-          var liveNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.LiveNodes);
+          var decommissionNodesJson = App.parseJSON(firstHostComponent.metrics.dfs.namenode.DecomNodes);
+          var deadNodesJson = App.parseJSON(firstHostComponent.metrics.dfs.namenode.DeadNodes);
+          var liveNodesJson = App.parseJSON(firstHostComponent.metrics.dfs.namenode.LiveNodes);
         } else {
           item.metrics_not_available = true;
         }

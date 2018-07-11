@@ -46,6 +46,8 @@ import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.resources.HostResourceDefinition;
+import org.apache.ambari.server.api.resources.MpackResourceDefinition;
+import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.StackResourceDefinition;
@@ -195,14 +197,12 @@ public class QueryImplTest {
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
 
     instance.addProperty("versions/*", null);
-    instance.addProperty("versions/operating_systems/*", null);
-    instance.addProperty("versions/operating_systems/repositories/*", null);
+    instance.addProperty("versions/mpack/*", null);
 
     instance.execute();
 
     Set<String> propertyIds = new HashSet<>();
-    propertyIds.add("versions/operating_systems/repositories/Repositories/repo_id");
-    propertyIds.add("versions/operating_systems/OperatingSystems/os_type");
+    propertyIds.add("versions/mpack/MpackInfo/mpack_id");
 
     Map<Resource, Set<Map<String, Object>>> resourcePropertiesMap = instance.getJoinedResourceProperties(propertyIds, null, null);
 
@@ -216,12 +216,11 @@ public class QueryImplTest {
       fail("No property maps found!");
     }
 
-    Assert.assertEquals(6, propertyMaps.size());
+    Assert.assertEquals(2, propertyMaps.size());
 
     for (Map<String, Object> map : propertyMaps) {
-      Assert.assertEquals(2, map.size());
-      Assert.assertTrue(map.containsKey("versions/operating_systems/OperatingSystems/os_type"));
-      Assert.assertTrue(map.containsKey("versions/operating_systems/repositories/Repositories/repo_id"));
+      Assert.assertEquals(1, map.size());
+      Assert.assertTrue(map.containsKey("versions/mpack/MpackInfo/mpack_id"));
     }
   }
 
@@ -236,7 +235,7 @@ public class QueryImplTest {
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
 
     PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.property("versions/operating_systems/OperatingSystems/os_type").equals("centos5").toPredicate();
+    Predicate predicate = pb.property("versions/mpack/MpackInfo/mpack_id").equals("12345").toPredicate();
 
     instance.setUserPredicate(predicate);
 
@@ -454,10 +453,7 @@ public class QueryImplTest {
     Assert.assertEquals("StackVersion:1", versionNode.getName());
     Assert.assertEquals(Resource.Type.StackVersion, versionNode.getObject().getType());
 
-    Assert.assertEquals(7, versionNode.getChildren().size());
-
-    TreeNode<Resource> opSystemsNode = versionNode.getChild("operating_systems");
-    Assert.assertEquals(3, opSystemsNode.getChildren().size());
+    Assert.assertEquals(4, versionNode.getChildren().size());
 
     TreeNode<Resource> artifactsNode = versionNode.getChild("artifacts");
     Assert.assertEquals(1, artifactsNode.getChildren().size());
@@ -515,9 +511,10 @@ public class QueryImplTest {
       throws NoSuchParentResourceException, UnsupportedPropertyException,
     NoSuchResourceException, SystemException {
 
-    ResourceDefinition resourceDefinition = new StackVersionResourceDefinition();
+    ResourceDefinition resourceDefinition = new MpackResourceDefinition();
 
     Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.OperatingSystem, "centos5");
 
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
     instance.addProperty("operating_systems/*", null);
@@ -532,11 +529,11 @@ public class QueryImplTest {
 
     TreeNode<Resource> tree = result.getResultTree();
     Assert.assertEquals(1, tree.getChildren().size());
-    TreeNode<Resource> stackVersionNode = tree.getChild("StackVersion:1");
-    Assert.assertEquals("StackVersion:1", stackVersionNode.getName());
+    TreeNode<Resource> mpackNode = tree.getChild("Mpack:1");
+    Assert.assertEquals("Mpack:1", mpackNode.getName());
 
-    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode.getObject().getType());
-    Assert.assertEquals("1.2.1", stackVersionNode.getObject().getPropertyValue("Versions/stack_version"));
+    Assert.assertEquals(Resource.Type.Mpack, mpackNode.getObject().getType());
+    Assert.assertEquals("12345", mpackNode.getObject().getPropertyValue("MpackInfo/mpack_id"));
 
     QueryImpl instance2 = new TestQuery(mapIds, resourceDefinition);
     instance2.addProperty("operating_systems/*", null);
@@ -547,36 +544,11 @@ public class QueryImplTest {
 
     TreeNode<Resource> tree2 = result2.getResultTree();
     Assert.assertEquals(1, tree2.getChildren().size());
-    TreeNode<Resource> stackVersionNode2 = tree2.getChild("StackVersion:1");
-    Assert.assertEquals("StackVersion:1", stackVersionNode2.getName());
+    TreeNode<Resource> mpackNode2 = tree2.getChild("Mpack:1");
+    Assert.assertEquals("Mpack:1", mpackNode2.getName());
 
-    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode2.getObject().getType());
-    Assert.assertEquals("1.2.2", stackVersionNode2.getObject().getPropertyValue("Versions/stack_version"));
-
-    QueryImpl instance3 = new TestQuery(mapIds, resourceDefinition);
-
-    instance3.addProperty("operating_systems/*", null);
-
-    instance3.setUserPredicate(predicate);
-    //page_size = 2, offset = 1
-    instance3.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 2, 1, null, null));
-
-    Result result3 = instance3.execute();
-
-    TreeNode<Resource> tree3 = result3.getResultTree();
-    Assert.assertEquals(2, tree3.getChildren().size());
-    TreeNode<Resource> stackVersionNode3 = tree3.getChild("StackVersion:1");
-    Assert.assertEquals("StackVersion:1", stackVersionNode3.getName());
-
-    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode3.getObject().getType());
-    Assert.assertEquals("1.2.2", stackVersionNode3.getObject().getPropertyValue("Versions/stack_version"));
-
-    stackVersionNode3 = tree3.getChild("StackVersion:2");
-    Assert.assertEquals("StackVersion:2", stackVersionNode3.getName());
-
-    Assert.assertEquals(Resource.Type.StackVersion, stackVersionNode3.getObject().getType());
-    Assert.assertEquals("2.0.1", stackVersionNode3.getObject().getPropertyValue("Versions/stack_version"));
-
+    Assert.assertEquals(Resource.Type.Mpack, mpackNode2.getObject().getType());
+    Assert.assertEquals("67890", mpackNode2.getObject().getPropertyValue("MpackInfo/mpack_id"));
   }
 
   @Test

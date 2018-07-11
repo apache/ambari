@@ -72,7 +72,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
@@ -140,26 +139,67 @@ public class AMSPropertyProviderTest {
     }
   }
 
-  @Ignore
+  @Test
   public void testAMSPropertyProviderAsViewUser() throws Exception {
     // Setup user with 'ViewUser'
     // ViewUser doesn't have the 'CLUSTER_VIEW_METRICS', 'HOST_VIEW_METRICS' and 'SERVICE_VIEW_METRICS', thus
     // can't retrieve the Metrics.
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser("ViewUser", 2L));
 
-    testPopulateResourcesForSingleHostMetric();
-    testPopulateResourcesForSingleHostMetricPointInTime();
-    testPopulateResourcesForMultipleHostMetricscPointInTime();
-    testPopulateResourcesForMultipleHostMetrics();
-    testPopulateResourcesForRegexpMetrics();
-    testPopulateResourcesForSingleComponentMetric();
-    testPopulateMetricsForEmbeddedHBase();
-    testAggregateFunctionForComponentMetrics();
-    testFilterOutOfBandMetricData();
-    testPopulateResourcesForHostComponentHostMetrics();
-    testPopulateResourcesForHostComponentMetricsForMultipleHosts();
-    testPopulateResourcesHostBatches();
-    testPopulateResourcesForMultipleComponentsMetric();
+    try {
+      testPopulateResourcesForSingleHostMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForSingleHostMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForMultipleHostMetrics();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForSingleComponentMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testAggregateFunctionForComponentMetrics();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForHostComponentHostMetrics();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForHostComponentMetricsForMultipleHosts();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesHostBatches();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForMultipleComponentsMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
   }
 
   @Test

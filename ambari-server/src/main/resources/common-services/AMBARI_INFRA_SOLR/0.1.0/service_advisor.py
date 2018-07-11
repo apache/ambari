@@ -33,10 +33,10 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 
-class Ambari_InfraServiceAdvisor(service_advisor.ServiceAdvisor):
+class Ambari_Infra_SolrServiceAdvisor(service_advisor.ServiceAdvisor):
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(Ambari_InfraServiceAdvisor, self)
+    self.as_super = super(Ambari_Infra_SolrServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
 
     # Always call these methods
@@ -102,7 +102,7 @@ class Ambari_InfraServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
     """
 
-    return []
+    return self.getServiceComponentCardinalityValidations(services, hosts, "AMBARI_INFRA_SOLR")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     """

@@ -18,10 +18,13 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.state.SecurityType;
 
@@ -30,21 +33,38 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class MetadataCluster {
-  @JsonProperty("status_commands_to_run")
-  private Set<String> statusCommandsToRun = new HashSet<>();
-  private SortedMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
-  private SortedMap<String, String> clusterLevelParams = new TreeMap<>();
+  private final Lock lock = new ReentrantLock();
 
-  public MetadataCluster(SecurityType securityType, SortedMap<String,MetadataServiceInfo> serviceLevelParams,
-                         SortedMap<String, String> clusterLevelParams) {
+  @JsonProperty("status_commands_to_run")
+  private final Set<String> statusCommandsToRun;
+  private final boolean fullServiceLevelMetadata; //this is true in case serviceLevelParams has all parameters for all services
+  private SortedMap<String, MetadataServiceInfo> serviceLevelParams;
+  private SortedMap<String, String> clusterLevelParams;
+  private SortedMap<String, SortedMap<String,String>> agentConfigs;
+
+  public MetadataCluster(SecurityType securityType, SortedMap<String,MetadataServiceInfo> serviceLevelParams, boolean fullServiceLevelMetadata,
+                         SortedMap<String, String> clusterLevelParams, SortedMap<String, SortedMap<String,String>> agentConfigs) {
+    this.statusCommandsToRun  = new HashSet<>();
     if (securityType != null) {
       this.statusCommandsToRun.add("STATUS");
-      if (SecurityType.KERBEROS.equals(securityType)) {
-        this.statusCommandsToRun.add("SECURITY_STATUS");
-      }
     }
+    this.fullServiceLevelMetadata = fullServiceLevelMetadata;
     this.serviceLevelParams = serviceLevelParams;
     this.clusterLevelParams = clusterLevelParams;
+    this.agentConfigs = agentConfigs;
+  }
+
+  public static MetadataCluster emptyMetadataCluster() {
+    return new MetadataCluster(null, null, false, null, null);
+  }
+
+  public static MetadataCluster serviceLevelParamsMetadataCluster(SecurityType securityType, SortedMap<String, MetadataServiceInfo> serviceLevelParams,
+      boolean fullServiceLevelMetadata) {
+    return new MetadataCluster(securityType, serviceLevelParams, fullServiceLevelMetadata, null, null);
+  }
+
+  public static MetadataCluster clusterLevelParamsMetadataCluster(SecurityType securityType, SortedMap<String, String> clusterLevelParams) {
+    return new MetadataCluster(securityType, null, false, clusterLevelParams, null);
   }
 
   public Set<String> getStatusCommandsToRun() {
@@ -59,8 +79,64 @@ public class MetadataCluster {
     return clusterLevelParams;
   }
 
-  public void setClusterLevelParams(SortedMap<String, String> clusterLevelParams) {
-    this.clusterLevelParams = clusterLevelParams;
+  public SortedMap<String, SortedMap<String, String>> getAgentConfigs() {
+    return agentConfigs;
+  }
+
+  public boolean isFullServiceLevelMetadata() {
+    return fullServiceLevelMetadata;
+  }
+
+  public boolean updateServiceLevelParams(SortedMap<String, MetadataServiceInfo> update, boolean fullMetadataInUpdatedMap) {
+    if (update != null) {
+      try {
+        lock.lock();
+        if (this.serviceLevelParams == null) {
+          this.serviceLevelParams = new TreeMap<>();
+        }
+        return updateMapIfNeeded(this.serviceLevelParams, update, fullMetadataInUpdatedMap);
+      } finally {
+        lock.unlock();
+      }
+    }
+
+    return false;
+  }
+
+  public boolean updateClusterLevelParams(SortedMap<String, String> update) {
+    if (update != null) {
+      try {
+        lock.lock();
+        if (this.clusterLevelParams == null) {
+          this.clusterLevelParams = new TreeMap<>();
+        }
+        return updateMapIfNeeded(this.clusterLevelParams, update, true);
+      } finally {
+        lock.unlock();
+      }
+    }
+
+    return false;
+  }
+
+  private <T> boolean updateMapIfNeeded(Map<String, T> currentMap, Map<String, T> updatedMap, boolean fullMetadataInUpdatedMap) {
+    boolean changed = false;
+    if (fullMetadataInUpdatedMap) { // we have full metadata in updatedMap (i.e. in case of service removal we have full metadata in updatedMap)
+      changed = !Objects.equals(currentMap, updatedMap);
+      if (changed) {
+        currentMap.clear();
+        currentMap.putAll(updatedMap);
+      }
+    } else { // to support backward compatibility we fall back to previous version where we only added non-existing services/properties in current metadata
+      for (String key : updatedMap.keySet()) {
+        if (!currentMap.containsKey(key) || !currentMap.get(key).equals(updatedMap.get(key))) {
+          currentMap.put(key, updatedMap.get(key));
+          changed = true;
+        }
+      }
+    }
+
+    return changed;
   }
 
   @Override

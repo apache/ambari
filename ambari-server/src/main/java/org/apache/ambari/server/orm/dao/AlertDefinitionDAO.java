@@ -35,7 +35,7 @@ import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
@@ -106,7 +106,7 @@ public class AlertDefinitionDAO {
   private AlertDefinitionFactory alertDefinitionFactory;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   /**
    * Gets an alert definition with the specified ID.
@@ -357,7 +357,7 @@ public class AlertDefinitionDAO {
     AlertGroupsUpdateEvent alertGroupsUpdateEvent = new AlertGroupsUpdateEvent(Collections.singletonList(
         new AlertGroupUpdate(group)),
         UpdateEventType.UPDATE);
-    stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
+    STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
     dispatchDao.merge(group);
 
     // publish the alert definition registration

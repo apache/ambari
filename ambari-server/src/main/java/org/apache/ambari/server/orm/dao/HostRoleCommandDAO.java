@@ -62,6 +62,8 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -492,10 +494,19 @@ public class HostRoleCommandDAO {
 
   @RequiresSession
   public List<HostRoleCommandEntity> findByRequest(long requestId) {
-    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
-      "FROM HostRoleCommandEntity command " +
-      "WHERE command.requestId=?1 ORDER BY command.taskId", HostRoleCommandEntity.class);
-    return daoUtils.selectList(query, requestId);
+    return findByRequest(requestId, false);
+  }
+
+  @RequiresSession
+  public List<HostRoleCommandEntity> findByRequest(long requestId, boolean refreshHint) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+      "HostRoleCommandEntity.findByRequestId",
+      HostRoleCommandEntity.class);
+    if (refreshHint) {
+      query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+    }
+    query.setParameter("requestId", requestId);
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession

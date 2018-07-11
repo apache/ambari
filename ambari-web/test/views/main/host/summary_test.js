@@ -308,19 +308,17 @@ describe('App.MainHostSummaryView', function() {
   describe("#hasCardinalityConflict()", function () {
 
     beforeEach(function() {
-      this.mockSlave = sinon.stub(App.SlaveComponent, 'find');
+      this.mockComponent = sinon.stub(App.HostComponent, 'getCount');
       this.mockStack = sinon.stub(App.StackServiceComponent, 'find');
     });
 
     afterEach(function() {
-      this.mockSlave.restore();
+      this.mockComponent.restore();
       this.mockStack.restore();
     });
 
     it("totalCount equal to maxToInstall", function() {
-      this.mockSlave.returns(Em.Object.create({
-        totalCount: 1
-      }));
+      this.mockComponent.returns(1);
       this.mockStack.returns(Em.Object.create({
         maxToInstall: 1
       }));
@@ -328,9 +326,7 @@ describe('App.MainHostSummaryView', function() {
     });
 
     it("totalCount more than maxToInstall", function() {
-      this.mockSlave.returns(Em.Object.create({
-        totalCount: 2
-      }));
+      this.mockComponent.returns(2);
       this.mockStack.returns(Em.Object.create({
         maxToInstall: 1
       }));
@@ -338,9 +334,7 @@ describe('App.MainHostSummaryView', function() {
     });
 
     it("totalCount less than maxToInstall", function() {
-      this.mockSlave.returns(Em.Object.create({
-        totalCount: 0
-      }));
+      this.mockComponent.returns(0);
       this.mockStack.returns(Em.Object.create({
         maxToInstall: 1
       }));

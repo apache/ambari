@@ -41,6 +41,12 @@ import {TabsComponent} from '@app/components/tabs/tabs.component';
 
 import {LogsContainerComponent} from './logs-container.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 
 describe('LogsContainerComponent', () => {
   let component: LogsContainerComponent;
@@ -53,6 +59,7 @@ describe('LogsContainerComponent', () => {
         TabsComponent
       ],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           appState,
@@ -87,7 +94,12 @@ describe('LogsContainerComponent', () => {
         TabsService,
         UtilsService,
         LogsContainerService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

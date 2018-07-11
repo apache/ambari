@@ -71,6 +71,8 @@ zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", No
 kafka_user_nofile_limit = default('/configurations/kafka-env/kafka_user_nofile_limit', 128000)
 kafka_user_nproc_limit = default('/configurations/kafka-env/kafka_user_nproc_limit', 65536)
 
+kafka_delete_topic_enable = default('/configurations/kafka-broker/delete.topic.enable', True)
+
 # parameters for 2.2+
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
   kafka_home = os.path.join(stack_root,  "current", "kafka-broker")
@@ -154,6 +156,12 @@ if has_metric_collector:
 
   host_in_memory_aggregation = str(default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)).lower()
   host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+  is_aggregation_https_enabled = False
+  if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    host_in_memory_aggregation_protocol = 'https'
+    is_aggregation_https_enabled = True
+  else:
+    host_in_memory_aggregation_protocol = 'http'
   pass
 
 # Security-related params
@@ -166,7 +174,7 @@ kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configura
 
 
 kafka_other_sasl_enabled = not kerberos_security_enabled and check_stack_feature(StackFeature.KAFKA_LISTENERS, stack_version_formatted) and \
-                          check_stack_feature(StackFeature.KAFKA_EXTENDED_SASL_SUPPORT, stack_version_formatted) and \
+                          check_stack_feature(StackFeature.KAFKA_EXTENDED_SASL_SUPPORT, format_stack_version(version_for_stack_feature_checks)) and \
                           (("SASL_PLAINTEXT" in config['configurations']['kafka-broker']['listeners']) or
                           ("PLAINTEXTSASL" in config['configurations']['kafka-broker']['listeners']) or
                           ("SASL_SSL" in config['configurations']['kafka-broker']['listeners']))
@@ -329,6 +337,7 @@ default_fs = config['configurations']['core-site']['fs.defaultFS'] if has_nameno
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin") if has_namenode else None
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir() if has_namenode else None
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 import functools
 #create partial functions with common arguments for every HdfsResource call
@@ -345,5 +354,6 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
-  immutable_paths = get_not_managed_resources()
+  immutable_paths = get_not_managed_resources(),
+  dfs_type = dfs_type
 )

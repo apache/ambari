@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 require('controllers/main/service/info/configs');
 
@@ -33,68 +32,9 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     this.loadServiceConfig();
   },
   loadServiceConfig: function () {
-    App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      data: {
-        serviceName: this.get('selectedService'),
-        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('selectedService'))
-      },
-      success: 'loadServiceTagSuccess'
+    App.router.get('configurationController').getCurrentConfigsBySites().done((serverConfigs) => {
+      this.createConfigObject(serverConfigs);
     });
-  },
-  loadServiceTagSuccess: function (data, opt, params) {
-    var self = this;
-    var serviceConfigsDef = params.serviceConfigsDef;
-    var loadedClusterSiteToTagMap = {};
-
-    for (var site in Em.get(data, 'Clusters.desired_configs')) {
-      if (serviceConfigsDef.get('configTypes').hasOwnProperty(site)) {
-        loadedClusterSiteToTagMap[site] = data.Clusters.desired_configs[site]['tag'];
-      }
-    }
-    this.setServiceConfigTags(loadedClusterSiteToTagMap);
-    // load server stored configurations
-    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (serverConfigs) {
-      self.createConfigObject(serverConfigs);
-    });
-  },
-
-
-  /**
-   * Changes format from Object to Array
-   *
-   * {
-   *  'core-site': 'version1',
-   *  'hdfs-site': 'version1',
-   *  ...
-   * }
-   *
-   * to
-   *
-   * [
-   *  {
-   *    siteName: 'core-site',
-   *    tagName: 'version1',
-   *    newTageName: null
-   *  },
-   *  ...
-   * ]
-   *
-   * set tagnames for configuration of the *-site.xml
-   * @private
-   * @method setServiceConfigTags
-   */
-  setServiceConfigTags: function (desiredConfigsSiteTags) {
-    var newServiceConfigTags = [];
-    for (var index in desiredConfigsSiteTags) {
-      newServiceConfigTags.pushObject({
-        siteName: index,
-        tagName: desiredConfigsSiteTags[index],
-        newTagName: null
-      }, this);
-    }
-    this.set('serviceConfigTags', newServiceConfigTags);
   },
 
   /**

@@ -20,7 +20,6 @@ package org.apache.hadoop.metrics2.sink.timeline;
 /**
  * Is used to determine metrics aggregate table.
  *
- * @see org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.TimelineWebServices#getTimelineMetric
  */
 public enum Precision {
   SECONDS,

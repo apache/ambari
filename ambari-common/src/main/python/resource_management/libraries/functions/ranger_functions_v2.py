@@ -15,7 +15,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
 import re
@@ -24,10 +23,8 @@ import sys
 import urllib2
 import base64
 import httplib
-
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
-
 from StringIO import StringIO as BytesIO
 from ambari_commons.inet_utils import openurl
 from resource_management.core.logger import Logger
@@ -37,7 +34,6 @@ from resource_management.libraries.functions.decorator import safe_retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.core.environment import Environment
-
 
 class RangeradminV2:
   sInstance = None
@@ -96,7 +92,6 @@ class RangeradminV2:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
-
 
   def create_ranger_repository(self, component, repo_name, repo_properties,
                                ambari_ranger_admin, ambari_ranger_password,
@@ -290,7 +285,6 @@ class RangeradminV2:
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
-
   def call_curl_request(self,user,keytab,principal, url, flag_http_response, request_method='GET',request_body='',header=''):
     """
     :param user: service user for which call is to be made
@@ -328,8 +322,6 @@ class RangeradminV2:
 
     return response, error_msg,time_millis
 
-
-
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def get_repository_by_name_curl(self, component_user, component_user_keytab, component_user_principal, name, component, status, is_keyadmin = False):
     """
@@ -358,8 +350,6 @@ class RangeradminV2:
         return None
     except Exception, err:
       raise Fail('Error in call for getting Ranger service:\n {0}'.format(err))
-
-
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def create_repository_curl(self, component_user, component_user_keytab, component_user_principal, name, data, policy_user, is_keyadmin = False):
@@ -395,3 +385,80 @@ class RangeradminV2:
         return None
     except Exception, err:
       raise Fail('Error in call for creating Ranger service:\n {0}'.format(err))
+
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  def update_repository_urllib2(self, component, repo_name, repo_properties, admin_user, admin_password, force_rename = False):
+    """
+    param component: name of service supported by Ranger Admin
+    param repo_name: name of service name that needs to be updated
+    param repo_properties: configs that needs to be updated for given service name
+    param admin_user: user having role admin in Ranger Admin
+    param admin_password: password of the admin user used
+    param force_rename: flag to forcefully rename service name if required during updation
+    """
+    try:
+      update_repo_url = self.url_repos_pub + "/name/" + repo_name
+      if force_rename:
+        update_repo_url = update_repo_url + "?forceRename=true"
+      repo_update_data = json.dumps(repo_properties)
+      usernamepassword = admin_user + ":" + admin_password
+      base_64_string = base64.encodestring("{0}".format(usernamepassword)).replace("\n", "")
+      headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+      request = urllib2.Request(update_repo_url, repo_update_data, headers)
+      request.add_header("Authorization", "Basic {0}".format(base_64_string))
+      request.get_method = lambda: 'PUT'
+      result = openurl(request, timeout=20)
+      response_code = result.getcode()
+      response = json.loads(json.JSONEncoder().encode(result.read()))
+
+      if response_code == 200:
+        Logger.info("Service name {0} updated successfully on Ranger Admin for service {1}".format(repo_name, component))
+        return response
+      else:
+        raise Fail("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
+    except urllib2.URLError, e:
+      if isinstance(e, urllib2.HTTPError):
+        raise Fail("Error updating service name {0} on Ranger Admin for service {1}. Http status code - {2} \n {3}".format(repo_name, component, e.code, e.read()))
+      else:
+        raise Fail("Error updating service name {0} on Ranger Admin for service {1}. Reason - {2}".format(repo_name, component, e.reason))
+    except httplib.BadStatusLine:
+      raise Fail("Ranger Admin is not reachable for updating service name {0} for service {1}".format(repo_name, component))
+    except TimeoutError:
+      raise Fail("Connection to Ranger Admin failed. Reason - timeout")
+
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  def update_repository_curl(self, component, repo_name, repo_properties, component_user, component_user_principal, component_user_keytab, force_rename = False):
+    """
+    param component: name of service supported by Ranger Admin
+    param repo_name: name of service name that needs to be updated
+    param repo_properties: configs that needs to be updated for given service name
+    param component_user: service process user
+    param component_user_principal: principal of service user
+    param component_user_keytab: keytab of service user
+    param force_rename: flag to forcefully rename service name if required during updation
+    """
+    try:
+      update_repo_url = self.url_repos_pub + "/name/" + repo_name
+      if force_rename:
+        update_repo_url = update_repo_url + "?forceRename=true"
+      repo_update_data = json.dumps(repo_properties)
+      header = "Content-Type: application/json"
+      method = "PUT"
+
+      response, error_message, time_in_millis = self.call_curl_request(component_user, component_user_keytab, component_user_principal, update_repo_url, False, method, repo_update_data, header)
+      if response and len(response) > 0:
+        response_json = json.loads(response)
+        if "name" in response_json:
+          Logger.info("Service name {0} updated successfully on Ranger Admin for service {1}".format(repo_name, component))
+          return response_json
+        else:
+          Logger.info("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
+          return None
+      else:
+        Logger.info("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
+        return None
+    except Exception, err:
+      raise Fail('Error updating service name {0} on Ranger Admin for service {1}.\n Reason - {2}'.format(repo_name, component, err))

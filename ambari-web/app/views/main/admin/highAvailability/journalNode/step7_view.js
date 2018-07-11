@@ -16,16 +16,13 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.ManageJournalNodeWizardStep7View = Em.View.extend({
+App.ManageJournalNodeWizardStep7View = App.ManageJournalNodeProgressPageView.extend({
 
   templateName: require('templates/main/admin/highAvailability/journalNode/step7'),
 
-  step7BodyText: function () {
-    var standByNN = this.get('controller.content.standByNN');
-    return Em.I18n.t('admin.manageJournalNode.wizard.step7.body').format(this.get('controller.content.hdfsUser'), standByNN.host_name);
-  }.property('controller.content.masterComponentHosts')
+  submitButtonText: Em.I18n.t('common.done'),
 
+  noticeCompleted: Em.I18n.t('admin.manageJournalNode.wizard.step7.notice.completed')
 });

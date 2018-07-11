@@ -72,6 +72,7 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.RequestFinishedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -196,6 +197,8 @@ public class TopologyManagerTest {
   private AmbariManagementController controller;
   @Mock
   private AmbariMetaInfo metaInfo;
+  @Mock(type = MockType.NICE)
+  private AmbariEventPublisher eventPublisher;
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;

@@ -28,7 +28,7 @@
   </div>
   <div class="panel panel-default">
     <div class="panel-body">
-      <div {{bindAttr class=":form-group view.showInputError:has-error :form-horizontal"}}>
+      <div {{bindAttr class="view.showInputError:has-error :form-horizontal"}}>
         <div class="row">
           <div class="col-md-2">
             <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
@@ -48,6 +48,6 @@
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action next target="controller"}}>{{t common.next}} &rarr;</a>
+    <button {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action next target="controller"}}>{{t common.next}} &rarr;</button>
   </div>
 </div>

@@ -22,8 +22,10 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STA
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_SERVER_HOST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_SERVER_PORT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_SERVER_USE_SSL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLUSTER_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DFS_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
@@ -56,6 +58,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.AmbariConfig;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -99,7 +102,7 @@ public class ClusterMetadataGenerator {
     // STACK_NAME is part of stack settings, but STACK_VERSION is not
     stackLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
-    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
+    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs(false);
     Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stackId.getStackName(), stackId.getStackVersion());
     Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
     Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
@@ -123,6 +126,14 @@ public class ClusterMetadataGenerator {
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     stackLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
+    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
+    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
+      if (serviceInfoInstance.getServiceType() != null) {
+        stackLevelParams.put(DFS_TYPE, serviceInfoInstance.getServiceType());
+        break;
+      }
+    }
+
     return stackLevelParams;
   }
 
@@ -137,60 +148,48 @@ public class ClusterMetadataGenerator {
 
       MetadataCluster metadataCluster = new MetadataCluster(securityType,
         getMetadataServiceLevelParams(cl),
-        getMetadataClusterLevelParams(cl));
+        true,
+        getMetadataClusterLevelParams(cl),
+        null);
       metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
     }
 
-    return new MetadataUpdateEvent(metadataClusters, getMetadataAmbariLevelParams());
+    return new MetadataUpdateEvent(metadataClusters, getMetadataAmbariLevelParams(), getMetadataAgentConfigs(), UpdateEventType.CREATE);
   }
 
   public MetadataUpdateEvent getClusterMetadata(Cluster cl) throws AmbariException {
     SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-    SecurityType securityType = cl.getSecurityType();
-
-    MetadataCluster metadataCluster = new MetadataCluster(securityType,
-      getMetadataServiceLevelParams(cl),
-      getMetadataClusterLevelParams(cl));
+    MetadataCluster metadataCluster = new MetadataCluster(cl.getSecurityType(), getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl), null);
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    return new MetadataUpdateEvent(metadataClusters, null);
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) {
     SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-
-    MetadataCluster metadataCluster = new MetadataCluster(null,
-      new TreeMap<>(),
-      getMetadataClusterLevelParams(cl));
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    return new MetadataUpdateEvent(metadataClusters, null);
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.clusterLevelParamsMetadataCluster(null, getMetadataClusterLevelParams(cl)));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnRepoUpdate(Cluster cl) throws AmbariException {
     SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-
-    MetadataCluster metadataCluster = new MetadataCluster(null,
-      getMetadataServiceLevelParams(cl),
-      new TreeMap<>());
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    return new MetadataUpdateEvent(metadataClusters, null);
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(cl), true));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceGroupName, String serviceName) throws AmbariException {
-    SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    return getClusterMetadataOnServiceCredentialStoreUpdate(cl, serviceGroupName, serviceName);
+  }
 
-    MetadataCluster metadataCluster = new MetadataCluster(null,
-      getMetadataServiceLevelParams(cl.getService(serviceGroupName, serviceName)),
-      new TreeMap<>());
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-
-    return new MetadataUpdateEvent(metadataClusters, null);
+  public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceGroupName, String serviceName) throws AmbariException {
+    final SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    Service service = cl.getService(serviceGroupName, serviceName);
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(service), false));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   private SortedMap<String, String> getMetadataClusterLevelParams(Cluster cluster) {
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
+    clusterLevelParams.put(CLUSTER_NAME, cluster.getClusterName());
     clusterLevelParams.put(HOOKS_FOLDER, configs.getProperty(Configuration.HOOKS_FOLDER));
     return clusterLevelParams;
   }
@@ -213,10 +212,10 @@ public class ClusterMetadataGenerator {
     if (serviceInfo.getCommandScript() != null) {
       statusCommandTimeout = new Long(getStatusCommandTimeout(serviceInfo));
     }
-
+    Map<String, Map<String, String>> configCredentials = configHelper.getCredentialStoreEnabledProperties(serviceStackId, service);
     serviceLevelParams.put(service.getName(), new MetadataServiceInfo(
       serviceInfo.getName(), serviceInfo.getVersion(),
-      serviceInfo.isCredentialStoreEnabled(), statusCommandTimeout,
+      serviceInfo.isCredentialStoreEnabled(), configCredentials, statusCommandTimeout,
       serviceInfo.getServicePackageFolder()
     ));
 
@@ -280,4 +279,16 @@ public class ClusterMetadataGenerator {
     }
     return commandTimeout;
   }
+
+  public SortedMap<String, SortedMap<String,String>> getMetadataAgentConfigs() {
+    SortedMap<String, SortedMap<String,String>> agentConfigs = new TreeMap<>();
+    Map<String, Map<String,String>> agentConfigsMap = configs.getAgentConfigsMap();
+
+    for (String key : agentConfigsMap.keySet()) {
+      agentConfigs.put(key, new TreeMap<>(agentConfigsMap.get(key)));
+    }
+
+    return agentConfigs;
+  }
+
 }

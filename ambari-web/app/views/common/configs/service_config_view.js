@@ -75,7 +75,7 @@ App.ServiceConfigView = Em.View.extend({
    */
   isOnTheServicePage: Em.computed.equal('controller.name', 'mainServiceInfoConfigsController'),
 
-  classNameBindings: ['isOnTheServicePage:serviceConfigs'],
+  classNameBindings: ['isOnTheServicePage:serviceConfigs', 'controller.isCompareMode:settings-compare-layout'],
 
   /**
    * flag defines if any config match filter
@@ -98,7 +98,7 @@ App.ServiceConfigView = Em.View.extend({
    * @return {object}
    */
   save: function () {
-    var self = this;
+    var controller = this.get('controller');
     var passwordWasChanged = this.get('controller.passwordConfigsAreChanged');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
@@ -127,23 +127,25 @@ App.ServiceConfigView = Em.View.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
-        var newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
-        self.get('controller').setProperties({
+        const newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
+        const isDefault = controller.get('selectedConfigGroup.name') === App.ServiceConfigGroup.defaultGroupName;
+        controller.setProperties({
           saveConfigsFlag: true,
           serviceConfigVersionNote: this.get('serviceConfigNote'),
+          currentDefaultVersion: isDefault ? newVersionToBeCreated : controller.get('currentDefaultVersion'),
           preSelectedConfigVersion: Em.Object.create({
             version: newVersionToBeCreated,
-            serviceName: self.get('controller.content.serviceName'),
-            groupName: self.get('controller.selectedConfigGroup.name')
+            serviceName: controller.get('content.serviceName'),
+            groupName: controller.get('selectedConfigGroup.name')
           })
         });
-        self.get('controller').saveStepConfigs();
+        controller.saveStepConfigs();
         this.hide();
       },
       onDiscard: function () {
         this.hide();
-        self.set('controller.preSelectedConfigVersion', null);
-        self.get('controller').loadStep();
+        controller.set('preSelectedConfigVersion', null);
+        controller.loadStep();
       },
       onCancel: function () {
         this.hide();
@@ -250,7 +252,6 @@ App.ServiceConfigView = Em.View.extend({
     if (advancedTab) {
       advancedTab.set('isRendered', advancedTab.get('isActive'));
     }
-    this.processTabs(tabs);
     return tabs;
   }.property('controller.selectedService.serviceName'),
 
@@ -286,41 +287,6 @@ App.ServiceConfigView = Em.View.extend({
           firstHotHiddenTab.set('isRendered', true);
         }
       }
-    }
-  },
-
-  /**
-   * Data reordering before rendering.
-   * Reorder all sections/subsections into rows based on their rowIndex
-   * @param tabs
-   */
-  processTabs: function (tabs) {
-    for (var i = 0; i < tabs.length; i++) {
-      var tab = tabs[i];
-
-      // process sections
-      var sectionRows = [];
-      var sections = tab.get('sections');
-      for (var j = 0; j < sections.get('length'); j++) {
-        var section = sections.objectAt(j);
-        var sectionRow = sectionRows[section.get('rowIndex')];
-        if (!sectionRow) { sectionRow = sectionRows[section.get('rowIndex')] = []; }
-        sectionRow.push(section);
-
-        //process subsections
-        var subsections = section.get('subSections');
-        var subsectionRows = [];
-        for (var k = 0; k < subsections.get('length'); k++) {
-          var subsection = subsections.objectAt(k);
-          var subsectionRow = subsectionRows[subsection.get('rowIndex')];
-          if (!subsectionRow) { subsectionRow = subsectionRows[subsection.get('rowIndex')] = []; }
-          subsectionRow.push(subsection);
-          // leave a title gap if one of the subsection on the same row within the same section has title
-          if (subsection.get('displayName')) {subsectionRow.hasTitleGap = true;}
-        }
-        section.set('subsectionRows', subsectionRows);
-      }
-      tab.set('sectionRows', sectionRows);
     }
   },
 

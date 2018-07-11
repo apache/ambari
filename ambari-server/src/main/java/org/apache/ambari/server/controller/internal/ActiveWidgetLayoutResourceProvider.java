@@ -51,6 +51,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -152,7 +153,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
         RoleAuthorization.AMBARI_MANAGE_USERS);
 
     for (Map<String, Object> propertyMap: propertyMaps) {
-      final String userName = propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
+      final String userName = getUserName(propertyMap);
 
       // Ensure that the authenticated user has authorization to get this information
       if (!isUserAdministrator && !AuthorizationHelper.getAuthenticatedName().equalsIgnoreCase(userName)) {
@@ -223,7 +224,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
 
         for (Map<String, Object> propertyMap : propertyMaps) {
           // Ensure that the authenticated user has authorization to get this information
-          String userName = propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
+          final String userName = getUserName(propertyMap);
           if (!isUserAdministrator && !AuthorizationHelper.getAuthenticatedName().equalsIgnoreCase(userName)) {
             throw new AuthorizationException();
           }
@@ -250,6 +251,14 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
     });
 
     return getRequestStatus(null);
+  }
+
+  private String getUserName(Map<String, Object> propertyMap) {
+    String userName = propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID) == null ? "" : propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
+    if (StringUtils.isBlank(userName)) {
+      userName = AuthorizationHelper.getAuthenticatedName();
+    }
+    return userName;
   }
 
   @Override

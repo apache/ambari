@@ -18,10 +18,17 @@
 
 *.host_in_memory_aggregation = {{host_in_memory_aggregation}}
 *.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+*.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
 
 {% if has_metric_collector %}
 
+{% if metric_legacy_hadoop_sink %}
+*.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink-legacy.jar
+{% else %}
 *.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+{% endif %}
 *.sink.timeline.slave.host.name={{hostname}}
 accumulo.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 accumulo.period={{metrics_collection_period}}

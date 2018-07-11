@@ -19,19 +19,18 @@ package org.apache.ambari.server.events.listeners.alerts;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.agent.stomp.dto.AlertGroupUpdate;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -41,10 +40,8 @@ import com.google.inject.Singleton;
 @EagerSingleton
 public class AlertGroupsUpdateListener {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AlertGroupsUpdateListener.class);
-
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private AlertDispatchDAO alertDispatchDAO;
@@ -55,15 +52,18 @@ public class AlertGroupsUpdateListener {
   }
 
   @Subscribe
-  public void onAlertDefinitionDeleted(AlertDefinitionDeleteEvent event) throws AmbariException {
+  public void onAlertDefinitionDeleted(AlertDefinitionDeleteEvent event) {
     List<AlertGroupUpdate> alertGroupUpdates = new ArrayList<>();
     for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups(event.getClusterId())) {
-      if (alertGroupEntity.getAlertDefinitions().contains(event.getDefinition().getDefinitionId())) {
+      boolean eventAffectsGroup = alertGroupEntity.getAlertDefinitions().stream()
+        .map(AlertDefinitionEntity::getDefinitionId)
+        .anyMatch(each -> Objects.equals(each, event.getDefinition().getDefinitionId()));
+      if (eventAffectsGroup) {
         AlertGroupUpdate alertGroupUpdate = new AlertGroupUpdate(alertGroupEntity);
         alertGroupUpdate.getTargets().remove(event.getDefinition().getDefinitionId());
         alertGroupUpdates.add(alertGroupUpdate);
       }
     }
-    stateUpdateEventPublisher.publish(new AlertGroupsUpdateEvent(alertGroupUpdates, UpdateEventType.UPDATE));
+    STOMPUpdatePublisher.publish(new AlertGroupsUpdateEvent(alertGroupUpdates, UpdateEventType.UPDATE));
   }
 }

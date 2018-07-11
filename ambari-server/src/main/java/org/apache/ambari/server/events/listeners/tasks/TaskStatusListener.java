@@ -39,7 +39,7 @@ import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.events.publishers.TaskEventPublisher;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
@@ -94,14 +94,14 @@ public class TaskStatusListener {
 
   private RequestDAO requestDAO;
 
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO,
-                            StateUpdateEventPublisher stateUpdateEventPublisher) {
+                            STOMPUpdatePublisher STOMPUpdatePublisher) {
     this.stageDAO = stageDAO;
     this.requestDAO = requestDAO;
-    this.stateUpdateEventPublisher = stateUpdateEventPublisher;
+    this.STOMPUpdatePublisher = STOMPUpdatePublisher;
     taskEventPublisher.register(this);
   }
 
@@ -163,7 +163,7 @@ public class TaskStatusListener {
       updateActiveRequestsStatus(requestIdsWithReceivedTaskStatus, stagesWithReceivedTaskStatus);
     }
     for (RequestUpdateEvent requestToPublish : requestsToPublish) {
-      stateUpdateEventPublisher.publish(requestToPublish);
+      STOMPUpdatePublisher.publish(requestToPublish);
     }
   }
 

@@ -568,16 +568,25 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-force-lowercase-usernames', default=None, help="Declares whether to force the ldap user name to be lowercase or leave as-is", dest="ldap_force_lowercase_usernames")
   parser.add_option('--ldap-pagination-enabled', default=None, help="Determines whether results from LDAP are paginated when requested", dest="ldap_pagination_enabled")
   parser.add_option('--ldap-force-setup', action="store_true", default=False, help="Forces the use of LDAP even if other (i.e. PAM) authentication method is configured already or if there is no authentication method configured at all", dest="ldap_force_setup")
-  parser.add_option('--ambari-admin-username', default=None, help="Ambari Admin username for LDAP setup", dest="ambari_admin_username")
-  parser.add_option('--ambari-admin-password', default=None, help="Ambari Admin password for LDAP setup", dest="ambari_admin_password")
+  parser.add_option('--ambari-admin-username', default=None, help="Ambari administrator username for accessing Ambari's REST API", dest="ambari_admin_username")
+  parser.add_option('--ambari-admin-password', default=None, help="Ambari administrator password for accessing Ambari's REST API", dest="ambari_admin_password")
+  parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
+  parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
+  parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
+  parser.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_sso_options(parser):
   parser.add_option('--sso-enabled', default=None, help="Indicates whether to enable/disable SSO", dest="sso_enabled")
+  parser.add_option('--sso-enabled-ambari', default=None, help="Indicates whether to enable/disable SSO authentication for Ambari, itself", dest='sso_enabled_ambari')
+  parser.add_option('--sso-manage-services', default=None, help="Indicates whether Ambari should manage the SSO configurations for specified services", dest='sso_manage_services')
+  parser.add_option('--sso-enabled-services', default=None, help="A comma separated list of services that are expected to be configured for SSO (you are allowed to use '*' to indicate ALL services)", dest='sso_enabled_services')
   parser.add_option('--sso-provider-url', default=None, help="The URL of SSO provider; this must be provided when --sso-enabled is set to 'true'", dest="sso_provider_url")
   parser.add_option('--sso-public-cert-file', default=None, help="The path where the public certificate PEM is located; this must be provided when --sso-enabled is set to 'true'", dest="sso_public_cert_file")
   parser.add_option('--sso-jwt-cookie-name', default=None, help="The name of the JWT cookie", dest="sso_jwt_cookie_name")
   parser.add_option('--sso-jwt-audience-list', default=None, help="A comma separated list of JWT audience(s)", dest="sso_jwt_audience_list")
+  parser.add_option('--ambari-admin-username', default=None, help="Ambari administrator username for accessing Ambari's REST API", dest="ambari_admin_username")
+  parser.add_option('--ambari-admin-password', default=None, help="Ambari administrator password for accessing Ambari's REST API", dest="ambari_admin_password")
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_pam_setup_parser_options(parser):

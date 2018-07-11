@@ -384,7 +384,24 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       return false;
     }
 
-    if ((this.get('currentStep') - step) > 0 && !disableNaviWarning) {
+    var currentStep = this.get('currentStep');
+    var currentControllerName = this.get('content.controllerName');
+    // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
+    // to Step 9
+    if (currentControllerName === 'installerController' && currentStep === '9' && step < 9) {
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_NOT_CREATED_1',
+        wizardControllerName: 'installerController',
+        localdb: {}
+      });
+    }
+    var isCustomizeServicesStep = false;
+    if ((currentControllerName === 'installerController' && currentStep === '7') || ((currentControllerName === 'addServiceController'|| currentControllerName === 'addHostController' ) && currentStep === '4')) {
+      isCustomizeServicesStep = true;
+    }
+    var stepDiff = currentStep - step;
+    if (!disableNaviWarning && (stepDiff  > 1 || (isCustomizeServicesStep && stepDiff > 0))) {
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),
         onPrimary: function () {

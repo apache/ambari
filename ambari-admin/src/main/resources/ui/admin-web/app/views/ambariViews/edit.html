@@ -282,7 +282,7 @@
       <div class="col-sm-12">
         <span translate="views.clusterPermissions.infoMessage" translate-values="{cluster: cluster.name}"></span>
       </div>
-      <div class="col-sm-offset-2 col-sm-10">
+      <div class="col-sm-10">
         <div class="checkbox col-sm-12" ng-repeat="key in permissionRoles">
           <div ng-init="i18nKey = 'views.clusterPermissions.' + key.split('.').join('').toLowerCase()">
             <input ng-attr-id="{{i18nKey}}" type="checkbox" class="form-control" ng-model="permissionsEdit['VIEW.USER']['ROLE'][key]">

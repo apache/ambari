@@ -176,6 +176,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
         throw new SystemException("Caught exception adding a view instance.", e);
       }
     }
+    handler.getSessionHandler().setSessionCache(sessionHandler.getSessionCache());
   }
 
   @Override

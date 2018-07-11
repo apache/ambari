@@ -32,7 +32,9 @@ import {auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {userConfigs} from '@app/services/storage/user-configs.service';
 import {tabs} from '@app/services/storage/tabs.service';
-import {clusterSelections} from "@app/services/storage/cluster-selection.service";
+import {clusterSelections} from '@app/services/storage/cluster-selection.service';
+import {logsState} from '@app/services/storage/logs-state.service';
+import {dataAvailabilityStates} from '@modules/app-load/stores/data-avaibility-state.store';
 
 export const reducers = {
   appSettings,
@@ -50,7 +52,9 @@ export const reducers = {
   serviceLogsFields,
   auditLogsFields,
   tabs,
-  clusterSelections
+  clusterSelections,
+  logsState,
+  dataAvailabilityStates
 };
 
 export function reducer(state: any, action: any) {

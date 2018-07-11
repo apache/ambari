@@ -27,6 +27,7 @@ import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.state.StackId;
 
 /**
  * The context required to create tasks and stages for a custom action
@@ -45,6 +46,15 @@ public class ActionExecutionContext {
   private String expectedComponentName;
   private boolean hostsInMaintenanceModeExcluded = true;
   private boolean allowRetry = false;
+  private StackId stackId;
+
+  /**
+   * If {@code true}, instructs Ambari not to worry about whether or not the
+   * command is valid. This is used in cases where we might have to schedule
+   * commands ahead of time for components which are not yet installed.
+   */
+  private boolean isFutureCommand = false;
+
   private List<ExecutionCommandVisitor> m_visitors = new ArrayList<>();
 
   /**
@@ -192,6 +202,31 @@ public class ActionExecutionContext {
   }
 
   /**
+   * Gets the stack to use for generating stack-associated values for a
+   * command. In some cases the cluster's stack is not the correct one to use,
+   * such as when distributing a repository.
+   *
+   * @return the stack to use when generating
+   *         stack-specific content for the command.
+   */
+  public StackId getStackId() {
+    return stackId;
+  }
+
+  /**
+   * Sets the stack to use for generating stack-associated values for a
+   * command. In some cases the cluster's stack is not the correct one to use,
+   * such as when distributing a repository.
+   *
+   * @param stackId
+   *          the stackId to use for stack-based properties on the command.
+   */
+  public void setStackId(StackId stackId) {
+    this.stackId = stackId;
+  }
+
+
+  /**
    * Adds a command visitor that will be invoked after a command is created.  Provides access
    * to the command.
    *
@@ -259,6 +294,38 @@ public class ActionExecutionContext {
    */
   public interface ExecutionCommandVisitor {
     void visit(ExecutionCommand command);
+  }
+
+  /**
+   * Gets whether Ambari should skip all kinds of command verifications while
+   * scheduling since this command runs in the future and might not be
+   * considered "valid".
+   * <p/>
+   * A use case for this would be during an upgrade where trying to schedule
+   * commands for a component which has yet to be added to the cluster (since
+   * it's added as part of the upgrade).
+   *
+   * @return {@code true} if the command is scheduled to run in the future.
+   */
+  public boolean isFutureCommand() {
+    return isFutureCommand;
+  }
+
+  /**
+   * Sets whether Ambari should skip all kinds of command verifications while
+   * scheduling since this command runs in the future and might not be
+   * considered "valid".
+   * <p/>
+   * A use case for this would be during an upgrade where trying to schedule
+   * commands for a component which has yet to be added to the cluster (since
+   * it's added as part of the upgrade).
+   *
+   * @param isFutureCommand
+   *          {@code true} to have Ambari skip verification of things like
+   *          component hosts while scheduling commands.
+   */
+  public void setIsFutureCommand(boolean isFutureCommand) {
+    this.isFutureCommand = isFutureCommand;
   }
 
 }

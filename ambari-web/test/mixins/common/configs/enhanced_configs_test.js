@@ -571,7 +571,7 @@ describe('App.EnhancedConfigsMixin', function () {
   describe("#loadAdditionalSites()", function () {
 
     beforeEach(function() {
-      sinon.stub(App.config, 'getConfigsByTypes').returns({
+      sinon.stub(App.router.get('configurationController'), 'getCurrentConfigsBySites').returns({
         done: function(callback) {callback([]);}
       });
       sinon.stub(mixin, 'getRecommendationsRequest');
@@ -580,13 +580,14 @@ describe('App.EnhancedConfigsMixin', function () {
     });
 
     afterEach(function() {
-      App.config.getConfigsByTypes.restore();
+      App.router.get('configurationController').getCurrentConfigsBySites.restore();
+      mixin.addRecommendationRequestParams.restore();
       mixin.getRecommendationsRequest.restore();
       mixin.addRequestedConfigs.restore();
     });
 
-    it("App.config.getConfigsByTypes should be called", function() {
-      expect(App.config.getConfigsByTypes.calledOnce).to.be.true;
+    it("getCurrentConfigsBySites should be called", function() {
+      expect(App.router.get('configurationController').getCurrentConfigsBySites.calledOnce).to.be.true;
     });
 
     it("getRecommendationsRequest should be called", function() {

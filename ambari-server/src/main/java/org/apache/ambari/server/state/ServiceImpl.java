@@ -37,9 +37,10 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
+import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.ServiceCredentialStoreUpdateEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -96,7 +97,7 @@ public class ServiceImpl implements Service {
   private ConfigHelper configHelper;
 
   @Inject
-  private AmbariServerConfigurationHandler ambariServerConfigurationHandler;
+  private AmbariServerSSOConfigurationHandler ambariServerConfigurationHandler;
 
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -537,8 +538,21 @@ public class ServiceImpl implements Service {
     ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
 
     if (desiredStateEntity != null) {
+      ServiceCredentialStoreUpdateEvent serviceCredentialStoreUpdateEvent = null;
+      //create event only if the value changed
+      if (desiredStateEntity.isCredentialStoreEnabled() != credentialStoreEnabled) {
+        StackId stackId = serviceGroup.getStackId();
+        serviceCredentialStoreUpdateEvent =
+            new ServiceCredentialStoreUpdateEvent(getClusterId(), stackId.getStackName(),
+                                                  stackId.getStackVersion(), getName(), getServiceType(), getServiceGroupName());
+      }
       desiredStateEntity.setCredentialStoreEnabled(credentialStoreEnabled);
       desiredStateEntity = serviceDesiredStateDAO.merge(desiredStateEntity);
+
+      //publish event after the value has changed
+      if (serviceCredentialStoreUpdateEvent != null) {
+        eventPublisher.publish(serviceCredentialStoreUpdateEvent);
+      }
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
               + "previously deleted, serviceName = " + getName());
@@ -839,7 +853,7 @@ public class ServiceImpl implements Service {
   }
 
   public boolean isSsoIntegrationDesired() {
-    return ambariServerConfigurationHandler.getSsoEnabledSevices().contains(serviceName);
+    return ambariServerConfigurationHandler.getSSOEnabledServices().contains(serviceName);
   }
 
   public boolean isSsoIntegrationEnabled() {

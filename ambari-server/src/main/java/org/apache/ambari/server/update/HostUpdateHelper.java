@@ -34,6 +34,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -541,7 +542,7 @@ public class HostUpdateHelper {
         throw new AmbariException("Path to file with host names changes is empty or null.");
       }
 
-      Injector injector = Guice.createInjector(new UpdateHelperModule(), new CheckHelperAuditModule());
+      Injector injector = Guice.createInjector(new UpdateHelperModule(), new CheckHelperAuditModule(), new LdapModule());
       HostUpdateHelper hostUpdateHelper = injector.getInstance(HostUpdateHelper.class);
 
       hostUpdateHelper.setHostChangesFile(hostChangesFile);

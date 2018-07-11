@@ -122,9 +122,6 @@ public class AmbariMetaInfoTest {
   private static final String SERVICE_NAME_MAPRED2 = "MAPREDUCE2";
   private static final String SERVICE_COMPONENT_NAME = "NAMENODE";
   private static final String OS_TYPE = "centos5";
-  private static final String HDP_REPO_NAME = "HDP";
-  private static final String HDP_REPO_ID = "HDP-2.1.1";
-  private static final String HDP_UTILS_REPO_NAME = "HDP-UTILS";
   private static final String REPO_ID = "HDP-UTILS-1.1.0.15";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SHARED_PROPERTY_NAME = "content";
@@ -621,8 +618,8 @@ public class AmbariMetaInfoTest {
       "the extended stack.", deletedService);
     Assert.assertNotNull(redefinedService);
     // Components
-    Assert.assertEquals("YARN service is expected to be defined with 3 active" +
-      " components.", 3, redefinedService.getComponents().size());
+    Assert.assertEquals("YARN service is expected to be defined with 4 active" +
+      " components.", 4, redefinedService.getComponents().size());
     Assert.assertEquals("TEZ is expected to be a part of extended stack " +
       "definition", "TEZ", redefinedService.getClientComponent().getName());
     Assert.assertFalse("YARN CLIENT is a deleted component.",

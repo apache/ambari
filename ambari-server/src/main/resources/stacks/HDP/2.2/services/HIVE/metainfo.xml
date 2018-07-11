@@ -58,7 +58,7 @@
       
       <osSpecifics>
         <osSpecific>
-          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
+          <osFamily>amazonlinux2,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>hive_${stack_version}</name>
@@ -72,7 +72,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
+          <osFamily>amazonlinux2,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql</name>
@@ -81,7 +81,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,amazonlinux2</osFamily>
           <packages>
             <package>
               <name>mariadb-server</name>
@@ -105,7 +105,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>amazon2015,redhat6,debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>amazonlinux2,redhat6,debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>

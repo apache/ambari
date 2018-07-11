@@ -341,6 +341,26 @@ class StackAdvisor(object):
     """
     pass
 
+  def recommendConfigurationsForKerberos(self, services, hosts):
+    """
+    Returns recommendation of Kerberos-related service configurations based on host-specific layout
+    of components.
+
+    This function takes as input all details about services being installed, and hosts
+    they are being installed into, to recommend host-specific configurations.
+
+    For backwards compatibility, this function redirects to recommendConfigurations. Implementations
+    should override this function to recommend Kerberos-specific property changes.
+
+    :type services: dict
+    :param services: Dictionary containing all information about services and component layout selected by the user.
+    :type hosts: dict
+    :param hosts: Dictionary containing all information about hosts in this cluster
+    :rtype: dict
+    :return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format.
+    """
+    return self.recommendConfigurations(services, hosts)
+
   def validateConfigurations(self, services, hosts):
     """"
     Returns array of Validation issues with configurations provided by user
@@ -870,6 +890,7 @@ class DefaultStackAdvisor(StackAdvisor):
       if serviceAdvisor is not None:
         serviceComponents = [component for component in service["components"]]
         serviceAdvisor.colocateService(hostsComponentsMap, serviceComponents)
+        serviceAdvisor.colocateServiceWithServicesInfo(hostsComponentsMap, serviceComponents, services)
 
     #prepare 'host-group's from 'hostsComponentsMap'
     host_groups = recommendations["blueprint"]["host_groups"]
@@ -1125,15 +1146,12 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def calculateYarnAllocationSizes(self, configurations, services, hosts):
     # initialize data
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
 
     # calculate memory properties and get cluster data dictionary with whole information
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
 
     # executing code from stack advisor HDP 206
     nodemanagerMinRam = 1048576 # 1TB in mb
@@ -1581,12 +1599,9 @@ class DefaultStackAdvisor(StackAdvisor):
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
 
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
@@ -1605,7 +1620,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     # If recommendation for config groups
     if "config-groups" in services:
-      self.recommendConfigGroupsConfigurations(recommendations, services, components, hosts,
+      self.recommendConfigGroupsConfigurations(recommendations, services, componentsList, hosts,
                                  servicesList)
     else:
       configurations = recommendations["recommendations"]["blueprint"]["configurations"]
@@ -1633,12 +1648,9 @@ class DefaultStackAdvisor(StackAdvisor):
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
 
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
@@ -1657,7 +1669,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     # If recommendation for config groups
     if "config-groups" in services:
-      self.recommendConfigGroupsConfigurations(recommendations, services, components, hosts,
+      self.recommendConfigGroupsConfigurations(recommendations, services, componentsList, hosts,
                                  servicesList)
     else:
       configurations = recommendations["recommendations"]["blueprint"]["configurations"]
@@ -1680,6 +1692,60 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return recommendations
 
+  def recommendConfigurationsForKerberos(self, services, hosts):
+    self.services = services
+
+    stackName = services["Versions"]["stack_name"]
+    stackVersion = services["Versions"]["stack_version"]
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    servicesList, componentsList = self.get_service_and_component_lists(services["services"])
+
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, componentsList, services)
+
+
+    recommendations = {
+      "Versions": {
+        "stack_name": stackName,
+        "stack_version": stackVersion
+      },
+      "hosts": hostsList,
+      "services": servicesList,
+      "recommendations": {
+        "blueprint": {
+          "configurations": {},
+          "host_groups": []
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": []
+        }
+      }
+    }
+
+    # If recommendation for config groups
+    if "config-groups" in services:
+      self.recommendConfigGroupsConfigurations(recommendations, services, componentsList, hosts,
+                                 servicesList)
+    else:
+      configurations = recommendations["recommendations"]["blueprint"]["configurations"]
+
+      # there can be dependencies between service recommendations which require special ordering
+      # for now, make sure custom services (that have service advisors) run after standard ones
+      serviceAdvisors = []
+      recommenderDict = self.getServiceConfigurationRecommenderForKerberosDict()
+      for service in services["services"]:
+        serviceName = service["StackServices"]["service_name"]
+        calculation = recommenderDict.get(serviceName, None)
+        if calculation is not None:
+          calculation(configurations, clusterSummary, services, hosts)
+        else:
+          serviceAdvisor = self.getServiceAdvisor(serviceName)
+          if serviceAdvisor is not None:
+            serviceAdvisors.append(serviceAdvisor)
+      for serviceAdvisor in serviceAdvisors:
+        serviceAdvisor.getServiceConfigurationRecommendationsForKerberos(configurations, clusterSummary, services, hosts)
+
+    return recommendations
+
   def getServiceConfigurationRecommender(self, service):
     return self.getServiceConfigurationRecommenderDict().get(service, None)
 
@@ -1687,6 +1753,9 @@ class DefaultStackAdvisor(StackAdvisor):
     return {}
 
   def getServiceConfigurationRecommenderForSSODict(self):
+    return {}
+
+  def getServiceConfigurationRecommenderForKerberosDict(self):
     return {}
 
   # Recommendation helper methods
@@ -2281,7 +2350,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return sorted(mounts)
 
-  def getMountPathVariations(self, initial_value, component_name, services, hosts):
+  def getMountPathVariations(self, initial_value, component_name, services, hosts, banned_mounts=[]):
     """
     Recommends best fitted mount by prefixing path with it.
 
@@ -2292,6 +2361,7 @@ class DefaultStackAdvisor(StackAdvisor):
     :type component_name str
     :type services dict
     :type hosts dict
+    :type banned_mounts list
     :rtype list
     """
     available_mounts = []
@@ -2300,6 +2370,8 @@ class DefaultStackAdvisor(StackAdvisor):
       return available_mounts
 
     mounts = self.__getSameHostMounts(hosts)
+    for banned in banned_mounts:
+      mounts.remove(banned)
     sep = "/"
 
     if not mounts:
@@ -2313,7 +2385,7 @@ class DefaultStackAdvisor(StackAdvisor):
     # no list transformations after filling the list, because this will cause item order change
     return available_mounts
 
-  def getMountPathVariation(self, initial_value, component_name, services, hosts):
+  def getMountPathVariation(self, initial_value, component_name, services, hosts, banned_mounts=[]):
     """
     Recommends best fitted mount by prefixing path with it.
 
@@ -2324,14 +2396,15 @@ class DefaultStackAdvisor(StackAdvisor):
         :type component_name str
     :type services dict
     :type hosts dict
+    :type banned_mounts list
     :rtype str
     """
     try:
-      return [self.getMountPathVariations(initial_value, component_name, services, hosts)[0]]
+      return [self.getMountPathVariations(initial_value, component_name, services, hosts, banned_mounts)[0]]
     except IndexError:
       return []
 
-  def updateMountProperties(self, siteConfig, propertyDefinitions, configurations,  services, hosts):
+  def updateMountProperties(self, siteConfig, propertyDefinitions, configurations,  services, hosts, banned_mounts=[]):
     """
     Update properties according to recommendations for available mount-points
 
@@ -2350,6 +2423,7 @@ class DefaultStackAdvisor(StackAdvisor):
     :type configurations dict
     :type services dict
     :type hosts dict
+    :type banned_mounts list
     """
 
     props = self.getServicesSiteProperties(services, siteConfig)
@@ -2361,14 +2435,14 @@ class DefaultStackAdvisor(StackAdvisor):
 
       if props is None or name not in props:
         if rc_type == "multi":
-          recommendation = self.getMountPathVariations(default_value, component, services, hosts)
+          recommendation = self.getMountPathVariations(default_value, component, services, hosts, banned_mounts)
         else:
-          recommendation = self.getMountPathVariation(default_value, component, services, hosts)
+          recommendation = self.getMountPathVariation(default_value, component, services, hosts, banned_mounts)
       elif props and name in props and props[name] == default_value:
         if rc_type == "multi":
-          recommendation = self.getMountPathVariations(default_value, component, services, hosts)
+          recommendation = self.getMountPathVariations(default_value, component, services, hosts, banned_mounts)
         else:
-          recommendation = self.getMountPathVariation(default_value, component, services, hosts)
+          recommendation = self.getMountPathVariation(default_value, component, services, hosts, banned_mounts)
 
       if recommendation:
         put_f(name, ",".join(recommendation))
@@ -2540,7 +2614,8 @@ class DefaultStackAdvisor(StackAdvisor):
                  ("hive-env", "webhcat_user", {HOSTS_PROPERTY: ["WEBHCAT_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
       "YARN":   [("yarn-env", "yarn_user", {HOSTS_PROPERTY: ["RESOURCEMANAGER"]}, lambda services, hosts: len(self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)) > 1)],
       "FALCON": [("falcon-env", "falcon_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
-      "SPARK":  [("livy-env", "livy_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})]
+      "SPARK":  [("livy-env", "livy_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
+      "SPARK2":  [("livy2-env", "livy2_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})]
     }
 
   def _getHadoopProxyUsersForService(self, serviceName, serviceUserComponents, services, hosts, configurations):
@@ -3166,3 +3241,17 @@ class DefaultStackAdvisor(StackAdvisor):
       return int(re.sub("\D", "", s))
     except ValueError:
       return None
+
+  def get_service_and_component_lists(self, services):
+    serviceList = []
+    componentList = []
+
+    if services:
+      for service in services:
+        serviceList.append(service["StackServices"]["service_name"])
+
+        if service["components"]:
+          for component in service["components"]:
+            componentList.append(component["StackServiceComponents"]["component_name"])
+
+    return serviceList, componentList

@@ -21,7 +21,7 @@
   {{t common.version}}:
   <span><strong>{{view.displayedServiceVersion.version}}</strong><span class="caret"></span></span>
 </button>
-<div class="dropdown-menu">
+<div class="dropdown-menu bottom-shadow">
   <li class="input-group search-input">
     {{view Em.TextField valueBinding="view.filterValue" class="form-control" placeholderBinding="view.searchLabel"}}
     <span class="input-group-btn">
@@ -58,9 +58,12 @@
           </div>
         </div>
         {{#unless view.isCompareMode}}
-          <button {{bindAttr class="item.isDisplayed:hide :compare-button :btn :btn-default"}}
-            {{action compare item target="view.parentView"}}>
-            <i class="glyphicon glyphicon-duplicate" aria-hidden="true"></i>
+          <button data-toggle="tooltip" data-placement="right"
+            {{bindAttr class="item.isDisplayed:hide :compare-button :btn :btn-default"}}
+            {{action compare item target="view.parentView"}}
+            {{translateAttr title="dashboard.configHistory.info-bar.compare.tooltip"
+                            data-original-title="dashboard.configHistory.info-bar.compare.tooltip"}}>
+            <i class="icon-exchange" aria-hidden="true"></i>
           </button>
         {{/unless}}
       </li>

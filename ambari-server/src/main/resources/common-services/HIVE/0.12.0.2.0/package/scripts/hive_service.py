@@ -72,6 +72,7 @@ def hive_service(name, action='start', upgrade_type=None):
   process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
 
   if action == 'start':
+
     if name == 'hiveserver2':
       check_fs_root(params.hive_server_conf_dir, params.execute_path)
 

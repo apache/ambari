@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 
@@ -46,13 +47,13 @@ public class TimelineMetricsHolderTest {
     @Test
     public void testGetInstanceWithParameters() throws Exception {
         clearHolderSingleton();
-        Assert.assertNotNull(TimelineMetricsHolder.getInstance(1,2));
+        Assert.assertNotNull(TimelineMetricsHolder.getInstance(1,2, Collections.EMPTY_LIST));
     }
 
     @Test
     public void testCache() throws Exception {
         clearHolderSingleton();
-        timelineMetricsHolderInstance = TimelineMetricsHolder.getInstance(4,4);
+        timelineMetricsHolderInstance = TimelineMetricsHolder.getInstance(4,4, Collections.EMPTY_LIST);
         timelineMetricsHolderInstance.putMetricsForAggregationPublishing(getTimelineMetricsWithAppID("aggr"));
         timelineMetricsHolderInstance.putMetricsForRawPublishing(getTimelineMetricsWithAppID("raw"));
 

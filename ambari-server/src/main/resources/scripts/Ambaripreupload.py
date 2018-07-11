@@ -148,9 +148,14 @@ with Environment() as env:
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
     })
     fs_default = get_fs_root()
-    slider_home_dir = '/usr/hdp/' + stack_version + '/slider'
-    slider_lib_dir = slider_home_dir + '/lib'
-    slider_tarball = slider_lib_dir + "/slider.tar.gz"
+    yarn_home_dir = '/usr/hdp/' + stack_version + '/hadoop-yarn'
+    yarn_lib_dir = yarn_home_dir + '/lib'
+    yarn_service_tarball = yarn_lib_dir + '/service-dep.tar.gz'
+    hdfs_home_dir = '/usr/hdp/' + stack_version + '/hadoop-hdfs'
+    hdfs_lib_dir = hdfs_home_dir + '/lib'
+    hadoop_home_dir = '/usr/hdp/' + stack_version + '/hadoop'
+    hadoop_lib_dir = hadoop_home_dir + '/lib'
+   
     oozie_secure = ''
     oozie_home="/usr/hdp/" + stack_version + "/oozie"
     oozie_setup_sh=format("/usr/hdp/" + stack_version + "/oozie/bin/oozie-setup.sh")
@@ -304,14 +309,16 @@ with Environment() as env:
     params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
                         owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=SQL_DRIVER_PATH)
 
-  def recreate_slider_tarball():
+  def create_yarn_service_tarball():
     """
-    Re-create tarball to include extra jars, which were put into slider lib dir.
+    Create tarball to include YARN Service dependency jars
     """
-    Logger.info(format("Re-creating {slider_tarball}"))
-    with closing(tarfile.open(params.slider_tarball, "w:gz")) as tar:
-      for filepath in glob.glob(format("{slider_lib_dir}/*.jar")):
-        tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
+    Logger.info(format("Creating {yarn_service_tarball}"))
+    folders = [yarn_home_dir, yarn_lib_dir, hdfs_home_dir, hdfs_lib_dir, hadoop_home_dir, hadoop_lib_dir]
+    with closing(tarfile.open(params.yarn_service_tarball, "w:gz")) as tar:
+      for folder in folders:
+        for filepath in glob.glob(format("{folder}/*.jar")):
+          tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
       
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
@@ -350,7 +357,7 @@ with Environment() as env:
   oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")
   kinit_if_needed = ''
 
-  recreate_slider_tarball()
+  create_yarn_service_tarball()
 
   if options.upgrade:
     Logger.info("Skipping uploading oozie shared lib during upgrade")
@@ -429,7 +436,7 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/slider/lib/slider.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/slider/", 'hadoop-mapreduce-historyserver', params.hdfs_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-yarn/lib/service-dep.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/yarn/", 'hadoop-mapreduce-historyserver', params.hdfs_user, params.hdfs_user, params.user_group)
   
   createHdfsResources()
   copy_zeppelin_dependencies_to_hdfs(format("/usr/hdp/{stack_version}/zeppelin/interpreter/spark/dep/zeppelin-spark-dependencies*.jar"))

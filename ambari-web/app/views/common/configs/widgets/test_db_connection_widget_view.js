@@ -21,6 +21,7 @@ require('views/common/controls_view');
 var App = require('app');
 var dbUtils = require('utils/configs/database');
 
+//@Todo merge with CheckDBConnectionView
 App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/test_db_connection_widget'),
   classNames: ['widget'],
@@ -187,6 +188,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   connectToDatabase: function () {
     if (this.get('isBtnDisabled')) return;
     this.set('isRequestResolved', false);
+    App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', {});
     this.setConnectingStatus(true);
     if (App.get('testMode')) {
       this.startPolling();
@@ -274,6 +276,51 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
     this.set('request', request);
   },
 
+  preparedDBProperties: function() {
+    var propObj = {};
+    var serviceName = this.get('config.serviceName');
+    var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
+    for (var key in this.get('propertiesPattern')) {
+      var propName = this.getConnectionProperty(this.get('propertiesPattern')[key], true);
+      propObj[propName] = serviceConfigs.findProperty('name', propName).get('value');
+    }
+    return propObj;
+  }.property(),
+
+  requiredProps: function() {
+    var ranger = App.StackService.find().findProperty('serviceName', 'RANGER');
+    var propertiesMap = {
+      OOZIE: ['oozie.db.schema.name', 'oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password', 'oozie.service.JPAService.jdbc.driver', 'oozie.service.JPAService.jdbc.url'],
+      HIVE: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL'],
+      KERBEROS: ['kdc_hosts'],
+      RANGER: ranger && ranger.compareCurrentVersion('0.5') > -1 ?
+        ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
+        ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver'],
+      RANGER_KMS: ['db_user', 'db_password', 'ranger.ks.jpa.jdbc.url', 'ranger.ks.jpa.jdbc.driver']
+    };
+    return propertiesMap[this.get('parentView.content.serviceName')];
+  }.property(),
+
+  getConnectionProperty: function (regexp, isGetName) {
+    var serviceName = this.get('config.serviceName');
+    var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
+    var propertyName = this.get('requiredProps').filter(function (item) {
+      return regexp.test(item);
+    })[0];
+    return (isGetName) ? propertyName : serviceConfigs.findProperty('name', propertyName).get('value');
+  },
+
+  propertiesPattern: function() {
+    var patterns = {
+      db_connection_url: /jdbc\.url|connection_url|connectionurl|kdc_hosts/ig
+    };
+    if (this.get('parentView.service.serviceName') != "KERBEROS") {
+      patterns.user_name = /(username|dblogin|db_user)$/ig;
+      patterns.user_passwd = /(dbpassword|password|db_password)$/ig;
+    }
+    return patterns;
+  }.property('parentView.service.serviceName'),
+
   getTaskInfoSuccess: function (data) {
     var task = data.Tasks;
     this.set('responseFromServer', {
@@ -290,6 +337,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
         });
         this.setResponseStatus('failed');
       } else {
+        App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', this.get('preparedDBProperties'));
         this.setResponseStatus('success');
       }
     }

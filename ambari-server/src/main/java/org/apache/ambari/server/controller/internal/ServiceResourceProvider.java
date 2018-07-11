@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -73,7 +74,7 @@ import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.tuple.Pair;
@@ -169,7 +170,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private KerberosHelper kerberosHelper;
 
-  private final TopologyDeleteFormer topologyDeleteFormer;
+
+  @Inject
+  private STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler;
+
+
 
   // ----- Constructors ----------------------------------------------------
 
@@ -181,12 +186,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @AssistedInject
   public ServiceResourceProvider(
     @Assisted AmbariManagementController managementController,
-    MaintenanceStateHelper maintenanceStateHelper,
-    TopologyDeleteFormer topologyDeleteFormer
+    MaintenanceStateHelper maintenanceStateHelper
   ) {
     super(Resource.Type.Service, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
-    this.topologyDeleteFormer = topologyDeleteFormer;
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
     setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_SERVICE);
@@ -814,7 +817,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     return controller.addStages(requestStages, cluster, requestProperties,
       null, changedServices, changedComps, changedScHosts,
-        ignoredScHosts, runSmokeTest, reconfigureClients);
+        ignoredScHosts, runSmokeTest, reconfigureClients, false);
   }
 
   private void updateServiceComponents(RequestStageContainer requestStages,
@@ -954,24 +957,20 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         // Run through the list of service component hosts. If all host components are in removable state,
         // the service can be deleted, irrespective of it's state.
         //
-        boolean isServiceRemovable = true;
+        List<ServiceComponentHost> nonRemovableComponents =  service.getServiceComponents().values().stream()
+          .flatMap(sch -> sch.getServiceComponentHosts().values().stream())
+          .filter(sch -> !sch.canBeRemoved())
+          .collect(Collectors.toList());
 
-        for (ServiceComponent sc : service.getServiceComponents().values()) {
-          Map<String, ServiceComponentHost> schHostMap = sc.getServiceComponentHosts();
+        if (!nonRemovableComponents.isEmpty()) {
+          for (ServiceComponentHost sch: nonRemovableComponents){
+            String msg = String.format("Cannot remove %s/%s. %s on %s is in %s state.",
+              serviceRequest.getClusterName(), serviceRequest.getServiceName(), sch.getServiceComponentName(),
+              sch.getHost(), String.valueOf(sch.getState()));
 
-          for (Map.Entry<String, ServiceComponentHost> entry : schHostMap.entrySet()) {
-            ServiceComponentHost sch = entry.getValue();
-            if (!sch.canBeRemoved()) {
-              String msg = "Cannot remove " + serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
-                      ". " + sch.getServiceComponentName() + "on " + sch.getHost() + " is in " +
-                      String.valueOf(sch.getDesiredState()) + " state.";
-              LOG.error(msg);
-              isServiceRemovable = false;
-            }
+            LOG.error(msg);
           }
-        }
 
-        if (!isServiceRemovable) {
           throw new AmbariException ("Cannot remove " +
                   serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
                     ". " + "One or more host components are in a non-removable state.");
@@ -984,9 +983,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
     for (Service service : removable) {
       service.getCluster().deleteService(service.getName(), deleteMetaData);
-      topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
+      STOMPComponentsDeleteHandler.processDeleteByMetaDataException(deleteMetaData);
     }
-    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
+    STOMPComponentsDeleteHandler.processDeleteByMetaData(deleteMetaData);
 
     return null;
   }

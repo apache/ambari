@@ -61,7 +61,10 @@ class KerberosServiceCheck(Script):
       try:
         # kinit
         Execute(kinit_command,
-                user=params.smoke_user
+                user=params.smoke_user,
+                wait_for_finish=True,
+                tries=9,
+                try_sleep=15
                 )
       finally:
         File(ccache_file_path,

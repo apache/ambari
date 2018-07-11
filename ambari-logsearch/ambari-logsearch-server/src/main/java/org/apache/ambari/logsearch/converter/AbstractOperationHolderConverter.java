@@ -99,7 +99,8 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
 
   public Query addInFilterQuery(Query query, String field, List<String> values, boolean negate) {
     if (CollectionUtils.isNotEmpty(values)) {
-      addFilterQuery(query, new Criteria(field).is(values), negate);
+      String orQueryStr = StringUtils.join(values, " OR ");
+      addFilterQuery(query, new Criteria(field).in(orQueryStr.split(" ")), negate);
     }
     return query;
   }
@@ -139,6 +140,23 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
     return query;
   }
 
+  public SolrQuery addIncludeFieldValues(SolrQuery query, String fieldValuesMapStr) {
+    if (StringUtils.isNotEmpty(fieldValuesMapStr)) {
+      List<Map<String, String>> criterias = new Gson().fromJson(fieldValuesMapStr,
+        new TypeToken<List<HashMap<String, String>>>(){}.getType());
+      for (Map<String, String> criteriaMap : criterias) {
+        for (Map.Entry<String, String> fieldEntry : criteriaMap.entrySet()) {
+          if (fieldEntry.getKey().equalsIgnoreCase(LOG_MESSAGE)) {
+            addLogMessageFilter(query, fieldEntry.getValue(), false);
+          } else {
+            query.addFilterQuery(String.format("%s:%s", fieldEntry.getKey(), escapeNonLogMessageField(fieldEntry)));
+          }
+        }
+      }
+    }
+    return query;
+  }
+
   public Query addExcludeFieldValues(Query query, String fieldValuesMapStr) {
     if (StringUtils.isNotEmpty(fieldValuesMapStr)) {
       List<Map<String, String>> criterias = new Gson().fromJson(fieldValuesMapStr,
@@ -149,6 +167,23 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
             addLogMessageFilter(query, fieldEntry.getValue(), true);
           } else {
             addFilterQuery(query, new Criteria(fieldEntry.getKey()).is(escapeNonLogMessageField(fieldEntry)), true);
+          }
+        }
+      }
+    }
+    return query;
+  }
+
+  public SolrQuery addExcludeFieldValues(SolrQuery query, String fieldValuesMapStr) {
+    if (StringUtils.isNotEmpty(fieldValuesMapStr)) {
+      List<Map<String, String>> criterias = new Gson().fromJson(fieldValuesMapStr,
+        new TypeToken<List<HashMap<String, String>>>(){}.getType());
+      for (Map<String, String> criteriaMap : criterias) {
+        for (Map.Entry<String, String> fieldEntry : criteriaMap.entrySet()) {
+          if (fieldEntry.getKey().equalsIgnoreCase(LOG_MESSAGE)) {
+            addLogMessageFilter(query, fieldEntry.getValue(), true);
+          } else {
+            query.addFilterQuery(String.format("-%s:%s", fieldEntry.getKey(), escapeNonLogMessageField(fieldEntry)));
           }
         }
       }
@@ -177,6 +212,26 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
       } else if (!token.startsWith("*") && token.endsWith("*")) {
         String plainToken = StringUtils.substring(token, 0, -1);
         addFilterQuery(query, new Criteria(LOG_MESSAGE).startsWith(SolrUtil.escapeQueryChars(plainToken)), negate);
+      }
+    }
+  }
+
+  private void addLogMessageFilter(SolrQuery query, String value, boolean negate) {
+    StrTokenizer tokenizer = new StrTokenizer(value, ' ', '"');
+    String negateToken = negate ? "-" : "";
+    for (String token : tokenizer.getTokenArray()) {
+      token = token.trim();
+      if (token.contains(" ") || !token.startsWith("*") && !token.endsWith("*")) {
+        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(token)));
+      } else if (token.startsWith("*") && token.endsWith("*")) {
+        String plainToken = StringUtils.substring(token, 1, -1);
+        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(plainToken)));
+      } else if (token.startsWith("*") && !token.endsWith("*")) {
+        String plainToken = StringUtils.substring(token, 1);
+        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(plainToken)));
+      } else if (!token.startsWith("*") && token.endsWith("*")) {
+        String plainToken = StringUtils.substring(token, 0, -1);
+        query.addFilterQuery(String.format("%s%s:%s", negateToken, LOG_MESSAGE, SolrUtil.escapeQueryChars(plainToken)));
       }
     }
   }

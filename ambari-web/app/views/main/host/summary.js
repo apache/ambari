@@ -54,7 +54,65 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   /**
    * Host metrics panel not displayed when Metrics service (ex:Ganglia) is not in stack definition.
    */
-  isNoHostMetricsService: Em.computed.equal('App.services.hostMetrics.length', 0),
+  hasHostMetricsService: Em.computed.gt('App.services.hostMetrics.length', 0),
+
+  nameNodeComponent: Em.computed.findBy('content.hostComponents', 'componentName', 'NAMENODE'),
+
+  hasNameNode: Em.computed.bool('nameNodeComponent'),
+
+  showHostMetricsBlock: Em.computed.or('hasHostMetricsService', 'hasNameNode'),
+
+  nameNodeWidgets: function () {
+    const hasNameNode = this.get('hasNameNode');
+    let widgets = [];
+    if (hasNameNode) {
+      const model = App.HDFSService.find('HDFS'),
+        hostName = this.get('content.hostName'),
+        widgetsDefinitions = require('data/dashboard_widgets').toMapByProperty('viewName');
+      widgets.pushObjects([
+        App.NameNodeHeapPieChartView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-heap',
+          title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeHeapPieChartView.threshold,
+          }
+        }),
+        App.NameNodeCpuPieChartView.extend({
+          widgetHtmlId: 'nn-cpu',
+          title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeCpuPieChartView.threshold
+          },
+          subGroupId: this.get('nameNodeComponent.haNameSpace'),
+          activeNameNodes: [this.get('nameNodeComponent')],
+          nameNode: this.get('nameNodeComponent')
+        }),
+        App.NameNodeRpcView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-rpc',
+          title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeRpcView.threshold
+          }
+        }),
+        App.NameNodeUptimeView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-uptime',
+          title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
+          showActions: false,
+          subGroupId: this.get('nameNodeComponent.haNameSpace')
+        })
+      ]);
+    }
+    return widgets;
+  }.property('hasNameNode'),
 
   /**
    * Message for "restart" block
@@ -187,7 +245,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @returns {boolean}
    */
   hasCardinalityConflict: function(componentName) {
-    var totalCount = App.SlaveComponent.find(componentName).get('totalCount');
+    var totalCount = App.HostComponent.getCount(componentName, 'totalCount');
     var maxToInstall = App.StackServiceComponent.find(componentName).get('maxToInstall');
     return !(totalCount < maxToInstall);
   },

@@ -97,11 +97,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http
       .csrf().disable()
-      .sessionManagement()
-         .sessionFixation()
-         .newSession()
-         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-      .and()
       .authorizeRequests()
         .requestMatchers(requestMatcher()).permitAll()
         .antMatchers("/**").authenticated()
@@ -137,7 +132,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogsearchKRBAuthenticationFilter logsearchKRBAuthenticationFilter() {
-    return new LogsearchKRBAuthenticationFilter();
+    return new LogsearchKRBAuthenticationFilter(requestMatcher());
   }
 
   @Bean

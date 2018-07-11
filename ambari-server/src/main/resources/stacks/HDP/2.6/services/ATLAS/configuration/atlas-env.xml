@@ -31,7 +31,7 @@
     <name>atlas.admin.password</name>
     <display-name>Admin password</display-name>
     <description>Admin Login password</description>
-    <value>admin</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <value-attributes>
       <type>password</type>

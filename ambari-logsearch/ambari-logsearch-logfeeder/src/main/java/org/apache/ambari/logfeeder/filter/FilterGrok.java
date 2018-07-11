@@ -71,6 +71,8 @@ public class FilterGrok extends Filter<LogFeederProps> {
 
   private MetricData grokErrorMetric = new MetricData("filter.error.grok", false);
 
+  private boolean skipOnError = false;
+
   @Override
   public void init(LogFeederProps logFeederProps) throws Exception {
     super.init(logFeederProps);
@@ -80,6 +82,7 @@ public class FilterGrok extends Filter<LogFeederProps> {
       multilinePattern = escapePattern(((FilterGrokDescriptor)getFilterDescriptor()).getMultilinePattern());
       sourceField = getFilterDescriptor().getSourceField();
       removeSourceField = BooleanUtils.toBooleanDefaultIfNull(getFilterDescriptor().isRemoveSourceField(), removeSourceField);
+      skipOnError = ((FilterGrokDescriptor) getFilterDescriptor()).isSkipOnError();
 
       LOG.info("init() done. grokPattern=" + messagePattern + ", multilinePattern=" + multilinePattern + ", " +
       getShortDescription());
@@ -92,6 +95,11 @@ public class FilterGrok extends Filter<LogFeederProps> {
       grokMessage = new Grok();
       loadPatterns(grokMessage);
       grokMessage.compile(messagePattern);
+      if (((FilterGrokDescriptor)getFilterDescriptor()).isDeepExtract()) {
+        extractNamedParams(grokMessage.getNamedRegexCollection());
+      } else {
+        extractNamedParams(messagePattern, namedParamList);
+      }
       if (!StringUtils.isEmpty(multilinePattern)) {
         extractNamedParams(multilinePattern, multiLineamedParamList);
 
@@ -134,6 +142,16 @@ public class FilterGrok extends Filter<LogFeederProps> {
     }
   }
 
+  private void extractNamedParams(Map<String, String> namedRegexCollection) {
+    if (namedRegexCollection != null) {
+      for (String paramValue : namedRegexCollection.values()) {
+        if (paramValue.toLowerCase().equals(paramValue)) {
+          namedParamList.add(paramValue);
+        }
+      }
+    }
+  }
+
   private boolean loadPatterns(Grok grok) {
     InputStreamReader grokPatternsReader = null;
     LOG.info("Loading pattern file " + GROK_PATTERN_FILE);
@@ -166,10 +184,11 @@ public class FilterGrok extends Filter<LogFeederProps> {
 
     if (grokMultiline != null) {
       String jsonStr = grokMultiline.capture(inputStr);
-      if (!"{}".equals(jsonStr)) {
+      if (!"{}".equals(jsonStr) || skipOnError) {
         if (strBuff != null) {
           Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
           try {
+            LogFeederUtil.fillMapWithFieldDefaults(jsonObj, inputMarker, false);
             applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
           } finally {
             strBuff = null;
@@ -189,6 +208,7 @@ public class FilterGrok extends Filter<LogFeederProps> {
     } else {
       savedInputMarker = inputMarker;
       Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
+      LogFeederUtil.fillMapWithFieldDefaults(jsonObj, inputMarker, false);
       applyMessage(inputStr, jsonObj, null);
     }
   }
@@ -197,6 +217,7 @@ public class FilterGrok extends Filter<LogFeederProps> {
   public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
     if (sourceField != null) {
       savedInputMarker = inputMarker;
+      LogFeederUtil.fillMapWithFieldDefaults(jsonObj, inputMarker, false);
       applyMessage((String) jsonObj.get(sourceField), jsonObj, null);
       if (removeSourceField) {
         jsonObj.remove(sourceField);
@@ -208,7 +229,7 @@ public class FilterGrok extends Filter<LogFeederProps> {
     String jsonStr = grokMessage.capture(inputStr);
 
     boolean parseError = false;
-    if ("{}".equals(jsonStr)) {
+    if ("{}".equals(jsonStr) && !skipOnError) {
       parseError = true;
       logParseError(inputStr);
 

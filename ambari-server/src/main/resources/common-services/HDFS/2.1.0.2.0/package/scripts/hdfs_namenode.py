@@ -29,6 +29,7 @@ from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.namenode_ha_utils import get_name_service_by_hostname
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
@@ -120,7 +121,6 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
       format_namenode()
       pass
 
-
     if params.dfs_ha_enabled and \
       params.dfs_ha_namenode_standby is not None and \
       (params.hostname == params.dfs_ha_namenode_standby or params.public_hostname == params.dfs_ha_namenode_standby):
@@ -177,6 +177,8 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
 
+    name_service = get_name_service_by_hostname(params.hdfs_site, params.hostname)
+
     # ___Scenario___________|_Expected safemode state__|_Wait for safemode OFF____|
     # no-HA                 | ON -> OFF                | Yes                      |
     # HA and active         | ON -> OFF                | Yes                      |
@@ -198,7 +200,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
     if params.dfs_ha_enabled:
       Logger.info("Waiting for the NameNode to broadcast whether it is Active or Standby...")
 
-      if is_this_namenode_active() is False:
+      if is_this_namenode_active(name_service) is False:
         # we are the STANDBY NN
         is_active_namenode = False
 
@@ -233,7 +235,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
     # in the case where safemode was ignored (like during an express upgrade), then
     # NN will be in SafeMode and cannot have directories created
     if is_active_namenode and ensure_safemode_off:
-      create_hdfs_directories()
+      create_hdfs_directories(name_service)
       create_ranger_audit_hdfs_directories()
     else:
       Logger.info("Skipping creation of HDFS directories since this is either not the Active NameNode or we did not wait for Safemode to finish.")
@@ -293,20 +295,24 @@ def create_name_dirs(directories):
   )
 
 
-def create_hdfs_directories():
+def create_hdfs_directories(name_service):
   import params
+
+  name_services = None if name_service is None else [name_service]
 
   params.HdfsResource(params.hdfs_tmp_dir,
                        type="directory",
                        action="create_on_execute",
                        owner=params.hdfs_user,
                        mode=0777,
+                       nameservices=name_services,
   )
   params.HdfsResource(params.smoke_hdfs_user_dir,
                        type="directory",
                        action="create_on_execute",
                        owner=params.smoke_user,
                        mode=params.smoke_hdfs_user_mode,
+                       nameservices=name_services,
   )
   params.HdfsResource(None,
                       action="execute",
@@ -589,7 +595,7 @@ def find_timeout():
 
 
 @retry(sleep_time=5, backoff_factor=2, err_class=Fail, timeout_func=find_timeout)
-def is_this_namenode_active():
+def is_this_namenode_active(name_service):
   """
   Gets whether the current NameNode is Active. This function will wait until the NameNode is
   listed as being either Active or Standby before returning a value. This is to ensure that
@@ -608,7 +614,7 @@ def is_this_namenode_active():
   #          0                                              1                                             2
   #
   namenode_states = namenode_ha_utils.get_namenode_states(params.hdfs_site, params.security_enabled,
-    params.hdfs_user, times=5, sleep_time=5, backoff_factor=2)
+    params.hdfs_user, times=5, sleep_time=5, backoff_factor=2, name_service=name_service)
 
   # unwraps [('nn1', 'c6401.ambari.apache.org:50070')]
   active_namenodes = [] if len(namenode_states[0]) < 1 else namenode_states[0]

@@ -70,6 +70,9 @@ public abstract class LSServerInput {
   
   @JsonProperty("is_enabled")
   private Boolean isEnabled;
+
+  @JsonProperty("init_default_fields")
+  private Boolean initDefaultFields;
   
   public LSServerInput() {}
   
@@ -88,6 +91,7 @@ public abstract class LSServerInput {
     this.cacheSize = inputDescriptor.getCacheSize();
     this.cacheDedupInterval = inputDescriptor.getCacheDedupInterval();
     this.isEnabled = inputDescriptor.isEnabled();
+    this.initDefaultFields = inputDescriptor.isInitDefaultFields();
   }
 
   public String getType() {
@@ -144,5 +148,9 @@ public abstract class LSServerInput {
 
   public Boolean getIsEnabled() {
     return isEnabled;
+  }
+
+  public Boolean getInitDefaultFields() {
+    return initDefaultFields;
   }
 }

@@ -94,7 +94,7 @@ describe('App.MainDashboardWidgetsView', function () {
 
   describe('#saveWidgetsSettings()', function() {
 
-    var userPreferences = {visible: [], hidden: [], threshold: {}};
+    var userPreferences = {visible: [], hidden: [], threshold: {}, groups: {}};
 
     beforeEach(function () {
       sinon.stub(view, 'setDBProperty', Em.K);
@@ -265,13 +265,25 @@ describe('App.MainDashboardWidgetsView', function () {
     describe('should set visibleWidgets and hiddenWidgets', function() {
 
       beforeEach(function () {
-        view.set('userPreferences', {
-          visible: [1],
-          hidden: [2],
-          threshold: {
-            1: [],
-            2: [1,2]
-          }
+        view.setProperties({
+          userPreferences: {
+            visible: [1],
+            hidden: [2],
+            threshold: {
+              1: [],
+              2: [1,2]
+            }
+          },
+          widgetGroups: [
+            Em.Object.create({
+              allWidgets: [],
+              subGroups: [
+                {
+                  name: 'n'
+                }
+              ]
+            })
+          ]
         });
         view.renderWidgets();
       });
@@ -296,7 +308,7 @@ describe('App.MainDashboardWidgetsView', function () {
         });
 
         it('viewClass', function () {
-          expect(widget.get('viewClass')).to.be.eql(App.NameNodeHeapPieChartView);
+          expect(widget.get('viewClass').constructor).to.be.eql(App.NameNodeHeapPieChartView.extend().constructor);
         });
 
         it('sourceName', function () {

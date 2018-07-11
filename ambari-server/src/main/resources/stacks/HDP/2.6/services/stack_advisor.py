@@ -59,6 +59,10 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "RANGER": self.recommendRangerConfigurationsForSSO
       }
 
+  def getServiceConfigurationRecommenderForKerberosDict(self):
+    # For backwards compatibility, return the dict use for general stack advisor calls.
+    return self.getServiceConfigurationRecommenderDict()
+
   def recommendSPARK2Configurations(self, configurations, clusterData, services, hosts):
     """
     :type configurations dict
@@ -100,6 +104,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
 
   def recommendAtlasConfigurationsForSSO(self, configurations, clusterData, services, hosts):
     ambari_configuration = self.get_ambari_configuration(services)
+    ambari_sso_details = ambari_configuration.get_ambari_sso_details() if ambari_configuration else None
 
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
 
@@ -119,19 +124,17 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
       putAtlasApplicationProperty('atlas.sso.knox.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
 
-    # If SSO should be enabled for this service
-    if ambari_configuration.should_enable_sso('ATLAS'):
-      putAtlasApplicationProperty('atlas.sso.knox.enabled', "true")
+    if ambari_sso_details and ambari_sso_details.is_managing_services():
+      # If SSO should be enabled for this service
+      if ambari_sso_details.should_enable_sso('ATLAS'):
+        putAtlasApplicationProperty('atlas.sso.knox.enabled', "true")
+        putAtlasApplicationProperty('atlas.sso.knox.providerurl', ambari_sso_details.get_sso_provider_url())
+        putAtlasApplicationProperty('atlas.sso.knox.publicKey', ambari_sso_details.get_sso_provider_certificate(False, True))
+        putAtlasApplicationProperty('atlas.sso.knox.browser.useragent', 'Mozilla,chrome')
 
-      ambari_sso_details = ambari_configuration.get_ambari_sso_details()
-      if ambari_sso_details:
-        putAtlasApplicationProperty('atlas.sso.knox.providerurl', ambari_sso_details.get_jwt_provider_url())
-        putAtlasApplicationProperty('atlas.sso.knox.publicKey', ambari_sso_details.get_jwt_public_key(False, True))
-        putAtlasApplicationProperty('atlas.sso.knox.browser.useragent', 'Mozilla,Chrome')
-
-    # If SSO should be disabled for this service
-    elif ambari_configuration.should_disable_sso('ATLAS'):
-      putAtlasApplicationProperty('atlas.sso.knox.enabled', "false")
+      # If SSO should be disabled for this service
+      elif ambari_sso_details.should_disable_sso('ATLAS'):
+        putAtlasApplicationProperty('atlas.sso.knox.enabled', "false")
 
     # Set the proxy user
     knox_service_user = services['configurations']['knox-env']['properties']['knox_user'] \
@@ -249,6 +252,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
             putSupersetProperty("SUPERSET_DATABASE_PORT", "3306")
         elif superset_database_type == "postgresql":
             putSupersetProperty("SUPERSET_DATABASE_PORT", "5432")
+        elif superset_database_type == "sqlite":
+            putSupersetProperty("SUPERSET_DATABASE_PORT", "")
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
@@ -565,13 +570,25 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
 
     self.recommendRangerConfigurationsForSSO(configurations, clusterData, services, hosts)
 
+
   def recommendRangerConfigurationsForSSO(self, configurations, clusterData, services, hosts):
     ambari_configuration = self.get_ambari_configuration(services)
+    ambari_sso_details = ambari_configuration.get_ambari_sso_details() if ambari_configuration else None
 
-    # If SSO should be enabled for this service, continue
-    if ambari_configuration.should_enable_sso('RANGER'):
-      #TODO: See AMBARI-23332
-      pass
+    if ambari_sso_details and ambari_sso_details.is_managing_services():
+      putRangerAdminSiteProperty = self.putProperty(configurations, "ranger-admin-site", services)
+
+      # If SSO should be enabled for this service, continue
+      if ambari_sso_details.should_enable_sso('RANGER'):
+        putRangerAdminSiteProperty('ranger.sso.enabled', "true")
+        putRangerAdminSiteProperty('ranger.sso.providerurl', ambari_sso_details.get_sso_provider_url())
+        putRangerAdminSiteProperty('ranger.sso.publicKey', ambari_sso_details.get_sso_provider_certificate(False, True))
+        putRangerAdminSiteProperty('ranger.sso.browser.useragent', 'Mozilla,chrome')
+
+      # If SSO should be disabled for this service
+      elif ambari_sso_details.should_disable_sso('RANGER'):
+        putRangerAdminSiteProperty('ranger.sso.enabled', "false")
+
 
   def validateRangerUsersyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_usersync_properties = properties
@@ -674,51 +691,38 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     # druid is not in list of services to be installed
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'DRUID' in servicesList:
-        putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
-        if 'druid-coordinator' in services['configurations']:
-            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_COORDINATOR', services, hosts)
-            if component_hosts is not None and len(component_hosts) > 0:
-                # pick the first
-                host = component_hosts[0]
-            druid_coordinator_host_port = str(host['Hosts']['host_name']) + ":" + str(
-                services['configurations']['druid-coordinator']['properties']['druid.port'])
+      putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
+
+      druid_coordinator_host_port = self.druid_host('DRUID_COORDINATOR', 'druid-coordinator', services, hosts, default_host='localhost:8081')
+      druid_broker_host_port = self.druid_host('DRUID_ROUTER', 'druid-router', services, hosts)
+      if druid_broker_host_port is None:
+        druid_broker_host_port = self.druid_host('DRUID_BROKER', 'druid-broker', services, hosts, default_host='localhost:8083')
+
+      druid_metadata_uri = ""
+      druid_metadata_user = ""
+      druid_metadata_type = ""
+      if 'druid-common' in services['configurations']:
+        druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
+        druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']
+        if 'druid.metadata.storage.connector.user' in services['configurations']['druid-common']['properties']:
+          druid_metadata_user = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.user']
         else:
-            druid_coordinator_host_port = "localhost:8081"
+          druid_metadata_user = ""
 
-        if 'druid-router' in services['configurations']:
-            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_ROUTER', services, hosts)
-            if component_hosts is not None and len(component_hosts) > 0:
-                # pick the first
-                host = component_hosts[0]
-            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
-                services['configurations']['druid-router']['properties']['druid.port'])
-        elif 'druid-broker' in services['configurations']:
-            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_BROKER', services, hosts)
-            if component_hosts is not None and len(component_hosts) > 0:
-                # pick the first
-                host = component_hosts[0]
-            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
-                services['configurations']['druid-broker']['properties']['druid.port'])
-        else:
-            druid_broker_host_port = "localhost:8083"
+      putHiveInteractiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
+      putHiveInteractiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
+      putHiveInteractiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
+      putHiveInteractiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
+      putHiveInteractiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
 
-        druid_metadata_uri = ""
-        druid_metadata_user = ""
-        druid_metadata_type = ""
-        if 'druid-common' in services['configurations']:
-            druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
-            druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']
-            if 'druid.metadata.storage.connector.user' in services['configurations']['druid-common']['properties']:
-                druid_metadata_user = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.user']
-            else:
-                druid_metadata_user = ""
-
-        putHiveInteractiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
-        putHiveInteractiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
-
+  def druid_host(self, component_name, config_type, services, hosts, default_host=None):
+    hosts = self.getHostsWithComponent('DRUID', component_name, services, hosts)
+    if hosts and config_type in services['configurations']:
+      host = hosts[0]['Hosts']['host_name']
+      port = services['configurations'][config_type]['properties']['druid.port']
+      return "%s:%s" % (host, port)
+    else:
+      return default_host
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)

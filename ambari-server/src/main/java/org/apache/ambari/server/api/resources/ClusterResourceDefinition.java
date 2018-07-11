@@ -96,6 +96,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     directives.add(KerberosHelper.DIRECTIVE_HOSTS);
     directives.add(KerberosHelper.DIRECTIVE_COMPONENTS);
     directives.add(KerberosHelper.DIRECTIVE_IGNORE_CONFIGS);
+    directives.add(KerberosHelper.DIRECTIVE_CONFIG_UPDATE_POLICY);
     return directives;
   }
 

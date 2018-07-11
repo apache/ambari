@@ -211,11 +211,16 @@ public class ClusterGrouping extends Grouping {
             case MANUAL:
             case SERVER_ACTION:
             case CONFIGURE:
+            case ADD_COMPONENT:
               wrapper = getServerActionStageWrapper(upgradeContext, execution);
               break;
 
             case EXECUTE:
               wrapper = getExecuteStageWrapper(upgradeContext, execution);
+              break;
+
+            case REGENERATE_KEYTABS:
+              wrapper = getRegenerateKeytabsWrapper(upgradeContext, execution);
               break;
 
             default:
@@ -270,10 +275,32 @@ public class ClusterGrouping extends Grouping {
   }
 
   /**
-   * Return a Stage Wrapper for a task meant to execute code, typically on Ambari Server.
-   * @param ctx Upgrade Context
-   * @param execution Execution Stage
-   * @return Returns a Stage Wrapper, or null if a valid one could not be created.
+   * Return a {@link StageWrapper} for regeneration of keytabs.
+   *
+   * @param ctx
+   *          Upgrade Context
+   * @param execution
+   *          Execution Stage
+   * @return a {@link StageWrapper} which will regenerate keytabs on all hosts.
+   */
+  private StageWrapper getRegenerateKeytabsWrapper(UpgradeContext ctx, ExecuteStage execution) {
+    Task task = execution.task;
+    HostsType hosts = HostsType.healthy(ctx.getCluster());
+
+    return new StageWrapper(StageWrapper.Type.REGENERATE_KEYTABS, execution.title,
+        new TaskWrapper(null, null, hosts.getHosts(), task));
+  }
+
+  /**
+   * Return a Stage Wrapper for a task meant to execute code, typically on
+   * Ambari Server.
+   *
+   * @param ctx
+   *          Upgrade Context
+   * @param execution
+   *          Execution Stage
+   * @return Returns a Stage Wrapper, or null if a valid one could not be
+   *         created.
    */
   private StageWrapper getExecuteStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
     String service   = execution.service;

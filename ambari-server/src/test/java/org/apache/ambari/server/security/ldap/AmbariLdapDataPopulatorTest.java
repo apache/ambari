@@ -37,7 +37,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -2041,7 +2040,7 @@ public class AmbariLdapDataPopulatorTest {
     final UserEntity userEntity = new UserEntity();
     userEntity.setUserId(userIdCounter++);
     userEntity.setUserName(UserName.fromString(name).toString());
-    userEntity.setCreateTime(new Date());
+    userEntity.setCreateTime(0);
     userEntity.setActive(true);
     userEntity.setMemberEntities(new HashSet<>());
 

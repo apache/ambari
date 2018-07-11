@@ -156,7 +156,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    */
   serviceFilterView: filters.createSelectView({
     column: 0,
-    fieldType: 'input-sm',
+    fieldType: 'filter-input-width',
     content: filters.getComputedServicesList(),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');

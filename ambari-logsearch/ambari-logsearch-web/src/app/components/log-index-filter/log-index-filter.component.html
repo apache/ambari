@@ -49,7 +49,7 @@
           <label attr.for="{{getCheckBoxId(component.name, levelName)}}">&nbsp;</label>
         </td>
         <td class="override-column">
-          <span class="overrides-toggle">{{'logIndexFilter.addHosts' | translate}}</span>
+          <!-- <span class="overrides-toggle">{{'logIndexFilter.addHosts' | translate}}</span> -->
         </td>
       </tr>
       <tr> <!--overrides row -->
@@ -69,10 +69,6 @@
             <div class="col-md-6">
               <div class="text-uppercase">{{'logIndexFilter.hostname' | translate}}</div>
               <input type="text" class="form-control" [(ngModel)]="component.hosts" (change)="updateValue()">
-              <!-- TODO implement typeahead similar to search box
-                   (some functionality and appearance most likely will be shared) -->
-              <!-- <input type="text" class="form-control" [(ngModel)]="component.hosts" (change)="updateValue()"
-                     [typeahead]="hosts | async" typeaheadOptionField="name"> -->
             </div>
             <div class=" col-md-6">
               <div class="text-uppercase">{{'logIndexFilter.expiryDate' | translate}}</div>

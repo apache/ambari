@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -59,7 +57,6 @@ public class HostConfigMappingDAO {
   @Inject
   private HostDAO hostDAO;
 
-  private final ReadWriteLock gl = new ReentrantReadWriteLock();
   private ConcurrentHashMap<Long, Set<HostConfigMapping>> hostConfigMappingByHost;
   
   private volatile boolean cacheLoaded;
@@ -282,9 +279,6 @@ public class HostConfigMappingDAO {
     return daoUtils.selectAll(entityManagerProvider.get(), HostConfigMappingEntity.class);
   }
 
-  /**
-   * @param hostId
-   */
   @Transactional
   public void removeByHostId(Long hostId) {
     populateCache();
@@ -308,17 +302,13 @@ public class HostConfigMappingDAO {
     }
   }
 
-  /**
-   * @param clusterId
-   * @param hostName
-   */
   @Transactional
   public void removeByClusterAndHostName(final long clusterId, String hostName) {
     populateCache();
 
     HostEntity hostEntity = hostDAO.findByName(hostName);
     if (hostEntity != null) {
-      if (hostConfigMappingByHost.containsKey(hostName)) {
+      if (hostConfigMappingByHost.containsKey(hostEntity.getHostId())) {
         // Delete from db
         TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
             "SELECT entity FROM HostConfigMappingEntity entity " +

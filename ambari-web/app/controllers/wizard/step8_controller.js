@@ -360,6 +360,58 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
         this.get('clusterInfo').set('repoInfo', allRepos);
       }
+      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+      this.get('clusterInfo').set('useRedhatSatellite', selectedStack.get('useRedhatSatellite'));
+      this.get('clusterInfo').set('repoInfo', allRepos);
+    }
+  },
+
+  /**
+   * Load repo info for add Service/Host wizard review page
+   * @return {$.ajax|null}
+   * @method loadRepoInfo
+   */
+  loadRepoInfo: function () {
+    var stackName = App.get('currentStackName');
+
+    var currentRepoVersion;
+    App.RepositoryVersion.find().forEach(function (repoVersion) {
+      if (repoVersion.get('stackVersionType') === stackName && repoVersion.get('isCurrent') && repoVersion.get('isStandard')) {
+        currentRepoVersion = repoVersion.get('repositoryVersion');
+      }
+    });
+
+    if (!currentRepoVersion) {
+      console.error('Error while getting current stack repository version');
+    }
+
+    return App.ajax.send({
+      name: 'cluster.load_repo_version',
+      sender: this,
+      data: {
+        stackName: stackName,
+        repositoryVersion: currentRepoVersion
+      },
+      success: 'loadRepoInfoSuccessCallback',
+      error: 'loadRepoInfoErrorCallback'
+    });
+  },
+
+  /**
+   * Save all repo base URL of all OS type to <code>repoInfo<code>
+   * @param {object} data
+   * @method loadRepoInfoSuccessCallback
+   */
+  loadRepoInfoSuccessCallback: function (data) {
+    Em.assert('Current repo-version may be only one', data.items.length === 1);
+    if (data.items.length) {
+      var allRepos = this.generateRepoInfo(Em.getWithDefault(data, 'items.0.repository_versions.0.operating_systems', []));
+      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+      this.get('clusterInfo').set('repoInfo', allRepos);
+      //if the property is missing, set as false
+      this.get('clusterInfo').set('useRedhatSatellite', data.items[0].repository_versions[0].operating_systems[0].OperatingSystems.ambari_managed_repositories === false);
+    } else {
+      this.loadDefaultRepoInfo();
     }
   },
 
@@ -862,7 +914,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       data: {
         artifactName: 'kerberos_descriptor',
         data: {
-          artifact_data: kerberosDescriptor
+          artifact_data: this.removeIdentityReferences(kerberosDescriptor)
         }
       }
     };
@@ -1027,7 +1079,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @method createComponents
    */
   createComponents: function () {
-    var serviceComponents = App.StackServiceComponent.find();
+    var serviceComponents = App.StackServiceComponent.find().filterProperty('isInstallable');
     this.get('selectedServices').forEach(function (_service) {
       var serviceName = _service.get('serviceName');
       //TODO - mpacks: when we are supporting user defined service groups, this must be changed
@@ -1704,7 +1756,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   showLoadingIndicator: function () {
     return App.ModalPopup.show({
 
-      header: '',
+      header: Em.I18n.t('installer.step8.deployPopup.header'),
 
       showFooter: false,
 
@@ -1860,7 +1912,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
 
   generateBlueprint: function () {
     console.log("Prepare blueprint for download...");
-    var blueprint = {};
     var self = this;
     //service configurations
     var totalConf = [];
@@ -2000,15 +2051,13 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       }, this);
     }, this);
 
-    var selectedStack = this.getSelectedStack();
-    blueprint = {
+    const selectedStack = this.getSelectedStack();
+    const blueprint = {
         'configurations': totalConf,
         'host_groups': host_groups.filter(function (item) { return item.cardinality > 0; }),
         'Blueprints': {'blueprint_name' : App.clusterStatus.clusterName, 'stack_name':selectedStack.get('stackName'), 'stack_version':selectedStack.get('stackVersion')}
     };
-    fileUtils.downloadTextFile(JSON.stringify(blueprint), 'json', 'blueprint.json')
-
-    var cluster_template = {
+    const cluster_template = {
       "blueprint": App.clusterStatus.clusterName,
       "config_recommendation_strategy" : "NEVER_APPLY",
       "provision_action" : "INSTALL_AND_START",
@@ -2016,7 +2065,18 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       "host_groups": cluster_template_host_groups.filter(function (item) { return item.hosts.length > 0; }),
       "Clusters": {'cluster_name': App.clusterStatus.clusterName}
     };
-    fileUtils.downloadTextFile(JSON.stringify(cluster_template), 'json', 'clustertemplate.json')
+    fileUtils.downloadFilesInZip([
+      {
+        data: JSON.stringify(blueprint),
+        type: 'json',
+        name: 'blueprint.json'
+      },
+      {
+        data: JSON.stringify(cluster_template),
+        type: 'json',
+        name: 'clustertemplate.json'
+      }
+    ]);
   },
 
   downloadCSV: function() {

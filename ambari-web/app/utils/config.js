@@ -283,6 +283,7 @@ App.config = Em.Object.create({
    * @returns {*|Object}
    */
   getDefaultConfig: function(name, fileName, coreObject) {
+    name = JSON.parse('"' + name + '"');
     var cfg = App.configsCollection.getConfigByName(name, fileName) ||
       App.config.createDefaultConfig(name, fileName, false);
     if (Em.typeOf(coreObject) === 'object') {
@@ -938,15 +939,18 @@ App.config = Em.Object.create({
    */
   textareaIntoFileConfigs: function (configs, filename) {
     var configsTextarea = configs.findProperty('name', 'capacity-scheduler');
+    var stackConfigs = App.configsCollection.getAll();
     if (configsTextarea && !App.get('testMode')) {
       var properties = configsTextarea.get('value').split('\n');
 
       properties.forEach(function (_property) {
-        var name, value;
+        var name, value, isUserProperty;
         if (_property) {
           _property = _property.split(/=(.+)/);
           name = _property[0];
           value = (_property[1]) ? _property[1] : "";
+          isUserProperty = !stackConfigs.filterProperty('filename', 'capacity-scheduler.xml').findProperty('name', name);
+
           configs.push(Em.Object.create({
             name: name,
             value: value,
@@ -956,6 +960,7 @@ App.config = Em.Object.create({
             isFinal: configsTextarea.get('isFinal'),
             isNotDefaultValue: configsTextarea.get('isNotDefaultValue'),
             isRequiredByAgent: configsTextarea.get('isRequiredByAgent'),
+            isUserProperty: isUserProperty,
             group: null
           }));
         }
@@ -1318,38 +1323,38 @@ App.config = Em.Object.create({
    * @return {*|{then}}
    */
   getConfigsByTypes: function (sites) {
-    var dfd = $.Deferred();
-    App.ajax.send({
-      name: 'config.tags.selected',
-      sender: this,
-      data: {
-        tags: sites.mapProperty('site').join(',')
-      }
-    }).done(function (data) {
-      App.router.get('configurationController').getConfigsByTags(data.items.map(function (item) {
-        return {siteName: item.type, tagName: item.tag};
-      })).done(function (configs) {
-        var result = [];
-        configs.forEach(function(config){
-          var configsArray = [];
-          var configsObject = config.properties;
-          for (var property in configsObject) {
-            if (configsObject.hasOwnProperty(property)) {
-              configsArray.push(Em.Object.create({
-                name: property,
-                value: configsObject[property],
-                filename: App.config.getOriginalFileName(config.type)
-              }));
-            }
-          }
-          result.push(Em.Object.create({
-            serviceName: sites.findProperty('site', config.type).serviceName,
-            configs: configsArray
-          }));
-        });
-        dfd.resolve(result);
-      });
+    const dfd = $.Deferred();
+    App.router.get('configurationController').getCurrentConfigsBySites(sites.mapProperty('site')).done((configs) => {
+      dfd.resolve(this.getMappedConfigs(configs, sites));
     });
     return dfd.promise();
+  },
+
+  /**
+   *
+   * @param configs
+   * @param sites
+   */
+  getMappedConfigs: function (configs, sites) {
+    const result = [];
+    configs.forEach(function (config) {
+      var configsArray = [];
+      var configsObject = config.properties;
+      for (var property in configsObject) {
+        if (configsObject.hasOwnProperty(property)) {
+          configsArray.push(Em.Object.create({
+            name: property,
+            value: configsObject[property],
+            filename: App.config.getOriginalFileName(config.type)
+          }));
+        }
+      }
+      result.push(Em.Object.create({
+        serviceName: sites.findProperty('site', config.type).serviceName,
+        configs: configsArray
+      }));
+    });
+
+    return result;
   }
 });

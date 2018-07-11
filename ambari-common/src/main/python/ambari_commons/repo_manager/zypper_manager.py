@@ -31,7 +31,7 @@ class ZypperManagerProperties(GenericManagerProperties):
   repo_error = "Failure when receiving data from the peer"
 
   repo_manager_bin = "/usr/bin/zypper"
-  pkg_manager_bin = "/usr/bin/rpm"
+  pkg_manager_bin = "/bin/rpm"
   repo_update_cmd = [repo_manager_bin, "clean"]
 
   available_packages_cmd = [repo_manager_bin, "--no-gpg-checks", "search", "--uninstalled-only", "--details"]
@@ -52,7 +52,7 @@ class ZypperManagerProperties(GenericManagerProperties):
 
   verify_dependency_cmd = [repo_manager_bin, "--quiet", "--non-interactive", "verify", "--dry-run"]
   list_active_repos_cmd = ['/usr/bin/zypper', 'repos']
-  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{{version}}-%{{release}}"]
+  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{version}-%{release}\n"]
 
 
 class ZypperManager(GenericManager):
@@ -178,8 +178,12 @@ class ZypperManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
-    if context.is_upgrade or context.use_repos or not self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command was executed with no package name")
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
 
       if context.use_repos:
@@ -206,6 +210,8 @@ class ZypperManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     context.is_upgrade = True
     return self.install_package(name, context)
@@ -217,8 +223,12 @@ class ZypperManager(GenericManager):
     :type name str
     :type context ambari_commons.shell.RepoCallContext
     :type ignore_dependencies bool
+
+    :raise ValueError if name is empty
     """
-    if self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command were executed with no package name passed")
+    elif self._check_existence(name):
       cmd = self.properties.remove_cmd[context.log_output] + [name]
       Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
       shell.repository_manager_executor(cmd, self.properties, context)
@@ -253,7 +263,7 @@ class ZypperManager(GenericManager):
 
   def get_installed_package_version(self, package_name):
     version = None
-    cmd = list(self.properties.installed_package_version_command) + ["\"{0}\"".format(package_name)]
+    cmd = list(self.properties.installed_package_version_command) + [package_name]
     result = shell.subprocess_executor(cmd)
     try:
       if result.code == 0:
@@ -282,4 +292,7 @@ class ZypperManager(GenericManager):
     zypper in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
+    if not name:
+      raise ValueError("Package name can't be empty")
+
     return self.rpm_check_package_available(name)

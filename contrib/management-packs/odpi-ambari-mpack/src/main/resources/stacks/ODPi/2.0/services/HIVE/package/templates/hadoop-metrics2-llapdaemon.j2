@@ -47,6 +47,13 @@
   *.sink.timeline.truststore.type = {{metric_truststore_type}}
   *.sink.timeline.truststore.password = {{metric_truststore_password}}
 
-  llapdaemon.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
+  llapdaemon.sink.timeline.collector.hosts={{ams_collector_hosts}}
+  llapdaemon.sink.timeline.port={{metric_collector_port}}
+  llapdaemon.sink.timeline.protocol={{metric_collector_protocol}}
+  llapdaemon.sink.timeline.host_in_memory_aggregation = {{host_in_memory_aggregation}}
+  llapdaemon.sink.timeline.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+  {% if is_aggregation_https_enabled %}
+    llapdaemon.sink.timeline.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+  {% endif %}
 
 {% endif %}

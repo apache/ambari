@@ -796,6 +796,24 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
+  describe("#loadAtlasConfigs()", function() {
+    it("valid request is sent", function() {
+      controller.loadAtlasConfigs({Clusters: {
+        desired_configs: {
+          'application-properties': {
+            tag: 'tag'
+          }
+        }
+      }}, null, {});
+      var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: '(type=application-properties&tag=tag)'
+      });
+    });
+  });
+
   describe("#loadRangerConfigs()", function() {
     it("valid request is sent", function() {
       controller.loadRangerConfigs({Clusters: {
@@ -4356,6 +4374,82 @@ describe('App.MainHostDetailsController', function () {
       usersController.set('dataIsLoaded', true);
 
       expect(controller.get('hdfsUser')).to.be.equal('val')
+    });
+  });
+
+  describe('#getUrlParamsForConfigsRequest', function () {
+    var cases = [
+      {
+        data: {
+          Clusters: {
+            desired_configs: {
+              't0-site': {
+                tag: 'v0'
+              },
+              't0-env': {
+                tag: 'v1'
+              },
+              't0-log4j': {
+                tag: 'v2'
+              },
+              't2-site': {
+                tag: 'v3'
+              }
+            }
+          }
+        },
+        types: ['t0-site', 't0-env', 't0-log4j', 't1-site'],
+        result: '(type=t0-site&tag=v0)|(type=t0-env&tag=v1)|(type=t0-log4j&tag=v2)',
+        title: 'several types available'
+      },
+      {
+        data: {
+          Clusters: {
+            desired_configs: {
+              't1-site': {
+                tag: 'v4'
+              },
+              't2-env': {
+                tag: 'v5'
+              },
+              't2-log4j': {
+                tag: 'v6'
+              }
+            }
+          }
+        },
+        types: ['t1-site', 't1-env', 't1-log4j'],
+        result: '(type=t1-site&tag=v4)',
+        title: 'single type available'
+      },
+      {
+        data: {
+          Clusters: {
+            desired_configs: {
+              't3-site': {
+                tag: 'v7'
+              },
+              't3-env': {
+                tag: 'v8'
+              },
+              't3-log4j': {
+                tag: 'v9'
+              }
+            }
+          }
+        },
+        types: ['t2-site', 't2-env', 't2-log4j'],
+        result: '',
+        title: 'no types available'
+      }
+    ];
+
+    cases.forEach(function (test) {
+      describe(test.title, function () {
+        it('should return ' + test.result, function () {
+          expect(controller.getUrlParamsForConfigsRequest(test.data, test.types)).to.equal(test.result);
+        });
+      });
     });
   });
 });

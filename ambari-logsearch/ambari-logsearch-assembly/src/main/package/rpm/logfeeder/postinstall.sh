@@ -26,7 +26,7 @@ mkdir -p $LOGFEEDER_ETC_FOLDER
 ln -s $LOGFEEDER_SCRIPT_SOURCE $LOGFEEDER_SCRIPT_LINK_NAME
 #ln -s $LOGFEEDER_CONF_SOURCE $LOGFEEDER_CONF_LINK
 
-# handle old checkpoint & keys folder
+# handle old keys folder & custom jsons
 
 LOGFEEDER_CONF_BACKUP="/usr/lib/ambari-logsearch-logfeeder/conf-old"
 
@@ -34,7 +34,12 @@ if [ -d "$LOGFEEDER_CONF_BACKUP" ]; then
   if [ -d "$LOGFEEDER_CONF_BACKUP/keys" ]; then
     cp -r $LOGFEEDER_CONF_BACKUP/keys $LOGFEEDER_CONF_SOURCE
   fi
-  if [ -d "$LOGFEEDER_CONF_BACKUP/checkpoints" ]; then
-    cp -r $LOGFEEDER_CONF_BACKUP/checkpoints $LOGFEEDER_CONF_SOURCE
+
+  custom_jsons=(`find $LOGFEEDER_CONF_BACKUP -name "*.json" ! -name 'input*.json' ! -name 'global.config.json' ! -name 'output.config.json'`)
+  if [ ! -z "$custom_jsons" ]; then
+    for custom_json_file in "${custom_jsons[@]}"
+    do :
+      cp -r $custom_json_file "$LOGFEEDER_CONF_SOURCE/"
+    done
   fi
 fi

@@ -955,15 +955,15 @@ public abstract class AbstractProviderModule implements ProviderModule,
     // Get desired configs based on the tag
     ResourceProvider configResourceProvider = getResourceProvider(Resource.Type.Configuration);
     Predicate configPredicate = new PredicateBuilder().property
-        (ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-        .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID).equals(configType).and()
-        .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals(versionTag).toPredicate();
+        (ConfigurationResourceProvider.CLUSTER_NAME).equals(clusterName).and()
+        .property(ConfigurationResourceProvider.TYPE).equals(configType).and()
+        .property(ConfigurationResourceProvider.TAG).equals(versionTag).toPredicate();
     Set<Resource> configResources;
     try {
       configResources = configResourceProvider.getResources
-          (PropertyHelper.getReadRequest(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
-              ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
-              ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID), configPredicate);
+          (PropertyHelper.getReadRequest(ConfigurationResourceProvider.CLUSTER_NAME,
+              ConfigurationResourceProvider.TYPE,
+              ConfigurationResourceProvider.TAG), configPredicate);
     } catch (NoSuchResourceException e) {
       LOG.info("Resource for the desired config not found. " + e);
       return Collections.emptyMap();

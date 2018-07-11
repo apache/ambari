@@ -34,6 +34,14 @@
               </a>
             </li>
           {{/each}}
+          {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
+            <li class="divider"></li>
+            <li>
+              <a href="#" {{action "manageConfigurationGroup" target="controller"}}>
+                <i class="glyphicon glyphicon-cog"></i>&nbsp;{{t services.service.actions.manage_configuration_groups.short}}
+              </a>
+            </li>
+          {{/isAuthorized}}
         </ul>
       </div>
       <div class="pull-right">
@@ -80,7 +88,7 @@
 
 {{#if view.supportsConfigLayout}}
   {{#unless view.hideTabHeaders}}
-    <ul {{bindAttr class=":nav :nav-tabs :mbm view.supportsHostOverrides:with-overrides"}}>
+    <ul {{bindAttr class=":nav :nav-tabs :mbm view.supportsHostOverrides:with-overrides controller.isInstallWizard:clear"}}>
       {{#each tab in view.tabs}}
         {{#unless tab.isHidden}}
           <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>

@@ -88,7 +88,6 @@ describe('App.MainAdminServiceAutoStartController', function() {
           });
         }
       });
-      sinon.stub(App.router, 'get').returns(mock);
       sinon.stub(controller, 'loadComponentsConfigs').returns({
         then: Em.clb
       });

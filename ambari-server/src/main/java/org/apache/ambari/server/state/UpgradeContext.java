@@ -46,6 +46,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.KerberosDetails;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.PreUpgradeCheckResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
@@ -66,6 +68,7 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Mpack.ModuleComponentVersionChange;
@@ -207,6 +210,13 @@ public class UpgradeContext {
    */
   @Inject
   private UpgradeDAO m_upgradeDAO;
+
+  /**
+   * Providers information about the Kerberization of a cluster, such as
+   * {@link KerberosDetails}.
+   */
+  @Inject
+  private KerberosHelper m_kerberosHelper;
 
   /**
    * Used as a quick way to tell if the upgrade is to revert a patch.
@@ -714,6 +724,24 @@ public class UpgradeContext {
   }
 
   /**
+   * Gets Kerberos information about a cluster. It should only be invoked if the
+   * cluster's security type is set to {@link SecurityType#KERBEROS}, otherwise
+   * it will throw an {@link AmbariException}.
+   *
+   * @return the Kerberos related details of a cluster.
+   * @throws KerberosInvalidConfigurationException
+   *           if the {@code kerberos-env} or {@code krb5-conf}} configurations
+   *           can't be parsed.
+   * @throws AmbariException
+   *           if the cluster is not Kerberized.
+   */
+  public KerberosDetails getKerberosDetails()
+      throws KerberosInvalidConfigurationException, AmbariException {
+    return m_kerberosHelper.getKerberosDetails(m_cluster, null);
+  }
+
+
+  /**
    * Gets whether the service is supported in this upgrade.
    *
    * @param serviceName
@@ -1193,12 +1221,49 @@ public class UpgradeContext {
     @SerializedName("targetStack")
     public String targetStack;
 
+    @SerializedName("downgradeAllowed")
+    public boolean isDowngradeAllowed = true;
+
     /**
      * A mapping of service name to service summary information for services
      * participating in the upgrade for this service group.
      */
     @SerializedName("services")
     public Map<String, UpgradeServiceSummary> services;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target repository, for a
+     * {@link Direction#DOWNGRADE} this was the repository being downgraded
+     * from.
+     */
+    @SerializedName("associatedRepositoryId")
+    public long associatedRepositoryId;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target stack, for a
+     * {@link Direction#DOWNGRADE} this was the stack that is being downgraded
+     * from.
+     */
+    @SerializedName("associatedStackId")
+    public String associatedStackId;
+
+    /**
+     * The ID of the repository associated with the upgrade. For an
+     * {@link Direction#UPGRADE}, this is the target versopm, for a
+     * {@link Direction#DOWNGRADE} this was the version that is being downgraded
+     * from.
+     */
+    @SerializedName("associatedVersion")
+    public String associatedVersion;
+
+    /**
+     * MAINT or PATCH upgrades are meant to just be switching the bits and no other
+     * incompatible changes.
+     */
+    @SerializedName("isSwitchBits")
+    public boolean isSwitchBits = false;
   }
 
   /**

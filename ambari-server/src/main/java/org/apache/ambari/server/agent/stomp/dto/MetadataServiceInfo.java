@@ -18,25 +18,33 @@
 
 package org.apache.ambari.server.agent.stomp.dto;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 public class MetadataServiceInfo {
   private String serviceType;
   private String version;
   private Boolean credentialStoreEnabled;
+
+  @JsonProperty("configuration_credentials")
+  private Map<String, Map<String, String>> credentialStoreEnabledProperties;
+
   @JsonProperty("status_commands_timeout")
   private Long statusCommandsTimeout;
 
   @JsonProperty("service_package_folder")
   private String servicePackageFolder;
 
-  public MetadataServiceInfo(String serviceType, String version, Boolean credentialStoreEnabled, Long statusCommandsTimeout,
-                             String servicePackageFolder) {
+  public MetadataServiceInfo(String serviceType, String version, Boolean credentialStoreEnabled,
+                             Map<String, Map<String, String>> credentialStoreEnabledProperties,
+                             Long statusCommandsTimeout, String servicePackageFolder) {
     this.serviceType = serviceType;
     this.version = version;
     this.credentialStoreEnabled = credentialStoreEnabled;
+    this.credentialStoreEnabledProperties = credentialStoreEnabledProperties;
     this.statusCommandsTimeout = statusCommandsTimeout;
     this.servicePackageFolder = servicePackageFolder;
   }
@@ -59,6 +67,14 @@ public class MetadataServiceInfo {
 
   public void setCredentialStoreEnabled(Boolean credentialStoreEnabled) {
     this.credentialStoreEnabled = credentialStoreEnabled;
+  }
+
+  public Map<String, Map<String, String>> getCredentialStoreEnabledProperties() {
+    return credentialStoreEnabledProperties;
+  }
+
+  public void setCredentialStoreEnabledProperties(Map<String, Map<String, String>> credentialStoreEnabledProperties) {
+    this.credentialStoreEnabledProperties = credentialStoreEnabledProperties;
   }
 
   public Long getStatusCommandsTimeout() {
@@ -91,12 +107,13 @@ public class MetadataServiceInfo {
     return Objects.equals(serviceType, that.serviceType) &&
       Objects.equals(version, that.version) &&
       Objects.equals(credentialStoreEnabled, that.credentialStoreEnabled) &&
+      Objects.equals(credentialStoreEnabledProperties, that.credentialStoreEnabledProperties) &&
       Objects.equals(statusCommandsTimeout, that.statusCommandsTimeout) &&
       Objects.equals(servicePackageFolder, that.servicePackageFolder);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(serviceType, version, credentialStoreEnabled, statusCommandsTimeout, servicePackageFolder);
+    return Objects.hash(serviceType, version, credentialStoreEnabled, credentialStoreEnabledProperties, statusCommandsTimeout, servicePackageFolder);
   }
 }

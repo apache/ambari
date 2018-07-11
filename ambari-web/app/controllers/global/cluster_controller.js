@@ -65,6 +65,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
   isServiceContentFullyLoaded: Em.computed.and('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
 
+  isStackVersionsLoaded: false,
+
   clusterName: Em.computed.alias('App.clusterName'),
 
   updateLoadStatus: function (item) {
@@ -177,10 +179,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     App.router.get('userSettingsController').getAllUserSettings();
     App.router.get('errorsHandlerController').loadErrorLogs();
 
-    var hostsController = App.router.get('mainHostController');
-    hostsController.set('isCountersUpdating', true);
-    hostsController.updateStatusCounters();
-
     this.loadClusterInfo();
     App.router.get('wizardWatcherController').getUser();
 
@@ -188,10 +186,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
     //force clear filters  for hosts page to load all data
     App.db.setFilterConditions('mainHostController', null);
-
-    //load cluster-env, used by alert check tolerance
-    // TODO services auto-start
-    App.router.get('updateController').updateClusterEnv();
   },
 
   loadClusterInfo: function() {
@@ -304,9 +298,13 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   loadConfigProperties: function() {
     var self = this;
 
-    App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
-      App.config.loadClusterConfigsFromStack().complete(function () {
-        self.set('isConfigsPropertiesLoaded', true);
+    App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).always(function () {
+      App.config.loadClusterConfigsFromStack().always(function () {
+        App.router.get('configurationController').updateConfigTags().always(() => {
+          App.router.get('updateController').updateClusterEnv().always(() => {
+            self.set('isConfigsPropertiesLoaded', true);
+          });
+        });
       });
     });
   },
@@ -324,6 +322,61 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
             self.set('isAlertsLoaded', true);
           });
         });
+      });
+    });
+  },
+
+  /**
+   * restore upgrade status from server
+   * and make call to get latest status from server
+   * Also loading all upgrades to App.StackUpgradeHistory model
+   */
+  restoreUpgradeState: function () {
+    var self = this;
+    return this.getAllUpgrades().done(function (data) {
+      var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
+      var allUpgrades = data.items.sortProperty('Upgrade.request_id');
+      var lastUpgradeData = allUpgrades.pop();
+      if (lastUpgradeData){
+        var status = lastUpgradeData.Upgrade.request_status;
+        var lastUpgradeNotFinished = (self.isSuspendedState(status) || self.isRunningState(status));
+        if (lastUpgradeNotFinished){
+          /**
+           * No need to display history if there is only one running or suspended upgrade.
+           * Because UI still needs to provide user the option to resume the upgrade via the Upgrade Wizard UI.
+           * If there is more than one upgrade. Show/Hive the tab based on the status.
+           */
+          var hasFinishedUpgrades = allUpgrades.some(function (item) {
+            var status = item.Upgrade.request_status;
+            if (!self.isRunningState(status)){
+              return true;
+            }
+          }, self);
+          App.set('upgradeHistoryAvailable', hasFinishedUpgrades);
+        } else {
+          //There is at least one finished upgrade. Display it.
+          App.set('upgradeHistoryAvailable', true);
+        }
+      } else {
+        //There is no upgrades at all.
+        App.set('upgradeHistoryAvailable', false);
+      }
+
+      //completed upgrade shouldn't be restored
+      if (lastUpgradeData) {
+        if (lastUpgradeData.Upgrade.request_status !== "COMPLETED") {
+          upgradeController.restoreLastUpgrade(lastUpgradeData);
+        }
+      } else {
+        upgradeController.initDBProperties();
+      }
+
+      App.stackUpgradeHistoryMapper.map(data);
+      upgradeController.loadStackVersionsToModel(true).done(function () {
+        upgradeController.loadCompatibleVersions();
+        upgradeController.updateCurrentStackVersion();
+        App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
+        self.set('isStackVersionsLoaded', true);
       });
     });
   },

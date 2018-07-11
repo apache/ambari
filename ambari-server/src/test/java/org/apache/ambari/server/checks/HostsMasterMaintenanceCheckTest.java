@@ -35,7 +35,6 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -114,7 +113,6 @@ public class HostsMasterMaintenanceCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     Mockito.when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP", "1.0"));
-    Mockito.when(repositoryVersionHelper.getUpgradePackageName(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), (UpgradeType) Mockito.anyObject())).thenReturn(null);
 
     UpgradePlanEntity upgradePlan = Mockito.mock(UpgradePlanEntity.class);
     PrereqCheckRequest checkRequest = new PrereqCheckRequest(upgradePlan);
@@ -122,7 +120,6 @@ public class HostsMasterMaintenanceCheckTest {
     UpgradeCheckResult result = hostsMasterMaintenanceCheck.perform(checkRequest);
     Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
 
-    Mockito.when(repositoryVersionHelper.getUpgradePackageName(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), (UpgradeType) Mockito.anyObject())).thenReturn(upgradePackName);
     Mockito.when(ambariMetaInfo.getUpgradePacks(Mockito.anyString(), Mockito.anyString())).thenReturn(new HashMap<>());
 
     checkRequest = new PrereqCheckRequest(upgradePlan);

@@ -157,6 +157,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/cred.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = "test -e /etc/ranger/c1_kms/cred.jceks",
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/c1_kms/.cred.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = "test -e /etc/ranger/c1_kms/.cred.jceks.crc",
       mode = 0640
     )
     
@@ -175,7 +183,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = None,
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', '/ranger/audit/kms',
@@ -193,7 +202,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = None,
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', None,
@@ -206,7 +216,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = None,
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
@@ -218,7 +229,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
       mode = 0644,
     )
 
@@ -290,7 +301,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -424,6 +435,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 
@@ -436,6 +455,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 
@@ -500,6 +527,7 @@ class TestRangerKMS(RMFTestCase):
   @patch("resource_management.libraries.functions.ranger_functions_v2.RangeradminV2.get_repository_by_name_curl", new=MagicMock(return_value=({'name': 'c1_kms'})))
   @patch("resource_management.libraries.functions.ranger_functions_v2.RangeradminV2.create_repository_curl", new=MagicMock(return_value=({'name': 'c1_kms'})))
   @patch("os.path.isfile")
+  @patch("kms.datetime", new=DTMOCK())
   def test_start_secured(self, isfile_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kms_server.py",
@@ -513,7 +541,7 @@ class TestRangerKMS(RMFTestCase):
 
     # TODO repo call in secure
 
-    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_datetime = self.current_date.strftime("%Y-%m-%d %H:%M:%S")
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-security.xml',
       owner = 'kms',
@@ -597,6 +625,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/cred.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/c1_kms/cred.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/c1_kms/.cred.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/c1_kms/.cred.jceks.crc',
       mode = 0640
     )
 
@@ -615,7 +651,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = 'hdfs-cl1@EXAMPLE.COM',
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', '/ranger/audit/kms',
@@ -633,7 +670,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = 'hdfs-cl1@EXAMPLE.COM',
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('HdfsResource', None,
@@ -646,7 +684,8 @@ class TestRangerKMS(RMFTestCase):
                         hadoop_conf_dir = '/usr/hdp/2.5.0.0-777/hadoop/conf',
                         principal_name = 'hdfs-cl1@EXAMPLE.COM',
                         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                        dfs_type = '',
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
@@ -658,7 +697,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
       mode = 0644,
     )
 
@@ -713,7 +752,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -847,6 +886,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 
@@ -859,6 +906,14 @@ class TestRangerKMS(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ranger/kms/rangerkms.jceks',
       owner = 'kms',
       group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
+      owner = 'kms',
+      group = 'kms',
+      only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
       mode = 0640
     )
 

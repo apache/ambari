@@ -21,6 +21,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.core.resources.system import Directory, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.functions.generate_logfeeder_input_config import generate_logfeeder_input_config
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.functions.security_commons import update_credential_provider_path, HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME
 
@@ -112,6 +113,11 @@ def setup_logfeeder():
        content=InlineTemplate(params.logfeeder_output_config_content),
        encoding="utf-8"
        )
+  if params.logfeeder_kafka_output_enabled:
+    File(format("{logsearch_logfeeder_conf}/kafka-output.json"),
+         content=InlineTemplate(params.logfeeder_kafka_output_config_content),
+         encoding="utf-8"
+         )
 
   if params.logfeeder_system_log_enabled:
     File(format("{logsearch_logfeeder_conf}/input.config-system_messages.json"),
@@ -121,6 +127,7 @@ def setup_logfeeder():
          content=params.logfeeder_secure_log_content
          )
 
+  generate_logfeeder_input_config('logsearch', Template("input.config-logsearch.json.j2", extra_imports=[default]))
 
   if params.logsearch_solr_kerberos_enabled:
     File(format("{logfeeder_jaas_file}"),

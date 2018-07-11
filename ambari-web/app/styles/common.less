@@ -41,6 +41,7 @@
 @health-status-yellow: #FFD13D;
 @health-status-orange: #e98a41;
 @maintenance-black: #000;
+@maintenance-grey: #999999;
 @gray-text: #666;
 /************************************************************************
 * Health status(service/host/host component health)icon colors ends
@@ -80,22 +81,6 @@
 @bootstrap-warning: #f0ad4e;
 @bootstrap-danger: #d9534f;
 @bootstrap-primary: #337ab7;
-
-.@{health-status-red-icon} {
-  color: @health-status-red;
-}
-.@{health-status-green-icon} {
-  color: @health-status-green;
-}
-.@{health-status-yellow-icon} {
-  color: @health-status-yellow;
-}
-.@{health-status-orange-icon} {
-  color: @health-status-orange;
-}
-.@{maintenance-icon} {
-  color: @maintenance-black;
-}
 
 @-webkit-keyframes orangePulse {
   from { background-color: @restart-indicator-color; }
@@ -214,6 +199,7 @@
 
 @default-font-size: 14px;
 @smaller-font-size: 12px;
+@default-button-height: 34px;
 
 /************************************************************************
 * Modal popup properties
@@ -225,12 +211,6 @@
 // modal footer height
 @modal-footer-height: 75px;
 
-.btn-primary[disabled] {
-  .icon-spinner {
-    color: white;
-  }
-}
-
 .ellipsis-overflow {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -240,3 +220,5 @@
   .ellipsis-overflow;
   white-space: nowrap;
 }
+
+@dashboard-widget-height: 157px;

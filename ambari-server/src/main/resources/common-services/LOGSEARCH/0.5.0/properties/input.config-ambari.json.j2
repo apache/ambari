@@ -87,7 +87,7 @@
 
         },
         "level":{
-          "map_fieldvalue":{
+          "map_field_value":{
             "pre_value":"WARNING",
             "post_value":"WARN"
           }
@@ -108,13 +108,13 @@
         }
         
       },
-      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
-      "multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
-      "message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "log4j_format":"%d{ISO8601} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{
-            "target_date_pattern":"dd MMM yyyy HH:mm:ss"
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
           }
 
         }
@@ -184,25 +184,65 @@
         
       },
       "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
-      "multiline_pattern":"^(\\[EL%{SPACE}%{LOGLEVEL:level}\\])",
-      "message_pattern":"(?m)^\\[EL%{SPACE}%{LOGLEVEL:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
+      "multiline_pattern":"^(\\[EL%{SPACE}%{DATA:level}\\])",
+      "message_pattern":"(?m)^\\[EL%{SPACE}%{DATA:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{
             "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
           }
-
         },
-        "level":{
-          "map_fieldvalue":{
-            "pre_value":"Warning",
-            "post_value":"Warn"
+        "level":[
+          {
+            "map_field_value":{
+              "pre_value":"Severe",
+              "post_value":"ERROR"
+            }
+          },
+          {
+            "map_field_value":{
+              "pre_value":"Warning",
+              "post_value":"WARN"
+            }
+          },
+          {
+            "map_field_value":{
+              "pre_value":"Finer",
+              "post_value":"WARN"
+            }
+          },
+          {
+            "map_field_value":{
+              "pre_value":"Info",
+              "post_value":"INFO"
+            }
+          },
+          {
+            "map_field_value":{
+              "pre_value":"Config",
+              "post_value":"INFO"
+            }
+          },
+          {
+            "map_field_value":{
+              "pre_value":"Fine",
+              "post_value":"DEBUG"
+            }
+          },
+          {
+            "map_field_value":{
+              "pre_value":"Finest",
+              "post_value":"TRACE"
+            }
+          },
+          {
+            "map_field_value":{
+              "pre_value":"All",
+              "post_value":"TRACE"
+            }
           }
-
-        }
-
+        ]
       }
-
     },
     {
       "filter":"grok",
@@ -271,324 +311,540 @@
       "value_borders":"()",
       "post_map_values":{
         "User":{
-          "map_fieldvalue":{
+          "map_field_value":{
             "pre_value":"null",
             "post_value":"unknown"
           },
-          "map_fieldname":{
-            "new_fieldname":"reqUser"
+          "map_field_name":{
+            "new_field_name":"reqUser"
           }
         },
         "Hostname":{
-          "map_fieldname":{
-            "new_fieldname":"host"
+          "map_field_name":{
+            "new_field_name":"host"
           }
         },
         "Host name":{
-          "map_fieldname":{
-            "new_fieldname":"host"
+          "map_field_name":{
+            "new_field_name":"host"
           }
         },
         "RemoteIp":{
-          "map_fieldname":{
-            "new_fieldname":"cliIP"
+          "map_field_name":{
+            "new_field_name":"cliIP"
           }
         },
         "RequestType":{
-          "map_fieldname":{
-            "new_fieldname":"cliType"
+          "map_field_name":{
+            "new_field_name":"cliType"
           }
         },
         "TaskId":{
-          "map_fieldname":{
-            "new_fieldname":"task_id"
+          "map_field_name":{
+            "new_field_name":"task_id"
           }
         },
         "Operation":{
-          "map_fieldname":{
-            "new_fieldname":"action"
+          "map_field_name":{
+            "new_field_name":"action"
+          }
+        },
+        "Service":{
+          "map_field_name":{
+            "new_field_name":"ws_service"
           }
         },
         "url":{
-          "map_fieldname":{
-            "new_fieldname":"resource"
+          "map_field_name":{
+            "new_field_name":"resource"
           }
         },
         "ResourcePath":{
-          "map_fieldname":{
-            "new_fieldname":"resource"
+          "map_field_name":{
+            "new_field_name":"resource"
           }
         },
         "Cluster name":{
-          "map_fieldname":{
-            "new_fieldname":"cluster"
+          "map_field_name":{
+            "new_field_name":"cluster"
+          }
+        },
+        "Old name":{
+          "map_field_name":{
+            "new_field_name":"ws_old_name"
+          }
+        },
+        "New name":{
+          "map_field_name":{
+            "new_field_name":"ws_new_name"
           }
         },
         "Reason":{
-          "map_fieldname":{
-            "new_fieldname":"reason"
+          "map_field_name":{
+            "new_field_name":"reason"
           }
         },
         "Base URL":{
-          "map_fieldname":{
-            "new_fieldname":"ws_base_url"
+          "map_field_name":{
+            "new_field_name":"ws_base_url"
+          }
+        },
+        "Base url":{
+          "map_field_name":{
+            "new_field_name":"ws_base_url"
           }
         },
         "Command":{
-          "map_fieldvalue":{
+          "map_field_value":{
             "pre_value":"null",
             "post_value":"unknown"
           },
-          "map_fieldname":{
-            "new_fieldname":"ws_command"
+          "map_field_name":{
+            "new_field_name":"ws_command"
           }
         },
         "Component":{
-          "map_fieldname":{
-            "new_fieldname":"ws_component"
+          "map_field_name":{
+            "new_field_name":"ws_component"
+          }
+        },
+        "Type":{
+          "map_field_name":{
+            "new_field_name":"ws_type"
+          }
+        },
+        "Consecutive failures": {
+          "map_field_name":{
+            "new_field_name":"ws_consecutive_failures"
+          }
+        },
+        "Created Username": {
+          "map_field_name":{
+            "new_field_name":"ws_username"
+          }
+        },
+        "Affected username": {
+          "map_field_name":{
+            "new_field_name":"ws_username"
+          }
+        },
+        "Deleted Username": {
+          "map_field_name":{
+            "new_field_name":"ws_username"
+          }
+        },
+        "Alert group name": {
+          "map_field_name":{
+            "new_field_name":"ws_alert_group_name"
+          }
+        },
+        "Alert group ID": {
+          "map_field_name":{
+            "new_field_name":"ws_alert_group_id"
+          }
+        },
+        "Definition IDs": {
+          "map_field_name":{
+            "new_field_name":"std_alert_definition_ids"
+          }
+        },
+        "Notification ID": {
+          "map_field_name":{
+            "new_field_name":"ws_alert_notification_id"
+          }
+        },
+        "Notification IDs": {
+          "map_field_name":{
+            "new_field_name":"std_alert_notification_ids"
+          }
+        },
+        "Notification name": {
+          "map_field_name":{
+            "new_field_name":"ws_alert_notification_name"
+          }
+        },
+        "Notification type": {
+          "map_field_name":{
+            "new_field_name":"ws_alert_notification_type"
+          }
+        },
+        "Members": {
+          "map_field_name":{
+            "new_field_name":"std_members"
+          }
+        },
+        "Description": {
+          "map_field_name":{
+            "new_field_name":"ws_description"
+          }
+        },
+        "Email from": {
+          "map_field_name":{
+            "new_field_name":"ws_alert_email_from"
+          }
+        },
+        "Email to": {
+          "map_field_name":{
+            "new_field_name":"ws_alert_email_to"
+          }
+        },
+        "Group": {
+          "map_field_name":{
+            "new_field_name":"ws_group"
+          }
+        },
+        "Group IDs": {
+          "map_field_name":{
+            "new_field_name":"std_alert_group_ids"
+          }
+        },
+        "Alert states": {
+          "map_field_name":{
+            "new_field_name":"std_alert_states"
+          }
+        },
+        "Blueprint": {
+          "map_field_name":{
+            "new_field_name":"ws_blueprint"
+          }
+        },
+        "Blueprint name": {
+          "map_field_name":{
+            "new_field_name":"ws_blueprint_name"
+          }
+        },
+        "State": {
+          "map_field_name":{
+            "new_field_name":"ws_state"
+          }
+        },
+        "Principal": {
+          "map_field_name":{
+            "new_field_name":"ws_principal"
+          }
+        },
+        "Alias": {
+          "map_field_name":{
+            "new_field_name":"ws_alias"
+          }
+        },
+        "Keytab file": {
+          "map_field_name":{
+            "new_field_name":"ws_keytab_file"
+          }
+        },
+        "Upgrade type":{
+          "map_field_name":{
+            "new_field_name":"ws_upgrade_type"
           }
         },
         "Details":{
-          "map_fieldname":{
-            "new_fieldname":"ws_details"
+          "map_field_name":{
+            "new_field_name":"ws_details"
+          }
+        },
+        "Name":{
+          "map_field_name":{
+            "new_field_name":"ws_name"
           }
         },
         "Display name":{
-          "map_fieldvalue":{
+          "map_field_value":{
             "pre_value":"null",
             "post_value":"unknown"
           },
-          "map_fieldname":{
-            "new_fieldname":"ws_display_name"
+          "map_field_name":{
+            "new_field_name":"ws_display_name"
           }
         },
         "OS":{
-          "map_fieldname":{
-            "new_fieldname":"ws_os"
+          "map_field_name":{
+            "new_field_name":"ws_os"
           }
         },
         "Repo id":{
-          "map_fieldname":{
-            "new_fieldname":"ws_repo_id"
+          "map_field_name":{
+            "new_field_name":"ws_repo_id"
           }
         },
         "Repo version":{
-          "map_fieldvalue":{
+          "map_field_value":{
             "pre_value":"null",
             "post_value":"unknown"
           },
-          "map_fieldname":{
-            "new_fieldname":"ws_repo_version"
+          "map_field_name":{
+            "new_field_name":"ws_repo_version"
+          }
+        },
+        "Repo version ID":{
+          "map_field_name":{
+            "new_field_name":"ws_repo_version_id"
           }
         },
         "Repositories":{
-          "map_fieldname":{
-            "new_fieldname":"ws_repositories"
+          "map_field_name":{
+            "new_field_name":"ws_repositories"
           }
         },
         "RequestId":{
-          "map_fieldname":{
-            "new_fieldname":"ws_request_id"
+          "map_field_name":{
+            "new_field_name":"ws_request_id"
+          }
+        },
+        "Request id":{
+          "map_field_name":{
+            "new_field_name":"ws_request_id"
+          }
+        },
+        "Repository ID":{
+          "map_field_name":{
+            "new_field_name":"ws_repo_id"
+          }
+        },
+        "Repository name":{
+          "map_field_name":{
+            "new_field_name":"ws_repo_name"
           }
         },
         "Roles":{
-          "map_fieldname":{
-            "new_fieldname":"ws_roles"
+          "map_field_name":{
+            "new_field_name":"ws_roles"
+          }
+        },
+        "Permissions":{
+          "map_field_name":{
+            "new_field_name":"std_permissions"
           }
         },
         "Stack":{
-          "map_fieldname":{
-            "new_fieldname":"ws_stack"
+          "map_field_name":{
+            "new_field_name":"ws_stack"
           }
         },
         "Stack version":{
-          "map_fieldname":{
-            "new_fieldname":"ws_stack_version"
+          "map_field_name":{
+            "new_field_name":"ws_stack_version"
+          }
+        },
+        "Stage id":{
+          "map_field_name":{
+            "new_field_name":"ws_stage_id"
+          }
+        },
+        "Administrator":{
+          "map_field_value":{
+            "pre_value":"yes",
+            "post_value":"1"
+          },
+          "map_field_value":{
+            "pre_value":"no",
+            "post_value":"0"
+          },
+          "map_field_name":{
+            "new_field_name":"ws_admin"
+          }
+        },
+        "Active":{
+          "map_field_value":{
+            "pre_value":"y",
+            "post_value":"1"
+          },
+          "map_field_value":{
+            "pre_value":"n",
+            "post_value":"0"
+          },
+          "map_field_name":{
+            "new_field_name":"ws_active"
+          }
+        },
+        "Version":{
+          "map_field_name":{
+            "new_field_name":"ws_version"
           }
         },
         "VersionNote":{
-          "map_fieldvalue":{
+          "map_field_value":{
             "pre_value":"null",
             "post_value":"unknown"
           },
-          "map_fieldname":{
-            "new_fieldname":"ws_version_note"
+          "map_field_name":{
+            "new_field_name":"ws_version_note"
           }
         },
         "VersionNumber":{
-          "map_fieldvalue":{
+          "map_field_value":{
             "pre_value":"Vnull",
             "post_value":"unknown"
           },
-          "map_fieldname":{
-            "new_fieldname":"ws_version_number"
+          "map_field_name":{
+            "new_field_name":"ws_version_number"
           }
         },
         "Status":[
           {
-            "map_fieldcopy":{
+            "map_field_copy":{
               "copy_name": "ws_status"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"Success",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"Successfully queued",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"QUEUED",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"PENDING",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"COMPLETED",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"IN_PROGRESS",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"Failed",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"Failed to queue",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"HOLDING",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"HOLDING_FAILED",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"HOLDING_TIMEDOUT",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"FAILED",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"TIMEDOUT",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"ABORTED",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"SKIPPED_FAILED",
               "post_value":"0"
             }
           },
           {
-            "map_fieldname":{
-              "new_fieldname":"result"
+            "map_field_name":{
+              "new_field_name":"result"
             }
           }
         ],
         "ResultStatus":[
           {
-            "map_fieldcopy":{
+            "map_field_copy":{
               "copy_name": "ws_result_status"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"200 OK",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"201 Created",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"202 Accepted",
               "post_value":"1"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"400 Bad Request",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"401 Unauthorized",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"403 Forbidden",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"404 Not Found",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"409 Resource Conflict",
               "post_value":"0"
             }
           },
           {
-            "map_fieldvalue":{
+            "map_field_value":{
               "pre_value":"500 Internal Server Error",
               "post_value":"0"
             }
           },
           {
-            "map_fieldname":{
-              "new_fieldname":"result"
+            "map_field_name":{
+              "new_field_name":"result"
             }
           }
         ]

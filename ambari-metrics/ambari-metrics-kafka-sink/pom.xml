@@ -144,7 +144,7 @@ limitations under the License.
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka_2.10</artifactId>
-      <version>0.10.1.0</version>
+      <version>0.10.2.1</version>
       <exclusions>
         <exclusion>
           <groupId>com.sun.jdmk</groupId>

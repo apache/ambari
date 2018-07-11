@@ -87,7 +87,7 @@ App.ServiceConfig = Ember.Object.extend({
 
   setConfigsWithErrorsOnce: function() {
     var configsWithErrors = this.get('activeProperties').filter(function(c) {
-      return !c.get('isValid') || !c.get('isValidOverride');
+      return (!c.get('isValid') || !c.get('isValidOverride'));
     });
     this.set('configsWithErrors', configsWithErrors);
   },

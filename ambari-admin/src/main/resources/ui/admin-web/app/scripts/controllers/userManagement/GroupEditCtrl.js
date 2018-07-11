@@ -71,52 +71,6 @@ function($scope, $rootScope, Group, $routeParams, Cluster, View, Alert, Confirma
     $scope.isMembersEditing = false;
   };
 
-  $scope.deleteGroup = function(group) {
-    ConfirmationModal.show(
-      $t('common.delete', {
-        term: $t('common.group')
-      }),
-      $t('common.deleteConfirmation', {
-        instanceType: $t('common.group').toLowerCase(),
-        instanceName: '"' + group.group_name + '"'
-      })
-    ).then(function() {
-      Cluster.getPrivilegesForResource({
-        nameFilter : group.group_name,
-        typeFilter : {value: 'GROUP'}
-      }).then(function(data) {
-        var clusterPrivilegesIds = [];
-        var viewsPrivileges = [];
-        if (data.items && data.items.length) {
-          angular.forEach(data.items[0].privileges, function(privilege) {
-            if (privilege.PrivilegeInfo.principal_type === 'GROUP') {
-              if (privilege.PrivilegeInfo.type === 'VIEW') {
-                viewsPrivileges.push({
-                  id: privilege.PrivilegeInfo.privilege_id,
-                  view_name: privilege.PrivilegeInfo.view_name,
-                  version: privilege.PrivilegeInfo.version,
-                  instance_name: privilege.PrivilegeInfo.instance_name
-                });
-              } else {
-                clusterPrivilegesIds.push(privilege.PrivilegeInfo.privilege_id);
-              }
-            }
-          });
-        }
-        group.destroy().then(function() {
-          $location.url('/userManagement?tab=groups');
-          if (clusterPrivilegesIds.length) {
-            Cluster.deleteMultiplePrivileges($rootScope.cluster.Clusters.cluster_name, clusterPrivilegesIds);
-          }
-          angular.forEach(viewsPrivileges, function(privilege) {
-            View.deletePrivilege(privilege);
-          });
-        });
-      });
-    });
-  };
-
-
   $scope.removeViewPrivilege = function(name, privilege) {
     var privilegeObject = {
         id: privilege.privilege_id,

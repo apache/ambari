@@ -36,6 +36,7 @@ def hbase_service(
     no_op_test = as_sudo(["test", "-f", pid_file]) + format(" && ps -p `{pid_expression}` >/dev/null 2>&1")
     
     if action == 'start':
+
       daemon_cmd = format("{cmd} start {role}")
       
       try:

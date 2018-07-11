@@ -261,11 +261,11 @@ public class ExportBlueprintRequest implements TopologyRequest {
       for (TreeNode<Resource> component : components.getChildren()) {
         Resource resource = component.getObject();
         String componentName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.COMPONENT_NAME));
         String serviceName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.SERVICE_NAME));
         String serviceGroupName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.SERVICE_GROUP_NAME));
         getComponents().add(new Component(componentName, serviceGroupName, serviceName, null));
       }
       addAmbariComponentIfLocalhost((String) host.getObject().getPropertyValue(

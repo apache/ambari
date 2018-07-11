@@ -274,11 +274,11 @@ angular.module('ambariAdminConsole')
     'clusters.assignRoles': 'Assign roles to these {{term}}',
 
     'clusters.alerts.cannotLoadClusterData': 'Cannot load cluster data',
-    'clusters.devBlueprint': 'Dev Blueprint',
+    'clusters.devBlueprint': 'Cluster Blueprint',
 
     'groups.createLocal': 'Add Groups',
     'groups.name': 'Group name',
-    'groups.role': 'Add roles to this group',
+    'groups.role': 'Group Access',
     'groups.addUsers': 'Add users to this group',
     'groups.members': 'Members',
     'groups.membersPlural': '{{n}} member{{n == 1 ? "" : "s"}}',
@@ -304,16 +304,18 @@ angular.module('ambariAdminConsole')
     'users.inactive': 'Inactive',
     'users.status': 'Status',
     'users.password': 'Password',
-    'users.role': 'Add roles for this user',
+    'users.role': 'User Access',
     'users.confirmPassword': 'Confirm Password',
     'users.passwordConfirmation': 'Password сonfirmation',
     'users.isAmbariAdmin': 'Is this user an Ambari Admin?',
-    'users.isActive': 'Deactivate this user?',
+    'users.isActive': 'User Status',
     'users.userIsAdmin': 'This user is an Ambari Admin and has all privileges.',
     'users.showAll': 'Show all users',
     'users.showAdmin': 'Show only admin users',
     'users.groupMembership': 'Group Membership',
     'users.userNameTip': 'Maximum length is 80 characters. \\, &, |, <, >, ` are not allowed.',
+    'users.adminTip': 'An Ambari Admin can create new clusters and other Ambari Admin Users.',
+    'users.deactivateTip': 'Active Users can log in to Ambari. Inactive Users cannot.',
 
     'users.changeStatusConfirmation.title': 'Change Status',
     'users.changeStatusConfirmation.message': 'Are you sure you want to change status for user "{{userName}}" to {{status}}?',
@@ -403,9 +405,9 @@ angular.module('ambariAdminConsole')
     'versions.repository.add': 'Add Repository',
 
     'versions.useRedhatSatellite.title': 'Use RedHat Satellite/Spacewalk',
-    'versions.useRedhatSatellite.warning': 'By selecting to <b>"Use RedHat Satellite/Spacewalk"</b> for the software repositories, ' +
-      'you are responsible for configuring the repository channel in Satellite/Spacewalk and confirming the repositories for the selected <b>stack version</b> are available on the hosts in the cluster. ' +
-      'Refer to the Ambari documentation for more information.',
+    'versions.useRedhatSatellite.warning': "In order for Ambari to install packages from the right repositories, " +
+    "it is recommended that you edit the names of the repo's for each operating system so they match the channel " +
+    "names in your RedHat Satellite/Spacewalk instance.",
     'versions.useRedhatSatellite.disabledMsg': 'Use of RedHat Satellite/Spacewalk is not available when using Public Repositories',
 
     'versions.changeBaseURLConfirmation.title': 'Confirm Base URL Change',
@@ -413,7 +415,7 @@ angular.module('ambariAdminConsole')
 
     'versions.alerts.baseURLs': 'Provide Base URLs for the Operating Systems you are configuring.',
     'versions.alerts.validationFailed': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
-    'versions.alerts.skipValidationWarning': '<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
+    'versions.alerts.skipValidationWarning': 'Warning: This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
     'versions.alerts.useRedhatSatelliteWarning': 'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
     'versions.alerts.filterListError': 'Fetch stack version filter list error',
     'versions.alerts.versionCreated': 'Created version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',

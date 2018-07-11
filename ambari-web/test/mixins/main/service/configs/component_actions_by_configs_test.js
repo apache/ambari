@@ -127,14 +127,15 @@ describe('App.ComponentActionsByConfigs', function () {
           configActionComponent: {
             action: 'delete',
             componentName: 'C1',
-            hostName: 'host1'
+            hostNames: ['host1'],
+            isClient: false
           }
         }
       ];
       expect(mixin.getComponentsToDelete(configActionComponents)).to.be.eql([{
-        action: 'delete',
         componentName: 'C1',
-        hostName: 'host1'
+        hostName: 'host1',
+        isClient: false
       }]);
     });
   });
@@ -142,23 +143,19 @@ describe('App.ComponentActionsByConfigs', function () {
   describe("#getComponentsToAdd()", function () {
 
     beforeEach(function() {
-      sinon.stub(App.StackServiceComponent, 'find').returns([
-        Em.Object.create({
-          componentName: 'C1',
-          serviceName: 'S1'
-        })
-      ]);
-      sinon.stub(App.Service, 'find').returns([
-        Em.Object.create({
-          serviceName: 'S1',
-          hostComponents: [
-            Em.Object.create({
-              componentName: 'C1',
-              hostName: 'host2'
-            })
-          ]
-        })
-      ]);
+      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
+        componentName: 'C1',
+        serviceName: 'S1'
+      }));
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({
+        serviceName: 'S1',
+        hostComponents: [
+          Em.Object.create({
+            componentName: 'C1',
+            hostName: 'host2'
+          })
+        ]
+      }));
     });
 
     afterEach(function() {
@@ -172,14 +169,15 @@ describe('App.ComponentActionsByConfigs', function () {
           configActionComponent: {
             action: 'add',
             componentName: 'C1',
-            hostName: 'host1'
+            hostNames: ['host1'],
+            isClient: false
           }
         }
       ];
       expect(mixin.getComponentsToAdd(configActionComponents)).to.be.eql([{
-        action: 'add',
         componentName: 'C1',
-        hostName: 'host1'
+        hostName: 'host1',
+        isClient: false
       }]);
     });
   });
@@ -221,14 +219,18 @@ describe('App.ComponentActionsByConfigs', function () {
         hostName: 'host1'
       }]);
       mixin.doComponentDeleteActions();
+
       var args = testHelpers.findAjaxRequest('name', 'common.batch.request_schedules');
       expect(args[0]).to.be.eql({
         name: 'common.batch.request_schedules',
-        sender: mixin,
+        sender: {checkIfComponentWasDeleted: mixin.checkIfComponentWasDeleted},
+        success : "checkIfComponentWasDeleted",
         data: {
           intervalTimeSeconds: 60,
           tolerateSize: 0,
-          batches: [{}, {}]
+          batches: [{}, {}],
+          displayName: undefined,
+          hostName: 'host1'
         }
       });
     });

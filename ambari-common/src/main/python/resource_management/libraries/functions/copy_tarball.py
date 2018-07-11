@@ -23,11 +23,8 @@ __all__ = ["copy_to_hdfs", "get_sysprep_skip_copy_tarballs_hdfs"]
 import os
 import tempfile
 import re
-import tarfile
-from contextlib import closing
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import component_version
 from resource_management.libraries.functions import lzo_utils
 from resource_management.libraries.functions.default import default
@@ -70,7 +67,7 @@ def _prepare_tez_tarball():
   sudo.chmod(tez_temp_dir, 0777)
 
   Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
-  tar_archive.extract_archive(mapreduce_source_file, mapreduce_temp_dir)
+  tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
 
   Logger.info("Extracting {0} to {1}".format(tez_source_file, tez_temp_dir))
   tar_archive.untar_archive(tez_source_file, tez_temp_dir)
@@ -126,14 +123,11 @@ def _prepare_tez_tarball():
 
   tez_tarball_with_native_lib = os.path.join(tez_native_tarball_staging_dir, "tez-native.tar.gz")
   Logger.info("Creating a new Tez tarball at {0}".format(tez_tarball_with_native_lib))
-
-  # tar up Tez, making sure to specify nothing for the arcname so that it does not include an absolute path
-  with closing(tarfile.open(tez_tarball_with_native_lib, "w:gz")) as new_tez_tarball:
-    new_tez_tarball.add(tez_temp_dir, arcname=os.path.sep)
+  tar_archive.archive_dir_via_temp_file(tez_tarball_with_native_lib, tez_temp_dir)
 
   # ensure that the tarball can be read and uploaded
   sudo.chmod(tez_tarball_with_native_lib, 0744)
-  
+
   # cleanup
   sudo.rmtree(mapreduce_temp_dir)
   sudo.rmtree(tez_temp_dir)
@@ -169,7 +163,7 @@ def _prepare_mapreduce_tarball():
     raise Fail("Unable to seed the mapreduce tarball with native LZO libraries since the source Hadoop native lib directory {0} does not exist".format(hadoop_lib_native_source_dir))
 
   Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
-  tar_archive.extract_archive(mapreduce_source_file, mapreduce_temp_dir)
+  tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
 
   mapreduce_lib_dir = os.path.join(mapreduce_temp_dir, "hadoop", "lib")
 
@@ -193,10 +187,7 @@ def _prepare_mapreduce_tarball():
 
   mapreduce_tarball_with_native_lib = os.path.join(mapreduce_native_tarball_staging_dir, "mapreduce-native.tar.gz")
   Logger.info("Creating a new mapreduce tarball at {0}".format(mapreduce_tarball_with_native_lib))
-
-  # tar up mapreduce, making sure to specify nothing for the arcname so that it does not include an absolute path
-  with closing(tarfile.open(mapreduce_tarball_with_native_lib, "w:gz")) as new_tarball:
-    new_tarball.add(mapreduce_temp_dir, arcname = os.path.sep)
+  tar_archive.archive_dir_via_temp_file(mapreduce_tarball_with_native_lib, mapreduce_temp_dir)
 
   # ensure that the tarball can be read and uploaded
   sudo.chmod(mapreduce_tarball_with_native_lib, 0744)
@@ -217,6 +208,11 @@ TARBALL_MAP = {
     "dirs": ("{0}/{1}/slider/lib/slider.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
               "/{0}/apps/{1}/slider/slider.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "SLIDER"
+  },
+  "yarn": {
+    "dirs": ("{0}/{1}/hadoop-yarn/lib/service-dep.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+             "/{0}/apps/{1}/yarn/service-dep.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "service": "YARN"
   },
 
   "tez": {
@@ -273,11 +269,19 @@ TARBALL_MAP = {
     "dirs": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN),
              "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
     "service": "SPARK2"
+  },
+
+  "spark2hive": {
+    "dirs":  ("/tmp/spark2/spark2-{0}-hive-archive.tar.gz".format(STACK_NAME_PATTERN),
+              "/{0}/apps/{1}/spark2/spark2-{0}-hive-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+
+    "service": "SPARK2"
   }
 }
 
 SERVICE_TO_CONFIG_MAP = {
   "slider": "slider-env",
+  "yarn": "yarn-env",
   "tez": "tez-env",
   "pig": "pig-env",
   "sqoop": "sqoop-env",
@@ -286,11 +290,11 @@ SERVICE_TO_CONFIG_MAP = {
   "hadoop_streaming": "mapred-env",
   "tez_hive2": "hive-env",
   "spark": "spark-env",
-  "spark2": "spark2-env"
+  "spark2": "spark2-env",
+  "spark2hive": "spark2-env"
 }
 
 def get_sysprep_skip_copy_tarballs_hdfs():
-  import params
   host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
   # By default, copy the tarballs to HDFS. If the cluster is sysprepped, then set based on the config.
@@ -396,7 +400,6 @@ def _get_single_version_from_stack_select():
   :return: Returns a version string if successful, and None otherwise.
   """
   # Ubuntu returns: "stdin: is not a tty", as subprocess32 output, so must use a temporary file to store the output.
-  tmpfile = tempfile.NamedTemporaryFile()
   tmp_dir = Script.get_tmp_dir()
   tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")
   stack_version = None

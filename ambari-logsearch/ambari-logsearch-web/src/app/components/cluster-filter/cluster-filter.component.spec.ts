@@ -45,6 +45,12 @@ import {appSettings, AppSettingsService} from '@app/services/storage/app-setting
 import {appState, AppStateService} from '@app/services/storage/app-state.service';
 import {serviceLogsFields, ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
+import { DataAvailabilityStatesStore } from '@modules/app-load/stores/data-avaibility-state.store';
 
 describe('ClusterFilterComponent', () => {
   let component: ClusterFilterComponent;
@@ -58,6 +64,7 @@ describe('ClusterFilterComponent', () => {
         ClusterFilterComponent
       ],
       imports: [
+        RouterTestingModule,
         FormsModule,
         ReactiveFormsModule,
         MomentModule,
@@ -97,7 +104,12 @@ describe('ClusterFilterComponent', () => {
         ComponentsService,
         HostsService,
         ClusterSelectionService,
-        RoutingUtilsService
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService,
+        NotificationsService,
+        NotificationService,
+        DataAvailabilityStatesStore
       ]
     }))
     .compileComponents();

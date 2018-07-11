@@ -91,7 +91,8 @@ class TestHawqMaster(HawqBaseTestCase):
         kinit_path_local = '/usr/bin/kinit',
         recursive_chown = True,
         keytab = UnknownConfigurationMock(),
-        principal_name = UnknownConfigurationMock()
+        principal_name = UnknownConfigurationMock(),
+        dfs_type = '',
         )
 
     self.assertResourceCalled('HdfsResource', None,
@@ -105,7 +106,8 @@ class TestHawqMaster(HawqBaseTestCase):
         security_enabled = False,
         kinit_path_local = '/usr/bin/kinit',
         keytab = UnknownConfigurationMock(),
-        principal_name = UnknownConfigurationMock()
+        principal_name = UnknownConfigurationMock(),
+        dfs_type = '',
         )
 
     self.assertResourceCalled('Execute', self.SOURCE_HAWQ_SCRIPT + 'hawq init master -a -v --ignore-bad-hosts',

@@ -18,27 +18,30 @@
 
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {TakeUntilDestroy} from "angular2-take-until-destroy";
+import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'main-container',
-  templateUrl: './main-container.component.html',
-  styleUrls: ['./main-container.component.less']
+  templateUrl: './main-container.component.html'
 })
-@TakeUntilDestroy
 export class MainContainerComponent implements OnInit, OnDestroy{
 
-  componentDestroy;
+  private subscriptions: Subscription[] = [];
+
   constructor(private appState: AppStateService) {}
 
   ngOnInit() {
-    this.appState.getParameter('isAuthorized').takeUntil(this.componentDestroy())
-      .subscribe((value: boolean) => this.isAuthorized = value);
-    this.appState.getParameter('isInitialLoading').takeUntil(this.componentDestroy())
-      .subscribe((value: boolean) => this.isInitialLoading = value);
+    this.subscriptions.push(
+      this.appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value)
+    );
+    this.subscriptions.push(
+      this.appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value)
+    );
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
 
   isAuthorized: boolean = false;
 

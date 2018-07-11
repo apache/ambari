@@ -60,11 +60,22 @@
       <xs:enumeration value="DOWNGRADE" />
     </xs:restriction>
   </xs:simpleType>
-  
+
+  <!-- Corresponds to the SecurityType enumeration -->
   <xs:simpleType name="security-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="none" />
       <xs:enumeration value="kerberos" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Corresponds to the KDCType enumeration -->
+  <xs:simpleType name="kdc-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="none" />
+      <xs:enumeration value="mit-kdc" />
+      <xs:enumeration value="active-directory" />
+      <xs:enumeration value="ipa" />
     </xs:restriction>
   </xs:simpleType>
 
@@ -97,6 +108,7 @@
     <xs:complexContent>
       <xs:extension base="abstract-condition-type">  
         <xs:attribute name="type" type="security-type" use="required"/>
+        <xs:attribute name="kdc-type" type="kdc-type" use="optional"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -346,7 +358,27 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
+  <xs:complexType name="add_component">
+    <xs:complexContent>
+      <xs:extension base="abstract-server-task-type">
+        <xs:sequence />
+        <xs:attribute name="service" type="xs:string" use="required"/>
+        <xs:attribute name="component" type="xs:string" use="required"/>
+        <xs:attribute name="host-service" type="xs:string" use="optional"/>
+        <xs:attribute name="host-component" type="xs:string" use="optional"/>
+        <xs:attribute name="hosts" use="required" type="host-target-type" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="regenerate_keytabs">
+    <xs:complexContent>
+      <xs:extension base="abstract-server-task-type">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:complexType name="order-type">
     <xs:sequence>
       <xs:element name="group" minOccurs="1" maxOccurs="unbounded" />
@@ -404,8 +436,6 @@
     
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="target" type="xs:string" />
-        <xs:element name="target-stack" type="xs:string" />
         <xs:element name="downgrade-allowed" minOccurs="0" type="xs:boolean" />
         <xs:element name="type" type="upgrade-kind-type" />
         <xs:element name="prerequisite-checks" type="prerequisite-check-type" minOccurs="0" />

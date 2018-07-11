@@ -20,15 +20,18 @@ package org.apache.ambari.logfeeder.input;
 
 import org.apache.ambari.logfeeder.conf.LogEntryCacheConfig;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.monitor.LogFileDetachMonitor;
+import org.apache.ambari.logfeeder.input.monitor.LogFilePathUpdateMonitor;
 import org.apache.ambari.logfeeder.input.reader.LogsearchReaderFactory;
 import org.apache.ambari.logfeeder.input.file.FileCheckInHelper;
 import org.apache.ambari.logfeeder.input.file.ProcessFileHelper;
 import org.apache.ambari.logfeeder.input.file.ResumeLineNumberHelper;
+import org.apache.ambari.logfeeder.plugin.filter.Filter;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.util.FileUtil;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileDescriptor;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -39,12 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class InputFile extends Input<LogFeederProps, InputFileMarker> {
 
@@ -54,6 +52,10 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
   private static final boolean DEFAULT_USE_EVENT_MD5 = false;
   private static final boolean DEFAULT_GEN_EVENT_MD5 = true;
   private static final int DEFAULT_CHECKPOINT_INTERVAL_MS = 5 * 1000;
+
+  private static final int DEFAULT_DETACH_INTERVAL_MIN = 300;
+  private static final int DEFAULT_DETACH_TIME_MIN = 2000;
+  private static final int DEFAULT_LOG_PATH_UPDATE_INTERVAL_MIN = 5;
 
   private boolean isReady;
 
@@ -66,6 +68,10 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
   private String base64FileKey;
   private String checkPointExtension;
   private int checkPointIntervalMS;
+  private int detachIntervalMin;
+  private int detachTimeMin;
+  private int pathUpdateIntervalMin;
+  private Integer maxAgeMin;
 
   private Map<String, File> checkPointFiles = new HashMap<>();
   private Map<String, Long> lastCheckPointTimeMSs = new HashMap<>();
@@ -73,12 +79,21 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
   private Map<String, InputFileMarker> lastCheckPointInputMarkers = new HashMap<>();
 
   private Thread thread;
+  private Thread logFileDetacherThread;
+  private Thread logFilePathUpdaterThread;
+  private ThreadGroup threadGroup;
+
+  private boolean multiFolder = false;
+  private Map<String, List<File>> folderMap;
+  private Map<String, InputFile> inputChildMap = new HashMap<>();
 
   @Override
   public boolean isReady() {
     if (!isReady) {
       // Let's try to check whether the file is available
-      logFiles = getActualFiles(logPath);
+      logFiles = getActualInputLogFiles();
+      Map<String, List<File>> foldersMap = FileUtil.getFoldersForFiles(logFiles);
+      setFolderMap(foldersMap);
       if (!ArrayUtils.isEmpty(logFiles) && logFiles[0].isFile()) {
         if (tail && logFiles.length > 1) {
           LOG.warn("Found multiple files (" + logFiles.length + ") for the file filter " + filePath +
@@ -132,35 +147,36 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     return "input.files.read_bytes";
   }
 
-  private File[] getActualFiles(String searchPath) {
-    File searchFile = new File(searchPath);
-    if (!searchFile.getParentFile().exists()) {
-      return new File[0];
-    } else if (searchFile.isFile()) {
-      return new File[]{searchFile};
-    } else {
-      FileFilter fileFilter = new WildcardFileFilter(searchFile.getName());
-      File[] logFiles = searchFile.getParentFile().listFiles(fileFilter);
-      Arrays.sort(logFiles, Comparator.comparing(File::getName));
-      return logFiles;
-    }
-  }
-
   @Override
   public boolean monitor() {
     if (isReady()) {
-      LOG.info("Starting thread. " + getShortDescription());
-      thread = new Thread(this, getNameForThread());
-      thread.start();
+      if (multiFolder) {
+        try {
+          threadGroup = new ThreadGroup(getNameForThread());
+          if (getFolderMap() != null) {
+            for (Map.Entry<String, List<File>> folderFileEntry : getFolderMap().entrySet()) {
+              startNewChildInputFileThread(folderFileEntry);
+            }
+            logFilePathUpdaterThread = new Thread(new LogFilePathUpdateMonitor((InputFile) this, pathUpdateIntervalMin, detachTimeMin), "logfile_path_updater=" + filePath);
+            logFilePathUpdaterThread.setDaemon(true);
+            logFileDetacherThread = new Thread(new LogFileDetachMonitor((InputFile) this, detachIntervalMin, detachTimeMin), "logfile_detacher=" + filePath);
+            logFileDetacherThread.setDaemon(true);
+
+            logFilePathUpdaterThread.start();
+            logFileDetacherThread.start();
+          }
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      } else {
+        LOG.info("Starting thread. " + getShortDescription());
+        thread = new Thread(this, getNameForThread());
+        thread.start();
+      }
       return true;
     } else {
       return false;
     }
-  }
-
-  @Override
-  public List<InputFile> getChildInputs() {
-    return null;
   }
 
   @Override
@@ -179,15 +195,29 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     setClosed(true);
     logPath = getInputDescriptor().getPath();
     checkPointIntervalMS = (int) ObjectUtils.defaultIfNull(((InputFileBaseDescriptor)getInputDescriptor()).getCheckpointIntervalMs(), DEFAULT_CHECKPOINT_INTERVAL_MS);
-
+    detachIntervalMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDetachIntervalMin(), DEFAULT_DETACH_INTERVAL_MIN * 60);
+    detachTimeMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDetachTimeMin(), DEFAULT_DETACH_TIME_MIN * 60);
+    pathUpdateIntervalMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getPathUpdateIntervalMin(), DEFAULT_LOG_PATH_UPDATE_INTERVAL_MIN * 60);
+    maxAgeMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getMaxAgeMin(), 0);
+    boolean initDefaultFields = BooleanUtils.toBooleanDefaultIfNull(getInputDescriptor().isInitDefaultFields(), false);
+    setInitDefaultFields(initDefaultFields);
     if (StringUtils.isEmpty(logPath)) {
       LOG.error("path is empty for file input. " + getShortDescription());
       return;
     }
 
     setFilePath(logPath);
+    // Check there can have pattern in folder
+    if (getFilePath() != null && getFilePath().contains("/")) {
+      int lastIndexOfSlash = getFilePath().lastIndexOf("/");
+      String folderBeforeLogName = getFilePath().substring(0, lastIndexOfSlash);
+      if (folderBeforeLogName.contains("*")) {
+        LOG.info("Found regex in folder path ('" + getFilePath() + "'), will check against multiple folders.");
+        setMultiFolder(true);
+      }
+    }
     boolean isFileReady = isReady();
-    LOG.info("File to monitor " + logPath + ", tail=" + tail + ", isReady=" + isReady());
+    LOG.info("File to monitor " + logPath + ", tail=" + tail + ", isReady=" + isFileReady);
 
     LogEntryCacheConfig cacheConfig = logFeederProps.getLogEntryCacheConfig();
     initCache(
@@ -265,6 +295,73 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     }
   }
 
+  public void startNewChildInputFileThread(Map.Entry<String, List<File>> folderFileEntry) throws CloneNotSupportedException {
+    LOG.info("Start child input thread - " + folderFileEntry.getKey());
+    InputFile clonedObject = (InputFile) this.clone();
+    String folderPath = folderFileEntry.getKey();
+    String filePath = new File(getFilePath()).getName();
+    String fullPathWithWildCard = String.format("%s/%s", folderPath, filePath);
+    if (clonedObject.getMaxAgeMin() != 0 && FileUtil.isFileTooOld(new File(fullPathWithWildCard), clonedObject.getMaxAgeMin().longValue())) {
+      LOG.info(String.format("File ('%s') is too old (max age min: %d), monitor thread not starting...", getFilePath(), clonedObject.getMaxAgeMin()));
+    } else {
+      clonedObject.setMultiFolder(false);
+      clonedObject.logFiles = folderFileEntry.getValue().toArray(new File[0]); // TODO: works only with tail
+      clonedObject.logPath = fullPathWithWildCard;
+      clonedObject.setLogFileDetacherThread(null);
+      clonedObject.setLogFilePathUpdaterThread(null);
+      clonedObject.setInputChildMap(new HashMap<>());
+      copyFilters(clonedObject, getFirstFilter());
+      Thread thread = new Thread(threadGroup, clonedObject, "file=" + fullPathWithWildCard);
+      clonedObject.setThread(thread);
+      inputChildMap.put(fullPathWithWildCard, clonedObject);
+      thread.start();
+    }
+  }
+
+  private void copyFilters(InputFile clonedInput, Filter firstFilter) {
+    if (firstFilter != null) {
+      try {
+        LOG.info("Cloning filters for input=" + clonedInput.logPath);
+        Filter newFilter = (Filter) firstFilter.clone();
+        newFilter.setInput(clonedInput);
+        clonedInput.setFirstFilter(newFilter);
+        Filter actFilter = firstFilter;
+        Filter actClonedFilter = newFilter;
+        while (actFilter != null) {
+          if (actFilter.getNextFilter() != null) {
+            actFilter = actFilter.getNextFilter();
+            Filter newClonedFilter = (Filter) actFilter.clone();
+            newClonedFilter.setInput(clonedInput);
+            actClonedFilter.setNextFilter(newClonedFilter);
+            actClonedFilter = newClonedFilter;
+          } else {
+            actClonedFilter.setNextFilter(null);
+            actFilter = null;
+          }
+        }
+        LOG.info("Cloning filters has finished for input=" + clonedInput.logPath);
+      } catch (Exception e) {
+        LOG.error("Could not clone filters for input=" + clonedInput.logPath);
+      }
+    }
+  }
+
+  public void stopChildInputFileThread(String folderPathKey) {
+    LOG.info("Stop child input thread - " + folderPathKey);
+    String filePath = new File(getFilePath()).getName();
+    String fullPathWithWildCard = String.format("%s/%s", folderPathKey, filePath);
+    if (inputChildMap.containsKey(fullPathWithWildCard)) {
+      InputFile inputFile = inputChildMap.get(fullPathWithWildCard);
+      inputFile.setClosed(true);
+      if (inputFile.getThread() != null && inputFile.getThread().isAlive()) {
+        inputFile.getThread().interrupt();
+      }
+      inputChildMap.remove(fullPathWithWildCard);
+    } else {
+      LOG.warn(fullPathWithWildCard + " not found as an input child.");
+    }
+  }
+
   @Override
   public boolean isEnabled() {
     return BooleanUtils.isNotFalse(getInputDescriptor().isEnabled());
@@ -289,6 +386,10 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     LOG.info("close() calling checkPoint checkIn(). " + getShortDescription());
     lastCheckIn();
     setClosed(true);
+  }
+
+  public File[] getActualInputLogFiles() {
+    return FileUtil.getInputFilesByPattern(logPath);
   }
 
   public String getFilePath() {
@@ -354,4 +455,59 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
   public Map<String, InputFileMarker> getLastCheckPointInputMarkers() {
     return lastCheckPointInputMarkers;
   }
+
+  public boolean isMultiFolder() {
+    return multiFolder;
+  }
+
+  public void setMultiFolder(boolean multiFolder) {
+    this.multiFolder = multiFolder;
+  }
+
+  public Map<String, List<File>> getFolderMap() {
+    return folderMap;
+  }
+
+  public void setFolderMap(Map<String, List<File>> folderMap) {
+    this.folderMap = folderMap;
+  }
+
+  public Map<String, InputFile> getInputChildMap() {
+    return inputChildMap;
+  }
+
+  public void setInputChildMap(Map<String, InputFile> inputChildMap) {
+    this.inputChildMap = inputChildMap;
+  }
+
+  @Override
+  public Thread getThread() {
+    return thread;
+  }
+
+  @Override
+  public void setThread(Thread thread) {
+    this.thread = thread;
+  }
+
+  public Thread getLogFileDetacherThread() {
+    return logFileDetacherThread;
+  }
+
+  public void setLogFileDetacherThread(Thread logFileDetacherThread) {
+    this.logFileDetacherThread = logFileDetacherThread;
+  }
+
+  public Thread getLogFilePathUpdaterThread() {
+    return logFilePathUpdaterThread;
+  }
+
+  public void setLogFilePathUpdaterThread(Thread logFilePathUpdaterThread) {
+    this.logFilePathUpdaterThread = logFilePathUpdaterThread;
+  }
+
+  public Integer getMaxAgeMin() {
+    return maxAgeMin;
+  }
+
 }

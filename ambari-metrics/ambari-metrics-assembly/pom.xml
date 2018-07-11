@@ -345,7 +345,7 @@
                           <location>${collector.dir}/conf/unix/amshbase_metrics_whitelist</location>
                         </source>
                         <source>
-                          <location>${collector.dir}/target/embedded/${hbase.folder}/conf/hbase-site.xml</location>
+                          <location>${collector.dir}/conf/unix/hbase-site.xml</location>
                         </source>
                       </sources>
                     </mapping>
@@ -389,7 +389,10 @@
                   <defaultFilemode>644</defaultFilemode>
                   <defaultUsername>root</defaultUsername>
                   <defaultGroupname>root</defaultGroupname>
-
+                  <preinstallScriptlet>
+                    <scriptFile>${project.build.directory}/resources/rpm/sink/preinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </preinstallScriptlet>
                   <postinstallScriptlet>
                     <scriptFile>${project.build.directory}/resources/rpm/sink/postinstall.sh</scriptFile>
                     <fileEncoding>utf-8</fileEncoding>
@@ -637,7 +640,6 @@
                   </mappings>
                 </configuration>
               </execution>
-
 
             </executions>
           </plugin>
@@ -912,7 +914,7 @@
                   </mapper>
                 </data>
                 <data>
-                  <src>${collector.dir}/target/embedded/${hbase.folder}/conf/hbase-site.xml</src>
+                  <src>${collector.dir}/conf/unix/hbase-site.xml</src>
                   <type>file</type>
                   <mapper>
                     <type>perm</type>
@@ -1075,6 +1077,7 @@
         <assemblydescriptor.monitor>src/main/assembly/monitor.xml</assemblydescriptor.monitor>
         <assemblydescriptor.sink>src/main/assembly/sink.xml</assemblydescriptor.sink>
         <assemblydescriptor.grafana>src/main/assembly/grafana.xml</assemblydescriptor.grafana>
+
         <packagingFormat>jar</packagingFormat>
       </properties>
       <build>
@@ -1106,7 +1109,7 @@
                     <!-- Resolving symlinks-->
                     <move todir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/">
                       <fileset dir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/"/>
-                      <mapper type="regexp" from="libsnappy.so.1.1.*" to="libsnappy.so.1"/>
+                      <mapper type="regexp" from="libsnappy.so.1.*.*" to="libsnappy.so.1"/>
                     </move>
                     <move
                       file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so.0.0.0"
