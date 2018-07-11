@@ -28,6 +28,8 @@ RUN_DIR_KEY_NAME = 'run_dir'
 PATH_KEY_NAME = 'mpack_path'
 COMPONENTS_PLURAL_KEY_NAME = 'components'
 COMPONENT_INSTANCES_PLURAL_KEY_NAME = 'component-instances'
+MPACK_VERSION_KEY_NAME = 'mpack_version'
+MODULE_VERSION_KEY_NAME = 'module_version'
 
 
 def get_component_conf_path(mpack_name, instance_name, module_name, components_instance_type,
@@ -81,6 +83,25 @@ def get_component_target_path(mpack_name, instance_name, module_name, components
 
   return instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
     COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][PATH_KEY_NAME]
+
+
+def get_versions(mpack_name, instance_name, module_name, components_instance_type,
+                              subgroup_name='default', component_instance_name='default'):
+  """
+  :returns a tuple representing the mpack version and the module version
+  :raises ValueError if the parameters doesn't match the mpack or instances structure
+  """
+
+  instances_json = list_instances(mpack_name, instance_name, subgroup_name, module_name,
+                                  {components_instance_type: [component_instance_name]})
+
+  mpack_version = instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
+    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][MPACK_VERSION_KEY_NAME]
+
+  module_version = instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
+    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][MODULE_VERSION_KEY_NAME]
+
+  return mpack_version, module_version
 
 
 def get_component_home_path(mpack_name, instance_name, module_name, components_instance_type,

@@ -28,6 +28,7 @@ import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.StructuredOutputType;
 import org.apache.ambari.server.controller.internal.UpgradePlanInstallResourceProvider;
 import org.apache.ambari.server.events.CommandReportReceivedEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
@@ -49,6 +50,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.Striped;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
@@ -234,9 +237,16 @@ public class MpackInstallStateListener {
     Long mpackId = null;
 
     try {
-      // try to parse the structured output of the install command
-      structuredOutput = m_gson.fromJson(commandReport.getStructuredOut(),
-          InstallCommandStructuredOutput.class);
+      if(null != commandReport.getStructuredOut()) {
+        JsonElement element = m_gson.fromJson (commandReport.getStructuredOut(), JsonElement.class);
+        JsonObject jsonObj = element.getAsJsonObject();
+        JsonElement installReportingElement = jsonObj.get(StructuredOutputType.MPACK_INSTALLATION.getRoot());
+        if(null != installReportingElement) {
+          // try to parse the structured output of the install command
+          structuredOutput = m_gson.fromJson(installReportingElement,
+              InstallCommandStructuredOutput.class);          
+        }
+      }
     } catch (JsonSyntaxException jsonException) {
       LOG.error(
           "Unable to parse the installation structured output for command {} for {} on host {}",

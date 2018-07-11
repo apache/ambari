@@ -141,14 +141,27 @@ public interface ServiceComponentHost {
   String getVersion();
 
   /**
-   * Sets the version of the component from the stack.
+   * Gets the version reported for this component's associated mpack.
    *
-   * @param version component version (e.g. 2.2.0.0-2041)
+   * @return mpack version reported for this component.
    */
-  void setVersion(String version) throws AmbariException;
+  String getMpackVersion();
 
   /**
-   * @param upgradeState the upgrade state
+   * Sets the versions reported for a component which include the mpack it
+   * belongs to and the specific version of that component within the mpack.
+   *
+   * @param mpackVersion
+   *          the version of the component's mpack (e.g. 1.0.0.0-b1234).
+   * @param version
+   *          component version (e.g. 2.2.0.0-2041)
+   */
+  void setVersions(String mpackVersion, String version) throws AmbariException;
+
+
+  /**
+   * @param upgradeState
+   *          the upgrade state
    */
   void setUpgradeState(UpgradeState upgradeState);
 

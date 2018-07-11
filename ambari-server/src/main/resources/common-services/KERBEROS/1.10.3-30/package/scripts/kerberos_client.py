@@ -52,12 +52,17 @@ class KerberosClient(Script):
       if principal is not None:
         curr_content = Script.structuredOut
 
-        if "keytabs" not in curr_content:
-          curr_content['keytabs'] = {}
+        if "set_keytabs" not in curr_content:
+          curr_content['set_keytabs'] = {}
 
-        curr_content['keytabs'][principal.replace("_HOST", params.hostname)] = keytab_file_path
+        set_keytabs_dictionary = curr_content['set_keytabs']
 
-        self.put_structured_out(curr_content)
+        if "keytabs" not in set_keytabs_dictionary:
+          set_keytabs_dictionary['keytabs'] = {}
+
+          set_keytabs_dictionary['keytabs'][principal.replace("_HOST", params.hostname)] = keytab_file_path
+
+        self.put_structured_out({"set_keytabs", set_keytabs_dictionary})
 
     write_keytab_file(params, output_hook)
 
@@ -68,11 +73,16 @@ class KerberosClient(Script):
       if principal is not None:
         curr_content = Script.structuredOut
 
-        if "removedKeytabs" not in curr_content:
-          curr_content['removedKeytabs'] = {}
-        curr_content['removedKeytabs'][principal.replace("_HOST", params.hostname)] = keytab_file_path
+        if "set_keytabs" not in curr_content:
+          curr_content['set_keytabs'] = {}
 
-        self.put_structured_out(curr_content)
+          set_keytabs_dictionary = curr_content['set_keytabs']
+
+        if "removedKeytabs" not in set_keytabs_dictionary:
+          set_keytabs_dictionary['removedKeytabs'] = {}
+
+          set_keytabs_dictionary['removedKeytabs'][principal.replace("_HOST", params.hostname)] = keytab_file_path
+        self.put_structured_out({"set_keytabs", set_keytabs_dictionary})
 
     delete_keytab_file(params, output_hook)
 
@@ -80,9 +90,9 @@ class KerberosClient(Script):
     import params
 
     def output_hook(missing_keytabs):
-      curr_content = Script.structuredOut
-      curr_content['missing_keytabs'] = missing_keytabs
-      self.put_structured_out(curr_content)
+      missing_keytabs_dictionary = {}
+      missing_keytabs_dictionary['missing_keytabs'] = missing_keytabs
+      self.put_structured_out({"check_keytabs", missing_keytabs_dictionary})
 
     find_missing_keytabs(params, output_hook)
 

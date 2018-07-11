@@ -301,6 +301,7 @@ CREATE TABLE hostcomponentstate (
   cluster_id NUMERIC(19) NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   component_type VARCHAR(255) NOT NULL,
+  mpack_version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_state VARCHAR(255) NOT NULL,
   last_live_state VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',

@@ -28,11 +28,13 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.utils import pad
 from resource_management.libraries.functions import stack_settings
+from resource_management.libraries.functions.decorator import deprecated
 
 STACK_SELECTOR_NAME = "stack_selector"
 CONF_SELECTOR_NAME = "conf_selector"
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool(name):
   """
   Give a tool selector name get the stack-specific tool name, tool path, tool package
@@ -76,6 +78,8 @@ def get_stack_tool(name):
   # Return fixed length (tool_name, tool_path, tool_package) tuple
   return tuple(pad(tool_config[:3], 3))
 
+
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool_name(name):
   """
   Give a tool selector name get the stack-specific tool name
@@ -86,6 +90,7 @@ def get_stack_tool_name(name):
   return tool_name
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool_path(name):
   """
   Give a tool selector name get the stack-specific tool path
@@ -96,6 +101,7 @@ def get_stack_tool_path(name):
   return tool_path
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_tool_package(name):
   """
   Give a tool selector name get the stack-specific tool package
@@ -106,6 +112,7 @@ def get_stack_tool_package(name):
   return tool_package
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_root(stack_name, stack_root_json):
   """
   Get the stack-specific install root directory from the raw, JSON-escaped properties.
@@ -127,6 +134,7 @@ def get_stack_root(stack_name, stack_root_json):
   return stack_root[stack_name]
 
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_stack_name(stack_formatted):
   """
   Get the stack name (eg. HDP) from formatted string that may contain stack version (eg. HDP-2.6.1.0-123)

@@ -204,7 +204,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
 
           for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
             serviceComponentHost.setState(state);
-            serviceComponentHost.setVersion(version);
+            serviceComponentHost.setVersions("1.0.0.0-b1234", version);
           }
 
           Thread.sleep(10);
@@ -233,7 +233,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     sc.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setVersion(REPO_VERSION);
+    sch.setVersions("1.0.0.0-b1234", REPO_VERSION);
 
     return sch;
   }
