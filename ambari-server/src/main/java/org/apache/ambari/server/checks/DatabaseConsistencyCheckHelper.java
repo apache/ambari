@@ -51,7 +51,6 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -60,8 +59,6 @@ import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
@@ -77,6 +74,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -1272,7 +1270,7 @@ public class DatabaseConsistencyCheckHelper {
 
         if (!MapUtils.isEmpty(configGroups)) {
           for (ConfigGroup configGroup : configGroups.values()) {
-            if (!services.containsKey(configGroup.getServiceName())) {
+            if (!Strings.isNullOrEmpty(configGroup.getServiceName()) && !services.containsKey(configGroup.getServiceName())) {
               configGroupMap.put(configGroup.getId(), configGroup);
               output.append("( ");
               output.append(configGroup.getName());
