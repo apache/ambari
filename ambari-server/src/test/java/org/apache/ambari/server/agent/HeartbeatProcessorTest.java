@@ -44,8 +44,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.inject.Binder;
-import com.google.inject.Module;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
@@ -97,9 +95,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 
 public class HeartbeatProcessorTest {
 
