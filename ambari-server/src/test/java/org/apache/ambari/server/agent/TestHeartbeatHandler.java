@@ -1317,25 +1317,17 @@ public class TestHeartbeatHandler {
     expected.setComponents(dummyComponents);
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service service = EasyMock.createNiceMock(Service.class);
-    expect(service.getName()).andReturn("HDFS").atLeastOnce();
-
+    Service service = cluster.getService("HDFS");
     Map<String, ServiceComponent> componentMap = new HashMap<>();
     ServiceComponent nnComponent = EasyMock.createNiceMock(ServiceComponent.class);
-    expect(nnComponent.getName()).andReturn("NAMENODE").atLeastOnce();
-    expect(nnComponent.getStackId()).andReturn(dummyStackId).atLeastOnce();
+    expect(nnComponent.getName()).andReturn("NAMENODE").anyTimes();
+    expect(nnComponent.getStackId()).andReturn(service.getStackId()).anyTimes();
+    replay(nnComponent);
     componentMap.put("NAMENODE", nnComponent);
-
-    expect(service.getServiceComponents()).andReturn(componentMap).atLeastOnce();
-    expect(service.getServiceId()).andReturn(1L).atLeastOnce();
-    expect(service.getServiceType()).andReturn("HDFS").atLeastOnce();
-    expect(service.getStackId()).andReturn(dummyStackId).atLeastOnce();
+    service.addServiceComponent(nnComponent);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-
-    replay(service, nnComponent, am);
-
-    cluster.addService(service);
+    replay(am);
 
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am);
     // Make sure handler is not null, this has possibly been an intermittent problem in the past
@@ -1601,8 +1593,17 @@ public class TestHeartbeatHandler {
    * @throws AmbariException
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", DummyStackId);
-    return cluster.addService(serviceGroup, serviceName, serviceName);
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
+    if (serviceGroup == null) {
+      serviceGroup = cluster.addServiceGroup("CORE", DummyStackId);
+    }
+    Service service = null;
+    try {
+      service = cluster.getService(serviceName);
+    } catch (Exception e) {
+      service = cluster.addService(serviceGroup, serviceName, serviceName);
+    }
+    return service;
   }
 
 }
