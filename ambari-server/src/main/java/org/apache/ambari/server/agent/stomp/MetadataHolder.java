@@ -124,9 +124,9 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   }
 
   @Subscribe
-  public void onServiceCreate(ServiceInstalledEvent serviceInstalledEvent) throws AmbariException {
-    Cluster cluster = m_clusters.get().getCluster(serviceInstalledEvent.getClusterId());
-    updateData(metadataGenerator.getClusterMetadataOnServiceInstall(cluster, serviceInstalledEvent.getServiceName()));
+  public void onServiceCreate(ServiceInstalledEvent event) throws AmbariException {
+    Cluster cluster = m_clusters.get().getCluster(event.getClusterId());
+    updateData(metadataGenerator.getClusterMetadataOnServiceInstall(cluster, event.getServiceGroupName(), event.getServiceName()));
   }
 
   @Subscribe
@@ -136,10 +136,9 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   }
 
   @Subscribe
-  public void onServiceCredentialStoreUpdate(ServiceCredentialStoreUpdateEvent serviceCredentialStoreUpdateEvent) throws AmbariException {
-    Cluster cluster = m_clusters.get().getCluster(serviceCredentialStoreUpdateEvent.getClusterId());
-    //TODO : [AMP] Fix it
-    // updateData(ambariManagementController.getClusterMetadataOnServiceCredentialStoreUpdate(cluster, serviceCredentialStoreUpdateEvent.getServiceName()));
+  public void onServiceCredentialStoreUpdate(ServiceCredentialStoreUpdateEvent event) throws AmbariException {
+    Cluster cluster = m_clusters.get().getCluster(event.getClusterId());
+    updateData(metadataGenerator.getClusterMetadataOnServiceCredentialStoreUpdate(cluster, event.getServiceGroupName(), event.getServiceName()));
   }
 
   @Subscribe

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.topology;
 
+import java.util.Optional;
+
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
@@ -121,6 +123,12 @@ public class StackBuilder {
     return resolveComponent(currentComponent, currentService, stackId);
   }
 
+  public ResolvedComponent lastAddedComponentWith(String mpackInstanceName, String serviceInstanceName) {
+    Preconditions.checkNotNull(currentService);
+    Preconditions.checkNotNull(currentComponent);
+    return withInstanceNames(resolveComponent(currentComponent, currentService, stackId), mpackInstanceName, serviceInstanceName);
+  }
+
   public ResolvedComponent componentToBeCoLocatedWith() {
     Preconditions.checkNotNull(currentComponent);
     Preconditions.checkNotNull(currentComponent.getAutoDeploy());
@@ -185,6 +193,14 @@ public class StackBuilder {
       componentInfo.setAutoDeploy(new AutoDeployInfo());
     }
     return componentInfo.getAutoDeploy();
+  }
+
+  protected static ResolvedComponent withInstanceNames(ResolvedComponent component, String mpackInstanceName, String serviceInstanceName) {
+    return component.toBuilder()
+      .serviceGroupName(Optional.ofNullable(mpackInstanceName))
+      .serviceName(Optional.ofNullable(serviceInstanceName))
+      .component(new Component(component.componentName(), mpackInstanceName, serviceInstanceName, null))
+      .build();
   }
 
 }

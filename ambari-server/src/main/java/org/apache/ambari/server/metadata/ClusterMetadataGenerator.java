@@ -176,13 +176,14 @@ public class ClusterMetadataGenerator {
     return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
-  public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceName) throws AmbariException {
-    return getClusterMetadataOnServiceCredentialStoreUpdate(cl, serviceName);
+  public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceGroupName, String serviceName) throws AmbariException {
+    return getClusterMetadataOnServiceCredentialStoreUpdate(cl, serviceGroupName, serviceName);
   }
 
-  public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceName) throws AmbariException {
+  public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceGroupName, String serviceName) throws AmbariException {
     final SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(cl), false));
+    Service service = cl.getService(serviceGroupName, serviceName);
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(service), false));
     return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
@@ -205,18 +206,18 @@ public class ClusterMetadataGenerator {
     SortedMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
 
     StackId serviceStackId = service.getStackId();
-    ServiceInfo serviceInfo = ambariMetaInfo.getService(serviceStackId.getStackName(),
-      serviceStackId.getStackVersion(), service.getName());
+
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(serviceStackId.getStackName(), serviceStackId.getStackVersion(), service.getServiceType());
     Long statusCommandTimeout = null;
     if (serviceInfo.getCommandScript() != null) {
       statusCommandTimeout = new Long(getStatusCommandTimeout(serviceInfo));
     }
-
-    String servicePackageFolder = serviceInfo.getServicePackageFolder();
     Map<String, Map<String, String>> configCredentials = configHelper.getCredentialStoreEnabledProperties(serviceStackId, service);
-
-    serviceLevelParams.put(serviceInfo.getName(), new MetadataServiceInfo(serviceInfo.getVersion(),
-      service.isCredentialStoreEnabled(), configCredentials, statusCommandTimeout, servicePackageFolder));
+    serviceLevelParams.put(service.getName(), new MetadataServiceInfo(
+      serviceInfo.getName(), serviceInfo.getVersion(),
+      serviceInfo.isCredentialStoreEnabled(), configCredentials, statusCommandTimeout,
+      serviceInfo.getServicePackageFolder()
+    ));
 
     return serviceLevelParams;
   }

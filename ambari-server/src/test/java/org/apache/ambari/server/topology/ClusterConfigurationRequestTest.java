@@ -255,7 +255,7 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
 
-    expect(topology.getServices()).andReturn(SERVICE_NAMES).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(SERVICE_NAMES).anyTimes();
     expect(stack.getConfiguration(SERVICE_NAMES)).andReturn(stackDefaultConfig).once();
 
     expect(topology.getComponents()).andAnswer(() -> Stream.of(
@@ -339,7 +339,7 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
     Set<String> serviceNames = ImmutableSet.of("HDFS", "KERBEROS", "ZOOKEEPER");
-    expect(topology.getServices()).andReturn(serviceNames).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(serviceNames).anyTimes();
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getComponents()).andAnswer(Stream::empty).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
@@ -391,7 +391,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
     expect(topology.getStack()).andReturn(stack).anyTimes();
-    expect(topology.getServices()).andReturn(services).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(services).anyTimes();
 
     expect(topology.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
     expect(topology.isValidConfigType("admin-properties")).andReturn(true).anyTimes();
@@ -441,7 +441,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
     expect(topology.getStack()).andReturn(stack).anyTimes();
-    expect(topology.getServices()).andReturn(services).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(services).anyTimes();
 
     expect(topology.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
     expect(topology.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
@@ -539,7 +539,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
     expect(topology.getStack()).andReturn(stack).anyTimes();
-    expect(topology.getServices()).andReturn(serviceNames).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(serviceNames).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
 
     expect(topology.isValidConfigType("zoo.cfg")).andReturn(true).anyTimes();

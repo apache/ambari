@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology.validators;
 
 import static org.junit.Assert.assertSame;
 
-import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.ResolvedComponent;
 import org.apache.ambari.server.topology.StackBuilder;
@@ -45,11 +44,19 @@ public class DependencyAndCardinalityValidatorTest extends TopologyValidatorTest
 
   @Test
   public void acceptsComponentWithMpackInstanceSpecified() throws InvalidTopologyException {
-    ResolvedComponent component = aComponent().withCardinality("2").lastAddedComponent();
-    component = component.toBuilder()
-      .component(new Component(component.componentName(), "mpack_instance", "service_instance", null))
-      .build();
+    ResolvedComponent component = aComponent().withCardinality("2").lastAddedComponentWith("mpack_instance", "service_instance");
     topologyHas(2, component);
+    replayAll();
+
+    assertSame(topology, subject.validate(topology));
+  }
+
+  @Test
+  public void acceptsMultipleInstances() throws InvalidTopologyException {
+    StackBuilder stackBuilder = aComponent().withCardinality("1+");
+    ResolvedComponent instance1 = stackBuilder.lastAddedComponentWith(null, "instance1");
+    ResolvedComponent instance2 = stackBuilder.lastAddedComponentWith(null, "instance2");
+    topologyHas(instance1, instance2);
     replayAll();
 
     assertSame(topology, subject.validate(topology));

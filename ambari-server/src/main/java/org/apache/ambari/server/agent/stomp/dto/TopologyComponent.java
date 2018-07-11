@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class TopologyComponent {
   private String componentName;
   private String serviceName;
-  private String displayName;
+  private String serviceType;
   private String version;
   private Set<Long> hostIds = new HashSet<>();
   private Set<String> hostNames = new HashSet<>();
@@ -65,8 +65,8 @@ public class TopologyComponent {
       return this;
     }
 
-    public Builder setDisplayName(String displayName) {
-      TopologyComponent.this.setDisplayName(displayName);
+    public Builder setServiceType(String serviceType) {
+      TopologyComponent.this.setServiceType(serviceType);
       return this;
     }
 
@@ -185,7 +185,7 @@ public class TopologyComponent {
 
   public  TopologyComponent deepCopy() {
     return TopologyComponent.newBuilder().setComponentName(getComponentName())
-        .setDisplayName(getDisplayName())
+        .setServiceType(getServiceType())
         .setServiceName(getServiceName())
         .setComponentLevelParams(getComponentLevelParams() == null ? null : new TreeMap<>(getComponentLevelParams()))
         .setHostIds(getHostIds() == null ? null : new HashSet<>(getHostIds()))
@@ -251,12 +251,12 @@ public class TopologyComponent {
     this.hostNames = hostNames;
   }
 
-  public String getDisplayName() {
-    return displayName;
+  public String getServiceType() {
+    return serviceType;
   }
 
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
+  public void setServiceType(String serviceType) {
+    this.serviceType = serviceType;
   }
 
   public Set<String> getPublicHostNames() {

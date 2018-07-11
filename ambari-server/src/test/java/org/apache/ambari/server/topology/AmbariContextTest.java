@@ -239,7 +239,7 @@ public class AmbariContextTest {
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
     expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(topology.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
-    expect(topology.getServices()).andReturn(blueprintServices).anyTimes();
+    expect(topology.getServiceTypes()).andReturn(blueprintServices).anyTimes();
     expect(topology.getComponents()).andAnswer(() -> Stream.of(
       builderFor("service1", "s1Component1").stackId(STACK_ID).buildPartial(),
       builderFor("service1", "s1Component2").stackId(STACK_ID).buildPartial(),

@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 
@@ -53,11 +54,11 @@ public class ExecutionCommand extends AgentCommand {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
 
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterId")
+  @JsonProperty("clusterId")
   private String clusterId;
 
   @SerializedName("clusterName")
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
+  @JsonProperty("clusterName")
   private String clusterName;
 
   @SerializedName("clusterSettings")
@@ -67,7 +68,7 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, String> stackSettings;
 
   @SerializedName("requestId")
-  @com.fasterxml.jackson.annotation.JsonProperty("requestId")
+  @JsonProperty("requestId")
   private long requestId;
 
   @SerializedName("stageId")
@@ -75,11 +76,11 @@ public class ExecutionCommand extends AgentCommand {
   private long stageId;
 
   @SerializedName("taskId")
-  @com.fasterxml.jackson.annotation.JsonProperty("taskId")
+  @JsonProperty("taskId")
   private long taskId;
 
   @SerializedName("commandId")
-  @com.fasterxml.jackson.annotation.JsonProperty("commandId")
+  @JsonProperty("commandId")
   private String commandId;
 
   @SerializedName("hostname")
@@ -87,7 +88,7 @@ public class ExecutionCommand extends AgentCommand {
   private String hostname;
 
   @SerializedName("role")
-  @com.fasterxml.jackson.annotation.JsonProperty("role")
+  @JsonProperty("role")
   private String role;
 
   @SerializedName("hostLevelParams")
@@ -95,11 +96,11 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("roleParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("roleParams")
+  @JsonProperty("roleParams")
   private Map<String, String> roleParams = null;
 
   @SerializedName("roleCommand")
-  @com.fasterxml.jackson.annotation.JsonProperty("roleCommand")
+  @JsonProperty("roleCommand")
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
@@ -123,7 +124,7 @@ public class ExecutionCommand extends AgentCommand {
   private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("commandParams")
+  @JsonProperty("commandParams")
   private Map<String, String> commandParams = new HashMap<>();
 
   /**
@@ -136,11 +137,11 @@ public class ExecutionCommand extends AgentCommand {
   private String serviceGroupName;
 
   @SerializedName("serviceName")
-  @com.fasterxml.jackson.annotation.JsonProperty("serviceName")
+  @JsonProperty("serviceName")
   private String serviceName;
 
   @SerializedName("serviceType")
-  @JsonIgnore
+  @JsonProperty("serviceType")
   private String serviceType;
 
   @SerializedName("componentName")
@@ -148,7 +149,7 @@ public class ExecutionCommand extends AgentCommand {
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("kerberosCommandParams")
+  @JsonProperty("kerberosCommandParams")
   private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")

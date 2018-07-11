@@ -47,7 +47,6 @@ import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.resources.HostResourceDefinition;
 import org.apache.ambari.server.api.resources.MpackResourceDefinition;
-import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.StackResourceDefinition;

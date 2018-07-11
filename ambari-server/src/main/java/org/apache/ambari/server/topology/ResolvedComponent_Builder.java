@@ -576,6 +576,8 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       return Objects.equals(stackId, other.stackId)
           && Objects.equals(componentName, other.componentName)
           && Objects.equals(serviceInfo, other.serviceInfo)
+          && Objects.equals(serviceGroupName, other.serviceGroupName)
+          && Objects.equals(serviceName, other.serviceName)
         ;
     }
 
@@ -584,7 +586,9 @@ abstract class ResolvedComponent_Builder implements ResolvedComponent {
       return Objects.hash(
           stackId,
           componentName,
-          serviceInfo
+          serviceInfo,
+          serviceGroupName,
+          serviceName
       );
     }
 
