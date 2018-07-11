@@ -245,7 +245,7 @@ def get_ssl_context(properties, requested_protocol=None):
   :return: a permissive SSLContext or None
   """
 
-  if not is_api_ssl_enabled(properties):
+  if not is_api_ssl_enabled(properties) or not hasattr(ssl, 'SSLContext'):
     return None
 
   if requested_protocol:
