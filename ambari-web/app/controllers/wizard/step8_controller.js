@@ -360,9 +360,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
         this.get('clusterInfo').set('repoInfo', allRepos);
       }
-      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-      this.get('clusterInfo').set('useRedhatSatellite', selectedStack.get('useRedhatSatellite'));
-      this.get('clusterInfo').set('repoInfo', allRepos);
     }
   },
 

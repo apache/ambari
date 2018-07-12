@@ -95,7 +95,6 @@ describe('App.MainAdminServiceAutoStartController', function() {
     });
     afterEach(function() {
       controller.loadClusterSettings.restore();
-      App.router.get.restore();
       controller.loadComponentsConfigs.restore();
     });
 

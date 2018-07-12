@@ -54,21 +54,6 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#getHosts', function() {
-    it ('Should return empty array', function() {
-      expect(installerController.getHosts()).to.eql([]);
-    });
-  });
-
-  describe('#loadServices', function() {
-    it ('Should resolve nothing', function() {
-      var res = installerController.loadServices();
-      res.then(function(data){
-        expect(data).to.be.undefined;
-      });
-    });
-  });
-
   describe('#cancelInstall', function() {
     var mock = {
       goToAdminView: sinon.spy()
@@ -517,62 +502,7 @@ describe('App.InstallerController', function () {
       });
     });
 
-    describe('Should load stacks', function() {
-      var loadStacks = false;
-      var checker = {
-        loadStacks: function() {
-          return {
-            done: function(callback) {
-              callback(true);
-            }
-          };
-        }
-      };
-
-      beforeEach(function () {
-        sinon.spy(checker, 'loadStacks');
-        installerController.loadMap['1'][0].callback.call(checker);
-      });
-
-      afterEach(function() {
-        checker.loadStacks.restore();
-      });
-
-      it('should call loadStacks, stack info not loaded', function () {
-        expect(checker.loadStacks.calledOnce).to.be.true;
-      });
-    });
-
-    describe('Should load stacks async', function() {
-      var checker = {
-        loadStacksVersions: Em.K
-      };
-
-      beforeEach(function () {
-        sinon.stub(checker, 'loadStacksVersions').returns({
-          done: Em.clb
-        });
-      });
-
-      afterEach(function() {
-        checker.loadStacksVersions.restore();
-      });
-
-      it('stack versions are loaded', function () {
-        installerController.loadMap['1'][1].callback.call(checker, true).then(function(data){
-          expect(data).to.be.true;
-        });
-        expect(checker.loadStacksVersions.called).to.be.false;
-      });
-
-      it('should call loadStacksVersions, stack versions not loaded', function () {
-        installerController.loadMap['1'][1].callback.call(checker, false).then(function(data){
-          expect(data).to.be.true;
-        });
-        expect(checker.loadStacksVersions.calledOnce).to.be.true;
-      });
-    });
-
+    /* Disabling this one for now since not sure if this is a relevant test
     describe('Should load installOptions', function() {
       var installOptions = false;
       var checker = {
@@ -589,6 +519,8 @@ describe('App.InstallerController', function () {
         expect(installOptions).to.be.true;
       });
     });
+
+    */
 
     describe('Should load loadConfirmedHosts', function() {
       var loadConfirmedHosts = false;
