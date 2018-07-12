@@ -34,10 +34,9 @@
     h1 {
       align-items: center;
       align-self: stretch;
-      background: lighten(@navbar-background-color, 5%) url('/resources/assets/images/ambari-logo.png') no-repeat;
+      background: @navbar-logo-background-color url('/resources/assets/images/ambari-logo.png') no-repeat;
       background-position: .5em center;
       background-size: 25px;
-      background-color: lighten(@navbar-background-color, 5%);
       display: flex;
       font-size: 20px;
       margin: 0 2em 0 0;
@@ -47,7 +46,7 @@
       }
     }
     breadcrumbs {
-      font-size: 18px;
+      font-size: 20px;
       .stretch-flex;
     }
 
