@@ -359,31 +359,31 @@ describe('App.ConfigRecommendations', function() {
       {
         title: 'remove recommendations with same init and recommended values',
         recommendations: [{
-          initialValue: 'v1', recommendedValue: 'v1'
+          initialValue: 'v1', recommendedValue: 'v1', serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }, {
-            initialValue: 'v1', recommendedValue: 'v2'
+            initialValue: 'v1', recommendedValue: 'v2', serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }],
         cleanUpRecommendations: [{
-          initialValue: 'v1', recommendedValue: 'v2'
+          initialValue: 'v1', recommendedValue: 'v2', serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }]
       },
       {
         title: 'remove recommendations with null init and recommended values',
         recommendations: [{
-          initialValue: null, recommendedValue: null
+          initialValue: null, recommendedValue: null, serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }, {
-          recommendedValue: null
+          recommendedValue: null, serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }, {
           initialValue: null
         },{
-          initialValue: null, recommendedValue: 'v1'
+          initialValue: null, recommendedValue: 'v1', serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }, {
-          initialValue: 'v1', recommendedValue: null
+          initialValue: 'v1', recommendedValue: null, serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }],
         cleanUpRecommendations: [{
-          initialValue: null, recommendedValue: 'v1'
+          initialValue: null, recommendedValue: 'v1', serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }, {
-          initialValue: 'v1', recommendedValue: null
+          initialValue: 'v1', recommendedValue: null, serviceName: 'test', propertyName: 'test', propertyFileName: 'test'
         }
         ]
       }
@@ -393,7 +393,13 @@ describe('App.ConfigRecommendations', function() {
       describe(c.title, function() {
         beforeEach(function() {
           instanceObject.set('recommendations', c.recommendations);
-          instanceObject.cleanUpRecommendations()
+          instanceObject.set('stepConfigs', [Em.Object.create({serviceName: 'test',  configs: []})]);
+          sinon.stub(App.config, 'configId').returns('test__test');
+          instanceObject.cleanUpRecommendations();
+
+        });
+        afterEach(function(){
+          App.config.configId.restore();
         });
         it('do clean up', function() {
           expect(instanceObject.get('recommendations')).to.eql(c.cleanUpRecommendations);
