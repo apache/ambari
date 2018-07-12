@@ -39,52 +39,30 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.persistence.EntityManager;
 
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
-import org.apache.ambari.server.hooks.HookContextFactory;
-import org.apache.ambari.server.hooks.HookService;
-import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.scheduler.ExecutionScheduler;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
-import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.topology.PersistedState;
-import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -192,37 +170,20 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
     injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        PartialNiceMockBinder.newBuilder(AbstractPrepareKerberosServerActionTest.this)
+          .addAmbariMetaInfoBinding()
+          .addActionDBAccessorConfigsBindings()
+          .build().configure(binder());
+
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
-        bind(KerberosHelper.class).to(KerberosHelperImpl.class);
         bind(KerberosIdentityDataFileWriterFactory.class).toInstance(createNiceMock(KerberosIdentityDataFileWriterFactory.class));
         bind(KerberosConfigDataFileWriterFactory.class).toInstance(createNiceMock(KerberosConfigDataFileWriterFactory.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
         bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
-        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
-        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessor.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(ConfigFactory.class).toInstance(createNiceMock(ConfigFactory.class));
-        bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
-        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
-        bind(RequestExecutionFactory.class).toInstance(createNiceMock(RequestExecutionFactory.class));
-        bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
-        bind(RoleCommandOrderProvider.class).toInstance(createNiceMock(RoleCommandOrderProvider.class));
-        bind(RoleGraphFactory.class).toInstance(createNiceMock(RoleGraphFactory.class));
-        bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
-        bind(ServiceComponentFactory.class).toInstance(createNiceMock(ServiceComponentFactory.class));
-        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
-        bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
-        bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactory.class));
-        bind(HookContextFactory.class).toInstance(createNiceMock(HookContextFactory.class));
-        bind(HookService.class).toInstance(createNiceMock(HookService.class));
-        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
-        bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
-        bind(ConfigureClusterTaskFactory.class).toInstance(createNiceMock(ConfigureClusterTaskFactory.class));
         Provider<EntityManager> entityManagerProvider = createNiceMock(Provider.class);
         bind(EntityManager.class).toProvider(entityManagerProvider);
       }

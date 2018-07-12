@@ -193,7 +193,6 @@ import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
-import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
@@ -1261,16 +1260,13 @@ public class UpgradeCatalog270Test {
         .createMock();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class), isNull())).andReturn(newConfig).once();
-    final ClusterMetadataGenerator metadataGenerator = createMock(ClusterMetadataGenerator.class);
-    expect(metadataGenerator.getClusterMetadataOnConfigsUpdate(eq(cluster1))).andReturn(createNiceMock(MetadataUpdateEvent.class)).once();
-
 
 
     Injector injector = createNiceMock(Injector.class);
     ConfigHelper configHelper = createStrictMock(ConfigHelper.class);
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(injector.getInstance(MetadataHolder.class)).andReturn(createNiceMock(MetadataHolder.class)).anyTimes();
-    expect(injector.getInstance(ClusterMetadataGenerator.class)).andReturn(metadataGenerator).anyTimes();
+    expect(injector.getInstance(ClusterMetadataGenerator.class)).andReturn(createMock(ClusterMetadataGenerator.class)).anyTimes();
     expect(injector.getInstance(AgentConfigsHolder.class)).andReturn(createNiceMock(AgentConfigsHolder.class)).anyTimes();
     expect(injector.getInstance(AmbariServer.class)).andReturn(createNiceMock(AmbariServer.class)).anyTimes();
     expect(injector.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
@@ -1281,7 +1277,7 @@ public class UpgradeCatalog270Test {
     configHelper.updateAgentConfigs(anyObject(Set.class));
     expectLastCall();
 
-    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock, metadataGenerator, configHelper);
+    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock, configHelper);
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("configuration");
 
@@ -1297,7 +1293,7 @@ public class UpgradeCatalog270Test {
     field.set(upgradeCatalog270, createNiceMock(Configuration.class));
     upgradeCatalog270.updateKerberosConfigurations();
 
-    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog270, metadataGenerator, configHelper);
+    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog270, configHelper);
 
 
     Assert.assertEquals(1, capturedProperties.getValues().size());
@@ -1514,7 +1510,7 @@ public class UpgradeCatalog270Test {
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .withConstructor(createNiceMock(ActionManager.class), clusters, createNiceMock(ClusterMetadataGenerator.class), injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -1576,7 +1572,7 @@ public class UpgradeCatalog270Test {
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .withConstructor(createNiceMock(ActionManager.class), clusters, createNiceMock(ClusterMetadataGenerator.class), injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -1633,7 +1629,7 @@ public class UpgradeCatalog270Test {
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .withConstructor(createNiceMock(ActionManager.class), clusters, createNiceMock(ClusterMetadataGenerator.class), injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -1691,7 +1687,7 @@ public class UpgradeCatalog270Test {
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .withConstructor(createNiceMock(ActionManager.class), clusters, createNiceMock(ClusterMetadataGenerator.class), injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -1744,7 +1740,7 @@ public class UpgradeCatalog270Test {
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("getClusters", new Class[] { })
         .addMockedMethod("createConfig")
-        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .withConstructor(createNiceMock(ActionManager.class), clusters, createNiceMock(ClusterMetadataGenerator.class), injector)
         .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);

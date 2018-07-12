@@ -71,6 +71,7 @@ import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
@@ -86,6 +87,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * BlueprintResourceProvider unit tests.
@@ -450,7 +453,8 @@ public class BlueprintResourceProviderTest {
     expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(blueprintEntity);
     blueprintDao.removeByName(blueprintEntity.getBlueprintName());
     expectLastCall();
-    replay(blueprintDao);
+    expect(topologyRequestDAO.findAllProvisionRequests()).andReturn(ImmutableList.of());
+    replay(blueprintDao, topologyRequestDAO);
 
     Predicate predicate = new EqualsPredicate<>(
       BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
@@ -467,6 +471,31 @@ public class BlueprintResourceProviderTest {
     assertNotNull(lastEvent.getPredicate());
 
     verify(blueprintDao);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testDeleteResources_clusterAlreadyProvisioned() throws SystemException, UnsupportedPropertyException,
+    NoSuchParentResourceException, NoSuchResourceException {
+
+    BlueprintEntity blueprintEntity = createEntity(getBlueprintTestProperties().iterator().next());
+
+    // set expectations
+    expect(blueprintDao.findByName(BLUEPRINT_NAME)).andReturn(blueprintEntity);
+    blueprintDao.removeByName(blueprintEntity.getBlueprintName());
+    expectLastCall();
+    TopologyRequestEntity topologyRequestEntity = new TopologyRequestEntity();
+    topologyRequestEntity.setBlueprintName(BLUEPRINT_NAME);
+    expect(topologyRequestDAO.findAllProvisionRequests()).andReturn(ImmutableList.of(topologyRequestEntity));
+    replay(blueprintDao, topologyRequestDAO);
+
+
+    Predicate predicate = new EqualsPredicate<>(
+      BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    provider.addObserver(observer);
+
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
   }
 
   @Test

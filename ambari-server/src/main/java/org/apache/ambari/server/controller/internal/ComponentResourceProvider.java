@@ -141,7 +141,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   private static Set<String> pkPropertyIds = Sets.newHashSet(
           CLUSTER_NAME,
-          SERVICE_GROUP_NAME_PROPERTY_ID,
+          SERVICE_GROUP_NAME,
           SERVICE_NAME,
           COMPONENT_ID,
           COMPONENT_NAME,

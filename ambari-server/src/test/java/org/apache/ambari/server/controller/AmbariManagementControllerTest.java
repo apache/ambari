@@ -8565,7 +8565,8 @@ public class AmbariManagementControllerTest {
     // expectations
     // constructor init
     AmbariManagementControllerImplTest.constructorInit(injector, controllerCapture, null, maintHelper,
-        createStrictMock(KerberosHelper.class), null, null);
+        createStrictMock(KerberosHelper.class)
+    );
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -8615,7 +8616,8 @@ public class AmbariManagementControllerTest {
     // expectations
     // constructor init
     AmbariManagementControllerImplTest.constructorInit(injector, controllerCapture, null, maintHelper,
-        createStrictMock(KerberosHelper.class), null, null);
+        createStrictMock(KerberosHelper.class)
+    );
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -8679,7 +8681,8 @@ public class AmbariManagementControllerTest {
     // expectations
     // constructor init
     AmbariManagementControllerImplTest.constructorInit(injector, controllerCapture, null, maintHelper,
-        createStrictMock(KerberosHelper.class), null, null);
+        createStrictMock(KerberosHelper.class)
+    );
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
