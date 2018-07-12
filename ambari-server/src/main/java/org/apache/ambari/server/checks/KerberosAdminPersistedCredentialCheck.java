@@ -93,10 +93,16 @@ public class KerberosAdminPersistedCredentialCheck extends ClusterCheck {
       return result;
     }
 
+    /**
+     * Now mpack related upgradePack has not been implemented, if this piece of code is always hit which
+     * makes the following checks no sense, so it should be commented at this time
+     */
+    // TODO : [AMP] Fix
+    /*
     if (!upgradePack(request).anyGroupTaskMatch(task -> task.getType() == REGENERATE_KEYTABS)) {
       LOG.info("Skipping upgrade check {} because there is no {} in the upgrade pack.", this.getClass().getSimpleName(), REGENERATE_KEYTABS);
       return result;
-    }
+    }*/
     
     // Perform the check only if Ambari is managing the Kerberos identities
     if (!"true".equalsIgnoreCase(getProperty(request, "kerberos-env", "manage_identities"))) {
@@ -119,7 +125,7 @@ public class KerberosAdminPersistedCredentialCheck extends ClusterCheck {
 
   private UpgradePack upgradePack(PrereqCheckRequest request) throws AmbariException {
     // TODO : [AMP] Fix helper function
-    return null;
+    return new UpgradePack();
 //    return upgradeHelper.suggestUpgradePack(
 //      request.getClusterName(),
 //      request.getSourceStackId(),

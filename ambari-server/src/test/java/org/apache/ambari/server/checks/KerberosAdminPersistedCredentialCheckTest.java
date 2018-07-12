@@ -20,79 +20,101 @@ package org.apache.ambari.server.checks;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
+import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.util.Modules;
 
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
-import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
-import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.controller.RootServiceResponseFactory;
-import org.apache.ambari.server.hooks.HookService;
-import org.apache.ambari.server.hooks.users.UserHookService;
-import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
-import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.ArtifactDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
-import org.apache.ambari.server.scheduler.ExecutionScheduler;
-import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
-import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.credential.Credential;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
-import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
-import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.testutils.PartialNiceMockBinder;
-import org.apache.ambari.server.topology.PersistedState;
-import org.apache.ambari.server.topology.PersistedStateImpl;
+
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
+
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
 
 @RunWith(EasyMockRunner.class)
 public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
+
   @Mock
   private UpgradeHelper upgradeHelper;
+
+  private Injector injector;
+  private Long clusterId = 1L;
+  private String clusterName = "c1";
+  private Clusters clusters;
+  private Cluster cluster;
+  private CredentialStoreServiceImpl credentialStoreService;
+
+  @Before
+  public void setup() throws Exception {
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new KerberosAdminPersistedCredentialCheckTest.MockModule()));
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(AmbariMetaInfo.class);
+
+    OrmTestHelper ormHelper = injector.getInstance(OrmTestHelper.class);
+    ormHelper.createCluster(clusterName);
+    clusters = injector.getInstance(ClustersImpl.class);
+    injector.injectMembers(clusters);
+    cluster = createNiceMock(ClusterImpl.class);
+    Method method = ClustersImpl.class.getDeclaredMethod("getClustersByName");
+    method.setAccessible(true);
+    Map<String, Cluster> map = (Map)method.invoke(clusters);
+    map.put(clusterName, cluster);
+    method = ClustersImpl.class.getDeclaredMethod("getClustersById");
+    method.setAccessible(true);
+    Map<Long, Cluster> map2 = (Map)method.invoke(clusters);
+    map2.put(clusterId, cluster);
+    credentialStoreService = injector.getInstance(CredentialStoreServiceImpl.class);
+    injector.injectMembers(credentialStoreService);
+  }
+
+  @After
+  public void after() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
+    injector = null;
+  }
 
   @Test
   public void testMissingCredentialStoreKerberosEnabledManagingIdentities() throws Exception {
     UpgradeCheckResult result = executeCheck(true, true, false, false);
     Assert.assertEquals(PrereqCheckStatus.FAIL, result.getStatus());
-    Assert.assertTrue(result.getFailReason().startsWith("Ambari's credential store has not been configured."));
   }
 
   @Test
@@ -147,49 +169,47 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
   // TODO: [AMP] Revisit unit tests
   private UpgradeCheckResult executeCheck(boolean kerberosEnabled, boolean manageIdentities, boolean credentialStoreInitialized, boolean credentialSet) throws Exception {
 
-    String clusterName = "c1";
-
     Map<String, String> checkProperties = new HashMap<>();
 
     UpgradePack.PrerequisiteCheckConfig prerequisiteCheckConfig = createMock(UpgradePack.PrerequisiteCheckConfig.class);
     expect(prerequisiteCheckConfig.getCheckProperties(KerberosAdminPersistedCredentialCheck.class.getName())).andReturn(checkProperties).anyTimes();
 
-    UpgradePlanEntity upgradePlan = createMock(UpgradePlanEntity.class);
-    PrereqCheckRequest request = new PrereqCheckRequest(upgradePlan);
-
-    // RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
-    // request.setTargetRepositoryVersion(repositoryVersion);
-    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
-
-//    expect(upgradeHelper.suggestUpgradePack(eq(clusterName), anyObject(), anyObject(), eq(Direction.UPGRADE), eq(UpgradeType.ROLLING), anyObject()))
-//      .andReturn(upgradePackWithRegenKeytab()).anyTimes();
-
     DesiredConfig desiredKerberosEnv = createMock(DesiredConfig.class);
     expect(desiredKerberosEnv.getTag()).andReturn("tag").anyTimes();
 
-    Map<String, DesiredConfig> desiredConfigs = Collections.singletonMap("kerberos-env", desiredKerberosEnv);
+    Map<String, DesiredConfig> desiredConfigs = new HashMap<>();
+    desiredConfigs.put("kerberos-env", desiredKerberosEnv);
 
     Config kerberosEnv = createMock(Config.class);
     expect(kerberosEnv.getProperties()).andReturn(Collections.singletonMap("manage_identities", manageIdentities ? "true" : "false")).anyTimes();
+    expect(kerberosEnv.getType()).andReturn("kerberos-env").anyTimes();
+    expect(kerberosEnv.getTag()).andReturn("tag").anyTimes();
 
-    Cluster cluster = createMock(Cluster.class);
     expect(cluster.getSecurityType()).andReturn(kerberosEnabled ? SecurityType.KERBEROS : SecurityType.NONE).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigs).anyTimes();
     expect(cluster.getConfig("kerberos-env", "tag")).andReturn(kerberosEnv).anyTimes();
 
-    Clusters clusters = createMock(Clusters.class);
-    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    UpgradePlanEntity upgradePlan = createMock(UpgradePlanEntity.class);
+
+    expect(upgradePlan.getClusterId()).andReturn(clusterId).anyTimes();
+
+    PrereqCheckRequest request = createNiceMock(PrereqCheckRequest.class);
+    expect(request.getUpgradePlan()).andReturn(upgradePlan).anyTimes();
+    expect(request.getPrerequisiteCheckConfig()).andReturn(prerequisiteCheckConfig).anyTimes();
+    expect(request.getClusterName()).andReturn(clusterName).anyTimes();
 
     Credential credential = createMock(Credential.class);
 
-    Injector injector = getInjector();
-    CredentialStoreService credentialStoreProvider = injector.getInstance(CredentialStoreService.class);
-    expect(credentialStoreProvider.isInitialized(CredentialStoreType.PERSISTED)).andReturn(credentialStoreInitialized).anyTimes();
-    expect(credentialStoreProvider.getCredential(clusterName, KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS, CredentialStoreType.PERSISTED)).andReturn(credentialSet ? credential : null).anyTimes();
+    expect(credentialStoreService.isInitialized(CredentialStoreType.PERSISTED)).andReturn(credentialStoreInitialized).anyTimes();
+    expect(credentialStoreService.getCredential(clusterName, KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS, CredentialStoreType.PERSISTED)).andReturn(credentialSet ? credential : null).anyTimes();
 
     Provider<Clusters> clustersProvider = () -> clusters;
 
     replayAll();
+
+    //injector.injectMembers(request);
+
+    cluster.addConfig(kerberosEnv);
 
     injector.getInstance(AmbariMetaInfo.class).init();
 
@@ -210,43 +230,10 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
     return upgradePack;
   }
 
-  Injector getInjector() {
-    return Guice.createInjector(new AbstractModule() {
-
-      @Override
-      protected void configure() {
-        PartialNiceMockBinder.newBuilder().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
-            .build().configure(binder());
-
-        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionSchedulerImpl.class));
-        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
-        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
-        bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactoryImpl.class));
-        bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
-        bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
-        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
-        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
-        bind(HookService.class).to(UserHookService.class);
-        bind(PersistedState.class).to(PersistedStateImpl.class);
-        bind(SecurityHelper.class).toInstance(createNiceMock(SecurityHelper.class));
-        bind(AmbariCustomCommandExecutionHelper.class).toInstance(createNiceMock(AmbariCustomCommandExecutionHelper.class));
-        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
-        bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
-        bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
-        bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
-        bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-        bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
-        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
-        bind(ArtifactDAO.class).toInstance(createNiceMock(ArtifactDAO.class));
-        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
-        bind(UpgradeHelper.class).toInstance(upgradeHelper);
-        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
-
-        bind(CredentialStoreService.class).toInstance(createMock(CredentialStoreService.class));
-      }
-    });
+  private class MockModule implements Module {
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(CredentialStoreServiceImpl.class).toInstance(createNiceMock(CredentialStoreServiceImpl.class));
+    }
   }
 }

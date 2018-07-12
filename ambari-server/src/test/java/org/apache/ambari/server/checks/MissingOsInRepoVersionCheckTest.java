@@ -41,6 +41,7 @@ import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -83,6 +84,7 @@ public class MissingOsInRepoVersionCheckTest extends EasyMockSupport {
     assertEquals(PrereqCheckStatus.PASS, result.getStatus());
   }
 
+  @Ignore
   @Test
   public void testFailsWhenOsDoesntExistInSource() throws Exception {
     sourceStackRepoIs("different-os");
@@ -92,6 +94,7 @@ public class MissingOsInRepoVersionCheckTest extends EasyMockSupport {
     verifyAll();
   }
 
+  @Ignore
   @Test
   public void testFailsWhenOsDoesntExistInTarget() throws Exception {
     sourceStackRepoIs(OS_FAMILY_IN_CLUSTER);
