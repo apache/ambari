@@ -170,7 +170,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
           allowConfigUpdate = false;
         }
       }
-      if (prevRecommeneded !== config.get('value')) {
+      if (prevRecommeneded !== value) {
         allowConfigUpdate = false;
       }
       if (allowConfigUpdate) {
