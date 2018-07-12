@@ -76,7 +76,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceGroupFactory;
-import org.apache.ambari.server.state.ServiceGroupImpl;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;

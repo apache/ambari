@@ -17,23 +17,22 @@
  */
 package org.apache.ambari.server.events;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.agent.HeartbeatProcessor.ComponentVersionStructuredOut;
+import org.apache.ambari.server.agent.StructuredOutputType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * The {@link HostComponentVersionAdvertisedEvent}
  * occurs when a Host Component advertises it's current version value.
  */
-@Deprecated
-@Experimental(feature = ExperimentalFeature.VERSION_REPORTING)
 public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
 
-  protected Cluster cluster;
-  protected ServiceComponentHost sch;
-  protected String version;
-  protected Long repoVersionId;
+  private final Cluster cluster;
+  private final ServiceComponentHost sch;
+  private final ComponentVersionStructuredOut componentVersionStructuredOut;
 
   /**
    * Constructor.
@@ -41,40 +40,39 @@ public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
    * @param cluster: cluster.
    * @param sch: the service component host
    */
-  public HostComponentVersionAdvertisedEvent(Cluster cluster, ServiceComponentHost sch,
-      String version, Long repoVersionId) {
-    this(cluster, sch, version);
-    this.repoVersionId = repoVersionId;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param cluster: cluster.
-   * @param sch: the service component host
-   */
-  public HostComponentVersionAdvertisedEvent(Cluster cluster, ServiceComponentHost sch,
-                                             String version) {
+  public HostComponentVersionAdvertisedEvent(Cluster cluster, ServiceComponentHost sch, ComponentVersionStructuredOut componentVersionStructuredOut) {
     super(AmbariEventType.HOST_COMPONENT_VERSION_ADVERTISED, cluster.getClusterId());
     this.cluster = cluster;
     this.sch = sch;
-    this.version = version;
+    this.componentVersionStructuredOut = componentVersionStructuredOut;
   }
 
+  /**
+   * Gets the component/host combination associated with this event.
+   *
+   * @return
+   */
   public ServiceComponentHost getServiceComponentHost() {
     return sch;
   }
 
+  /**
+   * Gets the cluster associated with this event.
+   *
+   * @return
+   */
   public Cluster getCluster() {
     return cluster;
   }
 
-  public String getVersion() {
-    return version;
-  }
-
-  public Long getRepositoryVersionId() {
-    return repoVersionId;
+  /**
+   * Gets the structured output parsed from
+   * {@link StructuredOutputType#VERSION_REPORTING}.
+   *
+   * @return
+   */
+  public ComponentVersionStructuredOut getStructuredOutput() {
+    return componentVersionStructuredOut;
   }
 
   /**
@@ -82,14 +80,11 @@ public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("HostComponentVersionAdvertisedEvent{");
-    buffer.append("cluserId=").append(m_clusterId);
-    buffer.append(", serviceName=").append(sch.getServiceName());
-    buffer.append(", componentName=").append(sch.getServiceComponentName());
-    buffer.append(", hostName=").append(sch.getHostName());
-    buffer.append(", version=").append(version);
-    buffer.append(", repo_version_id=").append(repoVersionId);
-    buffer.append("}");
-    return buffer.toString();
+    return MoreObjects.toStringHelper(this)
+      .add("hostName", sch.getHostName())
+      .add("service", sch.getServiceName())
+      .add("component", sch.getServiceComponentName())
+      .add("mpackVersion", componentVersionStructuredOut.mpackVersion)
+      .add("version", componentVersionStructuredOut.version).toString();
   }
 }

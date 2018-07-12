@@ -127,3 +127,20 @@ def experimental(feature=None, comment=None, disable=False):
     return wrapper
   return decorator
 
+
+def deprecated(comment=None, disable=False):
+  """
+  Annotates a function as being deprecated, optionally logging a warning comment.
+  :param comment:  the comment to log
+  :param disable  True to skip invocation of the method entirely, defaults to False.
+  :return:
+  """
+  def decorator(function):
+    def wrapper(*args, **kwargs):
+      if comment:
+        Logger.warning(comment)
+
+      if not disable:
+        return function(*args, **kwargs)
+    return wrapper
+  return decorator

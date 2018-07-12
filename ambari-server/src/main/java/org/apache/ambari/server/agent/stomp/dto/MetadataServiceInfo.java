@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,11 +19,13 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class MetadataServiceInfo {
+  private String serviceType;
   private String version;
   private Boolean credentialStoreEnabled;
 
@@ -36,14 +38,19 @@ public class MetadataServiceInfo {
   @JsonProperty("service_package_folder")
   private String servicePackageFolder;
 
-  public MetadataServiceInfo(String version, Boolean credentialStoreEnabled,
+  public MetadataServiceInfo(String serviceType, String version, Boolean credentialStoreEnabled,
                              Map<String, Map<String, String>> credentialStoreEnabledProperties,
                              Long statusCommandsTimeout, String servicePackageFolder) {
+    this.serviceType = serviceType;
     this.version = version;
     this.credentialStoreEnabled = credentialStoreEnabled;
     this.credentialStoreEnabledProperties = credentialStoreEnabledProperties;
     this.statusCommandsTimeout = statusCommandsTimeout;
     this.servicePackageFolder = servicePackageFolder;
+  }
+
+  public String getServiceType() {
+    return serviceType;
   }
 
   public String getVersion() {
@@ -88,28 +95,25 @@ public class MetadataServiceInfo {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     MetadataServiceInfo that = (MetadataServiceInfo) o;
 
-    if (version != null ? !version.equals(that.version) : that.version != null) return false;
-    if (credentialStoreEnabled != null ? !credentialStoreEnabled.equals(that.credentialStoreEnabled) : that.credentialStoreEnabled != null)
-      return false;
-    if (credentialStoreEnabledProperties != null ? !credentialStoreEnabledProperties.equals(that.credentialStoreEnabledProperties) : that.credentialStoreEnabledProperties != null)
-      return false;
-    if (statusCommandsTimeout != null ? !statusCommandsTimeout.equals(that.statusCommandsTimeout) : that.statusCommandsTimeout != null)
-      return false;
-    return servicePackageFolder != null ? servicePackageFolder.equals(that.servicePackageFolder) : that.servicePackageFolder == null;
+    return Objects.equals(serviceType, that.serviceType) &&
+      Objects.equals(version, that.version) &&
+      Objects.equals(credentialStoreEnabled, that.credentialStoreEnabled) &&
+      Objects.equals(credentialStoreEnabledProperties, that.credentialStoreEnabledProperties) &&
+      Objects.equals(statusCommandsTimeout, that.statusCommandsTimeout) &&
+      Objects.equals(servicePackageFolder, that.servicePackageFolder);
   }
 
   @Override
   public int hashCode() {
-    int result = version != null ? version.hashCode() : 0;
-    result = 31 * result + (credentialStoreEnabled != null ? credentialStoreEnabled.hashCode() : 0);
-    result = 31 * result + (credentialStoreEnabledProperties != null ? credentialStoreEnabledProperties.hashCode() : 0);
-    result = 31 * result + (statusCommandsTimeout != null ? statusCommandsTimeout.hashCode() : 0);
-    result = 31 * result + (servicePackageFolder != null ? servicePackageFolder.hashCode() : 0);
-    return result;
+    return Objects.hash(serviceType, version, credentialStoreEnabled, credentialStoreEnabledProperties, statusCommandsTimeout, servicePackageFolder);
   }
 }

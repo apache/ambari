@@ -56,7 +56,7 @@ public class FlumeServiceCalculatedStateTest extends GeneralServiceCalculatedSta
       clusters.mapHostToCluster(hostName, clusterName);
 
       ServiceComponentHost sch = masterComponent.addServiceComponentHost(hostName);
-      sch.setVersion("2.1.1.0");
+      sch.setVersions("1.0.0.0-b1234", "2.1.1.0");
       sch.setState(State.STARTED);
     }
   }

@@ -26,8 +26,9 @@ import tempfile
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from resource_management.libraries.functions import stack_tools
+from resource_management.libraries.functions.decorator import deprecated
 
-
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_component_version_from_symlink(stack_name, component_name):
   """
   Gets the version of the specified component by invoking the stack-select tool to query for the
@@ -72,6 +73,7 @@ def get_component_version_from_symlink(stack_name, component_name):
 
   return version
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_component_version_with_stack_selector(stack_selector_path, component_name):
   """
    For specific cases where we deal with HDP add on services from a management pack, the version
@@ -113,6 +115,7 @@ def get_component_version_with_stack_selector(stack_selector_path, component_nam
                    (component_name, get_stack_comp_version_cmd, str(code), str(out)))
   return version
 
+@deprecated(comment = "The stack-select tools are no longer used")
 def get_versions_from_stack_root(stack_root):
   """
   Given a stack install root, returns a list of stack versions currently installed.

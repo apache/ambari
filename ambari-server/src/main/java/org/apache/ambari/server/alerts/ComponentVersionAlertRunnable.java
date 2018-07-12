@@ -135,8 +135,12 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
         ModuleComponent moduleComponent = mpack.getModuleComponent(hostComponent.getServiceType(),
             hostComponent.getServiceComponentType());
 
+        // check for both mpack version and component version
         String version = hostComponent.getVersion();
-        if (!StringUtils.equals(version, moduleComponent.getVersion())) {
+        String mpackVersion = hostComponent.getMpackVersion();
+
+        if (!StringUtils.equals(version, moduleComponent.getVersion())
+            || !StringUtils.equals(mpackVersion, mpack.getVersion())) {
           Set<ServiceComponentHost> mismatchedComponents = versionMismatches.get(host);
           if (null == mismatchedComponents) {
             mismatchedComponents = new HashSet<>();
@@ -160,8 +164,17 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
         buffer.append("  ").append(host.getHostName());
         buffer.append(System.lineSeparator());
         for (ServiceComponentHost hostComponent : versionMismatches.get(host)) {
-          buffer.append("    ").append(hostComponent.getServiceComponentName()).append(": ").append(
-              hostComponent.getVersion()).append(System.lineSeparator());
+          buffer.append("    ")
+            .append(hostComponent.getServiceComponentName())
+            .append(": ")
+            .append(hostComponent.getDesiredStackId().getStackName())
+            .append(" ")
+            .append(hostComponent.getMpackVersion())
+            .append(", ")
+            .append(hostComponent.getServiceType())
+            .append(" ")
+            .append(hostComponent.getVersion())
+            .append(System.lineSeparator());
         }
       }
 

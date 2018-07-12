@@ -131,7 +131,7 @@ public class AddComponentAction extends AbstractUpgradeServerAction {
       // for now, this is the easiest way to fire a topology event which
       // refreshes the information about the cluster (needed for restart
       // commands)
-      sch.setVersion("UNKNOWN");
+      sch.setVersions("UNKNOWN", "UNKNOWN");
 
       buffer.append("  ")
         .append(host.getHostName())

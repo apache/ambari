@@ -953,7 +953,7 @@ public class UpgradeHelper {
 
             // !!! if we aren't version advertised, but there IS a version, set it to UNKNOWN
             if (!versionAdvertised && !StringUtils.equals("UNKNOWN", serviceComponentHost.getVersion())) {
-              serviceComponentHost.setVersion("UNKNOWN");
+              serviceComponentHost.setVersions("UNKNOWN", "UNKNOWN");
             }
           }
         }

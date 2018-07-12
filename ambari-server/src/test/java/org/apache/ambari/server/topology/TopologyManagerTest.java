@@ -225,7 +225,7 @@ public class TopologyManagerTest {
   private final Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().
     map(
       serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
-          null, null, null, null, false, false, false, false, false)
+          SERVICE_NAMES.get(serviceId), null, null, null, false, false, false, false, false)
     ).
     collect(toSet());
 
@@ -313,7 +313,7 @@ public class TopologyManagerTest {
     expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Arrays.asList(group1, group2)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component4")).andReturn(Collections.singleton(group2)).anyTimes();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
-    expect(clusterTopologyMock.getServices()).andReturn(SERVICE_NAMES).anyTimes();
+    expect(clusterTopologyMock.getServiceTypes()).andReturn(SERVICE_NAMES).anyTimes();
     expect(clusterTopologyMock.getStack()).andReturn(stack).anyTimes();
     expect(clusterTopologyMock.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     expect(clusterTopologyMock.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();

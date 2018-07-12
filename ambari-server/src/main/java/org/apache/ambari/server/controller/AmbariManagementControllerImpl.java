@@ -827,15 +827,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       TopologyComponent newComponent = TopologyComponent.newBuilder()
           .setComponentName(sch.getServiceComponentName())
-          .setServiceName(sch.getServiceType())
-          .setDisplayName(sc.getServiceName())
+          .setServiceName(sc.getServiceName())
+          .setServiceType(sc.getServiceType())
           .setVersion(sch.getVersion())
           .setHostIds(hostIds)
           .setHostNames(hostNames)
           .setPublicHostNames(publicHostNames)
-          .setComponentLevelParams(getTopologyComponentLevelParams(cluster.getClusterId(), serviceName, componentName,
-              cluster.getSecurityType()))
-          .setCommandParams(getTopologyCommandParams(cluster.getClusterId(), serviceName, componentName, sch))
+          .setComponentLevelParams(getTopologyComponentLevelParams(sch))
+          .setCommandParams(getTopologyCommandParams(sch))
           .build();
 
       String clusterId = Long.toString(cluster.getClusterId());
@@ -977,7 +976,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-    Service service = cluster.getServiceByConfigType(configType);
+    Service service = request.getServiceId() != null
+      ? cluster.getService(request.getServiceId())
+      : cluster.getServiceByConfigType(configType);
 
 
     // Get the changes so that the user's intention can be determined. For example, maybe
@@ -1044,10 +1045,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-
-
-    Map<String, Config> configs = cluster.getConfigsByType(
-        request.getType());
+    Map<String, Config> configs = cluster.getConfigsByServiceIdType(request.getType(), request.getServiceId());
     if (null == configs) {
       configs = new HashMap<>();
     }
@@ -1093,7 +1091,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
-      request.getVersionTag(), propertiesAttributes, request.getServiceId() == null? null : request.getServiceId());
+      request.getVersionTag(), propertiesAttributes, request.getServiceId());
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
         request.getVersionTag(),
@@ -1602,39 +1600,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, Config> configs = null;
       //Get by type
       if (null != request.getType()) {
-        //TODO : Remove after getting rid of cluster configurations
-        if (request.getServiceId() != null) {
-          configs = cluster.getConfigsByServiceIdType(
-                  request.getType(), request.getServiceId());
-          if (null != configs) {
-            for (Entry<String, Config> entry : configs.entrySet()) {
-              Config config = entry.getValue();
-              response = new ConfigurationResponse(
-                      cluster.getClusterName(), config.getStackId(),
-                      request.getType(),
-                      config.getTag(), entry.getValue().getVersion(),
-                      includeProps ? config.getProperties() : new HashMap<>(),
-                      includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
-                      config.getPropertiesTypes(), request.getServiceId(), request.getServiceGroupId());
-              responses.add(response);
-            }
-          }
-        }
-        if (responses == null || responses.isEmpty()) {
-          configs = cluster.getConfigsByType(
-                  request.getType());
-          if (null != configs) {
-            for (Entry<String, Config> entry : configs.entrySet()) {
-              Config config = entry.getValue();
-              response = new ConfigurationResponse(
-                      cluster.getClusterName(), config.getStackId(),
-                      request.getType(),
-                      config.getTag(), entry.getValue().getVersion(),
-                      includeProps ? config.getProperties() : new HashMap<>(),
-                      includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
-                      config.getPropertiesTypes());
-              responses.add(response);
-            }
+        configs = cluster.getConfigsByServiceIdType(request.getType(), request.getServiceId());
+        if (null != configs) {
+          for (Entry<String, Config> entry : configs.entrySet()) {
+            Config config = entry.getValue();
+            response = new ConfigurationResponse(
+                    cluster.getClusterName(), config.getStackId(),
+                    request.getType(),
+                    config.getTag(), entry.getValue().getVersion(),
+                    includeProps ? config.getProperties() : new HashMap<>(),
+                    includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
+                    config.getPropertiesTypes(), request.getServiceId(), request.getServiceGroupId());
+            responses.add(response);
           }
         }
       } else {
@@ -1871,7 +1848,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           if (null != cr.getProperties()) {
             // !!! empty property sets are supported, and need to be able to use
             // previously-defined configs (revert)
-            Map<String, Config> all = cluster.getConfigsByType(configType);
+            Map<String, Config> all = cluster.getConfigsByServiceIdType(configType, cr.getServiceId());
             if (null == all ||                              // none set
                 !all.containsKey(cr.getVersionTag()) ||     // tag not set
                 cr.getProperties().size() > 0) {            // properties to set
@@ -2523,7 +2500,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     stage.addHostRoleExecutionCommand(scHost.getHost(),
         Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, mpackId,
-        serviceGroupName, serviceName, false, skipFailure);
+        serviceGroupName, scHost.getServiceType(), serviceName, false, skipFailure);
 
     String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();
@@ -5510,7 +5487,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (null != cr.getProperties()) {
               // !!! empty property sets are supported, and need to be able to use
               // previously-defined configs (revert)
-              Map<String, Config> all = cluster.getConfigsByType(configType);
+              Map<String, Config> all = cluster.getConfigsByServiceIdType(configType, cr.getServiceId());
               if (null == all ||                              // none set
                       !all.containsKey(cr.getVersionTag()) ||     // tag not set
                       cr.getProperties().size() > 0) {            // properties to set
@@ -5618,16 +5595,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   //TODO will be a need to change to multi-instance usage
-  public TreeMap<String, String> getTopologyComponentLevelParams(Long clusterId, String serviceName, String componentName,
-                                                             SecurityType clusterSecurityType) throws AmbariException {
+  public TreeMap<String, String> getTopologyComponentLevelParams(ServiceComponentHost sch) throws AmbariException {
 
     TreeMap<String, String> statusCommandParams = new TreeMap<>();
-    Cluster cluster = clusters.getCluster(clusterId);
-    Service service = cluster.getService(serviceName);
+    Cluster cluster = clusters.getCluster(sch.getClusterId());
+    Service service = cluster.getService(sch.getServiceId());
 
     StackId stackId = service.getStackId();
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName, componentName);
+        stackId.getStackVersion(), sch.getServiceType(), sch.getServiceComponentName());
 
     statusCommandParams.put(ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS,
         getClientsToUpdateConfigs(componentInfo));
@@ -5641,22 +5617,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     //
     // Set/update the unlimited_key_jce_required value as needed
     statusCommandParams.put(ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED,
-        Boolean.toString(getUnlimitedKeyJCERequirement(componentInfo, clusterSecurityType)));
+        Boolean.toString(getUnlimitedKeyJCERequirement(componentInfo, cluster.getSecurityType())));
 
     return statusCommandParams;
   }
 
   //TODO will be a need to change to multi-instance usage
-  public TreeMap<String, String> getTopologyCommandParams(Long clusterId, String serviceName, String componentName, ServiceComponentHost sch) throws AmbariException {
+  public TreeMap<String, String> getTopologyCommandParams(ServiceComponentHost sch) throws AmbariException {
     TreeMap<String, String> commandParams = new TreeMap<>();
-    Cluster cluster = clusters.getCluster(clusterId);
-    Service service = cluster.getService(serviceName);
+    Cluster cluster = clusters.getCluster(sch.getClusterId());
+    Service service = cluster.getService(sch.getServiceId());
 
     StackId stackId = service.getStackId();
-    ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName);
-    ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName, componentName);
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), sch.getServiceType());
+    ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(), stackId.getStackVersion(), sch.getServiceType(), sch.getServiceComponentName());
 
     commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
     String scriptName = null;
@@ -5669,9 +5643,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           scriptCommandTimeout = String.valueOf(script.getTimeout());
         }
       } else {
-        String message = String.format(
-            "Component %s of service %s has not " + "command script defined", componentName,
-            serviceName);
+        String message = String.format("Component %s of service %s has no command script defined", componentInfo.getName(), serviceInfo.getName());
         throw new AmbariException(message);
       }
     }

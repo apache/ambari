@@ -21,9 +21,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
-
-
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 
 
@@ -244,7 +242,7 @@ public class CommandReport {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("role", role)
+    return MoreObjects.toStringHelper(this).add("role", role)
         .add("actionId", actionId)
         .add("status", status)
         .add("exitCode", exitCode)

@@ -62,6 +62,7 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import com.google.gson.JsonObject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
@@ -878,6 +879,7 @@ public class TestHeartbeatHandler {
     cr.setStdOut("dummy output");
     cr.setExitCode(777);
     cr.setClusterId("1");
+    cr.setStructuredOut(new JsonObject().toString());
     reports.add(cr);
     hb.setReports(reports);
     hb.setComponentStatus(new ArrayList<>());

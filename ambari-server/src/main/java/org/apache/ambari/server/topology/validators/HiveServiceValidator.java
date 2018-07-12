@@ -36,7 +36,7 @@ public class HiveServiceValidator implements TopologyValidator {
   @Override
   public ClusterTopology validate(ClusterTopology topology) throws InvalidTopologyException {
     // there is no hive configured in the blueprint, nothing to do (does the validator apply?)
-    if (!topology.getServices().contains(HIVE_SERVICE)) {
+    if (!topology.getServiceTypes().contains(HIVE_SERVICE)) {
       LOGGER.info(" [{}] service is not listed in the blueprint, skipping hive service validation.", HIVE_SERVICE);
       return topology;
     }

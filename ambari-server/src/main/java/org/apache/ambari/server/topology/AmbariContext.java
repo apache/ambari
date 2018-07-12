@@ -706,7 +706,7 @@ public class AmbariContext {
     for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {
       String type = entry.getKey();
       String service = stack.getServicesForConfigType(type)
-        .filter(each -> topology.getServices().contains(each))
+        .filter(each -> topology.getServiceTypes().contains(each))
         .findFirst()
         // TODO check if this is required at all (might be handled by the "orphan" removal)
         // TODO move this validation earlier

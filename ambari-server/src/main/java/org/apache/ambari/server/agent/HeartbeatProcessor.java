@@ -31,6 +31,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -40,7 +42,6 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.AlertEvent;
@@ -67,8 +68,6 @@ import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
@@ -82,6 +81,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
@@ -370,6 +371,15 @@ public class HeartbeatProcessor extends AbstractService{
         }
       }
 
+      @Nullable
+      JsonObject structuredOutputJson = null;
+      String structuredOutputString = report.getStructuredOut();
+      if (StringUtils.isNotBlank(structuredOutputString)
+          && !StringUtils.equals(structuredOutputString, "{}")) {
+        JsonElement element = gson.fromJson(structuredOutputString, JsonElement.class);
+        structuredOutputJson = element.getAsJsonObject();
+      }
+
       // If the report indicates the keytab file was successfully transferred to a host or removed
       // from a host, record this for future reference
       if (Service.Type.KERBEROS.name().equalsIgnoreCase(report.getServiceName()) &&
@@ -382,7 +392,10 @@ public class HeartbeatProcessor extends AbstractService{
         if (SET_KEYTAB.equalsIgnoreCase(customCommand)) {
           WriteKeytabsStructuredOut writeKeytabsStructuredOut;
           try {
-            writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
+            JsonElement setKeytabsStructuredOutRoot = structuredOutputJson.get(
+                StructuredOutputType.SET_KEYTABS.getRoot());
+
+            writeKeytabsStructuredOut = gson.fromJson(setKeytabsStructuredOutRoot, WriteKeytabsStructuredOut.class);
           } catch (JsonSyntaxException ex) {
             //Json structure was incorrect do nothing, pass this data further for processing
             writeKeytabsStructuredOut = null;
@@ -403,8 +416,13 @@ public class HeartbeatProcessor extends AbstractService{
               }
             }
           }
-        } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
-          ListKeytabsStructuredOut structuredOut = gson.fromJson(report.getStructuredOut(), ListKeytabsStructuredOut.class);
+        } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand) && structuredOutputJson != null) {
+          JsonElement checkKeytabsStructuredOutRoot = structuredOutputJson.get(
+              StructuredOutputType.CHECK_KEYTABS.getRoot());
+
+          ListKeytabsStructuredOut structuredOut = gson.fromJson(checkKeytabsStructuredOutRoot,
+              ListKeytabsStructuredOut.class);
+
           for (MissingKeytab each : structuredOut.missingKeytabs) {
             LOG.info("Missing principal: {} for keytab: {} on host: {}", each.principal, each.keytabFilePath, hostName);
             KerberosKeytabPrincipalEntity kkpe = kerberosKeytabPrincipalDAO.findByHostKeytabAndPrincipal(host.getHostId(), each.keytabFilePath, each.principal);
@@ -428,6 +446,7 @@ public class HeartbeatProcessor extends AbstractService{
       if (service == null || service.isEmpty()) {
         throw new AmbariException("Invalid command report, service: " + service);
       }
+
       if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
         LOG.debug("{} is an action - skip component lookup", report.getRole());
       } else {
@@ -438,25 +457,26 @@ public class HeartbeatProcessor extends AbstractService{
           String schName = scHost.getServiceComponentName();
 
           if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
-
             // Reading component version if it is present
-            if (StringUtils.isNotBlank(report.getStructuredOut())
-                && !StringUtils.equals("{}", report.getStructuredOut())) {
-              ComponentVersionStructuredOut structuredOutput = null;
-              try {
-                structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
-              } catch (JsonSyntaxException ex) {
-                //Json structure for component version was incorrect
-                //do nothing, pass this data further for processing
+            ComponentVersionStructuredOut componentVersionStructuredOut = null;
+            if (null != structuredOutputJson) {
+              JsonElement versionStructuredOutRoot = structuredOutputJson.get(
+                  StructuredOutputType.VERSION_REPORTING.getRoot());
+
+              if (null != versionStructuredOutRoot) {
+                try {
+                  componentVersionStructuredOut = gson.fromJson(versionStructuredOutRoot,
+                      ComponentVersionStructuredOut.class);
+
+                  HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(
+                      cl, scHost, componentVersionStructuredOut);
+
+                  versionEventPublisher.publish(event);
+                } catch (JsonSyntaxException ex) {
+                  // Json structure for component version was incorrect
+                  // do nothing, pass this data further for processing
+                }
               }
-
-              String newVersion = structuredOutput == null ? null : structuredOutput.version;
-              Long mpackId = structuredOutput == null ? null : structuredOutput.mpackId;
-
-              HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(
-                  cl, scHost, newVersion);
-
-              versionEventPublisher.publish(event);
             }
 
             if (!scHost.getState().equals(org.apache.ambari.server.state.State.UPGRADING) &&
@@ -504,26 +524,31 @@ public class HeartbeatProcessor extends AbstractService{
                   hostName, now));
             }
           } else if (report.getStatus().equals("FAILED")) {
+            if (structuredOutputJson != null) {
+              JsonElement upgradeStructedOutput = structuredOutputJson.get(
+                  StructuredOutputType.UPGRADE_SUMMARY.getRoot());
+              if (null != upgradeStructedOutput) {
+                try {
+                  UpgradeSummaryStructuredOuut upgradeStructuredOutput = gson.fromJson(
+                      upgradeStructedOutput, UpgradeSummaryStructuredOuut.class);
 
-            if (StringUtils.isNotBlank(report.getStructuredOut())) {
-              try {
-                ComponentVersionStructuredOut structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
-
-                if (null != structuredOutput.upgradeDirection) {
-                  scHost.setUpgradeState(UpgradeState.FAILED);
+                  if (null != upgradeStructuredOutput.direction) {
+                    scHost.setUpgradeState(UpgradeState.FAILED);
+                  }
+                } catch (JsonSyntaxException ex) {
+                  LOG.warn("Structured output was found, but not parseable: {}",
+                      structuredOutputString);
                 }
-              } catch (JsonSyntaxException ex) {
-                LOG.warn("Structured output was found, but not parseable: {}", report.getStructuredOut());
               }
-            }
 
-            LOG.error("Operation failed - may be retried. Service component host: "
-                + schName + ", host: " + hostName + " Action id " + report.getActionId() + " and taskId " + report.getTaskId());
-            if (actionManager.isInProgressCommand(report)) {
-              scHost.handleEvent(new ServiceComponentHostOpFailedEvent
-                  (schName, hostName, now));
-            } else {
-              LOG.info("Received report for a command that is no longer active. " + report);
+              LOG.error("Operation failed - may be retried. Service component host: "
+                  + schName + ", host: " + hostName + " Action id " + report.getActionId() + " and taskId " + report.getTaskId());
+              if (actionManager.isInProgressCommand(report)) {
+                scHost.handleEvent(new ServiceComponentHostOpFailedEvent
+                    (schName, hostName, now));
+              } else {
+                LOG.info("Received report for a command that is no longer active. " + report);
+              }
             }
           } else if (report.getStatus().equals("IN_PROGRESS")) {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
@@ -602,13 +627,6 @@ public class HeartbeatProcessor extends AbstractService{
                     List<Map<String, String>> list = (List<Map<String, String>>) extra.get("processes");
                     scHost.setProcesses(list);
                   }
-                  if (extra.containsKey("version")) {
-                    String version = extra.get("version").toString();
-
-                    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cl, scHost, version);
-                    versionEventPublisher.publish(event);
-                  }
-
                 } catch (Exception e) {
                   LOG.error("Could not access extra JSON for " +
                       scHost.getServiceComponentName() + " from " +
@@ -725,18 +743,20 @@ public class HeartbeatProcessor extends AbstractService{
   /**
    * This class is used for mapping json of structured output for component START action.
    */
-  private static class ComponentVersionStructuredOut {
+  public static class ComponentVersionStructuredOut {
+    @SerializedName("mpackVersion")
+    public String mpackVersion;
+
     @SerializedName("version")
-    private String version;
+    public String version;
+  }
 
-    @SerializedName("upgrade_type")
-    private UpgradeType upgradeType = null;
-
+  /**
+   * This class is used for mapping json of structured output for information
+   * about an upgrade in progress.
+   */
+  public static class UpgradeSummaryStructuredOuut {
     @SerializedName("direction")
-    private Direction upgradeDirection = null;
-
-    @SerializedName(KeyNames.MPACK_ID)
-    private Long mpackId;
-
+    public String direction;
   }
 }

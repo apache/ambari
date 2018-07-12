@@ -32,7 +32,7 @@ public class ClusterDeploymentTestCommon {
    * @return a {@link ServiceResponse} instance for tests
    */
   static ServiceResponse service(String serviceName, long serviceId) {
-    return new ServiceResponse(CLUSTER_ID, CLUSTER_NAME,  1L, "service-group-1", serviceId, serviceName, null, null,
+    return new ServiceResponse(CLUSTER_ID, CLUSTER_NAME,  1L, "service-group-1", serviceId, serviceName, serviceName, null,
       null, null, true, true, true, true, true);
   }
 }

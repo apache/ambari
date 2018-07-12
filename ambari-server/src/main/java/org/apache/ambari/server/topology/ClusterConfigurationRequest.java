@@ -172,9 +172,8 @@ public class ClusterConfigurationRequest {
     Set<String> updatedConfigTypes = new HashSet<>();
 
     Cluster cluster = getCluster();
-    Blueprint blueprint = clusterTopology.getBlueprint();
 
-    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServices());
+    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServiceTypes());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
 
     // add clusterHostInfo containing components to hosts map, based on Topology, to use this one instead of
@@ -186,7 +185,7 @@ public class ClusterConfigurationRequest {
       // generate principals & keytabs for headless identities
       ambariContext.getController().getKerberosHelper()
         .ensureHeadlessIdentities(cluster, existingConfigurations,
-          new HashSet<>(clusterTopology.getServices()));
+          new HashSet<>(clusterTopology.getServiceTypes()));
 
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = ambariContext.getController().getKerberosHelper()
@@ -344,10 +343,6 @@ public class ClusterConfigurationRequest {
    * @param tag              config tag
    */
   private void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes) throws AmbariException {
-    // TODO: This version works with Ambari 3.0 where it is assumed that any service with a configuration can be identified
-    //   by its name. Even though the cluster is multi-stack (multi-mpack), service names should not conflict across mpacks,
-    //   except client services which have no configuration. In 3.1, mpack may have conflicting service names
-    //todo: also handle setting of host group scoped configuration which is updated by config processor
     List<Pair<String, ClusterRequest>> serviceNamesAndConfigurationRequests = new ArrayList<>();
 
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
@@ -367,9 +362,11 @@ public class ClusterConfigurationRequest {
 
       Set<String> configTypes =
         Sets.difference(
-          Sets.intersection(stack.getAllConfigurationTypes(service.getServiceName()), clusterConfigTypes),
-          Sets.union(stack.getExcludedConfigurationTypes(service.getServiceName()), globalConfigTypes)
+          Sets.intersection(stack.getAllConfigurationTypes(service.getServiceType()), clusterConfigTypes),
+          Sets.union(stack.getExcludedConfigurationTypes(service.getServiceType()), globalConfigTypes)
         );
+
+      LOG.info("Creating config request for service {}, types {}", service.getServiceName(), configTypes);
 
       for (String serviceConfigType: configTypes) {
         Map<String, String> properties = clusterProperties.get(serviceConfigType);
@@ -446,7 +443,7 @@ public class ClusterConfigurationRequest {
     }
     // iterate over services to deploy
     for (Pair<String, ClusterRequest> serviceNameAndRequest: serviceNamesAndRequests) {
-      LOG.info("Sending cluster config update request for service = " + serviceNameAndRequest.getLeft());
+      LOG.info("Sending cluster config update request for service {}", serviceNameAndRequest.getLeft());
       ambariContext.setConfigurationOnCluster(serviceNameAndRequest.getRight());
     }
 

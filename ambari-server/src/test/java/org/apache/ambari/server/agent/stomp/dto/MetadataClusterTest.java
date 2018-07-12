@@ -32,9 +32,9 @@ public class MetadataClusterTest {
   @Test
   public void shouldReturnFalseWhenUpdatingServiceLevelParamsWithoutNewOrRemovedServices() throws Exception {
     final SortedMap<String, MetadataServiceInfo> current = new TreeMap<>();
-    current.put("service1", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service2", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service3", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service1", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service2", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service3", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
     final MetadataCluster metadataCluster = MetadataCluster.serviceLevelParamsMetadataCluster(null, current, true);
     final SortedMap<String, MetadataServiceInfo> updated = new TreeMap<>(current);
     assertFalse(metadataCluster.updateServiceLevelParams(updated, true));
@@ -44,11 +44,11 @@ public class MetadataClusterTest {
   @Test
   public void shouldReturnTrueWhenUpdatingServiceLevelParamsUponServiceAddition() throws Exception {
     final SortedMap<String, MetadataServiceInfo> current = new TreeMap<>();
-    current.put("service1", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service2", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service1", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service2", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
     final MetadataCluster metadataCluster = MetadataCluster.serviceLevelParamsMetadataCluster(null, current, true);
     final SortedMap<String, MetadataServiceInfo> updated = new TreeMap<>(current);
-    updated.put("service3", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    updated.put("service3", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
     assertTrue(metadataCluster.updateServiceLevelParams(updated, true));
     assertEquals(updated, metadataCluster.getServiceLevelParams());
   }
@@ -56,9 +56,9 @@ public class MetadataClusterTest {
   @Test
   public void shouldReturnTrueWhenUpdatingServiceLevelParamsUponServiceRemoval() throws Exception {
     final SortedMap<String, MetadataServiceInfo> current = new TreeMap<>();
-    current.put("service1", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service2", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service3", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service1", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service2", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service3", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
     final MetadataCluster metadataCluster = MetadataCluster.serviceLevelParamsMetadataCluster(null, current, true);
     final SortedMap<String, MetadataServiceInfo> updated = new TreeMap<>(current);
     updated.remove("service2");
@@ -69,9 +69,9 @@ public class MetadataClusterTest {
   @Test
   public void shouldReturnFalseWhenNullServiceLevelParamsArePassedBecauseOfPartialConfigurationUpdate() throws Exception {
     final SortedMap<String, MetadataServiceInfo> current = new TreeMap<>();
-    current.put("service1", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service2", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service3", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service1", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service2", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service3", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
     final MetadataCluster metadataCluster = MetadataCluster.serviceLevelParamsMetadataCluster(null, current, true);
     assertFalse(metadataCluster.updateServiceLevelParams(null, true));
     assertEquals(current, metadataCluster.getServiceLevelParams());
@@ -80,13 +80,13 @@ public class MetadataClusterTest {
   @Test
   public void shouldReturnTrueWhenUpdatingServiceLevelParamsWithoutFullServiceLevelMetadata() throws Exception {
     final SortedMap<String, MetadataServiceInfo> current = new TreeMap<>();
-    current.put("service1", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service2", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
-    current.put("service3", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service1", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service2", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    current.put("service3", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
     final MetadataCluster metadataCluster = MetadataCluster.serviceLevelParamsMetadataCluster(null, current, true);
     final SortedMap<String, MetadataServiceInfo> updated = new TreeMap<>();
-    updated.put("service3", new MetadataServiceInfo("v2", Boolean.TRUE, null, 2L, "servicePackageFolder2"));
-    updated.put("service4", new MetadataServiceInfo("v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
+    updated.put("service3", new MetadataServiceInfo("anyType", "v2", Boolean.TRUE, null, 2L, "servicePackageFolder2"));
+    updated.put("service4", new MetadataServiceInfo("anyType", "v1", Boolean.FALSE, null, 1L, "servicePackageFolder"));
     assertTrue(metadataCluster.updateServiceLevelParams(updated, false));
     final SortedMap<String, MetadataServiceInfo> expected = current;
     expected.putAll(updated);
