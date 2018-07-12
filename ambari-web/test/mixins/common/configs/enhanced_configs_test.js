@@ -581,7 +581,6 @@ describe('App.EnhancedConfigsMixin', function () {
 
     afterEach(function() {
       App.router.get('configurationController').getCurrentConfigsBySites.restore();
-      mixin.addRecommendationRequestParams.restore();
       mixin.getRecommendationsRequest.restore();
       mixin.addRequestedConfigs.restore();
     });
