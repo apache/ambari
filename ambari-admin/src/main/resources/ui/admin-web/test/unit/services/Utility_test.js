@@ -37,7 +37,7 @@ describe('Utility Service', function () {
       Utility = _Utility_;
       httpBackend = _$httpBackend_;
       deferred = _$q_.defer();
-      spyOn(_Cluster_, 'getStatus').andReturn(deferred.promise);
+      spyOn(_Cluster_, 'getStatus').and.returnValue(deferred.promise);
       deferred.resolve({
         Clusters: {
           provisioning_state: 'INIT'
@@ -81,7 +81,7 @@ describe('Utility Service', function () {
     });
 
     it('should pass the received value', function () {
-      expect(mock.callback.mostRecentCall.args[0].data).toEqual(obj);
+      expect(mock.callback.calls.mostRecent().args[0].data).toEqual(obj);
     });
 
   });
@@ -144,11 +144,11 @@ describe('Utility Service', function () {
         });
 
         it('success callback', function () {
-          expect(mock.successCallback.callCount).toEqual(item.successCallbackCallCount);
+          expect(mock.successCallback.calls.count()).toEqual(item.successCallbackCallCount);
         });
 
         it('error callback', function () {
-          expect(mock.errorCallback.callCount).toEqual(item.errorCallbackCallCount);
+          expect(mock.errorCallback.calls.count()).toEqual(item.errorCallbackCallCount);
         });
 
       });

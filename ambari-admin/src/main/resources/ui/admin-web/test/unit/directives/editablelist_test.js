@@ -50,7 +50,7 @@ describe('#Editablelist directive', function () {
         ]
       });
 
-      spyOn($modal, 'open').andReturn({
+      spyOn($modal, 'open').and.returnValue({
         result:{
           then: function() {
           }
