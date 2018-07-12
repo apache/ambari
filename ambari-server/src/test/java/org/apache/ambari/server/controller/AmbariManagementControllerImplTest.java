@@ -329,18 +329,8 @@ public class AmbariManagementControllerImplTest {
     configRequests.add(configurationRequest);
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
-    MetadataHolder metadataHolder = createMock(MetadataHolder.class);
-    AgentConfigsHolder agentConfigsHolder = createMockBuilder(AgentConfigsHolder.class)
-        .addMockedMethod("updateData").createMock();
     // expectations
-    constructorInit(injector, controllerCapture, null, null,
-        kerberosHelper, metadataHolder, agentConfigsHolder
-    );
-
-    expect(metadataHolder.updateData(anyObject())).andReturn(true).anyTimes();
-
-    agentConfigsHolder.updateData(anyLong(), anyObject(List.class));
-    expectLastCall().anyTimes();
+    constructorInit(injector, controllerCapture, null, null, kerberosHelper);
 
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
@@ -360,7 +350,7 @@ public class AmbariManagementControllerImplTest {
 
     // replay mocks
     replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest,
-            hostComponentStateDAO, serviceComponentDesiredStateDAO, metadataHolder, agentConfigsHolder);
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
 
     // test
@@ -370,8 +360,7 @@ public class AmbariManagementControllerImplTest {
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
     verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest,
-            hostComponentStateDAO, serviceComponentDesiredStateDAO,
-        metadataHolder, agentConfigsHolder);
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -461,9 +450,7 @@ public class AmbariManagementControllerImplTest {
     AgentConfigsHolder agentConfigsHolder = createMockBuilder(AgentConfigsHolder.class)
         .addMockedMethod("updateData").createMock();
     // expectations
-    constructorInit(injector, controllerCapture, null, null,
-        kerberosHelper, metadataHolder, agentConfigsHolder
-    );
+    constructorInit(injector, controllerCapture, null, null, kerberosHelper);
 
     expect(metadataHolder.updateData(anyObject())).andReturn(true).anyTimes();
 
@@ -511,18 +498,8 @@ public class AmbariManagementControllerImplTest {
     Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
-    MetadataHolder metadataHolder = createMock(MetadataHolder.class);
-    AgentConfigsHolder agentConfigsHolder = createMockBuilder(AgentConfigsHolder.class)
-        .addMockedMethod("updateData").createMock();
     // expectations
-    constructorInit(injector, controllerCapture, null, null,
-        kerberosHelper, metadataHolder, agentConfigsHolder
-    );
-
-    expect(metadataHolder.updateData(anyObject())).andReturn(true).anyTimes();
-
-    agentConfigsHolder.updateData(anyLong(), anyObject(List.class));
-    expectLastCall().anyTimes();
+    constructorInit(injector, controllerCapture, null, null, kerberosHelper);
 
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
@@ -543,8 +520,7 @@ public class AmbariManagementControllerImplTest {
 
     // replay mocks
     replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
-            hostComponentStateDAO, serviceComponentDesiredStateDAO,
-        metadataHolder, agentConfigsHolder);
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, metadataGenerator, injector);
@@ -553,8 +529,7 @@ public class AmbariManagementControllerImplTest {
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
     verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
-            hostComponentStateDAO, serviceComponentDesiredStateDAO,
-        metadataHolder, agentConfigsHolder);
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
   /**
    * Ensure that when the cluster security type updated from NONE to KERBEROS, KerberosHandler.toggleKerberos
@@ -577,9 +552,7 @@ public class AmbariManagementControllerImplTest {
     AgentConfigsHolder agentConfigsHolder = createMockBuilder(AgentConfigsHolder.class)
         .addMockedMethod("updateData").createMock();
     // expectations
-    constructorInit(injector, controllerCapture, null, null,
-        kerberosHelper, metadataHolder, agentConfigsHolder
-    );
+    constructorInit(injector, controllerCapture, null, null, kerberosHelper);
 
     expect(metadataHolder.updateData(anyObject())).andReturn(true).anyTimes();
 
@@ -672,18 +645,8 @@ public class AmbariManagementControllerImplTest {
     Capture<Boolean> manageIdentitiesCapture = EasyMock.newCapture();
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
-    MetadataHolder metadataHolder = createMock(MetadataHolder.class);
-    AgentConfigsHolder agentConfigsHolder = createMockBuilder(AgentConfigsHolder.class)
-        .addMockedMethod("updateData").createMock();
     // expectations
-    constructorInit(injector, controllerCapture, null, null,
-        kerberosHelper, metadataHolder, agentConfigsHolder
-    );
-
-    expect(metadataHolder.updateData(anyObject())).andReturn(true).anyTimes();
-
-    agentConfigsHolder.updateData(anyLong(), anyObject(List.class));
-    expectLastCall().anyTimes();
+    constructorInit(injector, controllerCapture, null, null, kerberosHelper);
 
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
@@ -708,8 +671,7 @@ public class AmbariManagementControllerImplTest {
         .once();
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
-        metadataHolder, agentConfigsHolder);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, metadataGenerator, injector);
@@ -718,8 +680,7 @@ public class AmbariManagementControllerImplTest {
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
     assertEquals(manageIdentities, manageIdentitiesCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
-        metadataHolder, agentConfigsHolder);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
   }
 
   /**
@@ -739,18 +700,8 @@ public class AmbariManagementControllerImplTest {
     Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
-    MetadataHolder metadataHolder = createMock(MetadataHolder.class);
-    AgentConfigsHolder agentConfigsHolder = createMockBuilder(AgentConfigsHolder.class)
-        .addMockedMethod("updateData").createMock();
     // expectations
-    constructorInit(injector, controllerCapture, null, null,
-        kerberosHelper, metadataHolder, agentConfigsHolder
-    );
-
-    expect(metadataHolder.updateData(anyObject())).andReturn(true);
-
-    agentConfigsHolder.updateData(anyLong(), anyObject(List.class));
-    expectLastCall();
+    constructorInit(injector, controllerCapture, null, null, kerberosHelper);
 
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
@@ -785,8 +736,7 @@ public class AmbariManagementControllerImplTest {
 
     // replay mocks
     replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
-            hostComponentStateDAO, serviceComponentDesiredStateDAO,
-      agentConfigsHolder, metadataHolder);
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, metadataGenerator, injector);
@@ -801,8 +751,7 @@ public class AmbariManagementControllerImplTest {
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
     verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
-            hostComponentStateDAO, serviceComponentDesiredStateDAO,
-      agentConfigsHolder, metadataHolder);
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -877,9 +826,7 @@ public class AmbariManagementControllerImplTest {
     setRequests.add(request1);
 
     // expectations
-    constructorInit(injector, controllerCapture, null, maintHelper,
-        createNiceMock(KerberosHelper.class), null, null
-    );
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
     expect(hostComponentStateDAO.findById(1L)).andReturn(hostComponentStateEntity).anyTimes();
@@ -963,7 +910,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class), null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -1043,8 +990,7 @@ public class AmbariManagementControllerImplTest {
     setRequests.add(request1);
 
     // expectations
-    constructorInit(injector, controllerCapture, null, maintHelper,
-        createNiceMock(KerberosHelper.class), null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     expect(maintHelper.getEffectiveState(
         anyObject(ServiceComponentHost.class),
@@ -1125,8 +1071,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     expect(maintHelper.getEffectiveState(
         anyObject(ServiceComponentHost.class),
@@ -1221,8 +1166,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, stateHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, stateHelper, createNiceMock(KerberosHelper.class));
 
 
     // getHostComponent
@@ -1357,8 +1301,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -1494,8 +1437,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -1639,8 +1581,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -1761,8 +1702,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
     expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
@@ -1817,8 +1757,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
@@ -1880,8 +1819,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -1969,8 +1907,7 @@ public class AmbariManagementControllerImplTest {
 
     // expectations
     // constructor init
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -2064,8 +2001,7 @@ public class AmbariManagementControllerImplTest {
     expect(serviceInfo.getOsSpecifics()).andReturn(osSpecificsService);
     expect(stackInfo.getOsSpecifics()).andReturn(osSpecificsStack);
 
-    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class),
-        null, null);
+    constructorInit(injector, controllerCapture, null, maintHelper, createNiceMock(KerberosHelper.class));
 
     expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
     expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
@@ -2285,15 +2221,12 @@ public class AmbariManagementControllerImplTest {
   }
 
   public static void constructorInit(Injector injector, Capture<AmbariManagementController> controllerCapture, Gson gson,
-    MaintenanceStateHelper maintenanceStateHelper, KerberosHelper kerberosHelper,
-    MetadataHolder metadataHolder, AgentConfigsHolder agentConfigsHolder
+    MaintenanceStateHelper maintenanceStateHelper, KerberosHelper kerberosHelper
   ) {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(gson);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintenanceStateHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
-    expect(injector.getProvider(MetadataHolder.class)).andReturn(() -> metadataHolder);
-    expect(injector.getProvider(AgentConfigsHolder.class)).andReturn(() -> agentConfigsHolder);
   }
 
   public static void constructorInit(Injector injector, Capture<AmbariManagementController> controllerCapture,
@@ -2302,7 +2235,5 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
-    expect(injector.getProvider(MetadataHolder.class)).andReturn(() -> null);
-    expect(injector.getProvider(AgentConfigsHolder.class)).andReturn(() -> null);
   }
 }

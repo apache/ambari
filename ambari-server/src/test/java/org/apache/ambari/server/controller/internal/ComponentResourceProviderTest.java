@@ -988,7 +988,8 @@ public class ComponentResourceProviderTest {
     // expectations
     // constructor init
     AmbariManagementControllerImplTest.constructorInit(injector, controllerCapture, null, maintHelper,
-        createNiceMock(KerberosHelper.class), null, null);
+        createNiceMock(KerberosHelper.class)
+    );
 
     expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
     expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();

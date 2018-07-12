@@ -65,8 +65,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
@@ -616,7 +614,6 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
         bind(HookService.class).to(UserHookService.class);
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
 
-        bind(KerberosHelper.class).to(KerberosHelperImpl.class);
         bind(Clusters.class).toInstance(createMock(Clusters.class));
         bind(StackAdvisorHelper.class).toInstance(createMock(StackAdvisorHelper.class));
         bind(ConfigHelper.class).toInstance(createMock(ConfigHelper.class));
