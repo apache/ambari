@@ -160,7 +160,6 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         value = Em.get(config, 'value'),
         prevRecommeneded = config.get('recommendedValue');
     Em.set(config, 'recommendedValue', recommendedValue);
-    console.log('test123', config, recommendedValue)
     if (this.allowUpdateProperty(parentProperties, name, fileName, group, value)) {
       var allowConfigUpdate = true;
       // workaround for capacity-scheduler
