@@ -158,7 +158,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         fileName = Em.get(config, 'filename'),
         group = Em.get(config, 'group.name'),
         value = Em.get(config, 'value'),
-        prevRecommeneded = config.get('recommendedValue');
+        prevRecommeneded = Em.get(config, 'recommendedValue');
     Em.set(config, 'recommendedValue', recommendedValue);
     if (this.allowUpdateProperty(parentProperties, name, fileName, group, value)) {
       var allowConfigUpdate = true;
