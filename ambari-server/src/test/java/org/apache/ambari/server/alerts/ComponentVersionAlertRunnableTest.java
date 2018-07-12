@@ -46,6 +46,7 @@ import org.apache.ambari.server.state.ModuleComponent;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
@@ -72,7 +73,9 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
   private final static String HOSTNAME_2 = "c6402.ambari.apache.org";
 
   private final static String EXPECTED_VERSION = "2.6.0.0-1234";
+  private final static String EXPECTED_MPACK_VERSION = "1.0.0.0-b1";
   private final static String WRONG_VERSION = "9.9.9.9-9999";
+  private final static String WRONG_MPACK_VERSION = "9.9.9.9-b9";
 
   private final static String DEFINITION_NAME = "ambari_server_component_version";
   private final static String DEFINITION_SERVICE = "AMBARI";
@@ -138,18 +141,27 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     ServiceComponentHost sch2_1 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHost sch2_2 = createNiceMock(ServiceComponentHost.class);
 
+    StackId stackId = new StackId("MY-STACK", "1.0");
+    expect(sch1_1.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(sch1_1.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch1_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch1_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
+    expect(sch1_1.getMpackVersion()).andReturn(EXPECTED_MPACK_VERSION).atLeastOnce();
+    expect(sch1_2.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(sch1_2.getServiceType()).andReturn("BAR").atLeastOnce();
     expect(sch1_2.getServiceComponentName()).andReturn("BAR_COMPONENT").atLeastOnce();
     expect(sch1_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
+    expect(sch1_2.getMpackVersion()).andReturn(EXPECTED_MPACK_VERSION).atLeastOnce();
+    expect(sch2_1.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(sch2_1.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch2_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch2_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
+    expect(sch2_1.getMpackVersion()).andReturn(EXPECTED_MPACK_VERSION).atLeastOnce();
+    expect(sch2_2.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(sch2_2.getServiceType()).andReturn("BAZ").atLeastOnce();
     expect(sch2_2.getServiceComponentName()).andReturn("BAZ_COMPONENT").atLeastOnce();
     expect(sch2_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
+    expect(sch2_2.getMpackVersion()).andReturn(EXPECTED_MPACK_VERSION).atLeastOnce();
 
     m_hostComponentMap.get(HOSTNAME_1).add(sch1_1);
     m_hostComponentMap.get(HOSTNAME_1).add(sch1_2);
@@ -185,8 +197,10 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
 
     // mock the mpack
     Mpack mpack = createNiceMock(Mpack.class);
+    expect(mpack.getVersion()).andReturn(EXPECTED_MPACK_VERSION).atLeastOnce();
     expect(mpack.getModuleComponent(EasyMock.anyString(), EasyMock.anyString())).andReturn(
         moduleComponent).atLeastOnce();
+
 
     expect(m_metaInfo.getMpack(1L)).andReturn(mpack).atLeastOnce();
 
@@ -296,6 +310,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     // reset expectation so that it returns a wrong version
     ServiceComponentHost sch = m_hostComponentMap.get(HOSTNAME_1).get(0);
     EasyMock.reset(sch);
+    expect(sch.getDesiredStackId()).andReturn(new StackId("MY-STACK", "1.0")).atLeastOnce();
     expect(sch.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch.getVersion()).andReturn(WRONG_VERSION).atLeastOnce();

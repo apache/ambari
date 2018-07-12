@@ -173,11 +173,11 @@ public class UpgradeSummaryResourceProviderTest {
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER", "ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0");
+    sch.setVersions("1.0.0.0-b1234", "2.2.0.0");
 
     component = service.addServiceComponent("ZOOKEEPER_CLIENT", "ZOOKEEPER_CLIENT");
     sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0");
+    sch.setVersions("1.0.0.0-b1234", "2.2.0.0");
   }
 
   /**

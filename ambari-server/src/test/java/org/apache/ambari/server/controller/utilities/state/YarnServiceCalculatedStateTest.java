@@ -58,15 +58,15 @@ public class YarnServiceCalculatedStateTest extends GeneralServiceCalculatedStat
       clusters.mapHostToCluster(hostName, clusterName);
 
       ServiceComponentHost sch = secondMasterComponent.addServiceComponentHost(hostName);
-      sch.setVersion("2.1.1.0");
+      sch.setVersions("1.0.0.0-b1234", "2.1.1.0");
       sch.setState(State.STARTED);
 
       sch = clientComponent.addServiceComponentHost(hostName);
-      sch.setVersion("2.1.1.0");
+      sch.setVersions("1.0.0.0-b1234", "2.1.1.0");
       sch.setState(State.INSTALLED);
 
       sch = masterComponent.addServiceComponentHost(hostName);
-      sch.setVersion("2.1.1.0");
+      sch.setVersions("1.0.0.0-b1234", "2.1.1.0");
       sch.setState(State.STARTED);
     }
   }

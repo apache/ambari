@@ -149,7 +149,7 @@ public class AddComponentActionTest extends EasyMockSupport {
     mockServiceComponentHost.setDesiredState(State.INSTALLED);
     expectLastCall().once();
 
-    mockServiceComponentHost.setVersion("UNKNOWN");
+    mockServiceComponentHost.setVersions("UNKNOWN", "UNKNOWN");
     expectLastCall().once();
 
     PowerMock.replay(m_action);

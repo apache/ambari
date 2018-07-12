@@ -947,9 +947,25 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     if (stateEntity != null) {
       return stateEntity.getVersion();
     } else {
-      LOG.warn("Trying to fetch a member from an entity object that may "
-          + "have been previously deleted, serviceName = " + getServiceName() + ", "
-          + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
+      LOG.warn(
+          "Trying to fetch a member from an entity object that may "
+              + "have been previously deleted, serviceName = {}, componentName = {}, hostName = ",
+          getServiceName(), getServiceComponentName(), getHost());
+    }
+
+    return null;
+  }
+
+  @Override
+  public String getMpackVersion() {
+    HostComponentStateEntity stateEntity = getStateEntity();
+    if (stateEntity != null) {
+      return stateEntity.getMpackVersion();
+    } else {
+      LOG.warn(
+          "Trying to fetch a member from an entity object that may "
+              + "have been previously deleted, serviceName = {}, componentName = {}, hostName = ",
+          getServiceName(), getServiceComponentName(), getHost());
     }
 
     return null;
@@ -957,10 +973,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   @Transactional
-  public void setVersion(String version) throws AmbariException {
+  public void setVersions(String mpackVersion, String version) throws AmbariException {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setVersion(version);
+      stateEntity.setMpackVersion(mpackVersion);
       stateEntity = hostComponentStateDAO.merge(stateEntity);
 
       ServiceComponentHostRequest serviceComponentHostRequest = new ServiceComponentHostRequest(

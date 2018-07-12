@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import java.util.EnumSet;
-
 /**
  * Indicates the upgrade state
  */
@@ -43,9 +41,4 @@ public enum UpgradeState {
    * Component reported unexpected/wrong version
    */
   VERSION_MISMATCH;
-
-  /**
-   * States when new/correct version has not been yet advertised
-   */
-  public static final EnumSet<UpgradeState> VERSION_NON_ADVERTISED_STATES = EnumSet.of(IN_PROGRESS, FAILED, VERSION_MISMATCH);
 }

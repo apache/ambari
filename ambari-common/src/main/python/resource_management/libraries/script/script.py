@@ -196,9 +196,13 @@ class Script(object):
 
     Logger.info("Reporting installation state for {0}".format(command_repository))
 
-    self.put_structured_out({"mpackId": command_repository.mpack_id})
-    self.put_structured_out({"mpackName":command_repository.mpack_name})
-    self.put_structured_out({"mpackVersion":command_repository.version_string})
+    mpack_dictionary = {
+      "mpackId": command_repository.mpack_id,
+      "mpackName":command_repository.mpack_name,
+      "mpackVersion":command_repository.version_string
+    }
+
+    self.put_structured_out({"mpack_installation": mpack_dictionary})
 
 
   def save_component_version_to_structured_out(self, command_name):
@@ -207,52 +211,57 @@ class Script(object):
     command is an install command and the repository is trusted, then it will use the version of
     the repository. Otherwise, it will consult the stack-select tool to read the symlink version.
 
-    Under rare circumstances, a component may have a bug which prevents it from reporting a
-    version back after being installed. This is most likely due to the stack-select tool not being
-    invoked by the package's installer. In these rare cases, we try to see if the component
-    should have reported a version and we try to fallback to the "<stack-select> versions" command.
-
     :param command_name: command name
     :return: None
     """
-    from resource_management.libraries.functions import stack_select
+    from resource_management.libraries.functions import mpack_manager_helper
 
-    stack_name = Script.get_stack_name()
-    stack_select_package_name = stack_select.get_package_name()
+    if self.is_hook():
+      return;
 
-    if stack_select_package_name and stack_name:
-      component_version = version_select_util.get_component_version_from_symlink(stack_name, stack_select_package_name)
+    execution_command = self.get_execution_command()
+    mpack_name = execution_command.get_mpack_name()
+    mpack_instance_name = execution_command.get_servicegroup_name()
+    module_name = execution_command.get_module_name()
+    component_type = execution_command.get_component_type()
 
-      if component_version:
-        self.put_structured_out({"version": component_version})
-        # if repository_version_id is passed, pass it back with the version
-        from resource_management.libraries.functions.default import default
-        repo_version_id = default("/repositoryFile/repoVersionId", None)
-        if repo_version_id:
-          self.put_structured_out({"repository_version_id": repo_version_id})
-      else:
-        if not self.is_hook():
-          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
+    try:
+      mpack_version, component_version = mpack_manager_helper.get_versions(mpack_name,
+        mpack_instance_name, module_name, component_type )
+
+      mpack_version_dictionary = {
+        "mpackVersion": mpack_version,
+        "version": component_version
+      }
+
+      self.put_structured_out({"version_reporting": mpack_version_dictionary})
+    except ValueError:
+      Logger.exception(
+        "The '{0}' component from {1} did not advertise a version. This may indicate a problem with the mpack JSON.".format(
+          component_type, mpack_name))
+    except Exception as e:
+      Logger.exception(
+        "The '{0}' component from {1} did not advertise a version. This may indicate a problem with the mpack JSON.".format(
+          component_type, mpack_name))
 
 
   def should_expose_component_version(self, command_name):
     """
     Analyzes config and given command to determine if stack version should be written
-    to structured out. Currently only HDP stack versions >= 2.2 are supported.
+    to structured out.
     :param command_name: command name
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = self.execution_command.get_mpack_version()
-    stack_version_formatted = format_stack_version(stack_version_unformatted)
-    if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-      if command_name.lower() == "status":
-        request_version = default("/commandParams/request_version", None)
-        if request_version is not None:
-          return True
-      else:
-        # Populate version only on base commands
-        return command_name.lower() == "start" or command_name.lower() == "install" or command_name.lower() == "restart"
+    if command_name.lower() == "status":
+      request_version = default("/commandParams/request_version", None)
+      if request_version is not None:
+        return True
+    else:
+      # Populate version only on base commands
+      version_reporting_commands = ["start", "install", "restart"]
+      return command_name.lower() in version_reporting_commands
+
     return False
 
   def execute(self):
@@ -908,8 +917,7 @@ class Script(object):
     """
     self.fail_with_error("stop method isn't implemented")
 
-  # TODO, remove after all services have switched to pre_upgrade_restart
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env):
     """
     To be overridden by subclasses
     """
@@ -955,12 +963,7 @@ class Script(object):
 
     if componentCategory and componentCategory.strip().lower() == 'CLIENT'.lower():
       if is_stack_upgrade:
-        # Remain backward compatible with the rest of the services that haven't switched to using
-        # the pre_upgrade_restart method. Once done. remove the else-block.
-        if "pre_upgrade_restart" in dir(self):
-          self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
-        else:
-          self.pre_rolling_restart(env)
+        self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
 
       self.install(env)
     else:
@@ -977,10 +980,7 @@ class Script(object):
       if is_stack_upgrade:
         # Remain backward compatible with the rest of the services that haven't switched to using
         # the pre_upgrade_restart method. Once done. remove the else-block.
-        if "pre_upgrade_restart" in dir(self):
-          self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
-        else:
-          self.pre_rolling_restart(env)
+        self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
 
       service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
       try:
@@ -1011,19 +1011,10 @@ class Script(object):
       self.post_start(env)
 
       if is_stack_upgrade:
-        # Remain backward compatible with the rest of the services that haven't switched to using
-        # the post_upgrade_restart method. Once done. remove the else-block.
-        if "post_upgrade_restart" in dir(self):
-          self.post_upgrade_restart(env, upgrade_type=upgrade_type)
-        else:
-          self.post_rolling_restart(env)
-
-    if self.should_expose_component_version(self.command_name):
-      self.save_component_version_to_structured_out(self.command_name)
+        self.post_upgrade_restart(env, upgrade_type=upgrade_type)
 
 
-  # TODO, remove after all services have switched to post_upgrade_restart
-  def post_rolling_restart(self, env):
+  def post_upgrade_restart(self, env):
     """
     To be overridden by subclasses
     """

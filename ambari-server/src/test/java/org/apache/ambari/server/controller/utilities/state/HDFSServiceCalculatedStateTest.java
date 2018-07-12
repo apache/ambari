@@ -58,15 +58,15 @@ public class HDFSServiceCalculatedStateTest extends GeneralServiceCalculatedStat
       clusters.mapHostToCluster(hostName, clusterName);
 
       ServiceComponentHost sch = masterComponent.addServiceComponentHost(hostName);
-      sch.setVersion("2.1.1.0");
+      sch.setVersions("1.0.0.0-b1234", "2.1.1.0");
       sch.setState(State.STARTED);
 
       ServiceComponentHost sch1 = masterComponent1.addServiceComponentHost(hostName);
-      sch1.setVersion("2.1.1.0");
+      sch1.setVersions("1.0.0.0-b1234", "2.1.1.0");
       sch1.setState(State.STARTED);
 
       sch = clientComponent.addServiceComponentHost(hostName);
-      sch.setVersion("2.1.1.0");
+      sch.setVersions("1.0.0.0-b1234", "2.1.1.0");
       sch.setState(State.INSTALLED);
     }
   }
