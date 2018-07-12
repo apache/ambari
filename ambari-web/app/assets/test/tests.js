@@ -70,6 +70,7 @@ var files = [
   'test/controllers/main/admin/stack_upgrade_history_controller_test',
   'test/controllers/main/admin/serviceAccounts_controller_test',
   'test/controllers/main/admin/federation/step1_controller_test',
+  'test/controllers/main/admin/federation/step3_controller_test',
   'test/controllers/main/admin/highAvailability_controller_test',
   'test/controllers/main/admin/highAvailability/progress_controller_test',
   'test/controllers/main/admin/highAvailability/progress_popup_controller_test',

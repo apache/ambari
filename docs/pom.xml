@@ -659,6 +659,17 @@
             </organization>
         </developer>
         <developer>
+            <id>krisztiankasa</id>
+            <name>Krisztian Kasa</name>
+            <email>krisztiankasa@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+            </organization>
+        </developer>
+        <developer>
             <id>kzhang</id>
             <name>Kan Zhang</name>
             <email>kzhang@apache.org</email>

@@ -70,7 +70,7 @@ LIST_SOLR_COLLECTION_URL = '{0}/admin/collections?action=LIST&wt=json'
 CREATE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=CREATE&name={1}&collection.configName={2}&numShards={3}&replicationFactor={4}&maxShardsPerNode={5}&wt=json'
 DELETE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=DELETE&name={1}&wt=json&async={2}'
 RELOAD_SOLR_COLLECTION_URL = '{0}/admin/collections?action=RELOAD&name={1}&wt=json'
-REQUEST_STATUS_SOLR_COLLECTION_URL = '{0}/admin/collections?action=REQUESTSTATUS&requestid={1}'
+REQUEST_STATUS_SOLR_COLLECTION_URL = '{0}/admin/collections?action=REQUESTSTATUS&requestid={1}&wt=json'
 CORE_DETAILS_URL = '{0}replication?command=details&wt=json'
 
 INFRA_SOLR_CLIENT_BASE_PATH = '/usr/lib/ambari-infra-solr-client/'
@@ -157,6 +157,9 @@ def get_keytab_and_principal(config):
 
 def create_solr_api_request_command(request_url, config, output=None):
   user='infra-solr'
+  if config.has_section('infra_solr'):
+    if config.has_option('infra_solr', 'user'):
+      user=config.get('infra_solr', 'user')
   kerberos_enabled='false'
   if config.has_section('cluster') and config.has_option('cluster', 'kerberos_enabled'):
     kerberos_enabled=config.get('cluster', 'kerberos_enabled')
