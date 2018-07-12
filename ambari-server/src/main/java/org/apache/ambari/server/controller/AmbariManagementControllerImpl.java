@@ -82,9 +82,7 @@ import org.apache.ambari.server.actionmanager.StageHelper;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.rest.AgentResource;
-import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
-import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
@@ -350,10 +348,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
-
-  private Provider<MetadataHolder> m_metadataHolder;
-
-  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   @Inject
   private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
@@ -5542,9 +5536,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
       }
-
-      m_metadataHolder.get().updateData(metadataGenerator.getClusterMetadataOnConfigsUpdate(cluster));
-      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
 
       if (request.getVersion() != null) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {

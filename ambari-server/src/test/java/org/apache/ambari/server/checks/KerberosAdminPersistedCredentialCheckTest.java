@@ -29,14 +29,9 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
-import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
@@ -48,8 +43,6 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
-import org.apache.ambari.server.scheduler.ExecutionScheduler;
-import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -61,22 +54,18 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradeCheckResult;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
-import org.apache.ambari.server.topology.PersistedState;
-import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -215,37 +204,29 @@ public class KerberosAdminPersistedCredentialCheckTest extends EasyMockSupport {
 
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
-            .build().configure(binder());
+        PartialNiceMockBinder.newBuilder(KerberosAdminPersistedCredentialCheckTest.this)
+          .addAmbariMetaInfoBinding()
+          .addActionDBAccessorConfigsBindings()
+          .addFactoriesInstallBinding()
+          .build().configure(binder());
 
-        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionSchedulerImpl.class));
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
-        bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactoryImpl.class));
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
-        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
-        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
         bind(HookService.class).to(UserHookService.class);
-        bind(PersistedState.class).to(PersistedStateImpl.class);
         bind(SecurityHelper.class).toInstance(createNiceMock(SecurityHelper.class));
         bind(AmbariCustomCommandExecutionHelper.class).toInstance(createNiceMock(AmbariCustomCommandExecutionHelper.class));
-        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
-        bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(ArtifactDAO.class).toInstance(createNiceMock(ArtifactDAO.class));
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(UpgradeHelper.class).toInstance(upgradeHelper);
-        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
-
-        bind(CredentialStoreService.class).toInstance(createMock(CredentialStoreService.class));
       }
     });
   }

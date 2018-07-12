@@ -1161,6 +1161,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     assertNull("Initial NameNode HA property exported although should not have", hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
     assertNull("Initial NameNode HA property exported although should not have", hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    assertTrue("Initial NameNode HA property exported although should not have", clusterEnv == null || clusterEnv.get("dfs_ha_initial_namenode_active") == null);
+    assertTrue("Initial NameNode HA property exported although should not have", clusterEnv == null || clusterEnv.get("dfs_ha_initial_namenode_standby") == null);
   }
 
   @Test
@@ -1977,9 +1981,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("yarn-site zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
       yarnSiteProperties.get("hadoop.registry.zk.quorum"));
-    assertEquals("slider-client zookeeper config not properly exported",
-      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
-      sliderClientProperties.get("slider.zookeeper.quorum"));
     assertEquals("kafka zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
       kafkaBrokerProperties.get("zookeeper.connect"));
@@ -2835,13 +2836,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has set the internal required properties
     // that determine the active and standby node hostnames for this HA setup
     // one of the two hosts should be set to active and the other to standby
-    String activeHost = hadoopEnvProperties.get("dfs_ha_initial_namenode_active");
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    String activeHost = clusterEnv.get("dfs_ha_initial_namenode_active");
     if (activeHost.equals(expectedHostName)) {
       assertEquals("Standby Namenode hostname was not set correctly",
-        expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+        expectedHostNameTwo, clusterEnv.get("dfs_ha_initial_namenode_standby"));
     } else if (activeHost.equals(expectedHostNameTwo)) {
       assertEquals("Standby Namenode hostname was not set correctly",
-        expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+        expectedHostName, clusterEnv.get("dfs_ha_initial_namenode_standby"));
     } else {
       fail("Active Namenode hostname was not set correctly: " + activeHost);
     }
@@ -5253,7 +5255,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has set the internal required properties
     // that determine the active and standby node hostnames for this HA setup.
     // one host should be active and the other standby
-    String initialActiveHost = hadoopEnvProperties.get("dfs_ha_initial_namenode_active");
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+    String initialActiveHost = clusterEnv.get("dfs_ha_initial_namenode_active");
     String expectedStandbyHost = null;
     if (initialActiveHost.equals(expectedHostName)) {
       expectedStandbyHost = expectedHostNameTwo;
@@ -5263,7 +5266,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       fail("Active Namenode hostname was not set correctly");
     }
     assertEquals("Standby Namenode hostname was not set correctly",
-      expectedStandbyHost, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+      expectedStandbyHost, clusterEnv.get("dfs_ha_initial_namenode_standby"));
 
 
     assertEquals("fs.defaultFS should not be modified by cluster update when NameNode HA is enabled.",
@@ -5285,12 +5288,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     // verify that correct configuration types were listed as updated in the returned set
-    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
-      2, updatedConfigTypes.size());
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hdfs-site"));
-    assertTrue("Expected config type not found in updated set",
-      updatedConfigTypes.contains("hadoop-env"));
+    assertEquals(ImmutableSet.of("cluster-env", "hdfs-site"), updatedConfigTypes);
   }
 
   @Test
@@ -5438,11 +5436,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // verify that the Blueprint config processor has not overridden
     // the user's configuration to determine the active and
     // standby nodes in this NameNode HA cluster
+    Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
+
     assertEquals("Active Namenode hostname was not set correctly",
-      expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
+      expectedHostName, clusterEnv.get("dfs_ha_initial_namenode_active"));
 
     assertEquals("Standby Namenode hostname was not set correctly",
-      expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+      expectedHostNameTwo, clusterEnv.get("dfs_ha_initial_namenode_standby"));
   }
 
   @Test
@@ -5613,7 +5613,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Test
   public void testHadoopHaNameNode() throws Exception {
     // Given
-    final String configType = "hadoop-env";
+    final String configType = "cluster-env";
     Map<String, Map<String, String>> properties = new HashMap<>();
 
     // enable HA
