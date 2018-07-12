@@ -55,7 +55,6 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     App.assertFunction(updateCallback);
     App.assertFunction(removeCallback);
     App.assertFunction(updateBoundariesCallback);
-
     var propertiesToDelete = [];
     configs.forEach(function (config) {
       var name = Em.get(config, 'name'),
@@ -158,9 +157,10 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     var name = Em.get(config, 'name'),
         fileName = Em.get(config, 'filename'),
         group = Em.get(config, 'group.name'),
-        value = Em.get(config, 'value');
-
+        value = Em.get(config, 'value'),
+        prevRecommeneded = config.get('recommendedValue');
     Em.set(config, 'recommendedValue', recommendedValue);
+    console.log('test123', config, recommendedValue)
     if (this.allowUpdateProperty(parentProperties, name, fileName, group, value)) {
       var allowConfigUpdate = true;
       // workaround for capacity-scheduler
@@ -169,6 +169,9 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         if (App.config.configId(name, fileName) === cId) {
           allowConfigUpdate = false;
         }
+      }
+      if (prevRecommeneded !== config.get('value')) {
+        allowConfigUpdate = false;
       }
       if (allowConfigUpdate) {
         Em.setProperties(config, {
