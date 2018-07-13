@@ -51,7 +51,7 @@ public class ServiceComponentSupport {
    * Collects the service names from the cluster which are not supported (service doesn't exist or was deleted) in the given stack.
    */
   public Set<String> unsupportedServices(Cluster cluster, String stackName, String stackVersion) {
-    Set<String> serviceNames = cluster.getServices().stream().map(Service::getName).collect(toSet());
+    Set<String> serviceNames = cluster.getServices().stream().map(Service::getServiceType).collect(toSet());
     return serviceNames.stream()
       .filter(serviceName -> !isServiceSupported(serviceName, stackName, stackVersion))
       .collect(toSet());

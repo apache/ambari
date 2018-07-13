@@ -26,6 +26,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyRepositoryVersion;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -211,7 +212,7 @@ public class HeartbeatTestHelper {
     serviceGroupEntity.setClusterId(clusterId);
     serviceGroupEntity.setClusterEntity(clusterEntity);
     serviceGroupEntity.setStack(stackEntity);
-    serviceGroupEntity.setServiceGroupName("CORE");
+    serviceGroupEntity.setServiceGroupName(CORE_SERVICE_GROUP);
     serviceGroupEntity.setServiceGroupId(1L);
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
@@ -220,8 +221,8 @@ public class HeartbeatTestHelper {
     serviceDesiredStateEntity.setServiceId(100L);
 
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
-    clusterServiceEntity.setServiceType("HDFS");
-    clusterServiceEntity.setServiceName("HDFS");
+    clusterServiceEntity.setServiceType(HDFS);
+    clusterServiceEntity.setServiceName(HDFS);
     clusterServiceEntity.setServiceGroupEntity(serviceGroupEntity);
     clusterServiceEntity.setClusterId(clusterId);
     clusterServiceEntity.setServiceId(100L);
