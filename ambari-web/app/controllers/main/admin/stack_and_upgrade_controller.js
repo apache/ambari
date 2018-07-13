@@ -1674,6 +1674,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       data: {
         repo: repo,
         repoId: repo.get('repoId'),
+        repoName: repo.get('repoName'),
         baseUrl: repo.get('baseUrl'),
         osType: os.get('osType'),
         stackName: App.get('currentStackName'),
