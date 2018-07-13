@@ -578,6 +578,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     }
 
     for (ServiceComponentHostRequest request : requests) {
+      logRequestInfo("Received a updateHostComponent request", request);
+
       validateServiceComponentHostRequest(request);
 
       Cluster cluster = clusters.getCluster(request.getClusterName());
@@ -594,8 +596,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
       ServiceComponent sc = getServiceComponent(
           request.getClusterName(), request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
-
-      logRequestInfo("Received a updateHostComponent request", request);
 
       if((clusterName == null || clusterName.isEmpty())
               && (request.getClusterName() != null
