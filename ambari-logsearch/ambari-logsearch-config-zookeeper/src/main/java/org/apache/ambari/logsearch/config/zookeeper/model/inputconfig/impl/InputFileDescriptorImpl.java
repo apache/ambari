@@ -70,6 +70,17 @@ public class InputFileDescriptorImpl extends InputFileBaseDescriptorImpl impleme
   @SerializedName("max_age_min")
   private Integer maxAgeMin;
 
+  @ShipperConfigElementDescription(
+    path = "/input/[]/docker",
+    type = "boolean",
+    description = "Input comes from a docker container.",
+    examples = {"true", "false"},
+    defaultValue = "false"
+  )
+  @Expose
+  @SerializedName("docker")
+  private Boolean dockerEnabled;
+
   @Override
   public Integer getDetachIntervalMin() {
     return this.detachIntervalMin;
@@ -90,6 +101,11 @@ public class InputFileDescriptorImpl extends InputFileBaseDescriptorImpl impleme
     return this.maxAgeMin;
   }
 
+  @Override
+  public Boolean getDockerEnabled() {
+    return dockerEnabled;
+  }
+
   public void setDetachIntervalMin(Integer detachIntervalMin) {
     this.detachIntervalMin = detachIntervalMin;
   }
@@ -104,5 +120,9 @@ public class InputFileDescriptorImpl extends InputFileBaseDescriptorImpl impleme
 
   public void setMaxAgeMin(Integer maxAgeMin) {
     this.maxAgeMin = maxAgeMin;
+  }
+
+  public void setDockerEnabled(Boolean dockerEnabled) {
+    this.dockerEnabled = dockerEnabled;
   }
 }

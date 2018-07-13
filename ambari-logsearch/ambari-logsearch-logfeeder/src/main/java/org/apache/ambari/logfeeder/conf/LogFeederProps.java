@@ -130,6 +130,16 @@ public class LogFeederProps implements LogFeederProperties {
   @Value("${" + LogFeederConstants.CHECKPOINT_FOLDER_PROPERTY + ":/usr/lib/ambari-logsearch-logfeeder/conf/checkpoints}")
   public String checkpointFolder;
 
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY,
+    description = "",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY + ":false}")
+  public boolean dockerContainerRegistryEnabled;
+
   @Inject
   private LogEntryCacheConfig logEntryCacheConfig;
 
@@ -225,6 +235,14 @@ public class LogFeederProps implements LogFeederProperties {
 
   public void setSolrImplicitRouting(boolean solrImplicitRouting) {
     this.solrImplicitRouting = solrImplicitRouting;
+  }
+
+  public boolean isDockerContainerRegistryEnabled() {
+    return dockerContainerRegistryEnabled;
+  }
+
+  public void setDockerContainerRegistryEnabled(boolean dockerContainerRegistryEnabled) {
+    this.dockerContainerRegistryEnabled = dockerContainerRegistryEnabled;
   }
 
   @PostConstruct

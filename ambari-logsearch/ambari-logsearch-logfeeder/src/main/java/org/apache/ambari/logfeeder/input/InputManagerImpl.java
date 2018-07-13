@@ -20,6 +20,8 @@ package org.apache.ambari.logfeeder.input;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.docker.DockerContainerRegistry;
+import org.apache.ambari.logfeeder.docker.DockerContainerRegistryMonitor;
 import org.apache.ambari.logfeeder.input.monitor.CheckpointCleanupMonitor;
 import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.input.Input;
@@ -63,6 +65,9 @@ public class InputManagerImpl extends InputManager {
   private MetricData filesCountMetric = new MetricData("input.files.count", true);
 
   private Thread inputIsReadyMonitor;
+
+  @Inject
+  private DockerContainerRegistry dockerContainerRegistry;
 
   @Inject
   private LogFeederProps logFeederProps;
@@ -127,6 +132,7 @@ public class InputManagerImpl extends InputManager {
   public void init() throws Exception {
     initCheckPointSettings();
     startMonitorThread();
+    startDockerMetadataThread();
   }
 
   private void initCheckPointSettings() {
@@ -159,6 +165,13 @@ public class InputManagerImpl extends InputManager {
       checkpointCleanupThread.start();
     } else {
       throw new IllegalStateException("Could not determine the checkpoint folder.");
+    }
+  }
+
+  private void startDockerMetadataThread() {
+    if (logFeederProps.isDockerContainerRegistryEnabled()) {
+      Thread obtaiinDockerMetadataThread = new Thread(new DockerContainerRegistryMonitor(dockerContainerRegistry), "obtain_docker_metadata");
+      obtaiinDockerMetadataThread.start();
     }
   }
 
@@ -199,6 +212,10 @@ public class InputManagerImpl extends InputManager {
   public void startInputs(String serviceName) {
     for (Input input : inputs.get(serviceName)) {
       try {
+        if (input instanceof InputFile) {// apply docker metadata registry
+          InputFile inputFile = (InputFile)  input;
+          inputFile.setDockerContainerRegistry(dockerContainerRegistry);
+        }
         input.init(logFeederProps);
         if (input.isReady()) {
           input.monitor();
