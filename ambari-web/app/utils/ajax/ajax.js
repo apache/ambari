@@ -1843,7 +1843,8 @@ var urls = {
       return {
         data: JSON.stringify({
           "Repositories": {
-            "base_url": data.baseUrl
+            "base_url": data.baseUrl,
+            "repo_name": data.repoName
           }
         })
       }
