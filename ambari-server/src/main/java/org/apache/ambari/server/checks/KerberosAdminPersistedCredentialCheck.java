@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.checks;
 
-import static org.apache.ambari.server.state.stack.upgrade.Task.Type.REGENERATE_KEYTABS;
-
 import java.util.Collections;
 import java.util.Set;
 

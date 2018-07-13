@@ -62,7 +62,6 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import com.google.gson.JsonObject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
@@ -118,6 +117,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
