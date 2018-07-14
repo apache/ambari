@@ -416,7 +416,7 @@ public class HeartbeatProcessor extends AbstractService{
               }
             }
           }
-        } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
+        } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand) && structuredOutputJson != null) {
           JsonElement checkKeytabsStructuredOutRoot = structuredOutputJson.get(
               StructuredOutputType.CHECK_KEYTABS.getRoot());
 
@@ -524,29 +524,31 @@ public class HeartbeatProcessor extends AbstractService{
                   hostName, now));
             }
           } else if (report.getStatus().equals("FAILED")) {
-            JsonElement upgradeStructedOutput = structuredOutputJson.get(
-                StructuredOutputType.UPGRADE_SUMMARY.getRoot());
-            if (null != upgradeStructedOutput) {
-              try {
-                UpgradeSummaryStructuredOuut upgradeStructuredOutput = gson.fromJson(
-                    upgradeStructedOutput, UpgradeSummaryStructuredOuut.class);
+            if (structuredOutputJson != null) {
+              JsonElement upgradeStructedOutput = structuredOutputJson.get(
+                  StructuredOutputType.UPGRADE_SUMMARY.getRoot());
+              if (null != upgradeStructedOutput) {
+                try {
+                  UpgradeSummaryStructuredOuut upgradeStructuredOutput = gson.fromJson(
+                      upgradeStructedOutput, UpgradeSummaryStructuredOuut.class);
 
-                if (null != upgradeStructuredOutput.direction) {
-                  scHost.setUpgradeState(UpgradeState.FAILED);
+                  if (null != upgradeStructuredOutput.direction) {
+                    scHost.setUpgradeState(UpgradeState.FAILED);
+                  }
+                } catch (JsonSyntaxException ex) {
+                  LOG.warn("Structured output was found, but not parseable: {}",
+                      structuredOutputString);
                 }
-              } catch (JsonSyntaxException ex) {
-                LOG.warn("Structured output was found, but not parseable: {}",
-                    structuredOutputString);
               }
-            }
 
-            LOG.error("Operation failed - may be retried. Service component host: "
-                + schName + ", host: " + hostName + " Action id " + report.getActionId() + " and taskId " + report.getTaskId());
-            if (actionManager.isInProgressCommand(report)) {
-              scHost.handleEvent(new ServiceComponentHostOpFailedEvent
-                  (schName, hostName, now));
-            } else {
-              LOG.info("Received report for a command that is no longer active. " + report);
+              LOG.error("Operation failed - may be retried. Service component host: "
+                  + schName + ", host: " + hostName + " Action id " + report.getActionId() + " and taskId " + report.getTaskId());
+              if (actionManager.isInProgressCommand(report)) {
+                scHost.handleEvent(new ServiceComponentHostOpFailedEvent
+                    (schName, hostName, now));
+              } else {
+                LOG.info("Received report for a command that is no longer active. " + report);
+              }
             }
           } else if (report.getStatus().equals("IN_PROGRESS")) {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,

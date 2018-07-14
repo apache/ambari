@@ -117,6 +117,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -878,6 +879,7 @@ public class TestHeartbeatHandler {
     cr.setStdOut("dummy output");
     cr.setExitCode(777);
     cr.setClusterId("1");
+    cr.setStructuredOut(new JsonObject().toString());
     reports.add(cr);
     hb.setReports(reports);
     hb.setComponentStatus(new ArrayList<>());

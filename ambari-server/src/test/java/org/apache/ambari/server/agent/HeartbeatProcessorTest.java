@@ -78,6 +78,7 @@ import org.apache.ambari.server.state.MpackInstallState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -1089,10 +1090,15 @@ public class HeartbeatProcessorTest {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service svc = cluster.getService("HDFS");
     ServiceComponent svcComp = EasyMock.mock(ServiceComponent.class);
-    expect(svcComp.getName()).andReturn("nodemanager").anyTimes();
+    expect(svcComp.getName()).andReturn("mpack_packages").anyTimes();
     ServiceComponentHost scHost = EasyMock.mock(ServiceComponentHost.class);
     expect(svcComp.getServiceComponentHost(EasyMock.anyString())).andReturn(scHost).anyTimes();
-    expect(scHost.getServiceComponentName()).andReturn("nodemanager").anyTimes();
+    expect(svcComp.isClientComponent()).andReturn(false).anyTimes();
+    expect(scHost.getServiceComponentName()).andReturn("mpack_packages").anyTimes();
+    expect(scHost.getState()).andReturn(State.INSTALLED).anyTimes();
+    ServiceComponentHostEvent event = EasyMock.mock(ServiceComponentHostEvent.class);
+    scHost.handleEvent(EasyMock.anyObject(ServiceComponentHostEvent.class));
+    EasyMock.expectLastCall();
     replay(svcComp, scHost);
     svc.addServiceComponent(svcComp);
     // required since this test method checks the DAO result of handling a
@@ -1119,12 +1125,14 @@ public class HeartbeatProcessorTest {
     json.addProperty("mpackId", mpackEntity.getId());
     json.addProperty("mpackName", mpackEntity.getMpackName());
     json.addProperty("package_installation_result", "SUCCESS");
+    JsonObject mpackJson = new JsonObject();
+    mpackJson.add("mpack_installation", json);
 
     CommandReport cmdReport = new CommandReport();
     cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
     cmdReport.setTaskId(1);
     cmdReport.setCustomCommand("install_packages");
-    cmdReport.setStructuredOut(json.toString());
+    cmdReport.setStructuredOut(mpackJson.toString());
     cmdReport.setRoleCommand(RoleCommand.INSTALL.name());
     cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
     cmdReport.setRole("mpack_packages");
