@@ -64,11 +64,9 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
-import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
-import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -172,9 +170,6 @@ public class UpgradeCatalog252Test {
   private MetadataHolder metadataHolder;
 
   @Mock(type = MockType.NICE)
-  private ClusterMetadataGenerator metadataGenerator;
-
-  @Mock(type = MockType.NICE)
   private Injector injector;
 
   @Before
@@ -271,11 +266,8 @@ public class UpgradeCatalog252Test {
     expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy2-conf"), capture(captureLivy2ConfProperties), anyString(), anyObject(Map.class), anyLong()))
         .andReturn(livy2ConfNew)
         .once();
-    expect(metadataGenerator.getClusterMetadataOnConfigsUpdate(eq(cluster)))
-        .andReturn(createNiceMock(MetadataUpdateEvent.class))
-        .times(2);
 
-    replay(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, sparkMock, spark2Mock, metadataGenerator);
+    replay(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, sparkMock, spark2Mock);
 
 
     Injector injector = getInjector(clusters, controller);
@@ -289,7 +281,7 @@ public class UpgradeCatalog252Test {
     UpgradeCatalog252 upgradeCatalog252 = injector.getInstance(UpgradeCatalog252.class);
     upgradeCatalog252.fixLivySuperusers();
 
-    verify(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, sparkMock, spark2Mock, metadataGenerator);
+    verify(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, sparkMock, spark2Mock);
 
     Assert.assertTrue(captureLivyConfProperties.hasCaptured());
     Assert.assertEquals("some_user,zeppelin_user", captureLivyConfProperties.getValue().get("livy.superusers"));
@@ -485,7 +477,6 @@ public class UpgradeCatalog252Test {
         binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         binder.bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
         binder.bind(MetadataHolder.class).toInstance(metadataHolder);
-        binder.bind(ClusterMetadataGenerator.class).toInstance(metadataGenerator);
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         binder.bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));

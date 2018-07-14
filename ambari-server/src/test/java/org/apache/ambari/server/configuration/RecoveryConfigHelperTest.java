@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.configuration;
 
+import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.CORE_SERVICE_GROUP;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
@@ -44,7 +46,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -52,6 +53,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
@@ -107,8 +109,7 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentInstalled() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
+    Service hdfs = cluster.getService(CORE_SERVICE_GROUP, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -140,8 +141,7 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentUninstalled()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
+    Service hdfs = cluster.getService(CORE_SERVICE_GROUP, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -175,8 +175,7 @@ public class RecoveryConfigHelperTest {
   public void testClusterEnvConfigChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
+    Service hdfs = cluster.getService(CORE_SERVICE_GROUP, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -184,7 +183,7 @@ public class RecoveryConfigHelperTest {
 
     // Get the recovery configuration
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
-    assertEquals(recoveryConfig.getEnabledComponents(), "DATANODE");
+    assertEquals(ImmutableSet.of("DATANODE"), recoveryConfig.getEnabledComponents().stream().map(RecoveryConfigComponent::getComponentName).collect(toSet()));
 
     // Get cluser-env config and turn off recovery for the cluster
     Config config = cluster.getDesiredConfigByType("cluster-env");
@@ -208,8 +207,7 @@ public class RecoveryConfigHelperTest {
   @Test
   public void testMaintenanceModeChanged() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
+    Service hdfs = cluster.getService(CORE_SERVICE_GROUP, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -241,8 +239,7 @@ public class RecoveryConfigHelperTest {
   @Test
   public void testServiceComponentRecoveryChanged() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
+    Service hdfs = cluster.getService(CORE_SERVICE_GROUP, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -279,8 +276,7 @@ public class RecoveryConfigHelperTest {
     Cluster cluster = getDummyCluster(hostNames);
 
     // Add HDFS service with DATANODE component to the cluster
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
+    Service hdfs = cluster.getService(CORE_SERVICE_GROUP, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
 

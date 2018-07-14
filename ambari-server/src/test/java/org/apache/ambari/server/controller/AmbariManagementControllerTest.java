@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -129,6 +130,7 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OsSpecific;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -359,6 +361,18 @@ public class AmbariManagementControllerTest {
   private void createCluster(String clusterName) throws Exception{
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, HDP_0_1, null);
     controller.createCluster(r);
+    applyDefaultClusterSettings(controller.getClusters().getCluster(clusterName));
+  }
+
+  private void applyDefaultClusterSettings(Cluster cluster) throws AmbariException {
+    // init default cluster settings
+    Map<String, String> defaultClusterSettings =
+      controller.getAmbariMetaInfo().getClusterProperties().stream()
+        .collect(toMap(PropertyInfo::getName, PropertyInfo::getValue));
+
+    for (Map.Entry<String, String> setting : defaultClusterSettings.entrySet()) {
+      cluster.addClusterSetting(setting.getKey(), setting.getValue());
+    }
   }
 
   private Service createService(String clusterName, String serviceGroupName, String serviceName, State desiredState) throws Exception {
@@ -1095,7 +1109,7 @@ public class AmbariManagementControllerTest {
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
-    createService(cluster1, serviceGroupName, serviceName, null);
+    Service service = createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
@@ -1117,7 +1131,7 @@ public class AmbariManagementControllerTest {
 
     ConfigurationRequest cr1;
     cr1 = new ConfigurationRequest(cluster1, "cluster-env","version1",
-                                   configs, null, 1L, 1L);
+                                   configs, null, service.getServiceId(), 1L);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
@@ -1184,7 +1198,7 @@ public class AmbariManagementControllerTest {
     configs.put("commands_to_retry", "START");
 
     cr1 = new ConfigurationRequest(cluster1, "cluster-env","version2",
-                                   configs, null, 1L, 1L);
+                                   configs, null, service.getServiceId(), 1L);
     crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -1215,7 +1229,7 @@ public class AmbariManagementControllerTest {
     configs.put("commands_to_retry2", "START");
 
     cr1 = new ConfigurationRequest(cluster1, "cluster-env","version3",
-                                   configs, null, 1L, 1L);
+                                   configs, null, service.getServiceId(), 1L);
     crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
@@ -2801,6 +2815,7 @@ public class AmbariManagementControllerTest {
     ClusterRequest r = new ClusterRequest(null, clusterName, stackId, null);
     controller.createCluster(r);
     Cluster c1 = clusters.getCluster(clusterName);
+    applyDefaultClusterSettings(c1);
     for (String host : hosts) {
       addHostToCluster(host, clusterName);
     }
@@ -3721,27 +3736,7 @@ public class AmbariManagementControllerTest {
     reqs.add(req3);
     reqs.add(req4);
     reqs.add(req5);
-    updateHostComponents(reqs, Collections.emptyMap(), true);
-    // Expected, now client components with STARTED status will be ignored
-
-    reqs.clear();
-    req1 = new ServiceComponentHostRequest(cluster1, serviceGroupName, null,
-        componentName1, componentName1, host1, State.INSTALLED.toString());
-    req2 = new ServiceComponentHostRequest(cluster1, serviceGroupName, serviceName1,
-        componentName1, componentName1, host2, State.INSTALLED.toString());
-    req3 = new ServiceComponentHostRequest(cluster1, serviceGroupName, null,
-        componentName2, componentName2, host1, State.INSTALLED.toString());
-    req4 = new ServiceComponentHostRequest(cluster1, serviceGroupName, serviceName1,
-        componentName2, componentName2, host2, State.INSTALLED.toString());
-    req5 = new ServiceComponentHostRequest(cluster1, serviceGroupName, serviceName1,
-        componentName3, componentName3, host1, State.INSTALLED.toString());
-    reqs.add(req1);
-    reqs.add(req2);
-    reqs.add(req3);
-    reqs.add(req4);
-    reqs.add(req5);
-    RequestStatusResponse trackAction = updateHostComponents(reqs,
-        Collections.emptyMap(), true);
+    RequestStatusResponse trackAction = updateHostComponents(reqs, Collections.emptyMap(), true);
     Assert.assertNotNull(trackAction);
 
     long requestId = trackAction.getRequestId();
@@ -8453,6 +8448,8 @@ public class AmbariManagementControllerTest {
 
     ClusterRequest clusterRequest = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
     amc.createCluster(clusterRequest);
+    Cluster cluster = clusters.getCluster(CLUSTER_NAME);
+    applyDefaultClusterSettings(cluster);
 
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, CLUSTER_NAME, serviceGroupName, STACK_ID);
@@ -8504,8 +8501,6 @@ public class AmbariManagementControllerTest {
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, serviceGroupName, "YARN", null, State.INSTALLED.name(), null));
 
     ServiceResourceProviderTest.updateServices(amc, serviceRequests, mapRequestProps, true, false);
-
-    Cluster cluster = clusters.getCluster(CLUSTER_NAME);
 
     for (Service service : cluster.getServices()) {
 
@@ -9651,7 +9646,7 @@ public class AmbariManagementControllerTest {
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.5");
     String serviceName = "HDFS";
-    createService(cluster1, serviceGroupName, serviceName, null);
+    Service service = createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
@@ -9679,7 +9674,7 @@ public class AmbariManagementControllerTest {
       }
     };
 
-    ConfigurationRequest cr1 = new ConfigurationRequest(cluster1, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes, 1L, 1L);
+    ConfigurationRequest cr1 = new ConfigurationRequest(cluster1, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes, service.getServiceId(), 1L);
     ClusterRequest crReq1 = new ClusterRequest(clusterId, cluster1, null, null);
     crReq1.setDesiredConfig(Collections.singletonList(cr1));
 
@@ -9750,7 +9745,7 @@ public class AmbariManagementControllerTest {
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.5");
     String serviceName = "HDFS";
-    createService(cluster1, serviceGroupName, serviceName, null);
+    Service service = createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
@@ -9778,7 +9773,7 @@ public class AmbariManagementControllerTest {
           put("test.password", "first");
           put("test.password.empty", "");
         }},
-      new HashMap<>(), 1L, 1L
+      new HashMap<>(), service.getServiceId(), 1L
     );
     crReq = new ClusterRequest(clusterId, cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr));
@@ -9792,7 +9787,7 @@ public class AmbariManagementControllerTest {
           put("test.password", "SECRET:hdfs-site:1:test.password");
           put("new", "new");//need this to mark config as "changed"
         }},
-      new HashMap<>(), 1L, 1L
+      new HashMap<>(), service.getServiceId(), 1L
     );
     crReq = new ClusterRequest(clusterId, cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr));
@@ -9804,7 +9799,7 @@ public class AmbariManagementControllerTest {
         new HashMap<String, String>(){{
           put("test.password", "brandNewPassword");
         }},
-      new HashMap<>(), 1L, 1L
+      new HashMap<>(), service.getServiceId(), 1L
     );
     crReq = new ClusterRequest(clusterId, cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr));
@@ -9816,7 +9811,7 @@ public class AmbariManagementControllerTest {
         new HashMap<String, String>(){{
           put("test.password", "SECRET:hdfs-site:666:test.password");
         }},
-      new HashMap<>(), 1L, 1L
+      new HashMap<>(), service.getServiceId(), 1L
     );
     crReq = new ClusterRequest(clusterId, cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr));
@@ -9833,7 +9828,7 @@ public class AmbariManagementControllerTest {
         new HashMap<String, String>(){{
           put("foo", "bar");
         }},
-      new HashMap<>(), 1L, 1L
+      new HashMap<>(), service.getServiceId(), 1L
     );
     crReq = new ClusterRequest(clusterId, cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr));
@@ -9845,7 +9840,7 @@ public class AmbariManagementControllerTest {
           put("test.password", "SECRET:hdfs-site:4:test.password");
           put("new", "new");
         }},
-      new HashMap<>(), 1L, 1L
+      new HashMap<>(), service.getServiceId(), 1L
     );
     crReq = new ClusterRequest(clusterId, cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr));
@@ -9870,7 +9865,7 @@ public class AmbariManagementControllerTest {
     assertFalse(v4.getProperties().containsKey("test.password"));
 
     // check if we have masked secret in responce
-    final ConfigurationRequest configRequest = new ConfigurationRequest(cluster1, "hdfs-site", null, null, null, 1L, 1L);
+    final ConfigurationRequest configRequest = new ConfigurationRequest(cluster1, "hdfs-site", null, null, null, service.getServiceId(), 1L);
     configRequest.setIncludeProperties(true);
     Set<ConfigurationResponse> requestedConfigs = controller.getConfigurations(new HashSet<ConfigurationRequest>() {{
       add(configRequest);
@@ -9895,7 +9890,7 @@ public class AmbariManagementControllerTest {
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.5");
     String serviceName = "HDFS";
-    createService(cluster1, serviceGroupName, serviceName, null);
+    Service service = createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
 
     createServiceComponent(cluster1, serviceGroupName, serviceName, componentName1, State.INIT);
@@ -9915,7 +9910,7 @@ public class AmbariManagementControllerTest {
       }
     };
 
-    ConfigurationRequest cr1 = new ConfigurationRequest(cluster1, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes, 1L, 1L);
+    ConfigurationRequest cr1 = new ConfigurationRequest(cluster1, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes, service.getServiceId(), 1L);
     ClusterRequest crReq1 = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq1.setDesiredConfig(Collections.singletonList(cr1));
 

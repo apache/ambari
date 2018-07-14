@@ -104,8 +104,9 @@ public class ServiceComponentSupportTest extends EasyMockSupport {
     Collection<Service> services = new LinkedList<Service>();
     for (String serviceName : installedServiceNames) {
       Service service = createNiceMock(Service.class);
-      expect(service.getName()).andReturn(serviceName);
+      expect(service.getServiceType()).andReturn(serviceName);
       services.add(service);
+      replay(service);
     }
     expect(cluster.getServices()).andReturn(services);
     replay(cluster);
