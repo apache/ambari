@@ -88,7 +88,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
   private static final String METRIC_SERVER                             = "METRICS_COLLECTOR";
-  private static final String METRIC_MONITOR                             = "METRICS_MONITOR";
   private static final String PROPERTIES_CATEGORY = "properties";
   private static final Map<String, String> serviceConfigVersions = new ConcurrentHashMap<>();
   private static final Map<Service.Type, String> serviceConfigTypes = new EnumMap<>(Service.Type.class);
