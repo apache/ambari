@@ -910,8 +910,8 @@ public class PhoenixHBaseAccessor {
         metadataManager.putIfModifiedHostedAppsMetadata(
                 tm.getHostName(), tm.getAppId());
 
-        if (supportMultipleClusterMetrics && !tm.getAppId().equals("FLUME_HANDLER")) {
-          if (StringUtils.isEmpty(tm.getInstanceId())) {
+        if (!tm.getAppId().equals("FLUME_HANDLER")) {
+          if (supportMultipleClusterMetrics && StringUtils.isEmpty(tm.getInstanceId())) {
             tm.setInstanceId(DEFAULT_INSTANCE_ID);
           }
           metadataManager.putIfModifiedHostedInstanceMetadata(tm.getInstanceId(), tm.getHostName());
