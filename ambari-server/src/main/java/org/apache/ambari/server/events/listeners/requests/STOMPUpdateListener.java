@@ -41,7 +41,8 @@ public class STOMPUpdateListener {
   public STOMPUpdateListener(Injector injector, Set<STOMPEvent.Type> typesToProcess) {
     STOMPUpdatePublisher STOMPUpdatePublisher =
       injector.getInstance(STOMPUpdatePublisher.class);
-    STOMPUpdatePublisher.register(this);
+    STOMPUpdatePublisher.registerAgent(this);
+    STOMPUpdatePublisher.registerAPI(this);
     this.typesToProcess = typesToProcess == null ? Collections.emptySet() : typesToProcess;
   }
 

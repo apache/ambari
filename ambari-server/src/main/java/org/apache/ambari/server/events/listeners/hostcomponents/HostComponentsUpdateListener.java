@@ -49,7 +49,6 @@ public class HostComponentsUpdateListener {
   public HostComponentsUpdateListener(AmbariEventPublisher ambariEventPublisher,
                                       STOMPUpdatePublisher STOMPUpdatePublisher) {
     ambariEventPublisher.register(this);
-    STOMPUpdatePublisher.register(this);
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;
   }
 

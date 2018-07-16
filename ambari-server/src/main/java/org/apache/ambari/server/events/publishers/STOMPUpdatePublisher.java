@@ -17,8 +17,11 @@
  */
 package org.apache.ambari.server.events.publishers;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.ambari.server.AmbariRuntimeException;
+import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.STOMPEvent;
@@ -26,13 +29,15 @@ import org.apache.ambari.server.events.ServiceUpdateEvent;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class STOMPUpdatePublisher {
 
-  private final EventBus m_eventBus;
+  private final EventBus agentEventBus;
+  private final EventBus apiEventBus;
 
   @Inject
   private RequestUpdateEventPublisher requestUpdateEventPublisher;
@@ -43,24 +48,51 @@ public class STOMPUpdatePublisher {
   @Inject
   private ServiceUpdateEventPublisher serviceUpdateEventPublisher;
 
-  public STOMPUpdatePublisher() {
-    m_eventBus = new AsyncEventBus("ambari-update-bus",
-      Executors.newSingleThreadExecutor());
+  private final ExecutorService threadPoolExecutorAgent = Executors.newSingleThreadExecutor(
+      new ThreadFactoryBuilder().setNameFormat("stomp-agent-bus-%d").build());
+  private final ExecutorService threadPoolExecutorAPI = Executors.newSingleThreadExecutor(
+      new ThreadFactoryBuilder().setNameFormat("stomp-api-bus-%d").build());
+
+  public STOMPUpdatePublisher() throws NoSuchFieldException, IllegalAccessException {
+    agentEventBus = new AsyncEventBus("agent-update-bus",
+        threadPoolExecutorAgent);
+
+    apiEventBus = new AsyncEventBus("api-update-bus",
+        threadPoolExecutorAPI);
   }
 
   public void publish(STOMPEvent event) {
-    if (event.getType().equals(STOMPEvent.Type.REQUEST)) {
-      requestUpdateEventPublisher.publish((RequestUpdateEvent) event, m_eventBus);
-    } else if (event.getType().equals(STOMPEvent.Type.HOSTCOMPONENT)) {
-      hostComponentUpdateEventPublisher.publish((HostComponentsUpdateEvent) event, m_eventBus);
-    } else if (event.getType().equals(STOMPEvent.Type.SERVICE)) {
-      serviceUpdateEventPublisher.publish((ServiceUpdateEvent) event, m_eventBus);
+    if (DefaultMessageEmitter.DEFAULT_AGENT_EVENT_TYPES.contains(event.getType())) {
+      publishAgent(event);
+    } else if (DefaultMessageEmitter.DEFAULT_API_EVENT_TYPES.contains(event.getType())) {
+      publishAPI(event);
     } else {
-      m_eventBus.post(event);
+      // TODO need better solution
+      throw new AmbariRuntimeException("Event with type {" + event.getType() + "} can not be published.");
     }
   }
 
-  public void register(Object object) {
-    m_eventBus.register(object);
+  private void publishAPI(STOMPEvent event) {
+    if (event.getType().equals(STOMPEvent.Type.REQUEST)) {
+      requestUpdateEventPublisher.publish((RequestUpdateEvent) event, apiEventBus);
+    } else if (event.getType().equals(STOMPEvent.Type.HOSTCOMPONENT)) {
+      hostComponentUpdateEventPublisher.publish((HostComponentsUpdateEvent) event, apiEventBus);
+    } else if (event.getType().equals(STOMPEvent.Type.SERVICE)) {
+      serviceUpdateEventPublisher.publish((ServiceUpdateEvent) event, apiEventBus);
+    } else {
+      apiEventBus.post(event);
+    }
+  }
+
+  private void publishAgent(STOMPEvent event) {
+    agentEventBus.post(event);
+  }
+
+  public void registerAgent(Object object) {
+    agentEventBus.register(object);
+  }
+
+  public void registerAPI(Object object) {
+    apiEventBus.register(object);
   }
 }

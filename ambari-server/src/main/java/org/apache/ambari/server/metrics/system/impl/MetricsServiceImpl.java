@@ -116,7 +116,8 @@ public class MetricsServiceImpl implements MetricsService {
         src.init(MetricsConfiguration.getSubsetConfiguration(configuration, "source." + sourceName + "."), sink);
         sources.put(sourceName, src);
         if (src instanceof StompEventsMetricsSource) {
-          STOMPUpdatePublisher.register(src);
+          STOMPUpdatePublisher.registerAPI(src);
+          STOMPUpdatePublisher.registerAgent(src);
         }
         src.start();
       }

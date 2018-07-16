@@ -48,7 +48,7 @@ public class UpgradeUpdateListener {
 
   @Inject
   public UpgradeUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher, AmbariEventPublisher ambariEventPublisher) {
-    STOMPUpdatePublisher.register(this);
+    STOMPUpdatePublisher.registerAPI(this);
 
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;
   }
