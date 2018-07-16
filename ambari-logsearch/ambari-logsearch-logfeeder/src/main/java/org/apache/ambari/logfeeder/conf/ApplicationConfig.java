@@ -19,7 +19,10 @@
 package org.apache.ambari.logfeeder.conf;
 
 import com.google.common.collect.Maps;
+import org.apache.ambari.logfeeder.ContainerRegistry;
+import org.apache.ambari.logfeeder.docker.DockerContainerRegistry;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logfeeder.docker.DockerContainerRegistryMonitor;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.input.InputManagerImpl;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
@@ -39,6 +42,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import javax.inject.Inject;
+import java.util.Properties;
 
 @Configuration
 @PropertySource(value = {
@@ -99,6 +103,7 @@ public class ApplicationConfig {
 
 
   @Bean
+  @DependsOn("containerRegistry")
   public InputManager inputManager() {
     return new InputManagerImpl();
   }
@@ -106,5 +111,14 @@ public class ApplicationConfig {
   @Bean
   public OutputManager outputManager() {
     return new OutputManagerImpl();
+  }
+
+  @Bean
+  public DockerContainerRegistry containerRegistry() {
+    if (logFeederProps.isDockerContainerRegistryEnabled()) {
+      return DockerContainerRegistry.getInstance(logFeederProps.getProperties());
+    } else {
+      return null;
+    }
   }
 }

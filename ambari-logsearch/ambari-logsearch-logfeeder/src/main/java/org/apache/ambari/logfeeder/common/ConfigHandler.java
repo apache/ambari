@@ -297,6 +297,7 @@ public class ConfigHandler implements InputConfigMonitor {
         continue;
       }
       input.setType(source);
+      input.setLogType(inputDescriptor.getType());
       input.loadConfig(inputDescriptor);
 
       if (input.isEnabled()) {
