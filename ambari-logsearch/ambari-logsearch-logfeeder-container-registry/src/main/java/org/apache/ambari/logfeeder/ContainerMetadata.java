@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,17 +16,41 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+/**
+ * Holds container related metadata
+ **/
+public interface ContainerMetadata {
 
-public interface InputFileDescriptor extends InputFileBaseDescriptor {
-  Integer getDetachIntervalMin();
+  /**
+   * Id of the container, used for getting the right log path
+   * @return container id
+   */
+  String getId();
 
-  Integer getDetachTimeMin();
+  /**
+   * Name of the container
+   * @return container name
+   */
+  String getName();
 
-  Integer getPathUpdateIntervalMin();
+  /**
+   * Hostname of the container, can be container host itself or the actual hostname
+   * @return container host name
+   */
+  String getHostName();
 
-  Integer getMaxAgeMin();
+  /**
+   * Log label
+   * @return log type label
+   */
+  String getLogTypeLabel();
 
-  Boolean getDockerEnabled();
+  /**
+   * Log path of the container (should be json file)
+   * @return log path
+   */
+  String getLogPath();
+
 }

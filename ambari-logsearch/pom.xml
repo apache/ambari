@@ -33,6 +33,7 @@
     <module>ambari-logsearch-config-zookeeper</module>
     <module>ambari-logsearch-it</module>
     <module>ambari-logsearch-logfeeder-plugin-api</module>
+    <module>ambari-logsearch-logfeeder-container-registry</module>
   </modules>
   <properties>
     <jdk.version>1.8</jdk.version>

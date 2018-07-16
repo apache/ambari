@@ -89,4 +89,7 @@ public class LogFeederConstants {
   public static final String CHECKPOINT_EXTENSION_PROPERTY = "logfeeder.checkpoint.extension";
   public static final String DEFAULT_CHECKPOINT_EXTENSION = ".cp";
 
+  public static final String DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY = "logfeeder.docker.registry.enabled";
+  public static final boolean DOCKER_CONTAINER_REGISTRY_ENABLED_DEFAULT = false;
+
 }
