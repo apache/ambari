@@ -314,6 +314,11 @@ public class RecoveryConfigHelper {
         return enabledComponents;
       }
 
+      // If the cluster has disabled recovery, there should be no service components can be auto started
+      if (configProperties.containsKey(RecoveryConfigHelper.RECOVERY_ENABLED_KEY) && configProperties.get(RECOVERY_ENABLED_KEY).equals("false")) {
+        return enabledComponents;
+      }
+
       Host host = clusters.getHost(hostname);
       if (host == null) {
         return enabledComponents;

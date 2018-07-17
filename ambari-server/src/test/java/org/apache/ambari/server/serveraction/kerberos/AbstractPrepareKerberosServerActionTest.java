@@ -42,6 +42,8 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -59,6 +61,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Before;
@@ -87,8 +90,8 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
       "      }," +
       "      \"name\": \"spnego\"," +
       "      \"principal\": {" +
-      "        \"configuration\": null," +
-      "        \"local_username\": null," +
+      "        \"configuration\": \"service_site/principal_name\"," +
+      "        \"local_username\": \"qa\"," +
       "        \"type\": \"service\"," +
       "        \"value\": \"HTTP/_HOST@${realm}\"" +
       "      }" +
@@ -164,6 +167,7 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
 
   private Injector injector;
   private final AbstractPrepareKerberosServerAction testKerberosServerAction = new TestKerberosServerAction();
+  private KerberosHelper kerberosHelper;
 
   @Before
   public void setUp() throws Exception {
@@ -190,6 +194,8 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
     });
 
     injector.injectMembers(testKerberosServerAction);
+    kerberosHelper = injector.getInstance(KerberosHelperImpl.class);
+    injector.injectMembers(kerberosHelper);
   }
 
   /**
@@ -303,6 +309,14 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
     ConfigWriterData dataCaptureIdentitiesOnly = setupConfigWriter(factory);
     ConfigWriterData dataCaptureNewAndIdentities = setupConfigWriter(factory);
     ConfigWriterData dataCaptureNone = setupConfigWriter(factory);
+
+    KerberosHelper kerberosHelper = testKerberosServerAction.getKerberosHelper();
+    Map<String, Map<String, String>> identityConfigurations = new HashMap<>();
+    Map<String, String> map = new HashMap();
+    map.put("principal_name", "principal_name_updated_value");
+    map.put("keytab_file_path", "keytab_file_path_updated_value");
+    identityConfigurations.put("service-site", map);
+    expect(kerberosHelper.getIdentityConfigurations(EasyMock.anyObject())).andReturn(identityConfigurations).anyTimes();
 
     replayAll();
 

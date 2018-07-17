@@ -58,7 +58,11 @@ public class JvmMetricsSource extends AbstractMetricsSource {
     registerAll(JVM_PREFIX + ".buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()), registry);
     registerAll(JVM_PREFIX + ".memory", new MemoryUsageGaugeSet(), registry);
     registerAll(JVM_PREFIX + ".threads", new ThreadStatesGaugeSet(), registry);
-    registry.register(JVM_PREFIX + ".file.open.descriptor.ratio", new FileDescriptorRatioGauge());
+    try {
+      registry.register(JVM_PREFIX + ".file.open.descriptor.ratio", new FileDescriptorRatioGauge());
+    } catch (IllegalArgumentException ex) {
+      LOG.info("Cannot register {} due to {}", JVM_PREFIX + ".file.open.descriptor.ratio", ex.getMessage());
+    }
     interval = Integer.parseInt(configuration.getProperty("interval", "10"));
     LOG.info("Initialized JVM Metrics source...");
   }
@@ -88,7 +92,11 @@ public class JvmMetricsSource extends AbstractMetricsSource {
       if (entry.getValue() instanceof MetricSet) {
         registerAll(prefix + "." + entry.getKey(), (MetricSet) entry.getValue(), registry);
       } else {
-        registry.register(prefix + "." + entry.getKey(), entry.getValue());
+        try {
+          registry.register(prefix + "." + entry.getKey(), entry.getValue());
+        } catch (IllegalArgumentException ex) {
+          LOG.info("Cannot register {} due to {}", prefix + "." + entry.getKey(), ex.getMessage());
+        }
       }
     }
   }

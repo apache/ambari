@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
+import static org.apache.ambari.server.controller.KerberosHelper.KERBEROS_ENV;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -26,8 +29,6 @@ import static org.junit.Assert.assertNotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -35,21 +36,19 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
+import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.UpgradeHelper;
-import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -93,20 +92,13 @@ public class KerberosKeytabsActionTest {
 
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addClustersBinding().build().configure(binder());
-
-        bind(Clusters.class).toInstance(m_clusters);
-        bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
-        bind(UpgradeHelper.class).toInstance(EasyMock.createNiceMock(UpgradeHelper.class));
-        bind(StackManagerFactory.class).toInstance(EasyMock.createNiceMock(StackManagerFactory.class));
-        bind(StackDAO.class).toInstance(EasyMock.createNiceMock(StackDAO.class));
-        bind(EntityManager.class).toInstance(EasyMock.createNiceMock(EntityManager.class));
-        bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));
-        bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
+        PartialNiceMockBinder.newBuilder().addDBAccessorBinding().addAmbariMetaInfoBinding().build().configure(binder());
+        bind(StageDAO.class).toInstance(createNiceMock(StageDAO.class));
+        bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
       }
     });
 
-    m_kerberosHelper = m_injector.getInstance(KerberosHelper.class);
+    m_kerberosHelper = createMock(KerberosHelperImpl.class); //m_injector.getInstance(KerberosHelper.class);
   }
 
   @Test
@@ -132,6 +124,17 @@ public class KerberosKeytabsActionTest {
 
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);
+
+    Clusters clusters = action.getClusters();
+    Cluster cluster = createMock(Cluster.class);
+    expect(clusters.getCluster("c1" )).andReturn(cluster).anyTimes();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
+    expect(cluster.getDesiredConfigByType(KERBEROS_ENV)).andReturn(null).once();
+    replay(clusters, cluster);
+
+    KerberosHelper kerberosHelper = Whitebox.getInternalState(action, "m_kerberosHelper");
+    expect(kerberosHelper.isClusterKerberosEnabled(EasyMock.anyObject(Cluster.class))).andReturn(Boolean.FALSE).atLeastOnce();
+    replay(kerberosHelper);
 
     CommandReport report = action.execute(null);
     assertNotNull(report);
@@ -165,6 +168,19 @@ public class KerberosKeytabsActionTest {
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);
 
+    Clusters clusters = action.getClusters();
+    Cluster cluster = createMock(Cluster.class);
+    Config kerberosEnv = createMock(Config.class);
+    expect(clusters.getCluster("c1" )).andReturn(cluster).anyTimes();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getDesiredConfigByType(KERBEROS_ENV)).andReturn(kerberosEnv).once();
+    expect(kerberosEnv.getProperties()).andReturn(null).anyTimes();
+    replay(clusters, cluster, kerberosEnv);
+
+    KerberosHelper kerberosHelper = Whitebox.getInternalState(action, "m_kerberosHelper");
+    expect(kerberosHelper.isClusterKerberosEnabled(EasyMock.anyObject(Cluster.class))).andReturn(Boolean.TRUE).atLeastOnce();
+    replay(kerberosHelper);
+
     CommandReport report = action.execute(null);
     assertNotNull(report);
 
@@ -197,6 +213,21 @@ public class KerberosKeytabsActionTest {
 
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);
+
+    Clusters clusters = action.getClusters();
+    Cluster cluster = createMock(Cluster.class);
+    Config kerberosEnv = createMock(Config.class);
+    Map<String, String> kerbProperties = new HashMap<>();
+    kerbProperties.put("kdc_type", "mit-kdc");
+    expect(clusters.getCluster("c1" )).andReturn(cluster).anyTimes();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getDesiredConfigByType(KERBEROS_ENV)).andReturn(kerberosEnv).anyTimes();
+    expect(kerberosEnv.getProperties()).andReturn(kerbProperties).anyTimes();
+    replay(clusters, cluster, kerberosEnv);
+
+    KerberosHelper kerberosHelper = Whitebox.getInternalState(action, "m_kerberosHelper");
+    expect(kerberosHelper.isClusterKerberosEnabled(EasyMock.anyObject(Cluster.class))).andReturn(Boolean.TRUE).atLeastOnce();
+    replay(kerberosHelper);
 
     CommandReport report = action.execute(null);
     assertNotNull(report);

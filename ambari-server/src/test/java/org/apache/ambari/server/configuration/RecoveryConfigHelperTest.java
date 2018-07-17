@@ -25,7 +25,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostna
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -195,7 +194,7 @@ public class RecoveryConfigHelperTest {
 
     // Get the recovery configuration again and verify that there are no components to be auto started
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
-    assertNull(recoveryConfig.getEnabledComponents());
+    assertEquals(recoveryConfig.getEnabledComponents().size(), 0);
   }
 
   /**
