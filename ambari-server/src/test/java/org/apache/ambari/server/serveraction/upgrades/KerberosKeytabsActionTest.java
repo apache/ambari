@@ -98,7 +98,7 @@ public class KerberosKeytabsActionTest {
       }
     });
 
-    m_kerberosHelper = createMock(KerberosHelperImpl.class); //m_injector.getInstance(KerberosHelper.class);
+    m_kerberosHelper = createMock(KerberosHelperImpl.class); 
   }
 
   @Test
