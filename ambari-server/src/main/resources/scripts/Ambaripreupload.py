@@ -281,7 +281,7 @@ with Environment() as env:
   def copy_zeppelin_dependencies_to_hdfs(file_pattern):
     spark_deps_full_path = glob.glob(file_pattern)
     if spark_deps_full_path and os.path.exists(spark_deps_full_path[0]):
-      copy_tarballs_to_hdfs(spark_deps_full_path[0], hdfs_path_prefix+'/apps/zeppelin/', 'hadoop-mapreduce-historyserver', params.hdfs_user, 'zeppelin', 'zeppelin')
+      copy_tarballs_to_hdfs(spark_deps_full_path[0], hdfs_path_prefix+'/apps/zeppelin/', params.hdfs_user, 'zeppelin', 'zeppelin')
     else:
       Logger.info('zeppelin-spark-dependencies not found at %s.' % file_pattern)
 
