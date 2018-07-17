@@ -25,6 +25,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <packaging>jar</packaging>
+  <name>Ambari Logsearch Log Feeder Container Registry</name>
   <artifactId>ambari-logsearch-logfeeder-container-registry</artifactId>
   <dependencies>
     <dependency>

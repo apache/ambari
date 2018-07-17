@@ -19,10 +19,8 @@
 package org.apache.ambari.logfeeder.conf;
 
 import com.google.common.collect.Maps;
-import org.apache.ambari.logfeeder.ContainerRegistry;
 import org.apache.ambari.logfeeder.docker.DockerContainerRegistry;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.docker.DockerContainerRegistryMonitor;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.input.InputManagerImpl;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
@@ -42,7 +40,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import javax.inject.Inject;
-import java.util.Properties;
 
 @Configuration
 @PropertySource(value = {
@@ -77,7 +74,25 @@ public class ApplicationConfig {
       logFeederProps.getClusterName(),
       LogSearchConfigLogFeederZK.class,false);
   }
+/* TODO: enable this after local + solr managed filters will be the default
+  @Bean
+  public LogLevelFilterManager logLevelFilterManager() {
+    LBHttpSolrClient.Builder builder = new LBHttpSolrClient.Builder();
+    builder.withBaseSolrUrls("http://localhost:8983/solr/history");
+    SolrClient solrClient = builder.build();
+    return new LogLevelFilterManagerSolr(solrClient);
+  }
 
+  @Bean
+  @DependsOn("logLevelFilterHandler")
+  public LogLevelFilterUpdater logLevelFilterUpdater() throws Exception {
+    LogLevelFilterUpdater logLevelFilterUpdater = new LogLevelFilterUpdaterSolr(
+      "filter-updater-solr", logLevelFilterHandler(),
+      30, (LogLevelFilterManagerSolr) logLevelFilterManager(), logFeederProps.getClusterName());
+    logLevelFilterUpdater.start();
+    return logLevelFilterUpdater;
+  }
+*/
   @Bean
   public MetricsManager metricsManager() {
     return new MetricsManager();

@@ -111,12 +111,12 @@ public class ShipperConfigManager extends JsonManagerBase {
   }
 
   public LSServerLogLevelFilterMap getLogLevelFilters(String clusterName) {
-    return new LSServerLogLevelFilterMap(logSearchConfigConfigurer.getConfig().getLogLevelFilters(clusterName));
+    return new LSServerLogLevelFilterMap(logSearchConfigConfigurer.getConfig().getLogLevelFilterManager().getLogLevelFilters(clusterName));
   }
 
   public Response setLogLevelFilters(String clusterName, LSServerLogLevelFilterMap request) {
     try {
-      logSearchConfigConfigurer.getConfig().setLogLevelFilters(clusterName, request.convertToApi());
+      logSearchConfigConfigurer.getConfig().getLogLevelFilterManager().setLogLevelFilters(clusterName, request.convertToApi());
       return Response.ok().build();
     } catch (Exception e) {
       logger.warn("Could not update log level filters", e);

@@ -28,7 +28,6 @@ import org.apache.ambari.logsearch.handler.ReloadCollectionHandler;
 import org.apache.ambari.logsearch.handler.UploadConfigurationHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -219,7 +218,7 @@ public class SolrCollectionConfigurer implements Configurer {
     try {
       List<String> allCollectionList = new ListCollectionHandler().handle(solrClient, null);
       solrDaoBase.waitForLogSearchConfig();
-      CreateCollectionHandler handler = new CreateCollectionHandler(solrDaoBase.getLogSearchConfig(), allCollectionList);
+      CreateCollectionHandler handler = new CreateCollectionHandler(allCollectionList);
       boolean collectionCreated = handler.handle(solrClient, solrPropsConfig);
       boolean collectionReloaded = true;
       if (reloadCollectionNeeded) {
