@@ -49,6 +49,7 @@ public class JvmMetricsSource extends AbstractMetricsSource {
   private static final Logger LOG = LoggerFactory.getLogger(JvmMetricsSource.class);
   private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
   private static String JVM_PREFIX = "jvm";
+  private static String FILE_OPEN_DESCRIPTOR_RATIO = ".file.open.descriptor.ratio";
   private int interval = 10;
 
   @Override
@@ -59,9 +60,9 @@ public class JvmMetricsSource extends AbstractMetricsSource {
     registerAll(JVM_PREFIX + ".memory", new MemoryUsageGaugeSet(), registry);
     registerAll(JVM_PREFIX + ".threads", new ThreadStatesGaugeSet(), registry);
     try {
-      registry.register(JVM_PREFIX + ".file.open.descriptor.ratio", new FileDescriptorRatioGauge());
+      registry.register(JVM_PREFIX + FILE_OPEN_DESCRIPTOR_RATIO, new FileDescriptorRatioGauge());
     } catch (IllegalArgumentException ex) {
-      LOG.info("Cannot register {} due to {}", JVM_PREFIX + ".file.open.descriptor.ratio", ex.getMessage());
+      LOG.info("Cannot register {} due to {}", JVM_PREFIX + FILE_OPEN_DESCRIPTOR_RATIO, ex.getMessage());
     }
     interval = Integer.parseInt(configuration.getProperty("interval", "10"));
     LOG.info("Initialized JVM Metrics source...");
