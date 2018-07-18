@@ -35,12 +35,13 @@ export class AppComponent {
     .map((dataSetState: DataAvailability) => dataSetState === DataAvailabilityValues.AVAILABLE);
 
   private notificationServiceOptions: Options = {
-    timeOut: 5000,
+    timeOut: 2000,
     showProgressBar: true,
     pauseOnHover: true,
     preventLastDuplicates: 'visible',
     theClass: 'app-notification',
-    icons: notificationIcons
+    icons: notificationIcons,
+    position: ['top', 'left']
   };
 
   constructor(
