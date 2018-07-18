@@ -5771,13 +5771,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
-    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-      if (serviceInfoInstance.getServiceType() != null) {
+    
+    for (Service service : cluster.getServices().values()) {
+      ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(service);
+      String serviceType = serviceInfoInstance.getServiceType();
+      if (serviceType != null) {
         LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
-            serviceInfoInstance.getName());
-
+          serviceInfoInstance.getName());
         clusterLevelParams.put(DFS_TYPE, serviceInfoInstance.getServiceType());
         break;
       }
