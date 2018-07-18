@@ -147,8 +147,6 @@
       # Mostly required for hadoop 2.0
       export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64
 
-      export HADOOP_OPTS="-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
-
 
       # Fix temporary bug, when ulimit from conf files is not picked up, without full relogin.
       # Makes sense to fix only when runing DN as root
