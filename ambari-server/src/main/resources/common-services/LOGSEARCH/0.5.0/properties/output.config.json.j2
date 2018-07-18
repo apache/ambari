@@ -21,6 +21,7 @@
       "comment":"Output to solr for service logs",
       "is_enabled":"{{solr_service_logs_enable}}",
       "destination":"solr",
+      "collection": "{{logsearch_solr_collection_service_logs}}",
       "zk_connect_string":"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}",
       "type": "service",
       "conditions":{
@@ -38,6 +39,7 @@
       "comment":"Output to solr for audit records",
       "is_enabled":"{{solr_audit_logs_enable}}",
       "destination":"solr",
+      "collection": "{{logsearch_solr_collection_audit_logs}}",
       "zk_connect_string":"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}",
       "type": "audit",
       "conditions":{
