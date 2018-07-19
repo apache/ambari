@@ -19,10 +19,8 @@
 package org.apache.ambari.logfeeder.conf;
 
 import com.google.common.collect.Maps;
-import org.apache.ambari.logfeeder.ContainerRegistry;
 import org.apache.ambari.logfeeder.docker.DockerContainerRegistry;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.docker.DockerContainerRegistryMonitor;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.input.InputManagerImpl;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
@@ -32,9 +30,17 @@ import org.apache.ambari.logfeeder.metrics.StatsLogger;
 import org.apache.ambari.logfeeder.output.OutputManagerImpl;
 import org.apache.ambari.logfeeder.plugin.manager.InputManager;
 import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
+import org.apache.ambari.logsearch.config.api.LogLevelFilterManager;
+import org.apache.ambari.logsearch.config.api.LogLevelFilterUpdater;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
+import org.apache.ambari.logsearch.config.local.LogSearchConfigLogFeederLocal;
+import org.apache.ambari.logsearch.config.solr.LogLevelFilterManagerSolr;
+import org.apache.ambari.logsearch.config.solr.LogLevelFilterUpdaterSolr;
 import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigLogFeederZK;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -42,7 +48,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import javax.inject.Inject;
-import java.util.Properties;
 
 @Configuration
 @PropertySource(value = {
@@ -72,12 +77,51 @@ public class ApplicationConfig {
   @Bean
   @DependsOn("logFeederSecurityConfig")
   public LogSearchConfigLogFeeder logSearchConfigLogFeeder() throws Exception {
-    return LogSearchConfigFactory.createLogSearchConfigLogFeeder(
-      Maps.fromProperties(logFeederProps.getProperties()),
-      logFeederProps.getClusterName(),
-      LogSearchConfigLogFeederZK.class,false);
+    if (logFeederProps.isUseLocalConfigs()) {
+      LogSearchConfigLogFeeder logfeederConfig = LogSearchConfigFactory.createLogSearchConfigLogFeeder(
+        Maps.fromProperties(logFeederProps.getProperties()),
+        logFeederProps.getClusterName(),
+        LogSearchConfigLogFeederLocal.class, false);
+      logfeederConfig.setLogLevelFilterManager(logLevelFilterManager());
+      return logfeederConfig;
+    } else {
+      return LogSearchConfigFactory.createLogSearchConfigLogFeeder(
+        Maps.fromProperties(logFeederProps.getProperties()),
+        logFeederProps.getClusterName(),
+        LogSearchConfigLogFeederZK.class, false);
+    }
   }
 
+  @Bean
+  public LogLevelFilterManager logLevelFilterManager() {
+    if (logFeederProps.isSolrFilterStorage()) {
+      if (StringUtils.isNotEmpty(logFeederProps.getSolrZkConnectString())) {
+        CloudSolrClient.Builder builder = new CloudSolrClient.Builder();
+        builder.withZkHost(logFeederProps.getSolrZkConnectString());
+        CloudSolrClient solrClient = builder.build();
+        solrClient.setDefaultCollection("history");
+        return new LogLevelFilterManagerSolr(solrClient);
+      } else {
+        return null; // TODO: use lb http client
+      }
+    } else { // no default filter manager
+      return null;
+    }
+  }
+
+  @Bean
+  @DependsOn("logLevelFilterHandler")
+  public LogLevelFilterUpdater logLevelFilterUpdater() throws Exception {
+    if (logFeederProps.isSolrFilterStorage() && logFeederProps.isSolrFilterMonitor()) {
+      LogLevelFilterUpdater logLevelFilterUpdater = new LogLevelFilterUpdaterSolr(
+        "filter-updater-solr", logLevelFilterHandler(),
+        30, (LogLevelFilterManagerSolr) logLevelFilterManager(), logFeederProps.getClusterName());
+      logLevelFilterUpdater.start();
+      return logLevelFilterUpdater;
+    } else { // no default filter updater
+      return null;
+    }
+  }
   @Bean
   public MetricsManager metricsManager() {
     return new MetricsManager();

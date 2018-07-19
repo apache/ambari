@@ -24,7 +24,6 @@ import org.apache.ambari.logfeeder.input.InputFileMarker;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
@@ -153,10 +152,6 @@ public class OutputFile extends Output<LogFeederProps, InputFileMarker> {
   @Override
   public String getOutputType() {
     throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
-  }
-
-  @Override
-  public void outputConfigChanged(OutputProperties outputProperties) {
   }
 
   @Override

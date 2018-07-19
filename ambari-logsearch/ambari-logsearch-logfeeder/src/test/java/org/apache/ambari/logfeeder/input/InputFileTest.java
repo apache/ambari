@@ -29,7 +29,7 @@ import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.plugin.filter.Filter;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.manager.InputManager;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputFileDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputFileDescriptorImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.easymock.EasyMock;

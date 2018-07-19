@@ -36,10 +36,11 @@ import javax.inject.Inject;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(LogLevelFilterHandler.class);
@@ -61,7 +62,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private LogFeederProps logFeederProps;
 
   private LogSearchConfig config;
-  private Map<String, LogLevelFilter> filters = new HashMap<>();
+  private Map<String, LogLevelFilter> filters = new ConcurrentHashMap<>();
 
   public LogLevelFilterHandler(LogSearchConfig config) {
     this.config = config;
@@ -70,6 +71,12 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   @PostConstruct
   public void init() {
     TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
+    if (config.getLogLevelFilterManager() != null) {
+      TreeMap<String, LogLevelFilter> sortedFilters = config.getLogLevelFilterManager()
+        .getLogLevelFilters(logFeederProps.getClusterName())
+        .getFilter();
+      filters = new ConcurrentHashMap<>(sortedFilters);
+    }
   }
 
   @Override
@@ -84,6 +91,11 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     synchronized (LogLevelFilterHandler.class) {
       filters.remove(logId);
     }
+  }
+
+  @Override
+  public Map<String, LogLevelFilter> getLogLevelFilters() {
+    return filters;
   }
 
   public boolean isAllowed(String hostName, String logId, String level) {
@@ -144,7 +156,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     defaultFilter.setDefaultLevels(logFeederProps.getIncludeDefaultLogLevels());
 
     try {
-      config.createLogLevelFilter(logFeederProps.getClusterName(), logId, defaultFilter);
+      config.getLogLevelFilterManager().createLogLevelFilter(logFeederProps.getClusterName(), logId, defaultFilter);
       filters.put(logId, defaultFilter);
     } catch (Exception e) {
       LOG.warn("Could not persist the default filter for log " + logId, e);

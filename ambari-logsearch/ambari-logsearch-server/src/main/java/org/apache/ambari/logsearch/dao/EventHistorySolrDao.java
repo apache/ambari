@@ -27,6 +27,7 @@ import javax.inject.Named;
 
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.LogType;
+import org.apache.ambari.logsearch.conf.SolrClientsHolder;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.ambari.logsearch.conf.SolrEventHistoryPropsConfig;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
@@ -49,13 +50,14 @@ public class EventHistorySolrDao extends SolrDaoBase {
   @Inject
   private SolrEventHistoryPropsConfig solrEventHistoryPropsConfig;
 
-  @Inject
-  @Named("eventHistorySolrTemplate")
   private SolrTemplate eventHistorySolrTemplate;
 
   @Inject
   @Named("solrEventHistoryState")
   private SolrCollectionState solrEventHistoryState;
+
+  @Inject
+  private SolrClientsHolder solrClientsHolder;
 
   public EventHistorySolrDao() {
     super(LogType.SERVICE);
@@ -78,7 +80,7 @@ public class EventHistorySolrDao extends SolrDaoBase {
     String collection = solrEventHistoryPropsConfig.getCollection();
 
     try {
-      new SolrCollectionConfigurer(this, false).start();
+      new SolrCollectionConfigurer(this, false, solrClientsHolder, SolrClientsHolder.CollectionType.HISTORY).start();
     } catch (Exception e) {
       LOG.error("error while connecting to Solr for history logs : solrUrl=" + solrUrl + ", zkConnectString=" + zkConnectString +
           ", collection=" + collection, e);
