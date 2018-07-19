@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 <div class="row one-row-tabs-container">
-  <div class="left-arrow">
+  <div {{bindAttr class=":left-arrow view.isNavArrowsHidden:not-visible"}}>
     <a href="#"{{bindAttr class="view.isLeftArrowDisabled:disabled"}} {{action "scrollTabsLeft" target="view"}}> <i class="icon-angle-left"></i>
     </a>
   </div>
@@ -35,7 +35,7 @@
       {{/each}}
     </ul>
   </div>
-  <div class="right-arrow">
+  <div {{bindAttr class=":right-arrow view.isNavArrowsHidden:not-visible"}}>
     <a href="#" {{bindAttr class="view.isRightArrowDisabled:disabled"}} {{action "scrollTabsRight" target="view"}}>
       <i class="icon-angle-right"></i>
     </a>
