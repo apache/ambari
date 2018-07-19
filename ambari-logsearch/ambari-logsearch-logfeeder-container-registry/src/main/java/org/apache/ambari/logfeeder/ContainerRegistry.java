@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,17 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+import java.util.Map;
 
-public interface InputFileDescriptor extends InputFileBaseDescriptor {
-  Integer getDetachIntervalMin();
+/**
+ * Responsible of register or drop new / existing containers.
+ * @param <METADATA_TYPE> type of metadata - could be docker or other container implementation
+ */
+public interface ContainerRegistry<METADATA_TYPE extends ContainerMetadata> {
 
-  Integer getDetachTimeMin();
+  /**
+   * Register process of running containers
+   */
+  void register();
 
-  Integer getPathUpdateIntervalMin();
+  /**
+   * Holds container metadata per log component type and container id.
+   * @return container metadata
+   */
+  Map<String, Map<String, METADATA_TYPE>> getContainerMetadataMap();
 
-  Integer getMaxAgeMin();
-
-  Boolean getDockerEnabled();
 }

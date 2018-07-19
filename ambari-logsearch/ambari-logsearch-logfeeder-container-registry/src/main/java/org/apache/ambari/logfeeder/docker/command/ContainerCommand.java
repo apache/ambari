@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,17 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder.docker.command;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+import java.util.Map;
 
-public interface InputFileDescriptor extends InputFileBaseDescriptor {
-  Integer getDetachIntervalMin();
+/**
+ * Responsible of execute container commands. (like listing or inspecting containers)
+ * @param <RESPONSE_TYPE>
+ */
+public interface ContainerCommand<RESPONSE_TYPE> {
 
-  Integer getDetachTimeMin();
-
-  Integer getPathUpdateIntervalMin();
-
-  Integer getMaxAgeMin();
-
-  Boolean getDockerEnabled();
+  /**
+   * Execute a container command
+   * @param params extra parameters for the command
+   * @return return type of the execution - can be anything
+   */
+  RESPONSE_TYPE execute(Map<String, String> params);
 }

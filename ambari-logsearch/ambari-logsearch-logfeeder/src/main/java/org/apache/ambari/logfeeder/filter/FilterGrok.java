@@ -23,11 +23,14 @@ import com.google.gson.reflect.TypeToken;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.filter.Filter;
+import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileDescriptor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -73,6 +76,8 @@ public class FilterGrok extends Filter<LogFeederProps> {
 
   private boolean skipOnError = false;
 
+  private boolean dockerEnabled = false;
+
   @Override
   public void init(LogFeederProps logFeederProps) throws Exception {
     super.init(logFeederProps);
@@ -83,6 +88,12 @@ public class FilterGrok extends Filter<LogFeederProps> {
       sourceField = getFilterDescriptor().getSourceField();
       removeSourceField = BooleanUtils.toBooleanDefaultIfNull(getFilterDescriptor().isRemoveSourceField(), removeSourceField);
       skipOnError = ((FilterGrokDescriptor) getFilterDescriptor()).isSkipOnError();
+      if (logFeederProps.isDockerContainerRegistryEnabled()) {
+        Input input = getInput();
+        if (input != null && input instanceof InputFile) {
+          dockerEnabled = BooleanUtils.toBooleanDefaultIfNull(((InputFileDescriptor) input.getInputDescriptor()).getDockerEnabled(), false);
+        }
+      }
 
       LOG.info("init() done. grokPattern=" + messagePattern + ", multilinePattern=" + multilinePattern + ", " +
       getShortDescription());
@@ -178,6 +189,9 @@ public class FilterGrok extends Filter<LogFeederProps> {
 
   @Override
   public void apply(String inputStr, InputMarker inputMarker) throws Exception {
+    if (dockerEnabled) {
+      inputStr = DockerLogFilter.getLogFromDockerJson(inputStr);
+    }
     if (grokMessage == null) {
       return;
     }
