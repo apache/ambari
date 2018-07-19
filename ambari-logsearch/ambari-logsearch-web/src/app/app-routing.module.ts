@@ -37,7 +37,8 @@ const appRoutes: Routes = [{
     component: LogsContainerComponent,
     data: {
       breadcrumbs: 'logs.title',
-      multiClusterFilter: true
+      multiClusterFilter: true,
+      clusterParamKey: 'clusters'
     },
     resolve: {
       breadcrumbs: LogsBreadcrumbsResolverService

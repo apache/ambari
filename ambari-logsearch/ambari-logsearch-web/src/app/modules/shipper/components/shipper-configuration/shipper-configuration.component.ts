@@ -32,10 +32,10 @@ import {
   ShipperServiceConfigurationFormComponent
 } from '@modules/shipper/components/shipper-service-configuration-form/shipper-service-configuration-form.component';
 import {TranslateService} from '@ngx-translate/core';
-import {ClustersService} from '@app/services/storage/clusters.service';
-import {ShipperClusterServiceValidationModel} from '@modules/shipper/models/shipper-cluster-service-validation.model';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {Subscription} from 'rxjs/Subscription';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'shipper-configuration',
@@ -52,6 +52,8 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
   @ViewChild(ShipperServiceConfigurationFormComponent)
   configurationFormRef: ShipperServiceConfigurationFormComponent;
 
+  private requestInProgress$: BehaviorSubject<boolean> = new BehaviorSubject(false);
+
   private clusterName$: Observable<ShipperClusterService> = this.activatedRoute.params.map(params => params.cluster);
   private serviceName$: Observable<ShipperClusterService> = this.activatedRoute.params.map(params => params.service);
 
@@ -59,8 +61,10 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
     return cluster ? this.shipperClusterServiceListService.getServicesForCluster(cluster) : Observable.of(undefined);
   });
 
-  private configuration$: Observable<{[key: string]: any}> = Observable.combineLatest(this.clusterName$, this.serviceName$)
-    .switchMap(([clusterName, serviceName]: [ShipperCluster, ShipperClusterService]) => {
+  private configuration$: Observable<{[key: string]: any}> = Observable.combineLatest(
+      this.clusterName$,
+      this.serviceName$
+    ).switchMap(([clusterName, serviceName]: [ShipperCluster, ShipperClusterService]) => {
       return clusterName && serviceName ?
         this.shipperConfigurationService.loadConfiguration(clusterName, serviceName) : Observable.of(undefined);
     });
@@ -76,8 +80,6 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
     private shipperConfigurationService: ShipperConfigurationService,
     private notificationService: NotificationService,
     private translate: TranslateService,
-
-    private clustersStoreService: ClustersService,
     private clusterSelectionStoreService: ClusterSelectionService
   ) { }
 
@@ -116,38 +118,39 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
     }
   }
 
-  private onShipperClusterServiceSelected(serviceName: ShipperClusterService) {
-    this.clusterName$.first().subscribe((clusterName: ShipperCluster) => this.router.navigate(
-      [...this.routerPath, clusterName, serviceName]
-    ));
-  }
-
   private getRouterLink(path: string | string[]): string[] {
     return [...this.routerPath, ...(Array.isArray(path) ? path : [path])];
   }
 
-  getResponseHandler(cmd: string, type: string, msgVariables?: {[key: string]: any}) {
+  getResponseHandler(cmd: string, type: string, form?: FormGroup) {
+    const msgVariables = form.getRawValue();
     return (response: Response) => {
       const result = response.json();
-      // @ToDo change the backend response status to some error code if the configuration is not valid and don't use the .errorMessage prop
+      // @ToDo change the backend response status to some error code if the configuration is not valid and don't use the .message prop
       const resultType = response ? (response.ok && !result.errorMessage ? NotificationType.SUCCESS : NotificationType.ERROR) : type;
-      const translateParams = {errorMessage: '', ...msgVariables, ...result};
+      const translateParams = {errorMessage: (result && result.message) || '', ...msgVariables, ...result};
       const title = this.translate.instant(`shipperConfiguration.action.${cmd}.title`, translateParams);
       const message = this.translate.instant(`shipperConfiguration.action.${cmd}.${resultType}.message`, translateParams);
       this.notificationService.addNotification({type: resultType, title, message});
+      if (resultType !== NotificationType.ERROR) {
+        form.markAsPristine();
+      }
+      this.requestInProgress$.next(false);
     };
   }
 
-  onConfigurationFormSubmit(rawValue: any): void {
+  onConfigurationFormSubmit(configurationForm: FormGroup): void {
+    const rawValue = configurationForm.getRawValue();
     this.serviceNamesList$.first().subscribe((services: ShipperClusterService[]) => {
-      const cmd: string = services.indexOf(rawValue.service) > -1 ? 'update' : 'add';
+      const cmd: string = services.indexOf(rawValue.serviceName) > -1 ? 'update' : 'add';
+      this.requestInProgress$.next(true);
       this.shipperConfigurationService[`${cmd}Configuration`]({
-        cluster: rawValue.cluster,
-        service: rawValue.service,
-        configuration: rawValue.configuration
+        cluster: rawValue.clusterName,
+        service: rawValue.serviceName,
+        configuration: JSON.parse(rawValue.configuration)
       }).subscribe(
-        this.getResponseHandler(cmd, NotificationType.SUCCESS, rawValue),
-        this.getResponseHandler(cmd, NotificationType.ERROR, rawValue)
+        this.getResponseHandler(cmd, NotificationType.SUCCESS, configurationForm),
+        this.getResponseHandler(cmd, NotificationType.ERROR, configurationForm)
       );
     });
   }
@@ -156,12 +159,13 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
     this.validationResponse = result;
   }
 
-  onValidationFormSubmit(rawValue: ShipperClusterServiceValidationModel): void {
+  onValidationFormSubmit(validationForm: FormGroup): void {
     this.validationResponse = null;
+    const rawValue = validationForm.getRawValue();
     const request$: Observable<Response> = this.shipperConfigurationService.testConfiguration(rawValue);
     request$.subscribe(
-      this.getResponseHandler('validate', NotificationType.SUCCESS, rawValue),
-      this.getResponseHandler('validate', NotificationType.ERROR, rawValue)
+      this.getResponseHandler('validate', NotificationType.SUCCESS, validationForm),
+      this.getResponseHandler('validate', NotificationType.ERROR, validationForm)
     );
     request$
       .filter((response: Response): boolean => response.ok)
