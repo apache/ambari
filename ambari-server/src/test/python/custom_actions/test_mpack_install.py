@@ -176,9 +176,35 @@ class TestMpackPackages(RMFTestCase):
       )
       self.assertTrue(put_structured_out_mock.called)
       self.assertEquals(put_structured_out_mock.call_args[0][0],
-                        {'package_installation_result': 'SUCCESS',
-                         'mpackId': 2
-                        })
+        {
+          'mpack_installation':
+            {
+              'mpackId': 2,
+              'mpackName': 'HDPCORE',
+              'mpackVersion': '1.0.0-b251'
+            }
+        })
+
+      self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.21-repo-hdpcore',
+        append_to_file = False,
+        base_url = 'http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.21',
+        action = ['create'],
+        components = [u'HDP-UTILS', 'main'],
+        repo_template = None,
+        repo_file_name = 'ambari-hdpcore-2',
+        mirror_list = None,
+      )
+
+
+      self.assertResourceCalled('Repository', 'HDPCORE-1.0.0-b251-repo-hdpcore',
+        append_to_file = True,
+        base_url = 'http://repos.ambari.apache.org/hdp/HDPCORE-1.0.0-b251',
+        action = ['create'],
+        components = [u'HDPCORE', 'main'],
+        repo_template = None,
+        repo_file_name = 'ambari-hdpcore-2',
+        mirror_list = None,
+      )
 
       self.assertNoMoreResources()
 

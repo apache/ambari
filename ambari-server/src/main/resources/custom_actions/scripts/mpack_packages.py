@@ -55,9 +55,7 @@ class MpackPackages(Script):
       - Checks the transaction state of the package manager
       - Attempts to install packages
 
-    If either is unsuccessful, this will raise a Fail() and the command will be failed. This
-    class extends from Script which means that mpack information will be written to the
-    command output regardless of success or failure.
+    If either is unsuccessful, this will raise a Fail() and the command will be failed.
     :param env:
     :return:
     """
@@ -121,6 +119,9 @@ class MpackPackages(Script):
     except Exception as err:
       num_errors += 1
       Logger.logger.exception("Could not install packages. Error: {0}".format(str(err)))
+
+    # save mmpack information to structured output
+    self.save_mpack_to_structured_out()
 
     # Provide correct exit code
     if num_errors > 0:
