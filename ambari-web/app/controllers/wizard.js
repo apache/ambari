@@ -645,9 +645,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.selectedServiceNames', savedSelectedServices);
     this.set('content.installedServiceNames', savedInstalledServices);
     if (!savedSelectedServices) {
-      jsonData.items.forEach(function (service) {
-        service.StackServices.is_selected = !(service.StackServices.selection === "TECH_PREVIEW");
-      }, this);
+      jsonData.items.forEach(this.setStackServiceSelectedByDefault);
     } else {
       jsonData.items.forEach(function (service) {
         service.StackServices.is_selected = savedSelectedServices.contains(service.StackServices.service_name);
@@ -668,6 +666,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {
+  },
+  
+  /**
+   * @param {object} service
+   */
+  setStackServiceSelectedByDefault: function (service) {
+    service.StackServices.is_selected = !(service.StackServices.selection === "TECH_PREVIEW");
+    if (service.StackServices.service_type === 'HCFS' && service.StackServices.service_name !== 'HDFS') {
+      service.StackServices.is_selected = false;
+    }
   },
 
   /**

@@ -22,9 +22,6 @@ package org.apache.ambari.logsearch.config.api;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
-import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 
 public class LogSearchConfigServerClass1 implements LogSearchConfigServer {
@@ -38,6 +35,16 @@ public class LogSearchConfigServerClass1 implements LogSearchConfigServer {
 
   @Override
   public void createInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {}
+
+  @Override
+  public LogLevelFilterManager getLogLevelFilterManager() {
+    return null;
+  }
+
+  @Override
+  public void setLogLevelFilterManager(LogLevelFilterManager logLevelFilterManager) {
+
+  }
 
   @Override
   public void setInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {}
@@ -56,20 +63,6 @@ public class LogSearchConfigServerClass1 implements LogSearchConfigServer {
   public InputConfig getInputConfig(String clusterName, String serviceName) {
     return null;
   }
-
-  @Override
-  public void createLogLevelFilter(String clusterName, String logId, LogLevelFilter filter) {}
-
-  @Override
-  public void setLogLevelFilters(String clusterName, LogLevelFilterMap filters) throws Exception {}
-
-  @Override
-  public LogLevelFilterMap getLogLevelFilters(String clusterName) {
-    return null;
-  }
-
-  @Override
-  public void saveOutputSolrProperties(String type, OutputSolrProperties outputSolrProperties) throws Exception {}
 
   @Override
   public void close() {}

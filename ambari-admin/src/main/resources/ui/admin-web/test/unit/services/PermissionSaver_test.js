@@ -151,12 +151,12 @@ describe('PermissionSaver Service', function () {
       describe(item.title, function () {
 
         beforeEach(function () {
-          spyOn($Cluster, 'updatePrivileges').andCallFake(angular.noop);
+          spyOn($Cluster, 'updatePrivileges').and.callFake(angular.noop);
           PermissionSaver.saveClusterPermissions(item.permissions, params);
         });
 
         it('updatePrivileges call', function () {
-          expect($Cluster.updatePrivileges.callCount).toEqual(item.updatePrivilegesCallCount);
+          expect($Cluster.updatePrivileges.calls.count()).toEqual(item.updatePrivilegesCallCount);
         });
 
         if (item.updatePrivilegesCallCount) {
@@ -247,12 +247,12 @@ describe('PermissionSaver Service', function () {
       ];
 
     beforeEach(function () {
-      spyOn($View, 'updatePrivileges').andCallFake(angular.noop);
+      spyOn($View, 'updatePrivileges').and.callFake(angular.noop);
       PermissionSaver.saveViewPermissions(permissions, params);
     });
 
       it('should update privileges', function () {
-        expect($View.updatePrivileges.callCount).toEqual(1);
+        expect($View.updatePrivileges.calls.count()).toEqual(1);
       });
 
       it('updatePrivileges arguments', function () {

@@ -29,24 +29,36 @@ describe('App.MainAdminServiceAutoStartController', function() {
   });
 
   describe('#parseComponentConfigs', function() {
-
-    it('should return parsed components', function() {
-      var components = [
-        {
-          ServiceComponentInfo: {
-            service_name: 'S1',
-            component_name: 'C1',
-            recovery_enabled: 'true'
-          }
-        },
-        {
-          ServiceComponentInfo: {
-            service_name: 'S1',
-            component_name: 'C2',
-            recovery_enabled: 'false'
-          }
+    var components = [
+      {
+        ServiceComponentInfo: {
+          service_name: 'S1',
+          component_name: 'C1',
+          recovery_enabled: 'true',
+          category: 'SLAVE',
+          total_count: 1
         }
-      ];
+      },
+      {
+        ServiceComponentInfo: {
+          service_name: 'S1',
+          component_name: 'C2',
+          recovery_enabled: 'false',
+          total_count: 2,
+          category: 'SLAVE',
+        }
+      },
+      {
+        ServiceComponentInfo: {
+          category: 'SLAVE',
+          service_name: 'S2',
+          component_name: 'C1',
+          recovery_enabled: 'false',
+          total_count: 0
+        }
+      }
+    ];
+    it('should return parsed components, filter out not installed components', function() {
       expect(controller.parseComponentConfigs(components)).to.be.eql([
         Em.Object.create({
           "componentName": "C1",

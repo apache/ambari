@@ -136,7 +136,6 @@
               <commandlineArgs>${args.shell} ${basedir}${dirsep}set-ambari-version.${fileextension.shell} ${ambariVersion}</commandlineArgs>
             </configuration>
           </execution>
-          <!--  @TODO: uncomment below execution for triggering ambar-admin UI unit tests from maven test phase.(AMBARI-7600)
           <execution>
             <id>unit test</id>
             <phase>test</phase>
@@ -152,7 +151,6 @@
               </arguments>
             </configuration>
           </execution>
-          -->
         </executions>
       </plugin>
       <plugin>

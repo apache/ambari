@@ -41,6 +41,7 @@
               [configuration]="configuration$ | async"
               [existingServiceNames]="serviceNamesList$"
               [validationResponse]="validationResponse"
+              [disabled]="requestInProgress$ | async"
               (configurationSubmit)="onConfigurationFormSubmit($event)"
               (validationSubmit)="onValidationFormSubmit($event)"
             ></shipper-configuration-form>

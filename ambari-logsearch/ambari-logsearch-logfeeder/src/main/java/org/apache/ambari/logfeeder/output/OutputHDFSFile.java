@@ -30,7 +30,6 @@ import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederHDFSUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.PlaceholderUtil;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.log4j.Logger;
@@ -243,10 +242,6 @@ public class OutputHDFSFile extends Output<LogFeederProps, InputFileMarker> impl
   @Override
   public String getOutputType() {
     throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
-  }
-
-  @Override
-  public void outputConfigChanged(OutputProperties outputProperties) {
   }
 
   @Override

@@ -40,6 +40,9 @@ public class LSServerInputFile extends LSServerInputFileBase {
   @JsonProperty("max_age_min")
   private Integer maxAgeMin;
 
+  @JsonProperty("docker")
+  private Boolean dockerEnabled;
+
   public LSServerInputFile() {}
 
   public LSServerInputFile(InputDescriptor inputDescriptor) {
@@ -49,6 +52,7 @@ public class LSServerInputFile extends LSServerInputFileBase {
     this.detachTimeMin = inputFileDescriptor.getDetachTimeMin();
     this.pathUpdateIntervalMin = inputFileDescriptor.getPathUpdateIntervalMin();
     this.maxAgeMin = inputFileDescriptor.getMaxAgeMin();
+    this.dockerEnabled = inputFileDescriptor.getDockerEnabled();
   }
 
   public Integer getDetachIntervalMin() {
@@ -81,5 +85,13 @@ public class LSServerInputFile extends LSServerInputFileBase {
 
   public void setMaxAgeMin(Integer maxAgeMin) {
     this.maxAgeMin = maxAgeMin;
+  }
+
+  public Boolean getDockerEnabled() {
+    return dockerEnabled;
+  }
+
+  public void setDockerEnabled(Boolean dockerEnabled) {
+    this.dockerEnabled = dockerEnabled;
   }
 }

@@ -33,12 +33,11 @@ import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
-import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterDescriptorImpl;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.FilterDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputDescriptorImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
@@ -97,8 +96,6 @@ public class ConfigHandler implements InputConfigMonitor {
 
     inputManager.init();
     outputManager.init();
-
-    logSearchConfig.monitorOutputProperties(outputManager.getOutputsToMonitor());
   }
 
   private void loadConfigFiles() throws Exception {
@@ -297,6 +294,7 @@ public class ConfigHandler implements InputConfigMonitor {
         continue;
       }
       input.setType(source);
+      input.setLogType(inputDescriptor.getType());
       input.loadConfig(inputDescriptor);
 
       if (input.isEnabled()) {

@@ -21,7 +21,7 @@
       <span *ngIf="crumbs.length" class="breadcrumb-separator">/</span>
       <ng-container *ngFor="let crumb of crumbs; index as i">
         <a *ngIf="i < crumbs.length-1" [routerLink]="crumb.path" routerLinkActive="active">{{crumb.text | translate}}</a>
-        <span *ngIf="i === crumbs.length-1">{{crumb.text | translate}}</span>
+        <span *ngIf="i === crumbs.length-1" class="breadcrumb-current">{{crumb.text | translate}}</span>
         <span *ngIf="i < crumbs.length-1" class="breadcrumb-separator">/</span>
       </ng-container>
     </ng-container>
