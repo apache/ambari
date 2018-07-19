@@ -51,6 +51,7 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
   private Filter<PROP_TYPE> firstFilter;
   private boolean isClosed;
   private String type;
+  private String logType;
   private boolean useEventMD5 = false;
   private boolean genEventMD5 = true;
   private Thread thread;
@@ -236,6 +237,14 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public String getLogType() {
+    return logType;
+  }
+
+  public void setLogType(String logType) {
+    this.logType = logType;
   }
 
   public boolean isUseEventMD5() {

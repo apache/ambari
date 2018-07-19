@@ -26,7 +26,6 @@ import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +46,6 @@ public abstract class Output<PROP_TYPE extends LogFeederProperties, INPUT_MARKER
   protected MetricData writeBytesMetric = new MetricData(getWriteBytesMetricName(), false);
 
   public abstract String getOutputType();
-
-  public abstract void outputConfigChanged(OutputProperties outputProperties);
 
   public abstract void copyFile(File inputFile, InputMarker inputMarker) throws Exception;
 

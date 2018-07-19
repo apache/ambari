@@ -20,6 +20,9 @@ package org.apache.ambari.logfeeder.input;
 
 import org.apache.ambari.logfeeder.conf.LogEntryCacheConfig;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.docker.DockerContainerRegistry;
+import org.apache.ambari.logfeeder.docker.DockerMetadata;
+import org.apache.ambari.logfeeder.input.monitor.DockerLogFileUpdateMonitor;
 import org.apache.ambari.logfeeder.input.monitor.LogFileDetachMonitor;
 import org.apache.ambari.logfeeder.input.monitor.LogFilePathUpdateMonitor;
 import org.apache.ambari.logfeeder.input.reader.LogsearchReaderFactory;
@@ -29,7 +32,6 @@ import org.apache.ambari.logfeeder.input.file.ResumeLineNumberHelper;
 import org.apache.ambari.logfeeder.plugin.filter.Filter;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.util.FileUtil;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileDescriptor;
 import org.apache.commons.lang.BooleanUtils;
@@ -81,28 +83,43 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
   private Thread thread;
   private Thread logFileDetacherThread;
   private Thread logFilePathUpdaterThread;
+  private Thread dockerLogFileUpdateMonitorThread;
   private ThreadGroup threadGroup;
 
   private boolean multiFolder = false;
+  private boolean dockerLog = false;
+  private boolean dockerLogParent = true;
+  private DockerContainerRegistry dockerContainerRegistry;
   private Map<String, List<File>> folderMap;
   private Map<String, InputFile> inputChildMap = new HashMap<>();
 
   @Override
   public boolean isReady() {
     if (!isReady) {
-      // Let's try to check whether the file is available
-      logFiles = getActualInputLogFiles();
-      Map<String, List<File>> foldersMap = FileUtil.getFoldersForFiles(logFiles);
-      setFolderMap(foldersMap);
-      if (!ArrayUtils.isEmpty(logFiles) && logFiles[0].isFile()) {
-        if (tail && logFiles.length > 1) {
-          LOG.warn("Found multiple files (" + logFiles.length + ") for the file filter " + filePath +
-            ". Will follow only the first one. Using " + logFiles[0].getAbsolutePath());
+      if (dockerLog) {
+        if (dockerContainerRegistry != null) {
+          Map<String, Map<String, DockerMetadata>> metadataMap = dockerContainerRegistry.getContainerMetadataMap();
+          String logType = getLogType();
+          if (metadataMap.containsKey(logType)) {
+            isReady = true;
+          }
+        } else {
+          LOG.warn("Docker registry is not set, probably docker registry usage is not enabled.");
         }
-        LOG.info("File filter " + filePath + " expanded to " + logFiles[0].getAbsolutePath());
-        isReady = true;
       } else {
-        LOG.debug(logPath + " file doesn't exist. Ignoring for now");
+        logFiles = getActualInputLogFiles();
+        Map<String, List<File>> foldersMap = FileUtil.getFoldersForFiles(logFiles);
+        setFolderMap(foldersMap);
+        if (!ArrayUtils.isEmpty(logFiles) && logFiles[0].isFile()) {
+          if (tail && logFiles.length > 1) {
+            LOG.warn("Found multiple files (" + logFiles.length + ") for the file filter " + filePath +
+              ". Will follow only the first one. Using " + logFiles[0].getAbsolutePath());
+          }
+          LOG.info("File filter " + filePath + " expanded to " + logFiles[0].getAbsolutePath());
+          isReady = true;
+        } else {
+          LOG.debug(logPath + " file doesn't exist. Ignoring for now");
+        }
       }
     }
     return isReady;
@@ -150,7 +167,25 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
   @Override
   public boolean monitor() {
     if (isReady()) {
-      if (multiFolder) {
+      if (dockerLog && dockerLogParent) {
+        Map<String, Map<String, DockerMetadata>> metadataMap = dockerContainerRegistry.getContainerMetadataMap();
+        String logType = getLogType();
+        threadGroup = new ThreadGroup("docker-parent-" + logType);
+        if (metadataMap.containsKey(logType)) {
+          Map<String, DockerMetadata> dockerMetadataMap = metadataMap.get(logType);
+          for (Map.Entry<String, DockerMetadata> dockerMetadataEntry : dockerMetadataMap.entrySet()) {
+            try {
+              startNewChildDockerInputFileThread(dockerMetadataEntry.getValue());
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          }
+          dockerLogFileUpdateMonitorThread = new Thread(new DockerLogFileUpdateMonitor((InputFile) this, pathUpdateIntervalMin, detachTimeMin), "docker_logfiles_updater=" + logType);
+          dockerLogFileUpdateMonitorThread.setDaemon(true);
+          dockerLogFileUpdateMonitorThread.start();
+        }
+      }
+      else if (multiFolder) {
         try {
           threadGroup = new ThreadGroup(getNameForThread());
           if (getFolderMap() != null) {
@@ -181,6 +216,7 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
 
   @Override
   public InputFileMarker getInputMarker() {
+    // TODO: use this
     return null;
   }
 
@@ -190,10 +226,6 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     LOG.info("init() called");
 
     checkPointExtension = logFeederProps.getCheckPointExtension();
-
-    // Let's close the file and set it to true after we start monitoring it
-    setClosed(true);
-    logPath = getInputDescriptor().getPath();
     checkPointIntervalMS = (int) ObjectUtils.defaultIfNull(((InputFileBaseDescriptor)getInputDescriptor()).getCheckpointIntervalMs(), DEFAULT_CHECKPOINT_INTERVAL_MS);
     detachIntervalMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDetachIntervalMin(), DEFAULT_DETACH_INTERVAL_MIN * 60);
     detachTimeMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDetachTimeMin(), DEFAULT_DETACH_TIME_MIN * 60);
@@ -201,23 +233,37 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     maxAgeMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getMaxAgeMin(), 0);
     boolean initDefaultFields = BooleanUtils.toBooleanDefaultIfNull(getInputDescriptor().isInitDefaultFields(), false);
     setInitDefaultFields(initDefaultFields);
-    if (StringUtils.isEmpty(logPath)) {
-      LOG.error("path is empty for file input. " + getShortDescription());
-      return;
-    }
 
-    setFilePath(logPath);
-    // Check there can have pattern in folder
-    if (getFilePath() != null && getFilePath().contains("/")) {
-      int lastIndexOfSlash = getFilePath().lastIndexOf("/");
-      String folderBeforeLogName = getFilePath().substring(0, lastIndexOfSlash);
-      if (folderBeforeLogName.contains("*")) {
-        LOG.info("Found regex in folder path ('" + getFilePath() + "'), will check against multiple folders.");
-        setMultiFolder(true);
+    // Let's close the file and set it to true after we start monitoring it
+    setClosed(true);
+    dockerLog = BooleanUtils.toBooleanDefaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDockerEnabled(), false);
+    if (dockerLog) {
+      if (logFeederProps.isDockerContainerRegistryEnabled()) {
+        boolean isFileReady = isReady();
+        LOG.info("Container type to monitor " + getType() + ", tail=" + tail + ", isReady=" + isFileReady);
+      } else {
+        LOG.warn("Using docker input, but docker registry usage is not enabled.");
       }
+    } else {
+      logPath = getInputDescriptor().getPath();
+      if (StringUtils.isEmpty(logPath)) {
+        LOG.error("path is empty for file input. " + getShortDescription());
+        return;
+      }
+
+      setFilePath(logPath);
+      // Check there can have pattern in folder
+      if (getFilePath() != null && getFilePath().contains("/")) {
+        int lastIndexOfSlash = getFilePath().lastIndexOf("/");
+        String folderBeforeLogName = getFilePath().substring(0, lastIndexOfSlash);
+        if (folderBeforeLogName.contains("*")) {
+          LOG.info("Found regex in folder path ('" + getFilePath() + "'), will check against multiple folders.");
+          setMultiFolder(true);
+        }
+      }
+      boolean isFileReady = isReady();
+      LOG.info("File to monitor " + logPath + ", tail=" + tail + ", isReady=" + isFileReady);
     }
-    boolean isFileReady = isReady();
-    LOG.info("File to monitor " + logPath + ", tail=" + tail + ", isReady=" + isFileReady);
 
     LogEntryCacheConfig cacheConfig = logFeederProps.getLogEntryCacheConfig();
     initCache(
@@ -292,6 +338,37 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
           LOG.error("Error processing file=" + file.getAbsolutePath(), t);
         }
       }
+    }
+  }
+
+  public void startNewChildDockerInputFileThread(DockerMetadata dockerMetadata) throws CloneNotSupportedException {
+    LOG.info("Start docker child input thread - " + dockerMetadata.getLogPath());
+    InputFile clonedObject = (InputFile) this.clone();
+    clonedObject.setDockerLogParent(false);
+    clonedObject.logPath = dockerMetadata.getLogPath();
+    clonedObject.setFilePath(logPath);
+    clonedObject.logFiles = new File[]{new File(dockerMetadata.getLogPath())};
+    clonedObject.setInputChildMap(new HashMap<>());
+    clonedObject.setDockerLogFileUpdateMonitorThread(null);
+    copyFilters(clonedObject, getFirstFilter());
+    Thread thread = new Thread(threadGroup, clonedObject, "file=" + dockerMetadata.getLogPath());
+    clonedObject.setThread(thread);
+    inputChildMap.put(dockerMetadata.getLogPath(), clonedObject);
+    thread.start();
+  }
+
+  public void stopChildDockerInputFileThread(String logPathKey) {
+    LOG.info("Stop child input thread - " + logPathKey);
+    String filePath = new File(logPathKey).getName();
+    if (inputChildMap.containsKey(logPathKey)) {
+      InputFile inputFile = inputChildMap.get(logPathKey);
+      inputFile.setClosed(true);
+      if (inputFile.getThread() != null && inputFile.getThread().isAlive()) {
+        inputFile.getThread().interrupt();
+      }
+      inputChildMap.remove(logPathKey);
+    } else {
+      LOG.warn(logPathKey + " not found as an input child.");
     }
   }
 
@@ -506,8 +583,35 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     this.logFilePathUpdaterThread = logFilePathUpdaterThread;
   }
 
+  public Thread getDockerLogFileUpdateMonitorThread() {
+    return dockerLogFileUpdateMonitorThread;
+  }
+
+  public void setDockerLogFileUpdateMonitorThread(Thread dockerLogFileUpdateMonitorThread) {
+    this.dockerLogFileUpdateMonitorThread = dockerLogFileUpdateMonitorThread;
+  }
+
   public Integer getMaxAgeMin() {
     return maxAgeMin;
   }
 
+  public void setDockerContainerRegistry(DockerContainerRegistry dockerContainerRegistry) {
+    this.dockerContainerRegistry = dockerContainerRegistry;
+  }
+
+  public DockerContainerRegistry getDockerContainerRegistry() {
+    return dockerContainerRegistry;
+  }
+
+  public boolean isDockerLog() {
+    return dockerLog;
+  }
+
+  public boolean isDockerLogParent() {
+    return dockerLogParent;
+  }
+
+  public void setDockerLogParent(boolean dockerLogParent) {
+    this.dockerLogParent = dockerLogParent;
+  }
 }

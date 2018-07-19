@@ -24,8 +24,9 @@ package org.apache.ambari.logsearch.config.api;
 
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 
-public interface LogLevelFilterMonitor {
+import java.util.Map;
 
+public interface LogLevelFilterMonitor {
   /**
    * Notification of a new or updated log level filter.
    * 
@@ -40,5 +41,10 @@ public interface LogLevelFilterMonitor {
    * @param logId The log of which's log level filter was removed.
    */
   void removeLogLevelFilter(String logId);
+
+  /**
+   * Helper function to get all log level filters
+   */
+  Map<String, LogLevelFilter> getLogLevelFilters();
 
 }

@@ -32,9 +32,9 @@ describe('ClusterInformationCtrl', function() {
       $scope: $scope
     });
 
-    spyOn(Cluster, 'getBlueprint').andReturn(deferred.promise);
-    spyOn(Cluster, 'editName').andReturn(deferred.promise);
-    spyOn(ConfirmationModal, 'show').andReturn(deferred.promise);
+    spyOn(Cluster, 'getBlueprint').and.returnValue(deferred.promise);
+    spyOn(Cluster, 'editName').and.returnValue(deferred.promise);
+    spyOn(ConfirmationModal, 'show').and.returnValue(deferred.promise);
   }));
 
   describe('#getBlueprint', function() {

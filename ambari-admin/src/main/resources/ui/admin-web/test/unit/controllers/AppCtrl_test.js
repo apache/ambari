@@ -47,7 +47,7 @@ describe('#AppCtrl', function () {
     inject(function (_$httpBackend_, $rootScope, $controller, _$window_, _Cluster_, _$q_) {
       clusterService = _Cluster_;
       deferred = _$q_.defer();
-      spyOn(clusterService, 'getStatus').andReturn(deferred.promise);
+      spyOn(clusterService, 'getStatus').and.returnValue(deferred.promise);
       deferred.resolve({
         Clusters: {
           provisioning_state: 'INIT'
@@ -132,7 +132,7 @@ describe('#AppCtrl', function () {
 
   describe('signout', function () {
 
-    beforeEach(function () {
+    beforeEach(function (done) {
       $httpBackend.whenGET(/\/api\/v1\/logout\?_=\d+/).respond(200,{
         message: "successfully logged out"
       });
@@ -145,20 +145,19 @@ describe('#AppCtrl', function () {
           }
         ]
       });
+      scope.signOut();
+      $httpBackend.flush();
+      done();
     });
 
-    it('should reset window.location and ambari localstorage', function () {
-      scope.signOut();
-
-      runs(function() {
-        chai.expect($window.location.pathname).to.equal('/');
-      });
+    it('should reset window.location and ambari localstorage', function (done) {
+      chai.expect($window.location.pathname).to.equal('/');
+      done();
 
       var data = JSON.parse(localStorage.ambari);
       chai.expect(data.app.authenticated).to.equal(undefined);
       chai.expect(data.app.loginName).to.equal(undefined);
       chai.expect(data.app.user).to.equal(undefined);
-      $httpBackend.flush();
     });
   });
 

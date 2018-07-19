@@ -89,4 +89,18 @@ public class LogFeederConstants {
   public static final String CHECKPOINT_EXTENSION_PROPERTY = "logfeeder.checkpoint.extension";
   public static final String DEFAULT_CHECKPOINT_EXTENSION = ".cp";
 
+  public static final String DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY = "logfeeder.docker.registry.enabled";
+  public static final boolean DOCKER_CONTAINER_REGISTRY_ENABLED_DEFAULT = false;
+
+  public static final String USE_LOCAL_CONFIGS_PROPERTY = "logfeeder.configs.local.enabled";
+  public static final boolean USE_LOCAL_CONFIGS_DEFAULT = false;
+
+  public static final String USE_SOLR_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.solr.enabled";
+  public static final boolean USE_SOLR_FILTER_STORAGE_DEFAULT = false;
+
+  public static final String MONITOR_SOLR_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.solr.monitor.enabled";
+  public static final boolean MONITOR_SOLR_FILTER_STORAGE_DEFAULT = true;
+
+  public static final String SOLR_ZK_CONNECTION_STRING = "logfeeder.solr.zk_connect_string";
+
 }
