@@ -1111,6 +1111,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         hostComponentDesiredStateDAO.remove(hostComponentDesiredStateEntity);
         entityManager.detach(hostComponentDesiredStateEntity);
         hostComponentDesiredStateEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        if ("INFRA_SOLR".equals(hostComponentDesiredStateEntity.getComponentName())) {
+          hostComponentDesiredStateEntity.setRestartRequired(true);
+        }
       }
 
       clusterServiceEntity.getServiceComponentDesiredStateEntities().clear();
