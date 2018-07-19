@@ -37,9 +37,9 @@ App.HostComponent = DS.Model.extend({
 
   serviceDisplayName: Em.computed.truncate('service.displayName', 14, 11),
 
-  getDisplayName: Em.computed.truncate('displayName', 19, 16),
+  getDisplayName: Em.computed.truncate('displayName', 30, 25),
 
-  getDisplayNameAdvanced:Em.computed.truncate('displayNameAdvanced', 19, 16),
+  getDisplayNameAdvanced:Em.computed.truncate('displayNameAdvanced', 30, 25),
 
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();
