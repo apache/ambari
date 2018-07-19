@@ -27,7 +27,6 @@ import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PR
 @Configuration
 public class LogSearchConfigApiConfig {
 
-  @Value("${logsearch.config.api.enabled:true}")
   @LogSearchPropertyDescription(
     name = "logsearch.config.api.enabled",
     description = "Enable config API feature and shipperconfig API endpoints.",
@@ -35,7 +34,18 @@ public class LogSearchConfigApiConfig {
     defaultValue = "true",
     sources = {LOGSEARCH_PROPERTIES_FILE}
   )
+  @Value("${logsearch.config.api.enabled:true}")
   private boolean configApiEnabled;
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.api.filter.solr.enabled",
+    description = "Use solr as a log level filter storage",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  @Value("${logsearch.config.api.filter.solr.enabled:false}")
+  public boolean solrFilterStorage;
 
   public boolean isConfigApiEnabled() {
     return configApiEnabled;
@@ -43,5 +53,13 @@ public class LogSearchConfigApiConfig {
 
   public void setConfigApiEnabled(boolean configApiEnabled) {
     this.configApiEnabled = configApiEnabled;
+  }
+
+  public boolean isSolrFilterStorage() {
+    return this.solrFilterStorage;
+  }
+
+  public void setSolrFilterStorage(boolean solrFilterStorage) {
+    this.solrFilterStorage = solrFilterStorage;
   }
 }

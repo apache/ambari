@@ -132,13 +132,52 @@ public class LogFeederProps implements LogFeederProperties {
 
   @LogSearchPropertyDescription(
     name = LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY,
-    description = "",
+    description = "Enable to monitor docker containers and store their metadata in an in-memory registry.",
     examples = {"true"},
     defaultValue = LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_DEFAULT + "",
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
   @Value("${" + LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY + ":false}")
   public boolean dockerContainerRegistryEnabled;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.USE_LOCAL_CONFIGS_PROPERTY,
+    description = "Monitor local input.config-*.json files (do not upload them to zookeeper or solr)",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.USE_LOCAL_CONFIGS_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.USE_LOCAL_CONFIGS_PROPERTY + ":" + LogFeederConstants.USE_LOCAL_CONFIGS_DEFAULT +"}")
+  public boolean useLocalConfigs;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.USE_SOLR_FILTER_STORAGE_PROPERTY,
+    description = "Use solr as a log level filter storage",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.USE_SOLR_FILTER_STORAGE_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.USE_SOLR_FILTER_STORAGE_PROPERTY + ":" + LogFeederConstants.USE_SOLR_FILTER_STORAGE_DEFAULT +"}")
+  public boolean solrFilterStorage;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_PROPERTY,
+    description = "Monitor log level filters (in solr) periodically - used for checking updates.",
+    examples = {"false"},
+    defaultValue = LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_PROPERTY + ":" + LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_DEFAULT +"}")
+  public boolean solrFilterMonitor;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_ZK_CONNECTION_STRING,
+    description = "Zookeeper connection string for Solr.",
+    examples = {"localhost1:2181,localhost2:2181/mysolr_znode"},
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.SOLR_ZK_CONNECTION_STRING + ":}")
+  private String solrZkConnectString;
 
   @Inject
   private LogEntryCacheConfig logEntryCacheConfig;
@@ -243,6 +282,38 @@ public class LogFeederProps implements LogFeederProperties {
 
   public void setDockerContainerRegistryEnabled(boolean dockerContainerRegistryEnabled) {
     this.dockerContainerRegistryEnabled = dockerContainerRegistryEnabled;
+  }
+
+  public boolean isUseLocalConfigs() {
+    return useLocalConfigs;
+  }
+
+  public void setUseLocalConfigs(boolean useLocalConfigs) {
+    this.useLocalConfigs = useLocalConfigs;
+  }
+
+  public boolean isSolrFilterStorage() {
+    return solrFilterStorage;
+  }
+
+  public void setSolrFilterStorage(boolean solrFilterStorage) {
+    this.solrFilterStorage = solrFilterStorage;
+  }
+
+  public String getSolrZkConnectString() {
+    return solrZkConnectString;
+  }
+
+  public void setSolrZkConnectString(String solrZkConnectString) {
+    this.solrZkConnectString = solrZkConnectString;
+  }
+
+  public boolean isSolrFilterMonitor() {
+    return solrFilterMonitor;
+  }
+
+  public void setSolrFilterMonitor(boolean solrFilterMonitor) {
+    this.solrFilterMonitor = solrFilterMonitor;
   }
 
   @PostConstruct

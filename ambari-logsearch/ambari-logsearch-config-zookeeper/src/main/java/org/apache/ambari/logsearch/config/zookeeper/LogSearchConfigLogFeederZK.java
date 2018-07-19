@@ -19,21 +19,18 @@
 
 package org.apache.ambari.logsearch.config.zookeeper;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.logsearch.config.api.LogLevelFilterManager;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
-import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
-import org.apache.ambari.logsearch.config.zookeeper.model.outputconfig.impl.OutputSolrPropertiesImpl;
+import org.apache.ambari.logsearch.config.json.JsonHelper;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
@@ -45,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements LogSearchConfigLogFeeder {
@@ -64,6 +60,8 @@ public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements Log
     }
     
     logFeederClusterCache = new TreeCache(client, String.format("/%s", clusterName));
+    LogLevelFilterManager logLevelFilterManager = new LogLevelFilterManagerZK(client, null, getAcls(), gson);
+    setLogLevelFilterManager(logLevelFilterManager);
   }
 
   @Override
@@ -135,7 +133,7 @@ public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements Log
           for (Map.Entry<String, JsonElement> typeEntry : inputConfigJson.getAsJsonObject().entrySet()) {
             for (JsonElement e : typeEntry.getValue().getAsJsonArray()) {
               for (JsonElement globalConfig : globalConfigNode) {
-                merge(globalConfig.getAsJsonObject(), e.getAsJsonObject());
+                JsonHelper.merge(globalConfig.getAsJsonObject(), e.getAsJsonObject());
               }
             }
           }
@@ -162,19 +160,6 @@ public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements Log
             break;
         }
       }
-
-      private void merge(JsonObject source, JsonObject target) {
-        for (Map.Entry<String, JsonElement> e : source.entrySet()) {
-          if (!target.has(e.getKey())) {
-            target.add(e.getKey(), e.getValue());
-          } else {
-            if (e.getValue().isJsonObject()) {
-              JsonObject valueJson = (JsonObject)e.getValue();
-              merge(valueJson, target.get(e.getKey()).getAsJsonObject());
-            }
-          }
-        }
-      }
     };
     logFeederClusterCache.getListenable().addListener(listener);
     logFeederClusterCache.start();
@@ -193,36 +178,5 @@ public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements Log
     } catch (Exception e) {
       LOG.warn("Exception during global config node creation/update", e);
     }
-  }
-
-  @Override
-  public OutputSolrProperties getOutputSolrProperties(String type) throws Exception {
-    String nodePath = String.format("/output/solr/%s", type);
-    ChildData currentData = outputCache.getCurrentData(nodePath);
-    return currentData == null ?
-        null :
-        gson.fromJson(new String(currentData.getData()), OutputSolrPropertiesImpl.class);
-  }
-
-  @Override
-  public void monitorOutputProperties(final List<? extends OutputConfigMonitor> outputConfigMonitors) throws Exception {
-    TreeCacheListener listener = new TreeCacheListener() {
-      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        if (event.getType() != Type.NODE_UPDATED) {
-          return;
-        }
-        
-        LOG.info("Output config updated: " + event.getData().getPath());
-        for (OutputConfigMonitor monitor : outputConfigMonitors) {
-          String monitorPath = String.format("/output/%s/%s", monitor.getDestination(), monitor.getOutputType());
-          if (monitorPath.equals(event.getData().getPath())) {
-            String nodeData = new String(event.getData().getData());
-            OutputSolrProperties outputSolrProperties = gson.fromJson(nodeData, OutputSolrPropertiesImpl.class);
-            monitor.outputConfigChanged(outputSolrProperties);
-          }
-        }
-      }
-    };
-    outputCache.getListenable().addListener(listener);
   }
 }

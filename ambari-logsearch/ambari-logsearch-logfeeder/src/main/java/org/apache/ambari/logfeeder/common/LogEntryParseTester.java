@@ -34,9 +34,9 @@ import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.json.JsonHelper;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
@@ -124,10 +124,6 @@ public class LogEntryParseTester {
       }
 
       @Override
-      public void outputConfigChanged(OutputProperties outputProperties) {
-      }
-
-      @Override
       public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
       }
       
@@ -150,24 +146,11 @@ public class LogEntryParseTester {
     for (JsonObject globalConfig : globalConfigs) {
       for (Map.Entry<String, JsonElement> typeEntry : shipperConfigJson.getAsJsonObject().entrySet()) {
         for (JsonElement e : typeEntry.getValue().getAsJsonArray()) {
-          merge(globalConfig, e.getAsJsonObject());
+          JsonHelper.merge(globalConfig, e.getAsJsonObject());
         }
       }
     }
     return InputConfigGson.gson.fromJson(shipperConfigJson, InputConfigImpl.class);
-  }
-  
-  private void merge(JsonObject source, JsonObject target) {
-    for (Map.Entry<String, JsonElement> e : source.entrySet()) {
-      if (!target.has(e.getKey())) {
-        target.add(e.getKey(), e.getValue());
-      } else {
-        if (e.getValue().isJsonObject()) {
-          JsonObject valueJson = (JsonObject)e.getValue();
-          merge(valueJson, target.get(e.getKey()).getAsJsonObject());
-        }
-      }
-    }
   }
 
 }
