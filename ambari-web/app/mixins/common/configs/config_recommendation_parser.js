@@ -86,6 +86,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
                 updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], name, fileName, configGroup);
               }
             }
+            Em.tryInvoke(config, 'validate');
           }
         }
       }
