@@ -725,9 +725,9 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
   },
 
   doCheckJDK: function () {
-    var hostsNames = (!this.get('content.installOptions.manualInstall')) ? this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",") : this.get('bootHosts').getEach('name').join(",");
-    var javaHome = this.get('javaHome');
-    var jdkLocation = this.get('jdkLocation');
+    const hostsNames = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(','),
+      javaHome = this.get('javaHome'),
+      jdkLocation = this.get('jdkLocation');
     App.ajax.send({
       name: 'wizard.step3.jdk_check',
       sender: this,
