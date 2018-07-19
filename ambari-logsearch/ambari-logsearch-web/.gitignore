@@ -42,22 +42,4 @@ testem.log
 Thumbs.db
 
 # Development Test Files
-#
-# Webpack Development Config
-# In order to use Webpack Devserver proxy without changing the main config file
-# and commit accidentally we can use a webpack.config.dev.js file for that
-# Eg.:
-# const merge = require('webpack-merge');
-# const baseConfig = require('./webpack.config.js');
-#
-# module.exports = merge(baseConfig, {
-#   devServer: {
-#     historyApiFallback: true,
-#     proxy: {
-#       '/': 'http://c7401.ambari.apache.org:61888'
-#     }
-#   }
-# });
-# And you can start it that way: NODE_ENV=production yarn start --config webpack.config.dev.js
-# You have to set the NODE_ENV to production in order to skip the mock data usage
 webpack.config.dev.js
