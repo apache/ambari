@@ -38,10 +38,8 @@ App.MainHostDetailsView = Em.View.extend({
 
   hasManyClientsWithConfigs: Em.computed.gt('clientsWithConfigs.length', 1),
 
-  isActive: Em.computed.equal('controller.content.passiveState', 'OFF'),
-
   maintenance: function () {
-    var onOff = this.get('isActive') ? "On" : "Off";
+    var onOff = this.get('controller.content.isActive') ? "On" : "Off";
     var result = [];
     if (App.isAuthorized("SERVICE.START_STOP")) {
       result = result.concat([
