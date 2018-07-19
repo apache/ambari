@@ -143,19 +143,12 @@ class TestMpackPackages(RMFTestCase):
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("ambari_commons.shell.launch_subprocess")
   def test_normal_flow_rhel(self,
                                     subprocess_with_timeout,
-                                    stack_versions_mock,
                                     put_structured_out_mock,
                                     get_provider,
                                     list_ambari_managed_repos_mock):
-    stack_versions_mock.side_effect = [
-      [],  # before installation attempt
-      [VERSION_STUB]
-    ]
-
     from ambari_commons.os_check import OSConst
     from ambari_commons.repo_manager import ManagerFactory
 

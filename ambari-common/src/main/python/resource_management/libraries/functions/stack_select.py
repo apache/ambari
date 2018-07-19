@@ -40,7 +40,6 @@ from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
 from resource_management.libraries.functions import stack_features
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import upgrade_summary
@@ -469,26 +468,6 @@ def unsafe_get_stack_versions():
     for line in out.splitlines():
       versions.append(line.rstrip('\n'))
   return (code, out, versions)
-
-
-@deprecated(comment = "The stack-select tools are no longer used")
-def get_stack_versions(stack_root):
-  """
-  Gets list of stack versions installed on the host.
-  By default a call to <stack-selector-tool> versions is made to get the list of installed stack versions.
-  As a fallback list of installed versions is collected from stack version directories in stack install root.
-  :param stack_root: Stack install root
-  :return: Returns list of installed stack versions.
-  """
-  stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
-  code, out = call((STACK_SELECT_PREFIX, stack_selector_path, 'versions'))
-  versions = []
-  if 0 == code:
-    for line in out.splitlines():
-      versions.append(line.rstrip('\n'))
-  if not versions:
-    versions = get_versions_from_stack_root(stack_root)
-  return versions
 
 
 @deprecated(comment = "The stack-select tools are no longer used")
