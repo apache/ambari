@@ -46,6 +46,7 @@ import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.powermock.api.easymock.PowerMock;
 
@@ -137,6 +138,11 @@ public class OozieConfigCalculationTest {
     agentConfigsHolderField.setAccessible(true);
   }
 
+  /**
+   * Before mpack upgrade package is implemented, this test case is invalid
+   * TODO [AMP] mpack upgrade
+   */
+  @Ignore
   @Test
   public void testAction() throws Exception {
     Map<String, String> commandParams = new HashMap<>();

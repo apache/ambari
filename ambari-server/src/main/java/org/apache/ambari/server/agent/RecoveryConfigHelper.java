@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
@@ -311,6 +312,11 @@ public class RecoveryConfigHelper {
       List<RecoveryConfigComponent> enabledComponents = new ArrayList<>();
 
       if (cluster == null) {
+        return enabledComponents;
+      }
+
+      // If the cluster has disabled recovery, there should be no service components can be auto started
+      if (configProperties.containsKey(RecoveryConfigHelper.RECOVERY_ENABLED_KEY) && !BooleanUtils.toBoolean(configProperties.get(RECOVERY_ENABLED_KEY))) {
         return enabledComponents;
       }
 

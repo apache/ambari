@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -38,6 +41,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -56,6 +60,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -120,6 +125,9 @@ public class CreateAndConfigureActionTest {
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
 
+  @Inject
+  private AmbariMetaInfo metaInfo;
+
   private MpackEntity mpack211;
   private MpackEntity mpack220;
   private MpackEntity mpack221;
@@ -174,6 +182,18 @@ public class CreateAndConfigureActionTest {
     c.setDesiredStackVersion(mpack220.getStackId());
 
     createUpgrade(c, mpack220);
+
+    Mpack.MpackChangeSummary mpackChangeSummary = createNiceMock(Mpack.MpackChangeSummary.class);
+    Mpack mpack = createNiceMock("myMock", Mpack.class);
+    Mpack mpack2 = createNiceMock("myMock2", Mpack.class);
+    expect(mpack.getChangeSummary(mpack2)).andReturn(mpackChangeSummary).anyTimes();
+    expect(mpackChangeSummary.getSource()).andReturn(mpack).anyTimes();
+    expect(mpackChangeSummary.getTarget()).andReturn(mpack2).anyTimes();
+    expect(mpack.getStackId()).andReturn(mpack211.getStackId()).anyTimes();
+    expect(mpack2.getStackId()).andReturn(mpack211.getStackId()).anyTimes();
+    replay(mpackChangeSummary, mpack, mpack2);
+    metaInfo.getMpackManager().getMpackMap().put(1L, mpack);
+    metaInfo.getMpackManager().getMpackMap().put(2L, mpack2);
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");

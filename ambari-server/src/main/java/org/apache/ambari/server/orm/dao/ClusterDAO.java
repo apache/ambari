@@ -364,7 +364,7 @@ public class ClusterDAO {
       entityManager.flush();
     }
 
-    return clusterEntity;
+    return findById(clusterEntity.getClusterId());
   }
 
   /**
