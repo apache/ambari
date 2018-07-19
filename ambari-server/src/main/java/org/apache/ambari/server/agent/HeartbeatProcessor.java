@@ -67,7 +67,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
-import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
@@ -371,13 +370,19 @@ public class HeartbeatProcessor extends AbstractService{
         }
       }
 
+      // get the status of the command
+      HostRoleStatus status = HostRoleStatus.valueOf(report.getStatus());
+
       @Nullable
       JsonObject structuredOutputJson = null;
       String structuredOutputString = report.getStructuredOut();
-      if (StringUtils.isNotBlank(structuredOutputString)
-          && !StringUtils.equals(structuredOutputString, "{}")) {
-        JsonElement element = gson.fromJson(structuredOutputString, JsonElement.class);
-        structuredOutputJson = element.getAsJsonObject();
+      // only try to parse thes structured output if the command is completed
+      if (status.isCompletedState()) {
+        if (StringUtils.isNotBlank(structuredOutputString)
+            && !StringUtils.equals(structuredOutputString, "{}")) {
+          JsonElement element = gson.fromJson(structuredOutputString, JsonElement.class);
+          structuredOutputJson = element.getAsJsonObject();
+        }
       }
 
       // If the report indicates the keytab file was successfully transferred to a host or removed
@@ -385,7 +390,7 @@ public class HeartbeatProcessor extends AbstractService{
       if (Service.Type.KERBEROS.name().equalsIgnoreCase(report.getServiceName()) &&
           Role.KERBEROS_CLIENT.name().equalsIgnoreCase(report.getRole()) &&
           RoleCommand.CUSTOM_COMMAND.name().equalsIgnoreCase(report.getRoleCommand()) &&
-          RequestExecution.Status.COMPLETED.name().equalsIgnoreCase(report.getStatus())) {
+          HostRoleStatus.COMPLETED == status) {
 
         String customCommand = report.getCustomCommand();
 
@@ -456,7 +461,7 @@ public class HeartbeatProcessor extends AbstractService{
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostName);
           String schName = scHost.getServiceComponentName();
 
-          if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
+          if (HostRoleStatus.COMPLETED == status) {
             // Reading component version if it is present
             ComponentVersionStructuredOut componentVersionStructuredOut = null;
             if (null != structuredOutputJson) {
@@ -523,7 +528,7 @@ public class HeartbeatProcessor extends AbstractService{
               scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(schName,
                   hostName, now));
             }
-          } else if (report.getStatus().equals("FAILED")) {
+          } else if (HostRoleStatus.FAILED == status) {
             if (structuredOutputJson != null) {
               JsonElement upgradeStructedOutput = structuredOutputJson.get(
                   StructuredOutputType.UPGRADE_SUMMARY.getRoot());
@@ -550,7 +555,7 @@ public class HeartbeatProcessor extends AbstractService{
                 LOG.info("Received report for a command that is no longer active. " + report);
               }
             }
-          } else if (report.getStatus().equals("IN_PROGRESS")) {
+          } else if (HostRoleStatus.IN_PROGRESS == status) {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
                 hostName, now));
           }

@@ -244,7 +244,7 @@ public class MpackInstallStateListener {
         if(null != installReportingElement) {
           // try to parse the structured output of the install command
           structuredOutput = m_gson.fromJson(installReportingElement,
-              InstallCommandStructuredOutput.class);          
+              InstallCommandStructuredOutput.class);
         }
       }
     } catch (JsonSyntaxException jsonException) {
@@ -323,12 +323,6 @@ public class MpackInstallStateListener {
    */
   private static class InstallCommandStructuredOutput {
     /**
-     * Either SUCCESS or FAIL
-     */
-    @SerializedName("package_installation_result")
-    private String packageInstallationResult;
-
-    /**
      * The actual version returned, even when a failure during install occurs.
      */
     @SerializedName("mpackName")
@@ -339,5 +333,11 @@ public class MpackInstallStateListener {
      */
     @SerializedName("mpackId")
     private Long mpackId = null;
+
+    /**
+     * The version of the mpack, including build number.
+     */
+    @SerializedName("mpackVersion")
+    private String mpackVersion = null;
   }
 }

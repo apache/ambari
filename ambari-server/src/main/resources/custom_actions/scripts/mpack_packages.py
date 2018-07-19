@@ -42,7 +42,23 @@ class MpackPackages(Script):
     self.repo_mgr = ManagerFactory.get()
     self.repo_files = {}
 
+  def should_write_mpack_information(self):
+    """
+    Returns True always as this script should always write out mpack information.
+    :return:  True
+    """
+    return True
+
   def actionexecute(self, env):
+    """
+    Executes this script which performs the following work:
+      - Checks the transaction state of the package manager
+      - Attempts to install packages
+
+    If either is unsuccessful, this will raise a Fail() and the command will be failed.
+    :param env:
+    :return:
+    """
     num_errors = 0
 
     # Parse parameters
@@ -83,14 +99,6 @@ class MpackPackages(Script):
       Logger.logger.exception("Cannot install repository files. Error: {0}".format(str(err)))
       num_errors += 1
 
-    # Build structured output with initial values
-    self.structured_output = {
-      'package_installation_result': 'FAIL',
-      'mpackId': command_repository.mpack_id
-    }
-
-    self.put_structured_out(self.structured_output)
-
     try:
       # check package manager non-completed transactions
       if self.repo_mgr.check_uncompleted_transactions():
@@ -106,14 +114,14 @@ class MpackPackages(Script):
     try:
       ret_code = self.install_packages(package_list)
 
-      if ret_code == 0:
-        self.structured_output['package_installation_result'] = 'SUCCESS'
-        self.put_structured_out(self.structured_output)
-      else:
+      if ret_code != 0:
         num_errors += 1
     except Exception as err:
       num_errors += 1
       Logger.logger.exception("Could not install packages. Error: {0}".format(str(err)))
+
+    # save mmpack information to structured output
+    self.save_mpack_to_structured_out()
 
     # Provide correct exit code
     if num_errors > 0:

@@ -48,7 +48,6 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
-from resource_management.libraries.functions import version_select_util
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
@@ -182,16 +181,11 @@ class Script(object):
     return None
 
 
-  def save_mpack_to_structured_out(self, command_name):
+  def save_mpack_to_structured_out(self, ):
     """
-    Writes out information about the managment pack which was installed if this is an installation command.
-    :param command_name: command name
+    Writes out information about the managment pack associated with the command.
     :return: None
     """
-    is_install_command = command_name is not None and command_name.lower() == "install"
-    if not is_install_command:
-      return
-
     command_repository = CommandRepository(self.get_config()['repositoryFile'])
 
     Logger.info("Reporting installation state for {0}".format(command_repository))
@@ -205,13 +199,11 @@ class Script(object):
     self.put_structured_out({"mpack_installation": mpack_dictionary})
 
 
-  def save_component_version_to_structured_out(self, command_name):
+  def save_component_version_to_structured_out(self):
     """
     Saves the version of the component for this command to the structured out file. If the
     command is an install command and the repository is trusted, then it will use the version of
     the repository. Otherwise, it will consult the stack-select tool to read the symlink version.
-
-    :param command_name: command name
     :return: None
     """
     from resource_management.libraries.functions import mpack_manager_helper
@@ -245,22 +237,38 @@ class Script(object):
           component_type, mpack_name))
 
 
-  def should_expose_component_version(self, command_name):
+  def should_write_mpack_information(self):
+    """
+    Gets whether this command should write out mpack information to the structured output.
+    This is usually only done in cases where the command is an install command.
+    However, scripts can override this function to provide their own handling.
+    :return: True if the mpack information should be written to structured output, False otherwise.
+    """
+    if self.is_hook():
+      return;
+
+    is_install_command = self.command_name is not None and self.command_name.lower() == "install"
+    if not is_install_command:
+      return False
+
+    return True
+
+
+  def should_expose_component_version(self):
     """
     Analyzes config and given command to determine if stack version should be written
     to structured out.
-    :param command_name: command name
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    if command_name.lower() == "status":
+    if self.command_name.lower() == "status":
       request_version = default("/commandParams/request_version", None)
       if request_version is not None:
         return True
     else:
       # Populate version only on base commands
       version_reporting_commands = ["start", "install", "restart"]
-      return command_name.lower() in version_reporting_commands
+      return self.command_name.lower() in version_reporting_commands
 
     return False
 
@@ -356,10 +364,11 @@ class Script(object):
       ex.pre_raise()
       raise
     finally:
-      self.save_mpack_to_structured_out(self.command_name)
+      if self.should_write_mpack_information():
+        self.save_mpack_to_structured_out()
 
-      if self.should_expose_component_version(self.command_name):
-        self.save_component_version_to_structured_out(self.command_name)
+      if self.should_expose_component_version():
+        self.save_component_version_to_structured_out()
 
   def execute_prefix_function(self, command_name, afix, env):
     """
