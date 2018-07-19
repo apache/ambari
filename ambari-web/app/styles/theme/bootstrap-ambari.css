@@ -929,7 +929,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a,
 .navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a {
-  padding: 10px 5px 10px 25px;
+  padding: 8px 5px 8px 25px;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer,
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer {
@@ -959,12 +959,13 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  line-height: initial;
   font-size: 14px;
   color: #999;
 }
 .navigation-bar-container ul.nav.side-nav-menu li > ul > li a .submenu-icon,
 .navigation-bar-container ul.nav.side-nav-footer li > ul > li a .submenu-icon {
-  line-height: 14px;
+  line-height: initial;
   font-size: 14px;
 }
 .navigation-bar-container ul.nav.side-nav-menu li > ul > li > a:hover,
