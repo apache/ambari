@@ -45,7 +45,22 @@
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-config-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-logsearch-config-zookeeper</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-config-local</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-config-solr</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

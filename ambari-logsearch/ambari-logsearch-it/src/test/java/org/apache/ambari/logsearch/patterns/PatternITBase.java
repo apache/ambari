@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogEntryParseTester;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputAdapter;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputAdapter;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;

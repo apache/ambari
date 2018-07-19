@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.ambari.logsearch.common.LogType;
+import org.apache.ambari.logsearch.conf.SolrClientsHolder;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.ambari.logsearch.conf.SolrServiceLogPropsConfig;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
@@ -39,13 +40,14 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   @Inject
   private SolrServiceLogPropsConfig solrServiceLogPropsConfig;
 
-  @Inject
-  @Named("serviceSolrTemplate")
   private volatile SolrTemplate serviceSolrTemplate;
 
   @Inject
   @Named("solrServiceLogsState")
   private SolrCollectionState solrServiceLogsState;
+
+  @Inject
+  private SolrClientsHolder solrClientsHolder;
 
   public ServiceLogsSolrDao() {
     super(LogType.SERVICE);
@@ -65,7 +67,7 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   public void postConstructor() {
     LOG.info("postConstructor() called.");
     try {
-      new SolrCollectionConfigurer(this, true).start();
+      new SolrCollectionConfigurer(this, true, solrClientsHolder, SolrClientsHolder.CollectionType.HISTORY).start();
     } catch (Exception e) {
       LOG.error("error while connecting to Solr for service logs : solrUrl=" + solrServiceLogPropsConfig.getSolrUrl()
         + ", zkConnectString=" + solrServiceLogPropsConfig.getZkConnectString()
