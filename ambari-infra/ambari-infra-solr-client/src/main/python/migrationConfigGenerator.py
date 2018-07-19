@@ -305,7 +305,12 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
 
   infra_solr_user = infra_solr_env_props['infra_solr_user'] if 'infra_solr_user' in infra_solr_env_props else 'infra-solr'
   infra_solr_kerberos_keytab = infra_solr_env_props['infra_solr_kerberos_keytab'] if 'infra_solr_kerberos_keytab' in infra_solr_env_props else '/etc/security/keytabs/ambari-infra-solr.service.keytab'
-  infra_solr_kerberos_principal = infra_solr_user + "/" + host
+  infra_solr_kerberos_principal_config = infra_solr_env_props['infra_solr_kerberos_principal'] if 'infra_solr_kerberos_principal' in infra_solr_env_props else 'infra-solr'
+  infra_solr_kerberos_principal = "infra-solr/" + host
+  if '/' in infra_solr_kerberos_principal_config:
+    infra_solr_kerberos_principal = infra_solr_kerberos_principal_config.replace('_HOST',host)
+  else:
+    infra_solr_kerberos_principal = infra_solr_kerberos_principal_config + "/" + host
   infra_solr_port = infra_solr_env_props['infra_solr_port'] if 'infra_solr_port' in infra_solr_env_props else '8886'
 
   config.add_section('local')
