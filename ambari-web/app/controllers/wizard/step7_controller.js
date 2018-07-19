@@ -1904,6 +1904,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   selectService: function (event) {
+    event.context.set('isActive', true);
     this.set('selectedService', event.context);
     var activeTabs = this.get('tabs').findProperty('isActive', true);
     if (activeTabs) {
@@ -2079,6 +2080,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     Em.run.next(this, function () {
       this.set('filter', propertyName);
     });
+
+    this.get('stepConfigs').setEach('isActive', false);
+    stepConfig.set('isActive', true);
   },
 
   /**
