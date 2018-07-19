@@ -274,6 +274,7 @@ App.HostComponentView = Em.View.extend({
   didInsertElement: function () {
     App.tooltip($('[rel=componentHealthTooltip]'));
     App.tooltip($('[rel=passiveTooltip]'));
+    App.tooltip($('[rel=componentNameTooltip]'));
     if (this.get('isInProgress')) {
       this.doBlinking();
     }
