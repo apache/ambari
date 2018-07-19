@@ -49,7 +49,7 @@ public class LogLevelFilterUpdaterSolr extends LogLevelFilterUpdater {
   @Override
   protected void checkFilters(LogLevelFilterMonitor logLevelFilterMonitor) {
     try {
-      LOG.info("Start checking log level filters in Solr ...");
+      LOG.debug("Start checking log level filters in Solr ...");
       LogLevelFilterMap logLevelFilterMap = logLevelFilterManagerSolr.getLogLevelFilters(cluster);
       Map<String, LogLevelFilter> filters = logLevelFilterMap.getFilter();
       Map<String, LogLevelFilter> copiedStoredFilters = new ConcurrentHashMap<>(logLevelFilterMonitor.getLogLevelFilters());
@@ -57,7 +57,7 @@ public class LogLevelFilterUpdaterSolr extends LogLevelFilterUpdater {
       for (Map.Entry<String, LogLevelFilter> logFilterEntry : filters.entrySet()){
         if (copiedStoredFilters.containsKey(logFilterEntry.getKey())) {
           String remoteValue = gson.toJson(logFilterEntry.getValue());
-          String storedValue = gson.toJson(filters.get(logFilterEntry.getKey()));
+          String storedValue = gson.toJson(copiedStoredFilters.get(logFilterEntry.getKey()));
           if (!storedValue.equals(remoteValue)) {
             LOG.info("Log level filter updated for {}", logFilterEntry.getKey());
             logLevelFilterMonitor.setLogLevelFilter(logFilterEntry.getKey(), logFilterEntry.getValue());

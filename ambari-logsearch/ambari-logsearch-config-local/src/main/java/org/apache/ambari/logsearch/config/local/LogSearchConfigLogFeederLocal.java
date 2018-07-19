@@ -56,7 +56,7 @@ public class LogSearchConfigLogFeederLocal extends LogSearchConfigLocal implemen
   public void init(Map<String, String> properties, String clusterName) throws Exception {
     super.init(properties);
     setConfigDir(properties.getOrDefault("logfeeder.config.dir", "/usr/lib/ambari-logsearch-logfeeder/conf"));
-    boolean localConfig = Boolean.valueOf(properties.getOrDefault("logfeeder.config.filter.local", "false")); // TODO: false
+    boolean localConfig = Boolean.valueOf(properties.getOrDefault("logfeeder.config.filter.local", "false"));
     if (localConfig) {
       setLogLevelFilterManager(new LogLevelFilterManagerLocal(getConfigDir(), gson));
     }

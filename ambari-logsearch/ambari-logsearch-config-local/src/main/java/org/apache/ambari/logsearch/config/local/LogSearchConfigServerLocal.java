@@ -40,7 +40,7 @@ public class LogSearchConfigServerLocal extends LogSearchConfigLocal implements 
     if (!confDirFile.exists()) {
       confDirFile.mkdir();
     }
-    boolean localConfig = Boolean.valueOf(properties.getOrDefault("logsearch.logfeeder.config.filter.local", "false")); // TODO: false
+    boolean localConfig = Boolean.valueOf(properties.getOrDefault("logsearch.logfeeder.config.filter.local", "false"));
     if (localConfig) {
       setLogLevelFilterManager(new LogLevelFilterManagerLocal(getConfigDir(), gson));
     }
