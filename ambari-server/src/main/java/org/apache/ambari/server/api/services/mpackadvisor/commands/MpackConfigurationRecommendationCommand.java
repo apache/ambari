@@ -57,7 +57,7 @@ public class MpackConfigurationRecommendationCommand extends
       throw new MpackAdvisorException("Hosts must not be empty");
     }
 
-    if (request.getMpackInstances() != null || !request.getMpackInstances().isEmpty()) {
+    if (request.getMpackInstances() != null && !request.getMpackInstances().isEmpty()) {
       for (MpackInstance mpackInstance : request.getMpackInstances()) {
         if (mpackInstance.getServiceInstances() == null || mpackInstance.getServiceInstances().isEmpty()) {
           throw new MpackAdvisorException("Service instances for Mpack Instance " + mpackInstance.getMpackName()
