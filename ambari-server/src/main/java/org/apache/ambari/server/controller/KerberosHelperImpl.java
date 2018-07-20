@@ -3866,7 +3866,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         String commandName, List<RequestResourceFilter> resourceFilters,
         Map<String, String> parameters, boolean retryAllowed) {
 
-      ActionExecutionContext actionExecContext = new ActionExecutionContext(clusterName, SET_KEYTAB,
+      ActionExecutionContext actionExecContext = new ActionExecutionContext(clusterName, commandName,
           resourceFilters, parameters);
 
       actionExecContext.setRetryAllowed(retryAllowed);
