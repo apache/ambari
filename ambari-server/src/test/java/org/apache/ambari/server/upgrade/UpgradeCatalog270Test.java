@@ -1113,7 +1113,7 @@ public class UpgradeCatalog270Test {
     Capture<Map<String, String>> logFeederOutputConfCapture = EasyMock.newCapture();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederOutputConfCapture), anyString(),
         EasyMock.anyObject())).andReturn(config).once();
-    
+
     String serviceConfigMapping = "serviceconfigmapping";
     String clusterConfig = "clusterconfig";
     dbAccessor.executeQuery(startsWith("DELETE FROM "+ serviceConfigMapping));

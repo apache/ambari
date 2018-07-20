@@ -1528,7 +1528,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   }
 
   private void removeLogSearchPatternConfigs(DBAccessor dbAccessor) throws SQLException {
-    // remove config types with -logsearch-conf prefix
+    // remove config types with -logsearch-conf suffix
     String configSuffix = "-logsearch-conf";
     String serviceConfigMappingRemoveSQL = String.format(
       "DELETE FROM %s WHERE config_id IN (SELECT config_id from %s where type_name like '%%%s')",
