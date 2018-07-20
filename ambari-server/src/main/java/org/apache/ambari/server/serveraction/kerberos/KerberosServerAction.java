@@ -455,7 +455,8 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
-        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs((Map<String, Collection<String>>) getServiceComponentFilter(), getHostFilter(), getIdentityFilter())) {
+        Map<String, Collection<String>> serviceComponentFilter = kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), getServiceComponentFilter());
+        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, getHostFilter(), getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
             commandReport = processIdentity(principal, handler, kerberosConfiguration, requestSharedDataContext);
             // If the principal processor returns a CommandReport, than it is time to stop since
