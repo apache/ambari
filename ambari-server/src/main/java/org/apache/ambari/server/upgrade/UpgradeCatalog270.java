@@ -259,6 +259,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
+  public static final String SERVICE_CONFIG_MAPPING_TABLE = "serviceconfigmapping";
+  public static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
+
   // Broken constraints added by Views
   public static final String FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME = "fk_hostcomponentdesiredstate_component_name";
   public static final String FK_HOSTCOMPONENTSTATE_COMPONENT_NAME = "fk_hostcomponentstate_component_name";
@@ -1429,7 +1432,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    *
    * @throws AmbariException
    */
-  protected void updateLogSearchConfigs() throws AmbariException {
+  protected void updateLogSearchConfigs() throws AmbariException, SQLException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
     if (clusters != null) {
@@ -1438,11 +1441,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          cluster.getAllConfigs().stream()
-                  .map(Config::getType)
-                  .filter(configType -> configType.endsWith("-logsearch-conf"))
-                  .collect(Collectors.toSet())
-          .forEach(configType -> configHelper.removeConfigsByType(cluster, configType));
 
           Config logSearchEnv = cluster.getDesiredConfigByType("logsearch-env");
 
@@ -1522,9 +1520,26 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-output-config", Collections.singletonMap("content", content), true, true);
           }
+          DBAccessor dba = dbAccessor != null ? dbAccessor : injector.getInstance(DBAccessor.class); // for testing
+          removeLogSearchPatternConfigs(dba);
         }
       }
     }
+  }
+
+  private void removeLogSearchPatternConfigs(DBAccessor dbAccessor) throws SQLException {
+    // remove config types with -logsearch-conf prefix
+    String configSuffix = "-logsearch-conf";
+    String serviceConfigMappingRemoveSQL = String.format(
+      "DELETE FROM %s WHERE config_id IN (SELECT config_id from %s where type_name like '%%%s')",
+      SERVICE_CONFIG_MAPPING_TABLE, CLUSTER_CONFIG_TABLE, configSuffix);
+
+    String clusterConfigRemoveSQL = String.format(
+      "DELETE FROM %s WHERE type_name like '%%%s'",
+      CLUSTER_CONFIG_TABLE, configSuffix);
+
+    dbAccessor.executeQuery(serviceConfigMappingRemoveSQL);
+    dbAccessor.executeQuery(clusterConfigRemoveSQL);
   }
 
   private void removeAdminHandlersFrom(Cluster cluster, String configType) throws AmbariException {

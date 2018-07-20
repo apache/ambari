@@ -155,7 +155,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -998,31 +997,15 @@ public class UpgradeCatalog270Test {
         .addMockedMethod("createConfig")
         .createNiceMock();
     ConfigHelper configHelper = createMockBuilder(ConfigHelper.class)
-        .addMockedMethod("removeConfigsByType")
         .addMockedMethod("createConfigType", Cluster.class, StackId.class, AmbariManagementController.class,
             String.class, Map.class, String.class, String.class)
         .createMock();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(injector2.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
+    expect(injector2.getInstance(DBAccessor.class)).andReturn(dbAccessor).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
 
-    Config confSomethingElse1 = easyMockSupport.createNiceMock(Config.class);
-    expect(confSomethingElse1.getType()).andReturn("something-else-1");
-    Config confSomethingElse2 = easyMockSupport.createNiceMock(Config.class);
-    expect(confSomethingElse2.getType()).andReturn("something-else-2");
-    Config confLogSearchConf1 = easyMockSupport.createNiceMock(Config.class);
-    expect(confLogSearchConf1.getType()).andReturn("service-1-logsearch-conf");
-    Config confLogSearchConf2 = easyMockSupport.createNiceMock(Config.class);
-    expect(confLogSearchConf2.getType()).andReturn("service-2-logsearch-conf");
-
-    Collection<Config> configs = Arrays.asList(confSomethingElse1, confLogSearchConf1, confSomethingElse2, confLogSearchConf2);
-
-    expect(cluster.getAllConfigs()).andReturn(configs).atLeastOnce();
-    configHelper.removeConfigsByType(cluster, "service-1-logsearch-conf");
-    expectLastCall().once();
-    configHelper.removeConfigsByType(cluster, "service-2-logsearch-conf");
-    expectLastCall().once();
     configHelper.createConfigType(anyObject(Cluster.class), anyObject(StackId.class), eq(controller),
         eq("logsearch-common-properties"), eq(Collections.emptyMap()), eq("ambari-upgrade"),
         eq("Updated logsearch-common-properties during Ambari Upgrade from 2.6.0 to 3.0.0"));
@@ -1131,9 +1114,16 @@ public class UpgradeCatalog270Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederOutputConfCapture), anyString(),
         EasyMock.anyObject())).andReturn(config).once();
 
-    replay(clusters, cluster);
+    String logsearchConfPrefix = "-logsearch-conf";
+    String serviceConfigMapping = "serviceconfigmapping";
+    String clusterConfig = "clusterconfig";
+    dbAccessor.executeQuery(startsWith("DELETE FROM "+ serviceConfigMapping));
+    expectLastCall().once();
+    dbAccessor.executeQuery(startsWith("DELETE FROM "+ clusterConfig));
+    expectLastCall().once();
+
+    replay(clusters, cluster, dbAccessor);
     replay(controller, injector2);
-    replay(confSomethingElse1, confSomethingElse2, confLogSearchConf1, confLogSearchConf2);
     replay(logSearchPropertiesConf, logFeederPropertiesConf);
     replay(logFeederLog4jConf, logSearchLog4jConf);
     replay(logSearchServiceLogsConf, logSearchAuditLogsConf);
