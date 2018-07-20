@@ -487,6 +487,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
 
   buff_queue = None
   kill_timer = None
+  kill_timer_started = False
 
   try:
     cmd = launch_subprocess(command, env=env)
@@ -497,6 +498,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
     kill_timer.daemon = True
     if timeout > -1:
       kill_timer.start()
+      kill_timer_started = True
 
     if strategy == ReaderStrategy.BufferedQueue:
       buff_queue = BufferedQueue()
@@ -521,7 +523,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
   finally:
     if buff_queue:
       buff_queue.notify_end()
-    if kill_timer:
+    if kill_timer and kill_timer_started:
       kill_timer.cancel()
       kill_timer.join()
 
