@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logsearch.config.json.model.inputconfig.impl;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
@@ -200,6 +201,16 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   @SerializedName("init_default_fields")
   private Boolean initDefaultFields;
 
+  @ShipperConfigElementDescription(
+    path = "/input/[]/default_log_levels",
+    type = "list of strings",
+    description = "Use these as default log levels for the input - overrides the global default log levels.",
+    examples = {"default_log_levels: [\"INFO\", \"WARN\"]"}
+  )
+  @Expose
+  @SerializedName("default_log_levels")
+  private List<String> defaultLogLevels;
+
   public String getType() {
     return type;
   }
@@ -328,5 +339,14 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
 
   public void setInitDefaultFields(Boolean initDefaultFields) {
     this.initDefaultFields = initDefaultFields;
+  }
+
+  @Override
+  public List<String> getDefaultLogLevels() {
+    return defaultLogLevels;
+  }
+
+  public void setDefaultLogLevels(List<String> defaultLogLevels) {
+    this.defaultLogLevels = defaultLogLevels;
   }
 }
