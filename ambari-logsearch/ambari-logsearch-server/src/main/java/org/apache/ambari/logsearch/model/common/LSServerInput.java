@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
@@ -73,6 +74,9 @@ public abstract class LSServerInput {
 
   @JsonProperty("init_default_fields")
   private Boolean initDefaultFields;
+
+  @JsonProperty("default_log_levels")
+  private List<String> defaultLogLevels;
   
   public LSServerInput() {}
   
@@ -92,6 +96,7 @@ public abstract class LSServerInput {
     this.cacheDedupInterval = inputDescriptor.getCacheDedupInterval();
     this.isEnabled = inputDescriptor.isEnabled();
     this.initDefaultFields = inputDescriptor.isInitDefaultFields();
+    this.defaultLogLevels = inputDescriptor.getDefaultLogLevels();
   }
 
   public String getType() {
@@ -152,5 +157,9 @@ public abstract class LSServerInput {
 
   public Boolean getInitDefaultFields() {
     return initDefaultFields;
+  }
+
+  public List<String> getDefaultLogLevels() {
+    return defaultLogLevels;
   }
 }

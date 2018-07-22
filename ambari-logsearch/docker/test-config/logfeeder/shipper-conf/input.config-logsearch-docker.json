@@ -3,7 +3,10 @@
     {
       "type": "logsearch_server",
       "rowtype": "service",
-      "docker": "true"
+      "docker": "true",
+      "default_log_levels" : [
+       "FATAL", "ERROR", "WARN", "INFO", "DEBUG"
+      ]
     }
   ],
   "filter": [
