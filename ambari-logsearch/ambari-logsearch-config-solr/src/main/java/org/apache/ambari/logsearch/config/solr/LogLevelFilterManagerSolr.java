@@ -130,7 +130,7 @@ public class LogLevelFilterManagerSolr implements LogLevelFilterManager {
         }
       }
     } catch (Exception e) {
-      LOG.error("Error during getting log level filters: {}", e);
+      LOG.error("Error during getting log level filters: {}", e.getMessage());
     }
     logLevelFilterMap.setFilter(logLevelFilterTreeMap);
     return logLevelFilterMap;

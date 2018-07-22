@@ -111,6 +111,19 @@ public abstract class ConfigItem<PROP_TYPE extends LogFeederProperties> implemen
     this.drain = drain;
   }
 
+  public List<String> getListValue(String key) {
+    return getListValue(key, null);
+  }
+
+  public List<String> getListValue(String key, List<String> defaultValue) {
+    Object value = configs.get(key);
+    if (value != null) {
+      return (List<String>)value;
+    } else {
+      return defaultValue;
+    }
+  }
+
   public String getStringValue(String property) {
     return getStringValue(property, null);
   }
