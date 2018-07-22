@@ -959,7 +959,7 @@ public class ClusterTest {
   @Test
   public void testServiceConfigVersions() throws Exception {
     createDefaultCluster();
-    c1.addService(serviceGroup, "HDFS", "HDFS");
+    Service service = c1.addService(serviceGroup, "HDFS", "HDFS");
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
@@ -1000,7 +1000,7 @@ public class ClusterTest {
     assertEquals(Long.valueOf(2), hdfsResponse.getVersion());
 
     // Rollback , clonning version1 config, created new ServiceConfigVersion
-    c1.setServiceConfigVersion(1L, 1L, "admin", "test_note");
+    c1.createServiceConfigVersion(service.getServiceId(), "admin", "test_note", null);
     serviceConfigVersions = c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);
     // created new ServiceConfigVersion
@@ -1050,7 +1050,7 @@ public class ClusterTest {
   public void testServiceConfigVersionsForGroups() throws Exception {
     createDefaultCluster();
 
-    c1.addService(serviceGroup, "HDFS", "HDFS");
+    Service service = c1.addService(serviceGroup, "HDFS", "HDFS");
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
@@ -1069,12 +1069,12 @@ public class ClusterTest {
       new HashMap<String, String>() {{ put("a", "c"); }}, new HashMap<>());
 
     ConfigGroup configGroup =
-      configGroupFactory.createNew(c1, 1L, 1L, "HDFS", "", "descr", Collections.singletonMap("hdfs-site", config2),
+      configGroupFactory.createNew(c1, serviceGroup.getServiceGroupId(), service.getServiceId(), "HDFS1", "", "descr", Collections.singletonMap("hdfs-site", config2),
         new HashMap<>());
 
     c1.addConfigGroup(configGroup);
 
-    scvResponse = c1.createServiceConfigVersion(1L, "admin", "test note", configGroup);
+    scvResponse = c1.createServiceConfigVersion(service.getServiceId(), "admin", "test note", configGroup);
     assertEquals("SCV 2 should be created", Long.valueOf(2), scvResponse.getVersion());
 
     //two scv active
@@ -1087,7 +1087,7 @@ public class ClusterTest {
 
     configGroup.setConfigurations(Collections.singletonMap("hdfs-site", config3));
 
-    scvResponse = c1.createServiceConfigVersion(1L, "admin", "test note", configGroup);
+    scvResponse = c1.createServiceConfigVersion(service.getServiceId(), "admin", "test note", configGroup);
     assertEquals("SCV 3 should be created", Long.valueOf(3), scvResponse.getVersion());
 
     //still two scv active, 3 total
@@ -1099,7 +1099,7 @@ public class ClusterTest {
 
     //rollback group
 
-    scvResponse = c1.setServiceConfigVersion(1L, 2L, "admin", "group rollback");
+    scvResponse = c1.setServiceConfigVersion(service.getServiceId(), 2L, "admin", "group rollback");
     assertEquals("SCV 4 should be created", Long.valueOf(4), scvResponse.getVersion());
 
     configGroup = c1.getConfigGroups().get(configGroup.getId()); //refresh?
@@ -1121,13 +1121,13 @@ public class ClusterTest {
         Collections.singletonMap("a", "b"), null);
 
     ConfigGroup configGroup2 =
-        configGroupFactory.createNew(c1, 1L, 1L, "HDFS", "HDFS", "descr",
+        configGroupFactory.createNew(c1, serviceGroup.getServiceGroupId(), service.getServiceId(), "HDFS2", "HDFS", "descr",
             new HashMap<>(Collections.singletonMap("hdfs-site", config4)),
             Collections.emptyMap());
 
     c1.addConfigGroup(configGroup2);
 
-    scvResponse = c1.createServiceConfigVersion(1L, "admin", "test note", configGroup2);
+    scvResponse = c1.createServiceConfigVersion(service.getServiceId(), "admin", "test note", configGroup2);
     assertEquals("SCV 5 should be created", Long.valueOf(5), scvResponse.getVersion());
 
     activeServiceConfigVersions = c1.getActiveServiceConfigVersions();
@@ -1140,7 +1140,7 @@ public class ClusterTest {
   public void testAllServiceConfigVersionsWithConfigGroups() throws Exception {
     // Given
     createDefaultCluster();
-    c1.addService(serviceGroup, "HDFS", "HDFS");
+    Service service = c1.addService(serviceGroup, "HDFS", "HDFS");
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
         ImmutableMap.of("p1", "v1"), new HashMap<>());
@@ -1157,10 +1157,10 @@ public class ClusterTest {
     Config hdfsSiteConfigV2 = configFactory.createNew(c1, "hdfs-site", "version2",
         ImmutableMap.of("p1", "v2"), new HashMap<>());
 
-    ConfigGroup configGroup = configGroupFactory.createNew(c1, 1L, 1L,"HDFS", "configGroup1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), new HashMap<>());
+    ConfigGroup configGroup = configGroupFactory.createNew(c1, serviceGroup.getServiceGroupId(), service.getServiceId(),"HDFS3", "configGroup1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), new HashMap<>());
 
     c1.addConfigGroup(configGroup);
-    ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion(1L, "admin", "test note", configGroup);
+    ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion(service.getServiceId(), "admin", "test note", configGroup);
     hdfsSiteConfigResponseV2.setConfigurations(Collections.singletonList(
       new ConfigurationResponse(c1.getClusterName(), hdfsSiteConfigV2.getStackId(),
         hdfsSiteConfigV2.getType(), hdfsSiteConfigV2.getTag(), hdfsSiteConfigV2.getVersion(),
@@ -1169,7 +1169,7 @@ public class ClusterTest {
     hdfsSiteConfigResponseV2.setIsCurrent(true); // this is the active config in 'configGroup1' config group as it's the solely service config
 
     // hdfs config v3
-    ServiceConfigVersionResponse hdfsSiteConfigResponseV3 = c1.createServiceConfigVersion(1L, "admin", "new config in default group", null);
+    ServiceConfigVersionResponse hdfsSiteConfigResponseV3 = c1.createServiceConfigVersion(service.getServiceId(), "admin", "new config in default group", null);
     hdfsSiteConfigResponseV3.setConfigurations(configResponsesDefaultGroup);
     hdfsSiteConfigResponseV3.setIsCurrent(true); // this is the active config in default config group as it's more recent than V1
 
@@ -1190,7 +1190,7 @@ public class ClusterTest {
   public void testAllServiceConfigVersionsWithDeletedConfigGroups() throws Exception {
     // Given
     createDefaultCluster();
-    c1.addService(serviceGroup, "HDFS", "HDFS");
+    Service service = c1.addService(serviceGroup, "HDFS", "HDFS");
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
         ImmutableMap.of("p1", "v1"), new HashMap<>());
@@ -1207,10 +1207,10 @@ public class ClusterTest {
     Config hdfsSiteConfigV2 = configFactory.createNew(c1, "hdfs-site", "version2",
         ImmutableMap.of("p1", "v2"), new HashMap<>());
 
-    ConfigGroup configGroup = configGroupFactory.createNew(c1, 1L, 1L, "HDFS", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), new HashMap<>());
+    ConfigGroup configGroup = configGroupFactory.createNew(c1, serviceGroup.getServiceGroupId(), service.getServiceId(), "HDFS4", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), new HashMap<>());
 
     c1.addConfigGroup(configGroup);
-    ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion(1L, "admin", "test note", configGroup);
+    ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion(service.getServiceId(), "admin", "test note", configGroup);
     hdfsSiteConfigResponseV2.setConfigurations(Collections.singletonList(
       new ConfigurationResponse(c1.getClusterName(), hdfsSiteConfigV2.getStackId(),
         hdfsSiteConfigV2.getType(), hdfsSiteConfigV2.getTag(), hdfsSiteConfigV2.getVersion(),
@@ -1222,7 +1222,7 @@ public class ClusterTest {
 
 
     // hdfs config v3
-    ServiceConfigVersionResponse hdfsSiteConfigResponseV3 = c1.createServiceConfigVersion(1L, "admin", "new config in default group", null);
+    ServiceConfigVersionResponse hdfsSiteConfigResponseV3 = c1.createServiceConfigVersion(service.getServiceId(), "admin", "new config in default group", null);
     hdfsSiteConfigResponseV3.setConfigurations(configResponsesDefaultGroup);
     hdfsSiteConfigResponseV3.setIsCurrent(true); // this is the active config in default config group as it's more recent than V1
 
@@ -1274,7 +1274,7 @@ public class ClusterTest {
         }, new HashMap<>());
 
     Service service = cluster.addService(serviceGroup, "HDFS", "HDFS");
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceGroup.getServiceGroupId(), service.getServiceId(), "HDFS", "t1", "",
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceGroup.getServiceGroupId(), service.getServiceId(), "HDFS5", "t1", "",
         new HashMap<String, Config>() {
           {
             put("foo-site", originalConfig);
@@ -1338,7 +1338,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
-    cluster.addService(serviceGroup, serviceName, serviceName);
+    Service service = cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
 
     ClusterConfigEntity clusterConfig1 = new ClusterConfigEntity();
@@ -1358,7 +1358,7 @@ public class ClusterTest {
     Config config = configFactory.createExisting(cluster, clusterConfig1);
     cluster.addConfig(config);
 
-    cluster.createServiceConfigVersion(1L, "", "version-1", null);
+    cluster.createServiceConfigVersion(service.getServiceId(), "", "version-1", null);
 
     ClusterConfigEntity clusterConfig2 = new ClusterConfigEntity();
     clusterConfig2.setClusterEntity(clusterEntity);
@@ -1384,7 +1384,7 @@ public class ClusterTest {
 
     serviceGroupEntity.setStack(newStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
-    cluster.createServiceConfigVersion(1L, "", "version-2", null);
+    cluster.createServiceConfigVersion(service.getServiceId(), "", "version-2", null);
 
     // check that the original config is enabled
     Collection<ClusterConfigEntity> clusterConfigs = clusterEntity.getClusterConfigEntities();
@@ -1397,7 +1397,7 @@ public class ClusterTest {
       }
     }
 
-    cluster.applyLatestConfigurations(newStackId, 1L);
+    cluster.applyLatestConfigurations(newStackId, service.getServiceId());
     clusterEntity = clusterDAO.findByName("c1");
 
     // now check that the new config is enabled
@@ -1438,7 +1438,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
-    cluster.addService(serviceGroup, serviceName, serviceName);
+    Service service = cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
 
     // create 5 configurations in the current stack
@@ -1470,7 +1470,7 @@ public class ClusterTest {
     clusterEntity = clusterDAO.merge(clusterEntity);
 
     // create a service configuration for them
-    cluster.createServiceConfigVersion(1L, "", "version-1", null);
+    cluster.createServiceConfigVersion(service.getServiceId(), "", "version-1", null);
 
     // create a new configuration in the new stack and enable it
     ClusterConfigEntity clusterConfigNewStack = new ClusterConfigEntity();
@@ -1498,7 +1498,7 @@ public class ClusterTest {
     serviceGroupEntity.setStack(newStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
 
-    cluster.createServiceConfigVersion(1L, "", "version-2", null);
+    cluster.createServiceConfigVersion(service.getServiceId(), "", "version-2", null);
 
     // check that only the newest configuration is enabled
     ClusterConfigEntity clusterConfig = clusterDAO.findEnabledConfigByType(
@@ -1507,7 +1507,7 @@ public class ClusterTest {
     Assert.assertEquals(clusterConfigNewStack.getTag(), clusterConfig.getTag());
 
     // move back to the original stack
-    cluster.applyLatestConfigurations(stackId, 1L);
+    cluster.applyLatestConfigurations(stackId, service.getServiceId());
     clusterEntity = clusterDAO.findByName("c1");
 
     // now check that latest config from the original stack is enabled
@@ -1546,7 +1546,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
-    cluster.addService(serviceGroup, serviceName, serviceName);
+    Service service = cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
 
     Map<String, String> properties = new HashMap<>();
@@ -1573,7 +1573,9 @@ public class ClusterTest {
 
     // make v2 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c2), "note-2");
-
+    // Whenever we add a desiredconfig, supposed it should be added to allconfigs too,
+    // not sure it is a bug in clusterImpl.java or it requires to call addconfig explicitly.
+    cluster.addConfig(c2);
     // check desired config
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
@@ -1597,7 +1599,7 @@ public class ClusterTest {
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
 
     // apply the configs for the old stack
-    cluster.applyLatestConfigurations(stackId, 1L);
+    cluster.applyLatestConfigurations(stackId, service.getServiceId());
 
     // {config-type={tag=version-1}}
     effectiveDesiredTags = configHelper.getEffectiveDesiredTags(cluster, hostName);
@@ -1634,7 +1636,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
-    cluster.addService(serviceGroup, serviceName, serviceName);
+    Service service = cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
 
     ClusterConfigEntity clusterConfig = new ClusterConfigEntity();
@@ -1655,7 +1657,7 @@ public class ClusterTest {
     cluster.addConfig(config);
 
     // create the service version association
-    cluster.createServiceConfigVersion(1L, "", "version-1", null);
+    cluster.createServiceConfigVersion(service.getServiceId(), "", "version-1", null);
 
     // now un-select it and create a new config
     clusterConfig.setSelected(false);
@@ -1685,8 +1687,9 @@ public class ClusterTest {
 
     serviceGroupEntity.setStack(newStack);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
+    serviceGroup.setStack(newStack);
 
-    cluster.createServiceConfigVersion(1L, "", "version-2", null);
+    cluster.createServiceConfigVersion(service.getServiceId(), "", "version-2", null);
 
     cluster.applyLatestConfigurations(newStackId, 1L);
 
@@ -1697,7 +1700,7 @@ public class ClusterTest {
     Assert.assertEquals(1, clusterConfigs.size());
 
     // remove the configs
-    cluster.removeConfigurations(newStackId, 1L);
+    cluster.removeConfigurations(newStackId, service.getServiceId());
 
     clusterConfigs = clusterDAO.getAllConfigurations(cluster.getClusterId(), newStackId);
     Assert.assertEquals(0, clusterConfigs.size());

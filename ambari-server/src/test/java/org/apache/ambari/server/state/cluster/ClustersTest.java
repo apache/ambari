@@ -445,7 +445,7 @@ public class ClustersTest {
     serviceCheckNodeHost.setState(State.UNKNOWN);
 
     Assert.assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
-      nameNodeHost.getClusterId(), 1L, 1L,
+      nameNodeHost.getClusterId(), serviceGroup.getServiceGroupId(), hdfs.getServiceId(),
       nameNodeHost.getServiceComponentId(),  nameNodeHostEntity.getHostId()));
 
     Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(nameNodeHost.getServiceComponentId()));
@@ -476,7 +476,7 @@ public class ClustersTest {
 
     Assert.assertEquals(2, hostDAO.findAll().size());
     Assert.assertNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
-      nameNodeHost.getClusterId(), 1L, 1L,
+      nameNodeHost.getClusterId(), serviceGroup.getServiceGroupId(), hdfs.getServiceId(),
       nameNodeHost.getServiceComponentId(), nameNodeHostEntity.getHostId()));
 
     Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(nameNodeHost.getServiceComponentId()));

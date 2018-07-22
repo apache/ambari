@@ -1011,6 +1011,9 @@ public class UpgradeCatalog260Test {
     expect(injector2.getInstance(ClusterMetadataGenerator.class)).andReturn(metadataGenerator).anyTimes();
     expect(injector2.getInstance(MetadataHolder.class)).andReturn(metadataHolder).anyTimes();
     expect(injector2.getInstance(AgentConfigsHolder.class)).andReturn(agentConfigsHolder).anyTimes();
+    ConfigHelper configHelper = getInjector().getInstance(ConfigHelper.class);
+    configHelper.updateAgentConfigs(anyObject(Set.class));
+    expect(injector2.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
     replay(controller, injector2, config, cluster);
 
     // This tests the update of HSI config 'hive.llap.daemon.keytab.file'.
