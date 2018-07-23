@@ -102,5 +102,6 @@ public class LogFeederConstants {
   public static final boolean MONITOR_SOLR_FILTER_STORAGE_DEFAULT = true;
 
   public static final String SOLR_ZK_CONNECTION_STRING = "logfeeder.solr.zk_connect_string";
+  public static final String SOLR_URLS = "logfeeder.solr.urls";
 
 }
