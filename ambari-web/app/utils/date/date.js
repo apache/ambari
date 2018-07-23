@@ -149,7 +149,7 @@ module.exports = {
   },
 
   /**
-   * Format: "{#days}d {#hours}h {#minutes}m {#seconds}s {#milliseconds}ms"
+   * Format: "{#days}d {#hours}h {#minutes}m {#seconds}s"
    * Example: "1d 3h 46m"
    *
    * Display optimization rules:
@@ -176,7 +176,7 @@ module.exports = {
     const oneMinMs = 60000;
     const oneHourMs = 3600000;
     const oneDayMs = 86400000;
-    let days, hours, minutes, seconds, milliseconds;
+    let days, hours, minutes, seconds;
 
     [days, time] = this.extractTimeUnit(time, oneDayMs, 'd');
     [hours, time] = this.extractTimeUnit(time, oneHourMs, 'h');
@@ -185,9 +185,8 @@ module.exports = {
     if (fullTime < oneDayMs) {
       [seconds, time] = this.extractTimeUnit(time, oneSecMs, 's');
       duration += seconds;
-      if (fullTime < oneMinMs) {
-        [milliseconds, time] = this.extractTimeUnit(time, 1, 'ms');
-        duration += milliseconds;
+      if (fullTime < oneSecMs) {
+        duration += '1s';
       }
     }
 
