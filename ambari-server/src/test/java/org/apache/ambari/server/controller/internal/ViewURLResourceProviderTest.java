@@ -140,6 +140,7 @@ public class ViewURLResourceProviderTest {
     expect(viewInstanceEntity.getName()).andReturn("test").once();
     expect(viewInstanceEntity.getViewUrl()).andReturn(null).once();
     expect(viewURLDAO.findByName("test")).andReturn(Optional.absent());
+    expect(viewURLDAO.findBySuffix("suffix")).andReturn(Optional.absent());
     Capture<ViewURLEntity> urlEntityCapture = newCapture();
     viewURLDAO.save(capture(urlEntityCapture));
     viewregistry.updateViewInstance(viewInstanceEntity);
@@ -160,7 +161,7 @@ public class ViewURLResourceProviderTest {
   }
 
   @Test(expected = org.apache.ambari.server.controller.spi.SystemException.class)
-  public void testCreateResources_existingUrl() throws Exception {
+  public void testCreateResources_existingUrlName() throws Exception {
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
     ViewURLResourceProvider provider = new ViewURLResourceProvider();
@@ -189,6 +190,38 @@ public class ViewURLResourceProviderTest {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     provider.createResources(PropertyHelper.getCreateRequest(properties, null));
 
+  }
+
+  @Test(expected = org.apache.ambari.server.controller.spi.SystemException.class)
+  public void testCreateResources_existingUrlSuffix() throws Exception {
+    ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
+    ViewURLResourceProvider provider = new ViewURLResourceProvider();
+
+    ViewURLDAO viewURLDAO = createNiceMock(ViewURLDAO.class);
+    setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);
+    Set<Map<String, Object>> properties = new HashSet<>();
+    Map<String, Object> propertyMap = new HashMap<>();
+    propertyMap.put(ViewURLResourceProvider.URL_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.URL_SUFFIX,"suffix");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_COMMON_NAME,"FILES");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_NAME,"test");
+    propertyMap.put(ViewURLResourceProvider.VIEW_INSTANCE_VERSION,"1.0.0");
+
+    expect(viewregistry.getInstanceDefinition("FILES","1.0.0","test")).andReturn(viewInstanceEntity);
+    expect(viewregistry.getDefinition("FILES","1.0.0")).andReturn(viewEntity);
+    expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).once();
+    expect(viewEntity.getCommonName()).andReturn("FILES").once();
+    expect(viewEntity.isDeployed()).andReturn(true).once();
+    expect(viewEntity.getVersion()).andReturn("1.0.0").once();
+    expect(viewInstanceEntity.getName()).andReturn("test").once();
+    expect(viewInstanceEntity.getViewUrl()).andReturn(null).once();
+    expect(viewURLDAO.findByName("test")).andReturn(Optional.absent());
+    expect(viewURLDAO.findBySuffix("suffix")).andReturn(Optional.of(new ViewURLEntity()));
+    replay(viewregistry,viewEntity,viewInstanceEntity,viewURLDAO);
+    properties.add(propertyMap);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    provider.createResources(PropertyHelper.getCreateRequest(properties, null));
   }
 
 

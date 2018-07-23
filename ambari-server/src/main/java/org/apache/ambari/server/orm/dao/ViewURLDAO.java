@@ -42,9 +42,6 @@ public class ViewURLDAO {
    */
   @Inject
   private Provider<EntityManager> entityManagerProvider;
-  @Inject
-  private DaoUtils daoUtils;
-
 
   /**
    * Find all view instances.
@@ -72,6 +69,26 @@ public class ViewURLDAO {
     try {
       return Optional.of(query.getSingleResult());
     } catch (Exception e){
+      return Optional.absent();
+    }
+  }
+
+  /**
+   * Find URL by suffix
+   *
+   * @param urlSuffix
+   *          the suffix to get the URL by
+   * @return <code>Optional.absent()</code> if no view URL with the given suffix;
+   *         otherwise an appropriate <code>Optional</code> instance holding the
+   *         fetched view URL
+   */
+  @RequiresSession
+  public Optional<ViewURLEntity> findBySuffix(String urlSuffix) {
+    TypedQuery<ViewURLEntity> query = entityManagerProvider.get().createNamedQuery("viewUrlBySuffix", ViewURLEntity.class);
+    query.setParameter("urlSuffix", urlSuffix);
+    try {
+      return Optional.of(query.getSingleResult());
+    } catch (Exception e) {
       return Optional.absent();
     }
   }

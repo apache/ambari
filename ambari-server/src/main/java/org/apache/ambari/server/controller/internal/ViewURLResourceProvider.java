@@ -55,7 +55,6 @@ import com.google.inject.Inject;
 /**
  * Resource provider for view URLs.
  */
-@SuppressWarnings("Duplicates")
 @StaticallyInject
 public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider {
 
@@ -273,6 +272,11 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
 
         if(savedUrl.isPresent()){
           throw new AmbariException("This view URL name exists, URL names should be unique");
+        }
+
+        savedUrl = viewURLDAO.findBySuffix(urlEntity.getUrlSuffix());
+        if (savedUrl.isPresent()) {
+          throw new AmbariException("This view URL suffix has already been recorded, URL suffixes should be unique");
         }
 
         if(viewUrl != null) {
