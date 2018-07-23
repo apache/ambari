@@ -307,7 +307,7 @@ def create_ams_datasource():
 
   if new_datasource_host == "":
     Logger.warning("All metric collectors are unavailable. Will use random collector as datasource host.")
-    new_datasource_host = params.random_metric_collector_host
+    new_datasource_host = params.metric_collector_host
 
   Logger.info("New datasource host will be %s" % new_datasource_host)
 

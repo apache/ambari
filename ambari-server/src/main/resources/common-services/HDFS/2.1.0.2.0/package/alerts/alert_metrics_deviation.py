@@ -60,8 +60,8 @@ EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
 AMS_HTTP_POLICY = '{{ams-site/timeline.metrics.service.http.policy}}'
 METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY = '{{ams-site/timeline.metrics.service.webapp.address}}'
-METRICS_COLLECTOR_VIP_HOST_KEY = '{{cluster-env/metrics_collector_vip_host}}'
-METRICS_COLLECTOR_VIP_PORT_KEY = '{{cluster-env/metrics_collector_vip_port}}'
+METRICS_COLLECTOR_VIP_HOST_KEY = '{{cluster-env/metrics_collector_external_hosts}}'
+METRICS_COLLECTOR_VIP_PORT_KEY = '{{cluster-env/metrics_collector_external_port}}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -173,7 +173,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)])
 
   if METRICS_COLLECTOR_VIP_HOST_KEY in configurations and METRICS_COLLECTOR_VIP_PORT_KEY in configurations:
-    collector_host = configurations[METRICS_COLLECTOR_VIP_HOST_KEY]
+    collector_host = configurations[METRICS_COLLECTOR_VIP_HOST_KEY].split(',')[0]
     collector_port = int(configurations[METRICS_COLLECTOR_VIP_PORT_KEY])
   else:
     # ams-site/timeline.metrics.service.webapp.address is required

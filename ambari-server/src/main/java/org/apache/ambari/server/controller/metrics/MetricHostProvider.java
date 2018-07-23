@@ -85,4 +85,16 @@ public interface MetricHostProvider {
   default Optional<String> getExternalHostName(String clusterName, String componentName) {
     return Optional.empty();
   }
+
+
+  /**
+   * Is the collector host external to the cluster?
+   *
+   * @param clusterName the cluster name
+   *
+   * @return true if metrics server component is NOT in this cluster
+   *
+   */
+  public boolean isCollectorHostExternal(String clusterName);
+
 }

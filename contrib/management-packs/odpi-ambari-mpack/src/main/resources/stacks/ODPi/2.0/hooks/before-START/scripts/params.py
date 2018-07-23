@@ -88,6 +88,12 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+if 'cluster-env' in config['configurations'] and \
+    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 
 has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
@@ -109,16 +115,12 @@ is_slave = hostname in slave_hosts
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 if has_metric_collector:
+  metric_collector_host = ams_collector_hosts[0]
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_host' in config['configurations']['cluster-env']:
-    metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
-    metric_collector_host = ams_collector_hosts[0]
-  if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
-  else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
