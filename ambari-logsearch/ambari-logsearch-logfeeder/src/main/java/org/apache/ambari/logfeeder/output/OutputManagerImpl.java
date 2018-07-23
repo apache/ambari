@@ -31,6 +31,7 @@ import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -147,7 +148,8 @@ public class OutputManagerImpl extends OutputManager {
         jsonObj.put("message_md5", "" + Hashing.md5().hashBytes(logMessage.getBytes()).asLong());
       }
     }
-    if (logLevelFilterHandler.isAllowed(jsonObj, inputMarker)
+    List<String> defaultLogLevels = getDefaultLogLevels(input);
+    if (logLevelFilterHandler.isAllowed(jsonObj, inputMarker, defaultLogLevels)
       && !outputLineFilter.apply(jsonObj, inputMarker.getInput())) {
       List<? extends Output> outputList = input.getOutputList();
       for (Output output : outputList) {
@@ -157,6 +159,16 @@ public class OutputManagerImpl extends OutputManager {
           LOG.error("Error writing. to " + output.getShortDescription(), e);
         }
       }
+    }
+  }
+
+  private List<String> getDefaultLogLevels(Input input) {
+    List<String> defaultLogLevels = logFeederProps.getIncludeDefaultLogLevels();
+    List<String> overrideDefaultLogLevels = input.getInputDescriptor().getDefaultLogLevels();
+    if (CollectionUtils.isNotEmpty(overrideDefaultLogLevels)) {
+      return overrideDefaultLogLevels;
+    } else {
+      return defaultLogLevels;
     }
   }
 
@@ -181,7 +193,8 @@ public class OutputManagerImpl extends OutputManager {
   }
 
   public void write(String jsonBlock, InputMarker inputMarker) {
-    if (logLevelFilterHandler.isAllowed(jsonBlock, inputMarker)) {
+    List<String> defaultLogLevels = getDefaultLogLevels(inputMarker.getInput());
+    if (logLevelFilterHandler.isAllowed(jsonBlock, inputMarker, defaultLogLevels)) {
       List<? extends Output> outputList = inputMarker.getInput().getOutputList();
       for (Output output : outputList) {
         try {
