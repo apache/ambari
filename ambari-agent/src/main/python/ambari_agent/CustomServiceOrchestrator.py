@@ -23,6 +23,7 @@ import os
 import ambari_simplejson as json
 import sys
 import time
+import uuid
 from ambari_commons import shell
 import threading
 from collections import defaultdict
@@ -516,9 +517,9 @@ class CustomServiceOrchestrator():
     if logger.level == logging.DEBUG:
       override_output_files = False
 
-    timestamp = time.time()
-    status_commands_stdout = self.status_commands_stdout.format(timestamp)
-    status_commands_stderr = self.status_commands_stderr.format(timestamp)
+    # make sure status commands that run in parallel don't use the same files
+    status_commands_stdout = self.status_commands_stdout.format(uuid.uuid4())
+    status_commands_stderr = self.status_commands_stderr.format(uuid.uuid4())
 
     try:
       res = self.runCommand(command_header, status_commands_stdout,
@@ -568,8 +569,8 @@ class CustomServiceOrchestrator():
     command_type = command['commandType']
     from ActionQueue import ActionQueue  # To avoid cyclic dependency
     if command_type == ActionQueue.STATUS_COMMAND:
-      timestamp = time.time()
-      file_path = os.path.join(self.tmp_dir, "status_command_{0}.json".format(timestamp))
+      # make sure status commands that run in parallel don't use the same files
+      file_path = os.path.join(self.tmp_dir, "status_command_{0}.json".format(uuid.uuid4()))
     else:
       task_id = command['taskId']
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
