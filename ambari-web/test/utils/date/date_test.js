@@ -88,10 +88,10 @@ describe('date', function () {
   describe('#timingFormat', function() {
     var tests = Em.A([
       {i: '0', e:'0s'},
-      {i: '1', e:'1ms'},
-      {i: '999', e:'999ms'},
+      {i: '1', e:'1s'},
+      {i: '999', e:'1s'},
       {i: '1000', e:'1s'},
-      {i: '59999', e:'59s 999ms'},
+      {i: '59999', e:'59s'},
       {i: '60000', e:'1m'},
       {i: '61001', e:'1m 1s'},
       {i: '3599999', e:'59m 59s'},
