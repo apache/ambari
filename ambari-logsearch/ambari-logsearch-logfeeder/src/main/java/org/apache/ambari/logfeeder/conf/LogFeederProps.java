@@ -21,6 +21,7 @@ package org.apache.ambari.logfeeder.conf;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.plugin.common.LogFeederProperties;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
@@ -179,6 +180,15 @@ public class LogFeederProps implements LogFeederProperties {
   @Value("${" + LogFeederConstants.SOLR_ZK_CONNECTION_STRING + ":}")
   private String solrZkConnectString;
 
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_URLS,
+    description = "Comma separated solr urls (with protocol and port), override "+ LogFeederConstants.SOLR_ZK_CONNECTION_STRING + " config",
+    examples = {"https://localhost1:8983/solr,https://localhost2:8983"},
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.SOLR_URLS + ":}")
+  private String solrUrlsStr;
+
   @Inject
   private LogEntryCacheConfig logEntryCacheConfig;
 
@@ -285,7 +295,7 @@ public class LogFeederProps implements LogFeederProperties {
   }
 
   public boolean isUseLocalConfigs() {
-    return useLocalConfigs;
+    return this.useLocalConfigs;
   }
 
   public void setUseLocalConfigs(boolean useLocalConfigs) {
@@ -316,6 +326,21 @@ public class LogFeederProps implements LogFeederProperties {
     this.solrFilterMonitor = solrFilterMonitor;
   }
 
+  public String getSolrUrlsStr() {
+    return this.solrUrlsStr;
+  }
+
+  public void setSolrUrlsStr(String solrUrlsStr) {
+    this.solrUrlsStr = solrUrlsStr;
+  }
+
+  public String[] getSolrUrls() {
+    if (StringUtils.isNotBlank(this.solrUrlsStr)) {
+      return this.solrUrlsStr.split(",");
+    }
+    return null;
+  }
+
   @PostConstruct
   public void init() {
     properties = new Properties();
@@ -331,4 +356,5 @@ public class LogFeederProps implements LogFeederProperties {
       throw new IllegalArgumentException("Cannot find logfeeder.properties on the classpath");
     }
   }
+
 }

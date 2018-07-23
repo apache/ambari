@@ -303,8 +303,8 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
    * @returns {string}
    */
   private getLabelForField(field: string): string {
-    const column: ListItem = this.columns.find(column => column.value === field);
-    return column && column.label;
+    const column: ListItem = this.columns.find(currentColumn => currentColumn.value === field);
+    return column && (column.label || column.value);
   }
 
   /**

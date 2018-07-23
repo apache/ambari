@@ -487,6 +487,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
 
   buff_queue = None
   kill_timer = None
+  kill_timer_started = False
 
   try:
     cmd = launch_subprocess(command, env=env)
@@ -494,8 +495,10 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
       yield []
       return
     kill_timer = threading.Timer(timeout, lambda: cmd.kill())
+    kill_timer.daemon = True
     if timeout > -1:
       kill_timer.start()
+      kill_timer_started = True
 
     if strategy == ReaderStrategy.BufferedQueue:
       buff_queue = BufferedQueue()
@@ -512,8 +515,6 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
     if error_callback and cmd.returncode and cmd.returncode > 0:
       error_callback(command, cmd.stderr.readlines(), cmd.returncode)
   except Exception as e:
-    if kill_timer:
-      kill_timer.cancel()
     _logger.error("Exception during command '{0}' execution: {1}".format(command, str(e)))
     if error_callback:
       error_callback(command, [str(e)], -1)
@@ -522,6 +523,9 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
   finally:
     if buff_queue:
       buff_queue.notify_end()
+    if kill_timer and kill_timer_started:
+      kill_timer.cancel()
+      kill_timer.join()
 
 
 def get_all_children(base_pid):

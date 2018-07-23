@@ -209,6 +209,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
     this.graphContainer = this.graphContainerRef.nativeElement;
     this.tooltip = this.tooltipRef.nativeElement;
     this.host = d3.select(this.graphContainer);
+    this.createGraph();
   }
 
   ngOnChanges(changes: SimpleChanges) {
