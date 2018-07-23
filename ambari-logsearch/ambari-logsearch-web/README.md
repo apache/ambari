@@ -57,37 +57,37 @@ URL pattern: `/logs/{logs-type};{filter-param1};...;{filter-paramN}`
 Where the `{logs-type}` can be `serviceLogs` or `auditLogs` right now.
 
 For this screen the available URL params are the followings:
-- **components**:
--- type: filter parameter
--- a comma separated list of components/services
--- eg.: `components=activity_explorer,ambari_agent`
-- **levels**:
--- type: filter parameter
--- a comma separated list of log levels
--- eg.: `levels=INFO,WARN,ERROR,FATAL,DEBUG,TRACE,UNKNOW`
-- **hosts**:
--- type: filter parameter
--- a comma separated list of hosts
--- eg.: `hosts=c7401.ambari.apache.org,c7402.ambari.apache.org`
-- **query**:
--- type: filter parameter
--- a JSON object with the following available keys as filters
--- eg.: {} 
+- `components`:
+  - type: filter parameter
+  - a comma separated list of components/services
+  - eg.: `components=activity_explorer,ambari_agent`
+- `levels`:
+  - type: filter parameter
+  - a comma separated list of log levels
+  - eg.: `levels=INFO,WARN,ERROR,FATAL,DEBUG,TRACE,UNKNOW`
+- `hosts`:
+  - type: filter parameter
+  - a comma separated list of hosts
+  - eg.: `hosts=c7401.ambari.apache.org,c7402.ambari.apache.org`
+- `query`:
+  - type: filter parameter
+  - a JSON object with the following available keys as filters
+  - eg.: `[{"name": "level", "label": "Level", "value": "ERROR", "isExclude": false}]` 
 
 ### Time range matrix params
 To filter for a range of time you can use the following matrix parameters:
 - `timeRangeUnit`: the unit of the time
--- `m`: minute
--- `h`: hour
--- `d`: day
--- `w`: week
--- `M`: month
--- `y`: year
+  - `m`: minute
+  - `h`: hour
+  - `d`: day
+  - `w`: week
+  - `M`: month
+  - `y`: year
 - `timeRangeType`
--- `LAST`: it will count the time from the current moment back
--- `PAST`: it will count the time from the end of the previous time unit (set up in `timeRangeUnit`)
--- `CURRENT`: it will count the time from the end of the current time unit (set up in `timeRangeUnit`)
--- `CUSTOM`: will check the `timeRangeStart` and the `timeRangeEnd` matrix parameters
+  - `LAST`: it will count the time from the current moment back
+  - `PAST`: it will count the time from the end of the previous time unit (set up in `timeRangeUnit`)
+  - `CURRENT`: it will count the time from the end of the current time unit (set up in `timeRangeUnit`)
+  - `CUSTOM`: will check the `timeRangeStart` and the `timeRangeEnd` matrix parameters
 - `timeRangeStart`: UTC + Time zone format, eg.: `timeRangeStart=2018-06-30T22:00:00.000Z`
 - `timeRangeEnd`: UTC + Time zone format, eg.: `timeRangeStart=2018-06-30T23:00:00.000Z`
 
@@ -144,12 +144,12 @@ Where the `name` is for the field name that you want to filter, the `label` is w
     "name": "level",
     "label": "Level",
     "value": "ERROR",
-    isExclude: false
+    "isExclude": false
 },{
     "name": "type",
     "label": "Component",
     "value": "ambari_server",
-    isExclude: true
+    "isExclude": true
 }]
 ```
 
