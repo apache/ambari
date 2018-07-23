@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.dao;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
@@ -88,7 +89,7 @@ public class ViewURLDAO {
     query.setParameter("urlSuffix", urlSuffix);
     try {
       return Optional.of(query.getSingleResult());
-    } catch (Exception e) {
+    } catch (NoResultException e) {
       return Optional.absent();
     }
   }
