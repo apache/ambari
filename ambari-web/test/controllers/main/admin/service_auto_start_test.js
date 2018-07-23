@@ -30,20 +30,42 @@ describe('App.MainAdminServiceAutoStartController', function() {
 
   describe('#parseComponentConfigs', function() {
 
-    it('should return parsed components', function() {
+    it('should return parsed components, filter out clients and not installed components', function() {
       var components = [
         {
           ServiceComponentInfo: {
             service_name: 'S1',
             component_name: 'C1',
-            recovery_enabled: 'true'
+            recovery_enabled: 'true',
+            category: 'SLAVE',
+            total_count: 1
           }
         },
         {
           ServiceComponentInfo: {
             service_name: 'S1',
             component_name: 'C2',
-            recovery_enabled: 'false'
+            recovery_enabled: 'false',
+            total_count: 2,
+            category: 'SLAVE',
+          }
+        },
+        {
+          ServiceComponentInfo: {
+            category: 'CLIENT',
+            service_name: 'S1',
+            component_name: 'C3',
+            recovery_enabled: 'false',
+            total_count: 2
+          }
+        },
+        {
+          ServiceComponentInfo: {
+            category: 'SLAVE',
+            service_name: 'S2',
+            component_name: 'C1',
+            recovery_enabled: 'false',
+            total_count: 0
           }
         }
       ];
