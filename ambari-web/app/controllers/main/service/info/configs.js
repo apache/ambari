@@ -363,6 +363,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       self.trackRequest(self.loadServiceConfigVersions());
     }));
   },
+  
+  saveConfigs: function() {
+    const newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
+    const isDefault = this.get('selectedConfigGroup.name') === App.ServiceConfigGroup.defaultGroupName;
+    this.set('currentDefaultVersion', isDefault ? newVersionToBeCreated : this.get('currentDefaultVersion'));
+    this._super();
+  },
 
   /**
    * Generate "finger-print" for current <code>stepConfigs[0]</code>
