@@ -18,10 +18,15 @@
 package org.apache.ambari.server.agent;
 
 
+import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.DECOM_EXCLUDED_HOSTS;
+import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.DECOM_INCLUDED_HOSTS;
+import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.DECOM_SLAVE_COMPONENT;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +45,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -58,6 +64,7 @@ import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
@@ -79,6 +86,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
@@ -419,7 +428,8 @@ public class HeartbeatProcessor extends AbstractService{
           (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
               !("RESTART".equals(report.getCustomCommand()) ||
                   "START".equals(report.getCustomCommand()) ||
-                  "STOP".equals(report.getCustomCommand())))) {
+                  "STOP".equals(report.getCustomCommand())  ||
+                  "DECOMMISSION".equals(report.getCustomCommand())))) {
         continue;
       }
 
@@ -510,14 +520,19 @@ public class HeartbeatProcessor extends AbstractService{
                 LOG.warn("Structured output was found, but not parseable: {}", report.getStructuredOut());
               }
             }
-
-            LOG.error("Operation failed - may be retried. Service component host: "
-                + schName + ", host: " + hostName + " Action id " + report.getActionId() + " and taskId " + report.getTaskId());
-            if (actionManager.isInProgressCommand(report)) {
-              scHost.handleEvent(new ServiceComponentHostOpFailedEvent
-                  (schName, hostName, now));
+            if ("DECOMMISSION".equals(report.getCustomCommand())) {
+              long taskId = report.getTaskId();
+              Stage stage = actionManager.getAction(actionManager.getTaskById(taskId).getRequestId(), actionManager.getTaskById(taskId).getStageId());
+              revertDecommissionStageForService(stage, svc);
             } else {
-              LOG.info("Received report for a command that is no longer active. " + report);
+              LOG.error("Operation failed - may be retried. Service component host: "
+                  + schName + ", host: " + hostName + " Action id " + report.getActionId() + " and taskId " + report.getTaskId());
+              if (actionManager.isInProgressCommand(report)) {
+                scHost.handleEvent(new ServiceComponentHostOpFailedEvent
+                    (schName, hostName, now));
+              } else {
+                LOG.info("Received report for a command that is no longer active. " + report);
+              }
             }
           } else if (report.getStatus().equals("IN_PROGRESS")) {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
@@ -537,6 +552,54 @@ public class HeartbeatProcessor extends AbstractService{
 
     //Update state machines from reports
     actionManager.processTaskResponse(hostName, reports, commands);
+  }
+
+  /**
+   * If the decommission command failed, return the state of the slaves to the opposite
+   * Uses stage to parse the list of component and hosts that were affected.
+   * @param stage
+   * @param service
+   * @throws AmbariException
+   */
+  private void revertDecommissionStageForService(Stage stage, Service service) throws AmbariException {
+    String commandParams = stage.getCommandParamsStage();
+    ObjectMapper mapper = new ObjectMapper();
+    Map<String, String> map = new HashMap<>();
+    try {
+      map = mapper.readValue(commandParams, new TypeReference<Map<String, String>>() {
+      });
+    } catch (IOException e) {
+      LOG.error("Error while parsing the command parameters.", e);
+    }
+    boolean isRecommission = false;
+    String hostsStr = "";
+    if (map.containsKey(DECOM_INCLUDED_HOSTS)) {
+      isRecommission = true;
+      hostsStr = map.get(DECOM_INCLUDED_HOSTS);
+    } else if (map.containsKey(DECOM_EXCLUDED_HOSTS)) {
+      hostsStr = map.get(DECOM_EXCLUDED_HOSTS);
+    }
+    ServiceComponent slaveComponent = null;
+    if (map.containsKey(DECOM_SLAVE_COMPONENT)) {
+      slaveComponent = service.getServiceComponent(map.get(DECOM_SLAVE_COMPONENT));
+    }
+    if (slaveComponent != null) {
+      String[] hosts = hostsStr.split(",");
+      for (String slaveHostName : hosts) {
+        ServiceComponentHost slaveSCH = slaveComponent.getServiceComponentHost(slaveHostName);
+        if (isRecommission) {
+          LOG.info(String.format(
+              "Reverting admin state for %s component on %s host to %s since the recommission command failed",
+              slaveComponent, slaveHostName, HostComponentAdminState.DECOMMISSIONED));
+          slaveSCH.setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
+        } else {
+          LOG.info(String.format(
+              "Reverting admin state for %s component on %s host to %s since the decommission command failed",
+              slaveComponent, slaveHostName, HostComponentAdminState.INSERVICE));
+          slaveSCH.setComponentAdminState(HostComponentAdminState.INSERVICE);
+        }
+      }
+    }
   }
 
   /**
