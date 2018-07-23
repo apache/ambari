@@ -2156,7 +2156,6 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
     App.config.get('preDefinedServiceConfigs').mapProperty('serviceName')
       .filter(serviceName => this.get('allSelectedServiceNames').contains(serviceName))
       .forEach(serviceName => this.updateAttributesFromTheme(serviceName));
-    //this.get('allSelectedServiceNames').forEach(serviceName => this.updateAttributesFromTheme(serviceName));
   },
 
   validateOnTabSwitch: function () {
