@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.metrics.core.timeline;
 
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.DEFAULT_INSTANCE_ID;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 import static org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
@@ -52,6 +53,7 @@ import org.apache.ambari.metrics.core.timeline.query.Condition;
 import org.apache.ambari.metrics.core.timeline.query.ConditionBuilder;
 import org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL;
 import org.apache.ambari.metrics.core.timeline.query.TopNCondition;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -255,6 +257,10 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     TimelineMetrics metrics = new TimelineMetrics();
     List<String> transientMetricNames = new ArrayList<>();
 
+    if (configuration.getTimelineMetricsMultipleClusterSupport() && StringUtils.isEmpty(instanceId)) {
+      instanceId = DEFAULT_INSTANCE_ID;
+    }
+
     List<byte[]> uuids = metricMetadataManager.getUuidsForGetMetricQuery(metricFunctions.keySet(),
       hostnames,
       applicationId,
@@ -282,7 +288,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
 
     Condition condition = conditionBuilder.build();
 
-    if (hostnames == null || hostnames.isEmpty()) {
+    if (CollectionUtils.isEmpty(hostnames)) {
       metrics = hBaseAccessor.getAggregateMetricRecords(condition, metricFunctions);
     } else {
       metrics = hBaseAccessor.getMetricRecords(condition, metricFunctions);

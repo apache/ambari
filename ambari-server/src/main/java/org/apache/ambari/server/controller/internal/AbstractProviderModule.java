@@ -99,7 +99,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final String PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY = "HTTPS_ONLY";
 
   private static final String COLLECTOR_DEFAULT_PORT = "6188";
-  private static boolean vipHostConfigPresent = false;
 
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<>();
   private static final Map<String, Map<String, String[]>> jmxDesiredRpcSuffixProperties = new ConcurrentHashMap<>();
@@ -374,26 +373,27 @@ public abstract class AbstractProviderModule implements ProviderModule,
     return null;
   }
 
-  private String getMetricsCollectorHostName(String clusterName)
-    throws SystemException {
+
+  private void checkAndAddExternalCollectorHosts(String clusterName) throws SystemException {
     try {
       // try to get vip properties from cluster-env
       String configType = "cluster-env";
       String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
       String oldConfigVersion = serviceConfigVersions.get(configType);
       if (!currentConfigVersion.equals(oldConfigVersion)) {
-        vipHostConfigPresent = false;
         serviceConfigVersions.put(configType, currentConfigVersion);
         Map<String, String> configProperties = getDesiredConfigMap
           (clusterName, currentConfigVersion, configType,
             Collections.singletonMap("METRICS_COLLECTOR",
-              new String[]{"metrics_collector_vip_host"}));
+              new String[]{"metrics_collector_external_hosts"}));
 
         if (!configProperties.isEmpty()) {
           clusterMetricserverVipHost = configProperties.get("METRICS_COLLECTOR");
-          if (clusterMetricserverVipHost != null) {
-            LOG.info("Setting Metrics Collector Vip Host : " + clusterMetricserverVipHost);
-            vipHostConfigPresent = true;
+          if (StringUtils.isNotEmpty(clusterMetricserverVipHost)) {
+            for (String collectorHost : StringUtils.split(clusterMetricserverVipHost, ",")) {
+              metricsCollectorHAManager.addExternalMetricsCollectorHost(clusterName, collectorHost);
+            }
+            LOG.info("Setting Metrics Collector External Host : " + clusterMetricserverVipHost);
           }
         }
         // updating the port value, because both vip properties are stored in
@@ -401,26 +401,30 @@ public abstract class AbstractProviderModule implements ProviderModule,
         configProperties = getDesiredConfigMap
           (clusterName, currentConfigVersion, configType,
             Collections.singletonMap("METRICS_COLLECTOR",
-              new String[]{"metrics_collector_vip_port"}));
+              new String[]{"metrics_collector_external_port"}));
 
         if (!configProperties.isEmpty()) {
-          clusterMetricServerVipPort = configProperties.get("METRICS_COLLECTOR");
+          clusterMetricServerVipPort = configProperties.getOrDefault("METRICS_COLLECTOR", "6188");
         }
       }
     } catch (NoSuchParentResourceException | UnsupportedPropertyException e) {
       LOG.warn("Failed to retrieve collector hostname.", e);
     }
+  }
 
-    //If vip config not present
-    //  If current collector host is null or if the host or the host component not live
-    //    Update clusterMetricCollectorMap with a live metric collector host.
-    String currentCollectorHost = null;
-    if (!vipHostConfigPresent) {
-      currentCollectorHost = metricsCollectorHAManager.getCollectorHost(clusterName);
-      }
-    LOG.debug("Cluster Metrics Vip Host : {}", clusterMetricserverVipHost);
+  private String getMetricsCollectorHostName(String clusterName)
+    throws SystemException {
 
-    return (clusterMetricserverVipHost != null) ? clusterMetricserverVipHost : currentCollectorHost;
+    checkAndAddExternalCollectorHosts(clusterName);
+    String currentCollectorHost = metricsCollectorHAManager.getCollectorHost(clusterName);
+    LOG.debug("Cluster Metrics Vip Host : " + clusterMetricserverVipHost);
+
+    return currentCollectorHost;
+  }
+
+  @Override
+  public boolean isCollectorHostExternal(String clusterName) {
+    return metricsCollectorHAManager.isExternalCollector();
   }
 
   @Override
@@ -867,6 +871,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     jmxPortMap.clear();
     clusterHostComponentMap = new HashMap<>();
     clusterGangliaCollectorMap = new HashMap<>();
+    boolean hasMetricCollector = false;
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
     if (MapUtils.isEmpty(clusterMap)) {
@@ -874,6 +879,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     }
 
     for (Cluster cluster : clusterMap.values()) {
+      hasMetricCollector = false;
       String clusterName = cluster.getClusterName();
       Map<String, String> hostComponentMap = clusterHostComponentMap.get(clusterName);
 
@@ -898,8 +904,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
             //  If current collector host is null or if the host or the host component not live
             //  Update clusterMetricCollectorMap.
             metricsCollectorHAManager.addCollectorHost(clusterName, hostName);
+            hasMetricCollector = true;
           }
         }
+      }
+      if (!hasMetricCollector) {
+        checkAndAddExternalCollectorHosts(clusterName);
       }
     }
   }

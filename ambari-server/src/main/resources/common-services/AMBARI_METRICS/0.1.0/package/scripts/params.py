@@ -78,8 +78,6 @@ else:
 
 metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 
-random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
-
 if 'cluster-env' in config['configurations'] and \
     'metrics_collector_external_port' in config['configurations']['cluster-env']:
   metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
