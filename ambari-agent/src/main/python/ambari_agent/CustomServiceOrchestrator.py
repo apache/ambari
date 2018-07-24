@@ -22,6 +22,8 @@ import logging
 import os
 import ambari_simplejson as json
 import sys
+import time
+import uuid
 from ambari_commons import shell
 import threading
 from collections import defaultdict
@@ -86,9 +88,9 @@ class CustomServiceOrchestrator():
     self.exec_tmp_dir = AGENT_TMP_DIR
     self.file_cache = initializer_module.file_cache
     self.status_commands_stdout = os.path.join(self.tmp_dir,
-                                               'status_command_stdout.txt')
+                                               'status_command_stdout_{0}.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
-                                               'status_command_stderr.txt')
+                                               'status_command_stderr_{0}.txt')
 
     # Construct the hadoop credential lib JARs path
     self.credential_shell_lib_path = os.path.join(self.config.get('security', 'credential_lib_dir',
@@ -97,13 +99,6 @@ class CustomServiceOrchestrator():
     self.credential_conf_dir = self.config.get('security', 'credential_conf_dir', self.DEFAULT_CREDENTIAL_CONF_DIR)
 
     self.credential_shell_cmd = self.config.get('security', 'credential_shell_cmd', self.DEFAULT_CREDENTIAL_SHELL_CMD)
-
-    # Clean up old status command files if any
-    try:
-      os.unlink(self.status_commands_stdout)
-      os.unlink(self.status_commands_stderr)
-    except OSError:
-      pass # Ignore fail
     self.commands_in_progress_lock = threading.RLock()
     self.commands_in_progress = {}
 
@@ -463,7 +458,13 @@ class CustomServiceOrchestrator():
         self.commands_for_component_in_progress[cluster_id][command['role']] -= 1
 
       if json_path:
-        self.conditionally_remove_command_file(json_path, ret)
+        if is_status_command:
+          try:
+            os.unlink(json_path)
+          except OSError:
+            pass  # Ignore failure
+        else:
+          self.conditionally_remove_command_file(json_path, ret)
 
     return ret
 
@@ -517,9 +518,21 @@ class CustomServiceOrchestrator():
     if logger.level == logging.DEBUG:
       override_output_files = False
 
-    res = self.runCommand(command_header, self.status_commands_stdout,
-                          self.status_commands_stderr, self.COMMAND_NAME_STATUS,
-                          override_output_files=override_output_files, is_status_command=True)
+    # make sure status commands that run in parallel don't use the same files
+    status_commands_stdout = self.status_commands_stdout.format(uuid.uuid4())
+    status_commands_stderr = self.status_commands_stderr.format(uuid.uuid4())
+
+    try:
+      res = self.runCommand(command_header, status_commands_stdout,
+                            status_commands_stderr, self.COMMAND_NAME_STATUS,
+                            override_output_files=override_output_files, is_status_command=True)
+    finally:
+      try:
+        os.unlink(status_commands_stdout)
+        os.unlink(status_commands_stderr)
+      except OSError:
+        pass # Ignore failure
+
     return res
 
   def resolve_script_path(self, base_dir, script):
@@ -557,9 +570,8 @@ class CustomServiceOrchestrator():
     command_type = command['commandType']
     from ActionQueue import ActionQueue  # To avoid cyclic dependency
     if command_type == ActionQueue.STATUS_COMMAND:
-      # These files are frequently created, that's why we don't
-      # store them all, but only the latest one
-      file_path = os.path.join(self.tmp_dir, "status_command.json")
+      # make sure status commands that run in parallel don't use the same files
+      file_path = os.path.join(self.tmp_dir, "status_command_{0}.json".format(uuid.uuid4()))
     else:
       task_id = command['taskId']
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
