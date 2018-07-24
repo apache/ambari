@@ -57,6 +57,11 @@ class CommandStatusDict():
     self.log_max_symbols_size = initializer_module.config.log_max_symbols_size
     self.reported_reports = set()
 
+  def delete_command_data(self, key):
+    # delete stale data about this command
+    with self.lock:
+      self.reported_reports.discard(key)
+      self.current_state.pop(key, None)
 
   def put_command_status(self, command, report):
     """
@@ -65,11 +70,8 @@ class CommandStatusDict():
     from ActionQueue import ActionQueue
 
     key = command['taskId']
-
     # delete stale data about this command
-    with self.lock:
-      self.reported_reports.discard(key)
-      self.current_state.pop(key, None)
+    self.delete_command_data(key)
 
     is_sent, correlation_id = self.force_update_to_server({command['clusterId']: [report]})
     updatable = report['status'] == ActionQueue.IN_PROGRESS_STATUS and self.command_update_output
