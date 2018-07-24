@@ -675,8 +675,8 @@ App.UpdateController = Em.Controller.extend({
 
   //TODO - update service auto-start to use this
   updateClusterEnv: function () {
-    this.loadClusterSettings().then(function (settings) {
-      App.router.get('clusterController').set('clusterEnv', { properties: settings });
+    return App.router.get('configurationController').getCurrentConfigsBySites(['cluster-env']).done(function (config) {
+      App.router.get('clusterController').set('clusterEnv', config[0]);
     });
   },
 
@@ -688,7 +688,7 @@ App.UpdateController = Em.Controller.extend({
       sender: this
     }).then(data => {
       const settings = {};
-      
+
       if (data && data.items) {
         data.items.forEach(item => {
           const key = item.ClusterSettingInfo.cluster_setting_name;
@@ -696,10 +696,10 @@ App.UpdateController = Em.Controller.extend({
           settings[key] = value;
         });
       }
-      
+
       dfd.resolve(settings);
     }, dfd.reject);
-    
+
     return dfd.promise();
   },
 
