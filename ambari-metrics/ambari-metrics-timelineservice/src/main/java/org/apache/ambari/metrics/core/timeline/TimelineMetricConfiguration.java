@@ -300,6 +300,8 @@ public class TimelineMetricConfiguration {
 
   public static final String HOST_APP_ID = "HOST";
 
+  public static final String DEFAULT_INSTANCE_ID = "DEFAULT";
+
   public static final String DEFAULT_INSTANCE_PORT = "12001";
 
   public static final String AMSHBASE_METRICS_WHITESLIST_FILE = "amshbase_metrics_whitelist";
