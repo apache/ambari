@@ -100,14 +100,17 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
       .mapProperty('ServiceComponentInfo.service_name').uniq().toWickMap();
 
     componentsConfigsCached.mapProperty('ServiceComponentInfo').forEach((component) => {
-      componentsConfigsGrouped.push(Em.Object.create({
-        serviceDisplayName: App.format.role(component.service_name, true),
-        isFirst: servicesMap[component.service_name],
-        componentName: component.component_name,
-        displayName: App.format.role(component.component_name, false),
-        recoveryEnabled: component.recovery_enabled === 'true'
-      }));
-      servicesMap[component.service_name] = false;
+      // Hide clients, as the are not restartable, components which are not installed
+      if (App.StackServiceComponent.find(component.component_name).get('isRestartable') && component.total_count) {
+        componentsConfigsGrouped.push(Em.Object.create({
+          serviceDisplayName: App.format.role(component.service_name, true),
+          isFirst: servicesMap[component.service_name],
+          componentName: component.component_name,
+          displayName: App.format.role(component.component_name, false),
+          recoveryEnabled: component.recovery_enabled === 'true'
+        }));
+        servicesMap[component.service_name] = false;
+      }
     });
     return componentsConfigsGrouped;
   },
