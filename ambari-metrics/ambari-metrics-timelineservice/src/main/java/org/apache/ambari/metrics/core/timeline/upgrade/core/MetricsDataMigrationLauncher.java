@@ -105,12 +105,9 @@ public class MetricsDataMigrationLauncher {
 
     if (whitelistedFilePath != null) {
       this.metricNames = readMetricWhitelistFromFile(whitelistedFilePath);
-    } else if (timelineMetricConfiguration.isWhitelistingEnabled()) {
+    } else {
       String whitelistFile = timelineMetricConfiguration.getMetricsConf().get(TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE, TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE_LOCATION_DEFAULT);
       metricNames = readMetricWhitelistFromFile(whitelistFile);
-    } else {
-      LOG.error("No whitelisted metrics specified. Exiting...");
-      throw new Exception("List of whitelisted metrics must be provided");
     }
 
     readProcessedMetricsMap();
