@@ -17,9 +17,10 @@ limitations under the License.
 
 """
 import os
-
 from resource_management import ExecutionFailed
-from resource_management.core.resources.system import Directory, File, Execute
+from resource_management.core.resources.system import Execute
+from resource_management.core.shell import call
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.script import Hook
 
 AMBARI_AGENT_CACHE_DIR = 'AMBARI_AGENT_CACHE_DIR'
@@ -56,6 +57,8 @@ class BeforeInstallHook(Hook):
     try:
       Execute("cp -n %s %s" % (dist_select, DISTRO_SELECT_DEST), user="root")
       Execute("chmod a+x %s" % (DISTRO_SELECT_DEST), user="root")
+      stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
+      call((DISTRO_SELECT_DEST, 'deploy_cluster', stack_version_unformatted))
     except ExecutionFailed:
       pass   # Due to concurrent execution, may produce error
 
