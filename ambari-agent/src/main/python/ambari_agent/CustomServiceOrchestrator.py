@@ -457,13 +457,14 @@ class CustomServiceOrchestrator():
       if incremented_commands_for_component:
         self.commands_for_component_in_progress[cluster_id][command['role']] -= 1
 
-      if is_status_command and json_path:
-        try:
-          os.unlink(json_path)
-        except OSError:
-          pass  # Ignore failure
-      else:
-        self.conditionally_remove_command_file(json_path, ret)
+      if json_path:
+        if is_status_command:
+          try:
+            os.unlink(json_path)
+          except OSError:
+            pass  # Ignore failure
+        else:
+          self.conditionally_remove_command_file(json_path, ret)
 
     return ret
 
