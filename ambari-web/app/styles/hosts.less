@@ -421,6 +421,9 @@
         pointer-events: auto;
       }
     }
+    .table > tbody > tr > td {
+      vertical-align: middle;
+    }
   }
 
   .status-icons span {
@@ -429,6 +432,7 @@
 
   .action-icon {
     padding: 2px 5px 0 5px;
+    top: 2px;
     font-size: 16px;
   }
 
@@ -458,6 +462,14 @@
       th:first-child + th + th {
         width: 50%;
       }
+    }
+  }
+  .nav {
+    .alerts-crit-count,
+    .alerts-warn-count {
+      padding: .4em .5em;
+      display: inline-block;
+      vertical-align: top;
     }
   }
 }
