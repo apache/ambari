@@ -128,11 +128,9 @@ App.ServiceConfigView = Em.View.extend({
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
         const newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
-        const isDefault = controller.get('selectedConfigGroup.name') === App.ServiceConfigGroup.defaultGroupName;
         controller.setProperties({
           saveConfigsFlag: true,
           serviceConfigVersionNote: this.get('serviceConfigNote'),
-          currentDefaultVersion: isDefault ? newVersionToBeCreated : controller.get('currentDefaultVersion'),
           preSelectedConfigVersion: Em.Object.create({
             version: newVersionToBeCreated,
             serviceName: controller.get('content.serviceName'),
