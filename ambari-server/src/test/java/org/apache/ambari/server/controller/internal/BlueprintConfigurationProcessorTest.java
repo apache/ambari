@@ -175,6 +175,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnComponents.add("NODEMANAGER");
     yarnComponents.add("YARN_CLIENT");
     yarnComponents.add("APP_TIMELINE_SERVER");
+    yarnComponents.add("TIMELINE_READER");
     serviceComponents.put("YARN", yarnComponents);
 
     Collection<String> mrComponents = new HashSet<>();
@@ -2530,6 +2531,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2559,12 +2561,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group1Components.add("SECONDARY_NAMENODE");
     group1Components.add("RESOURCEMANAGER");
     group1Components.add("APP_TIMELINE_SERVER");
+    group1Components.add("TIMELINE_READER");
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
 
     Collection<String> group2Components = new HashSet<>();
     group2Components.add("DATANODE");
     group2Components.add("HDFS_CLIENT");
     group2Components.add("APP_TIMELINE_SERVER");
+    group2Components.add("TIMELINE_READER");
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
@@ -2572,6 +2576,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
@@ -2603,12 +2608,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group1Components.add("SECONDARY_NAMENODE");
     group1Components.add("RESOURCEMANAGER");
     group1Components.add("APP_TIMELINE_SERVER");
+    group1Components.add("TIMELINE_READER");
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
 
     Collection<String> group2Components = new HashSet<>();
     group2Components.add("DATANODE");
     group2Components.add("HDFS_CLIENT");
     group2Components.add("APP_TIMELINE_SERVER");
+    group2Components.add("TIMELINE_READER");
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
@@ -2616,6 +2623,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
@@ -2653,6 +2661,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -3521,6 +3530,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
+    hgComponents.add("TIMELINE_READER");
     hgComponents.add("HISTORYSERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
 
@@ -3608,6 +3618,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
+    hgComponents.add("TIMELINE_READER");
     hgComponents.add("HISTORYSERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
 
