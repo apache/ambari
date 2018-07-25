@@ -20,10 +20,10 @@ package org.apache.ambari.logfeeder.output;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.Hashing;
+import org.apache.ambari.logfeeder.common.IdGeneratorHelper;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
-import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class OutputManagerImpl extends OutputManager {
   private static final Logger LOG = Logger.getLogger(OutputManagerImpl.class);
@@ -127,9 +126,6 @@ public class OutputManagerImpl extends OutputManager {
     }
 
     jsonObj.put("seq_num", new Long(docCounter++));
-    if (jsonObj.get("id") == null) {
-      jsonObj.put("id", UUID.randomUUID().toString());
-    }
     if (jsonObj.get("event_count") == null) {
       jsonObj.put("event_count", new Integer(1));
     }
@@ -154,6 +150,9 @@ public class OutputManagerImpl extends OutputManager {
       List<? extends Output> outputList = input.getOutputList();
       for (Output output : outputList) {
         try {
+          if (jsonObj.get("id") == null) {
+            jsonObj.put("id", IdGeneratorHelper.generateUUID(jsonObj, output.getIdFields()));
+          }
           output.write(jsonObj, inputMarker);
         } catch (Exception e) {
           LOG.error("Error writing. to " + output.getShortDescription(), e);
