@@ -1229,7 +1229,7 @@ public class DatabaseConsistencyCheckHelper {
     output.replace(output.lastIndexOf(","), output.length(), "]");
     warning("You have config groups present in the database with no " +
             " service name, {}. Run --auto-fix-database to fix " +
-            "this automatically.", output.toString());
+            "this automatically. Please backup ambari database before running --auto-fix-database.", output.toString());
   }
 
   @Transactional
@@ -1310,7 +1310,7 @@ public class DatabaseConsistencyCheckHelper {
       warning("You have config group host mappings with hosts that are no " +
         "longer associated with the cluster, {}. Run --auto-fix-database to " +
         "fix this automatically. Alternatively, you can remove this mapping " +
-        "from the UI.", output.toString());
+        "from the UI. Please backup ambari database before running --auto-fix-database.", output.toString());
     }
 
     return nonMappedHostIds;
@@ -1346,7 +1346,7 @@ public class DatabaseConsistencyCheckHelper {
       output.replace(output.lastIndexOf(","), output.length(), "]");
       warning("You have config groups present in the database with no " +
         "corresponding service found, {}. Run --auto-fix-database to fix " +
-          "this automatically.", output.toString());
+          "this automatically. Please backup ambari database before running --auto-fix-database.", output.toString());
     }
 
     return configGroupMap;
