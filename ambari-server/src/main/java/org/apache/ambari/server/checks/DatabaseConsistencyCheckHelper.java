@@ -1355,7 +1355,7 @@ public class DatabaseConsistencyCheckHelper {
       output.replace(output.lastIndexOf(","), output.length(), "]");
       warning("You have config groups present in the database with no " +
         "corresponding service found, {}. Run --auto-fix-database to fix " +
-          "this automatically. Please Ambari Server database before running --auto-fix-database.", output.toString());
+          "this automatically. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
     }
 
     return configGroupMap;
