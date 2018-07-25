@@ -55,7 +55,6 @@ import com.google.inject.Inject;
 /**
  * Resource provider for view URLs.
  */
-@SuppressWarnings("Duplicates")
 @StaticallyInject
 public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider {
 
@@ -268,15 +267,16 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
           throw new IllegalStateException("The view " + viewName + " is not loaded.");
         }
 
-        ViewURLEntity viewUrl = viewInstanceEntity.getViewUrl();
-        Optional<ViewURLEntity> savedUrl = viewURLDAO.findByName(urlEntity.getUrlName());
+        if(viewInstanceEntity.getViewUrl() != null) {
+          throw new AmbariException("The view instance selected already has a linked URL");
+        }
 
-        if(savedUrl.isPresent()){
+        if(viewURLDAO.findByName(urlEntity.getUrlName()).isPresent()){
           throw new AmbariException("This view URL name exists, URL names should be unique");
         }
 
-        if(viewUrl != null) {
-          throw new AmbariException("The view instance selected already has a linked URL");
+        if (viewURLDAO.findBySuffix(urlEntity.getUrlSuffix()).isPresent()) {
+          throw new AmbariException("This view URL suffix has already been recorded, URL suffixes should be unique");
         }
 
         viewURLDAO.save(urlEntity);
