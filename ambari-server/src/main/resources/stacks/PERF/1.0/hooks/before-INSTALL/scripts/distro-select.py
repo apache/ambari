@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
 import os
+import sys
 
 AMBARI_AGENT_HOST_DIR = "AMBARI_AGENT_HOST_DIR"
 
@@ -125,6 +125,12 @@ def install_version(args):
       if args[1]:
         f.write(args[1] + "\n")
 
+def deploy_cluster(args):
+  dest = versions_file_destination()
+  with open(dest, 'w') as f:
+    if args[1]:
+      f.write(args[1] + "\n")
+
 def do_work(args):
   """
   Check that all required args are passed in. If so, perform required action.
@@ -138,6 +144,8 @@ def do_work(args):
     set_version(args)
   elif args[0] == "install":
     install_version(args)
+  elif args[0] == "deploy_cluster":
+    deploy_cluster(args)
 
 
 
