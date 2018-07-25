@@ -22,7 +22,7 @@ require('views/main/host/details/host_component_views/regionserver_view');
 describe('App.RegionServerComponentView', function () {
   var view = App.RegionServerComponentView.create();
 
-  describe("#setDesiredAdminState()", function () {
+  describe("#setDesiredAdminStateDefault()", function () {
     beforeEach(function () {
       sinon.stub(view, 'setStatusAs', Em.K);
     });
@@ -30,11 +30,11 @@ describe('App.RegionServerComponentView', function () {
       view.setStatusAs.restore();
     });
     it("INSERVICE state)", function () {
-      view.setDesiredAdminState('INSERVICE');
+      view.setDesiredAdminStateDefault('INSERVICE');
       expect(view.setStatusAs.calledWith('INSERVICE')).to.be.true;
     });
     it("DECOMMISSIONED state)", function () {
-      view.setDesiredAdminState('DECOMMISSIONED');
+      view.setDesiredAdminStateDefault('DECOMMISSIONED');
       expect(view.setStatusAs.calledWith('RS_DECOMMISSIONED')).to.be.true;
     });
   });
