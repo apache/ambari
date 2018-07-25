@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +78,13 @@ public abstract class Output<PROP_TYPE extends LogFeederProperties, INPUT_MARKER
 
   public void setDestination(String destination) {
     this.destination = destination;
+  }
+
+  /**
+   * Get the list of fields that will be used for ID generation of log entries.
+   */
+  public List<String> getIdFields() {
+    return new ArrayList<>();
   }
 
   public boolean isClosed() {
