@@ -130,6 +130,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private static final String SSO_INTEGRATION_DESIRED_PROPERTY_ID = PropertyHelper.getPropertyId(
     "ServiceInfo", "sso_integration_desired");
 
+  private static final String SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "sso_integration_requires_kerberos");
+
   protected static final String SERVICE_REPOSITORY_STATE = "ServiceInfo/repository_state";
 
   //Parameters from the predicate
@@ -172,6 +175,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(SSO_INTEGRATION_SUPPORTED_PROPERTY_ID);
     PROPERTY_IDS.add(SSO_INTEGRATION_ENABLED_PROPERTY_ID);
     PROPERTY_IDS.add(SSO_INTEGRATION_DESIRED_PROPERTY_ID);
+    PROPERTY_IDS.add(SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_NAME_PROPERTY_ID);
@@ -295,6 +299,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         response.isSsoIntegrationEnabled(), requestedIds);
       setResourceProperty(resource, SSO_INTEGRATION_DESIRED_PROPERTY_ID,
         response.isSsoIntegrationDesired(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_REQUIRES_KERBEROS_PROPERTY_ID,
+        response.isSsoIntegrationRequiresKerberos(), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);
