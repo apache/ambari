@@ -30,8 +30,9 @@ from resource_management.core.logger import Logger
 
 def replace_underscores(function_to_decorate):
   def wrapper(*args,**kwargs):
-    args[1].replace("_", "-")
-    return function_to_decorate(*args, **kwargs)
+    self = args[0]
+    name = args[1].replace("_", "-")
+    return function_to_decorate(self,name,*args[2:], **kwargs)
   return wrapper
 
 
