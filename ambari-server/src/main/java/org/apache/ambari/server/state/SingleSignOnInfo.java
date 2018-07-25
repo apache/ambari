@@ -54,6 +54,12 @@ public class SingleSignOnInfo {
   private String enabledConfiguration = null;
 
   /**
+   * Indicates if Kerberos is required for SSO integration (<code>true</code>) or not (<code>false</code>)
+   */
+  @XmlElement(name = "kerberosRequired")
+  private Boolean kerberosRequired = Boolean.FALSE;
+
+  /**
    * Default constructor
    */
   public SingleSignOnInfo() {
@@ -65,10 +71,12 @@ public class SingleSignOnInfo {
    *
    * @param supported            true if SSO integration is supported; false otherwise
    * @param enabledConfiguration the configuration that can be used to determine if SSO integration has been enabled
+   * @param kerberosRequired     <code>true</code> if Kerberos is required for SSO integration; <code>false</code> otherwise
    */
-  public SingleSignOnInfo(Boolean supported, String enabledConfiguration) {
+  public SingleSignOnInfo(Boolean supported, String enabledConfiguration, Boolean kerberosRequired) {
     this.supported = supported;
     this.enabledConfiguration = enabledConfiguration;
+    this.kerberosRequired = kerberosRequired;
   }
 
   /**
@@ -119,6 +127,20 @@ public class SingleSignOnInfo {
   }
 
   /**
+   * @return the flag is Kerberos is required for SSO integration
+   */
+  public boolean isKerberosRequired() {
+    return Boolean.TRUE.equals(kerberosRequired);
+  }
+
+  /**
+   * Sets the flag is Kerberos is required for SSO integration
+   */
+  public void setKerberosRequired(Boolean kerberosRequired) {
+    this.kerberosRequired = kerberosRequired;
+  }
+
+  /**
    * String representation of this object
    *
    * @return a string
@@ -128,6 +150,7 @@ public class SingleSignOnInfo {
     return MoreObjects.toStringHelper(this)
         .add("supported", supported)
         .add("enabledConfiguration", enabledConfiguration)
+        .add("kerberosRequired", kerberosRequired)
         .toString();
   }
 }
