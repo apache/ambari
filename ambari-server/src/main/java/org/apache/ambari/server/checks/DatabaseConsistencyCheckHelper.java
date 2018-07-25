@@ -1189,6 +1189,9 @@ public class DatabaseConsistencyCheckHelper {
 
   }
 
+  /**
+   * This method collects the ConfigGroups with empty or null service name field
+   */
   static Map<Long, ConfigGroup> collectConfigGroupsWithoutServiceName() {
     Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
     Clusters clusters = injector.getInstance(Clusters.class);
@@ -1213,14 +1216,17 @@ public class DatabaseConsistencyCheckHelper {
     return configGroupMap;
   }
 
+  /**
+   * This method checks if there are any ConfigGroup with empty or null service name field
+   */
   static void checkConfigGroupsHasServiceName() {
     Map<Long, ConfigGroup> configGroupMap = collectConfigGroupsWithoutServiceName();
     if (MapUtils.isEmpty(configGroupMap))
       return;
+
     StringBuilder output = new StringBuilder("[(ConfigGroup) => ");
 
     for (ConfigGroup configGroup : configGroupMap.values()) {
-      configGroupMap.put(configGroup.getId(), configGroup);
       output.append("( ");
       output.append(configGroup.getName());
       output.append(" ), ");
@@ -1229,9 +1235,12 @@ public class DatabaseConsistencyCheckHelper {
     output.replace(output.lastIndexOf(","), output.length(), "]");
     warning("You have config groups present in the database with no " +
             " service name, {}. Run --auto-fix-database to fix " +
-            "this automatically. Please backup ambari database before running --auto-fix-database.", output.toString());
+            "this automatically. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
   }
 
+  /**
+   * Fix inconsistencies found by @collectConfigGroupsWithoutServiceName
+   */
   @Transactional
   static void fixConfigGroupServiceNames() {
     Map<Long, ConfigGroup> configGroupMap = collectConfigGroupsWithoutServiceName();
@@ -1310,7 +1319,7 @@ public class DatabaseConsistencyCheckHelper {
       warning("You have config group host mappings with hosts that are no " +
         "longer associated with the cluster, {}. Run --auto-fix-database to " +
         "fix this automatically. Alternatively, you can remove this mapping " +
-        "from the UI. Please backup ambari database before running --auto-fix-database.", output.toString());
+        "from the UI. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
     }
 
     return nonMappedHostIds;
@@ -1346,7 +1355,7 @@ public class DatabaseConsistencyCheckHelper {
       output.replace(output.lastIndexOf(","), output.length(), "]");
       warning("You have config groups present in the database with no " +
         "corresponding service found, {}. Run --auto-fix-database to fix " +
-          "this automatically. Please backup ambari database before running --auto-fix-database.", output.toString());
+          "this automatically. Please Ambari Server database before running --auto-fix-database.", output.toString());
     }
 
     return configGroupMap;
