@@ -20,12 +20,15 @@ limitations under the License.
 
 
 import os
+
+
 import sys
 import uuid
 import logging
 import threading
 import ambari_simplejson as json
 from collections import defaultdict
+from ConfigParser import NoOptionError
 
 from ambari_commons import shell, subprocess32
 from ambari_commons.constants import AGENT_TMP_DIR

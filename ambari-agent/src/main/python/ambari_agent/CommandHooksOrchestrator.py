@@ -19,55 +19,112 @@ limitations under the License.
 import os
 import logging
 
-from ambari_agent.models.commands import AgentCommand
+from models.commands import AgentCommand
 from models.hooks import HookPrefix
+
+__all__ = ["ResolvedHooks", "HooksOrchestrator"]
 
 
 class ResolvedHooks(object):
-  def __init__(self, pre_hooks, post_hooks):
+  """
+  Hooks sequence holder
+  """
+
+  def __init__(self, pre_hooks=set(), post_hooks=set()):
     """
-    :type pre_hooks tuple|list
-    :type post_hooks tuple|list
+    Creates response instance with generated hooks sequence
+
+    :arg pre_hooks hook sequence, typically generator is passed
+    :arg post_hooks hook sequence, typically generator is passed
+
+    :type pre_hooks Collections.Iterable|types.GeneratorType
+    :type post_hooks Collections.Iterable|types.GeneratorType
     """
-    self.pre_hooks = pre_hooks
-    self.post_hooks = post_hooks
+    self._pre_hooks = pre_hooks
+    self._post_hooks = post_hooks
+
+  @property
+  def pre_hooks(self):
+    """
+    :rtype list
+    """
+    # Converting generator to real sequence on first user request
+    if not isinstance(self._pre_hooks, (list, set)):
+      self._pre_hooks = list(self._pre_hooks)
+
+    return self._pre_hooks
+
+  @property
+  def post_hooks(self):
+    """
+    :rtype list
+    """
+    # Converting generator to real sequence on first user request
+    if not isinstance(self._post_hooks, (list, set)):
+      self._post_hooks = list(self._post_hooks)
+
+    return self._post_hooks
 
 
-def _per_command_resolver(prefix, command):
-  return "{}-{}".format(prefix, command)
+class HookSequenceBuilder(object):
+  """
+  Sequence builder according to passed definition
+  """
 
+  # ToDo: move hooks sequence definition to configuration or text file definition?
+  _hooks_sequences = {
+    HookPrefix.pre: [
+      "{prefix}-{command}",
+      "{prefix}-{command}-{service}",
+      "{prefix}-{command}-{service}-{role}"
+    ],
+    HookPrefix.post: [
+      "{prefix}-{command}-{service}-{role}",
+      "{prefix}-{command}-{service}",
+      "{prefix}-{command}"
+    ]
+  }
 
-def _per_service_resolver(prefix, command, service):
-  if not service:
-    return None
+  def build(self, prefix, command, service, role):
+    """
+    Building hooks sequence depends on incoming data
 
-  return "{}-{}-{}".format(prefix, service, command)
+    :type prefix str
+    :type command str
+    :type service str
+    :type role str
+    :rtype types.GeneratorType
+    """
+    if prefix not in self._hooks_sequences:
+      raise TypeError("Unable to locate hooks sequence definition for '{}' prefix".format(prefix))
 
+    for hook_definition in self._hooks_sequences[prefix]:
+      if "service" in hook_definition and service is None:
+        continue
 
-def _per_role_resolver(prefix, command, service, role):
-  if not service or not role:
-    return None
+      if "role" is hook_definition and role is None:
+        continue
 
-  return "{}-{}-{}-{}".format(prefix, service, role, command)
+      yield hook_definition.format(prefix=prefix, command=command, service=service, role=role)
 
 
 class HooksOrchestrator(object):
+  """
+   Resolving hooks according to HookSequenceBuilder definitions
+  """
 
   def __init__(self, injector):
     """
-
     :type injector InitializerModule
     """
-    from InitializerModule import InitializerModule
-
-    if not isinstance(injector, InitializerModule):
-      raise TypeError("Expecting {} type".format(InitializerModule.__name__))
-
     self._file_cache = injector.file_cache
     self._logger = logging.getLogger()
+    self._hook_builder = HookSequenceBuilder()
 
   def resolve_hooks(self, command, command_name):
     """
+    Resolving available hooks sequences which should be appended or prepended to script execution chain
+
     :type command dict
     :type command_name str
     :rtype ResolvedHooks
@@ -79,50 +136,33 @@ class HooksOrchestrator(object):
     hook_dir = self._file_cache.get_hook_base_dir(command)
 
     if not hook_dir:
-      return ResolvedHooks([], [])
+      return ResolvedHooks()
 
     service = command["serviceName"] if "serviceName" in command else None
     component = command["role"] if "role" in command else None
 
-    pre_hooks_topology = [
-      _per_command_resolver(HookPrefix.pre, command_name),
-      _per_service_resolver(HookPrefix.pre, command_name, service),
-      _per_role_resolver(HookPrefix.pre, command_name, service, component)
-    ]
+    pre_hooks_seq = self._hook_builder.build(HookPrefix.pre, command_name, service, component)
+    post_hooks_seq = self._hook_builder.build(HookPrefix.post, command_name, service, component)
 
-    post_hooks_topology = [
-      _per_role_resolver(HookPrefix.post, command_name, service, component),
-      _per_service_resolver(HookPrefix.post, command_name, service),
-      _per_command_resolver(HookPrefix.post, command_name)
-    ]
+    return ResolvedHooks(
+      self._resolve_hooks_path(hook_dir, pre_hooks_seq),
+      self._resolve_hooks_path(hook_dir, post_hooks_seq)
+    )
 
-    pre_hooks = []
-    post_hooks = []
-
-    for hook in pre_hooks_topology:
-      resolved = self._resolve_path(hook_dir, hook)
-      if resolved:
-        pre_hooks.append(resolved)
-
-    for hook in post_hooks_topology:
-      resolved = self._resolve_path(hook_dir, hook)
-      if resolved:
-        post_hooks.append(resolved)
-
-    return ResolvedHooks(pre_hooks, post_hooks)
-
-  def _resolve_path(self, stack_hooks_dir, resolver):
+  def _resolve_hooks_path(self, stack_hooks_dir, hooks_sequence):
     """
-    Returns a tuple(path to hook script, hook base dir) according to string prefix
-    and command name. If script does not exist, returns None
-    """
-    if not resolver:
-      return None
+    Returns a tuple(path to hook script, hook base dir) according to passed hooks_sequence
 
-    hook_dir = resolver
-    hook_base_dir = os.path.join(stack_hooks_dir, hook_dir)
-    hook_script_path = os.path.join(hook_base_dir, "scripts", "hook.py")
-    if not os.path.isfile(hook_script_path):
-      self._logger.debug("Hook script {0} not found, skipping".format(hook_script_path))
-      return None
-    return hook_script_path, hook_base_dir
+    :type stack_hooks_dir str
+    :type hooks_sequence collections.Iterable|types.GeneratorType
+    """
+
+    for hook in hooks_sequence:
+      hook_base_dir = os.path.join(stack_hooks_dir, hook)
+      hook_script_path = os.path.join(hook_base_dir, "scripts", "hook.py")
+
+      if not os.path.isfile(hook_script_path):
+        self._logger.debug("Hook script {0} not found, skipping".format(hook_script_path))
+        continue
+
+      yield hook_script_path, hook_base_dir
