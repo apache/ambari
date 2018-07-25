@@ -756,6 +756,103 @@ public class DatabaseConsistencyCheckHelperTest {
   }
 
   @Test
+  public void testCollectConfigGroupsWithoutServiceName() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+    Map<String, Cluster> clusters = new HashMap<>();
+    Cluster cluster1 = easyMockSupport.createNiceMock(Cluster.class);
+    clusters.put("c1", cluster1);
+    Cluster cluster2 = easyMockSupport.createNiceMock(Cluster.class);
+    clusters.put("c2", cluster2);
+    expect(cluster2.getConfigGroups()).andReturn(new HashMap<Long, ConfigGroup>(0)).anyTimes();
+    expect(mockClusters.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+    ConfigGroup cg1 = easyMockSupport.createNiceMock(ConfigGroup.class);
+    ConfigGroup cg2 = easyMockSupport.createNiceMock(ConfigGroup.class);
+    configGroupMap.put(1L, cg1);
+    configGroupMap.put(2L, cg2);
+
+    expect(cluster1.getConfigGroups()).andReturn(configGroupMap).anyTimes();
+    expect(cg1.getId()).andReturn(1L).anyTimes();
+    expect(cg1.getServiceName()).andReturn(null).anyTimes();
+    expect(cg1.getTag()).andReturn("YARN").anyTimes();
+    cg1.setServiceName("YARN"); expectLastCall();
+    expect(cg2.getId()).andReturn(2L).anyTimes();
+    expect(cg2.getServiceName()).andReturn("HDFS").anyTimes();
+
+    Service service = easyMockSupport.createNiceMock(Service.class);
+    Map<String, Service> services = new HashMap<>();
+    services.put("HDFS", service);
+    expect(cluster1.getServices()).andReturn(services).anyTimes();
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    Map<Long, ConfigGroup> configGroups = DatabaseConsistencyCheckHelper.collectConfigGroupsWithoutServiceName();
+    DatabaseConsistencyCheckHelper.fixConfigGroupServiceNames();
+
+    easyMockSupport.verifyAll();
+
+    Assert.assertFalse(MapUtils.isEmpty(configGroups));
+    Assert.assertEquals(1, configGroups.size());
+    Assert.assertEquals(1L, configGroups.values().iterator().next().getId().longValue());
+  }
+
+  @Test
+  public void testCollectConfigGroupsWithoutServiceNameReturnsEmptyMapWhenNoClusters() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+    Map<String, Cluster> clusters = new HashMap<>();
+    expect(mockClusters.getClusters()).andReturn(clusters).anyTimes();
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    Map<Long, ConfigGroup> configGroups = DatabaseConsistencyCheckHelper.collectConfigGroupsWithoutServiceName();
+
+    easyMockSupport.verifyAll();
+
+    Assert.assertTrue(MapUtils.isEmpty(configGroups));
+  }
+
+  @Test
   public void testFixConfigsSelectedMoreThanOnce() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 

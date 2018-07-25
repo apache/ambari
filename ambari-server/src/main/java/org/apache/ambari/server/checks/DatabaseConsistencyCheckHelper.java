@@ -51,7 +51,6 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -60,8 +59,6 @@ import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
@@ -185,6 +182,7 @@ public class DatabaseConsistencyCheckHelper {
       if (fixIssues) {
         fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
         fixClusterConfigsNotMappedToAnyService();
+        fixConfigGroupServiceNames();
         fixConfigGroupHostMappings();
         fixConfigGroupsForDeletedServices();
         fixConfigsSelectedMoreThanOnce();
@@ -198,6 +196,7 @@ public class DatabaseConsistencyCheckHelper {
       checkServiceConfigs();
       checkTopologyTables();
       checkForLargeTables();
+      checkConfigGroupsHasServiceName();
       checkConfigGroupHostMapping(true);
       checkConfigGroupsForDeletedServices(true);
       LOG.info("******************************* Check database completed *******************************");
@@ -1188,6 +1187,64 @@ public class DatabaseConsistencyCheckHelper {
       }
     }
 
+  }
+
+  static Map<Long, ConfigGroup> collectConfigGroupsWithoutServiceName() {
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (MapUtils.isEmpty(clusterMap))
+      return configGroupMap;
+
+    for (Cluster cluster : clusterMap.values()) {
+      Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
+
+      if (MapUtils.isEmpty(configGroups))
+        continue;
+
+      for (ConfigGroup configGroup : configGroups.values()) {
+        if (StringUtils.isEmpty(configGroup.getServiceName())) {
+          configGroupMap.put(configGroup.getId(), configGroup);
+        }
+      }
+    }
+
+    return configGroupMap;
+  }
+
+  static void checkConfigGroupsHasServiceName() {
+    Map<Long, ConfigGroup> configGroupMap = collectConfigGroupsWithoutServiceName();
+    if (MapUtils.isEmpty(configGroupMap))
+      return;
+    StringBuilder output = new StringBuilder("[(ConfigGroup) => ");
+
+    for (ConfigGroup configGroup : configGroupMap.values()) {
+      configGroupMap.put(configGroup.getId(), configGroup);
+      output.append("( ");
+      output.append(configGroup.getName());
+      output.append(" ), ");
+    }
+
+    output.replace(output.lastIndexOf(","), output.length(), "]");
+    warning("You have config groups present in the database with no " +
+            " service name, {}. Run --auto-fix-database to fix " +
+            "this automatically.", output.toString());
+  }
+
+  @Transactional
+  static void fixConfigGroupServiceNames() {
+    Map<Long, ConfigGroup> configGroupMap = collectConfigGroupsWithoutServiceName();
+
+    if (!MapUtils.isEmpty(configGroupMap)) {
+      for (Map.Entry<Long, ConfigGroup> configGroupEntry : configGroupMap.entrySet()) {
+        Long id = configGroupEntry.getKey();
+        ConfigGroup configGroup = configGroupEntry.getValue();
+        LOG.info("Setting service name of config group {} with id {} to {}",
+                configGroup.getName(), id, configGroup.getTag());
+        configGroup.setServiceName(configGroup.getTag());
+      }
+    }
   }
 
   /**
