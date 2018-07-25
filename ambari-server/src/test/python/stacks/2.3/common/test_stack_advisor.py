@@ -1698,6 +1698,11 @@ class TestHDP23StackAdvisor(TestCase):
         'hadoop.kms.proxyuser.root.hosts': {'delete': 'true'},
         'hadoop.kms.proxyuser.root.users': {'delete': 'true'}
         }
+      },
+      'kms-env': {
+        'properties': {
+          'ranger_kms_privelege_user_jdbc_url': 'jdbc:oracle:thin:@c6401.ambari.apache.org:1521:XE'
+        }
       }
     }
 
@@ -1740,6 +1745,11 @@ class TestHDP23StackAdvisor(TestCase):
         'hadoop.kms.proxyuser.HTTP.users': '*',
         'hadoop.kms.proxyuser.ambari-cl1.hosts': '*',
         'hadoop.kms.proxyuser.ambari-cl1.users': '*'
+        }
+      },
+      'kms-env': {
+        'properties': {
+          'ranger_kms_privelege_user_jdbc_url': 'jdbc:oracle:thin:@c6401.ambari.apache.org:1521:XE'
         }
       }
     }
