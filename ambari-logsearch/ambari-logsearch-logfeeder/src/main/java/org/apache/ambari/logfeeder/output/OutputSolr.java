@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import org.apache.ambari.logfeeder.common.IdGeneratorHelper;
 import org.apache.ambari.logfeeder.common.LogFeederSolrClientFactory;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
@@ -45,13 +46,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Collection;;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +83,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
   private boolean implicitRouting = false;
   private int lastSlotByMin = -1;
   private boolean skipLogtime = false;
+  private List<String> idFields = new ArrayList<>();
 
   private BlockingQueue<OutputData> outgoingBuffer = null;
   private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
@@ -133,6 +132,8 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
     if (CollectionUtils.isNotEmpty(solrUrlsList)) {
       solrUrls = solrUrlsList.toArray(new String[0]);
     }
+
+    idFields = getListValue("id_fields", new ArrayList<>());
 
     skipLogtime = getBooleanValue("skip_logtime", DEFAULT_SKIP_LOGTIME);
 
@@ -409,7 +410,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
         outputData = outgoingBuffer.poll(nextDispatchDuration, TimeUnit.MILLISECONDS);
       }
       if (outputData != null && outputData.jsonObj.get("id") == null) {
-        outputData.jsonObj.put("id", UUID.randomUUID().toString());
+        outputData.jsonObj.put("id", IdGeneratorHelper.generateUUID(outputData.jsonObj, idFields));
       }
       return outputData;
     }
@@ -500,5 +501,10 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
     throw new UnsupportedOperationException("copyFile method is not yet supported for output=solr");
+  }
+
+  @Override
+  public List<String> getIdFields() {
+    return idFields;
   }
 }
