@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -386,7 +387,8 @@ public class StackManagerTest {
     // values from base service
     assertEquals(baseSqoopService.isDeleted(), sqoopService.isDeleted());
     assertEquals(baseSqoopService.getAlertsFile(),sqoopService.getAlertsFile());
-    assertEquals(baseSqoopService.getClientComponent(), sqoopService.getClientComponent());
+    // they are different because of versions are not the same now
+    assertNotSame(baseSqoopService.getClientComponent(), sqoopService.getClientComponent());
     assertEquals(baseSqoopService.getCommandScript(), sqoopService.getCommandScript());
     assertEquals(baseSqoopService.getConfigDependencies(), sqoopService.getConfigDependencies());
     assertEquals(baseSqoopService.getConfigDir(), sqoopService.getConfigDir());
@@ -419,7 +421,8 @@ public class StackManagerTest {
     // compare components
     List<ComponentInfo> stormServiceComponents = stormService.getComponents();
     List<ComponentInfo> baseStormServiceComponents = baseStormService.getComponents();
-    assertEquals(new HashSet<>(stormServiceComponents), new HashSet<>(baseStormServiceComponents));
+    // The versions are not the same now
+    assertNotSame(new HashSet<>(stormServiceComponents), new HashSet<>(baseStormServiceComponents));
     // values from base service
     assertEquals(baseStormService.isDeleted(), stormService.isDeleted());
     //todo: specify alerts file in stack
@@ -460,11 +463,12 @@ public class StackManagerTest {
     // compare components
     List<ComponentInfo> serviceComponents = service.getComponents();
     List<ComponentInfo> baseStormServiceCompoents = baseSqoopService.getComponents();
-    assertEquals(serviceComponents, baseStormServiceCompoents);
+    // Versions are different now
+    assertNotSame(serviceComponents, baseStormServiceCompoents);
     // values from base service
     assertEquals(baseSqoopService.isDeleted(), service.isDeleted());
     assertEquals(baseSqoopService.getAlertsFile(),service.getAlertsFile());
-    assertEquals(baseSqoopService.getClientComponent(), service.getClientComponent());
+    assertNotSame(baseSqoopService.getClientComponent(), service.getClientComponent());
     assertEquals(baseSqoopService.getCommandScript(), service.getCommandScript());
     assertEquals(baseSqoopService.getConfigDependencies(), service.getConfigDependencies());
     assertEquals(baseSqoopService.getConfigDir(), service.getConfigDir());
