@@ -2977,7 +2977,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         break;
     }
     var component = App.StackServiceComponent.find(componentName);
-    return component.missingDependencies(installedComponents, opt);
+    return component.missingDependencies(installedComponents, opt).map(function(componentDependency) {
+      return componentDependency.chooseCompatible();
+    });
   },
 
   /**
