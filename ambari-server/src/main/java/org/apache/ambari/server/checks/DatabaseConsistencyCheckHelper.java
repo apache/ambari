@@ -1379,15 +1379,21 @@ public class DatabaseConsistencyCheckHelper {
       for (Map.Entry<Long, ConfigGroup> configGroupEntry : configGroupMap.entrySet()) {
         Long id = configGroupEntry.getKey();
         ConfigGroup configGroup = configGroupEntry.getValue();
-        LOG.info("Deleting config group {} with id {} for deleted service {}",
-          configGroup.getName(), id, configGroup.getServiceName());
-        try {
-          Cluster cluster = clusters.getCluster(configGroup.getClusterName());
-          cluster.deleteConfigGroup(id);
-        } catch (AuthorizationException e) {
-          // This call does not thrown Authorization Exception
-        } catch (AmbariException e) {
-          // Ignore if cluster not found
+        if (!StringUtils.isEmpty(configGroup.getServiceName())) {
+          LOG.info("Deleting config group {} with id {} for deleted service {}",
+                  configGroup.getName(), id, configGroup.getServiceName());
+          try {
+            Cluster cluster = clusters.getCluster(configGroup.getClusterName());
+            cluster.deleteConfigGroup(id);
+          } catch (AuthorizationException e) {
+            // This call does not thrown Authorization Exception
+          } catch (AmbariException e) {
+            // Ignore if cluster not found
+          }
+        }
+        else {
+          warning("The config group {} with id {} can not be fixed automatically because service name is missing.",
+                  configGroup.getName(), id);
         }
       }
     }

@@ -713,23 +713,26 @@ public class DatabaseConsistencyCheckHelperTest {
     });
 
     Map<String, Cluster> clusters = new HashMap<>();
-    Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Cluster cluster = easyMockSupport.createStrictMock(Cluster.class);
     clusters.put("c1", cluster);
     expect(mockClusters.getClusters()).andReturn(clusters).anyTimes();
 
     Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
     ConfigGroup cg1 = easyMockSupport.createNiceMock(ConfigGroup.class);
     ConfigGroup cg2 = easyMockSupport.createNiceMock(ConfigGroup.class);
+    ConfigGroup cgWithoutServiceName = easyMockSupport.createNiceMock(ConfigGroup.class);
     configGroupMap.put(1L, cg1);
     configGroupMap.put(2L, cg2);
+    configGroupMap.put(3L, cgWithoutServiceName);
 
-    expect(cluster.getConfigGroups()).andReturn(configGroupMap).anyTimes();
+    expect(cluster.getConfigGroups()).andStubReturn(configGroupMap);
     expect(cg1.getName()).andReturn("cg1").anyTimes();
     expect(cg1.getId()).andReturn(1L).anyTimes();
     expect(cg1.getServiceName()).andReturn("YARN").anyTimes();
     expect(cg2.getServiceName()).andReturn("HDFS").anyTimes();
-
-    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(cgWithoutServiceName.getName()).andReturn("cg3").anyTimes();
+    expect(cgWithoutServiceName.getId()).andReturn(3L).anyTimes();
+    expect(cgWithoutServiceName.getServiceName()).andReturn(null).anyTimes();
 
     Service service = easyMockSupport.createNiceMock(Service.class);
     Map<String, Service> services = new HashMap<>();
@@ -737,7 +740,7 @@ public class DatabaseConsistencyCheckHelperTest {
     expect(cluster.getServices()).andReturn(services).anyTimes();
 
     expect(cg1.getClusterName()).andReturn("c1");
-    expect(mockClusters.getCluster("c1")).andReturn(cluster);
+    expect(mockClusters.getCluster("c1")).andReturn(cluster).anyTimes();
     cluster.deleteConfigGroup(1L);
     expectLastCall();
 
@@ -751,8 +754,10 @@ public class DatabaseConsistencyCheckHelperTest {
     easyMockSupport.verifyAll();
 
     Assert.assertFalse(MapUtils.isEmpty(configGroups));
-    Assert.assertEquals(1, configGroups.size());
-    Assert.assertEquals(1L, configGroups.values().iterator().next().getId().longValue());
+    Assert.assertEquals(2, configGroups.size());
+    Assert.assertTrue(configGroups.containsKey(1L));
+    Assert.assertFalse(configGroups.containsKey(2L));
+    Assert.assertTrue(configGroups.containsKey(3L));
   }
 
   @Test
