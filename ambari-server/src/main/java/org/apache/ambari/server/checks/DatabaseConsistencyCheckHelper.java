@@ -1253,7 +1253,8 @@ public class DatabaseConsistencyCheckHelper {
       ConfigGroup configGroup = configGroupEntry.getValue();
       try {
         Cluster cluster = clusters.getCluster(configGroup.getClusterName());
-        if (cluster.getService(configGroup.getTag()) != null) {
+        Map<String, Service> serviceMap = cluster.getServices();
+        if (serviceMap.containsKey(configGroup.getTag())) {
           LOG.info("Setting service name of config group {} with id {} to {}",
                   configGroup.getName(), configGroupEntry.getKey(), configGroup.getTag());
           configGroup.setServiceName(configGroup.getTag());

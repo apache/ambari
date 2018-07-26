@@ -778,8 +778,6 @@ public class DatabaseConsistencyCheckHelperTest {
 
     Map<String, Cluster> clusters = new HashMap<>();
     Cluster cluster1 = easyMockSupport.createNiceMock(Cluster.class);
-    Service yarnService = easyMockSupport.createNiceMock(Service.class);
-    expect(cluster1.getService("YARN")).andReturn(yarnService).anyTimes();
     clusters.put("c1", cluster1);
     Cluster cluster2 = easyMockSupport.createNiceMock(Cluster.class);
     clusters.put("c2", cluster2);
@@ -810,9 +808,11 @@ public class DatabaseConsistencyCheckHelperTest {
     expect(cgForNonExistentService.getServiceName()).andReturn(null).anyTimes();
     expect(cgForNonExistentService.getTag()).andReturn("NOT_EXISTS").anyTimes();
 
-    Service service = easyMockSupport.createNiceMock(Service.class);
+    Service hdfsService = easyMockSupport.createNiceMock(Service.class);
+    Service yarnService = easyMockSupport.createNiceMock(Service.class);
     Map<String, Service> services = new HashMap<>();
-    services.put("HDFS", service);
+    services.put("HDFS", hdfsService);
+    services.put("YARN", yarnService);
     expect(cluster1.getServices()).andReturn(services).anyTimes();
 
     DatabaseConsistencyCheckHelper.setInjector(mockInjector);
