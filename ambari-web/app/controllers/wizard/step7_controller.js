@@ -1904,7 +1904,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   selectService: function (event) {
-    event.context.set('isActive', true);
+    this.get('stepConfigs').forEach((service) => {
+      service.set('isActive', service.get('serviceName') === event.context.serviceName);
+    });
     this.set('selectedService', event.context);
     var activeTabs = this.get('tabs').findProperty('isActive', true);
     if (activeTabs) {
