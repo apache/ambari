@@ -96,20 +96,24 @@ App.ConfigRecommendations = Em.Mixin.create({
    */
   addRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds, isEditable) {
     Em.assert('name and fileName should be defined', name && fileName);
-    var site = App.config.getConfigTagFromFileName(fileName);
-    var service = App.config.get('serviceByConfigTypeMap')[site];
+    const site = App.config.getConfigTagFromFileName(fileName);
+    const service = App.config.get('serviceByConfigTypeMap')[site];
+    const configObject = App.configsCollection.getConfigByName(name, fileName);
+    const displayName = configObject && configObject.displayName;
 
-    var recommendation = {
+    const recommendation = {
       saveRecommended: true,
       saveRecommendedDefault: true,
       propertyFileName: site,
       propertyName: name,
+      propertyTitle: configObject && Em.I18n.t('installer.controls.serviceConfigPopover.title').format(displayName, displayName === name ? '' : name),
+      propertyDescription: configObject && configObject.description,
 
       isDeleted: Em.isNone(recommendedValue),
       notDefined: Em.isNone(initialValue),
 
       configGroup: configGroupName || "Default",
-      initialValue: initialValue,
+      initialValue,
       parentConfigs: parentPropertyIds || [],
       serviceName: service.get('serviceName'),
       allowChangeGroup: false,//TODO groupName!= "Default" && (service.get('serviceName') != this.get('selectedService.serviceName'))
