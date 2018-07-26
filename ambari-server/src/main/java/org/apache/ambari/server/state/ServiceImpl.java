@@ -83,6 +83,7 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreRequired;
   private final boolean ssoIntegrationSupported;
   private final String ssoEnabledConfiguration;
+  private final boolean ssoRequiresKerberos;
   private AmbariMetaInfo ambariMetaInfo;
   private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
@@ -150,6 +151,7 @@ public class ServiceImpl implements Service {
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
     ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
 
     persist(serviceEntity);
   }
@@ -199,6 +201,7 @@ public class ServiceImpl implements Service {
     displayName = sInfo.getDisplayName();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
     ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
   }
 
 
@@ -377,7 +380,7 @@ public class ServiceImpl implements Service {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
-      ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled());
+      ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled(), isKerberosRequredForSsoIntegration());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -715,6 +718,10 @@ public class ServiceImpl implements Service {
 
   private boolean ssoEnabledConfigValid() {
     return ssoEnabledConfiguration != null && ssoEnabledConfiguration.split("/").length == 2;
+  }
+
+  private boolean isKerberosRequredForSsoIntegration() {
+    return ssoRequiresKerberos;
   }
 
   private String ssoEnabledConfigValue() {

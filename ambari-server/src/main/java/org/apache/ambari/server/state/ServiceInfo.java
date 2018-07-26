@@ -456,7 +456,7 @@ public class ServiceInfo implements Validable {
     return properties;
   }
 
-  public void setProperties(List properties) {
+  public void setProperties(List<PropertyInfo> properties) {
     this.properties = properties;
   }
 
@@ -655,6 +655,13 @@ public class ServiceInfo implements Validable {
 
   public String getSingleSignOnEnabledConfiguration() {
     return singleSignOnInfo != null ? singleSignOnInfo.getEnabledConfiguration() : null;
+  }
+
+  /**
+   * @return the boolean flag is Kerberos is required for SSO integration
+   */
+  public boolean isKerberosRequiredForSingleSignOnIntegration() {
+    return singleSignOnInfo != null && singleSignOnInfo.isKerberosRequired();
   }
 
   @Override
