@@ -97,6 +97,10 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     updateRangerKmsDbUrl();
   }
 
+  /**
+   * Updating Ranger Admin and Ranger Usersync log directory configs
+   * @throws AmbariException
+   */
   protected void updateRangerLogDirConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -132,6 +136,11 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
 
   }
 
+  /**
+   * Updating JDBC connection url in Ranger KMS for verifying communication to database
+   * using database root user credentials
+   * @throws AmbariException
+   */
   protected void updateRangerKmsDbUrl() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
