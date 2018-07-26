@@ -778,25 +778,37 @@ public class DatabaseConsistencyCheckHelperTest {
 
     Map<String, Cluster> clusters = new HashMap<>();
     Cluster cluster1 = easyMockSupport.createNiceMock(Cluster.class);
+    Service yarnService = easyMockSupport.createNiceMock(Service.class);
+    expect(cluster1.getService("YARN")).andReturn(yarnService).anyTimes();
     clusters.put("c1", cluster1);
     Cluster cluster2 = easyMockSupport.createNiceMock(Cluster.class);
     clusters.put("c2", cluster2);
     expect(cluster2.getConfigGroups()).andReturn(new HashMap<Long, ConfigGroup>(0)).anyTimes();
     expect(mockClusters.getClusters()).andReturn(clusters).anyTimes();
+    expect(mockClusters.getCluster("c1")).andReturn(cluster1).anyTimes();
+    expect(mockClusters.getCluster("c2")).andReturn(cluster2).anyTimes();
 
     Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
-    ConfigGroup cg1 = easyMockSupport.createNiceMock(ConfigGroup.class);
-    ConfigGroup cg2 = easyMockSupport.createNiceMock(ConfigGroup.class);
-    configGroupMap.put(1L, cg1);
-    configGroupMap.put(2L, cg2);
+    ConfigGroup cgWithoutServiceName = easyMockSupport.createNiceMock(ConfigGroup.class);
+    ConfigGroup cgWithServiceName = easyMockSupport.createNiceMock(ConfigGroup.class);
+    ConfigGroup cgForNonExistentService = easyMockSupport.createNiceMock(ConfigGroup.class);
+    configGroupMap.put(1L, cgWithoutServiceName);
+    configGroupMap.put(2L, cgWithServiceName);
+    configGroupMap.put(3L, cgForNonExistentService);
 
     expect(cluster1.getConfigGroups()).andReturn(configGroupMap).anyTimes();
-    expect(cg1.getId()).andReturn(1L).anyTimes();
-    expect(cg1.getServiceName()).andReturn(null).anyTimes();
-    expect(cg1.getTag()).andReturn("YARN").anyTimes();
-    cg1.setServiceName("YARN"); expectLastCall();
-    expect(cg2.getId()).andReturn(2L).anyTimes();
-    expect(cg2.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(cgWithoutServiceName.getId()).andReturn(1L).anyTimes();
+    expect(cgWithoutServiceName.getClusterName()).andReturn("c1").anyTimes();
+    expect(cgWithoutServiceName.getServiceName()).andReturn(null).anyTimes();
+    expect(cgWithoutServiceName.getTag()).andReturn("YARN").anyTimes();
+    cgWithoutServiceName.setServiceName("YARN"); expectLastCall();
+    expect(cgWithServiceName.getId()).andReturn(2L).anyTimes();
+    expect(cgWithServiceName.getClusterName()).andReturn("c1").anyTimes();
+    expect(cgWithServiceName.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(cgForNonExistentService.getId()).andReturn(3L).anyTimes();
+    expect(cgForNonExistentService.getClusterName()).andReturn("c1").anyTimes();
+    expect(cgForNonExistentService.getServiceName()).andReturn(null).anyTimes();
+    expect(cgForNonExistentService.getTag()).andReturn("NOT_EXISTS").anyTimes();
 
     Service service = easyMockSupport.createNiceMock(Service.class);
     Map<String, Service> services = new HashMap<>();
@@ -813,8 +825,10 @@ public class DatabaseConsistencyCheckHelperTest {
     easyMockSupport.verifyAll();
 
     Assert.assertFalse(MapUtils.isEmpty(configGroups));
-    Assert.assertEquals(1, configGroups.size());
-    Assert.assertEquals(1L, configGroups.values().iterator().next().getId().longValue());
+    Assert.assertEquals(2, configGroups.size());
+    Assert.assertTrue(configGroups.containsKey(1L));
+    Assert.assertFalse(configGroups.containsKey(2L));
+    Assert.assertTrue(configGroups.containsKey(3L));
   }
 
   @Test

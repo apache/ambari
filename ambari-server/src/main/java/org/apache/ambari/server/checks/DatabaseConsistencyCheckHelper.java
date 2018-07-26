@@ -1234,7 +1234,7 @@ public class DatabaseConsistencyCheckHelper {
 
     output.replace(output.lastIndexOf(","), output.length(), "]");
     warning("You have config groups present in the database with no " +
-            " service name, {}. Run --auto-fix-database to fix " +
+            "service name, {}. Run --auto-fix-database to fix " +
             "this automatically. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
   }
 
@@ -1244,14 +1244,22 @@ public class DatabaseConsistencyCheckHelper {
   @Transactional
   static void fixConfigGroupServiceNames() {
     Map<Long, ConfigGroup> configGroupMap = collectConfigGroupsWithoutServiceName();
+    if (MapUtils.isEmpty(configGroupMap))
+      return;
 
-    if (!MapUtils.isEmpty(configGroupMap)) {
-      for (Map.Entry<Long, ConfigGroup> configGroupEntry : configGroupMap.entrySet()) {
-        Long id = configGroupEntry.getKey();
-        ConfigGroup configGroup = configGroupEntry.getValue();
-        LOG.info("Setting service name of config group {} with id {} to {}",
-                configGroup.getName(), id, configGroup.getTag());
-        configGroup.setServiceName(configGroup.getTag());
+    Clusters clusters = injector.getInstance(Clusters.class);
+
+    for (Map.Entry<Long, ConfigGroup> configGroupEntry : configGroupMap.entrySet()) {
+      ConfigGroup configGroup = configGroupEntry.getValue();
+      try {
+        Cluster cluster = clusters.getCluster(configGroup.getClusterName());
+        if (cluster.getService(configGroup.getTag()) != null) {
+          LOG.info("Setting service name of config group {} with id {} to {}",
+                  configGroup.getName(), configGroupEntry.getKey(), configGroup.getTag());
+          configGroup.setServiceName(configGroup.getTag());
+        }
+      } catch (AmbariException e) {
+        // Ignore if cluster not found
       }
     }
   }
