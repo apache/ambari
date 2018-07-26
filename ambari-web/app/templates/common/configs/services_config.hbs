@@ -72,7 +72,9 @@
       <div id="notifications-dropdown" class="dropdown-menu row">
         <div class="popover-content">
           <div class="popup-arrow-up"></div>
-          {{view App.DependentConfigsListView recommendationsBinding="controller.recommendations" requiredChangesBinding="controller.requiredChanges"}}
+          {{view App.DependentConfigsListView recommendationsBinding="controller.recommendations"
+            requiredChangesBinding="controller.requiredChanges" isRecommendationsClickable=true
+            showRecommendationsPopovers=false}}
         </div>
       </div>
     </div>
