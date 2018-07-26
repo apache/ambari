@@ -22,6 +22,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
+import org.apache.ambari.server.collections.PredicateUtils;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -32,7 +34,13 @@ import com.google.common.base.MoreObjects;
  * <pre>
  *   &lt;sso&gt;
  *     &lt;supported&gt;true&lt;/supported&gt;
- *     &lt;enabledConfiguration&gt;config-type/sso.enabled.property_name&lt;/enabledConfiguration&gt;
+ *     &lt;enabledConfiguration&gt;{
+ *           "equals": [
+ *             "service-properties/sso.knox.enabled",
+ *             "true"
+ *           ]
+ *         }
+ *     &lt;/enabledConfiguration&gt;
  *   &lt;/sso&gt;
  * </pre>
  */
@@ -48,7 +56,7 @@ public class SingleSignOnInfo {
   /**
    * The configuration that can be used to determine if SSO integration has been enabled.
    * <p>
-   * It is expected that this value is in the form of <code>configuration-type/property_name</code>
+   * It is expected that this value is in the form of a valid JSON predicate ({@link PredicateUtils#fromJSON(String)}
    */
   @XmlElement(name = "enabledConfiguration")
   private String enabledConfiguration = null;
@@ -111,7 +119,7 @@ public class SingleSignOnInfo {
   /**
    * Gets the configuration specification that can be used to determine if SSO has been enabled or not.
    *
-   * @return a configuration specification (config-type/property_name)
+   * @return a configuration specification (JSON predicate)
    */
   public String getEnabledConfiguration() {
     return enabledConfiguration;
@@ -120,7 +128,7 @@ public class SingleSignOnInfo {
   /**
    * Sets the configuration specification that can be used to determine if SSO has been enabled or not.
    *
-   * @param enabledConfiguration a configuration specification (config-type/property_name)
+   * @param enabledConfiguration a configuration specification (JSON predicate)
    */
   public void setEnabledConfiguration(String enabledConfiguration) {
     this.enabledConfiguration = enabledConfiguration;

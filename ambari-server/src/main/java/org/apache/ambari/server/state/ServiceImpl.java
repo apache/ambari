@@ -32,9 +32,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.collections.Predicate;
+import org.apache.ambari.server.collections.PredicateUtils;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
@@ -89,6 +93,9 @@ public class ServiceImpl implements Service {
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
+  @Inject
+  private AmbariManagementController ambariManagementController;
 
   @Inject
   private ConfigHelper configHelper;
@@ -713,20 +720,16 @@ public class ServiceImpl implements Service {
   }
 
   public boolean isSsoIntegrationEnabled() {
-    return ssoIntegrationSupported && ssoEnabledConfigValid() && "true".equalsIgnoreCase(ssoEnabledConfigValue());
-  }
-
-  private boolean ssoEnabledConfigValid() {
-    return ssoEnabledConfiguration != null && ssoEnabledConfiguration.split("/").length == 2;
+    try {
+      final Predicate ssoEnabledPredicate = ssoEnabledConfiguration == null ? null : PredicateUtils.fromJSON(ssoEnabledConfiguration);
+      return ssoIntegrationSupported && ssoEnabledPredicate != null && ssoEnabledPredicate.evaluate(configHelper.calculateExistingConfigurations(ambariManagementController, cluster));
+    } catch (AmbariException e) {
+      throw new AmbariRuntimeException("Error while evaulating if SSO integration is enabled", e);
+    }
   }
 
   private boolean isKerberosRequredForSsoIntegration() {
     return ssoRequiresKerberos;
   }
 
-  private String ssoEnabledConfigValue() {
-    String configType = ssoEnabledConfiguration.split("/")[0];
-    String propertyName = ssoEnabledConfiguration.split("/")[1];
-    return configHelper.getValueFromDesiredConfigurations(cluster, configType, propertyName);
-  }
 }

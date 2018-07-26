@@ -466,7 +466,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         }
       });
 
-    Map<String, Map<String, String>> existingConfigurations = calculateExistingConfigurations(cluster, null);
+    Map<String, Map<String, String>> existingConfigurations = configHelper.calculateExistingConfigurations(ambariManagementController, cluster, null);
     Map<String, Map<String, String>> updates = getServiceConfigurationUpdates(cluster,
       existingConfigurations, installedServices, serviceFilter, previouslyExistingServices, true, true);
 
@@ -1741,7 +1741,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     Map<String, Map<String, String>> calculatedConfigurations = addAdditionalConfigurations(
       cluster,
-      calculateExistingConfigurations(cluster, hostname),
+      configHelper.calculateExistingConfigurations(ambariManagementController, cluster, hostname),
       hostname,
       (kerberosDescriptor == null) ? null : kerberosDescriptor.getProperties());
 
@@ -2923,45 +2923,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     return identities;
-  }
-
-  /**
-   * Determines the existing configurations for the cluster, related to a given hostname (if provided)
-   *
-   * @param cluster  the cluster
-   * @param hostname a hostname
-   * @return a map of the existing configurations
-   * @throws AmbariException
-   */
-  private Map<String, Map<String, String>> calculateExistingConfigurations(Cluster cluster, String hostname) throws AmbariException {
-    // For a configuration type, both tag and an actual configuration can be stored
-    // Configurations from the tag is always expanded and then over-written by the actual
-    // global:version1:{a1:A1,b1:B1,d1:D1} + global:{a1:A2,c1:C1,DELETED_d1:x} ==>
-    // global:{a1:A2,b1:B1,c1:C1}
-    Map<String, Map<String, String>> configurations = new HashMap<>();
-    Map<String, Map<String, String>> configurationTags = ambariManagementController.findConfigurationTagsWithOverrides(cluster, hostname);
-
-    Map<String, Map<String, String>> configProperties = configHelper.getEffectiveConfigProperties(cluster, configurationTags);
-
-    // Apply the configurations saved with the Execution Cmd on top of
-    // derived configs - This will take care of all the hacks
-    for (Map.Entry<String, Map<String, String>> entry : configProperties.entrySet()) {
-      String type = entry.getKey();
-      Map<String, String> allLevelMergedConfig = entry.getValue();
-      Map<String, String> configuration = configurations.get(type);
-
-      if (configuration == null) {
-        configuration = new HashMap<>(allLevelMergedConfig);
-      } else {
-        Map<String, String> mergedConfig = configHelper.getMergedConfig(allLevelMergedConfig, configuration);
-        configuration.clear();
-        configuration.putAll(mergedConfig);
-      }
-
-      configurations.put(type, configuration);
-    }
-
-    return configurations;
   }
 
   /**
