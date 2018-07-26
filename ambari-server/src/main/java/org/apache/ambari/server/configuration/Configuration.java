@@ -2601,6 +2601,16 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
     "stack.upgrade.default.parallelism", 100);
 
+  /**
+   * If enabled, Ambari will generate hash files for stack resource directories
+   * and generate compressed archives of those directories to send to agents.
+   * This should normally always be {@code true} except in a development
+   * environment.
+   */
+  @Markdown(description = "Enables whether Ambari should generate .hash files for stack resource directories. This should always be enabled unless working in a development environment.")
+  public static final ConfigurationProperty<Boolean> STACK_RESOURCE_HASH_ENABLED = new ConfigurationProperty<>(
+      "server.stack.resources.hash.enabled", true);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -3015,7 +3025,7 @@ public class Configuration {
     writeConfigFile(existingProperties, false);
 
     // reloading properties
-    this.properties = readConfigFile();
+    properties = readConfigFile();
   }
 
   /**
@@ -6031,4 +6041,15 @@ public class Configuration {
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
   }
+
+  /**
+   * Gets whether Ambari should generate {@code .hash} and {@code archive.zip}
+   * files for stack resources.
+   *
+   * @return {@code true} to generate the files, {@code false} otherwise.
+   */
+  public boolean isStackResourceHashAndArchiveGenerationEnabled() {
+    return Boolean.parseBoolean(getProperty(STACK_RESOURCE_HASH_ENABLED));
+  }
+
 }
