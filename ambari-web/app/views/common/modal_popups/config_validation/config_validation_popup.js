@@ -26,8 +26,8 @@ var App = require('app');
 App.showConfigValidationPopup = function (configErrors, primary, secondary, controller) {
   return App.ModalPopup.show({
     header: Em.I18n.t('installer.step7.popup.validation.warning.header'),
-    classNames: ['common-modal-wrapper','modal-full-width'],
-    modalDialogClasses: ['modal-lg'],
+    classNames: ['common-modal-wrapper'],
+    modalDialogClasses: ['modal-xlg'],
     primary: Em.I18n.t('common.proceedAnyway'),
     primaryClass: 'btn-danger',
     marginBottom: 200,

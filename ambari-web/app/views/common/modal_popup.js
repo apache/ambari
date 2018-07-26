@@ -162,12 +162,19 @@ App.ModalPopup = Ember.View.extend({
 
   fitHeight: function () {
     if (this.get('state') === 'destroyed') return;
-    var popup = this.$().find('#modal'),
+    const popup = this.$().find('#modal'),
       wrapper = $(popup).find('.modal-dialog'),
       block = $(popup).find('.modal-body'),
       wh = $(window).height(),
-      top = wh * 0.05,
-      newMaxHeight = wh - top * 2 - (wrapper.height() - block.height());
+      ww = $(window).width(),
+      topNavPaddingTop = 19, // from ambari-web/app/styles/common.less
+      topNavFontSize = 20, // from ambari-web/app/styles/common.less
+      topNavLineHeight = 1.3, // from ambari-web/app/styles/common.less
+      modalMarginTopDefault = 10, // from ambari-web/app/styles/common.less
+      modalMarginTopWide = 30, // from ambari-web/app/styles/common.less
+      modalMarginTop = ww < 768 ? modalMarginTopDefault : modalMarginTopWide, // from ambari-web/vendor/styles/bootstrap.css
+      top = topNavPaddingTop + topNavFontSize * topNavLineHeight - modalMarginTop;
+    let newMaxHeight = wh - top * 2 - (wrapper.height() - block.height());
 
     popup.css({
       'top': top + 'px',
