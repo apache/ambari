@@ -726,6 +726,7 @@ public class ServiceInfoTest {
             "      <sso>" +
             "        <supported>true</supported>" +
             "        <enabledConfiguration>config-type/property_name</enabledConfiguration>" +
+            "        <kerberosRequired>true</kerberosRequired> " +
             "      </sso>" +
             "    </service>" +
             "  </services>" +
@@ -739,6 +740,7 @@ public class ServiceInfoTest {
     assertTrue(singleSignOnInfo.isSupported());
     assertEquals(Boolean.TRUE, singleSignOnInfo.getSupported());
     assertEquals("config-type/property_name", singleSignOnInfo.getEnabledConfiguration());
+    assertTrue(singleSignOnInfo.isKerberosRequired());
 
     // Explicit SSO setting (false)
     serviceInfoXml =
