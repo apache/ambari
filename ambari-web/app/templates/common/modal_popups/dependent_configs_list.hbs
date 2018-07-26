@@ -63,9 +63,11 @@
 {{/if}}
 <span id="config-dependencies" class="limited-height-2">
   {{#if view.recommendations.length}}
-    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations" checkboxesFirstBinding="controller.isInstallWizard" isClickable=true}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations"
+      isClickableBinding="view.isRecommendationsClickable" showPopoversBinding="view.showRecommendationsPopovers"}}
   {{/if}}
   {{#if view.requiredChanges.length}}
-    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false checkboxesFirstBinding="controller.isInstallWizard" isClickable=true}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false
+      isClickableBinding="view.isRecommendationsClickable" showPopoversBinding="view.showRecommendationsPopovers"}}
   {{/if}}
 </span>

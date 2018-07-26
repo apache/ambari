@@ -540,9 +540,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       controller: this,
       hasPropertiesToChange: false,
-      classNameBindings: ['controller.hasPropertiesToChange:common-modal-wrapper', 'controller.hasPropertiesToChange:modal-full-width'],
+      classNameBindings: ['controller.hasPropertiesToChange:common-modal-wrapper'],
       modalDialogClasses: function () {
-        return this.get('controller.hasPropertiesToChange') ? ['modal-lg'] : [];
+        return this.get('controller.hasPropertiesToChange') ? ['modal-xlg'] : [];
       }.property('controller.hasPropertiesToChange'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
       bodyClass: this.get('addDeleteComponentPopupBody').extend({
@@ -808,9 +808,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       controller: self,
       hasPropertiesToChange: false,
-      classNameBindings: ['hasPropertiesToChange:common-modal-wrapper', 'hasPropertiesToChange:modal-full-width'],
+      classNameBindings: ['hasPropertiesToChange:common-modal-wrapper'],
       modalDialogClasses: function () {
-        return this.get('controller.hasPropertiesToChange') ? ['modal-lg'] : [];
+        return this.get('controller.hasPropertiesToChange') ? ['modal-xlg'] : [];
       }.property('controller.hasPropertiesToChange'),
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       bodyClass: self.get('addDeleteComponentPopupBody').extend({
@@ -990,19 +990,19 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method updateZkConfigs
    */
   updateZkConfigs: function (configs) {
-    var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
-    var zkPort = typeof portValue === 'undefined' ? '2181' : portValue;
-    var infraSolrZnode = configs['infra-solr-env'] ? Em.get(configs['infra-solr-env'], 'infra_solr_znode') : '/ambari-solr';
-    var initializer = App.AddZooKeeperComponentsInitializer;
-    var hostComponentsTopology = {
-      masterComponentHosts: []
-    };
-    var propertiesToChange = this.get('allPropertiesToChange');
-    var masterComponents = this.bootstrapHostsMapping('ZOOKEEPER_SERVER');
+    const portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort'),
+      zkPort = typeof portValue === 'undefined' ? '2181' : portValue,
+      infraSolrZnode = configs['infra-solr-env'] ? Em.get(configs['infra-solr-env'], 'infra_solr_znode') : '/ambari-solr',
+      initializer = App.AddZooKeeperComponentsInitializer,
+      hostComponentsTopology = {
+        masterComponentHosts: []
+      },
+      propertiesToChange = this.get('allPropertiesToChange'),
+      masterComponents = this.bootstrapHostsMapping('ZOOKEEPER_SERVER');
     if (this.get('fromDeleteHost') || this.get('fromDeleteZkServer')) {
       this.set('fromDeleteHost', false);
       this.set('fromDeleteZkServer', false);
-      var removedHost = masterComponents.findProperty('hostName', this.get('content.hostName'));
+      let removedHost = masterComponents.findProperty('hostName', this.get('content.hostName'));
       if (!Em.isNone(removedHost)) {
         Em.set(removedHost, 'isInstalled', false);
       }
@@ -1014,34 +1014,38 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         isInstalled: true
       });
     }
-    var dependencies = {
+    const dependencies = {
       zkClientPort: zkPort,
-      infraSolrZnode: infraSolrZnode
+      infraSolrZnode
     };
     hostComponentsTopology.masterComponentHosts = masterComponents;
-    Em.keys(configs).forEach(function(fileName) {
-      var properties = configs[fileName];
-      Em.keys(properties).forEach(function(propertyName) {
-        var currentValue = properties[propertyName],
+    Em.keys(configs).forEach(fileName => {
+      const properties = configs[fileName];
+      Em.keys(properties).forEach(propertyName => {
+        const currentValue = properties[propertyName],
           propertyDef = {
-            fileName: fileName,
+            fileName,
             name: propertyName,
             value: currentValue
           },
           configProperty = initializer.initialValue(propertyDef, hostComponentsTopology, dependencies);
         initializer.updateSiteObj(configs[fileName], configProperty);
         if (currentValue !== configs[fileName][propertyName]) {
-          var service = App.config.get('serviceByConfigTypeMap')[fileName];
+          const service = App.config.get('serviceByConfigTypeMap')[fileName],
+            configObject = App.configsCollection.getConfigByName(propertyName, fileName),
+            displayName = configObject && configObject.displayName;
           propertiesToChange.pushObject({
             propertyFileName: fileName,
-            propertyName: propertyName,
+            propertyName,
+            propertyTitle: configObject && Em.I18n.t('installer.controls.serviceConfigPopover.title').format(displayName, displayName === propertyName ? '' : propertyName),
+            propertyDescription: configObject && configObject.description,
             serviceDisplayName: service && service.get('displayName'),
             initialValue: currentValue,
             recommendedValue: propertyDef.value
           });
         }
-      }, this);
-    }, this);
+      });
+    });
   },
 
   /**
@@ -1069,40 +1073,46 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method onLoadStormConfigs
    */
   onLoadStormConfigs: function (data) {
-    var nimbusHost = this.get('nimbusHost'),
+    const nimbusHost = this.get('nimbusHost'),
       stormNimbusHosts = this.getStormNimbusHosts(),
       configs = {},
       attributes = {},
       propertiesToChange = this.get('allPropertiesToChange');
 
     this.saveLoadedConfigs(data);
-    data.items.forEach(function (item) {
+    data.items.forEach(item => {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
-    }, this);
+    });
 
     this.updateZkConfigs(configs);
 
-    var nimbusSeedsInit = configs['storm-site']['nimbus.seeds'],
+    const propertyName = 'nimbus.seeds',
+      propertyFileName = 'storm-site',
+      nimbusSeedsInit = configs[propertyFileName][propertyName],
       nimbusSeedsRecommended = JSON.stringify(stormNimbusHosts).replace(/"/g, "'");
-    configs['storm-site']['nimbus.seeds'] = nimbusSeedsRecommended;
+    configs[propertyFileName][propertyName] = nimbusSeedsRecommended;
     if (this.get('isReconfigureRequired') && nimbusSeedsInit !== nimbusSeedsRecommended) {
-      var service = App.config.get('serviceByConfigTypeMap')['storm-site'];
+      const service = App.config.get('serviceByConfigTypeMap')[propertyFileName],
+        configObject = App.configsCollection.getConfigByName(propertyName, propertyFileName),
+        displayName = configObject && configObject.displayName;
       propertiesToChange.pushObject({
-        propertyFileName: 'storm-site',
-        propertyName: 'nimbus.seeds',
+        propertyFileName,
+        propertyName,
+        propertyTitle: configObject && Em.I18n.t('installer.controls.serviceConfigPopover.title').format(displayName, displayName === propertyName ? '' : propertyName),
+        propertyDescription: configObject && configObject.description,
         serviceDisplayName: service && service.get('displayName'),
         initialValue: nimbusSeedsInit,
         recommendedValue: nimbusSeedsRecommended
       });
     }
-    var groups = [
+    const groups = [
       {
         properties: {
-          'storm-site': configs['storm-site']
+          [propertyFileName]: configs[propertyFileName]
         },
         properties_attributes: {
-          'storm-site': attributes['storm-site']
+          [propertyFileName]: attributes[propertyFileName]
         }
       }
     ];
@@ -1110,41 +1120,45 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   onLoadAtlasConfigs: function(data) {
-    var atlasServer = this.get('atlasServer'),
+    const atlasServer = this.get('atlasServer'),
       atlasServerHosts = this.getAtlasServerHosts(),
       configs = {},
       attributes = {},
       propertiesToChange = this.get('allPropertiesToChange');
 
     this.saveLoadedConfigs(data);
-    data.items.forEach(function (item) {
+    data.items.forEach(item => {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
-    }, this);
+    });
 
-    var atlasAddresses = configs['application-properties']['atlas.rest.address'];
-    var hostMask = atlasAddresses.split(',')[0].replace(/([https|http]*\:\/\/)(.*?)(:[0-9]+)/, '$1{hostname}$3');
-    var atlasAddressesRecommended = atlasServerHosts.map(function(hostName) {
-      return hostMask.replace('{hostname}', hostName);
-    }).join(',');
-    configs['application-properties']['atlas.rest.address'] = atlasAddressesRecommended;
+    const propertyFileName = 'application-properties',
+      propertyName = 'atlas.rest.address',
+      atlasAddresses = configs[propertyFileName][propertyName],
+      hostMask = atlasAddresses.split(',')[0].replace(/([https|http]*\:\/\/)(.*?)(:[0-9]+)/, '$1{hostname}$3'),
+      atlasAddressesRecommended = atlasServerHosts.map(hostName => hostMask.replace('{hostname}', hostName)).join(',');
+    configs[propertyFileName][propertyName] = atlasAddressesRecommended;
     if (this.get('isReconfigureRequired') && atlasAddresses !== atlasAddressesRecommended) {
-      var service = App.config.get('serviceByConfigTypeMap')['application-properties'];
+      var service = App.config.get('serviceByConfigTypeMap')[propertyFileName],
+        configObject = App.configsCollection.getConfigByName(propertyName, propertyFileName),
+        displayName = configObject && configObject.displayName;
       propertiesToChange.pushObject({
-        propertyFileName: 'application-properties',
-        propertyName: 'atlas.rest.address',
+        propertyFileName,
+        propertyName,
+        propertyTitle: configObject && Em.I18n.t('installer.controls.serviceConfigPopover.title').format(displayName, displayName === propertyName ? '' : propertyName),
+        propertyDescription: configObject && configObject.description,
         serviceDisplayName: service && service.get('displayName'),
         initialValue: atlasAddresses,
         recommendedValue: atlasAddressesRecommended
       });
     }
-    var groups = [
+    const groups = [
       {
         properties: {
-          'application-properties': configs['application-properties']
+          [propertyFileName]: configs[propertyFileName]
         },
         properties_attributes: {
-          'application-properties': attributes['application-properties']
+          [propertyFileName]: attributes[propertyFileName]
         }
       }
     ];
@@ -1202,26 +1216,26 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method onLoadHiveConfigs
    */
   onLoadHiveConfigs: function (data, opt, params) {
-    var port = "";
-    var configs = {};
-    var attributes = {};
-    var userSetup = {};
-    var localDB = {
-      masterComponentHosts: this.getHiveHosts()
-    };
-    var dependencies = {
-      hiveMetastorePort: ""
-    };
-    var initializer = params.webHCat ? App.AddWebHCatComponentsInitializer : App.AddHiveComponentsInitializer;
+    let port = "";
+    const configs = {},
+      attributes = {},
+      userSetup = {},
+      localDB = {
+        masterComponentHosts: this.getHiveHosts()
+      },
+      dependencies = {
+        hiveMetastorePort: ""
+      },
+      initializer = params.webHCat ? App.AddWebHCatComponentsInitializer : App.AddHiveComponentsInitializer;
     this.saveLoadedConfigs(data);
     this.set('configs.params', {
       webHCat: params.webHCat
     });
-    data.items.forEach(function (item) {
+    data.items.forEach(item => {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
-    }, this);
-    var propertiesToChange = this.get('allPropertiesToChange');
+    });
+    const propertiesToChange = this.get('allPropertiesToChange');
 
     port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
     port = port ? port[0].slice(1) : "9083";
@@ -1236,30 +1250,34 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
     initializer.setup(userSetup);
 
-    ['hive-site', 'webhcat-site', 'hive-env', 'core-site'].forEach(function(fileName) {
+    ['hive-site', 'webhcat-site', 'hive-env', 'core-site'].forEach(fileName => {
       if (configs[fileName]) {
-        Em.keys(configs[fileName]).forEach(function(propertyName) {
-          var currentValue = configs[fileName][propertyName],
+        Em.keys(configs[fileName]).forEach(propertyName => {
+          const currentValue = configs[fileName][propertyName],
             propertyDef = {
-              fileName: fileName,
+              fileName,
               name: propertyName,
               value: currentValue
             },
             configProperty = initializer.initialValue(propertyDef, localDB, dependencies);
           initializer.updateSiteObj(configs[fileName], configProperty);
           if (this.get('isReconfigureRequired') && currentValue !== configs[fileName][propertyName]) {
-            var service = App.config.get('serviceByConfigTypeMap')[fileName];
+            const service = App.config.get('serviceByConfigTypeMap')[fileName],
+              configObject = App.configsCollection.getConfigByName(propertyName, fileName),
+              displayName = configObject && configObject.displayName;
             propertiesToChange.pushObject({
               propertyFileName: fileName,
-              propertyName: propertyName,
+              propertyName,
+              propertyTitle: configObject && Em.I18n.t('installer.controls.serviceConfigPopover.title').format(displayName, displayName === propertyName ? '' : propertyName),
+              propertyDescription: configObject && configObject.description,
               serviceDisplayName: service && service.get('displayName'),
               initialValue: currentValue,
               recommendedValue: propertyDef.value
             });
           }
-        }, this);
+        });
       }
-    }, this);
+    });
 
     initializer.cleanup();
 
@@ -1416,7 +1434,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method onLoadRangerConfigs
    */
   onLoadRangerConfigs: function (data) {
-    var hdfsProperties = [
+    const hdfsProperties = [
         {
           type: 'core-site',
           name: 'hadoop.security.key.provider.path'
@@ -1490,8 +1508,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
     this.saveLoadedConfigs(data);
 
-    hdfsProperties.forEach(function (property) {
-      var typeConfigs = data.items.findProperty('type', property.type).properties,
+    hdfsProperties.forEach(property => {
+      const typeConfigs = data.items.findProperty('type', property.type).properties,
         currentValue = typeConfigs[property.name],
         pattern = new RegExp('^kms:\\/\\/http@(.+):' + rkmsPort + '\\/kms$'),
         patternMatch = currentValue && currentValue.match(pattern),
@@ -1499,10 +1517,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       if (currentHostsList !== rkmsHostsStr) {
         typeConfigs[property.name] = newValue;
         if (this.get('isReconfigureRequired')) {
-          var service = App.config.get('serviceByConfigTypeMap')[property.type];
+          const propertyFileName = property.type,
+            propertyName = property.name,
+            service = App.config.get('serviceByConfigTypeMap')[propertyFileName],
+            configObject = App.configsCollection.getConfigByName(propertyName, propertyFileName),
+            displayName = configObject && configObject.displayName;
           propertiesToChange.pushObject({
-            propertyFileName: property.type,
-            propertyName: property.name,
+            propertyFileName,
+            propertyName,
+            propertyTitle: configObject && Em.I18n.t('installer.controls.serviceConfigPopover.title').format(displayName, displayName === propertyName ? '' : propertyName),
+            propertyDescription: configObject && configObject.description,
             serviceDisplayName: service && service.get('displayName'),
             initialValue: currentValue,
             recommendedValue: newValue,
@@ -1510,7 +1534,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           });
         }
       }
-    }, this);
+    });
 
     kmsSiteProperties.forEach(function (property) {
       var currentValue = kmsSiteConfigs.properties[property.name];
