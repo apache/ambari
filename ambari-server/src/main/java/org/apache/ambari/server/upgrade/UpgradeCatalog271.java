@@ -21,6 +21,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -152,21 +154,33 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
           if (installedServices.contains("RANGER_KMS")) {
             Config rangerKmsPropertiesConfig = cluster.getDesiredConfigByType("kms-properties");
             Config rangerKmsEnvConfig = cluster.getDesiredConfigByType("kms-env");
+            Config rangerKmsDbksConfig = cluster.getDesiredConfigByType("dbks-site");
             if (rangerKmsPropertiesConfig != null) {
               String dbFlavor = rangerKmsPropertiesConfig.getProperties().get("DB_FLAVOR");
               String dbHost = rangerKmsPropertiesConfig.getProperties().get("db_host");
               String rangerKmsRootDbUrl = "";
               if (dbFlavor != null && dbHost != null) {
+                String port = "";
+                if (rangerKmsDbksConfig != null) {
+                  String rangerKmsDbUrl = rangerKmsDbksConfig.getProperties().get("ranger.ks.jpa.jdbc.url");
+                  if (rangerKmsDbUrl != null) {
+                    Pattern pattern = Pattern.compile("(:[0-9]+)");
+                    Matcher matcher = pattern.matcher(rangerKmsDbUrl);
+                    if (matcher.find()) {
+                      port = matcher.group();
+                    }
+                  }
+                }
                 if ("MYSQL".equalsIgnoreCase(dbFlavor)) {
-                  rangerKmsRootDbUrl = "jdbc:mysql://" + dbHost + ":3306";
+                  rangerKmsRootDbUrl = "jdbc:mysql://" + dbHost + (!port.equalsIgnoreCase("")?port:":3306");
                 } else if ("ORACLE".equalsIgnoreCase(dbFlavor)) {
-                  rangerKmsRootDbUrl = "jdbc:oracle:thin:@//" + dbHost + ":1521";
+                  rangerKmsRootDbUrl = "jdbc:oracle:thin:@//" + dbHost + (!port.equalsIgnoreCase("")?port:":1521");
                 } else if ("POSTGRES".equalsIgnoreCase(dbFlavor)) {
-                  rangerKmsRootDbUrl = "jdbc:postgresql://" + dbHost + ":5432/postgres";
+                  rangerKmsRootDbUrl = "jdbc:postgresql://" + dbHost + (!port.equalsIgnoreCase("")?port:":5432") + "/postgres";
                 } else if ("MSSQL".equalsIgnoreCase(dbFlavor)) {
-                  rangerKmsRootDbUrl = "jdbc:sqlserver://" + dbHost + ":1433;";
+                  rangerKmsRootDbUrl = "jdbc:sqlserver://" + dbHost + (!port.equalsIgnoreCase("")?port:":1433");
                 } else if ("SQLA".equalsIgnoreCase(dbFlavor)) {
-                  rangerKmsRootDbUrl = "jdbc:sqlanywhere:host=" + dbHost + ":2638;";
+                  rangerKmsRootDbUrl = "jdbc:sqlanywhere:host=" + dbHost + (!port.equalsIgnoreCase("")?port:":2638") + ";";
                 }
                 Map<String, String> newProperty = new HashMap<String, String>();
                 newProperty.put("ranger_kms_privelege_user_jdbc_url", rangerKmsRootDbUrl);
