@@ -22,6 +22,8 @@ from multiprocessing.pool import ThreadPool
 import os
 
 import pprint
+
+from ambari_agent.models.commands import CommandStatus
 from ambari_commons import shell
 
 from unittest import TestCase
@@ -401,7 +403,7 @@ class TestCustomServiceOrchestrator:#(TestCase):
     get_configuration_mock.return_value = execute_command
     
     actionQueue.put([execute_command])
-    actionQueue.processBackgroundQueueSafeEmpty()
+    actionQueue.process_background_queue_safe_empty()
 
     time.sleep(.1)
 
@@ -419,7 +421,7 @@ class TestCustomServiceOrchestrator:#(TestCase):
 
     runningCommand = actionQueue.commandStatuses.get_command_status(19)
     self.assertTrue(runningCommand is not None)
-    self.assertEqual(runningCommand['status'], ActionQueue.FAILED_STATUS)
+    self.assertEqual(runningCommand['status'], CommandStatus.failed)
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
@@ -565,7 +567,7 @@ class TestCustomServiceOrchestrator:#(TestCase):
     import TestActionQueue
     pyex = PythonExecutor(orchestrator.tmp_dir, orchestrator.config)
     TestActionQueue.patch_output_file(pyex)
-    pyex.condenseOutput = MagicMock()
+    pyex.condense_output = MagicMock()
     get_py_executor_mock.return_value = pyex
     orchestrator.dump_command_to_json = MagicMock()
 

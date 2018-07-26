@@ -29,6 +29,7 @@ from collections import defaultdict
 from Grep import Grep
 
 from ambari_agent import Constants
+from ambari_agent.models.commands import CommandStatus, AgentCommand
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger()
@@ -72,7 +73,7 @@ class CommandStatusDict():
       self.current_state.pop(key, None)
 
     is_sent, correlation_id = self.force_update_to_server({command['clusterId']: [report]})
-    updatable = report['status'] == ActionQueue.IN_PROGRESS_STATUS and self.command_update_output
+    updatable = report['status'] == CommandStatus.in_progress and self.command_update_output
 
     if not is_sent or updatable:
       self.queue_report_sending(key, command, report)
@@ -136,25 +137,25 @@ class CommandStatusDict():
     generation
     """
     self.generated_reports = []
-    from ActionQueue import ActionQueue
-    with self.lock: # Synchronized
-      resultReports = defaultdict(lambda:[])
+
+    with self.lock:
+      result_reports = defaultdict(lambda:[])
       for key, item in self.current_state.items():
         command = item[0]
         report = item[1]
         cluster_id = report['clusterId']
-        if command ['commandType'] in [ActionQueue.EXECUTION_COMMAND, ActionQueue.BACKGROUND_EXECUTION_COMMAND]:
-          if (report['status']) != ActionQueue.IN_PROGRESS_STATUS:
-            resultReports[cluster_id].append(report)
+        if command['commandType'] in AgentCommand.EXECUTION_COMMAND_GROUP:
+          if (report['status']) != CommandStatus.in_progress:
+            result_reports[cluster_id].append(report)
             self.reported_reports.add(key)
           else:
             in_progress_report = self.generate_in_progress_report(command, report)
-            resultReports[cluster_id].append(in_progress_report)
-        elif command ['commandType'] in [ActionQueue.AUTO_EXECUTION_COMMAND]:
+            result_reports[cluster_id].append(in_progress_report)
+        elif command['commandType'] == AgentCommand.auto_execution:
           logger.debug("AUTO_EXECUTION_COMMAND task deleted %s", command['commandId'])
           self.reported_reports.add(key)
           pass
-      return resultReports
+      return result_reports
 
   def clear_reported_reports(self, result_reports):
     with self.lock:
@@ -178,8 +179,6 @@ class CommandStatusDict():
     Reads stdout/stderr for IN_PROGRESS command from disk file
     and populates other fields of report.
     """
-    from ActionQueue import ActionQueue
-    
     files_to_read = [report['tmpout'], report['tmperr'], report['structuredOut']]
     files_content = ['...', '...', '{}']
 
@@ -200,7 +199,7 @@ class CommandStatusDict():
       'stderr': err,
       'structuredOut': tmpstructuredout,
       'exitCode': 777,
-      'status': ActionQueue.IN_PROGRESS_STATUS,
+      'status': CommandStatus.in_progress,
     })
     return inprogress
 

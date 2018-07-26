@@ -14,26 +14,33 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
-from resource_management import Hook
 
 
-class BeforeSetKeytabHook(Hook):
+class AgentCommand(object):
+  status = "STATUS_COMMAND"
+  execution = "EXECUTION_COMMAND"
+  auto_execution = "AUTO_EXECUTION_COMMAND"
+  background_execution = "BACKGROUND_EXECUTION_COMMAND"
 
-  def hook(self, env):
-    """
-    This will invoke the before-ANY hook which contains all of the user and group creation logic.
-    Keytab regeneration requires all users are already created, which is usually done by the
-    before-INSTALL hook. However, if the keytab regeneration is executed as part of an upgrade,
-    then the before-INSTALL hook never ran.
-
-    :param env:
-    :return:
-    """
-    self.run_custom_hook('before-ANY')
+  AUTO_EXECUTION_COMMAND_GROUP = [execution, auto_execution, background_execution]
+  EXECUTION_COMMAND_GROUP = [execution, background_execution]
 
 
-if __name__ == "__main__":
-  BeforeSetKeytabHook().execute()
+class RoleCommand(object):
+  install = 'INSTALL'
+  start = 'START'
+  stop = 'STOP'
+  custom_command = 'CUSTOM_COMMAND'
 
+
+class CustomCommand(object):
+  restart = 'RESTART'
+  reconfigure = 'RECONFIGURE'
+  start = RoleCommand.start
+
+
+class CommandStatus(object):
+  in_progress = 'IN_PROGRESS'
+  completed = 'COMPLETED'
+  failed = 'FAILED'
