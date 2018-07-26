@@ -1352,6 +1352,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.log.server.web-service.url", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
       emptyMap());
@@ -1395,6 +1397,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
     assertEquals("Yarn ResourceManager timeline web service url was incorrectly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.log.server.web-service.url"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly exported",
+        createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly exported",
+        createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -1418,6 +1424,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", "0.0.0.0" + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", "0.0.0.0" + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
       emptyMap());
@@ -1459,6 +1467,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly exported",
       "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -3523,6 +3535,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
 
@@ -3569,6 +3583,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly updated",
       createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -3594,6 +3612,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
     yarnSiteProperties.put("yarn.resourcemanager.hostname.rm1", expectedHostName);
@@ -3657,6 +3677,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly updated",
       createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly updated",
+      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader ebapp HTTPS address was incorrectly updated",
+      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
 
     // verify that dynamically-named RM HA properties are exported as expected
     List<String> properties = Arrays.asList(
