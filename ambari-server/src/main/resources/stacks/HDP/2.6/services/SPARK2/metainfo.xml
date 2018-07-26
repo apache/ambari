@@ -82,6 +82,7 @@
         <config-type>spark2-hive-site-override</config-type>
         <config-type>spark2-thrift-fairscheduler</config-type>
         <config-type>livy2-conf</config-type>
+        <config-type>livy2-client-conf</config-type>
         <config-type>livy2-env</config-type>
         <config-type>livy2-log4j-properties</config-type>
         <config-type>livy2-spark-blacklist</config-type>

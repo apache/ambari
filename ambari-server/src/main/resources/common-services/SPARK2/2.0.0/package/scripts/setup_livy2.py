@@ -66,6 +66,14 @@ def setup_livy(env, type, upgrade_type = None, action = None):
                 group=params.livy2_group,
   )
 
+  # create livy-client.conf in etc/conf dir
+  PropertiesFile(format("{livy2_conf}/livy-client.conf"),
+                properties = params.config['configurations']['livy2-client-conf'],
+                key_value_delimiter = " ",
+                owner=params.livy2_user,
+                group=params.livy2_group,
+   )
+
   # create log4j.properties in etc/conf dir
   File(os.path.join(params.livy2_conf, 'log4j.properties'),
        owner=params.livy2_user,
