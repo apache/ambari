@@ -174,6 +174,12 @@ public class UpgradeCatalog271Test {
       }
     };
 
+    Map<String, String> rangerKmsDbksPropertiesConfig = new HashMap<String, String>() {
+      {
+        put("ranger.ks.jpa.jdbc.url", "jdbc:mysql://c6401.ambari.apache.org:3546");
+      }
+    };
+
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
     Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
@@ -201,19 +207,23 @@ public class UpgradeCatalog271Test {
     Config mockRangerKmsEnvConfig = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("kms-env")).andReturn(mockRangerKmsEnvConfig).atLeastOnce();
 
+    Config mockRangerKmsDbksConfig = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("dbks-site")).andReturn(mockRangerKmsDbksConfig).atLeastOnce();
+
     expect(mockRangerKmsPropertiesConfig.getProperties()).andReturn(rangerKmsPropertiesConfig).anyTimes();
     expect(mockRangerKmsEnvConfig.getProperties()).andReturn(Collections.emptyMap()).anyTimes();
+    expect(mockRangerKmsDbksConfig.getProperties()).andReturn(rangerKmsDbksPropertiesConfig).anyTimes();
 
     Capture<Map> propertiesCapture = EasyMock.newCapture();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
       anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
-    replay(controller, injector, clusters, mockRangerKmsPropertiesConfig, mockRangerKmsEnvConfig, cluster);
+    replay(controller, injector, clusters, mockRangerKmsPropertiesConfig, mockRangerKmsEnvConfig, mockRangerKmsDbksConfig, cluster);
     new UpgradeCatalog271(injector).updateRangerKmsDbUrl();
     easyMockSupport.verifyAll();
 
     Map<String, String> updatedRangerKmsEnvConfig = propertiesCapture.getValue();
-    Assert.assertEquals(updatedRangerKmsEnvConfig.get("ranger_kms_privelege_user_jdbc_url"), "jdbc:mysql://c6401.ambari.apache.org:3306");
+    Assert.assertEquals(updatedRangerKmsEnvConfig.get("ranger_kms_privelege_user_jdbc_url"), "jdbc:mysql://c6401.ambari.apache.org:3546");
   }
 
 }
