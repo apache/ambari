@@ -119,6 +119,8 @@ public class StackManager {
 
   private AmbariManagementHelper helper;
 
+  private final boolean refreshArchives;
+
   /**
    * Constructor. Initialize stack manager.
    *
@@ -165,6 +167,8 @@ public class StackManager {
 
     LOG.info("Initializing the stack manager...");
 
+    this.refreshArchives = refreshArchives;
+
     if (validate) {
       validateStackDirectory(stackRoot);
       validateCommonServicesDirectory(commonServicesRoot);
@@ -200,38 +204,34 @@ public class StackManager {
     fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
     fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
 
-    if(refreshArchives) {
-      updateArchives(resourcesRoot, stackRoot, stackModules, commonServiceModules, extensionModules);
-    }
+    updateArchives(resourcesRoot, stackRoot, stackModules, commonServiceModules, extensionModules);
 
     populateDB(stackDao, extensionDao);
   }
 
-  /***
-   *  Constructor. Initialize StackManager for merging service definitions and creating management packs
+  /**
+   * Generates {@code .hash} and {@code archive.zip} files by invoking the
+   * {@link ResourceFilesKeeperHelper}. If
+   * {@link Configuration#isStackResourceHashAndArchiveGenerationEnabled()} is
+   * disabled, then this method will do no work.
+   *
+   * @param resourcesRoot
    * @param stackRoot
-   * @param commonServicesRoot
+   * @param stackModules
+   * @param commonServiceModules
+   * @param extensionModules
+   * @throws AmbariException
+   *
+   * @see {@link Configuration#isStackResourceHashAndArchiveGenerationEnabled()}
    */
-  public StackManager(File stackRoot, File commonServicesRoot, boolean validate) throws AmbariException{
-    LOG.info("Initializing the stack manager...");
-
-    if (validate) {
-      validateStackDirectory(stackRoot);
-      validateCommonServicesDirectory(commonServicesRoot);
-    }
-
-    stackMap = new TreeMap<>();
-
-    parseDirectories(stackRoot, commonServicesRoot, null);
-
-    fullyResolveCommonServices(stackModules, commonServiceModules, extensionModules);
-    fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
-    fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
-  }
-
   protected void updateArchives(
     File resourcesRoot, File stackRoot, Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules,
     Map<String, ExtensionModule> extensionModules ) throws AmbariException {
+
+    if (!refreshArchives) {
+      LOG.info("Refreshing archives is disabled, no hash or archive generation will be done.");
+      return;
+    }
 
     LOG.info("Refreshing archives ...");
 
