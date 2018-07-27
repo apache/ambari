@@ -41,7 +41,7 @@ import com.google.common.base.MoreObjects;
  *             "true"
  *           ]
  *         }
- *     &lt;/enabledConfiguration&gt;
+ *     &lt;/ssoEnabledTest&gt;
  *   &lt;/sso&gt;
  * </pre>
  */
