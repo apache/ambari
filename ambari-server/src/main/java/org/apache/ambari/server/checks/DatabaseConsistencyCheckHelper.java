@@ -51,7 +51,6 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -60,8 +59,6 @@ import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
@@ -185,6 +182,7 @@ public class DatabaseConsistencyCheckHelper {
       if (fixIssues) {
         fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
         fixClusterConfigsNotMappedToAnyService();
+        fixConfigGroupServiceNames();
         fixConfigGroupHostMappings();
         fixConfigGroupsForDeletedServices();
         fixConfigsSelectedMoreThanOnce();
@@ -198,6 +196,7 @@ public class DatabaseConsistencyCheckHelper {
       checkServiceConfigs();
       checkTopologyTables();
       checkForLargeTables();
+      checkConfigGroupsHasServiceName();
       checkConfigGroupHostMapping(true);
       checkConfigGroupsForDeletedServices(true);
       LOG.info("******************************* Check database completed *******************************");
@@ -1191,6 +1190,82 @@ public class DatabaseConsistencyCheckHelper {
   }
 
   /**
+   * This method collects the ConfigGroups with empty or null service name field
+   */
+  static Map<Long, ConfigGroup> collectConfigGroupsWithoutServiceName() {
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (MapUtils.isEmpty(clusterMap))
+      return configGroupMap;
+
+    for (Cluster cluster : clusterMap.values()) {
+      Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
+
+      if (MapUtils.isEmpty(configGroups))
+        continue;
+
+      for (ConfigGroup configGroup : configGroups.values()) {
+        if (StringUtils.isEmpty(configGroup.getServiceName())) {
+          configGroupMap.put(configGroup.getId(), configGroup);
+        }
+      }
+    }
+
+    return configGroupMap;
+  }
+
+  /**
+   * This method checks if there are any ConfigGroup with empty or null service name field
+   */
+  static void checkConfigGroupsHasServiceName() {
+    Map<Long, ConfigGroup> configGroupMap = collectConfigGroupsWithoutServiceName();
+    if (MapUtils.isEmpty(configGroupMap))
+      return;
+
+    StringBuilder output = new StringBuilder("[(ConfigGroup) => ");
+
+    for (ConfigGroup configGroup : configGroupMap.values()) {
+      output.append("( ");
+      output.append(configGroup.getName());
+      output.append(" ), ");
+    }
+
+    output.replace(output.lastIndexOf(","), output.length(), "]");
+    warning("You have config groups present in the database with no " +
+            "service name, {}. Run --auto-fix-database to fix " +
+            "this automatically. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
+  }
+
+  /**
+   * Fix inconsistencies found by @collectConfigGroupsWithoutServiceName
+   */
+  @Transactional
+  static void fixConfigGroupServiceNames() {
+    Map<Long, ConfigGroup> configGroupMap = collectConfigGroupsWithoutServiceName();
+    if (MapUtils.isEmpty(configGroupMap))
+      return;
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+
+    for (Map.Entry<Long, ConfigGroup> configGroupEntry : configGroupMap.entrySet()) {
+      ConfigGroup configGroup = configGroupEntry.getValue();
+      try {
+        Cluster cluster = clusters.getCluster(configGroup.getClusterName());
+        Map<String, Service> serviceMap = cluster.getServices();
+        if (serviceMap.containsKey(configGroup.getTag())) {
+          LOG.info("Setting service name of config group {} with id {} to {}",
+                  configGroup.getName(), configGroupEntry.getKey(), configGroup.getTag());
+          configGroup.setServiceName(configGroup.getTag());
+        }
+      } catch (AmbariException e) {
+        // Ignore if cluster not found
+      }
+    }
+  }
+
+  /**
    * This method checks if there are any ConfigGroup host mappings with hosts
    * that are not longer a part of the cluster.
    */
@@ -1253,7 +1328,7 @@ public class DatabaseConsistencyCheckHelper {
       warning("You have config group host mappings with hosts that are no " +
         "longer associated with the cluster, {}. Run --auto-fix-database to " +
         "fix this automatically. Alternatively, you can remove this mapping " +
-        "from the UI.", output.toString());
+        "from the UI. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
     }
 
     return nonMappedHostIds;
@@ -1289,7 +1364,7 @@ public class DatabaseConsistencyCheckHelper {
       output.replace(output.lastIndexOf(","), output.length(), "]");
       warning("You have config groups present in the database with no " +
         "corresponding service found, {}. Run --auto-fix-database to fix " +
-          "this automatically.", output.toString());
+          "this automatically. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
     }
 
     return configGroupMap;
@@ -1304,15 +1379,21 @@ public class DatabaseConsistencyCheckHelper {
       for (Map.Entry<Long, ConfigGroup> configGroupEntry : configGroupMap.entrySet()) {
         Long id = configGroupEntry.getKey();
         ConfigGroup configGroup = configGroupEntry.getValue();
-        LOG.info("Deleting config group {} with id {} for deleted service {}",
-          configGroup.getName(), id, configGroup.getServiceName());
-        try {
-          Cluster cluster = clusters.getCluster(configGroup.getClusterName());
-          cluster.deleteConfigGroup(id);
-        } catch (AuthorizationException e) {
-          // This call does not thrown Authorization Exception
-        } catch (AmbariException e) {
-          // Ignore if cluster not found
+        if (!StringUtils.isEmpty(configGroup.getServiceName())) {
+          LOG.info("Deleting config group {} with id {} for deleted service {}",
+                  configGroup.getName(), id, configGroup.getServiceName());
+          try {
+            Cluster cluster = clusters.getCluster(configGroup.getClusterName());
+            cluster.deleteConfigGroup(id);
+          } catch (AuthorizationException e) {
+            // This call does not thrown Authorization Exception
+          } catch (AmbariException e) {
+            // Ignore if cluster not found
+          }
+        }
+        else {
+          warning("The config group {} with id {} can not be fixed automatically because service name is missing.",
+                  configGroup.getName(), id);
         }
       }
     }
