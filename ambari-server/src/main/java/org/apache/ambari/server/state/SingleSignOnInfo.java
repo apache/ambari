@@ -34,9 +34,10 @@ import com.google.common.base.MoreObjects;
  * <pre>
  *   &lt;sso&gt;
  *     &lt;supported&gt;true&lt;/supported&gt;
- *     &lt;enabledConfiguration&gt;{
+ *     &lt;ssoEnabledTest&gt;
+ *         {
  *           "equals": [
- *             "service-properties/sso.knox.enabled",
+ *             "config-type/sso.enabled.property_name",
  *             "true"
  *           ]
  *         }
@@ -56,10 +57,20 @@ public class SingleSignOnInfo {
   /**
    * The configuration that can be used to determine if SSO integration has been enabled.
    * <p>
-   * It is expected that this value is in the form of a valid JSON predicate ({@link PredicateUtils#fromJSON(String)}
+   * It is expected that this value is in the form of <code>configuration-type/property_name</code>
+   *
+   * @deprecated Use {@link #ssoEnabledTest} instead
    */
   @XmlElement(name = "enabledConfiguration")
   private String enabledConfiguration = null;
+
+  /**
+   * The configuration that can be used to determine if SSO integration has been enabled.
+   * <p>
+   * It is expected that this value is in the form of a valid JSON predicate ({@link PredicateUtils#fromJSON(String)}
+   */
+  @XmlElement(name = "ssoEnabledTest")
+  private String ssoEnabledTest = null;
 
   /**
    * Indicates if Kerberos is required for SSO integration (<code>true</code>) or not (<code>false</code>)
@@ -117,21 +128,46 @@ public class SingleSignOnInfo {
   }
 
   /**
+   * @deprecated USe {@link #getSsoEnabledTest()} instead
+   * <p>
    * Gets the configuration specification that can be used to determine if SSO has been enabled or not.
    *
-   * @return a configuration specification (JSON predicate)
+   * @return a configuration specification (config-type/property_name)
    */
   public String getEnabledConfiguration() {
     return enabledConfiguration;
   }
 
   /**
+   * @deprecated Use {@link #setSsoEnabledTest(String)} instead
+   * <p>
    * Sets the configuration specification that can be used to determine if SSO has been enabled or not.
    *
-   * @param enabledConfiguration a configuration specification (JSON predicate)
+   * @param enabledConfiguration a configuration specification (config-type/property_name)
    */
   public void setEnabledConfiguration(String enabledConfiguration) {
     this.enabledConfiguration = enabledConfiguration;
+  }
+
+  /**
+   * Gets the configuration specification that can be used to determine if SSO has
+   * been enabled or not.
+   *
+   * @return a configuration specification (a valid JSON predicate)
+   */
+  public String getSsoEnabledTest() {
+    return ssoEnabledTest;
+  }
+
+  /**
+   * Sets the configuration specification that can be used to determine if SSO has
+   * been enabled or not.
+   *
+   * @param enabledConfiguration
+   *          a configuration specification (a valid JSON predicate)
+   */
+  public void setSsoEnabledTest(String ssoEnabledTest) {
+    this.ssoEnabledTest = ssoEnabledTest;
   }
 
   /**
@@ -158,6 +194,7 @@ public class SingleSignOnInfo {
     return MoreObjects.toStringHelper(this)
         .add("supported", supported)
         .add("enabledConfiguration", enabledConfiguration)
+        .add("ssoEnabledTest", ssoEnabledTest)
         .add("kerberosRequired", kerberosRequired)
         .toString();
   }

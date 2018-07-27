@@ -86,7 +86,7 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
   private final boolean ssoIntegrationSupported;
-  private final String ssoEnabledConfiguration;
+  private final Predicate ssoEnabledConfiguration;
   private final boolean ssoRequiresKerberos;
   private AmbariMetaInfo ambariMetaInfo;
   private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
@@ -157,10 +157,24 @@ public class ServiceImpl implements Service {
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
-    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoEnabledConfiguration = compileSsoEnabledPredicate(sInfo);
     ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
 
     persist(serviceEntity);
+  }
+
+  private Predicate compileSsoEnabledPredicate(ServiceInfo sInfo) {
+    if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledTest())) {
+      if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledConfiguration())) {
+        LOG.warn("Both <ssoEnabledTest> and <enabledConfiguration> have been declared within <sso> for {}; using <ssoEnabledTest>", serviceName);
+      }
+      return PredicateUtils.fromJSON(sInfo.getSingleSignOnEnabledTest());
+    } else if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledConfiguration())) {
+      LOG.warn("Only <enabledConfiguration> have been declared  within <sso> for {}; converting its value to an equals predicate", serviceName);
+      final String equalsPredicateJson = "{\"equals\": [\"" + sInfo.getSingleSignOnEnabledConfiguration() + "\", \"true\"]}";
+      return PredicateUtils.fromJSON(equalsPredicateJson);
+    }
+    return null;
   }
 
   @AssistedInject
@@ -207,7 +221,7 @@ public class ServiceImpl implements Service {
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
-    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoEnabledConfiguration = compileSsoEnabledPredicate(sInfo);
     ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
   }
 
@@ -721,8 +735,7 @@ public class ServiceImpl implements Service {
 
   public boolean isSsoIntegrationEnabled() {
     try {
-      final Predicate ssoEnabledPredicate = ssoEnabledConfiguration == null ? null : PredicateUtils.fromJSON(ssoEnabledConfiguration);
-      return ssoIntegrationSupported && ssoEnabledPredicate != null && ssoEnabledPredicate.evaluate(configHelper.calculateExistingConfigurations(ambariManagementController, cluster));
+      return ssoIntegrationSupported && ssoEnabledConfiguration != null && ssoEnabledConfiguration.evaluate(configHelper.calculateExistingConfigurations(ambariManagementController, cluster));
     } catch (AmbariException e) {
       throw new AmbariRuntimeException("Error while evaulating if SSO integration is enabled", e);
     }
