@@ -19,7 +19,11 @@
 {{#if view.configErrors.criticalIssues.length}}
   <p>
     {{t installer.step7.popup.validation.criticalIssues.body}}
-    <span class="badge badge-important">{{view.configErrors.criticalIssues.length}}</span>
+    <span class="alert-badge" {{QAAttr "error-badge"}}>
+      <span class="counter label alerts-crit-count">
+        {{view.configErrors.criticalIssues.length}}
+      </span>
+    </span>
   </p>
   <div {{bindAttr class="controller.isInstallWizard::limited-height-2 :config-validation-warnings"}}>
     <table class="table table-hover">
@@ -62,7 +66,11 @@
 {{#if view.configErrors.issues.length}}
   <p>
     {{t installer.step7.popup.validation.issues.title}}
-    <span class="badge badge-warning">{{view.configErrors.issues.length}}</span>
+    <span class="alert-badge" {{QAAttr "error-badge"}}>
+      <span class="counter label alerts-none-count">
+        {{view.configErrors.issues.length}}
+      </span>
+    </span>
   </p>
   <p class="recommendations-message">
     {{t installer.step7.popup.validation.issues.body}}

@@ -29,7 +29,11 @@
                data-toggle="tab">
               {{formatRole tab.serviceName}}
               {{#if tab.errorsCount}}
-                <span class="badge badge-important">{{tab.errorsCount}}</span>
+                <span class="alert-badge">
+                  <span class="counter label alerts-crit-count">
+                    {{tab.errorsCount}}
+                  </span>
+                </span>
               {{/if}}
             </a>
           </li>
@@ -50,8 +54,15 @@
           {{#view App.ServiceConfigTab}}
             <a href="#{{unbound service.serviceName}}" {{bindAttr class=":active service.selected:new"}}
                data-toggle="tab" {{action selectService service target="controller"}}>
-              {{service.displayName}}{{#if service.errorCount}}<span
-                class="badge badge-important" {{QAAttr "error-badge"}}>{{service.errorCount}}</span>{{/if}}</a>
+              {{service.displayName}}
+              {{#if service.errorCount}}
+                <span class="alert-badge" {{QAAttr "error-badge"}}>
+                  <span class="counter label alerts-crit-count">
+                    {{service.errorCount}}
+                  </span>
+                </span>
+              {{/if}}
+            </a>
           {{/view}}
         {{/if}}
       {{/each}}
@@ -65,8 +76,10 @@
     <div class="notifications-group align-right installer-all-configs-notifications">
       <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <span id="issues-bell" {{bindAttr class=":glyphicon :glyphicon-bell controller.hasErrors:important:warning"}}></span>
-        <span id="issues-counter" {{bindAttr class=":badge controller.hasErrors:badge-important:badge-warning"}}>
-          {{issuesCounter}}
+        <span id="issues-counter">
+          {{view App.AlertBadgeView
+                 criticalCountBinding="validationsCounter"
+                 suggestionCountBinding="suggestionsCounter"}}
         </span>
       </span>
       <div id="notifications-dropdown" class="dropdown-menu row">
