@@ -167,14 +167,6 @@
           "subsection-name": "subsection-kms-db-row1-col2"
         },
         {
-          "config": "kms-properties/db_root_user",
-          "subsection-name": "subsection-kms-db-root-user-row3-col1"
-        },
-        {
-          "config": "kms-properties/db_root_password",
-          "subsection-name": "subsection-kms-db-root-user-row3-col2"
-        },
-        {
           "config": "kms-properties/KMS_MASTER_KEY_PASSWD",
           "subsection-name": "subsection-kms-master-row4-col"
         },
@@ -206,6 +198,25 @@
               }
             }
           ]
+        },
+        {
+          "config": "kms-properties/db_root_user",
+          "subsection-name": "subsection-kms-db-root-user-row3-col1"
+        },
+        {
+          "config": "kms-env/ranger_kms_privelege_user_jdbc_url",
+          "subsection-name": "subsection-kms-db-root-user-row3-col1"
+        },
+        {
+          "config": "kms-properties/db_root_password",
+          "subsection-name": "subsection-kms-db-root-user-row3-col2"
+        },
+        {
+          "config": "kms-env/test_root_db_kms_connection",
+          "subsection-name": "subsection-kms-db-root-user-row3-col1",
+          "property_value_attributes": {
+            "ui_only_property": true
+          }
         }
       ]
     },
@@ -284,6 +295,28 @@
             "db.connection.user": "kms-properties/db_user",
             "db.connection.password": "kms-properties/db_password"
           }
+        }
+      },
+      {
+        "config": "kms-env/test_root_db_kms_connection",
+        "widget": {
+          "type": "test-db-connection",
+          "display-name": "Test Connection",
+          "required-properties": {
+            "jdbc.driver.class": "dbks-site/ranger.ks.jpa.jdbc.driver",
+            "jdbc.driver.url": "kms-env/ranger_kms_privelege_user_jdbc_url",
+            "db.connection.source.host": "ranger_kms-site/ranger_kms_server_hosts",
+            "db.type": "kms-properties/DB_FLAVOR",
+            "db.connection.destination.host": "kms-properties/db_host",
+            "db.connection.user": "kms-properties/db_root_user",
+            "db.connection.password": "kms-properties/db_root_password"
+          }
+        }
+      },
+      {
+        "config": "kms-env/ranger_kms_privelege_user_jdbc_url",
+        "widget": {
+          "type": "text-field"
         }
       },
       {
