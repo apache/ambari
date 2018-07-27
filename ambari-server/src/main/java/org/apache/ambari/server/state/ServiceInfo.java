@@ -653,8 +653,15 @@ public class ServiceInfo implements Validable {
     return (singleSignOnInfo != null) && singleSignOnInfo.isSupported();
   }
 
+  /**
+   * @deprecated Use {@link #getSingleSignOnEnabledTest()} instead
+   */
   public String getSingleSignOnEnabledConfiguration() {
     return singleSignOnInfo != null ? singleSignOnInfo.getEnabledConfiguration() : null;
+  }
+
+  public String getSingleSignOnEnabledTest() {
+    return singleSignOnInfo != null ? singleSignOnInfo.getSsoEnabledTest() : null;
   }
 
   /**
