@@ -2122,4 +2122,61 @@ public class ConfigHelper {
     return configurationAttributesTreeMap;
   }
 
+  /**
+   * Determines the existing configurations for the cluster
+   *
+   * @param ambariManagementController
+   *          the Ambari management controller
+   * @param cluster
+   *          the cluster
+   * @return a map of the existing configurations
+   * @throws AmbariException
+   */
+  public Map<String, Map<String, String>> calculateExistingConfigurations(AmbariManagementController ambariManagementController, Cluster cluster) throws AmbariException {
+    final Map<String, Map<String, String>> configurations = new HashMap<>();
+    for (Host host : cluster.getHosts()) {
+      configurations.putAll(calculateExistingConfigurations(ambariManagementController, cluster, host.getHostName()));
+    }
+    return configurations;
+  }
+
+  /**
+   * Determines the existing configurations for the cluster, related to a given hostname (if provided)
+   *
+   * @param ambariManagementController the Ambari management controller
+   * @param cluster  the cluster
+   * @param hostname a hostname
+   * @return a map of the existing configurations
+   * @throws AmbariException
+   */
+  public Map<String, Map<String, String>> calculateExistingConfigurations(AmbariManagementController ambariManagementController, Cluster cluster, String hostname) throws AmbariException {
+    // For a configuration type, both tag and an actual configuration can be stored
+    // Configurations from the tag is always expanded and then over-written by the actual
+    // global:version1:{a1:A1,b1:B1,d1:D1} + global:{a1:A2,c1:C1,DELETED_d1:x} ==>
+    // global:{a1:A2,b1:B1,c1:C1}
+    final Map<String, Map<String, String>> configurations = new HashMap<>();
+    final Map<String, Map<String, String>> configurationTags = ambariManagementController.findConfigurationTagsWithOverrides(cluster, hostname);
+    final Map<String, Map<String, String>> configProperties = getEffectiveConfigProperties(cluster, configurationTags);
+
+    // Apply the configurations saved with the Execution Cmd on top of
+    // derived configs - This will take care of all the hacks
+    for (Map.Entry<String, Map<String, String>> entry : configProperties.entrySet()) {
+      String type = entry.getKey();
+      Map<String, String> allLevelMergedConfig = entry.getValue();
+      Map<String, String> configuration = configurations.get(type);
+
+      if (configuration == null) {
+        configuration = new HashMap<>(allLevelMergedConfig);
+      } else {
+        Map<String, String> mergedConfig = getMergedConfig(allLevelMergedConfig, configuration);
+        configuration.clear();
+        configuration.putAll(mergedConfig);
+      }
+
+      configurations.put(type, configuration);
+    }
+
+    return configurations;
+  }
+
 }
