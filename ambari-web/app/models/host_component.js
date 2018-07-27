@@ -134,16 +134,25 @@ App.HostComponent = DS.Model.extend({
   }.property('componentName', 'App.components.nonHDP'),
 
   /**
+   * @type {number}
+   */
+  warningCount: 0,
+  /**
+   * @type {number}
+   */
+  criticalCount: 0,
+
+  /**
    * Does component have Critical Alerts
    * @type {boolean}
    */
-  hasCriticalAlerts: false,
+  hasCriticalAlerts: Em.computed.gte('criticalCount', 0),
 
   /**
    * Number of the Critical and Warning alerts for current component
    * @type {number}
    */
-  alertsCount: 0,
+  alertsCount: Em.computed.sumProperties('warningCount', 'criticalCount'),
 
   statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';

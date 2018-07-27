@@ -212,14 +212,6 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
 
     shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
 
-    alertsCountDisplay: function () {
-      return this.get('content.alertsCount') > 99 ? "99+" : this.get('content.alertsCount');
-    }.property('content.alertsCount'),
-
-    noAlerts: Em.computed.equal('content.alertsCount', 0),
-
-    hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
-
     isMasterDown: function() {
       return this.get('content.hostComponents').filterProperty('isMaster').some((component) => {
         return !component.get('isRunning');

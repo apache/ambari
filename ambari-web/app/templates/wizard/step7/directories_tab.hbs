@@ -28,7 +28,11 @@
              data-toggle="tab">
             {{formatRole tab.serviceName}}
             {{#if tab.errorsCount}}
-              <span class="badge badge-important">{{tab.errorsCount}}</span>
+              <span class="alert-badge" {{QAAttr "error-badge"}}>
+                <span class="counter label alerts-crit-count">
+                  {{tab.errorsCount}}
+                </span>
+              </span>
             {{/if}}
           </a>
         </li>

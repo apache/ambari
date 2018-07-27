@@ -123,13 +123,21 @@
         <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
           <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
             {{tab.displayName}}
-              {{#if tab.isAdvanced}}
-                {{#if controller.errorsCount}}
-                <span class="badge badge-important">{{controller.errorsCount}}</span>
+            {{#if tab.isAdvanced}}
+              {{#if controller.errorsCount}}
+                <span class="alert-badge" {{QAAttr "error-badge"}}>
+                  <span class="counter label alerts-crit-count">
+                    {{controller.errorsCount}}
+                  </span>
+                </span>
               {{/if}}
             {{else}}
               {{#if tab.errorsCount}}
-                <span class="badge badge-important">{{tab.errorsCount}}</span>
+                <span class="alert-badge" {{QAAttr "error-badge"}}>
+                  <span class="counter label alerts-crit-count">
+                    {{tab.errorsCount}}
+                  </span>
+                </span>
               {{/if}}
             {{/if}}
           </a>

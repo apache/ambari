@@ -19,7 +19,12 @@
 {{#if controller.isInstallWizard}}
   {{#if view.allConfigsWithErrors.length}}
     <h5>
-      {{t installer.step7.requirements.popover.header}} <span class="badge badge-important">{{view.allConfigsWithErrors.length}}</span>
+      {{t installer.step7.requirements.popover.header}}
+      <span class="alert-badge" {{QAAttr "error-badge"}}>
+        <span class="counter label alerts-crit-count">
+          {{view.allConfigsWithErrors.length}}
+        </span>
+      </span>
     </h5>
     <div class="recommendations-message">
       {{t installer.step7.requirements.popover.message}}
@@ -54,7 +59,12 @@
   {{view App.ValidationsView configErrorsBinding="controller.configErrorList"}}
   {{#if controller.hasChangedDependencies}}
     <h5>
-      {{t installer.step7.recommendations.popover.header}} <span class="badge badge-warning">{{view.recommendations.length}}</span>
+      {{t installer.step7.recommendations.popover.header}}
+      <span class="alert-badge" {{QAAttr "error-badge"}}>
+        <span class="counter label alerts-none-count">
+          {{view.recommendations.length}}
+        </span>
+      </span>
     </h5>
     <div class="recommendations-message">
       {{t installer.step7.recommendations.popover.message}}

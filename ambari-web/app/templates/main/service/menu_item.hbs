@@ -18,9 +18,10 @@
 
 <a class="services-menu-blocks" {{bindAttr href="view.link" data-href="view.dataHref"}}>
   <span class="pull-right alerts-block">
-    <span {{bindAttr class=":label view.noAlerts:hidden view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-      {{view.alertsCountDisplay}}
-    </span>
+    {{view App.AlertBadgeView
+           classNames="medium-size"
+           criticalCountBinding="view.content.criticalCount"
+           warningCountBinding="view.content.warningCount"}}
   </span>
   <span class="pull-right">
     <i rel="tooltip" {{action goToConfigs target="view"}} {{bindAttr class=":glyphicon :glyphicon-refresh :restart-required-service view.content.isRestartRequired::hidden" data-original-title="view.restartRequiredMessage"}}></i>
