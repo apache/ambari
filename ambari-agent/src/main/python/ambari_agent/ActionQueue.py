@@ -327,6 +327,7 @@ class ActionQueue(threading.Thread):
             if com['taskId'] == command['taskId']:
               logger.info("Command with taskId = {cid} was rescheduled by server. "
                           "Fail report on cancelled command won't be sent with heartbeat.".format(cid=taskId))
+              self.commandStatuses.delete_command_data(command['taskId'])
               return
 
     # final result to stdout
