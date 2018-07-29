@@ -28,7 +28,7 @@ def install_packages():
   if params.host_sys_prepped:
     return
 
-  packages = ['unzip', 'curl']
+  packages = ['unzip', 'curl', 'wget']
   if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
     stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
     packages.append(stack_selector_package)
