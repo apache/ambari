@@ -32,9 +32,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.collections.Predicate;
+import org.apache.ambari.server.collections.PredicateUtils;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
@@ -82,12 +86,16 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
   private final boolean ssoIntegrationSupported;
-  private final String ssoEnabledConfiguration;
+  private final Predicate ssoEnabledConfiguration;
+  private final boolean ssoRequiresKerberos;
   private AmbariMetaInfo ambariMetaInfo;
   private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
+  @Inject
+  private AmbariManagementController ambariManagementController;
 
   @Inject
   private ConfigHelper configHelper;
@@ -149,9 +157,24 @@ public class ServiceImpl implements Service {
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
-    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoEnabledConfiguration = compileSsoEnabledPredicate(sInfo);
+    ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
 
     persist(serviceEntity);
+  }
+
+  private Predicate compileSsoEnabledPredicate(ServiceInfo sInfo) {
+    if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledTest())) {
+      if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledConfiguration())) {
+        LOG.warn("Both <ssoEnabledTest> and <enabledConfiguration> have been declared within <sso> for {}; using <ssoEnabledTest>", serviceName);
+      }
+      return PredicateUtils.fromJSON(sInfo.getSingleSignOnEnabledTest());
+    } else if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledConfiguration())) {
+      LOG.warn("Only <enabledConfiguration> have been declared  within <sso> for {}; converting its value to an equals predicate", serviceName);
+      final String equalsPredicateJson = "{\"equals\": [\"" + sInfo.getSingleSignOnEnabledConfiguration() + "\", \"true\"]}";
+      return PredicateUtils.fromJSON(equalsPredicateJson);
+    }
+    return null;
   }
 
   @AssistedInject
@@ -198,7 +221,8 @@ public class ServiceImpl implements Service {
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
-    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoEnabledConfiguration = compileSsoEnabledPredicate(sInfo);
+    ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
   }
 
 
@@ -377,7 +401,7 @@ public class ServiceImpl implements Service {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
-      ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled());
+      ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled(), isKerberosRequredForSsoIntegration());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -710,16 +734,15 @@ public class ServiceImpl implements Service {
   }
 
   public boolean isSsoIntegrationEnabled() {
-    return ssoIntegrationSupported && ssoEnabledConfigValid() && "true".equalsIgnoreCase(ssoEnabledConfigValue());
+    try {
+      return ssoIntegrationSupported && ssoEnabledConfiguration != null && ssoEnabledConfiguration.evaluate(configHelper.calculateExistingConfigurations(ambariManagementController, cluster));
+    } catch (AmbariException e) {
+      throw new AmbariRuntimeException("Error while evaulating if SSO integration is enabled", e);
+    }
   }
 
-  private boolean ssoEnabledConfigValid() {
-    return ssoEnabledConfiguration != null && ssoEnabledConfiguration.split("/").length == 2;
+  private boolean isKerberosRequredForSsoIntegration() {
+    return ssoRequiresKerberos;
   }
 
-  private String ssoEnabledConfigValue() {
-    String configType = ssoEnabledConfiguration.split("/")[0];
-    String propertyName = ssoEnabledConfiguration.split("/")[1];
-    return configHelper.getValueFromDesiredConfigurations(cluster, configType, propertyName);
-  }
 }

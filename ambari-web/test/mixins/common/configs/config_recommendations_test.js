@@ -32,12 +32,17 @@ describe('App.ConfigRecommendations', function() {
       sinon.stub(App.config, 'get').withArgs('serviceByConfigTypeMap').returns({
         'pFile': Em.Object.create({serviceName: 'sName', displayName: 'sDisplayName'})
       });
-    sinon.stub(Handlebars, 'SafeString');
+      sinon.stub(App.configsCollection, 'getConfigByName').withArgs('pName', 'pFile').returns({
+        displayName: 'pDisplayName',
+        description: 'pDescription'
+      });
+      sinon.stub(Handlebars, 'SafeString');
     });
     afterEach(function() {
       instanceObject.formatParentProperties.restore();
       App.config.get.restore();
-    Handlebars.SafeString.restore();
+      App.configsCollection.getConfigByName.restore();
+      Handlebars.SafeString.restore();
     });
 
     it('adds new recommendation', function() {
@@ -47,6 +52,8 @@ describe('App.ConfigRecommendations', function() {
         saveRecommendedDefault: true,
         propertyFileName: 'pFile',
         propertyName: 'pName',
+        propertyTitle: 'pDisplayName<br><small>pName</small>',
+        propertyDescription: 'pDescription',
         isDeleted: false,
         notDefined: false,
         configGroup: 'pGroup',
@@ -123,6 +130,8 @@ describe('App.ConfigRecommendations', function() {
           saveRecommendedDefault: true,
           propertyFileName: 'pFile',
           propertyName: 'pName',
+          propertyTitle: 'pDisplayName<br><small>pName</small>',
+          propertyDescription: 'pDescription',
           isDeleted: false,
           notDefined: false,
           configGroup: 'pGroup',
@@ -144,6 +153,8 @@ describe('App.ConfigRecommendations', function() {
           saveRecommendedDefault: true,
           propertyFileName: 'pFile',
           propertyName: 'pName',
+          propertyTitle: 'pDisplayName<br><small>pName</small>',
+          propertyDescription: 'pDescription',
           isDeleted: false,
           notDefined: false,
           configGroup: 'pGroup',
@@ -165,6 +176,8 @@ describe('App.ConfigRecommendations', function() {
           saveRecommendedDefault: true,
           propertyFileName: 'pFile',
           propertyName: 'pName',
+          propertyTitle: 'pDisplayName<br><small>pName</small>',
+          propertyDescription: 'pDescription',
           isDeleted: true,
           notDefined: true,
           configGroup: 'Default',
@@ -187,12 +200,17 @@ describe('App.ConfigRecommendations', function() {
             'pFile': c.service
           });
           sinon.stub(Handlebars, 'SafeString');
+          sinon.stub(App.configsCollection, 'getConfigByName').withArgs('pName', 'pFile.xml').returns({
+            displayName: 'pDisplayName',
+            description: 'pDescription'
+          });
           recommendation = instanceObject.addRecommendation(c.name, c.file, c.group, c.recommended, c.initial, c.parent, c.isEditable);
         });
 
         afterEach(function() {
           App.config.get.restore();
           Handlebars.SafeString.restore();
+          App.configsCollection.getConfigByName.restore();
         });
 
         it(c.title, function() {

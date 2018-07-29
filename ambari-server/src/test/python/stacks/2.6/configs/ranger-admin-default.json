@@ -565,7 +565,7 @@
             "ranger.usersync.ldap.referral": "ignore",
             "ranger.usersync.group.searchfilter": "",
             "ranger.usersync.ldap.user.objectclass": "person",
-            "ranger.usersync.logdir": "{{usersync_log_dir}}",
+            "ranger.usersync.logdir": "/var/log/ranger/usersync",
             "ranger.usersync.ldap.user.searchfilter": "",
             "ranger.usersync.ldap.groupname.caseconversion": "none",
             "ranger.usersync.ldap.ldapbindpassword": "",

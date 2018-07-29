@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -40,8 +39,7 @@ public class MetricsCollectorHAClusterState {
   private String clusterName;
   private Set<String> liveCollectorHosts;
   private Set<String> deadCollectorHosts;
-  private AtomicInteger collectorDownRefreshCounter;
-  private static int collectorDownRefreshCounterLimit = 5;
+  private CollectorHostDownRefreshCounter collectorDownRefreshCounter = new CollectorHostDownRefreshCounter(5);
   private String currentCollectorHost = null;
 
   @Inject
@@ -59,7 +57,6 @@ public class MetricsCollectorHAClusterState {
     this.clusterName = clusterName;
     this.liveCollectorHosts = new CopyOnWriteArraySet<>();
     this.deadCollectorHosts = new CopyOnWriteArraySet<>();
-    collectorDownRefreshCounter = new AtomicInteger(0);
   }
 
   public void addMetricsCollectorHost(String collectorHost) {
@@ -117,7 +114,7 @@ public class MetricsCollectorHAClusterState {
 
     } else if (deadCollectorHost.equals(currentCollectorHost) && numCollectors() > 1) {
       // Case 2: Event informing us that the current collector is dead. We have not refreshed it yet.
-      if (testRefreshCounter()) {
+      if (collectorDownRefreshCounter.testRefreshCounter()) {
         refreshCollectorHost(deadCollectorHost);
       }
     }
@@ -153,14 +150,6 @@ public class MetricsCollectorHAClusterState {
     A refresh counter to track number of collector down events received. If it exceeds the limit,
     then we go ahead and refresh the collector.
    */
-  private boolean testRefreshCounter() {
-    collectorDownRefreshCounter.incrementAndGet();
-    if (collectorDownRefreshCounter.get() == collectorDownRefreshCounterLimit) {
-      collectorDownRefreshCounter = new AtomicInteger(0);
-      return true;
-    }
-    return false;
-  }
 
   public boolean isCollectorHostLive() {
     for (String host : liveCollectorHosts) {

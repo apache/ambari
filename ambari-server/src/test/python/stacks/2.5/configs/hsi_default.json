@@ -760,8 +760,8 @@
           "user_group": "hadoop",
           "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
           "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}",
-          "metrics_collector_vip_host": "c6402.ambari.apache.org",
-          "metrics_collector_vip_port": "6189",
+          "metrics_collector_external_hosts": "c6402.ambari.apache.org",
+          "metrics_collector_external_port": "6189",
           "override_uid" : "true",
           "fetch_nonlocal_groups": "true"
       },

@@ -25,29 +25,29 @@
     <table class="table table-hover">
       <thead>
       <tr>
-        <th>{{t common.type}}</th>
-        <th>{{t common.service}}</th>
-        <th>{{t common.property}}</th>
-        <th>{{t common.value}}</th>
-        <th>{{t common.description}}</th>
+        <th class="issue-type-cell">{{t common.type}}</th>
+        <th class="service-name-cell">{{t common.service}}</th>
+        <th class="property-name-cell">{{t common.property}}</th>
+        <th class="property-value-cell">{{t common.value}}</th>
+        <th class="property-description-cell">{{t common.description}}</th>
       </tr>
       </thead>
       <tbody>
       {{#each error in view.configErrors.criticalIssues}}
         <tr {{bindAttr class="error.cssClass"}}>
-          <td>
+          <td class="issue-type-cell">
             {{t common.critical}}
           </td>
-          <td>{{error.serviceName}}</td>
-          <td>
+          <td class="service-name-cell">{{error.serviceName}}</td>
+          <td class="property-name-cell">
             {{#if controller.isInstallWizard}}
               <a href="#" {{action "showConfigProperty" error target="controller"}}>{{error.propertyName}}</a>
             {{else}}
               {{error.propertyName}}
             {{/if}}
           </td>
-          <td>{{error.value}}</td>
-          <td>
+          <td class="property-value-cell">{{error.value}}</td>
+          <td class="property-description-cell">
             {{#each message in error.messages}}
               <div class="property-message">{{message}}</div>
             {{/each}}
@@ -71,17 +71,17 @@
     <table class="table table-hover">
       <thead>
       <tr>
-        <th>{{t common.type}}</th>
-        <th>{{t common.service}}</th>
-        <th>{{t common.property}}</th>
-        <th>{{t installer.step7.popup.currentValue}}</th>
-        <th>{{t common.description}}</th>
+        <th class="issue-type-cell">{{t common.type}}</th>
+        <th class="service-name-cell">{{t common.service}}</th>
+        <th class="property-name-cell">{{t common.property}}</th>
+        <th class="property-value-cell">{{t installer.step7.popup.currentValue}}</th>
+        <th class="property-description-cell">{{t common.description}}</th>
       </tr>
       </thead>
       <tbody>
       {{#each error in view.configErrors.issues}}
         <tr {{bindAttr class="error.cssClass"}}>
-          <td>
+          <td class="issue-type-cell">
             {{#if error.isError}}
               {{t common.error}}
             {{else}}
@@ -94,16 +94,16 @@
               <td colspan="4">{{error.message}}</td>
             {{/each}}
           {{else}}
-            <td>{{error.serviceName}}</td>
-            <td>
+            <td class="service-name-cell">{{error.serviceName}}</td>
+            <td class="property-name-cell">
               {{#if controller.isInstallWizard}}
                 <a href="#" {{action "showConfigProperty" error target="controller"}}>{{error.propertyName}}</a>
               {{else}}
                 {{error.propertyName}}
               {{/if}}
             </td>
-            <td>{{error.value}}</td>
-            <td>
+            <td class="property-value-cell">{{error.value}}</td>
+            <td class="property-description-cell">
               {{#each message in error.messages}}
                 <div class="property-message">{{message}}</div>
               {{/each}}
