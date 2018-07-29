@@ -115,7 +115,7 @@ class TestPythonExecutor(TestCase):
     tmpstructuredoutfile = tmp_file.name
     tmp_file.close()
 
-    PYTHON_TIMEOUT_SECONDS =  5
+    PYTHON_TIMEOUT_SECONDS = 5
 
     def launch_python_subprocess32_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
@@ -140,12 +140,12 @@ class TestPythonExecutor(TestCase):
     executor = PythonExecutor("/tmp", AmbariConfig())
 
     executor.python_process_has_been_killed = False
-    self.assertTrue(executor.isSuccessfull(0))
-    self.assertFalse(executor.isSuccessfull(1))
+    self.assertTrue(executor.is_successful(0))
+    self.assertFalse(executor.is_successful(1))
 
     executor.python_process_has_been_killed = True
-    self.assertFalse(executor.isSuccessfull(0))
-    self.assertFalse(executor.isSuccessfull(1))
+    self.assertFalse(executor.is_successful(0))
+    self.assertFalse(executor.is_successful(1))
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

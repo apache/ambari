@@ -23,12 +23,64 @@ App.RegionServerComponentView = App.HostComponentView.extend(App.Decommissionabl
   componentForCheckDecommission: 'HBASE_MASTER',
 
   setDesiredAdminState: function (desiredAdminState) {
+    this.getRSDecommissionStatus(desiredAdminState);
+  },
+
+  getRSDecommissionStatus: function (desiredAdminState) {
+    const hostName = App.HBaseService.find('HBASE').get('master.hostName');
+    App.ajax.send({
+      name: 'host.host_component.decommission_status_regionserver',
+      sender: this,
+      data: {
+        hostName,
+        desiredAdminState
+      },
+      success: 'getRSDecommissionStatusSuccessCallback',
+      error: 'getRSDecommissionStatusErrorCallback'
+    });
+  },
+
+  getRSDecommissionStatusSuccessCallback: function (data, opt, params) {
+    const {desiredAdminState} = params,
+      hostName = this.get('content.hostName');
+    if (data) {
+      const liveRSHostsMetrics = Em.get(data, 'items.0.metrics.hbase.master.liveRegionServersHosts'),
+        deadRSHostsMetrics = Em.get(data, 'items.0.metrics.hbase.master.deadRegionServersHosts'),
+        liveRSHosts = this.parseRegionServersHosts(liveRSHostsMetrics),
+        deadRSHosts = this.parseRegionServersHosts(deadRSHostsMetrics),
+        isLiveRS = liveRSHosts.contains(hostName),
+        isDeadRS = deadRSHosts.contains(hostName),
+        isInServiceDesired = desiredAdminState === 'INSERVICE',
+        isDecommissionedDesired = desiredAdminState === 'DECOMMISSIONED';
+      if ((liveRSHosts.length + deadRSHosts.length === 0) || (isInServiceDesired && isLiveRS) || (isDecommissionedDesired && isDeadRS)) {
+        this.setDesiredAdminStateDefault(desiredAdminState);
+      } else if (isInServiceDesired) {
+        this.setStatusAs('RS_DECOMMISSIONED');
+      } else if (isDecommissionedDesired) {
+        this.setStatusAs('INSERVICE');
+      }
+    } else {
+      this.setDesiredAdminStateDefault(desiredAdminState);
+    }
+  },
+
+  getRSDecommissionStatusErrorCallback: function (request, ajaxOptions, error, opt, params) {
+    this.setDesiredAdminStateDefault(params.desiredAdminState);
+  },
+
+  parseRegionServersHosts: function (str) {
+    const items = str ? str.split(';') : [],
+      hosts = items.map(item => item.split(',')[0]);
+    return hosts;
+  },
+
+  setDesiredAdminStateDefault: function (desiredAdminState) {
     switch (desiredAdminState) {
-      case "INSERVICE":
+      case 'INSERVICE':
         this.setStatusAs(desiredAdminState);
         break;
-      case "DECOMMISSIONED":
-        this.setStatusAs("RS_DECOMMISSIONED");
+      case 'DECOMMISSIONED':
+        this.setStatusAs('RS_DECOMMISSIONED');
         break;
     }
   }

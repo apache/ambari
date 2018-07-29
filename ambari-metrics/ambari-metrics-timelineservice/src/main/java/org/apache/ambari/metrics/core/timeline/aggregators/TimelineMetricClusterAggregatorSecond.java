@@ -99,7 +99,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
       skipInterpolationMetricPatterns.addAll(getJavaMetricPatterns(skipInterpolationMetricPatternStrings));
     }
 
-    this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager, true);
+    this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager);
   }
 
   @Override

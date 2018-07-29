@@ -209,8 +209,6 @@ xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFI
 # ambari-server hostname
 ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 
-ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
-
 # ranger kafka plugin enabled property
 enable_ranger_kafka = default("configurations/ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled", "No")
 enable_ranger_kafka = True if enable_ranger_kafka.lower() == 'yes' else False

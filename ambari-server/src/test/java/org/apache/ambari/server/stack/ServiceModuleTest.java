@@ -1077,8 +1077,8 @@ public class ServiceModuleTest {
    */
   @Test
   public void testResolve_SingleSignOnInfo() throws Exception {
-    SingleSignOnInfo singleSignOnInfoChild = new SingleSignOnInfo(false, null);
-    SingleSignOnInfo singleSignOnInfoParent = new SingleSignOnInfo(true, "config-type/property_name");
+    SingleSignOnInfo singleSignOnInfoChild = new SingleSignOnInfo(false, null, true);
+    SingleSignOnInfo singleSignOnInfoParent = new SingleSignOnInfo(true, "config-type/property_name", false);
     ServiceInfo childInfo = new ServiceInfo();
     ServiceInfo parentInfo = new ServiceInfo();
     ServiceModule serviceModule;
@@ -1093,6 +1093,8 @@ public class ServiceModuleTest {
     assertEquals(singleSignOnInfoChild.isSupported(), serviceInfo.getSingleSignOnInfo().isSupported());
     assertEquals(singleSignOnInfoChild.getSupported(), serviceInfo.getSingleSignOnInfo().getSupported());
     assertEquals(singleSignOnInfoChild.getEnabledConfiguration(), serviceInfo.getSingleSignOnInfo().getEnabledConfiguration());
+    assertEquals(singleSignOnInfoChild.isKerberosRequired(), serviceInfo.isKerberosRequiredForSingleSignOnIntegration());
+    assertEquals(singleSignOnInfoChild.isKerberosRequired(), serviceInfo.getSingleSignOnInfo().isKerberosRequired());
 
     // specified in parent only, parent wins
     childInfo.setSingleSignOnInfo(null);
@@ -1103,6 +1105,8 @@ public class ServiceModuleTest {
     assertEquals(singleSignOnInfoParent.isSupported(), serviceInfo.getSingleSignOnInfo().isSupported());
     assertEquals(singleSignOnInfoParent.getSupported(), serviceInfo.getSingleSignOnInfo().getSupported());
     assertEquals(singleSignOnInfoParent.getEnabledConfiguration(), serviceInfo.getSingleSignOnInfo().getEnabledConfiguration());
+    assertEquals(singleSignOnInfoParent.isKerberosRequired(), serviceInfo.isKerberosRequiredForSingleSignOnIntegration());
+    assertEquals(singleSignOnInfoParent.isKerberosRequired(), serviceInfo.getSingleSignOnInfo().isKerberosRequired());
 
     // specified in both, child wins
     childInfo.setSingleSignOnInfo(singleSignOnInfoChild);
@@ -1113,6 +1117,8 @@ public class ServiceModuleTest {
     assertEquals(singleSignOnInfoChild.isSupported(), serviceInfo.getSingleSignOnInfo().isSupported());
     assertEquals(singleSignOnInfoChild.getSupported(), serviceInfo.getSingleSignOnInfo().getSupported());
     assertEquals(singleSignOnInfoChild.getEnabledConfiguration(), serviceInfo.getSingleSignOnInfo().getEnabledConfiguration());
+    assertEquals(singleSignOnInfoChild.isKerberosRequired(), serviceInfo.isKerberosRequiredForSingleSignOnIntegration());
+    assertEquals(singleSignOnInfoChild.isKerberosRequired(), serviceInfo.getSingleSignOnInfo().isKerberosRequired());
   }
 
   @Test

@@ -1185,6 +1185,11 @@ public class AMSPropertyProviderTest {
     public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
       return true;
     }
+
+    @Override
+    public boolean isCollectorHostExternal(String clusterName) {
+      return false;
+    }
   }
 
   // Helper function to setup common Mocks.
