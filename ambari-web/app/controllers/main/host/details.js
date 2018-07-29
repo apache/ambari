@@ -3142,7 +3142,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         "RequestBodyInfo": {
           "RequestInfo": {
             context: Em.I18n.t('hosts.host.recover.regenerateKeytabs.context'),
-            query: "regenerate_keytabs=all&regenerate_hosts=" + hostName + "&ignore_config_updates=true",
+            query: "regenerate_keytabs=all&regenerate_hosts=" + hostName + "&config_update_policy=none",
           },
           "Body": {
             Clusters: {

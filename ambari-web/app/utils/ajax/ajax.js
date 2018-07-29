@@ -1946,7 +1946,7 @@ var urls = {
   },
 
   'admin.kerberos_security.regenerate_keytabs.service' : {
-    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_components={serviceName}',
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_components={serviceName}&config_update_policy=none',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
@@ -1961,7 +1961,7 @@ var urls = {
   },
 
   'admin.kerberos_security.regenerate_keytabs.host' : {
-    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_hosts={hostName}',
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_hosts={hostName}&config_update_policy=none',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
