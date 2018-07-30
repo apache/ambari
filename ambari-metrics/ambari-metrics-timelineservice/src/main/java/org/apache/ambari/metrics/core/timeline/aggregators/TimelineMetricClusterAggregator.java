@@ -83,7 +83,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   protected void aggregate(ResultSet rs, long startTime, long endTime) throws IOException, SQLException {
     Map<TimelineClusterMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs, endTime);
 
-    LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates.");
+    LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates to " + outputTableName);
     hBaseAccessor.saveClusterAggregateRecordsSecond(hostAggregateMap, outputTableName);
   }
 
@@ -136,7 +136,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
     }
 
     if (existingMetric != null) {
-      hostAggregate.setSum(hostAggregate.getSum() / perMetricCount);
+      hostAggregate.setSum(hostAggregate.getSum() / (perMetricCount - 1));
       hostAggregate.setNumberOfSamples(Math.round((float)hostAggregate.getNumberOfSamples() / (float)perMetricCount));
     }
 

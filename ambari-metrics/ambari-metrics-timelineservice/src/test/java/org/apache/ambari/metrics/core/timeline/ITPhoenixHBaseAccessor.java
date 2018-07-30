@@ -52,7 +52,6 @@ import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.TableDescriptor;
-import org.apache.hadoop.metrics2.lib.MetricsTestHelper;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
@@ -71,8 +70,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 import junit.framework.Assert;
-
-
 
 public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
@@ -226,14 +223,14 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
     long minute = 60 * 1000;
-    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local1",
+    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local_c1",
       "disk_free", 1), true);
-    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local2",
+    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local_c2",
       "disk_free", 2), true);
     ctime += minute;
-    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local1",
+    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local_c1",
       "disk_free", 2), true);
-    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local2",
+    hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local_c2",
       "disk_free", 1), true);
 
     long endTime = ctime + minute + 1;
@@ -443,7 +440,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
           .filter(t -> tableName.equals(t.getNameAsString())).findFirst();
 
         TableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableNameOptional.get());
-        
+
         normalizerEnabled = tableDescriptor.isNormalizationEnabled();
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
           precisionTableCompactionPolicy = tableDescriptor.getValue(HSTORE_COMPACTION_CLASS_KEY);

@@ -30,10 +30,12 @@ import org.junit.Test;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -47,6 +49,9 @@ import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.M
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
   @Test
@@ -58,10 +63,14 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     TimelineMetrics metricsSent = prepareTimelineMetrics(startTime, "local");
     hdb.insertMetricRecords(metricsSent, true);
 
-    Condition queryCondition = new DefaultCondition(null,
-        Collections.singletonList("local"), null, null, startTime,
-        startTime + (15 * 60 * 1000), null, null, false);
-    TimelineMetrics recordRead = hdb.getMetricRecords(queryCondition, null);
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_free"); add("mem_free");}},
+      Collections.singletonList("local"),
+      "host", null);
+
+    Condition queryCondition = new DefaultCondition(uuids, Arrays.asList("disk_free", "mem_free"),
+      Collections.singletonList("local"), "host", null, startTime,
+      startTime + (15 * 60 * 1000), null, null, false);
+    TimelineMetrics recordRead = hdb.getMetricRecords(queryCondition, singletonValueFunctionMap(Arrays.asList("disk_free", "mem_free")));
 
     // THEN
     assertThat(recordRead.getMetrics()).hasSize(2)
@@ -79,6 +88,13 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     return configuration;
   }
 
+  private Multimap<String, List<Function>> singletonValueFunctionMap(List<String> metricNames) {
+    Multimap<String, List<Function>> mmap = ArrayListMultimap.create();
+    for (String metricName : metricNames) {
+      mmap.put(metricName, Collections.singletonList(new Function()));
+    }
+    return mmap;
+  }
   @Test
   public void testShouldAggregateMinuteProperly() throws Exception {
     // GIVEN
@@ -140,7 +156,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
   }
 
   @Test
-   public void testShouldAggregateHourProperly() throws Exception {
+  public void testShouldAggregateHourProperly() throws Exception {
     // GIVEN
     TimelineMetricAggregator aggregator =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hdb,
@@ -214,20 +230,24 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     Map<TimelineMetric, MetricHostAggregate>
       aggMap = new HashMap<TimelineMetric, MetricHostAggregate>();
 
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_used_daily");}},
+      Collections.singletonList("test_host"),
+      "test_app", null);
+
     int min_5 = 5 * 60 * 1000;
     long ctime = startTime - min_5;
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
-    aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
+    aggMap.put(createEmptyTimelineMetric("disk_used_daily", ctime += min_5), expectedAggregate);
 
     hdb.saveHostAggregateRecords(aggMap, METRICS_AGGREGATE_HOURLY_TABLE_NAME);
 
@@ -237,7 +257,8 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     //THEN
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    Condition condition = new DefaultCondition(uuids, Collections.singletonList("disk_used_daily"),
+      Collections.singletonList("test_host"), "test_app", null, startTime,
       endTime + 1, null, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_DAILY_TABLE_NAME));
 
@@ -250,7 +271,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
       MetricHostAggregate currentHostAggregate =
         readHelper.getMetricHostAggregateFromResultSet(rs);
 
-      if ("disk_used".equals(currentMetric.getMetricName())) {
+      if ("disk_used_daily".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(12 * 20, currentHostAggregate.getNumberOfSamples());
@@ -262,6 +283,8 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
   @Test
   public void testAggregationUsingGroupByQuery() throws Exception {
+
+    List<String> metricNames = new ArrayList<String>() {{ add("disk_free_g"); add("mem_free_g");}};
     // GIVEN
     TimelineMetricAggregator aggregatorMinute =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb,
@@ -271,17 +294,20 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
     long minute = 60 * 1000;
-    hdb.insertMetricRecords(prepareTimelineMetrics(startTime, "local"), true);
-    hdb.insertMetricRecords(prepareTimelineMetrics(ctime += minute, "local"), true);
-    hdb.insertMetricRecords(prepareTimelineMetrics(ctime += minute, "local"), true);
-    hdb.insertMetricRecords(prepareTimelineMetrics(ctime += minute, "local"), true);
-    hdb.insertMetricRecords(prepareTimelineMetrics(ctime += minute, "local"), true);
+    hdb.insertMetricRecords(prepareTimelineMetrics(metricNames, startTime, "local"), true);
+    hdb.insertMetricRecords(prepareTimelineMetrics(metricNames, ctime += minute, "local"), true);
+    hdb.insertMetricRecords(prepareTimelineMetrics(metricNames, ctime += minute, "local"), true);
+    hdb.insertMetricRecords(prepareTimelineMetrics(metricNames, ctime += minute, "local"), true);
+    hdb.insertMetricRecords(prepareTimelineMetrics(metricNames, ctime += minute, "local"), true);
+
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(metricNames, Collections.singletonList("local"),
+      "host", null);
 
     long endTime = startTime + 1000 * 60 * 4;
     boolean success = aggregatorMinute.doWork(startTime - 1, endTime);
     assertTrue(success);
 
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    Condition condition = new DefaultCondition(uuids, metricNames, Collections.singletonList("local"), "host", null, startTime,
       endTime + 1, null, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_MINUTE_TABLE_NAME));
 
@@ -297,14 +323,14 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
       MetricHostAggregate currentHostAggregate =
         readHelper.getMetricHostAggregateFromResultSet(rs);
 
-      if ("disk_free".equals(currentMetric.getMetricName())) {
+      if ("disk_free_g".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(20, currentHostAggregate.getNumberOfSamples());
         assertEquals(15.0, currentHostAggregate.getSum());
         assertEquals(15.0 / 20, currentHostAggregate.calculateAverage());
         count++;
-      } else if ("mem_free".equals(currentMetric.getMetricName())) {
+      } else if ("mem_free_g".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(20, currentHostAggregate.getNumberOfSamples());
@@ -332,6 +358,14 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
       createMetric(startTime, "disk_free", host),
       createMetric(startTime, "mem_free", host)));
 
+    return metrics;
+  }
+
+  private TimelineMetrics prepareTimelineMetrics(List<String> metricNames, long startTime, String host) {
+    TimelineMetrics metrics = new TimelineMetrics();
+    for (String metricName : metricNames) {
+      metrics.getMetrics().add(createMetric(startTime, metricName, host));
+    }
     return metrics;
   }
 
