@@ -22,8 +22,6 @@ __all__ = ["create_mpack", "set_mpack_instance", "get_conf_dir", "get_log_dir", 
 import sys
 import os
 import json
-sys.path.append("/usr/lib/ambari-agent/lib")
-from resource_management.core import sudo
 
 MPACK_JSON_FILE_NAME = 'mpack.json'
 CURRENT_SOFTLINK_NAME = 'current'
