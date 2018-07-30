@@ -21,6 +21,7 @@ package org.apache.ambari.metrics.core.timeline.aggregators;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.SERVER_SIDE_TIMESIFT_ADJUSTMENT;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_EVENT_METRIC_PATTERNS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getTimeSlices;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
@@ -99,7 +100,11 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
       skipInterpolationMetricPatterns.addAll(getJavaMetricPatterns(skipInterpolationMetricPatternStrings));
     }
 
-    this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager);
+    if (Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS, "false"))) {
+      this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager, true);
+    } else {
+      this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager);
+    }
   }
 
   @Override
@@ -153,6 +158,9 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     Map<String, MutableInt> hostedAppCounter = new HashMap<>();
     if (rs.next()) {
       metric = timelineMetricReadHelper.getTimelineMetricFromResultSet(rs);
+      while (metric == null && rs.next()) {
+        metric = timelineMetricReadHelper.getTimelineMetricFromResultSet(rs);
+      }
 
       // Call slice after all rows for a host are read
       while (rs.next()) {
@@ -163,7 +171,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
         if (nextMetric == null) {
           continue;
         }
-        
+
         if (metric.equalsExceptTime(nextMetric)) {
           metric.addMetricValues(nextMetric.getMetricValues());
         } else {
