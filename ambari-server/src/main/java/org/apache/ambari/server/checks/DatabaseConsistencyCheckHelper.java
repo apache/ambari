@@ -36,6 +36,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.inject.Provider;
@@ -71,7 +72,6 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -1173,8 +1173,9 @@ public class DatabaseConsistencyCheckHelper {
     for (Cluster cluster : clusterMap.values()) {
       Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
 
-      if (MapUtils.isEmpty(configGroups))
+      if (MapUtils.isEmpty(configGroups)) {
         continue;
+      }
 
       for (ConfigGroup configGroup : configGroups.values()) {
         if (StringUtils.isEmpty(configGroup.getServiceName())) {
@@ -1194,18 +1195,12 @@ public class DatabaseConsistencyCheckHelper {
     if (MapUtils.isEmpty(configGroupMap))
       return;
 
-    StringBuilder output = new StringBuilder("[(ConfigGroup) => ");
+    String message = String.join(" ), ( ",
+            configGroupMap.values().stream().map(ConfigGroup::getName).collect(Collectors.toList()));
 
-    for (ConfigGroup configGroup : configGroupMap.values()) {
-      output.append("( ");
-      output.append(configGroup.getName());
-      output.append(" ), ");
-    }
-
-    output.replace(output.lastIndexOf(","), output.length(), "]");
     warning("You have config groups present in the database with no " +
-            "service name, {}. Run --auto-fix-database to fix " +
-            "this automatically. Please backup Ambari Server database before running --auto-fix-database.", output.toString());
+            "service name, [(ConfigGroup) => ( {} )]. Run --auto-fix-database to fix " +
+            "this automatically. Please backup Ambari Server database before running --auto-fix-database.", message);
   }
 
   /**
@@ -1229,6 +1224,10 @@ public class DatabaseConsistencyCheckHelper {
                   configGroup.getName(), configGroupEntry.getKey(), configGroup.getTag());
           configGroup.setServiceName(configGroup.getTag());
         }
+        else {
+          LOG.info("Config group {} with id {} contains a tag {} which is not a service name in the cluster {}",
+                  configGroup.getName(), configGroupEntry.getKey(), configGroup.getTag(), cluster.getClusterName());
+        }
       } catch (AmbariException e) {
         // Ignore if cluster not found
       }
@@ -1249,8 +1248,7 @@ public class DatabaseConsistencyCheckHelper {
     if (!MapUtils.isEmpty(clusterMap)) {
       for (Cluster cluster : clusterMap.values()) {
         Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
-        Map<String, Host> clusterHosts;
-        clusterHosts = clusters.getHostsForCluster(cluster.getClusterName());
+        Map<String, Host> clusterHosts = clusters.getHostsForCluster(cluster.getClusterName());
 
         if (!MapUtils.isEmpty(configGroups) && !MapUtils.isEmpty(clusterHosts)) {
           for (ConfigGroup configGroup : configGroups.values()) {
@@ -1264,11 +1262,7 @@ public class DatabaseConsistencyCheckHelper {
               for (Host host : hosts.values()) {
                 // Lookup by hostname - It does have a unique constraint
                 if (!clusterHosts.containsKey(host.getHostName())) {
-                  Set<Long> hostIds = nonMappedHostIds.get(configGroup.getId());
-                  if (CollectionUtils.isEmpty(hostIds)) {
-                    hostIds = new HashSet<>();
-                    nonMappedHostIds.put(configGroup.getId(), hostIds);
-                  }
+                  Set<Long> hostIds = nonMappedHostIds.computeIfAbsent(configGroup.getId(), configGroupId -> new HashSet<>());
                   hostIds.add(host.getHostId());
                   hostnames.add(host.getHostName());
                   addToOutput = true;
