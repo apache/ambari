@@ -151,6 +151,25 @@
         <config-type>hadoop-policy</config-type>
         <config-type>hdfs-log4j</config-type>
       </configuration-dependencies>
+
+      <kerberosEnabledTest>
+        {
+        "or": [
+        {
+        "equals": [
+        "core-site/hadoop.security.authentication",
+        "kerberos"
+        ]
+        },
+        {
+        "equals": [
+        "hdfs-site/hadoop.security.authentication",
+        "kerberos"
+        ]
+        }
+        ]
+        }
+      </kerberosEnabledTest>
     </service>
   </services>
 </metainfo>
