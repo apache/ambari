@@ -90,6 +90,25 @@ public interface Service {
   MaintenanceState getMaintenanceState();
 
   /**
+   * Tests to see if Kerberos is enabled for this service using the Kerberos enabled test metadata
+   * and the existing cluster configurations.
+   *
+   * @return <code>true</code>. if it is determined that Kerberos is enabled for this service; <code>false</code>, otherwise
+   * @see #isKerberosEnabled(Map)
+   */
+  boolean isKerberosEnabled();
+
+  /**
+   * Tests to see if Kerberos is enabled for this service using the Kerberos enabled test metadata
+   * and the supplied configurations map.
+   *
+   * @param configurations a map of configurations to use for the test
+   * @return <code>true</code>. if it is determined that Kerberos is enabled for this service; <code>false</code>, otherwise
+   * @see #isKerberosEnabled()
+   */
+  boolean isKerberosEnabled(Map<String, Map<String, String>> configurations);
+
+  /**
    * Refresh Service info due to current stack
    * @throws AmbariException
    */
