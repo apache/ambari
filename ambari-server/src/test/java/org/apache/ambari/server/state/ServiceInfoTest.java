@@ -790,6 +790,63 @@ public class ServiceInfoTest {
     assertNull(singleSignOnInfo.getEnabledConfiguration());
   }
 
+  /**
+   * Tests the presence and absence of the kerberosEnabledTest block.
+   */
+  @Test
+  public void testKerberosEnabledTest() throws Exception {
+    Map<String, ServiceInfo> serviceInfoMap;
+    ServiceInfo service;
+
+    String kerberosEnabledTest =
+        "{\n" +
+            "  \"or\": [\n" +
+            "    {\n" +
+            "      \"equals\": [\n" +
+            "        \"core-site/hadoop.security.authentication\",\n" +
+            "        \"kerberos\"\n" +
+            "      ]\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"equals\": [\n" +
+            "        \"hdfs-site/hadoop.security.authentication\",\n" +
+            "        \"kerberos\"\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+    String serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>HDFS</name>\n" +
+        "      <kerberosEnabledTest>\n" +
+        kerberosEnabledTest +
+        "      </kerberosEnabledTest>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    service = serviceInfoMap.get("HDFS");
+    assertEquals(kerberosEnabledTest, service.getKerberosEnabledTest().trim());
+
+    /*
+     * <kerberosEnabledTest> is missing
+     */
+    serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>HDFS</name>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    service = serviceInfoMap.get("HDFS");
+    assertNull(service.getKerberosEnabledTest());
+  }
+
   private static Map<String, ServiceInfo> getServiceInfo(String xml) throws JAXBException {
     InputStream configStream = new ByteArrayInputStream(xml.getBytes());
     JAXBContext jaxbContext = JAXBContext.newInstance(ServiceMetainfoXml.class);
