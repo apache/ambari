@@ -256,6 +256,8 @@ App.Queue = DS.Model.extend({
   maximum_applications: DS.attr('number', { defaultValue: null }),
   maximum_am_resource_percent: DS.attr('number', { defaultValue: null }),
   priority: DS.attr('number', {defaultValue: 0}),
+  maximum_allocation_mb:DS.attr('number'),
+  maximum_allocation_vcores:DS.attr('number'),
 
   disable_preemption: DS.attr('string', {defaultValue: ''}),
   isPreemptionInherited: DS.attr('boolean', {defaultValue: true}),
