@@ -20,7 +20,7 @@ Ambari Agent
 """
 
 import os
-from instance_manager import create_mpack, set_mpack_instance, get_conf_dir, get_log_dir, get_run_dir, list_instances
+from instance_manager import create_mpack, set_mpack_instance, get_conf_dir, get_log_dir, get_run_dir, list_instances, walk_mpack_dict
 
 CONFIG_DIR_KEY_NAME = 'config_dir'
 LOG_DIR_KEY_NAME = 'log_dir'
@@ -31,7 +31,6 @@ COMPONENT_INSTANCES_PLURAL_KEY_NAME = 'component-instances'
 MPACK_VERSION_KEY_NAME = 'mpack_version'
 MODULE_VERSION_KEY_NAME = 'module_version'
 
-
 def get_component_conf_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
   """
@@ -39,11 +38,9 @@ def get_component_conf_path(mpack_name, instance_name, module_name, components_i
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  conf_json = get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
+  return get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
-  return conf_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
-    component_instance_name][CONFIG_DIR_KEY_NAME]
 
 def get_component_log_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
@@ -52,11 +49,9 @@ def get_component_log_path(mpack_name, instance_name, module_name, components_in
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  log_json = get_log_dir(mpack_name, instance_name, subgroup_name, module_name,
+  return get_log_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
-  return log_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
-    component_instance_name][LOG_DIR_KEY_NAME]
 
 def get_component_rundir_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
@@ -65,11 +60,9 @@ def get_component_rundir_path(mpack_name, instance_name, module_name, components
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  run_json = get_run_dir(mpack_name, instance_name, subgroup_name, module_name,
+  return get_run_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
-  return run_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
-    component_instance_name][RUN_DIR_KEY_NAME]
 
 def get_component_target_path(mpack_name, instance_name, module_name, components_instance_type,
                               subgroup_name='default', component_instance_name='default'):
@@ -77,12 +70,12 @@ def get_component_target_path(mpack_name, instance_name, module_name, components
   :returns the single string that contains the path to the mpack component folder of given component instance
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
-
+  dirs = set()
   instances_json = list_instances(mpack_name, instance_name, subgroup_name, module_name,
                                   {components_instance_type: [component_instance_name]})
-
-  return instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
-    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][PATH_KEY_NAME]
+  walk_mpack_dict(instances_json, PATH_KEY_NAME, dirs)
+  return [dir for dir in dirs if
+          (mpack_name == None or mpack_name.lower() in dir) and (instance_name == None or instance_name.lower() in dir)]
 
 
 def get_versions(mpack_name, instance_name, module_name, components_instance_type,
@@ -111,12 +104,12 @@ def get_component_home_path(mpack_name, instance_name, module_name, components_i
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  component_path = get_component_target_path(mpack_name=mpack_name, instance_name=instance_name,
+  component_paths = get_component_target_path(mpack_name=mpack_name, instance_name=instance_name,
                                              subgroup_name=subgroup_name,
                                              module_name=module_name, components_instance_type=components_instance_type,
                                              component_instance_name=component_instance_name)
 
-  return os.readlink(component_path)
+  return os.readlink(component_paths[0])
 
 
 def create_component_instance(mpack_name, mpack_version, instance_name, module_name, components_instance_type,

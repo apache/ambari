@@ -17,11 +17,13 @@ limitations under the License.
 
 """
 
-__all__ = ["create_mpack", "set_mpack_instance", "get_conf_dir", "get_log_dir", "get_run_dir", "list_instances"]
+__all__ = ["create_mpack", "set_mpack_instance", "get_conf_dir", "get_log_dir", "get_run_dir", "list_instances", "walk_mpack_dict"]
 
 import sys
 import os
 import json
+sys.path.append("/usr/lib/ambari-agent/lib")
+from resource_management.core import sudo
 
 MPACK_JSON_FILE_NAME = 'mpack.json'
 CURRENT_SOFTLINK_NAME = 'current'
@@ -97,7 +99,8 @@ def get_conf_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP
   """
   Use case: retrieve conf directory paths for a given component instances based on the granularity specified
             ranging from: mpack, mpack-instance, subgroup-name, module-name and map of component instance
-            AND with a filtering on each level
+            AND with a filtering on each level. The return value is a list of conf_dir since we support
+            multiple mpacks and multiple mpack instances now.
 
   Granularity works only while names for all consecutive levels are specified.
   Note that subgroup has default value of 'default'
@@ -108,9 +111,18 @@ def get_conf_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP
 
   Components are provided as map with key as 'component type' and value as 'list of individual component instances
   names' OR empty map for all component instances present
+
+  Note also that client component has different layout from server component, i.e:
+  zookeeper_client: /usr/hwx/instances/hdpcore/default/default/zookeeper_client/conf/
+  zookeeper_server: /usr/hwx/instances/hdpcore/default/default/zookeeper/zookeeper_server/ZOOKEEPER/conf/
   """
-  return build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
-                                            output_conf_dir=True)
+  dirs, is_client = get_conf_log_run_dir_helper(mpack, mpack_instance, subgroup_name, module_name, components_map, output_conf_dir = True, output_log_dir = False, output_run_dir = False)
+  if not is_client:
+    return [dir for dir in dirs if
+            (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir) and (
+            module_name == None or module_name in dir)]
+  return [dir for dir in dirs if
+            (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir)]
 
 def get_log_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
                  components_map=None):
@@ -129,8 +141,14 @@ def get_log_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_
   Components are provided as map with key as 'component type' and value as 'list of individual component instances
   names' OR empty map for all component instances present
   """
-  return build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
-                                            output_log_dir=True)
+  dirs, is_client = get_conf_log_run_dir_helper(mpack, mpack_instance, subgroup_name, module_name, components_map, output_conf_dir = False, output_log_dir = True, output_run_dir = False)
+  if not is_client:
+    return [dir for dir in dirs if
+            (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir) and (
+            module_name == None or module_name in dir)]
+  return [dir for dir in dirs if
+            (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir)]
+
 
 def get_run_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
                  components_map=None):
@@ -149,12 +167,70 @@ def get_run_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_
   Components are provided as map with key as 'component type' and value as 'list of individual component instances
   names' OR empty map for all component instances present
   """
-  return build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
-                                            output_run_dir=True)
+  dirs, is_client = get_conf_log_run_dir_helper(mpack, mpack_instance, subgroup_name, module_name, components_map, output_conf_dir = False, output_log_dir = False, output_run_dir = True)
+  if not is_client:
+    return [dir for dir in dirs if
+            (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir) and (
+            module_name == None or module_name in dir)]
+  return [dir for dir in dirs if
+            (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir)]
+
+
+def walk_mpack_dict(mpack_dict, filter, dirs):
+  """
+  A utility funtion to traverse the nested dict to get a list of config/log/run dirs
+  :param mpack_dict: mpack json dict
+  :param dirs: Set to hold dir strings
+  :return: None
+  """
+  for key in mpack_dict:
+    if key == filter:
+      dirs.add(mpack_dict[key])
+    elif type(mpack_dict[key]) != dict:
+      pass
+    else:
+      walk_mpack_dict(mpack_dict[key], filter, dirs)
+
+def get_conf_log_run_dir_helper(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
+                 components_map=None, output_conf_dir=False, output_log_dir=False, output_run_dir=False):
+  """
+  A helper function to get dictionary to hold the path from mpack to config/log/run dirs
+  :param mpack: mpack name, can be None
+  :param mpack_instance: mpack_instance name, can be None
+  :param subgroup_name: subgroups name, default is "default"
+  :param module_name: module name, can be None
+  :param components_map: can be None
+  :param output_conf_dir: default is None
+  :param output_log_dir: default is None
+  :param output_run_dir: default is None
+  :return: list of dirs, can be empty if output_conf_dir/output_log_dir/output_run_dir are all False
+  """
+  dirs = set()
+  rst_json = {}
+  filter = ""
+  if output_conf_dir:
+    rst_json = build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
+                                                  output_conf_dir=True)
+    filter = "config_dir"
+  elif output_log_dir:
+    rst_json = build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
+                                                  output_log_dir=True)
+    filter = "log_dir"
+  elif output_run_dir:
+    rst_json = build_granular_json_with_filtering(mpack, mpack_instance, subgroup_name, module_name, components_map,
+                                                  output_run_dir=True)
+    filter = "run_dir"
+  walk_mpack_dict(rst_json, filter, dirs)
+  categories = set()
+  walk_mpack_dict(rst_json, "category", categories)
+  is_client = False
+  if categories and CLIENT_CATEGORY in categories:
+    is_client = True
+  return list(dirs), is_client
 
 
 def list_instances(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
-                   components_map=None):
+                   components_map=None, output_conf_dir=False, output_log_dir=False, output_run_dir=False):
   """
   Use case: figure out the versions a given component instances based on the granularity specified
             ranging from: mpack, mpack-instance, subgroup-name, module-name and map of component instance
