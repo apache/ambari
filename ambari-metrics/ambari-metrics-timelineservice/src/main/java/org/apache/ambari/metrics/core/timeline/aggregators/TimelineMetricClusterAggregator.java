@@ -83,7 +83,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   protected void aggregate(ResultSet rs, long startTime, long endTime) throws IOException, SQLException {
     Map<TimelineClusterMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs, endTime);
 
-    LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates to " + outputTableName);
+    LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates.");
     hBaseAccessor.saveClusterAggregateRecordsSecond(hostAggregateMap, outputTableName);
   }
 
