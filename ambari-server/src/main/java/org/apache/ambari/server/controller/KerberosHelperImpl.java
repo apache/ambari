@@ -1597,9 +1597,11 @@ public class KerberosHelperImpl implements KerberosHelper {
               keytabFileGroupName = variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupName(), configurations);
               keytabFileGroupAccess = variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupAccess(), configurations);
               keytabFileConfiguration = variableReplacementHelper.replaceVariables(keytabDescriptor.getConfiguration(), configurations);
-            }
-            if (keytabFileOwnerName == null || keytabFileGroupName == null) {
-              LOG.warn("Missing owner ({}) or group name ({}) of kerberos descriptor {}", keytabFileOwnerName, keytabFileGroupName, keytabDescriptor.getName());
+              if (keytabFileOwnerName == null || keytabFileGroupName == null) {
+                LOG.warn("Missing owner ({}) or group name ({}) of kerberos descriptor {}", keytabFileOwnerName, keytabFileGroupName, keytabDescriptor.getName());
+              }
+            } else {
+              throw new AmbariException("Missing keytab descriptor for " + identity.getName());
             }
 
             // Evaluate the principal "pattern" found in the record to generate the "evaluated principal"
