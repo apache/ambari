@@ -109,7 +109,9 @@ App.SerializerMixin = Em.Mixin.create({
           disable_preemption:            props[base_path + '.disable_preemption'] || '',
           isPreemptionInherited:         (props[base_path + '.disable_preemption'] !== undefined)?false:true,
           maximum_allocation_mb:         props[base_path + '.maximum-allocation-mb'] || null,
-          maximum_allocation_vcores:     props[base_path + '.maximum-allocation-vcores'] || null
+          maximum_allocation_vcores:     props[base_path + '.maximum-allocation-vcores'] || null,
+          maximum_application_lifetime:     props[base_path + '.maximum-application-lifetime'] || null,
+          default_application_lifetime:     props[base_path + '.default-application-lifetime'] || null
         };
 
     //Converting capacity and max-capacity into two decimal point float numbers
@@ -233,6 +235,8 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
     json[this.PREFIX + "." + record.get('path') + ".ordering-policy"] = record.get('ordering_policy')||null;
     json[this.PREFIX + "." + record.get('path') + ".maximum-allocation-mb"] = record.get('maximum_allocation_mb') || null;
     json[this.PREFIX + "." + record.get('path') + ".maximum-allocation-vcores"] = record.get('maximum_allocation_vcores') || null;
+    json[this.PREFIX + "." + record.get('path') + ".maximum-application-lifetime"] = record.get('maximum_application_lifetime') || null;
+    json[this.PREFIX + "." + record.get('path') + ".default-application-lifetime"] = record.get('default_application_lifetime') || null;
 
     if (record.get('ordering_policy') == 'fair') {
       json[this.PREFIX + "." + record.get('path') + ".ordering-policy.fair.enable-size-based-weight"] = record.get('enable_size_based_weight');
