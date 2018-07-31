@@ -33,6 +33,8 @@ App.ThemesMappingMixin = Em.Mixin.create({
    */
   loadConfigTheme: function(serviceName) {
     const dfd = $.Deferred();
+    let stackName = App.StackService.find().findProperty('serviceName', serviceName).get('stackName');
+    let stackVersion = App.StackService.find().findProperty('serviceName', serviceName).get('stackVersion');
     if (App.Tab.find().mapProperty('serviceName').contains(serviceName)) {
       dfd.resolve();
     } else {
@@ -41,7 +43,7 @@ App.ThemesMappingMixin = Em.Mixin.create({
         sender: this,
         data: {
           serviceName: serviceName,
-          stackVersionUrl: App.get('stackVersionURL')
+          stackVersionUrl: App.getStackVersionUrl(stackName, stackVersion) || App.get('stackVersionURL')
         },
         success: '_saveThemeToModel'
       }).complete(dfd.resolve);
