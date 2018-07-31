@@ -77,6 +77,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
     ExecutionCommand mockExecutionCommand = createMock(ExecutionCommand.class);
     HostRoleCommand mockHostRoleCommand = createMock(HostRoleCommand.class);
     kerberosKeytabController = createMock(KerberosKeytabController.class);
+    expect(kerberosKeytabController.adjustServiceComponentFilter(anyObject(), anyObject())).andReturn(null).anyTimes();
     expect(kerberosKeytabController.getFilteredKeytabs(null, null, null))
       .andReturn(
         Sets.newHashSet(new ResolvedKerberosKeytab(

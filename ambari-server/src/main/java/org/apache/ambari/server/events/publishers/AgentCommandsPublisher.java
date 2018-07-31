@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -182,6 +183,7 @@ public class AgentCommandsPublisher {
 
       try {
         Map<String, Collection<String>> serviceComponentFilter = kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(ec.getClusterName()), kerberosCommandParameters.getServiceComponentFilter());
+        serviceComponentFilter.put("AMBARI", Collections.singletonList("*"));
         Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
         for (ResolvedKerberosKeytab resolvedKeytab : keytabsToInject) {
           for(ResolvedKerberosPrincipal resolvedPrincipal: resolvedKeytab.getPrincipals()) {

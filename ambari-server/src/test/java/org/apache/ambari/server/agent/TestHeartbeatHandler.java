@@ -32,6 +32,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -1540,6 +1541,7 @@ public class TestHeartbeatHandler {
     KerberosKeytabController kerberosKeytabControllerMock = createMock(KerberosKeytabController.class);
     Map<String, Collection<String>> filter = new HashMap<>();
     filter.put("HDFS", Collections.singletonList("*"));
+    expect(kerberosKeytabControllerMock.adjustServiceComponentFilter(anyObject(), anyObject())).andReturn(filter).once();
     expect(kerberosKeytabControllerMock.getFilteredKeytabs(filter,null,null)).andReturn(
       Sets.newHashSet(
         new ResolvedKerberosKeytab(
