@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_NEW_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_OLD_NAME;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,13 +27,17 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +104,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateRangerLogDirConfigs();
     updateRangerKmsDbUrl();
+    renameAmbariInfraInConfigGroups();
   }
 
   /**
@@ -195,4 +203,38 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void renameAmbariInfraInConfigGroups() {
+    LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR in config group records");
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+    if (MapUtils.isEmpty(clusterMap))
+      return;
+
+    EntityManager entityManager = getEntityManagerProvider().get();
+
+    executeInTransaction(() -> {
+      TypedQuery<ServiceConfigEntity> serviceConfigUpdate = entityManager.createQuery(
+              "UPDATE ConfigGroupEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", ServiceConfigEntity.class);
+      serviceConfigUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      serviceConfigUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      serviceConfigUpdate.executeUpdate();
+    });
+
+    executeInTransaction(() -> {
+      TypedQuery<ServiceConfigEntity> serviceConfigUpdate = entityManager.createQuery(
+              "UPDATE ConfigGroupEntity SET tag = :newServiceName WHERE tag = :oldServiceName", ServiceConfigEntity.class);
+      serviceConfigUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      serviceConfigUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      serviceConfigUpdate.executeUpdate();
+    });
+
+
+    // Force the clusters object to reload to ensure the renamed service is accounted for
+    entityManager.getEntityManagerFactory().getCache().evictAll();
+    clusters.invalidateAllClusters();
+  }
 }
