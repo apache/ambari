@@ -451,7 +451,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
-        final Map<String, Collection<String>> serviceComponentFilter = (Map<String, Collection<String>>) getServiceComponentFilter();
+        final Map<String, Collection<String>> serviceComponentFilter =kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), getServiceComponentFilter());
         final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : calculateServiceIdentities(getClusterName(), serviceComponentFilter);
         for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, getHostFilter(), getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
