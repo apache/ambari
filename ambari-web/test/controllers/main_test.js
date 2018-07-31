@@ -58,27 +58,25 @@ describe('App.MainController', function () {
 
   describe('#dataLoading', function() {
 
-    beforeEach(function () {
-      this.stub = sinon.stub(App.router, 'get');
-    });
-
-    afterEach(function () {
-      this.stub.restore();
-    });
-
     it ('Should resolve promise', function() {
-      this.stub.returns(true);
+      mainController.reopen({
+        isClusterDataLoaded: true
+      });
       var deffer = mainController.dataLoading();
       deffer.then(function(val){
         expect(val).to.be.undefined;
       });
     });
     it ('Should resolve promise (2)', function(done) {
-      this.stub.returns(false);
+      mainController.reopen({
+        isClusterDataLoaded: false
+      });
       
       setTimeout(function() {
-        mainController.set('isClusterDataLoaded', true);
-      },150);
+        mainController.reopen({
+          isClusterDataLoaded: true
+        });
+      }, 150);
 
       var deffer = mainController.dataLoading();
       deffer.then(function(val){

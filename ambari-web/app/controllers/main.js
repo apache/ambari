@@ -61,7 +61,7 @@ App.MainController = Em.Controller.extend({
   dataLoading: function () {
     var self = this;
     var dfd = $.Deferred();
-    if (App.router.get('clusterController.isLoaded')) {
+    if (self.get('isClusterDataLoaded')) {
       dfd.resolve();
     } else {
       var interval = setInterval(function () {

@@ -24,6 +24,7 @@ var view;
 var steps;
 
 describe('App.InstallerView', function () {
+  var properties = [];
 
   beforeEach(function () {
     view = App.InstallerView.create({
