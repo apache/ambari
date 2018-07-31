@@ -329,6 +329,29 @@ class TestInstanceManager(TestCase):
     expected_run_dir_list = ["/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/run", "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/run"]
     self.assertEqual(run_dir_list, expected_run_dir_list)
 
+  def test_get_mpack_module_versions(self):
+    MPACK_VERSION_KEY_NAME = 'mpack_version'
+    MODULE_VERSION_KEY_NAME = 'module_version'
+
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
+    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
+                               components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
+
+    instances_json = instance_manager.list_instances(module_name=CLIENT_MODULE_NAME)
+    dirs = set()
+    instance_manager.walk_mpack_dict(instances_json, MPACK_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "1.0.0-b1")
+    dirs.clear()
+    instance_manager.walk_mpack_dict(instances_json, MODULE_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "3.1.0.0-b1")
+    instances_json = instance_manager.list_instances(module_name=SERVER_MODULE_NAME)
+    dirs.clear()
+    instance_manager.walk_mpack_dict(instances_json, MPACK_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "1.0.0-b1")
+    dirs.clear()
+    instance_manager.walk_mpack_dict(instances_json, MODULE_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "3.1.0.0-b1")
+
   def test_list_instances_all(self):
     create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
     create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,

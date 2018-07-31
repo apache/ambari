@@ -34,7 +34,8 @@ MODULE_VERSION_KEY_NAME = 'module_version'
 def get_component_conf_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the configuration folder of given component instance
+  :returns a list contains the path to the configuration folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
@@ -45,7 +46,8 @@ def get_component_conf_path(mpack_name, instance_name, module_name, components_i
 def get_component_log_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the log folder of given component instance
+  :returns a list contains the path to the log folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
@@ -56,7 +58,8 @@ def get_component_log_path(mpack_name, instance_name, module_name, components_in
 def get_component_rundir_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the rundir folder of given component instance
+  :returns a list contains the paths to the rundir folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
@@ -67,7 +70,8 @@ def get_component_rundir_path(mpack_name, instance_name, module_name, components
 def get_component_target_path(mpack_name, instance_name, module_name, components_instance_type,
                               subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the mpack component folder of given component instance
+  :returns a list contains the paths to the mpack component folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
   dirs = set()
@@ -81,18 +85,18 @@ def get_component_target_path(mpack_name, instance_name, module_name, components
 def get_versions(mpack_name, instance_name, module_name, components_instance_type,
                               subgroup_name='default', component_instance_name='default'):
   """
-  :returns a tuple representing the mpack version and the module version
+  :returns a tuple representing the mpack version and the module version, module_name should not be None
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
   instances_json = list_instances(mpack_name, instance_name, subgroup_name, module_name,
                                   {components_instance_type: [component_instance_name]})
-
-  mpack_version = instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
-    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][MPACK_VERSION_KEY_NAME]
-
-  module_version = instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
-    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][MODULE_VERSION_KEY_NAME]
+  dirs = set()
+  walk_mpack_dict(instances_json, MPACK_VERSION_KEY_NAME, dirs)
+  mpack_version = next(iter(dirs))
+  dirs.clear()
+  walk_mpack_dict(instances_json, MODULE_VERSION_KEY_NAME, dirs)
+  module_version = next(iter(dirs))
 
   return mpack_version, module_version
 
