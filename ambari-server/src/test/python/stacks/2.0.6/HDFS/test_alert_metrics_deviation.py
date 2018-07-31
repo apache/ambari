@@ -118,8 +118,8 @@ class TestAlertMetricsDeviation(RMFTestCase):
       '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50070',
       '{{cluster-env/security_enabled}}': 'false',
       '{{cluster-env/smokeuser}}': 'ambari-qa',
-      '{{cluster-env/metrics_collector_vip_host}}': 'c6401.ambari.apache.org',
-      '{{cluster-env/metrics_collector_vip_port}}': '6188',
+      '{{cluster-env/metrics_collector_external_hosts}}': 'c6401.ambari.apache.org',
+      '{{cluster-env/metrics_collector_external_port}}': '6188',
       '{{hdfs-site}}': {
         'dfs.datanode.address': '0.0.0.0:50010',
         'dfs.namenode.rpc-address': 'c6401.ambari.apache.org:8020',

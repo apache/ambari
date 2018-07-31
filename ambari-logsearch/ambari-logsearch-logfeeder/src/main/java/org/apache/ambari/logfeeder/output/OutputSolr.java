@@ -19,11 +19,14 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import org.apache.ambari.logfeeder.common.IdGeneratorHelper;
+import org.apache.ambari.logfeeder.common.LogFeederSolrClientFactory;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -43,13 +46,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Collection;;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -76,12 +76,14 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
   private String splitMode;
   private int splitInterval;
   private String zkConnectString;
+  private String[] solrUrls = null;
   private int maxIntervalMS;
   private int workers;
   private int maxBufferSize;
   private boolean implicitRouting = false;
   private int lastSlotByMin = -1;
   private boolean skipLogtime = false;
+  private List<String> idFields = new ArrayList<>();
 
   private BlockingQueue<OutputData> outgoingBuffer = null;
   private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
@@ -121,9 +123,17 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
     type = getStringValue("type");
 
     zkConnectString = getStringValue("zk_connect_string");
-    if (StringUtils.isEmpty(zkConnectString)) {
-      throw new Exception("For solr output the zk_connect_string property need to be set");
+    List<String> solrUrlsList = getListValue("solr_urls");
+
+    if (StringUtils.isBlank(zkConnectString) && CollectionUtils.isEmpty(solrUrlsList)) {
+      throw new Exception("For solr output the zk_connect_string or solr_urls property need to be set");
     }
+
+    if (CollectionUtils.isNotEmpty(solrUrlsList)) {
+      solrUrls = solrUrlsList.toArray(new String[0]);
+    }
+
+    idFields = getListValue("id_fields", new ArrayList<>());
 
     skipLogtime = getBooleanValue("skip_logtime", DEFAULT_SKIP_LOGTIME);
 
@@ -176,42 +186,31 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
 
   private void createSolrWorkers() throws Exception, MalformedURLException {
     for (int count = 0; count < workers; count++) {
-      CloudSolrClient solrClient = getSolrClient(count);
+      SolrClient solrClient = getSolrClient(count);
       createSolrWorkerThread(count, solrClient);
     }
   }
 
-  CloudSolrClient getSolrClient(int count) throws Exception, MalformedURLException {
-    CloudSolrClient solrClient = createSolrClient();
+  private SolrClient getSolrClient(int count) throws Exception, MalformedURLException {
+    SolrClient solrClient = new LogFeederSolrClientFactory().createSolrClient(zkConnectString, solrUrls, collection);
     pingSolr(count, solrClient);
-
     return solrClient;
   }
 
-  private CloudSolrClient createSolrClient() throws Exception {
-    LOG.info("Using zookeepr. zkConnectString=" + zkConnectString);
-    LOG.info("Using collection=" + collection);
-
-    CloudSolrClient solrClient = new CloudSolrClient.Builder().withZkHost(zkConnectString).build();
-    solrClient.setDefaultCollection(collection);
-    return solrClient;
-  }
-
-  private void pingSolr(int count, CloudSolrClient solrClient) {
+  private void pingSolr(int count, SolrClient solrClient) {
     try {
-      LOG.info("Pinging Solr server. zkConnectString=" + zkConnectString);
+      LOG.info("Pinging Solr server.");
       SolrPingResponse response = solrClient.ping();
       if (response.getStatus() == 0) {
         LOG.info("Ping to Solr server is successful for worker=" + count);
       } else {
         LOG.warn(
-            String.format("Ping to Solr server failed. It would check again. worker=%d, zkConnectString=%s, collection=%s, " +
-                "response=%s", count, zkConnectString, collection, response));
+            String.format("Ping to Solr server failed. It would check again. worker=%d, collection=%s, " +
+                "response=%s", count, collection, response));
       }
     } catch (Throwable t) {
       LOG.warn(String.format(
-          "Ping to Solr server failed. It would check again. worker=%d, zkConnectString=%s, collection=%s", count,
-          zkConnectString, collection), t);
+          "Ping to Solr server failed. It would check again. worker=%d, collection=%s", count, collection), t);
     }
   }
 
@@ -411,7 +410,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
         outputData = outgoingBuffer.poll(nextDispatchDuration, TimeUnit.MILLISECONDS);
       }
       if (outputData != null && outputData.jsonObj.get("id") == null) {
-        outputData.jsonObj.put("id", UUID.randomUUID().toString());
+        outputData.jsonObj.put("id", IdGeneratorHelper.generateUUID(outputData.jsonObj, idFields));
       }
       return outputData;
     }
@@ -502,5 +501,10 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
     throw new UnsupportedOperationException("copyFile method is not yet supported for output=solr");
+  }
+
+  @Override
+  public List<String> getIdFields() {
+    return idFields;
   }
 }

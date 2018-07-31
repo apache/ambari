@@ -17,6 +17,8 @@
  */
 @import 'common.less';
 
+@modal-top-calculated-without-margin: @navbar-header-vertical-padding + (@navbar-header-font-size * unit(@default-line-height));
+
 #modal {
   outline: none;
 }
@@ -25,7 +27,7 @@
   margin-left: 20px;
   margin-right: 20px;
   text-indent: -20px;
-  line-height: 1.3em;
+  line-height: @default-line-height;
 
   a:not(.disabled) {
       cursor: pointer;
@@ -97,7 +99,7 @@
 }
 
 .modal {
-  top: 5%;
+  top: @modal-top-calculated-without-margin - @modal-dialog-margin-top-default;
   .modal-body {
     .top-wrap {
       &.top-wrap-header {
@@ -107,6 +109,13 @@
     }
   }
 }
+
+@media (min-width: 768px) {
+  .modal {
+    top: @modal-top-calculated-without-margin - @modal-dialog-margin-top-wide-screen;
+  }
+}
+
 .modal-body {
   max-height: 600px;
   overflow-y: auto;
@@ -286,8 +295,11 @@
           width:100%;
           overflow: auto;
         }
-        table{
+        table {
           margin: 0 auto;
+          input[type="checkbox"] + label {
+            top: 0;
+          }
         }
         .message{
           color: #777;

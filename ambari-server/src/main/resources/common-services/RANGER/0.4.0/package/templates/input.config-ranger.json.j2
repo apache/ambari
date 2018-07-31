@@ -20,17 +20,17 @@
     {
       "type":"ranger_admin",
       "rowtype":"service",
-      "path":"{{default('/configurations/ranger-env/ranger_admin_log_dir', '/var/log/ranger/admin')}}/xa_portal.log"
+      "path":"{{default('/configurations/ranger-admin-site/ranger.logs.base.dir', '/var/log/ranger/admin')}}/xa_portal.log"
     },
     {
       "type":"ranger_dbpatch",
       "is_enabled":"true",
-      "path":"{{default('/configurations/ranger-env/ranger_admin_log_dir', '/var/log/ranger/admin')}}/ranger_db_patch.log"
+      "path":"{{default('/configurations/ranger-admin-site/ranger.logs.base.dir', '/var/log/ranger/admin')}}/ranger_db_patch.log"
     },
     {
       "type":"ranger_usersync",
       "rowtype":"service",
-      "path":"{{default('/configurations/ranger-env/ranger_usersync_log_dir', '/var/log/ranger/usersync')}}/usersync.log"
+      "path":"{{default('/configurations/ranger-ugsync-site/ranger.usersync.logdir', '/var/log/ranger/usersync')}}/usersync.log"
     }
   ],
   "filter":[

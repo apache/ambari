@@ -98,29 +98,29 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     return filters;
   }
 
-  public boolean isAllowed(String hostName, String logId, String level) {
+  public boolean isAllowed(String hostName, String logId, String level, List<String> defaultLogLevels) {
     if (!logFeederProps.isLogLevelFilterEnabled()) {
       return true;
     }
 
-    LogLevelFilter logFilter = findLogFilter(logId);
+    LogLevelFilter logFilter = findLogFilter(logId, defaultLogLevels);
     List<String> allowedLevels = getAllowedLevels(hostName, logFilter);
     return allowedLevels.isEmpty() || allowedLevels.contains(level);
   }
 
-  public boolean isAllowed(String jsonBlock, InputMarker inputMarker) {
+  public boolean isAllowed(String jsonBlock, InputMarker inputMarker, List<String> defaultLogLevels) {
     if (org.apache.commons.lang3.StringUtils.isEmpty(jsonBlock)) {
       return DEFAULT_VALUE;
     }
     Map<String, Object> jsonObj = LogFeederUtil.toJSONObject(jsonBlock);
-    return isAllowed(jsonObj, inputMarker);
+    return isAllowed(jsonObj, inputMarker, defaultLogLevels);
   }
 
-  public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker) {
+  public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker, List<String> defaultLogLevels) {
     if ("audit".equals(inputMarker.getInput().getInputDescriptor().getRowtype()))
       return true;
 
-    boolean isAllowed = applyFilter(jsonObj);
+    boolean isAllowed = applyFilter(jsonObj, defaultLogLevels);
     if (!isAllowed) {
       LOG.trace("Filter block the content :" + LogFeederUtil.getGson().toJson(jsonObj));
     }
@@ -128,7 +128,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   }
 
 
-  public boolean applyFilter(Map<String, Object> jsonObj) {
+  public boolean applyFilter(Map<String, Object> jsonObj, List<String> defaultLogLevels) {
     if (MapUtils.isEmpty(jsonObj)) {
       LOG.warn("Output jsonobj is empty");
       return DEFAULT_VALUE;
@@ -138,13 +138,13 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     String logId = (String) jsonObj.get(LogFeederConstants.SOLR_COMPONENT);
     String level = (String) jsonObj.get(LogFeederConstants.SOLR_LEVEL);
     if (org.apache.commons.lang3.StringUtils.isNotBlank(hostName) && org.apache.commons.lang3.StringUtils.isNotBlank(logId) && org.apache.commons.lang3.StringUtils.isNotBlank(level)) {
-      return isAllowed(hostName, logId, level);
+      return isAllowed(hostName, logId, level, defaultLogLevels);
     } else {
       return DEFAULT_VALUE;
     }
   }
 
-  private synchronized LogLevelFilter findLogFilter(String logId) {
+  private synchronized LogLevelFilter findLogFilter(String logId, List<String> defaultLogLevels) {
     LogLevelFilter logFilter = filters.get(logId);
     if (logFilter != null) {
       return logFilter;
@@ -153,7 +153,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     LOG.info("Filter is not present for log " + logId + ", creating default filter");
     LogLevelFilter defaultFilter = new LogLevelFilter();
     defaultFilter.setLabel(logId);
-    defaultFilter.setDefaultLevels(logFeederProps.getIncludeDefaultLogLevels());
+    defaultFilter.setDefaultLevels(defaultLogLevels);
 
     try {
       config.getLogLevelFilterManager().createLogLevelFilter(logFeederProps.getClusterName(), logId, defaultFilter);

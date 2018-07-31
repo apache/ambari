@@ -96,6 +96,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
       protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                               KerberosOperationHandler operationHandler,
                                               Map<String, String> kerberosConfiguration,
+                                              boolean includedInFilter,
                                               Map<String, Object> requestSharedDataContext)
           throws AmbariException {
         Assert.assertNotNull(requestSharedDataContext);

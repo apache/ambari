@@ -22,10 +22,8 @@
 <table class="table table-hover">
   <thead>
     <tr>
-      {{#if view.checkboxesFirst}}
-        {{#if view.isEditable}}
-          <th class="check-box-col">{{view view.parentView.toggleAll}}<label {{bindAttr for="view.parentView.toggleAllId"}}></label></th>
-        {{/if}}
+      {{#if view.isEditable}}
+        <th class="check-box-col">{{view view.parentView.toggleAll}}<label {{bindAttr for="view.parentView.toggleAllId"}}></label></th>
       {{/if}}
       <th>{{t common.property}}</th>
       <th>{{t common.service}}</th>
@@ -45,22 +43,15 @@
           </div>
         </div>
       </th>
-      {{#unless view.checkboxesFirst}}
-        {{#if view.isEditable}}
-          <th class="check-box-col">{{view view.parentView.toggleAll}}<label {{bindAttr for="view.parentView.toggleAllId"}}></label></th>
-        {{/if}}
-      {{/unless}}
     </tr>
   </thead>
   <tbody>
   {{#each recommendation in view.recommendations}}
     <tr {{bindAttr class="recommendation.saveRecommended:active"}}>
-      {{#if view.checkboxesFirst}}
-        {{#if view.isEditable}}
-          <td class="check-box-col">{{view App.CheckboxView checkedBinding="recommendation.saveRecommended"}}</td>
-        {{/if}}
+      {{#if view.isEditable}}
+        <td class="check-box-col">{{view App.CheckboxView checkedBinding="recommendation.saveRecommended"}}</td>
       {{/if}}
-      <td class="config-dependency-name">
+      <td class="config-dependency-name" {{bindAttr data-original-title="recommendation.propertyTitle" data-content="recommendation.propertyDescription"}}>
         {{#if view.isClickable}}
           <a href="#" {{action "showConfigProperty" recommendation target="controller"}}>{{recommendation.propertyName}}</a>
         {{else}}
@@ -82,11 +73,6 @@
           {{view App.ConfigDiffView configBinding="recommendation"}}
         </div>
       </td>
-      {{#unless view.checkboxesFirst}}
-        {{#if view.isEditable}}
-          <td class="check-box-col">{{view App.CheckboxView checkedBinding="recommendation.saveRecommended"}}</td>
-        {{/if}}
-      {{/unless}}
     </tr>
   {{/each}}
   </tbody>

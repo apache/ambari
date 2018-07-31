@@ -39,11 +39,13 @@ public class ServiceResponse {
   private final boolean ssoIntegrationSupported;
   private final boolean ssoIntegrationDesired;
   private final boolean ssoIntegrationEnabled;
+  private final boolean ssoIntegrationRequiresKerberos;
 
   public ServiceResponse(Long clusterId, String clusterName, String serviceName,
                          StackId desiredStackId, String desiredRepositoryVersion,
                          RepositoryVersionState repositoryVersionState, String desiredState,
-                         boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported, boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled) {
+                         boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported,
+                         boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled, boolean ssoIntegrationRequiresKerberos) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
@@ -56,6 +58,7 @@ public class ServiceResponse {
     this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
+    this.ssoIntegrationRequiresKerberos = ssoIntegrationRequiresKerberos;
   }
 
 
@@ -256,6 +259,14 @@ public class ServiceResponse {
   @ApiModelProperty(name = "sso_integration_enabled")
   public boolean isSsoIntegrationEnabled() {
     return ssoIntegrationEnabled;
+  }
+
+  /**
+   * Indicates if Kerberos is required for SSO integration
+   */
+  @ApiModelProperty(name = "sso_integration_requires_kerberos")
+  public boolean isSsoIntegrationRequiresKerberos() {
+    return ssoIntegrationRequiresKerberos;
   }
 
   /**

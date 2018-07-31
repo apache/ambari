@@ -138,7 +138,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -467,7 +466,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         }
       });
 
-    Map<String, Map<String, String>> existingConfigurations = calculateExistingConfigurations(cluster, null);
+    Map<String, Map<String, String>> existingConfigurations = configHelper.calculateExistingConfigurations(ambariManagementController, cluster, null);
     Map<String, Map<String, String>> updates = getServiceConfigurationUpdates(cluster,
       existingConfigurations, installedServices, serviceFilter, previouslyExistingServices, true, true);
 
@@ -1742,7 +1741,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     Map<String, Map<String, String>> calculatedConfigurations = addAdditionalConfigurations(
       cluster,
-      calculateExistingConfigurations(cluster, hostname),
+      configHelper.calculateExistingConfigurations(ambariManagementController, cluster, hostname),
       hostname,
       (kerberosDescriptor == null) ? null : kerberosDescriptor.getProperties());
 
@@ -1867,7 +1866,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
                   String uniqueKey = String.format("%s|%s", principal, (keytabFile == null) ? "" : keytabFile);
 
-                  if (!hostActiveIdentities.containsKey(uniqueKey)) {
+                  if (!hostActiveIdentities.containsKey(uniqueKey) ||
+                      (StringUtils.isNotBlank(hostActiveIdentities.get(uniqueKey).getReference()) && StringUtils.isBlank(identity.getReference()))) {
                     KerberosPrincipalType principalType = principalDescriptor.getType();
 
                     // Assume the principal is a service principal if not specified
@@ -2468,8 +2468,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       handler.createStages(cluster,
         clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, kerberosDetails,
         dataDirectory, requestStageContainer, serviceComponentHostsToProcess,
-        Collections.singletonMap("KERBEROS", Lists.newArrayList("KERBEROS_CLIENT")),
-        null, Sets.newHashSet(principal), hostsWithValidKerberosClient);
+        null, null, Sets.newHashSet(principal), hostsWithValidKerberosClient);
 
 
       handler.addFinalizeOperationStage(cluster, clusterHostInfoJson, hostParamsJson, event,
@@ -2925,45 +2924,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     return identities;
-  }
-
-  /**
-   * Determines the existing configurations for the cluster, related to a given hostname (if provided)
-   *
-   * @param cluster  the cluster
-   * @param hostname a hostname
-   * @return a map of the existing configurations
-   * @throws AmbariException
-   */
-  private Map<String, Map<String, String>> calculateExistingConfigurations(Cluster cluster, String hostname) throws AmbariException {
-    // For a configuration type, both tag and an actual configuration can be stored
-    // Configurations from the tag is always expanded and then over-written by the actual
-    // global:version1:{a1:A1,b1:B1,d1:D1} + global:{a1:A2,c1:C1,DELETED_d1:x} ==>
-    // global:{a1:A2,b1:B1,c1:C1}
-    Map<String, Map<String, String>> configurations = new HashMap<>();
-    Map<String, Map<String, String>> configurationTags = ambariManagementController.findConfigurationTagsWithOverrides(cluster, hostname);
-
-    Map<String, Map<String, String>> configProperties = configHelper.getEffectiveConfigProperties(cluster, configurationTags);
-
-    // Apply the configurations saved with the Execution Cmd on top of
-    // derived configs - This will take care of all the hacks
-    for (Map.Entry<String, Map<String, String>> entry : configProperties.entrySet()) {
-      String type = entry.getKey();
-      Map<String, String> allLevelMergedConfig = entry.getValue();
-      Map<String, String> configuration = configurations.get(type);
-
-      if (configuration == null) {
-        configuration = new HashMap<>(allLevelMergedConfig);
-      } else {
-        Map<String, String> mergedConfig = configHelper.getMergedConfig(allLevelMergedConfig, configuration);
-        configuration.clear();
-        configuration.putAll(mergedConfig);
-      }
-
-      configurations.put(type, configuration);
-    }
-
-    return configurations;
   }
 
   /**
@@ -3866,7 +3826,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         String commandName, List<RequestResourceFilter> resourceFilters,
         Map<String, String> parameters, boolean retryAllowed) {
 
-      ActionExecutionContext actionExecContext = new ActionExecutionContext(clusterName, SET_KEYTAB,
+      ActionExecutionContext actionExecContext = new ActionExecutionContext(clusterName, commandName,
           resourceFilters, parameters);
 
       actionExecContext.setRetryAllowed(retryAllowed);

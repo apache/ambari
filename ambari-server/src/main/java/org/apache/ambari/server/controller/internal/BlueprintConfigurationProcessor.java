@@ -2945,6 +2945,10 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.timeline-service.webapp.https.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
     yarnSiteMap.put("yarn.log.server.web-service.url", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
 
+    // TIMELINE_READER
+    yarnSiteMap.put("yarn.timeline-service.reader.webapp.address", new SingleHostTopologyUpdater("TIMELINE_READER"));
+    yarnSiteMap.put("yarn.timeline-service.reader.webapp.https.address", new SingleHostTopologyUpdater("TIMELINE_READER"));
+
     // HIVE_SERVER
     hiveSiteMap.put("hive.server2.authentication.ldap.url", new SingleHostTopologyUpdater("HIVE_SERVER2"));
     multiHiveSiteMap.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true, true, true));

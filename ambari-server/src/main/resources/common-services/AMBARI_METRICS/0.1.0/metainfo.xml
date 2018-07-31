@@ -29,7 +29,7 @@
           <name>METRICS_COLLECTOR</name>
           <displayName>Metrics Collector</displayName>
           <category>MASTER</category>
-          <cardinality>1+</cardinality>
+          <cardinality>0+</cardinality>
           <versionAdvertised>false</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
           <timelineAppid>AMS-HBASE</timelineAppid>

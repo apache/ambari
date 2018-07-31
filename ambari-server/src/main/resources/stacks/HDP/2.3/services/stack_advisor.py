@@ -443,6 +443,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     security_enabled = self.isSecurityEnabled(services)
     putRangerKmsSiteProperty = self.putProperty(configurations, "kms-site", services)
     putRangerKmsSitePropertyAttribute = self.putPropertyAttribute(configurations, "kms-site")
+    putRangerKmsEnvProperty = self.putProperty(configurations, "kms-env", services)
 
     if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
 
@@ -469,6 +470,24 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerKmsDbProperties = ranger_kms_db_url_dict.get(rangerKmsDbFlavor, ranger_kms_db_url_dict['MYSQL'])
         for key in rangerKmsDbProperties:
           putRangerKmsDbksProperty(key, rangerKmsDbProperties.get(key))
+
+    if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']) \
+      and ('db_host' in services['configurations']['kms-properties']['properties']):
+
+      rangerKmsDbFlavor = services['configurations']["kms-properties"]["properties"]["DB_FLAVOR"]
+      rangerKmsDbHost =   services['configurations']["kms-properties"]["properties"]["db_host"]
+
+      ranger_kms_db_privelege_url_dict = {
+        'MYSQL': {'ranger_kms_privelege_user_jdbc_url': 'jdbc:mysql://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost)},
+        'ORACLE': {'ranger_kms_privelege_user_jdbc_url': 'jdbc:oracle:thin:@' + self.getOracleDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost, None)},
+        'POSTGRES': {'ranger_kms_privelege_user_jdbc_url': 'jdbc:postgresql://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + '/postgres'},
+        'MSSQL': {'ranger_kms_privelege_user_jdbc_url': 'jdbc:sqlserver://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + ';'},
+        'SQLA': {'ranger_kms_privelege_user_jdbc_url': 'jdbc:sqlanywhere:host=' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + ';'}
+      }
+
+      rangerKmsPrivelegeDbProperties = ranger_kms_db_privelege_url_dict.get(rangerKmsDbFlavor, ranger_kms_db_privelege_url_dict['MYSQL'])
+      for key in rangerKmsPrivelegeDbProperties:
+        putRangerKmsEnvProperty(key, rangerKmsPrivelegeDbProperties.get(key))
 
     if kmsEnvProperties and self.checkSiteProperties(kmsEnvProperties, 'kms_user') and 'KERBEROS' in servicesList:
       kmsUser = kmsEnvProperties['kms_user']

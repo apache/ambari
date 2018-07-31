@@ -28,4 +28,15 @@
     <description></description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>ranger.logs.base.dir</name>
+    <display-name>Ranger Admin Log Dir</display-name>
+    <value>/var/log/ranger/admin</value>
+    <description>Ranger Admin Log Dir</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

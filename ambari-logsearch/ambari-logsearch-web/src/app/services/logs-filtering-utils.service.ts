@@ -435,9 +435,13 @@ export class LogsFilteringUtilsService {
                 });
               } else {
                 Object.assign(timeRangeParams, {
-                  timeRangeInterval: timeRangeValue.interval,
                   timeRangeUnit: timeRangeValue.unit
                 });
+                if (timeRangeValue.interval !== undefined) {
+                  Object.assign(timeRangeParams, {
+                    timeRangeInterval: timeRangeValue.interval
+                  });
+                }
               }
               Object.assign(newParams, timeRangeParams);
             }
@@ -493,7 +497,7 @@ export class LogsFilteringUtilsService {
           break;
         case 'timeRangeType':
           const type = params.timeRangeType || 'LAST';
-          const interval = parseInt(params.timeRangeInterval, 0);
+          const interval = params.timeRangeInterval && parseInt(params.timeRangeInterval, 0);
           const unit = params.timeRangeUnit;
           const timeRangeFilterValue: {[key: string]: any} = {type, unit, interval};
           let timeRangeFilterLabel = 'filter.timeRange.';
