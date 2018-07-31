@@ -48,13 +48,10 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -185,7 +182,8 @@ public class AgentCommandsPublisher {
       List<Map<String, String>> kcp = ec.getKerberosCommandParams();
 
       try {
-        Map<String, Collection<String>> serviceComponentFilter = adjustServiceComponentFilter(ec.getClusterName(), kerberosCommandParameters.getServiceComponentFilter());
+        Map<String, Collection<String>> serviceComponentFilter = kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(ec.getClusterName()), kerberosCommandParameters.getServiceComponentFilter());
+        serviceComponentFilter.put("AMBARI", Collections.singletonList("*"));
         Set<ResolvedKerberosKeytab> keytabsToInject = kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, kerberosCommandParameters.getHostFilter(), kerberosCommandParameters.getIdentityFilter());
         for (ResolvedKerberosKeytab resolvedKeytab : keytabsToInject) {
           for(ResolvedKerberosPrincipal resolvedPrincipal: resolvedKeytab.getPrincipals()) {
@@ -258,31 +256,4 @@ public class AgentCommandsPublisher {
     }
   }
 
-  private Map<String, Collection<String>> adjustServiceComponentFilter(String clusterName, Map<String, ? extends Collection<String>> serviceComponentFilter) throws AmbariException {
-    Map<String, Collection<String>> adjustedFilter = new HashMap<>();
-    Cluster cluster = clusters.getCluster(clusterName);
-
-    Map<String, Service> installedServices = (cluster == null) ? null : cluster.getServices();
-
-    if(!MapUtils.isEmpty(installedServices)) {
-      if (serviceComponentFilter != null) {
-        // prune off services that are not installed, or considered installed - like AMBARI
-        for(Map.Entry<String, ? extends Collection<String>> entry: serviceComponentFilter.entrySet()) {
-          String serviceName = entry.getKey();
-
-          if(installedServices.containsKey(serviceName)) {
-            adjustedFilter.put(serviceName, entry.getValue());
-          }
-        }
-      } else {
-        // return only the set of installed services
-        for(String serviceName: installedServices.keySet()) {
-          // Add an entry to indicate the service and all of it's components should be considered
-          adjustedFilter.put(serviceName, Collections.singletonList("*"));
-        }
-      }
-    }
-
-    return adjustedFilter;
-  }
 }
