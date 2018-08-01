@@ -80,7 +80,14 @@ definition's `metainfo.xml` file.  The declaration is as follows:
     ...
       <sso>
         <supported>true</supported>
-        <enabledConfiguration>config-type/property_name</enabledConfiguration>
+        <ssoEnabledTest>
+          {
+            "equals": [
+              "service-properties/sso.knox.enabled",
+              "true"
+            ]
+          }      
+        <ssoEnabledTest>
       </sso>
     ...
     </service>
@@ -89,11 +96,35 @@ definition's `metainfo.xml` file.  The declaration is as follows:
 ```  
 
 Inside the `<sso>` block, the `<supported>` element with the value of "true" tells Ambari that this
-service is eligible to be configured for SSO.  The `enabledConfiguration` is a property specification
-that indicates a boolean property to check to tell whether the service has been configured for SSO 
-or not.  
+service is eligible to be configured for SSO.  The `<ssoEnabledTest>` element contains a JSON structure 
+that describes a Boolean expression indicating whether the service has been configured for SSO or 
+not.  For backwards compatibility with Ambari 2.7.0, the `<enabledConfiguration>` element 
+remains supported.  It contains a property specification (`config-type`/`property_name`) that 
+indicates the boolean property to check to tell whether the service has been configured for SSO or 
+not.  
 
-For example, in the `metainfo.xml` file for Atlas:
+For example, the `metainfo.xml` file for Atlas:
+
+```
+    <sso>
+      <supported>true</supported>
+      <ssoEnabledTest>
+        {
+          "equals": [
+            "application-properties/atlas.sso.knox.enabled",
+            "true"
+          ]
+        }      
+      <ssoEnabledTest>
+    </sso>
+```
+
+This indicates automated SSO configuration by Ambari is enabled.  It also declares how to test the 
+service configurations for the SSO integration status.  If the property value for 
+`atlas.sso.knox.enabled` in the `application-properties` configuration type is "true", then SSO has 
+been enabled for Atlas; else SSO has not yet been enabled.
+
+For backwards compatibility, the following is accepted as well:
 
 ```
     <sso>
@@ -102,11 +133,41 @@ For example, in the `metainfo.xml` file for Atlas:
     </sso>
 ```
 
-Support is enabled and the property value for `atlas.sso.knox.enabled` in the `application-properties`
-configuration type is used to tell if SSO has been enabled for Atlas or not. 
+##### Kerberos 
+Some services require that Kerberos is enabled in order to allow SSO to be enabled.  If this is the 
+case, the service is to declare it by setting `<kerberosRequired>` to "true" inside the `<sso>` block.
+If Kerberos is required, then a `<kerberosEnabledTest>` block is needed, as well, to tell Ambari 
+how to calculate whether Kerberos is enabled for that service or not.  It must be noted that the 
+`<kerberosEnabledTest>` block is a sibling to the `<sso>` block.  The Kerberos test can be used for 
+SSO calculations, but is not directly related to the SSO facility. For example:
+
+```
+    <sso>
+      <supported>true</supported>
+      <kerberosRequired>true</kerberosRequired>
+      <ssoEnabledTest>
+        {
+          "equals": [
+            "service-site/knox.sso.enabled",
+            "true"
+          ]
+        }      
+      <ssoEnabledTest>
+    </sso>
+
+    <kerberosEnabledTest>
+      {
+        "equals": [
+          "service-site/service.authentication.type",
+          "kerberos"
+        ]
+      }      
+    <kerberosEnabledTest>
+```
 
 Once support is declared by a service **and** it is installed, it will be listed as an eligible service
-while selecting services for which to enable SSO via the Ambari Server CLI.
+while selecting services for which to enable SSO via the Ambari Server CLI.  However, if Kerberos 
+is required and not enabled, the service may be filtered from that list. 
 
 Example:
 ```
