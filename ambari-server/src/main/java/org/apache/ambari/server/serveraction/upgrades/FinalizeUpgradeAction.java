@@ -35,7 +35,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
-import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -50,8 +49,11 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.repository.AvailableService;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -94,9 +96,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       return finalizeDowngrade(upgradeContext);
     }
   }
-
-  @Inject
-  private RoleCommandOrderProvider roleCommandOrderProvider;
 
   /**
    * Execution path for upgrade.
@@ -200,7 +199,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // move host versions from CURRENT to INSTALLED if their repos are no
       // longer used
-      finalizeHostVersionsNotDesired(cluster);
+      finalizeHostVersionsNotDesired(cluster, upgradeContext);
 
       if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
         outSB.append(String.format("Finalizing the version for cluster %s.\n", cluster.getClusterName()));
@@ -280,7 +279,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         throw new AmbariException(messageBuff.toString());
       }
 
-      finalizeHostVersionsNotDesired(cluster);
+      finalizeHostVersionsNotDesired(cluster, upgradeContext);
 
       // for every repository being downgraded to, ensure the host versions are correct
       Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
@@ -400,11 +399,19 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
    * {@link RepositoryVersionState#INSTALLED} or
    * {@link RepositoryVersionState#NOT_REQUIRED} if their assocaited
    * repositories are no longer in use.
+   * <p/>
+   * If this is a patch reversion, then this method will also attempt to
+   * determine if the downgrade-from repository needs to be set to
+   * {@link RepositoryVersionState#OUT_OF_SYNC}. If a patch upgrade was
+   * completed and then a service added after that happens to be specified in
+   * the VDF, then we must mark the repository as OUT_OF_SYNC since those
+   * service's packages were never distributed.
    *
    * @param cluster
    * @throws AmbariException
    */
-  private void finalizeHostVersionsNotDesired(Cluster cluster) throws AmbariException {
+  private void finalizeHostVersionsNotDesired(Cluster cluster, UpgradeContext upgradeContext)
+      throws AmbariException {
     // create a set of all of the repos that the services are on
     Set<RepositoryVersionEntity> desiredRepoVersions = new HashSet<>();
     Set<String> serviceNames = cluster.getServices().keySet();
@@ -423,6 +430,47 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       if (!desiredRepoVersions.contains(hostRepoVersion)) {
         hostVersion.setState(RepositoryVersionState.INSTALLED);
         hostVersion = hostVersionDAO.merge(hostVersion);
+      }
+    }
+
+    // reverting a patch requires us to check the repository state and
+    // possibly set it to OUT_OF_SYNC if services were added after this patch
+    // was originally distributed
+    if (upgradeContext.isPatchRevert()) {
+      RepositoryVersionEntity repositoryVersionEntity = upgradeContext.getRepositoryVersion();
+
+      final VersionDefinitionXml vdfXml;
+      try {
+        vdfXml = repositoryVersionEntity.getRepositoryXml();
+      } catch (Exception exception) {
+        throw new AmbariException("The VDF's XML could not be deserialized", exception);
+      }
+
+      StackInfo stack = ambariMetaInfo.getStack(repositoryVersionEntity.getStackId());
+
+      // grab the services in the VDF, the services which were part of the
+      // revert, and the services in the cluster to determine if a service was
+      // added to the cluster after the patch was originally applied
+      Collection<AvailableService> availableServices = vdfXml.getAvailableServices(stack);
+      Set<String> participatingServices = upgradeContext.getSupportedServices();
+      Set<String> clusterServices = cluster.getServices().keySet();
+
+      boolean resetRepoStateToOutOfSync = false;
+      for (AvailableService availableService : availableServices) {
+        if (clusterServices.contains(availableService.getName())
+            && !participatingServices.contains(availableService.getName())) {
+          resetRepoStateToOutOfSync = true;
+          break;
+        }
+      }
+
+      if (resetRepoStateToOutOfSync) {
+        List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
+            cluster.getClusterId(), repositoryVersionEntity);
+        for (HostVersionEntity hostVersion : hostVersions) {
+          hostVersion.setState(RepositoryVersionState.OUT_OF_SYNC);
+          hostVersion = hostVersionDAO.merge(hostVersion);
+        }
       }
     }
   }

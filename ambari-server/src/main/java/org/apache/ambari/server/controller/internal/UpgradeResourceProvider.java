@@ -1603,12 +1603,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         // depending on whether this is an upgrade or a downgrade, the history
         // will be different
-        if (upgradeContext.getDirection() == Direction.UPGRADE || upgradeContext.isPatchRevert()) {
+        if (upgradeContext.getDirection() == Direction.UPGRADE) {
           history.setFromRepositoryVersion(component.getDesiredRepositoryVersion());
           history.setTargetRepositoryVersion(upgradeContext.getRepositoryVersion());
         } else {
           // the target version on a downgrade is the original version that the
-          // service was on in the failed upgrade
+          // service was on in the upgrade
           RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
               serviceName);
 

@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -392,7 +393,7 @@ public class RepositoryVersionEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", id).add("stack", stack).add("version",
+    return MoreObjects.toStringHelper(this).add("id", id).add("stack", stack).add("version",
         version).add("type", type).add("hidden", isHidden == 1).toString();
   }
 
