@@ -315,9 +315,6 @@ public class ClientConfigResourceProviderTest {
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
-    userSet.add("hdfs");
-    expect(configHelper.getPropertyValuesWithPropertyType(
-      stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     Map<PropertyInfo, String> userProperties = new HashMap<>();
     Map<PropertyInfo, String> groupProperties = new HashMap<>();
     PropertyInfo userProperty = new PropertyInfo();
@@ -558,8 +555,6 @@ public class ClientConfigResourceProviderTest {
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
-    userSet.add("hdfs");
-    expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
     PowerMock.mockStatic(File.class);
     expect(mockFile.exists()).andReturn(true);
