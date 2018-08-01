@@ -151,6 +151,17 @@ App.UpgradeVersionBoxView = Em.View.extend({
         isLabel: true,
         text: Em.I18n.t('common.current'),
         class: this.get('currentLabelClass')
+      },
+      'CURRENT_PATCH_REVERTABLE': {
+        isButtonGroup: true,
+        text: Em.I18n.t('common.current'),
+        action: null,
+        buttons: [
+          {
+            text: Em.I18n.t('common.revert'),
+            action: 'confirmRevertPatchUpgrade'
+          }
+        ]
       }
     };
   }.property(),
@@ -172,10 +183,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var isSuspended = App.get('upgradeSuspended');
 
     if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
-      element.setProperties(statePropertiesMap['CURRENT_PATCH']);
-      element.set('canBeReverted', this.get('content.stackVersion').get('supportsRevert'));
-      element.set('action', 'confirmRevertPatchUpgrade');
-      element.set('actionText', Em.I18n.t('common.revert'));
+      if (this.get('content.stackVersion.supportsRevert')) {
+        element.setProperties(statePropertiesMap['CURRENT_PATCH_REVERTABLE']);
+      } else {
+        element.setProperties(statePropertiesMap['CURRENT_PATCH']);
+      }
     }
     else if (['INSTALLING', 'CURRENT'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
@@ -271,14 +283,26 @@ App.UpgradeVersionBoxView = Em.View.extend({
     if (Em.get(currentVersion, 'stack_name') !== this.get('content.stackVersionType') || isVersionHigherThanCurrent) {
       switch (status){
         case 'OUT_OF_SYNC':
-          element.set('isButton', true);
-          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
-          element.set('action', 'installRepoVersionPopup');
+          if (Em.isNone(currentVersion)) {
+            element.set('text', Em.I18n.t('admin.stackVersions.version.installError'));
+            element.set('iconClass', 'glyphicon glyphicon-warning-sign');
+            element.set('isLabel', true);
+          } else {
+            element.set('isButton', true);
+            element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
+            element.set('action', 'installRepoVersionPopup');
+          }
           break;
         case 'INSTALL_FAILED':
-          element.set('isButton', true);
-          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
-          element.set('action', 'installRepoVersionPopup');
+          if (Em.isNone(currentVersion)) {
+            element.set('text', Em.I18n.t('admin.stackVersions.version.installError'));
+            element.set('iconClass', 'glyphicon glyphicon-warning-sign');
+            element.set('isLabel', true);
+          } else {
+            element.set('isButton', true);
+            element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
+            element.set('action', 'installRepoVersionPopup');
+          }
           break;
         default:
           var isVersionColumnView = this.get('isVersionColumnView');
