@@ -55,11 +55,13 @@ public class UpgradeCatalog271Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateRangerLogDirConfigs = UpgradeCatalog271.class.getDeclaredMethod("updateRangerLogDirConfigs");
     Method updateRangerKmsDbUrl = UpgradeCatalog271.class.getDeclaredMethod("updateRangerKmsDbUrl");
+    Method renameAmbariInfraInConfigGroups = UpgradeCatalog271.class.getDeclaredMethod("renameAmbariInfraInConfigGroups");
 
     UpgradeCatalog271 upgradeCatalog271 = createMockBuilder(UpgradeCatalog271.class)
       .addMockedMethod(updateRangerKmsDbUrl)
       .addMockedMethod(updateRangerLogDirConfigs)
       .addMockedMethod(addNewConfigurationsFromXml)
+      .addMockedMethod(renameAmbariInfraInConfigGroups)
       .createMock();
 
     upgradeCatalog271.addNewConfigurationsFromXml();
@@ -69,6 +71,9 @@ public class UpgradeCatalog271Test {
     expectLastCall().once();
 
     upgradeCatalog271.updateRangerKmsDbUrl();
+    expectLastCall().once();
+
+    upgradeCatalog271.renameAmbariInfraInConfigGroups();
     expectLastCall().once();
 
     replay(upgradeCatalog271);
