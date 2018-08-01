@@ -302,7 +302,8 @@ public class AmbariMetaInfo {
     readServerVersion();
 
     stackManager = stackManagerFactory.create(resourcesRoot, stackRoot, commonServicesRoot, extensionsRoot,
-        osFamily, false /* validate = false */, true /* refreshArchives = true */);
+        osFamily, false /* validate = false */,
+        conf.isStackResourceHashAndArchiveGenerationEnabled());
 
     mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
 

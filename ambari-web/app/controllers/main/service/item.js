@@ -210,6 +210,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   loadConfigs: function() {
     this.set('isServiceConfigsLoaded', false);
     this.set('stepConfigs', []);
+    let self = this;
     App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(() => {
       App.router.get('configurationController').getCurrentConfigsBySites(this.get('sitesToLoad')).done((configs) => {
         let allConfigs = [];
