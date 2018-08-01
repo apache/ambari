@@ -1599,6 +1599,109 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       }
     });
   },
+  
+  /**
+   * TODO unify and move modal view into common/modal_popups
+   * @param {string[]} hosts
+   * @param {string} title
+   * @param {string} operation
+   * @param {Function} primary
+   */
+  showReinstallRemoveConfirmation: function({hosts, title, operation, primary = () => {}}) {
+    return App.ModalPopup.show({
+      header: title,
+      visibleHosts: hosts.join("\n"),
+      expanded: true,
+      onPrimary: function() {
+        primary(hosts);
+        this._super();
+      },
+    
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/bulk_operation_confirm_popup'),
+        message: Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operation, hosts.length),
+        textareaVisible: false,
+        textTrigger: function() {
+          this.toggleProperty('textareaVisible');
+        },
+        putHostNamesToTextarea: function() {
+          var hostNames = this.get('parentView.visibleHosts');
+          if (this.get('textareaVisible')) {
+            var wrapper = $(".task-detail-log-maintext");
+            $('.task-detail-log-clipboard').html(hostNames).width(wrapper.width()).height(250);
+            Em.run.next(function() {
+              $('.task-detail-log-clipboard').select();
+            });
+          }
+        }.observes('textareaVisible')
+      })
+    });
+  },
+  
+  removeOutOfSyncComponents: function (event) {
+    const hosts = App.RepositoryVersion.find(event.context.repoId).get('stackVersion.outOfSyncHosts');
+    return this.showReinstallRemoveConfirmation({
+      hosts,
+      title: Em.I18n.t('admin.stackVersions.version.errors.outOfSync.remove.title'),
+      operation: Em.I18n.t('hosts.host.maintainance.removeFailedComponents.context'),
+      primary: () => {
+        App.get('router.mainAdminKerberosController').getKDCSessionState(() => {
+          App.ajax.send({
+            name: 'host.host_component.delete_components',
+            sender: this,
+            data: {
+              hosts,
+              data: JSON.stringify({
+                RequestInfo: {
+                  query: 'HostRoles/host_name.in(' + hosts.join(',') + ')&HostRoles/state=INSTALL_FAILED'
+                }
+              })
+            }
+          });
+        });
+      }
+    });
+  },
+  
+  reinstallOutOfSyncComponents: function (event) {
+    const hosts = App.RepositoryVersion.find(event.context.repoId).get('stackVersion.outOfSyncHosts');
+    return this.showReinstallRemoveConfirmation({
+      hosts,
+      title: Em.I18n.t('admin.stackVersions.version.errors.outOfSync.reinstall.title'),
+      operation: Em.I18n.t('hosts.host.maintainance.reinstallFailedComponents.context'),
+      primary: () => {
+        App.get('router.mainAdminKerberosController').getKDCSessionState(() => {
+          App.ajax.send({
+            name: 'common.host_components.update',
+            sender: this,
+            data: {
+              HostRoles: {
+                state: 'INSTALLED'
+              },
+              query: 'HostRoles/host_name.in(' + hosts.join(',') + ')&HostRoles/state=INSTALL_FAILED',
+              context: Em.I18n.t('hosts.host.maintainance.reinstallFailedComponents.context')
+            },
+            success: 'reinstallOutOfSyncComponentsSuccessCallback'
+          });
+        });
+      }
+    });
+  },
+  
+  reinstallOutOfSyncComponentsSuccessCallback: function (data, opt, params, req) {
+    if (!data && req.status == 200) {
+      return App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('rolling.nothingToDo.body').format(params.noOpsMessage || Em.I18n.t('hosts.host.maintainance.allComponents.context')),
+        secondary: false
+      });
+    }
+    return App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
 
   /**
    * transform repo data into json for

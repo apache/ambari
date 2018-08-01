@@ -463,8 +463,7 @@ describe('App.UpgradeVersionBoxView', function () {
         expected: {
           isLabel: true,
           text: Em.I18n.t('common.current'),
-          class: 'label label-success',
-          canBeReverted: false
+          class: 'label label-success'
         },
         title: 'current no-revertable patch version'
       },
@@ -478,9 +477,15 @@ describe('App.UpgradeVersionBoxView', function () {
           })
         },
         expected: {
-          status: 'CURRENT',
+          isButtonGroup: true,
           text: Em.I18n.t('common.current'),
-          action: 'confirmRevertPatchUpgrade'
+          action: null,
+          buttons: [
+            {
+              text: Em.I18n.t('common.revert'),
+              action: 'confirmRevertPatchUpgrade'
+            }
+          ]
         },
         title: 'current revertable patch version'
       },

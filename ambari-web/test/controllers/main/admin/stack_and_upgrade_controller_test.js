@@ -3785,4 +3785,67 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect( controller.get('runningCheckRequests')).to.have.length(1);
     })
   });
+  
+  describe('#removeOutOfSyncComponents', function() {
+    beforeEach(function() {
+      sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
+        stackVersion: {
+          outOfSyncHosts: ['host1']
+        }
+      }));
+      sinon.stub(App, 'get').returns({
+        getKDCSessionState: Em.clb
+      });
+    });
+    afterEach(function() {
+      App.RepositoryVersion.find.restore();
+      App.get.restore();
+    });
+    
+    it('App.ajax.send should be called', function() {
+      var modal = controller.removeOutOfSyncComponents({context: {repoId: 1}});
+      modal.onPrimary();
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.delete_components');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
+        hosts: ['host1'],
+        data: JSON.stringify({
+          RequestInfo: {
+            query: 'HostRoles/host_name.in(host1)&HostRoles/state=INSTALL_FAILED'
+          }
+        })
+      });
+    });
+  });
+  
+  describe('#reinstallOutOfSyncComponents', function() {
+    beforeEach(function() {
+      sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
+        stackVersion: {
+          outOfSyncHosts: ['host1']
+        }
+      }));
+      sinon.stub(App, 'get').returns({
+        getKDCSessionState: Em.clb
+      });
+    });
+    afterEach(function() {
+      App.RepositoryVersion.find.restore();
+      App.get.restore();
+    });
+    
+    it('App.ajax.send should be called', function() {
+      var modal = controller.reinstallOutOfSyncComponents({context: {repoId: 1}});
+      modal.onPrimary();
+      var args = testHelpers.findAjaxRequest('name', 'common.host_components.update');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
+        HostRoles: {
+          state: 'INSTALLED'
+        },
+        query: 'HostRoles/host_name.in(host1)&HostRoles/state=INSTALL_FAILED',
+        context: Em.I18n.t('hosts.host.maintainance.reinstallFailedComponents.context')
+      });
+    });
+  });
 });

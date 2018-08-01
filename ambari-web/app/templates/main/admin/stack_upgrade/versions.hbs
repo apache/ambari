@@ -16,6 +16,33 @@
 * limitations under the License.
 }}
 
+{{#if view.stackVersionError}}
+  <div class="alert alert-warning" role="alert">
+    <div class="stack-error-row">
+      <div class="image-container">
+        <i class="glyphicon glyphicon-warning-sign"></i>
+      </div>
+      <div class="message-container">
+        <h4 class="display-inline">{{view.stackVersionError.title}}</h4>
+        <span class="stack-name">{{view.stackVersionError.stack}}</span>
+        <div>
+          {{view.stackVersionError.description}}
+        </div>
+      </div>
+      {{#havePermissions "AMBARI.MANAGE_STACK_VERSIONS"}}
+        <div class="btn-container">
+          <button class="btn btn-warning" {{action reinstallOutOfSyncComponents view.stackVersionError target="controller"}}>
+            {{t common.reinstall}}
+          </button>
+          <button class="btn btn-warning" {{action removeOutOfSyncComponents view.stackVersionError target="controller"}}>
+            {{t common.remove}}
+          </button>
+        </div>
+      {{/havePermissions}}
+    </div>
+  </div>
+{{/if}}
+
 <div id="versions-filter-section" class="btn-toolbar">
   {{#havePermissions "AMBARI.MANAGE_STACK_VERSIONS"}}
     <button class="btn btn-primary" {{action goToVersions target="view"}}  {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser"}} id="manage-versions-link">
