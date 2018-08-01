@@ -242,6 +242,8 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource1.setProperty(HostComponentResourceProvider.DESIRED_STATE, State.STARTED.name());
     hostsComponentResource1.setProperty(
         HostComponentResourceProvider.VERSION, stackId.getStackVersion());
+    hostsComponentResource1.setProperty(
+        HostComponentResourceProvider.DESIRED_REPOSITORY_VERSION, stackId.getStackVersion());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.DESIRED_STACK_ID, stackId2.getStackId());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.UPGRADE_STATE, UpgradeState.NONE.name());
 
@@ -255,6 +257,8 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource2.setProperty(HostComponentResourceProvider.DESIRED_STATE, State.STARTED.name());
     hostsComponentResource2.setProperty(
         HostComponentResourceProvider.VERSION, stackId.getStackVersion());
+    hostsComponentResource2.setProperty(
+        HostComponentResourceProvider.DESIRED_REPOSITORY_VERSION, stackId.getStackVersion());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.DESIRED_STACK_ID, stackId2.getStackId());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.UPGRADE_STATE, UpgradeState.NONE.name());
 
@@ -268,6 +272,8 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource3.setProperty(HostComponentResourceProvider.DESIRED_STATE, State.STARTED.name());
     hostsComponentResource3.setProperty(
         HostComponentResourceProvider.VERSION, stackId.getStackVersion());
+    hostsComponentResource3.setProperty(
+        HostComponentResourceProvider.DESIRED_REPOSITORY_VERSION, stackId.getStackVersion());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.DESIRED_STACK_ID, stackId2.getStackId());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.UPGRADE_STATE, UpgradeState.NONE.name());
 
