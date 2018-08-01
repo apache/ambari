@@ -71,6 +71,9 @@
     </div>
   {{/if}}
   {{#if view.stateElement.isLabel}}
+    {{#if view.stateElement.iconClass}}
+      <i {{bindAttr class="view.stateElement.iconClass" disabled="view.stateElement.isDisabled"}}></i>
+    {{/if}}
     <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
   {{/if}}
   {{#if view.stateElement.isLink}}
