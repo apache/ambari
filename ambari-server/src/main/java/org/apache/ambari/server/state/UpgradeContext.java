@@ -387,7 +387,8 @@ public class UpgradeContext {
         throw new AmbariException(message);
       }
 
-      m_repositoryVersion = priors.iterator().next();
+      // the "associated" repository of the revert is the target of what's being reverted
+      m_repositoryVersion = revertUpgrade.getRepositoryVersion();
 
       // !!! the version is used later in validators
       upgradeRequestMap.put(UPGRADE_REPO_VERSION_ID, m_repositoryVersion.getId().toString());
@@ -1061,11 +1062,11 @@ public class UpgradeContext {
 
   /**
    * Gets the set of services which will participate in the upgrade. The
-   * services available in the repository are comapred against those installed
+   * services available in the repository are compared against those installed
    * in the cluster to arrive at the final subset.
    * <p/>
    * In some cases, such as with a {@link RepositoryType#MAINT} repository, the
-   * subset can be further trimmed by determing that an installed services is
+   * subset can be further trimmed by determing that an installed service is
    * already at a high enough version and doesn't need to be upgraded.
    * <p/>
    * This method will also populate the source ({@link #m_sourceRepositoryMap})
