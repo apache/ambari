@@ -97,7 +97,7 @@ definition's `metainfo.xml` file.  The declaration is as follows:
 
 Inside the `<sso>` block, the `<supported>` element with the value of "true" tells Ambari that this
 service is eligible to be configured for SSO.  The `<ssoEnabledTest>` element contains a JSON structure 
-that describes a Boolean expression indicating whether the service has been configured  for SSO or 
+that describes a Boolean expression indicating whether the service has been configured for SSO or 
 not.  For backwards compatibility with Ambari 2.7.0, the `<enabledConfiguration>` element 
 remains supported.  It contains a property specification (`config-type`/`property_name`) that 
 indicates the boolean property to check to tell whether the service has been configured for SSO or 
