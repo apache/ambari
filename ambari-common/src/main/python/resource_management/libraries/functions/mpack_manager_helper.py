@@ -78,9 +78,9 @@ def get_component_target_path(mpack_name, instance_name, module_name, components
   instances_json = list_instances(mpack_name, instance_name, subgroup_name, module_name,
                                   {components_instance_type: [component_instance_name]})
   walk_mpack_dict(instances_json, PATH_KEY_NAME, dirs)
-  return [dir for dir in dirs if
+  target_path_list =  [dir for dir in dirs if
           (mpack_name == None or mpack_name.lower() in dir) and (instance_name == None or instance_name.lower() in dir)]
-
+  return "" if len(target_path_list) == 0 else target_path_list[0]
 
 def get_versions(mpack_name, instance_name, module_name, components_instance_type,
                               subgroup_name='default', component_instance_name='default'):
@@ -108,12 +108,12 @@ def get_component_home_path(mpack_name, instance_name, module_name, components_i
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  component_paths = get_component_target_path(mpack_name=mpack_name, instance_name=instance_name,
+  component_path = get_component_target_path(mpack_name=mpack_name, instance_name=instance_name,
                                              subgroup_name=subgroup_name,
                                              module_name=module_name, components_instance_type=components_instance_type,
                                              component_instance_name=component_instance_name)
 
-  return os.readlink(component_paths[0])
+  return os.readlink(component_path)
 
 
 def create_component_instance(mpack_name, mpack_version, instance_name, module_name, components_instance_type,

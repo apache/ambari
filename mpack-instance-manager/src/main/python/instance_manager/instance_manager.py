@@ -115,12 +115,15 @@ def get_conf_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP
   zookeeper_server: /usr/hwx/instances/hdpcore/default/default/zookeeper/zookeeper_server/ZOOKEEPER/conf/
   """
   dirs, is_client = get_conf_log_run_dir_helper(mpack, mpack_instance, subgroup_name, module_name, components_map, output_conf_dir = True, output_log_dir = False, output_run_dir = False)
+  path = ""
   if not is_client:
-    return [dir for dir in dirs if
+    pathlist =  [dir for dir in dirs if
             (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir) and (
             module_name == None or module_name in dir)]
-  return [dir for dir in dirs if
+  else:
+    pathlist = [dir for dir in dirs if
             (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir)]
+  return path if len(pathlist) == 0 else pathlist[0]
 
 def get_log_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
                  components_map=None):
@@ -140,12 +143,15 @@ def get_log_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_
   names' OR empty map for all component instances present
   """
   dirs, is_client = get_conf_log_run_dir_helper(mpack, mpack_instance, subgroup_name, module_name, components_map, output_conf_dir = False, output_log_dir = True, output_run_dir = False)
+  path = ""
   if not is_client:
-    return [dir for dir in dirs if
+    pathlist = [dir for dir in dirs if
             (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir) and (
             module_name == None or module_name in dir)]
-  return [dir for dir in dirs if
+  else:
+    pathlist = [dir for dir in dirs if
             (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir)]
+  return path if len(pathlist) == 0 else pathlist[0]
 
 
 def get_run_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
@@ -166,12 +172,15 @@ def get_run_dir(mpack=None, mpack_instance=None, subgroup_name=DEFAULT_SUBGROUP_
   names' OR empty map for all component instances present
   """
   dirs, is_client = get_conf_log_run_dir_helper(mpack, mpack_instance, subgroup_name, module_name, components_map, output_conf_dir = False, output_log_dir = False, output_run_dir = True)
+  path = ""
   if not is_client:
-    return [dir for dir in dirs if
+    pathlist = [dir for dir in dirs if
             (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir) and (
             module_name == None or module_name in dir)]
-  return [dir for dir in dirs if
+  else:
+    pathlist = [dir for dir in dirs if
             (mpack == None or mpack in dir) and (mpack_instance == None or mpack_instance in dir)]
+  return path if len(pathlist) == 0 else pathlist[0]
 
 
 def walk_mpack_dict(mpack_dict, filter, dirs):
