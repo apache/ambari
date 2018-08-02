@@ -171,23 +171,19 @@ App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRange
    * Master components first, then slaves and clients
    */
   sortedComponentsFormatter: function() {
-    const updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
     const hostComponentViewMap = this.get('hostComponentViewMap');
-    const masters = [], slaves = [], clients = [];
-
+    let sortedComponentsArray = [];
     this.get('content.hostComponents').forEach(function (component) {
       component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
-      if (component.get('isMaster')) {
-        masters.push(component);
-      } else if (component.get('isSlave')) {
-        slaves.push(component);
-      } else if (component.get('isClient')) {
+      if (component.get('isClient')) {
         component.set('isLast', true);
         component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
-        clients.pushObject(component);
-        }
-    }, this);
-    this.set('sortedComponents', masters.concat(slaves, clients));
+      }
+      sortedComponentsArray.push(component);
+    });
+
+    sortedComponentsArray = sortedComponentsArray.sort((a, b) => a.get('displayName').localeCompare(b.get('displayName')));
+    this.set('sortedComponents', sortedComponentsArray);
   },
 
   /**
