@@ -164,8 +164,10 @@ class TestInstanceManager(TestCase):
     create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
                                components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
 
-    conf_dir_json = instance_manager.get_conf_dir()
-
+    conf_server_dir = instance_manager.get_conf_dir(components_map={"hdfs_server": ["server1"]}, module_name="hdfs")
+    conf_client_dir = instance_manager.get_conf_dir(components_map={"hdfs_client": [""]}, module_name="hdfs-clients")
+    """
+    This is the conf_dir_json
     expected_json = {
       "mpacks": {
         "hdpcore": {
@@ -211,15 +213,20 @@ class TestInstanceManager(TestCase):
         }
       }
     }
-    self.assertEqual(conf_dir_json, expected_json)
+    """
+    expected_conf_server_dir = "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/conf"
+    expected_conf_client_dir = "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf"
+    self.assertEqual(conf_server_dir, expected_conf_server_dir)
+    self.assertEqual(conf_client_dir, expected_conf_client_dir)
 
   def test_get_log_dir_all(self):
     create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
     create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
                                components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
 
-    log_dir_json = instance_manager.get_log_dir()
-
+    log_server_dir = instance_manager.get_log_dir(components_map={"hdfs_server": ["server1"]}, module_name="hdfs")
+    log_client_dir = instance_manager.get_log_dir(components_map={"hdfs_client": [""]}, module_name="hdfs-clients")
+    """
     expected_json = {
       "mpacks": {
         "hdpcore": {
@@ -265,15 +272,21 @@ class TestInstanceManager(TestCase):
         }
       }
     }
-    self.assertEqual(log_dir_json, expected_json)
+    """
+    expected_log_server_dir = "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/log"
+    expected_log_client_dir = "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/log"
+    self.assertEqual(log_server_dir, expected_log_server_dir)
+    self.assertEqual(log_client_dir, expected_log_client_dir)
+
 
   def test_get_run_dir_all(self):
     create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
     create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
                                components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
 
-    run_dir_json = instance_manager.get_run_dir()
-
+    run_server_dir = instance_manager.get_run_dir(components_map={"hdfs_server": ["server1"]}, module_name="hdfs")
+    run_client_dir = instance_manager.get_run_dir(components_map={"hdfs_client": [""]}, module_name="hdfs-clients")
+    """
     expected_json = {
       "mpacks": {
         "hdpcore": {
@@ -319,14 +332,41 @@ class TestInstanceManager(TestCase):
         }
       }
     }
-    self.assertEqual(run_dir_json, expected_json)
+    """
+    expected_run_server_dir = "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/hdfs_server/server1/run"
+    expected_run_client_dir = "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/run"
+    self.assertEqual(run_server_dir, expected_run_server_dir)
+    self.assertEqual(run_client_dir, expected_run_client_dir)
+
+  def test_get_mpack_module_versions(self):
+    MPACK_VERSION_KEY_NAME = 'mpack_version'
+    MODULE_VERSION_KEY_NAME = 'module_version'
+
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
+    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
+                               components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
+
+    instances_json = instance_manager.list_instances(module_name=CLIENT_MODULE_NAME)
+    dirs = set()
+    instance_manager.walk_mpack_dict(instances_json, MPACK_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "1.0.0-b1")
+    dirs.clear()
+    instance_manager.walk_mpack_dict(instances_json, MODULE_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "3.1.0.0-b1")
+    instances_json = instance_manager.list_instances(module_name=SERVER_MODULE_NAME)
+    dirs.clear()
+    instance_manager.walk_mpack_dict(instances_json, MPACK_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "1.0.0-b1")
+    dirs.clear()
+    instance_manager.walk_mpack_dict(instances_json, MODULE_VERSION_KEY_NAME, dirs)
+    self.assertEqual(next(iter(dirs)), "3.1.0.0-b1")
 
   def test_list_instances_all(self):
     create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
     create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
                                components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
 
-    conf_dir_json = instance_manager.list_instances()
+    instance_json = instance_manager.list_instances()
 
     expected_json = {
       "mpacks": {
@@ -387,43 +427,44 @@ class TestInstanceManager(TestCase):
         }
       }
     }
-    self.assertDictEqual(conf_dir_json, expected_json)
+
+    self.assertDictEqual(instance_json, expected_json)
 
   def test_granularity(self):
     create_mpack_with_defaults()
     create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME)
 
-    full_conf_dir_json = instance_manager.get_conf_dir()
-    self.assertTrue('mpacks' in full_conf_dir_json)
+    conf_dir = instance_manager.get_conf_dir()
+    self.assertTrue('/hdfs_server/default/conf' in conf_dir)
 
-    mpack_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME)
-    self.assertTrue('mpack-instances' in mpack_conf_dir_json)
+    conf_dir = instance_manager.get_conf_dir(mpack=MPACK_NAME, module_name=SERVER_MODULE_NAME)
+    self.assertTrue('/hdfs_server/default/conf' in conf_dir)
 
-    instance_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
+    instance_conf_dir = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
                                                            subgroup_name=None)
-    self.assertTrue('subgroups' in instance_conf_dir_json)
+    self.assertTrue('/hdfs_server/default/conf' in instance_conf_dir)
 
-    subgroup_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
+    subgroup_conf_dir = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
                                                            subgroup_name=SUBGROUP_NAME)
-    self.assertTrue('modules' in subgroup_conf_dir_json)
+    self.assertTrue('/hdfs_server/default/conf' in subgroup_conf_dir)
 
-    module_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
+    module_conf_dir = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
                                                          subgroup_name=SUBGROUP_NAME, module_name=SERVER_MODULE_NAME)
-    self.assertTrue('components' in module_conf_dir_json)
+    self.assertTrue('/hdfs_server/default/conf' in module_conf_dir)
 
-    module_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
+    module_conf_dir = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
                                                          subgroup_name=SUBGROUP_NAME, module_name=CLIENT_MODULE_NAME)
-    self.assertTrue('components' in module_conf_dir_json)
+    self.assertTrue('/hdfs_client/conf' in module_conf_dir)
 
     # The mpack level filter not specified
-    full_conf_dir_json = instance_manager.get_conf_dir(mpack_instance=INSTANCE_NAME_1, subgroup_name=SUBGROUP_NAME,
+    module_conf_dir = instance_manager.get_conf_dir(mpack_instance=INSTANCE_NAME_1, subgroup_name=SUBGROUP_NAME,
                                                        module_name=SERVER_MODULE_NAME)
-    self.assertTrue('mpacks' in full_conf_dir_json)
+    self.assertTrue('/hdfs_server/default/conf' in module_conf_dir)
 
     # The instance level filter not specified
-    mpack_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, subgroup_name=SUBGROUP_NAME,
+    module_conf_dir = instance_manager.get_conf_dir(mpack=MPACK_NAME, subgroup_name=SUBGROUP_NAME,
                                                         module_name=SERVER_MODULE_NAME)
-    self.assertTrue('mpack-instances' in mpack_conf_dir_json)
+    self.assertTrue('/hdfs_server/default/conf' in module_conf_dir)
 
   def test_filtering(self):
     create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME)

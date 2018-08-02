@@ -108,7 +108,8 @@ def get_stack_feature_version(config):
     raise Fail("Unable to determine the correct version since stackSettings and commandParams were not present in the configuration dictionary")
 
   # should always be there
-  stack_version = config['stackSettings']['stack_version']
+  # Actually not always, i.e if we restart zookeeper service and no stack_version is included in command.json
+  stack_version = default("/stackSettings/stack_version", None)
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)

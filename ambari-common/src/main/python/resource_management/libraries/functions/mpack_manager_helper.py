@@ -20,7 +20,7 @@ Ambari Agent
 """
 
 import os
-from instance_manager import create_mpack, set_mpack_instance, get_conf_dir, get_log_dir, get_run_dir, list_instances
+from instance_manager import create_mpack, set_mpack_instance, get_conf_dir, get_log_dir, get_run_dir, list_instances, walk_mpack_dict
 
 CONFIG_DIR_KEY_NAME = 'config_dir'
 LOG_DIR_KEY_NAME = 'log_dir'
@@ -31,75 +31,72 @@ COMPONENT_INSTANCES_PLURAL_KEY_NAME = 'component-instances'
 MPACK_VERSION_KEY_NAME = 'mpack_version'
 MODULE_VERSION_KEY_NAME = 'module_version'
 
-
 def get_component_conf_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the configuration folder of given component instance
+  :returns a list contains the path to the configuration folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  conf_json = get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
+  return get_conf_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
-  return conf_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
-    component_instance_name][CONFIG_DIR_KEY_NAME]
 
 def get_component_log_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the log folder of given component instance
+  :returns a list contains the path to the log folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  log_json = get_log_dir(mpack_name, instance_name, subgroup_name, module_name,
+  return get_log_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
-  return log_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
-    component_instance_name][LOG_DIR_KEY_NAME]
 
 def get_component_rundir_path(mpack_name, instance_name, module_name, components_instance_type,
                             subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the rundir folder of given component instance
+  :returns a list contains the paths to the rundir folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
-  run_json = get_run_dir(mpack_name, instance_name, subgroup_name, module_name,
+  return get_run_dir(mpack_name, instance_name, subgroup_name, module_name,
                            {components_instance_type: [component_instance_name]})
 
-  return run_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][COMPONENT_INSTANCES_PLURAL_KEY_NAME][
-    component_instance_name][RUN_DIR_KEY_NAME]
 
 def get_component_target_path(mpack_name, instance_name, module_name, components_instance_type,
                               subgroup_name='default', component_instance_name='default'):
   """
-  :returns the single string that contains the path to the mpack component folder of given component instance
+  :returns a list contains the paths to the mpack component folder of given component instance,
+           this may include multiple mpack instances cases
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
-
+  dirs = set()
   instances_json = list_instances(mpack_name, instance_name, subgroup_name, module_name,
                                   {components_instance_type: [component_instance_name]})
-
-  return instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
-    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][PATH_KEY_NAME]
-
+  walk_mpack_dict(instances_json, PATH_KEY_NAME, dirs)
+  target_path_list =  [dir for dir in dirs if
+          (mpack_name == None or mpack_name.lower() in dir) and (instance_name == None or instance_name.lower() in dir)]
+  return "" if len(target_path_list) == 0 else target_path_list[0]
 
 def get_versions(mpack_name, instance_name, module_name, components_instance_type,
                               subgroup_name='default', component_instance_name='default'):
   """
-  :returns a tuple representing the mpack version and the module version
+  :returns a tuple representing the mpack version and the module version, module_name should not be None
   :raises ValueError if the parameters doesn't match the mpack or instances structure
   """
 
   instances_json = list_instances(mpack_name, instance_name, subgroup_name, module_name,
                                   {components_instance_type: [component_instance_name]})
-
-  mpack_version = instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
-    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][MPACK_VERSION_KEY_NAME]
-
-  module_version = instances_json[COMPONENTS_PLURAL_KEY_NAME][components_instance_type.lower()][
-    COMPONENT_INSTANCES_PLURAL_KEY_NAME][component_instance_name][MODULE_VERSION_KEY_NAME]
+  dirs = set()
+  walk_mpack_dict(instances_json, MPACK_VERSION_KEY_NAME, dirs)
+  mpack_version = next(iter(dirs))
+  dirs.clear()
+  walk_mpack_dict(instances_json, MODULE_VERSION_KEY_NAME, dirs)
+  module_version = next(iter(dirs))
 
   return mpack_version, module_version
 
