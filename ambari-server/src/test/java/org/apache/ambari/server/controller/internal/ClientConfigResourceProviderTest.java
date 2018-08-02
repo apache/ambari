@@ -293,6 +293,7 @@ public class ClientConfigResourceProviderTest {
     expect(stackId.getStackName()).andReturn(stackName).anyTimes();
     expect(stackId.getStackVersion()).andReturn(stackVersion).anyTimes();
 
+    expect(ambariMetaInfo.getStack(stackId)).andReturn(stackInfo);
     expect(ambariMetaInfo.getComponent(stackName, stackVersion, serviceName, componentName)).andReturn(componentInfo);
     expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(serviceInfo.getServicePackageFolder()).andReturn(packageFolder);
@@ -305,16 +306,15 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
 
+    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
     expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
     expect(serviceComponent.getStackId()).andReturn(stackId).atLeastOnce();
 
+    expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
-    userSet.add("hdfs");
-    expect(configHelper.getPropertyValuesWithPropertyType(
-      stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     Map<PropertyInfo, String> userProperties = new HashMap<>();
     Map<PropertyInfo, String> groupProperties = new HashMap<>();
     PropertyInfo userProperty = new PropertyInfo();
@@ -544,6 +544,7 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
 
+    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
     expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
@@ -554,8 +555,6 @@ public class ClientConfigResourceProviderTest {
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
-    userSet.add("hdfs");
-    expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
     PowerMock.mockStatic(File.class);
     expect(mockFile.exists()).andReturn(true);

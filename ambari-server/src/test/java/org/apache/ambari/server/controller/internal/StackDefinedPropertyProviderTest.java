@@ -324,8 +324,12 @@ public class StackDefinedPropertyProviderTest {
 
   public void testCustomProviders() throws Exception {
 
+    TestJMXProvider tj = new TestJMXProvider(true);
+    JMXPropertyProviderTest.TestMetricHostProvider tm = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
+
     StackDefinedPropertyProvider sdpp = new StackDefinedPropertyProvider(
-      Resource.Type.HostComponent, null, null, null, new CombinedStreamProvider(),
+      Resource.Type.HostComponent, tj, tm, serviceProvider, new CombinedStreamProvider(),
       "HostRoles/cluster_name", "HostRoles/host_name", "HostRoles/component_name", "HostRoles/state",
       new EmptyPropertyProvider(), new EmptyPropertyProvider());
 
@@ -345,16 +349,15 @@ public class StackDefinedPropertyProviderTest {
     Resource res = set.iterator().next();
 
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
-    Assert.assertTrue(values.containsKey("foo/type1"));
-    Assert.assertTrue(values.containsKey("foo/type2"));
-    Assert.assertTrue(values.containsKey("foo/type3"));
-    Assert.assertFalse(values.containsKey("foo/type4"));
+    Assert.assertTrue(values.containsKey("HostRoles"));
+    Assert.assertTrue(values.containsKey("metrics/jvm"));
 
-    Assert.assertTrue(values.get("foo/type1").containsKey("name"));
-    Assert.assertTrue(values.get("foo/type2").containsKey("name"));
-    Assert.assertTrue(values.get("foo/type3").containsKey("name"));
+    Assert.assertTrue(values.get("HostRoles").containsKey("cluster_name"));
+    Assert.assertTrue(values.get("HostRoles").containsKey("host_name"));
+    Assert.assertTrue(values.get("HostRoles").containsKey("component_name"));
+    Assert.assertTrue(values.get("HostRoles").containsKey("state"));
 
-    Assert.assertEquals("value1", values.get("foo/type1").get("name"));
+    Assert.assertEquals(1006632960, values.get("metrics/jvm").get("HeapMemoryMax"));
 
   }
 

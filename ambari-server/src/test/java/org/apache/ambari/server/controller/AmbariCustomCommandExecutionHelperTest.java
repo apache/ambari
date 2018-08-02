@@ -100,6 +100,7 @@ import org.easymock.Mock;
 import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -209,6 +210,22 @@ public class AmbariCustomCommandExecutionHelperTest {
     Map<String, Set<String>> userGroupsMap = new HashMap<>();
     userGroupsMap.put("zookeeperUser", new HashSet<>(Arrays.asList("zookeeperGroup")));
     Cluster cluster = clusters.getCluster("c1");
+
+    Map<String, Map<String, String>> configCredentials = new HashMap<>();
+    configCredentials.put("fakeService", new HashMap<String, String>());
+    configCredentials.get("fakeService").put("fakeName", "fakePassword");
+    Service s1 = cluster.getService("HDFS");
+    Service s2 = cluster.getService("YARN");
+    Service s3 = cluster.getService("GANGLIA");
+    Service s4 = cluster.getService("ZOOKEEPER");
+    Service s5 = cluster.getService("FLUME");
+    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s1)).andReturn(configCredentials).anyTimes();
+    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s2)).andReturn(configCredentials).anyTimes();
+    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s3)).andReturn(configCredentials).anyTimes();
+    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s4)).andReturn(configCredentials).anyTimes();
+    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s5)).andReturn(configCredentials).anyTimes();
+    EasyMock.replay(configHelper);
+    EasyMock.reset(configHelper);
     expect(configHelper.getPropertiesWithPropertyType(
       stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userProperties).anyTimes();
     expect(configHelper.getPropertiesWithPropertyType(
@@ -242,6 +259,13 @@ public class AmbariCustomCommandExecutionHelperTest {
           }
         }, false);
     actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
+
+    Cluster cluster = clusters.getCluster("c1");
+    Service server = cluster.getService("FLUME");
+    Map<String, Map<String, String>> configCredentials = new HashMap<>();
+    configCredentials.put("fakeService", new HashMap<String, String>());
+    configCredentials.get("fakeService").put("fakeName", "fakePassword");
+    expect(configHelper.getCredentialStoreEnabledProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Service.class))).andReturn(configCredentials).once();
 
     replay(hostRoleCommand, actionManager, configHelper);
 
@@ -364,6 +388,11 @@ public class AmbariCustomCommandExecutionHelperTest {
             new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
         new RequestOperationLevel(Resource.Type.Host, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
+
+    Map<String, Map<String, String>> configCredentials = new HashMap<>();
+    configCredentials.put("fakeService", new HashMap<String, String>());
+    configCredentials.get("fakeService").put("fakeName", "fakePassword");
+    expect(configHelper.getCredentialStoreEnabledProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Service.class))).andReturn(configCredentials).atLeastOnce();
 
     replay(hostRoleCommand, actionManager, configHelper);
 
@@ -594,6 +623,17 @@ public class AmbariCustomCommandExecutionHelperTest {
     expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
     expect(execCmd.getForceRefreshConfigTagsBeforeExecution()).andReturn(true);
 
+    AgentConfigsUpdateEvent event = new AgentConfigsUpdateEvent(null, null);
+    event.setHash("01");
+    event.setTimestamp(1L);
+    event.setHash("12345");
+    expect(configHelper.getHostActualConfigs(EasyMock.anyLong())).andReturn(event).anyTimes();
+
+    Map<String, Map<String, String>> configCredentials = new HashMap<>();
+    configCredentials.put("fakeService", new HashMap<String, String>());
+    configCredentials.get("fakeService").put("fakeName", "fakePassword");
+    expect(configHelper.getCredentialStoreEnabledProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Service.class))).andReturn(configCredentials).atLeastOnce();
+
     HashSet<String> localComponents = new HashSet<>();
     expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
     replay(configHelper, stage, execCmdWrapper, execCmd);
@@ -690,13 +730,27 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   /**
+   * Obsolete: RepoversionDAO has gone
    * Tests that if a component's repository is not resolved, then the repo
    * version map does not get populated.
    *
    * @throws Exception
    */
+  @Ignore
   @Test
   public void testAvailableServicesMapIsEmptyWhenRepositoriesNotResolved() throws Exception {
+
+    // Since RepositoryVersionDAO has gone, now we assume the path to metainfo file is invalid,
+    // so that we don't get a component version map
+    /*AmbariMetaInfo ambariMetaInfo = ambariManagementController.getAmbariMetaInfo();
+    StackManagerMock stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
+    stackManagerMock.invalidateCurrentPaths();
+    try {
+      ambariManagementController.updateStacks();
+    } catch(Exception e) {
+      // Do nothing, the AmbariException is expected here
+      // "org.apache.ambari.server.AmbariException: Ambari Meta Information can't be read from the stack root directory"
+    }*/
 
     Map<String, String> requestProperties = new HashMap<String, String>() {
       {
@@ -716,6 +770,8 @@ public class AmbariCustomCommandExecutionHelperTest {
         Collections.singletonList("c1-c6401")));
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
+
+    createServiceComponentHosts("c1", "CORE", "c1");
 
     ambariManagementController.createAction(actionRequest, requestProperties);
     Request request = requestCapture.getValue();
