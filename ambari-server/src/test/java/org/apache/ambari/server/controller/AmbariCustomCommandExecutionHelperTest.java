@@ -23,6 +23,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERS
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -84,6 +85,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -214,18 +216,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     Map<String, Map<String, String>> configCredentials = new HashMap<>();
     configCredentials.put("fakeService", new HashMap<String, String>());
     configCredentials.get("fakeService").put("fakeName", "fakePassword");
-    Service s1 = cluster.getService("HDFS");
-    Service s2 = cluster.getService("YARN");
-    Service s3 = cluster.getService("GANGLIA");
-    Service s4 = cluster.getService("ZOOKEEPER");
-    Service s5 = cluster.getService("FLUME");
-    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s1)).andReturn(configCredentials).anyTimes();
-    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s2)).andReturn(configCredentials).anyTimes();
-    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s3)).andReturn(configCredentials).anyTimes();
-    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s4)).andReturn(configCredentials).anyTimes();
-    expect(configHelper.getCredentialStoreEnabledProperties(stackId, s5)).andReturn(configCredentials).anyTimes();
-    EasyMock.replay(configHelper);
-    EasyMock.reset(configHelper);
+    expect(configHelper.getCredentialStoreEnabledProperties(anyObject(StackId.class), anyObject(ServiceImpl.class))).andReturn(configCredentials).anyTimes();
+
     expect(configHelper.getPropertiesWithPropertyType(
       stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userProperties).anyTimes();
     expect(configHelper.getPropertiesWithPropertyType(
@@ -261,11 +253,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
 
     Cluster cluster = clusters.getCluster("c1");
-    Service server = cluster.getService("FLUME");
-    Map<String, Map<String, String>> configCredentials = new HashMap<>();
-    configCredentials.put("fakeService", new HashMap<String, String>());
-    configCredentials.get("fakeService").put("fakeName", "fakePassword");
-    expect(configHelper.getCredentialStoreEnabledProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Service.class))).andReturn(configCredentials).once();
 
     replay(hostRoleCommand, actionManager, configHelper);
 
@@ -388,11 +375,6 @@ public class AmbariCustomCommandExecutionHelperTest {
             new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
         new RequestOperationLevel(Resource.Type.Host, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
-
-    Map<String, Map<String, String>> configCredentials = new HashMap<>();
-    configCredentials.put("fakeService", new HashMap<String, String>());
-    configCredentials.get("fakeService").put("fakeName", "fakePassword");
-    expect(configHelper.getCredentialStoreEnabledProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Service.class))).andReturn(configCredentials).atLeastOnce();
 
     replay(hostRoleCommand, actionManager, configHelper);
 
@@ -629,14 +611,9 @@ public class AmbariCustomCommandExecutionHelperTest {
     event.setHash("12345");
     expect(configHelper.getHostActualConfigs(EasyMock.anyLong())).andReturn(event).anyTimes();
 
-    Map<String, Map<String, String>> configCredentials = new HashMap<>();
-    configCredentials.put("fakeService", new HashMap<String, String>());
-    configCredentials.get("fakeService").put("fakeName", "fakePassword");
-    expect(configHelper.getCredentialStoreEnabledProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Service.class))).andReturn(configCredentials).atLeastOnce();
-
     HashSet<String> localComponents = new HashSet<>();
     expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
-    replay(configHelper, stage, execCmdWrapper, execCmd);
+    replay(stage, execCmdWrapper, execCmd, configHelper);
 
     createServiceComponentHosts("c1", "CORE", "c1");
 
