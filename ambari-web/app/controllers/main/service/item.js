@@ -1497,7 +1497,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var self = this,
       displayName = App.format.role(serviceName, true),
       popupHeader = Em.I18n.t('services.service.delete.popup.header'),
-      popupPrimary = Em.I18n.t('common.delete'),
+      popupPrimary = Em.I18n.t('common.proceed'),
       warningMessage = Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
         (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
       callback = this.loadConfigRecommendations.bind(this, null, function () {
