@@ -216,10 +216,11 @@ class Script(object):
     mpack_instance_name = execution_command.get_servicegroup_name()
     module_name = execution_command.get_module_name()
     component_type = execution_command.get_component_type()
+    component_name = execution_command.get_component_instance_name()
 
     try:
       mpack_version, component_version = mpack_manager_helper.get_versions(mpack_name,
-        mpack_instance_name, module_name, component_type )
+        mpack_instance_name, module_name, component_type, "default", component_name )
 
       mpack_version_dictionary = {
         "mpackVersion": mpack_version,

@@ -96,7 +96,8 @@ class ExecutionCommand(object):
     Retrieve service name from command.json, eg. 'zk1'
     :return: service name
     """
-    if '_CLIENTS' in self.get_module_name(): # FIXME temporary hack
+    module_name = self.get_module_name()
+    if module_name and '_CLIENTS' in module_name: # FIXME temporary hack
       return 'default'
     return self.__get_value("serviceName") # multi-service, but not multi-component per service
 
@@ -279,14 +280,20 @@ class ExecutionCommand(object):
     Retrieve a list of user groups from command.json, i.e "group_list": "[\"hadoop\"]"
     :return: a list of groups
     """
-    return self.__get_value("stackSettings/group_list")
+    group_list = self.__get_value("stackSettings/group_list")
+    if not group_list:
+      group_list = "[]"
+    return group_list
 
   def get_user_list(self):
     """
     Retrieve a list of users from command.json, i.e "user_list": "[\"zookeeper\",\"ambari-qa\"]"
     :return: a list of users
     """
-    return self.__get_value("stackSettings/user_list")
+    user_list = self.__get_value("stackSettings/user_list")
+    if not user_list:
+      user_list = "[]"
+    return user_list
 
   """
   Agent related variable section
