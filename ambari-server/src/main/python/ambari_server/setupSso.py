@@ -53,7 +53,7 @@ REGEX_URL = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-
 WILDCARD_FOR_ALL_SERVICES = "*"
 SERVICE_NAME_AMBARI = 'AMBARI'
 
-FETCH_SERVICES_FOR_SSO_ENTRYPOINT = "clusters/%s/services?ServiceInfo/sso_integration_supported=true"
+FETCH_SERVICES_FOR_SSO_ENTRYPOINT = "clusters/%s/services?ServiceInfo/sso_integration_supported=true&fields=ServiceInfo/*"
 SSO_CONFIG_API_ENTRYPOINT = 'services/AMBARI/components/AMBARI_SERVER/configurations/sso-configuration'
 
 
@@ -134,6 +134,9 @@ def populate_ambari_requires_sso(options, properties):
 
   properties[AMBARI_SSO_AUTH_ENABLED] = 'true' if enabled else 'false'
 
+def eligible(service_info):
+  return service_info['sso_integration_supported'] \
+         and (not service_info['sso_integration_requires_kerberos'] or service_info['kerberos_enabled'])
 
 def get_eligible_services(properties, admin_login, admin_password, cluster_name):
   print_info_msg("Fetching SSO enabled services")
@@ -146,10 +149,7 @@ def get_eligible_services(properties, admin_login, admin_password, cluster_name)
   services = []
 
   if json_data and 'items' in json_data:
-    items = json_data['items']
-    if len(items) > 0:
-      for item in items:
-        services.append(item['ServiceInfo']['service_name'])
+    services = [item['ServiceInfo']['service_name'] for item in json_data['items'] if eligible(item['ServiceInfo'])]
 
     if len(services) > 0:
       print_info_msg('Found SSO enabled services: %s' % ', '.join(services))
