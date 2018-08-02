@@ -56,48 +56,11 @@ App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   },
 
   /**
-   * view for JDBC connection String
-   */
-  summaryValueView: Em.View.extend({
-    tagName: 'span',
-    attributeBindings: ['title'],
-
-    didInsertElement: function() {
-      this.setEllipsis();
-      this.setTooltip();
-    },
-
-    /**
-     * sets the Hive JDBC connection text with ellipsis
-     */
-    setEllipsis: function() {
-      var $ = this.$();
-      var text = $.text();
-      var MAX_LENGTH = 96;
-      var ellipsis = '...';
-      var length = MAX_LENGTH > text.length ? text.length : MAX_LENGTH;
-      var start = Math.max(length - ellipsis.length, ellipsis.length);
-      text = text.slice(0, start);
-      text += ellipsis;
-      $.text(text);
-    },
-
-    /**
-     * sets the tooltip for Hive JDBC connection string
-     */
-    setTooltip: function() {
-      var $ = this.$();
-      Em.run.next(function () {
-        $.tooltip();
-      });
-    }
-  }),
-
-  /**
    * View for clipboard image that copies JDBC connection string
    */
   clipBoardView: Em.View.extend({
     tagName: 'a',
+    classNames: ['clip-board'],
     href: "javascript:void(null)",
     attributeBindings: ['data-clipboard-text', 'data-clipboard-action', "href"],
     didInsertElement: function() {
