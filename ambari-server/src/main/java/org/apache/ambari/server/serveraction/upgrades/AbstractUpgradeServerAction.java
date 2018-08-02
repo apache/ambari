@@ -40,7 +40,7 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
   }
 
   @Inject
-  private Clusters m_clusters;
+  protected Clusters m_clusters;
 
   /**
    * Used to move desired repo versions forward.
