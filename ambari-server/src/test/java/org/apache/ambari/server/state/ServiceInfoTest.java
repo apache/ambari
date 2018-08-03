@@ -788,6 +788,7 @@ public class ServiceInfoTest {
     assertTrue(singleSignOnInfo.isSupported());
     assertEquals(Boolean.TRUE, singleSignOnInfo.getSupported());
     assertNull(singleSignOnInfo.getEnabledConfiguration());
+    assertNull(singleSignOnInfo.getSsoEnabledTest());
   }
 
   /**
