@@ -233,6 +233,7 @@ public class AmbariCustomCommandExecutionHelperTest {
   public void teardown() throws AmbariException, SQLException {
     SecurityContextHolder.getContext().setAuthentication(null);
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
+    EasyMock.reset(configHelper);;
   }
 
   @Test
