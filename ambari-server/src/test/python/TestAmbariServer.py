@@ -16,41 +16,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
-from mock.mock import patch, MagicMock, create_autospec, call
 import sys
+from mock.mock import patch, MagicMock, call
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
   reload(sudo)
 
-from stacks.utils.RMFTestCase import *
-
-import traceback
 import datetime
-import errno
 import json
 import operator
 from ambari_commons import subprocess32
-from optparse import OptionParser
 import platform
 import socket
 import re
-import shutil
 import signal
 import stat
 import StringIO
 import tempfile
-import logging
-import logging.handlers
-import logging.config
 from unittest import TestCase
 os.environ["ROOT"] = ""
 
-from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_LINUX, PLATFORM_WINDOWS
+from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_WINDOWS
 from ambari_commons import os_utils
 
 if get_platform() != PLATFORM_WINDOWS:
-  from pwd import getpwnam
+  pass
   
 import shutil
 project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
@@ -91,8 +82,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 from ambari_server.dbConfiguration_linux import PGConfig, LinuxDBMSConfig, OracleConfig
                 from ambari_server.properties import Properties
                 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
-                from ambari_server.serverConfiguration import configDefaults, get_java_exe_path, \
-                  check_database_name_property, OS_FAMILY_PROPERTY, \
+                from ambari_server.serverConfiguration import configDefaults, check_database_name_property, OS_FAMILY_PROPERTY, \
                   find_properties_file, get_ambari_properties, get_JAVA_HOME, \
                   parse_properties_file, read_ambari_user, update_ambari_properties, update_properties_2, write_property, find_jdk, \
                   get_is_active_instance, \
@@ -101,36 +91,31 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   JDBC_DATABASE_NAME_PROPERTY, OS_TYPE_PROPERTY, validate_jdk, JDBC_POSTGRES_SCHEMA_PROPERTY, \
                   RESOURCES_DIR_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_SCHEMA_PROPERTY, \
                   SSL_API, SSL_API_PORT, CLIENT_API_PORT_PROPERTY,\
-                  JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
-                  JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
-                  JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,\
-                  LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
+                  JDBC_CONNECTION_POOL_TYPE, LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
                   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, PID_DIR_PROPERTY, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
                   SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, store_password_file, \
-                  get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME, \
+                  get_pass_file_path, GET_FQDN_SERVICE_URL, SECURITY_KEY_ENV_VAR_NAME, \
                   JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, STACK_LOCATION_KEY, SERVER_VERSION_FILE_PATH, \
                   COMMON_SERVICES_PATH_PROPERTY, WEBAPP_DIR_PROPERTY, SHARED_RESOURCES_DIR, BOOTSTRAP_SCRIPT, \
                   CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, MPACKS_STAGING_PATH_PROPERTY, STACK_JAVA_VERSION
                 from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
                 from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
                   download_and_install_jdk, prompt_db_properties, setup, \
-                  AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file, check_ambari_java_version_is_valid
-                from ambari_server.serverUpgrade import upgrade, change_objects_owner, \
-                  run_schema_upgrade, move_user_custom_actions, find_and_copy_custom_services
+                  AmbariUserChecks, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file, check_ambari_java_version_is_valid
+                from ambari_server.serverUpgrade import upgrade, run_schema_upgrade, move_user_custom_actions, find_and_copy_custom_services
                 from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
                   generate_random_string, get_cert_info, COMMON_NAME_ATTR, is_valid_cert_exp, NOT_AFTER_ATTR, NOT_BEFORE_ATTR, \
                   SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
-                  SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY, GANGLIA_HTTPS
-                from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, LdapSyncOptions, \
+                  SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY
+                from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, \
                   configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_master_key, \
-                  setup_ambari_krb5_jaas, ensure_can_start_under_current_user, generate_env, IS_LDAP_CONFIGURED
+                  setup_ambari_krb5_jaas
                 from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input, \
                   read_password
                 from ambari_server_main import get_ulimit_open_files, ULIMIT_OPEN_FILES_KEY, ULIMIT_OPEN_FILES_DEFAULT
                 from ambari_server.serverClassPath import JDBC_DRIVER_PATH_PROPERTY, ServerClassPath
                 from ambari_server.hostUpdate import update_host_names
                 from ambari_server.checkDatabase import check_database
-                from ambari_server import serverConfiguration
 
 CURR_AMBARI_VERSION = "2.0.0"
 
@@ -7146,7 +7131,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.logger")
   @patch("ambari_server.setupSecurity.is_server_runing")
-  def test_setup_ldap_invalid_input(self, is_server_runing_method, logger_mock, get_ambari_properties_method,
+  @patch("ambari_server.setupSecurity.query_ldap_type")
+  def test_setup_ldap_invalid_input(self, query_ldap_type_method, is_server_runing_method, logger_mock, get_ambari_properties_method,
                                     search_file_message,
                                     update_properties_method,
                                     get_YN_input_method,
@@ -7156,6 +7142,7 @@ class TestAmbariServer(TestCase):
     sys.stdout = out
     is_server_runing_method.return_value = (True, 0)
     search_file_message.return_value = "filepath"
+    query_ldap_type_method.return_value = 'Generic LDAP'
 
     properties = Properties();
     properties.process_pair(SECURITY_MASTER_KEY_LOCATION, "filepath")
@@ -7351,8 +7338,10 @@ class TestAmbariServer(TestCase):
         return 'false'
       if 'username collisions' in args[0]:
         return 'skip'
-      if 'URL Port' in args[0]:
+      if 'LDAP Port' in args[0]:
         return '1'
+      if 'Use SSL' in args[0]:
+        return 'false'
       if args[1] == "true" or args[1] == "false":
         return args[1]
       else:
@@ -7406,7 +7395,7 @@ class TestAmbariServer(TestCase):
           return "bogus"
         else:
           return "valid"
-      if 'URL Port' in args[0]:
+      if 'LDAP Port' in args[0]:
         return '1'
       if args[1] == "true" or args[1] == "false":
         return args[1]
@@ -7487,9 +7476,9 @@ class TestAmbariServer(TestCase):
         return 'false'
       if 'username collisions' in args[0]:
         return 'skip'
-      if 'URL Port' in args[0]:
+      if 'LDAP Port' in args[0]:
         return '1'
-      if 'Primary URL' in args[0]:
+      if 'LDAP Host' in args[0]:
         return kwargs['answer']
       if args[1] == "true" or args[1] == "false":
         return args[1]
