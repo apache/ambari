@@ -1299,9 +1299,9 @@ public class ServiceInfo implements Validable {
     // validate single sign-in support information
     if (singleSignOnInfo != null) {
       if (singleSignOnInfo.isSupported()) {
-        if (StringUtils.isEmpty(singleSignOnInfo.getEnabledConfiguration())) {
+        if (StringUtils.isEmpty(singleSignOnInfo.getSsoEnabledTest()) && StringUtils.isEmpty(singleSignOnInfo.getEnabledConfiguration())) {
           setValid(false);
-          addError("Single Sign-on support is indicated for service " + getName() + " but no test configuration has been set (enabledConfiguration).");
+          addError("Single Sign-on support is indicated for service " + getName() + " but no test configuration has been set (enabledConfiguration or ssoEnabledTest).");
         }
       }
     }
