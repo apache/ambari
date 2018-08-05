@@ -752,25 +752,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           continue;
         }
 
-        for (Map.Entry<String, Map<String, Map<String, String>>> config : requestConfigurations.entrySet()) {
-          for (Map<String, String> properties : config.getValue().values()) {
-            for (Map.Entry<String, String> property : properties.entrySet()) {
-              String oldValue = property.getValue();
-              String updatedValue = variableReplacementHelper.replaceVariables(property.getValue(), existingConfigurations);
-              if (!StringUtils.equals(oldValue, updatedValue) && !config.getKey().isEmpty()) {
-                property.setValue(updatedValue);
-                if (kerberosConfigurations.containsKey(config.getKey())) {
-                  kerberosConfigurations.get(config.getKey()).put(property.getKey(), updatedValue);
-                } else {
-                  Map kerberosConfigProperties = new HashMap<>();
-                  kerberosConfigProperties.put(property.getKey(), updatedValue);
-                  kerberosConfigurations.put(config.getKey(), kerberosConfigProperties);
-                }
-              }
-            }
-          }
-        }
-
         StackAdvisorRequest request = StackAdvisorRequest.StackAdvisorRequestBuilder
           .forStack(stackId.getStackName(), stackId.getStackVersion())
           .forServices(services)
