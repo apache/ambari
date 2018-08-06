@@ -284,7 +284,7 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + encodeURIComponent(target.queue) + metricTransform
               + metricAggregator + '&appId=resourcemanager' + instanceId + '&startTime=' + from +
               '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)

@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
+App.MainHostSummaryView = Em.View.extend(App.HiveInteractiveCheck, App.TimeRangeMixin, {
 
   templateName: require('templates/main/host/summary'),
 
@@ -132,6 +132,9 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   willInsertElement: function() {
     this.sortedComponentsFormatter();
     this.addObserver('content.hostComponents.length', this, 'sortedComponentsFormatter');
+    if (this.get('installedServices').indexOf('HIVE') !== -1) {
+      this.loadHiveConfigs();
+    }
   },
 
   didInsertElement: function () {
@@ -226,7 +229,8 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
         if (installedServices.contains(addableComponent.get('serviceName'))
             && !installedComponents.contains(addableComponent.get('componentName'))
             && !this.hasCardinalityConflict(addableComponent.get('componentName'))) {
-          if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable')) {
+          if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable') ||
+            addableComponent.get('componentName') === 'HIVE_SERVER_INTERACTIVE' && !self.get('enableHiveInteractive')) {
             return;
           }
           components.pushObject(self.addableComponentObject.create({
@@ -237,7 +241,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
       }, this);
     }
     return components;
-  }.property('content.hostComponents.length', 'App.components.addableToHost.@each'),
+  }.property('content.hostComponents.length', 'App.components.addableToHost.@each', 'enableHiveInteractive'),
 
   /**
    *

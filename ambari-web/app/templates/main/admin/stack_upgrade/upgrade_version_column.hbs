@@ -77,23 +77,10 @@
     </div>
   {{/if}}
   {{#if view.stateElement.isLabel}}
-    <div {{bindAttr class="view.stateElement.canBeReverted:btn-group :label-wrapper"}}>
-      <button {{bindAttr class="view.stateElement.class"}}>
-        <span class="state-label-text">{{view.stateElement.text}}</span>
-      </button>
-      {{#if view.stateElement.canBeReverted}}
-        <button {{bindAttr class="view.stateElement.class :dropdown-toggle"}} data-toggle="dropdown">
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <li>
-            <a {{action runAction view.stateElement.action target="view"}}>
-              {{view.stateElement.actionText}}
-            </a>
-          </li>
-        </ul>
-      {{/if}}
-    </div>
+    {{#if view.stateElement.iconClass}}
+      <i {{bindAttr class="view.stateElement.iconClass" disabled="view.stateElement.isDisabled"}}></i>
+    {{/if}}
+    <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
   {{/if}}
   {{#if view.stateElement.isLink}}
     {{#if view.stateElement.iconClass}}

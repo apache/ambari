@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogEntryCacheConfig;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputFileMarker;
 import org.apache.ambari.logfeeder.input.InputManagerImpl;
@@ -82,13 +83,20 @@ public class LogEntryParseTester {
     ConfigHandler configHandler = new ConfigHandler(null);
     configHandler.setInputManager(new InputManagerImpl());
     OutputManagerImpl outputManager = new OutputManagerImpl();
+    LogFeederProps logFeederProps = new LogFeederProps();
+    LogEntryCacheConfig logEntryCacheConfig = new LogEntryCacheConfig();
+    logEntryCacheConfig.setCacheEnabled(false);
+    logEntryCacheConfig.setCacheSize(0);
+    logFeederProps.setLogEntryCacheConfig(logEntryCacheConfig);
+    outputManager.setLogFeederProps(logFeederProps);
     LogLevelFilterHandler logLevelFilterHandler = new LogLevelFilterHandler(null);
-    logLevelFilterHandler.setLogFeederProps(new LogFeederProps());
+    logLevelFilterHandler.setLogFeederProps(logFeederProps);
     outputManager.setLogLevelFilterHandler(logLevelFilterHandler);
     configHandler.setOutputManager(outputManager);
     Input input = configHandler.getTestInput(inputConfig, logId);
+    input.init(logFeederProps);
     final Map<String, Object> result = new HashMap<>();
-    input.getFirstFilter().init(new LogFeederProps());
+    input.getFirstFilter().init(logFeederProps);
     input.addOutput(new Output<LogFeederProps, InputFileMarker>() {
       @Override
       public void init(LogFeederProps logFeederProperties) throws Exception {

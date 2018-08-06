@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Method;
@@ -35,6 +36,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -55,11 +57,15 @@ public class UpgradeCatalog271Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateRangerLogDirConfigs = UpgradeCatalog271.class.getDeclaredMethod("updateRangerLogDirConfigs");
     Method updateRangerKmsDbUrl = UpgradeCatalog271.class.getDeclaredMethod("updateRangerKmsDbUrl");
+    Method renameAmbariInfraInConfigGroups = UpgradeCatalog271.class.getDeclaredMethod("renameAmbariInfraInConfigGroups");
+    Method removeLogSearchPatternConfigs = UpgradeCatalog271.class.getDeclaredMethod("removeLogSearchPatternConfigs");
 
     UpgradeCatalog271 upgradeCatalog271 = createMockBuilder(UpgradeCatalog271.class)
       .addMockedMethod(updateRangerKmsDbUrl)
       .addMockedMethod(updateRangerLogDirConfigs)
       .addMockedMethod(addNewConfigurationsFromXml)
+      .addMockedMethod(renameAmbariInfraInConfigGroups)
+      .addMockedMethod(removeLogSearchPatternConfigs)
       .createMock();
 
     upgradeCatalog271.addNewConfigurationsFromXml();
@@ -71,9 +77,36 @@ public class UpgradeCatalog271Test {
     upgradeCatalog271.updateRangerKmsDbUrl();
     expectLastCall().once();
 
+    upgradeCatalog271.renameAmbariInfraInConfigGroups();
+    expectLastCall().once();
+
+    upgradeCatalog271.removeLogSearchPatternConfigs();
+    expectLastCall().once();
+
     replay(upgradeCatalog271);
     upgradeCatalog271.executeDMLUpdates();
     verify(upgradeCatalog271);
+  }
+
+  @Test
+  public void testRemoveLogSearchPatternConfigs() throws Exception {
+    // GIVEN
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    DBAccessor dbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+    expect(injector.getInstance(DBAccessor.class)).andReturn(dbAccessor).anyTimes();
+    String serviceConfigMapping = "serviceconfigmapping";
+    String clusterConfig = "clusterconfig";
+    dbAccessor.executeQuery(startsWith("DELETE FROM "+ serviceConfigMapping));
+    expectLastCall().once();
+    dbAccessor.executeQuery(startsWith("DELETE FROM "+ clusterConfig));
+    expectLastCall().once();
+    replay(dbAccessor, injector);
+    // WHEN
+    new UpgradeCatalog271(injector).removeLogSearchPatternConfigs();
+    // THEN
+    easyMockSupport.verifyAll();
+
   }
 
   @Test
