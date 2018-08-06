@@ -26,7 +26,7 @@ import traceback
 
 from resource_management.core.shell import call
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -267,8 +267,7 @@ def __get_domain_name(url):
 
 def write_core_file(core, core_data):
   core_json_location = format("{index_location}/{core}.json")
-  with open(core_json_location, 'w') as outfile:
-    json.dump(core_data, outfile)
+  File(core_json_location, content=json.dumps(core_data))
 
 def create_core_pairs(original_cores, new_cores):
   """
@@ -286,8 +285,7 @@ def create_core_pairs(original_cores, new_cores):
       value['target_core']=new_cores[index][0]
       value['target_host']=new_cores[index][1]
       core_pairs_data.append(value)
-    with open(format("{index_location}/restore_core_pairs.json"), 'w') as outfile:
-      json.dump(core_pairs_data, outfile)
+    File(format("{index_location}/restore_core_pairs.json"), content=json.dumps(core_pairs_data))
     return core_pairs_data
 
 def sort_core_host_pairs(host_core_map):
