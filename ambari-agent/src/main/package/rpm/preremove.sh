@@ -17,7 +17,6 @@
 # during package update. See http://www.ibm.com/developerworks/library/l-rpm2/
 # for details
 
-
 if [ "$1" -eq 0 ]; then  # Action is uninstall
     if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
       /var/lib/ambari-agent/install-helper.sh remove

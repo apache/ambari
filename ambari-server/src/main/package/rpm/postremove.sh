@@ -1,4 +1,3 @@
-#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,14 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# Warning: don't add changes to this script directly, please add changes to install-helper.sh.
+INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh.orig"
 
-INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh"
-
-
-if [ "$1" == "remove" ] ; then # Action is uninstall
+if [ "$1" -eq 0 ]; then  # Action is uninstall
     if [ -f "${INSTALL_HELPER}" ]; then
-      ${INSTALL_HELPER} remove
+      ${INSTALL_HELPER} cleanup
+      rm -f ${INSTALL_HELPER} 1>/dev/null 2>&1
     fi
 fi
 

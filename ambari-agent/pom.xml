@@ -296,6 +296,10 @@
             <scriptFile>src/main/package/rpm/posttrans_agent.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </posttransScriptlet>
+          <postremoveScriptlet>
+            <scriptFile>src/main/package/rpm/postremove.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </postremoveScriptlet>
 
           <needarch>x86_64</needarch>
           <autoRequires>false</autoRequires>
