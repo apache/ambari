@@ -32,6 +32,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -51,6 +52,9 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
    * Logger
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog271.class);
+
+  private static final String SERVICE_CONFIG_MAPPING_TABLE = "serviceconfigmapping";
+  private static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
 
   @Inject
   DaoUtils daoUtils;
@@ -105,6 +109,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     updateRangerLogDirConfigs();
     updateRangerKmsDbUrl();
     renameAmbariInfraInConfigGroups();
+    removeLogSearchPatternConfigs();
   }
 
   /**
@@ -236,5 +241,23 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     // Force the clusters object to reload to ensure the renamed service is accounted for
     entityManager.getEntityManagerFactory().getCache().evictAll();
     clusters.invalidateAllClusters();
+  }
+
+  /**
+   * Removes config types with -logsearch-conf suffix
+   */
+  protected void removeLogSearchPatternConfigs() throws SQLException {
+    DBAccessor dba = dbAccessor != null ? dbAccessor : injector.getInstance(DBAccessor.class); // for testing
+    String configSuffix = "-logsearch-conf";
+    String serviceConfigMappingRemoveSQL = String.format(
+      "DELETE FROM %s WHERE config_id IN (SELECT config_id from %s where type_name like '%%%s')",
+      SERVICE_CONFIG_MAPPING_TABLE, CLUSTER_CONFIG_TABLE, configSuffix);
+
+    String clusterConfigRemoveSQL = String.format(
+      "DELETE FROM %s WHERE type_name like '%%%s'",
+      CLUSTER_CONFIG_TABLE, configSuffix);
+
+    dba.executeQuery(serviceConfigMappingRemoveSQL);
+    dba.executeQuery(clusterConfigRemoveSQL);
   }
 }
