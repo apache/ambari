@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,24 +18,18 @@
 package org.apache.ambari.server.agent;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 
-public abstract class AgentReport<R> {
+public class HostStatusAgentReport extends AgentReport<HostStatusReport> {
+  private final HeartBeatHandler hh;
 
-  private final String hostName;
-  private final R report;
-
-  public AgentReport(String hostName, R report) {
-    this.hostName = hostName;
-    this.report = report;
+  public HostStatusAgentReport(HeartBeatHandler hh, String hostName, HostStatusReport hostStatusReport) {
+    super(hostName, hostStatusReport);
+    this.hh = hh;
   }
 
-  public String getHostName() {
-    return hostName;
+  @Override
+  protected void process(HostStatusReport report, String hostName) throws AmbariException {
+    hh.handleHostReportStatus(report, hostName);
   }
-
-  public final void process() throws AmbariException {
-    process(report, hostName);
-  }
-
-  protected abstract void process(R report, String hostName) throws AmbariException;
 }

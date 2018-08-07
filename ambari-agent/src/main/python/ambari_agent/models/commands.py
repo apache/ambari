@@ -19,6 +19,7 @@ limitations under the License.
 
 class AgentCommand(object):
   status = "STATUS_COMMAND"
+  get_version = "GET_VERSION"
   execution = "EXECUTION_COMMAND"
   auto_execution = "AUTO_EXECUTION_COMMAND"
   background_execution = "BACKGROUND_EXECUTION_COMMAND"

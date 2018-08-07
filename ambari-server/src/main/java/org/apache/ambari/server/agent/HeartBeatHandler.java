@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
 import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -254,6 +255,10 @@ public class HeartBeatHandler {
       host.setState(HostState.INIT);
       agentSessionManager.unregisterByHost(host.getHostId());
     }
+  }
+
+  public void handleComponentVersionReports(ComponentVersionReports componentVersionReports, String hostname) throws AmbariException {
+    heartbeatProcessor.processVersionReports(componentVersionReports, hostname);
   }
 
   protected void processRecoveryReport(RecoveryReport recoveryReport, String hostname) throws AmbariException {

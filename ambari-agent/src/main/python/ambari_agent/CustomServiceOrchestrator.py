@@ -95,6 +95,8 @@ class CustomServiceOrchestrator(object):
                                                'status_command_stdout_{0}.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr_{0}.txt')
+    self.status_structured_out = os.path.join(self.tmp_dir,
+                                               'status_structured-out-{0}.json')
 
     # Construct the hadoop credential lib JARs path
     self.credential_shell_lib_path = os.path.join(self.config.get('security', 'credential_lib_dir',
@@ -309,7 +311,7 @@ class CustomServiceOrchestrator(object):
     return cmd_result
 
   def runCommand(self, command_header, tmpoutfile, tmperrfile, forced_command_name=None,
-                 override_output_files=True, retry=False, is_status_command=False):
+                 override_output_files=True, retry=False, is_status_command=False, tmpstrucoutfile=None):
     """
     forced_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
@@ -350,7 +352,8 @@ class CustomServiceOrchestrator(object):
         script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)
 
-      tmpstrucoutfile = os.path.join(self.tmp_dir, "structured-out-{0}.json".format(task_id))
+      if not tmpstrucoutfile:
+        tmpstrucoutfile = os.path.join(self.tmp_dir, "structured-out-{0}.json".format(task_id))
 
       # We don't support anything else yet
       if script_type.upper() != self.SCRIPT_TYPE_PYTHON:
@@ -376,7 +379,7 @@ class CustomServiceOrchestrator(object):
         else:
           logger.info("Skipping generation of jceks files as this is a retry of the command")
 
-      json_path = self.dump_command_to_json(command, retry)
+      json_path = self.dump_command_to_json(command, retry, is_status_command)
       hooks = self.hooks_orchestrator.resolve_hooks(command, command_name)
       """:type hooks ambari_agent.CommandHooksOrchestrator.ResolvedHooks"""
 
@@ -510,7 +513,7 @@ class CustomServiceOrchestrator(object):
 
     return command
 
-  def requestComponentStatus(self, command_header):
+  def requestComponentStatus(self, command_header, command_name="STATUS"):
     """
      Component status is determined by exit code, returned by runCommand().
      Exit code 0 means that component is running and any other exit code means that
@@ -523,11 +526,13 @@ class CustomServiceOrchestrator(object):
     # make sure status commands that run in parallel don't use the same files
     status_commands_stdout = self.status_commands_stdout.format(uuid.uuid4())
     status_commands_stderr = self.status_commands_stderr.format(uuid.uuid4())
+    status_structured_out = self.status_structured_out.format(uuid.uuid4())
 
     try:
       res = self.runCommand(command_header, status_commands_stdout,
-                            status_commands_stderr, self.COMMAND_NAME_STATUS,
-                            override_output_files=override_output_files, is_status_command=True)
+                            status_commands_stderr, command_name,
+                            override_output_files=override_output_files, is_status_command=True,
+                            tmpstrucoutfile=status_structured_out)
     finally:
       try:
         os.unlink(status_commands_stdout)
@@ -547,14 +552,14 @@ class CustomServiceOrchestrator(object):
       raise AgentException(message)
     return path
 
-  def dump_command_to_json(self, command, retry=False):
+  def dump_command_to_json(self, command, retry=False, is_status_command=False):
     """
     Converts command to json file and returns file path
     """
     # Now, dump the json file
     command_type = command['commandType']
 
-    if command_type == AgentCommand.status:
+    if is_status_command:
       # make sure status commands that run in parallel don't use the same files
       file_path = os.path.join(self.tmp_dir, "status_command_{0}.json".format(uuid.uuid4()))
     else:
