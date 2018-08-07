@@ -354,12 +354,14 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   getAllMissingDependentServices: function () {
     var configActionComponentName = this.get('configActionComponent').componentName;
     var componentStackService = App.StackServiceComponent.find(configActionComponentName).get('stackService');
-    var dependentServices = componentStackService.get('requiredServices');
+    var missing = [];
+    componentStackService.collectMissingDependencies(this.installedStackServices(), App.StackService.find(), missing);
+    return missing.mapProperty('displayName');
+  },
 
-    return dependentServices.filter(function (item) {
-      return !App.Service.find().findProperty('serviceName', item);
-    }).map(function (item) {
-      return App.StackService.find(item).get('displayName');
+  installedStackServices: function() {
+    return App.Service.find().map(function(each) {
+      return App.StackService.find(each.get('serviceName'));
     });
   },
 
