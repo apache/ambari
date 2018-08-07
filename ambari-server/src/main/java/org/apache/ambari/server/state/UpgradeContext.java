@@ -359,13 +359,10 @@ public class UpgradeContext {
       m_type = calculateUpgradeType(upgradeRequestMap, revertUpgrade);
 
       // !!! build all service-specific reversions
-      Set<RepositoryVersionEntity> priors = new HashSet<>();
       Map<String, Service> clusterServices = cluster.getServices();
       for (UpgradeHistoryEntity history : revertUpgrade.getHistory()) {
         String serviceName = history.getServiceName();
         String componentName = history.getComponentName();
-
-        priors.add(history.getFromReposistoryVersion());
 
         // if the service is no longer installed, do nothing
         if (!clusterServices.containsKey(serviceName)) {
@@ -378,13 +375,6 @@ public class UpgradeContext {
         m_services.add(serviceName);
         m_sourceRepositoryMap.put(serviceName, history.getTargetRepositoryVersion());
         m_targetRepositoryMap.put(serviceName, history.getFromReposistoryVersion());
-      }
-
-      if (priors.size() != 1) {
-        String message = String.format("Upgrade from %s could not be reverted as there is no single "
-            + " repository across services.", revertUpgrade.getRepositoryVersion().getVersion());
-
-        throw new AmbariException(message);
       }
 
       // the "associated" repository of the revert is the target of what's being reverted
