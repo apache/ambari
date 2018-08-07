@@ -260,10 +260,8 @@ class Script(object):
     stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-      if command_name.lower() == "status":
-        request_version = default("/commandParams/request_version", None)
-        if request_version is not None:
-          return True
+      if command_name.lower() == "get_version":
+        return True
       else:
         # Populate version only on base commands
         return command_name.lower() == "start" or command_name.lower() == "install" or command_name.lower() == "restart"
@@ -361,6 +359,9 @@ class Script(object):
     finally:
       if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out(self.command_name)
+
+  def get_version(self, env):
+    pass
 
   def execute_prefix_function(self, command_name, afix, env):
     """

@@ -17,25 +17,20 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 
-public abstract class AgentReport<R> {
+public class ComponentStatusAgentReport extends AgentReport<List<ComponentStatus>> {
+  private final HeartBeatHandler hh;
 
-  private final String hostName;
-  private final R report;
-
-  public AgentReport(String hostName, R report) {
-    this.hostName = hostName;
-    this.report = report;
+  public ComponentStatusAgentReport(HeartBeatHandler hh, String hostName, List<ComponentStatus> componentStatuses) {
+    super(hostName, componentStatuses);
+    this.hh = hh;
   }
 
-  public String getHostName() {
-    return hostName;
+  @Override
+  protected void process(List<ComponentStatus> report, String hostName) throws AmbariException {
+    hh.handleComponentReportStatus(report, hostName);
   }
-
-  public final void process() throws AmbariException {
-    process(report, hostName);
-  }
-
-  protected abstract void process(R report, String hostName) throws AmbariException;
 }
