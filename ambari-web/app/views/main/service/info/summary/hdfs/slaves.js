@@ -52,6 +52,24 @@ App.HDFSSlaveComponentsView = Em.View.extend({
 
   journalNodesTotal: Em.computed.alias('service.journalNodes.length'),
 
+  dataNodesStarted: function () {
+    var startedNum = this.get('service.dataNodesStarted');
+    if (!startedNum) {
+      let dataNodeComponent = App.SlaveComponent.find().findProperty('componentName', 'DATANODE');
+      startedNum = dataNodeComponent ? dataNodeComponent.get('startedCount') : 0;
+    }
+    return startedNum;
+  }.property('service.dataNodesStarted'),
+
+  dataNodesTotal: function () {
+    var totalNum = this.get('service.dataNodesTotal');
+    if (totalNum == null) {
+      let dataNodeComponent = App.SlaveComponent.find().findProperty('componentName', 'DATANODE');
+      totalNum = dataNodeComponent ? dataNodeComponent.get('totalCount') : 0;
+    }
+    return totalNum;
+  }.property('service.dataNodesTotal'),
+
   /**
    * Define if NFS_GATEWAY is present in the installed stack
    * @type {Boolean}
