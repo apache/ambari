@@ -24,7 +24,7 @@ SOLR_JAVA_MEM="-Xms{{infra_solr_min_mem}}m -Xmx{{infra_solr_max_mem}}m"
 
 SOLR_JAVA_STACK_SIZE="-Xss{{infra_solr_java_stack_size}}m"
 
-GC_LOG_OPTS="{{infra_solr_gc_log_opts}}"
+GC_LOG_OPTS="{{infra_solr_gc_log_opts}} -Xloggc:{{infra_solr_log_dir}}/solr_gc.log"
 
 GC_TUNE="{{infra_solr_gc_tune}}"
 

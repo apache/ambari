@@ -305,7 +305,7 @@
 
   <property>
     <name>infra_solr_gc_log_opts</name>
-    <value>-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime</value>
+    <value>-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=15 -XX:GCLogFileSize=200M</value>
     <display-name>Infra Solr GC log options</display-name>
     <description>Infra Solr GC log options</description>
     <on-ambari-upgrade add="true"/>
