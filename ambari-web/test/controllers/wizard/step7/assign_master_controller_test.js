@@ -299,15 +299,20 @@ describe('App.AssignMasterOnStep7Controller', function () {
 
     beforeEach(function() {
       sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
-        stackService: Em.Object.create({
+        stackService: App.StackService.createRecord({
           requiredServices: ['S1', 'S2']
         })
       }));
       sinon.stub(App.Service, 'find').returns([
-        {serviceName: 'S1'}
+        App.Service.createRecord({serviceName: 'S1'})
       ]);
       sinon.stub(App.StackService, 'find', function(input) {
-        return Em.Object.create({displayName: input});
+        return input
+          ? Em.Object.create({displayName: input, serviceName: input})
+          : [
+              App.StackService.createRecord({serviceName: 'S1', displayName: 'S1'}),
+              App.StackService.createRecord({serviceName: 'S2', displayName: 'S2'})
+            ]
       });
     });
 
