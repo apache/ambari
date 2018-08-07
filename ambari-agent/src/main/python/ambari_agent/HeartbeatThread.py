@@ -27,6 +27,7 @@ from ambari_agent import Constants
 from ambari_agent.Register import Register
 from ambari_agent.Utils import BlockingDictionary
 from ambari_agent.Utils import Utils
+from ambari_agent.ComponentVersionReporter import ComponentVersionReporter
 from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 from ambari_agent.listeners.TopologyEventListener import TopologyEventListener
 from ambari_agent.listeners.ConfigurationEventListener import ConfigurationEventListener
@@ -146,13 +147,19 @@ class HeartbeatThread(threading.Thread):
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
 
     self.run_post_registration_actions()
+
     self.initializer_module.is_registered = True
     # now when registration is done we can expose connection to other threads.
     self.initializer_module._connection = self.connection
 
+    self.report_components_initial_versions()
+
   def run_post_registration_actions(self):
     for post_registration_action in self.post_registration_actions:
       post_registration_action()
+
+  def report_components_initial_versions(self):
+    ComponentVersionReporter(self.initializer_module).start()
 
   def unregister(self):
     """

@@ -18,24 +18,19 @@
 package org.apache.ambari.server.agent;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
 
-public abstract class AgentReport<R> {
+public class ComponentVersionAgentReport extends AgentReport<ComponentVersionReports> {
+  private final HeartBeatHandler hh;
 
-  private final String hostName;
-  private final R report;
-
-  public AgentReport(String hostName, R report) {
-    this.hostName = hostName;
-    this.report = report;
+  public ComponentVersionAgentReport(HeartBeatHandler hh, String hostName,
+                                     ComponentVersionReports componentVersionReports) {
+    super(hostName, componentVersionReports);
+    this.hh = hh;
   }
 
-  public String getHostName() {
-    return hostName;
+  @Override
+  protected void process(ComponentVersionReports report, String hostName) throws AmbariException {
+    hh.handleComponentVersionReports(report, hostName);
   }
-
-  public final void process() throws AmbariException {
-    process(report, hostName);
-  }
-
-  protected abstract void process(R report, String hostName) throws AmbariException;
 }
