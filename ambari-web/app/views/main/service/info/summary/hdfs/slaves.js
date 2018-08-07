@@ -63,7 +63,7 @@ App.HDFSSlaveComponentsView = Em.View.extend({
 
   dataNodesTotal: function () {
     var totalNum = this.get('service.dataNodesTotal');
-    if (totalNum == null) {
+    if (!totalNum) {
       let dataNodeComponent = App.SlaveComponent.find().findProperty('componentName', 'DATANODE');
       totalNum = dataNodeComponent ? dataNodeComponent.get('totalCount') : 0;
     }
