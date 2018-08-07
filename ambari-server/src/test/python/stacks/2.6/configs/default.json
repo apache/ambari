@@ -373,6 +373,9 @@
       "livy.impersonation.enabled": "true",
       "livy.server.session.timeout": "3600000"
     },
+    "livy2-client-conf": {
+      "livy.rsc.launcher.address": ""
+    },
     "livy-spark-blacklist": {
       "content": "\n            #\n            # Configuration override / blacklist. Defines a list of properties that users are not allowed\n            # to override when starting Spark sessions.\n            #\n            # This file takes a list of property names (one per line). Empty lines and lines starting with \"#\"\n            # are ignored.\n            #"
     },

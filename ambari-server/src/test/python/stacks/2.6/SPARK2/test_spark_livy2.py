@@ -130,6 +130,12 @@ class TestSparkClient(RMFTestCase):
                                   group = 'livy',
                                   properties = self.getConfig()['configurations']['livy2-conf'],
                                   )
+        self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/livy2-server/conf/livy-client.conf',
+                                  owner = 'livy',
+                                  key_value_delimiter = ' ',
+                                  group = 'livy',
+                                  properties = self.getConfig()['configurations']['livy2-client-conf'],
+                                  )
         self.assertResourceCalled('File', '/usr/hdp/current/livy2-server/conf/log4j.properties',
                                   content = '\n            # Set everything to be logged to the console\n            log4j.rootCategory=INFO, console\n            log4j.appender.console=org.apache.log4j.ConsoleAppender\n            log4j.appender.console.target=System.err\n            log4j.appender.console.layout=org.apache.log4j.PatternLayout\n            log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n\n\n            log4j.logger.org.eclipse.jetty=WARN',
                                   owner = 'livy',
