@@ -60,10 +60,8 @@ RESOURCE_TO_JSON_FIELDS = {
 EXCEPTIONS_TO_RETRY = {
   # ("ExceptionName"): ("required text fragment", try_count, try_sleep_seconds)
 
-  """
-  Happens when multiple nodes try to put same file at the same time.
-  Needs a longer retry time, to wait for other nodes success.
-  """
+  # Happens when multiple nodes try to put same file at the same time.
+  # Needs a longer retry time, to wait for other nodes success.
   "FileNotFoundException": (" does not have any open files", 6, 30),
 
   "LeaseExpiredException": ("", 20, 6),
