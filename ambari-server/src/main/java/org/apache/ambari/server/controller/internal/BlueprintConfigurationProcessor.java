@@ -2851,7 +2851,6 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("hive-env", hiveEnvMap);
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
-//    singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
     singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
     singleHostTopologyUpdaters.put("ranger-env", rangerEnvPropsMap);
     singleHostTopologyUpdaters.put("ranger-yarn-audit", rangerYarnAuditPropsMap);
@@ -3045,7 +3044,6 @@ public class BlueprintConfigurationProcessor {
     });
 
     // TODO AMBARI-17782, remove this property only from HDP 2.5 and higher.
-//    hiveSiteMap.put("atlas.rest.address", new MultipleHostTopologyUpdater("ATLAS_SERVER", ',', true, true, true));
     hiveSiteMap.put("atlas.rest.address", new SingleHostTopologyUpdater("ATLAS_SERVER") {
       @Override
       public String updateForClusterCreate(String propertyName,
