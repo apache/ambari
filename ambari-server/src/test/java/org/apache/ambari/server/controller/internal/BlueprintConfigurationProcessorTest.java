@@ -22,6 +22,7 @@ import static com.google.common.collect.Iterators.peekingIterator;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -644,6 +645,37 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     String updatedVal = properties.get("webhcat-site").get("templeton.zookeeper.hosts");
     assertEquals("%HOSTGROUP::group1%:5050,%HOSTGROUP::group2%:9090", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_MultiHostProperty__WithPrefixAndPorts() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
+    typeProps.put("atlas.server.bind.address",
+      "http://testhost:21000,http://testhost2:21000,http://testhost2a:21000,http://testhost2b:21000");
+    properties.put("application-properties", typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = Sets.newHashSet("NAMENODE", "SECONDARY_NAMENODE", "ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = Sets.newHashSet("DATANODE", "HDFS_CLIENT", "ZOOKEEPER_SERVER");
+    Set<String> hosts2 = Sets.newHashSet("testhost2", "testhost2a", "testhost2b");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, hosts2);
+
+    Collection<String> hgComponents3 = Sets.newHashSet("HDFS_CLIENT", "ZOOKEEPER_CLIENT");
+    Set<String> hosts3 = Sets.newHashSet("testhost3", "testhost3a");
+    TestHostGroup group3 = new TestHostGroup("group3", hgComponents3, hosts3);
+
+    Collection<TestHostGroup> hostGroups = Sets.newHashSet(group1, group2, group3);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    String updatedVal = properties.get("application-properties").get("atlas.server.bind.address");
+    assertEquals("http://%HOSTGROUP::group1%:21000,http://%HOSTGROUP::group2%:21000", updatedVal);
   }
 
   @Test
@@ -2936,6 +2968,43 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     List<String> hostArray = Arrays.asList(newValue.split(","));
     Assert.assertTrue(hostArray.containsAll(hosts1) && hosts1.containsAll(hostArray));
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdater__hostgroup__multipleHostGroups() throws Exception {
+
+    final String typeName = "application-properties";
+    final String propertyName = "atlas.rest.address";
+    final String originalValue = "http://%HOSTGROUP::group1%:21000,http://%HOSTGROUP::group2%:21000";
+    final String component = "ATLAS_SERVER";
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Set<String> components = ImmutableSet.of(component);
+
+    Set<String> group1Hosts = ImmutableSet.of("testhost1a", "testhost1b", "testhost1c");
+    Set<String> group2Hosts = ImmutableSet.of("testhost2a", "testhost2b", "testhost2c");
+
+    TestHostGroup group1 = new TestHostGroup("group1", components, group1Hosts);
+    TestHostGroup group2 = new TestHostGroup("group2", components, group2Hosts);
+
+    Collection<TestHostGroup> hostGroups = ImmutableSet.of(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu =
+      new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component, ',', true, true, true);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    Set<String> expectedAddresses =
+      Sets.union(group1Hosts, group2Hosts).stream().map(host -> "http://" + host + ":21000").collect(toSet());
+    Set<String> replacedAddresses = ImmutableSet.copyOf(newValue.split(","));
+    assertEquals(expectedAddresses, replacedAddresses);
   }
 
   @Test
