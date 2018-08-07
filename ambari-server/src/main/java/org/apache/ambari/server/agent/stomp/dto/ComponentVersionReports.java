@@ -15,27 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agent;
 
-import org.apache.ambari.server.AmbariException;
+package org.apache.ambari.server.agent.stomp.dto;
 
-public abstract class AgentReport<R> {
+import java.util.List;
+import java.util.TreeMap;
 
-  private final String hostName;
-  private final R report;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-  public AgentReport(String hostName, R report) {
-    this.hostName = hostName;
-    this.report = report;
+public class ComponentVersionReports {
+
+  @JsonProperty("clusters")
+  private TreeMap<String, List<ComponentVersionReport>> componentVersionReports;
+
+  public ComponentVersionReports() {
   }
 
-  public String getHostName() {
-    return hostName;
+  public ComponentVersionReports(TreeMap<String, List<ComponentVersionReport>> componentVersionReports) {
+    this.componentVersionReports = componentVersionReports;
   }
 
-  public final void process() throws AmbariException {
-    process(report, hostName);
+  public TreeMap<String, List<ComponentVersionReport>> getComponentVersionReports() {
+    return componentVersionReports;
   }
 
-  protected abstract void process(R report, String hostName) throws AmbariException;
+  public void setComponentVersionReports(TreeMap<String, List<ComponentVersionReport>> componentVersionReports) {
+    this.componentVersionReports = componentVersionReports;
+  }
 }
