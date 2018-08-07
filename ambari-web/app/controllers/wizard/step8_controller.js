@@ -1525,10 +1525,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         serviceName: service.get('serviceName'),
         serviceGroupName: service.get('stackName'), //TODO - mpacks: for now
         data: {
-          "ServiceConfigVersion": {
-            "service_config_version_note": this.getServiceConfigNote('', service.get('displayName')),
-            "stack_id": `${service.get('stackName')}-${service.get('stackVersion')}`
-          },
           "configurations": []
         }
       };
