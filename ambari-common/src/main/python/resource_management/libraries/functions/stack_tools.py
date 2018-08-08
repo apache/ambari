@@ -24,7 +24,6 @@ __all__ = ["get_stack_tool", "get_stack_tool_name", "get_stack_tool_path",
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
 
-from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.utils import pad
 from resource_management.libraries.functions import stack_settings

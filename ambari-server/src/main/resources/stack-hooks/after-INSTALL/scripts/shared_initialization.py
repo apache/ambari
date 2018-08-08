@@ -123,21 +123,3 @@ def load_version(struct_out_file):
     return json_info['version']
   except (IOError, KeyError, TypeError):
     return None
-
-
-def link_configs(struct_out_file):
-  """
-  Use the conf_select module to link configuration directories correctly.
-  """
-  import params
-
-  json_version = load_version(struct_out_file)
-
-  if not json_version:
-    Logger.info("Could not load 'version' from {0}".format(struct_out_file))
-    return
-
-  # On parallel command execution this should be executed by a single process at a time.
-  with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-    for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_select.convert_conf_directories_to_symlinks(package_name, json_version, directories)

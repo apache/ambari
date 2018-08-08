@@ -22,7 +22,6 @@ import os
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.constants import LOGFEEDER_CONF_DIR
 from resource_management.libraries.script import Script
-from resource_management.libraries.script.script import get_config_lock_file
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option_value
@@ -113,7 +112,6 @@ if has_namenode or dfs_type == 'HCFS':
       mount_table_xml_inclusion_file_full_path = os.path.join(hadoop_conf_dir, xml_inclusion_file_name)
       mount_table_content = mount_table['content']
 
-link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")
 
 upgrade_suspended = execution_command.is_upgrade_suspended()

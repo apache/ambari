@@ -93,8 +93,6 @@ def get_path_from_configuration(name, configuration):
 
   return configuration
 
-def get_config_lock_file():
-  return os.path.join(Script.get_tmp_dir(), "link_configs_lock_file")
 
 class Script(object):
   instance = None
