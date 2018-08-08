@@ -736,7 +736,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
-    List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(upgradeContext, upgradePlan);
+    List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(upgradeContext);
 
     if (groups.isEmpty()) {
       throw new AmbariException("There are no groupings available");

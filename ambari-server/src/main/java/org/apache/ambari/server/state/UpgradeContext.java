@@ -116,7 +116,7 @@ public class UpgradeContext {
   public static final String COMMAND_PARAM_TASKS = "tasks";
   public static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
 
-  /*
+  /**
    * The cluster that the upgrade is for.
    */
   private final Cluster m_cluster;
@@ -318,6 +318,10 @@ public class UpgradeContext {
       Long upgradePlanId = Long.valueOf(upgradeRequestMap.get(UPGRADE_PLAN_ID).toString());
       UpgradePlanEntity upgradePlan = upgradePlanDAO.findByPK(upgradePlanId);
 
+      if (null == upgradePlan) {
+        throw new AmbariException(String.format("Cannot find upgrade plan %s", upgradePlanId));
+      }
+
       m_direction = upgradePlan.getDirection();
 
       // depending on the direction, we must either have a target repository or an upgrade we are downgrading from
@@ -338,6 +342,13 @@ public class UpgradeContext {
             if (!summary.hasVersionChanges()) {
               continue;
             }
+
+            // !!! TODO this better be resolved in the upgrade detail and non-null
+            String upgradePackName = detail.getUpgradePack();
+
+            // !!! TODO this should be moved from the stack to the mpack
+            StackInfo stack = m_metaInfo.getStack(targetMpack.getStackId());
+            summary.setUpgradePack(stack.getUpgradePacks().get(upgradePackName));
 
             m_serviceGroups.put(serviceGroup, summary);
           }
@@ -749,7 +760,7 @@ public class UpgradeContext {
    */
   @Experimental(feature=ExperimentalFeature.MPACK_UPGRADES, comment = "Needs implementation and thought")
   public boolean isSupportedInUpgrade(String serviceName) {
-    return false;
+    return true;
   }
 
   /**

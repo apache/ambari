@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper.Type;
@@ -83,7 +84,7 @@ public class ColocatedGrouping extends Grouping {
     }
 
     @Override
-    public void add(UpgradeContext context, HostsType hostsType, String service,
+    public void add(UpgradeContext context, Mpack mpack, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
 
       int count = Double.valueOf(Math.ceil(
@@ -114,7 +115,7 @@ public class ColocatedGrouping extends Grouping {
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
           proxy.message = getStageText("Preparing",
-              context.getDisplayName(null, service, pc.name), Collections.singleton(host));
+              context.getDisplayName(mpack, service, pc.name), Collections.singleton(host));
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.service = service;
           proxy.component = pc.name;
@@ -133,7 +134,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.component = pc.name;
           proxy.type = Type.RESTART;
           proxy.message = getStageText("Restarting",
-              context.getDisplayName(null, service, pc.name), Collections.singleton(host));
+              context.getDisplayName(mpack, service, pc.name), Collections.singleton(host));
           targetList.add(proxy);
         }
 
@@ -162,7 +163,7 @@ public class ColocatedGrouping extends Grouping {
      * {@inheritDoc}
      */
     @Override
-    public List<StageWrapper> build(UpgradeContext upgradeContext, List<StageWrapper> stageWrappers) {
+    public List<StageWrapper> build(UpgradeContext upgradeContext, Mpack mpack, List<StageWrapper> stageWrappers) {
 
       final List<Task> visitedServerSideTasks = new ArrayList<>();
 
@@ -199,7 +200,7 @@ public class ColocatedGrouping extends Grouping {
         List<String> messages = new ArrayList<>();
         messages.add(m_batch.message);
         task.messages = messages;
-        formatFirstBatch(upgradeContext, task, befores);
+        formatFirstBatch(upgradeContext, mpack, task, befores);
 
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVER_SIDE_ACTION,
@@ -294,7 +295,7 @@ public class ColocatedGrouping extends Grouping {
      * @param task      the manual task representing the verification message
      * @param wrappers  the list of stage wrappers
      */
-    private void formatFirstBatch(UpgradeContext ctx, ManualTask task, List<StageWrapper> wrappers) {
+    private void formatFirstBatch(UpgradeContext ctx, Mpack mpack, ManualTask task, List<StageWrapper> wrappers) {
       Set<String> names = new LinkedHashSet<>();
       Map<String, Set<String>> compLocations = new HashMap<>();
 
@@ -310,7 +311,7 @@ public class ColocatedGrouping extends Grouping {
               compLocations.get(host).add(tw.getComponent());
             }
 
-            names.add(ctx.getDisplayName(null,
+            names.add(ctx.getDisplayName(mpack,
                 tw.getService(), tw.getComponent()));
           }
         }

@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang3.StringUtils;
 
@@ -361,6 +362,8 @@ public class Mpack {
 
     private final Mpack m_source;
     private final Mpack m_target;
+    
+    private UpgradePack m_upgradePack = null;
 
     /**
      * Constructor.
@@ -536,6 +539,23 @@ public class Mpack {
      */
     public boolean hasVersionChanges() {
       return !m_moduleVersionChanges.isEmpty();
+    }
+
+    /**
+     * Sets the upgrade pack which this summary uses for orchestration.
+     * 
+     * @param upgradePack
+     *          the upgrade pack
+     */
+    public void setUpgradePack(UpgradePack upgradePack) {
+      m_upgradePack = upgradePack;
+    }
+    
+    /**
+     * @return the upgrade pack used for orchestration
+     */
+    public UpgradePack getUpgradePack() {
+      return m_upgradePack;
     }
   }
 
