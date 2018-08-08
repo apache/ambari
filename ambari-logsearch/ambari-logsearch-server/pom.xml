@@ -291,7 +291,7 @@
     <dependency>
         <artifactId>guava</artifactId>
         <groupId>com.google.guava</groupId>
-        <version>20.0</version>
+        <version>25.0-jre</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
