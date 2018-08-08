@@ -37,7 +37,8 @@
     <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
     <slf4j.version>1.7.20</slf4j.version>
     <guice.version>4.1.0</guice.version>
-    <spring.version>4.3.16.RELEASE</spring.version>
+    <spring.version>4.3.17.RELEASE</spring.version>
+    <spring.security.version>4.2.7.RELEASE</spring.security.version>
     <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
     <postgres.version>42.2.2</postgres.version>
     <forkCount>4</forkCount>
@@ -163,17 +164,17 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-core</artifactId>
-        <version>4.2.4.RELEASE</version>
+        <version>${spring.security.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-config</artifactId>
-        <version>4.2.4.RELEASE</version>
+        <version>${spring.security.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-web</artifactId>
-        <version>4.2.4.RELEASE</version>
+        <version>${spring.security.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security.kerberos</groupId>
@@ -189,7 +190,7 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-ldap</artifactId>
-        <version>4.1.1.RELEASE</version>
+        <version>${spring.security.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.ldap</groupId>
