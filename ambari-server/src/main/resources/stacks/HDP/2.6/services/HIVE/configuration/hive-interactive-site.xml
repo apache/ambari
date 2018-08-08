@@ -83,7 +83,7 @@ limitations under the License.
   <property>
     <name>hive.server2.tez.sessions.custom.queue.allowed</name>
     <value>ignore</value>
-    <description>Whether to allow the users of this HS2 to specify custom queues - yes, no (fail if specified), ignore (use the default queues even if a custom one is specified)</description>
+    <description>Whether Tez session pool should allow submitting queries to custom queues - true, false (error out), ignore (accept the query but ignore the queue setting)</description>
     <display-name>Allow custom queues</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
