@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -63,9 +62,9 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.state.Mpack.MpackChangeSummary;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.AddComponentTask;
@@ -240,8 +239,11 @@ public class UpgradeHelper {
    * @param upgradePlan
    *          the upgrade plan to execute
    */
-  public List<UpgradeGroupHolder> createSequence(UpgradeContext context,
-      UpgradePlanEntity upgradePlan) throws AmbariException {
+  @Experimental(feature=ExperimentalFeature.UNIT_TEST_REQUIRED,
+      comment = "require testing for lifecycles and mocked clusters, upgrade plans")
+  public List<UpgradeGroupHolder> createSequence(UpgradeContext context) throws AmbariException {
+
+    Map<ServiceGroup, MpackChangeSummary> groupsInUpgrade = context.getServiceGroups();
 
     // !!! TODO there is a ton of work to do here for merging upgrade packs across lifecycles
 
@@ -249,26 +251,18 @@ public class UpgradeHelper {
 
     for (LifecycleType lifecycle : LifecycleType.ordered()) {
 
-      upgradePlan.getDetails().forEach(detail -> {
-        long mpackId = detail.getMpackTargetId();
-        StackId stackId = m_ambariMetaInfoProvider.get().getMpack(mpackId).getStackId();
-        final StackInfo stack;
-        try {
-          stack = m_ambariMetaInfoProvider.get().getStack(stackId);
-        } catch (StackAccessException e) {
-          LOG.info("Cannot access stack ");
-          return;
-        }
-        String upgradePackName = detail.getUpgradePack();
+      groupsInUpgrade.values().forEach(detail -> {
 
-        UpgradePack upgradePack = stack.getUpgradePacks().get(upgradePackName);
+        Mpack target = detail.getTarget();
+        UpgradePack upgradePack = detail.getUpgradePack();
+
         if (null == upgradePack) {
           throw new IllegalArgumentException(
-              String.format("Upgrade detail cannot find upgrade pack %s for %s", upgradePackName, stackId));
+              String.format("Upgrade detail cannot find upgrade pack %s", target));
         }
 
         try {
-          groups.addAll(createSequence(context, upgradePack, lifecycle));
+          groups.addAll(createSequence(context, upgradePack, target, lifecycle));
         } catch (AmbariException e) {
           throw new IllegalArgumentException(e);
         }
@@ -292,7 +286,7 @@ public class UpgradeHelper {
    * @return the list of holders
    */
   private List<UpgradeGroupHolder> createSequence(UpgradeContext context, UpgradePack upgradePack,
-      LifecycleType lifecycleType) throws AmbariException {
+      Mpack mpack, LifecycleType lifecycleType) throws AmbariException {
 
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
@@ -481,7 +475,7 @@ public class UpgradeHelper {
                 if (!hostsType.getHosts().isEmpty() && hostsType.hasMastersAndSecondaries()) {
                   // The order is important, first do the standby, then the active namenode.
                   hostsType.arrangeHostSecondariesFirst();
-                  builder.add(context, hostsType, service.serviceName,
+                  builder.add(context, mpack, hostsType, service.serviceName,
                       svc.isClientOnlyService(), pc, null);
                 } else {
                   LOG.warn("Could not orchestrate NameNode.  Hosts could not be resolved: hosts={}, active={}, standby={}",
@@ -493,27 +487,27 @@ public class UpgradeHelper {
                 if (isNameNodeHA && hostsType.hasMastersAndSecondaries()) {
                   // This could be any order, but the NameNodes have to know what role they are going to take.
                   // So need to make 2 stages, and add different parameters to each one.
-                  builder.add(context, HostsType.normal(hostsType.getMasters()), service.serviceName,
+                  builder.add(context, mpack, HostsType.normal(hostsType.getMasters()), service.serviceName,
                       svc.isClientOnlyService(), pc, nameNodeRole("active"));
 
-                  builder.add(context, HostsType.normal(hostsType.getSecondaries()), service.serviceName,
+                  builder.add(context, mpack, HostsType.normal(hostsType.getSecondaries()), service.serviceName,
                       svc.isClientOnlyService(), pc, nameNodeRole("standby"));
                 } else {
                   // If no NameNode HA, then don't need to change hostsType.hosts since there should be exactly one.
-                  builder.add(context, hostsType, service.serviceName,
+                  builder.add(context, mpack, hostsType, service.serviceName,
                       svc.isClientOnlyService(), pc, null);
                 }
 
                 break;
             }
           } else {
-            builder.add(context, hostsType, service.serviceName,
+            builder.add(context, mpack, hostsType, service.serviceName,
                 svc.isClientOnlyService(), pc, null);
           }
         }
       }
 
-      List<StageWrapper> proxies = builder.build(context);
+      List<StageWrapper> proxies = builder.build(context, mpack);
 
       if (CollectionUtils.isNotEmpty(proxies)) {
 

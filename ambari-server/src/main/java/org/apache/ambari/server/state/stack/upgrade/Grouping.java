@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.OrderService;
@@ -136,7 +137,7 @@ public class Grouping {
      * @param params additional parameters
      */
     @Override
-    public void add(UpgradeContext context, HostsType hostsType, String service,
+    public void add(UpgradeContext context, Mpack mpack, HostsType hostsType, String service,
        boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
 
       // Construct the pre tasks during Upgrade/Downgrade direction.
@@ -149,7 +150,7 @@ public class Grouping {
         List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks, params);
         List<List<TaskWrapper>> organizedTasks = organizeTaskWrappersBySyncRules(preTasks);
         for (List<TaskWrapper> tasks : organizedTasks) {
-          addTasksToStageInBatches(tasks, "Preparing", context, service, pc, params);
+          addTasksToStageInBatches(tasks, "Preparing", context, mpack, service, pc, params);
         }
       }
 
@@ -157,7 +158,7 @@ public class Grouping {
       Task t = resolveTask(context, pc);
       if (null != t) {
         TaskWrapper tw = new TaskWrapper(service, pc.name, hostsType.getHosts(), params, t);
-        addTasksToStageInBatches(Collections.singletonList(tw), t.getActionVerb(), context, service, pc, params);
+        addTasksToStageInBatches(Collections.singletonList(tw), t.getActionVerb(), context, mpack, service, pc, params);
       }
 
       // Construct the post tasks during Upgrade/Downgrade direction.
@@ -166,7 +167,7 @@ public class Grouping {
         List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks, params);
         List<List<TaskWrapper>> organizedTasks = organizeTaskWrappersBySyncRules(postTasks);
         for (List<TaskWrapper> tasks : organizedTasks) {
-          addTasksToStageInBatches(tasks, "Completing", context, service, pc, params);
+          addTasksToStageInBatches(tasks, "Completing", context, mpack, service, pc, params);
         }
       }
 
@@ -215,7 +216,8 @@ public class Grouping {
      * @param pc Processing Component
      * @param params Params to add to the stage.
      */
-    private void addTasksToStageInBatches(List<TaskWrapper> tasks, String verb, UpgradeContext ctx, String service, ProcessingComponent pc, Map<String, String> params) {
+    private void addTasksToStageInBatches(List<TaskWrapper> tasks, String verb,
+        UpgradeContext ctx, Mpack mpack, String service, ProcessingComponent pc, Map<String, String> params) {
       if (tasks == null || tasks.isEmpty() || tasks.get(0).getTask() == null) {
         return;
       }
@@ -242,7 +244,7 @@ public class Grouping {
         for (Set<String> hostSubset : hostSets) {
           batchNum++;
 
-          String stageText = getStageText(verb, ctx.getDisplayName(null, service, pc.name),
+          String stageText = getStageText(verb, ctx.getDisplayName(mpack, service, pc.name),
               hostSubset, batchNum, numBatchesNeeded);
 
           StageWrapper stage = new StageWrapper(
@@ -261,7 +263,7 @@ public class Grouping {
      * @return Return the stages, which may potentially be followed by service checks.
      */
     @Override
-    public List<StageWrapper> build(UpgradeContext upgradeContext,
+    public List<StageWrapper> build(UpgradeContext upgradeContext, Mpack mpack,
         List<StageWrapper> stageWrappers) {
 
       // insert all pre-processed stage wrappers first
@@ -275,7 +277,7 @@ public class Grouping {
         tasks.add(new TaskWrapper(
             service, "", Collections.emptySet(), new ServiceCheckTask()));
 
-        displays.add(upgradeContext.getDisplayName(null, service));
+        displays.add(upgradeContext.getDisplayName(mpack, service));
       }
 
       if (upgradeContext.getDirection().isUpgrade() && m_serviceCheck

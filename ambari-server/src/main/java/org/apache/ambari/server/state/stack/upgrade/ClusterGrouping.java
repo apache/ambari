@@ -40,6 +40,7 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
@@ -153,7 +154,7 @@ public class ClusterGrouping extends Grouping {
     }
 
     @Override
-    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+    public void add(UpgradeContext ctx, Mpack mpack, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
       // !!! no-op in this case
     }
@@ -162,7 +163,7 @@ public class ClusterGrouping extends Grouping {
      * {@inheritDoc}
      */
     @Override
-    public List<StageWrapper> build(UpgradeContext upgradeContext,
+    public List<StageWrapper> build(UpgradeContext upgradeContext, Mpack mpack,
         List<StageWrapper> stageWrappers) {
 
       if (null == executionStages) {
