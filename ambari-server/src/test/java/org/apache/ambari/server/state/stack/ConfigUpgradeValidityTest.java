@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -72,7 +74,13 @@ import junit.framework.Assert;
  * IDs exist in the {@code config-upgrade.xml} which will be used/created. Also
  * ensures that every XML file is valid against its XSD.
  */
+@Ignore
 @Category({ category.StackUpgradeTest.class})
+@Experimental(
+    feature = ExperimentalFeature.MULTI_SERVICE,
+    comment = "This was a very useful test that no longer works since all of the XML files for "
+        + "upgrades are delivered in mpacks. This should be converted into a some realtime check "
+        + "when an mpack is registered.")
 public class ConfigUpgradeValidityTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigUpgradeValidityTest.class);
