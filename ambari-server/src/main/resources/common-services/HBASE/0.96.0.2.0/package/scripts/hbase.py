@@ -208,7 +208,7 @@ def hbase(name=None):
       group=params.user_group,
       owner=params.hbase_user
     )
-  if name == "master":
+  if name == "master" and params.default_fs:
     if not params.hbase_hdfs_root_dir_protocol or params.hbase_hdfs_root_dir_protocol == urlparse(params.default_fs).scheme:
       params.HdfsResource(params.hbase_hdfs_root_dir,
                            type="directory",
@@ -229,6 +229,14 @@ def hbase(name=None):
                           mode=0755
       )
     params.HdfsResource(None, action="execute")
+
+  if name in ('master', 'regionserver') and not params.default_fs:
+    Directory(params.hbase_staging_dir,
+      owner = params.hbase_user,
+      create_parents = True,
+      cd_access = "a",
+      mode = 0711,
+    )
 
   if params.phoenix_enabled:
     Package(params.phoenix_package,

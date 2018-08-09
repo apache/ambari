@@ -260,7 +260,7 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 
 hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
+default_fs = default('configurations/core-site/fs.defaultFS', None)
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 
