@@ -49,9 +49,6 @@ public class AgentReportsProcessor {
   }
 
   @Inject
-  private HeartBeatHandler hh;
-
-  @Inject
   private UnitOfWork unitOfWork;
 
   @Inject
@@ -77,17 +74,8 @@ public class AgentReportsProcessor {
     public void run() {
       try {
         unitOfWork.begin();
-        String hostName = agentReport.getHostName();
         try {
-
-          //TODO rewrite with polymorphism usage.
-          if (agentReport.getCommandReports() != null) {
-            hh.handleCommandReportStatus(agentReport.getCommandReports(), hostName);
-          } else if (agentReport.getComponentStatuses() != null) {
-            hh.handleComponentReportStatus(agentReport.getComponentStatuses(), hostName);
-          } else if (agentReport.getHostStatusReport() != null) {
-            hh.handleHostReportStatus(agentReport.getHostStatusReport(), hostName);
-          }
+          agentReport.process();
         } catch (AmbariException e) {
           LOG.error("Error processing agent reports", e);
         }

@@ -298,13 +298,19 @@ describe('App.ComponentActionsByConfigs', function () {
   describe("#getDependentComponents()", function () {
 
     beforeEach(function() {
-      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
-        dependencies: [{
-          scope: 'host',
-          componentName: 'C2'
-        }],
-        isClient: false
-      }));
+      var mock = sinon.stub(App.StackServiceComponent, 'find');
+      mock.returns([
+        App.StackServiceComponent.createRecord({componentName: 'C1'}),
+        App.StackServiceComponent.createRecord({componentName: 'C2'})
+      ]);
+      mock.withArgs('C1').returns(
+        App.StackServiceComponent.createRecord({
+          componentName: 'C1',
+          dependencies: [{ scope: 'host', componentName: 'C2' }],
+          isClient: false
+        })
+      );
+      mock.withArgs('C2').returns(App.StackServiceComponent.createRecord({componentName: 'C2'}));
       sinon.stub(App.HostComponent, 'find').returns([]);
     });
 

@@ -1732,7 +1732,7 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
-      <version>0.1.45</version>
+      <version>0.1.54</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -1791,7 +1791,7 @@
     <dependency>
       <groupId>org.kohsuke</groupId>
       <artifactId>libpam4j</artifactId>
-      <version>1.8</version>
+      <version>1.10</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jna</groupId>

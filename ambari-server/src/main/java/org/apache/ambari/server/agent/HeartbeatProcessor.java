@@ -41,6 +41,8 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReport;
+import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
@@ -550,6 +552,70 @@ public class HeartbeatProcessor extends AbstractService{
   }
 
   /**
+   * Process reports of components versions
+   * @throws AmbariException
+   */
+  public void processVersionReports(ComponentVersionReports versionReports, String hostname) throws AmbariException {
+    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
+    for (Cluster cl : clusters) {
+      for (Map.Entry<String, List<ComponentVersionReport>> status : versionReports
+          .getComponentVersionReports().entrySet()) {
+        if (Long.valueOf(status.getKey()).equals(cl.getClusterId())) {
+          for (ComponentVersionReport versionReport : status.getValue()) {
+            try {
+              Service svc = cl.getService(versionReport.getServiceName());
+
+              String componentName = versionReport.getComponentName();
+              if (svc.getServiceComponents().containsKey(componentName)) {
+                ServiceComponent svcComp = svc.getServiceComponent(
+                    componentName);
+                ServiceComponentHost scHost = svcComp.getServiceComponentHost(
+                    hostname);
+
+                String version = versionReport.getVersion();
+
+                HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cl,
+                    scHost, version);
+                versionEventPublisher.publish(event);
+              }
+            } catch (ServiceNotFoundException e) {
+              LOG.warn("Received a version report for a non-initialized"
+                  + " service"
+                  + ", clusterId=" + versionReport.getClusterId()
+                  + ", serviceName=" + versionReport.getServiceName());
+              continue;
+            } catch (ServiceComponentNotFoundException e) {
+              LOG.warn("Received a version report for a non-initialized"
+                  + " servicecomponent"
+                  + ", clusterId=" + versionReport.getClusterId()
+                  + ", serviceName=" + versionReport.getServiceName()
+                  + ", componentName=" + versionReport.getComponentName());
+              continue;
+            } catch (ServiceComponentHostNotFoundException e) {
+              LOG.warn("Received a version report for a non-initialized"
+                  + " hostcomponent"
+                  + ", clusterId=" + versionReport.getClusterId()
+                  + ", serviceName=" + versionReport.getServiceName()
+                  + ", componentName=" + versionReport.getComponentName()
+                  + ", hostname=" + hostname);
+              continue;
+            } catch (RuntimeException e) {
+              LOG.warn("Received a version report with invalid payload"
+                  + " service"
+                  + ", clusterId=" + versionReport.getClusterId()
+                  + ", serviceName=" + versionReport.getServiceName()
+                  + ", componentName=" + versionReport.getComponentName()
+                  + ", hostname=" + hostname
+                  + ", error=" + e.getMessage());
+              continue;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Process reports of status commands
    * @throws AmbariException
    */
@@ -596,13 +662,6 @@ public class HeartbeatProcessor extends AbstractService{
                     List<Map<String, String>> list = (List<Map<String, String>>) extra.get("processes");
                     scHost.setProcesses(list);
                   }
-                  if (extra.containsKey("version")) {
-                    String version = extra.get("version").toString();
-
-                    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cl, scHost, version);
-                    versionEventPublisher.publish(event);
-                  }
-
                 } catch (Exception e) {
                   LOG.error("Could not access extra JSON for " +
                       scHost.getServiceComponentName() + " from " +
