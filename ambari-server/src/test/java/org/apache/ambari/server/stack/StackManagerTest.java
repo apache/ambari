@@ -750,7 +750,7 @@ public class StackManagerTest {
     URL rootDirectoryURL = StackManagerTest.class.getResource("/");
     Assert.notNull(rootDirectoryURL);
 
-    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
+    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/test/resources");
 
     File stackRoot = new File(resourcesDirectory, "stacks");
     File commonServices = new File(resourcesDirectory, "common-services");
