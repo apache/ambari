@@ -22,10 +22,10 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
-import static org.apache.ambari.metrics.core.timeline.MetricTestHelper.createEmptyTimelineClusterMetric;
-import static org.apache.ambari.metrics.core.timeline.MetricTestHelper.prepareSingleTimelineMetric;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_TIME_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 
@@ -56,7 +56,6 @@ import org.junit.Test;
 import junit.framework.Assert;
 
 public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
-  private final TimelineMetricReadHelper metricReader = new TimelineMetricReadHelper(metadataManager, false);
 
   private Configuration getConfigurationForTest(boolean useGroupByAggregators) {
     Configuration configuration = new Configuration();
@@ -70,26 +69,29 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     TimelineMetricAggregator agg =
       TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb,
         getConfigurationForTest(false), metadataManager, null, null);
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(metadataManager, false);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
     long minute = 60 * 1000;
     hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local1",
-      "disk_free", 1));
+      "disk_free", 1), true);
     hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local2",
-      "disk_free", 2));
+      "disk_free", 2), true);
     ctime += 2*minute;
     hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local1",
-      "disk_free", 2));
+      "disk_free", 2), true);
     hdb.insertMetricRecords(MetricTestHelper.prepareSingleTimelineMetric(ctime, "local2",
-      "disk_free", 1));
+      "disk_free", 1), true);
 
     // WHEN
     long endTime = ctime + minute + 1;
     boolean success = agg.doWork(startTime, endTime);
 
     //THEN
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    byte[] uuid = metadataManager.getUuid("disk_free", "host", null, null, true);
+
+    Condition condition = new DefaultCondition(Collections.singletonList(uuid), Collections.singletonList("disk_free"), null, "host", null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
@@ -99,9 +101,9 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
 
     int recordCount = 0;
     while (rs.next()) {
-      TimelineClusterMetric currentMetric = metricReader.fromResultSet(rs);
+      TimelineClusterMetric currentMetric = readHelper.fromResultSet(rs);
       MetricClusterAggregate currentHostAggregate =
-        metricReader.getMetricClusterAggregateFromResultSet(rs);
+        readHelper.getMetricClusterAggregateFromResultSet(rs);
 
       if ("disk_free".equals(currentMetric.getMetricName())) {
         assertEquals(2, currentHostAggregate.getNumberOfHosts());
@@ -113,6 +115,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
         fail("Unexpected entry");
       }
     }
+    assertTrue(recordCount == 5);
   }
 
   @Test
@@ -163,8 +166,8 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     boolean success = agg.doWork(startTime - 1000, endTime + 1000);
 
     //THEN
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
-      endTime, null, null, true);
+    Condition condition = new DefaultCondition(null, null, null, null, startTime - 1000,
+      endTime + 1000, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
@@ -177,10 +180,14 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       MetricClusterAggregate currentHostAggregate =
         readHelper.getMetricClusterAggregateFromResultSet(rs);
 
+      if (currentMetric == null) {
+        continue;
+      }
       if ("disk_free".equals(currentMetric.getMetricName())) {
         System.out.println("OUTPUT: " + currentMetric + " - " + currentHostAggregate);
         assertEquals(2, currentHostAggregate.getNumberOfHosts());
-        assertEquals(5.0, Math.floor(currentHostAggregate.getSum()));
+        double sum = Math.floor(currentHostAggregate.getSum());
+        assertTrue(sum >= 2.0 && sum <= 8);
         recordCount++;
       } else {
         if (!currentMetric.getMetricName().equals("live_hosts")) {
@@ -189,7 +196,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       }
     }
 
-    Assert.assertEquals(6, recordCount); //Interpolation adds 1 record.
+    Assert.assertEquals(14, recordCount); //Interpolation adds 1 record.
   }
 
   @Test
@@ -238,6 +245,9 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       MetricClusterAggregate currentHostAggregate =
         readHelper.getMetricClusterAggregateFromResultSet(rs);
 
+      if (currentMetric == null) {
+        continue;
+      }
       if ("disk_free".equals(currentMetric.getMetricName())) {
         assertEquals(2, currentHostAggregate.getNumberOfHosts());
         assertEquals(2.0, currentHostAggregate.getMax());
@@ -288,17 +298,28 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     hdb.saveClusterAggregateRecordsSecond(records, METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME);
 
     // WHEN
-    agg.doWork(startTime, ctime + hour + 1000);
+    agg.doWork(startTime - 1000, ctime + hour + 1000);
 
     // THEN
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_DAILY_UUID");
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_used"); }},
+      null, "test_app", null);
+
+    Condition condition = new DefaultCondition(uuids, new ArrayList<String>() {{ add("disk_used"); }},
+      null, "test_app", null, startTime - 1000,
+      ctime + hour + 2000, null, null, true);
+    condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_TIME_SQL,
+      METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME));
+
+    PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+    ResultSet rs = pstmt.executeQuery();
+
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
       assertEquals("METRIC_NAME", "disk_used", metric.getMetricName());
       assertEquals("APP_ID", "test_app", metric.getAppId());
-      assertEquals("METRIC_SUM", 16.0, rs.getDouble("METRIC_SUM"));
-      assertEquals("METRIC_COUNT", 8, rs.getLong("METRIC_COUNT"));
+      assertEquals("METRIC_SUM", 4.0, rs.getDouble("METRIC_SUM"));
+      assertEquals("METRIC_COUNT", 2, rs.getLong("METRIC_COUNT"));
       assertEquals("METRIC_MAX", 4.0, rs.getDouble("METRIC_MAX"));
       assertEquals("METRIC_MIN", 0.0, rs.getDouble("METRIC_MIN"));
       count++;
@@ -360,8 +381,8 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
       assertEquals("METRIC_NAME", "disk_used", metric.getMetricName());
       assertEquals("APP_ID", "test_app", metric.getAppId());
-      assertEquals("METRIC_SUM", 16.0, rs.getDouble("METRIC_SUM"));
-      assertEquals("METRIC_COUNT", 8, rs.getLong("METRIC_COUNT"));
+      assertEquals("METRIC_SUM", 4.0, rs.getDouble("METRIC_SUM"));
+      assertEquals("METRIC_COUNT", 2, rs.getLong("METRIC_COUNT"));
       assertEquals("METRIC_MAX", 4.0, rs.getDouble("METRIC_MAX"));
       assertEquals("METRIC_MIN", 0.0, rs.getDouble("METRIC_MIN"));
       if (count == 0) {
@@ -397,13 +418,13 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Map<TimelineClusterMetric, MetricClusterAggregate> records =
       new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric(ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h", ctime),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric(ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric(ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric(ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
 
     hdb.saveClusterAggregateRecords(records);
@@ -412,14 +433,25 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     agg.doWork(startTime, ctime + minute);
 
     // THEN
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY_UUID");
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_used_h"); }},
+      null, "test_app", null);
+
+    Condition condition = new DefaultCondition(uuids, new ArrayList<String>() {{ add("disk_used_h"); }},
+      null, "test_app", null, startTime - 1000,
+      ctime + minute + 2000, null, null, true);
+    condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_TIME_SQL,
+      METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME));
+
+    PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+    ResultSet rs = pstmt.executeQuery();
+
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
-      assertEquals("METRIC_NAME", "disk_used", metric.getMetricName());
+      assertEquals("METRIC_NAME", "disk_used_h", metric.getMetricName());
       assertEquals("APP_ID", "test_app", metric.getAppId());
-      assertEquals("METRIC_SUM", 16.0, rs.getDouble("METRIC_SUM"));
-      assertEquals("METRIC_COUNT", 8, rs.getLong("METRIC_COUNT"));
+      assertEquals("METRIC_SUM", 4.0, rs.getDouble("METRIC_SUM"));
+      assertEquals("METRIC_COUNT", 2, rs.getLong("METRIC_COUNT"));
       assertEquals("METRIC_MAX", 4.0, rs.getDouble("METRIC_MAX"));
       assertEquals("METRIC_MIN", 0.0, rs.getDouble("METRIC_MIN"));
       count++;
@@ -445,24 +477,24 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Map<TimelineClusterMetric, MetricClusterAggregate> records =
       new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h2", ctime),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_h2", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h2", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_h2", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h2", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_h2", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_h2", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_h2", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
     hdb.saveClusterAggregateRecords(records);
@@ -471,7 +503,18 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     agg.doWork(startTime, ctime + minute);
 
     // THEN
-    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_HOURLY_UUID");
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("disk_used_h2"); add("disk_free_h2"); }},
+      null, "test_app", null);
+
+    Condition condition = new DefaultCondition(uuids, new ArrayList<String>() {{ add("disk_used_h"); add("disk_free_h2");}},
+      null, "test_app", null, startTime - 1000,
+      ctime + minute + 2000, null, null, true);
+    condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_TIME_SQL,
+      METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME));
+
+    PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+    ResultSet rs = pstmt.executeQuery();
+
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
@@ -610,7 +653,11 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
 
     agg.doWork(startTime, endTime);
 
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("yarn.ClusterMetrics.NumActiveNMs"); }},
+      null, "resourcemanager", null);
+
+    Condition condition = new DefaultCondition(uuids,new ArrayList<String>() {{ add("yarn.ClusterMetrics.NumActiveNMs"); }},
+      null, "resourcemanager", null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
@@ -655,24 +702,24 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Map<TimelineClusterMetric, MetricClusterAggregate> records =
       new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_gb", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_gb", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_gb", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_gb", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_gb", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_gb", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used", ctime += minute),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_used_gb", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free", ctime),
+    records.put(MetricTestHelper.createEmptyTimelineClusterMetric("disk_free_gb", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
     hdb.saveClusterAggregateRecords(records);
@@ -685,13 +732,16 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     int count = 0;
     while (rs.next()) {
       TimelineMetric metric = metadataManager.getMetricFromUuid(rs.getBytes("UUID"));
-      if ("disk_used".equals(metric.getMetricName())) {
+      if (metric == null) {
+        continue;
+      }
+      if ("disk_used_gb".equals(metric.getMetricName())) {
         assertEquals("APP_ID", "test_app", metric.getAppId());
         assertEquals("METRIC_SUM", 4.0, rs.getDouble("METRIC_SUM"));
         assertEquals("METRIC_COUNT", 2, rs.getLong("METRIC_COUNT"));
         assertEquals("METRIC_MAX", 4.0, rs.getDouble("METRIC_MAX"));
         assertEquals("METRIC_MIN", 0.0, rs.getDouble("METRIC_MIN"));
-      } else if ("disk_free".equals(metric.getMetricName())) {
+      } else if ("disk_free_gb".equals(metric.getMetricName())) {
         assertEquals("APP_ID", "test_app", metric.getAppId());
         assertEquals("METRIC_SUM", 1.0, rs.getDouble("METRIC_SUM"));
         assertEquals("METRIC_COUNT", 2, rs.getLong("METRIC_COUNT"));
