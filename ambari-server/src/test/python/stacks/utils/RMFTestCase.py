@@ -194,7 +194,10 @@ class RMFTestCase(TestCase):
 
     if target == self.TARGET_STACKS:
       base_path = os.path.join(src_dir, PATH_TO_STACKS)
-      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, "configs") if stack_version is None \
+        else os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+
       return base_path, configs_path
     elif target == self.TARGET_CUSTOM_ACTIONS:
       base_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTIONS)
@@ -206,7 +209,10 @@ class RMFTestCase(TestCase):
       return base_path, configs_path
     elif target == self.TARGET_STACK_HOOKS:
       base_path = os.path.join(src_dir, PATH_TO_STACK_HOOKS)
-      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, "configs") if stack_version is None \
+        else os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+
       return base_path, configs_path
     else:
       raise RuntimeError("Wrong target value %s", target)
@@ -226,27 +232,27 @@ class RMFTestCase(TestCase):
   @staticmethod
   def get_stack_tools():
     """
-    Read stack_tools config property from resources/stacks/HDP/2.0.6/properties/stack_tools.json
+    Read stack_tools config property from resources/stacks/configs/stack_tools.json
     """
-    stack_tools_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACKS, "2.0.6", "properties", "stack_tools.json")
+    stack_tools_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACK_TESTS, "configs", "stack_tools.json")
     with open(stack_tools_file, "r") as f:
       return f.read()
 
   @staticmethod
   def get_stack_features():
     """
-    Read stack_features config property from resources/stacks/HDP/2.0.6/properties/stack_features.json
+    Read stack_features config property from resources/stacks/configs/stack_features.json
     """
-    stack_features_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACKS, "2.0.6", "properties", "stack_features.json")
+    stack_features_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACK_TESTS, "configs", "stack_features.json")
     with open(stack_features_file, "r") as f:
       return f.read()
 
   @staticmethod
   def get_stack_packages():
     """
-    Read stack_packages config property from resources/stacks/HDP/2.0.6/properties/stack_packages.json
+    Read stack_packages config property from resources/stacks/configs/stack_packages.json
     """
-    stack_packages_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACKS, "2.0.6", "properties", "stack_packages.json")
+    stack_packages_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACK_TESTS, "configs", "stack_packages.json")
     with open(stack_packages_file, "r") as f:
       return f.read()
 
