@@ -72,6 +72,7 @@ var files = [
   'test/controllers/main/admin/federation/step1_controller_test',
   'test/controllers/main/admin/federation/step3_controller_test',
   'test/controllers/main/admin/federation/step4_controller_test',
+  'test/controllers/main/admin/federation/wizard_controller_test',
   'test/controllers/main/admin/highAvailability_controller_test',
   'test/controllers/main/admin/highAvailability/progress_controller_test',
   'test/controllers/main/admin/highAvailability/progress_popup_controller_test',
