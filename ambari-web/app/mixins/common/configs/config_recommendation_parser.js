@@ -201,8 +201,8 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
    * Configs with value across multiple lines could have them in a different order
    * Eg: capacity-scheduler
    *
-   * @param {number} len
-   * @param {String} [allowed]
+   * @param {String} prevRec
+   * @param {String} value
    * @returns {Boolean}
    * @method isPrevRecAndValueEqual
    */
