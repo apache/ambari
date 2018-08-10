@@ -82,6 +82,14 @@
                   <shadedPattern>org.apache.ambari.metrics.relocated.commons.lang</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>org.apache.commons.math3</pattern>
+                  <shadedPattern>org.apache.ambari.metrics.relocated.commons.math3</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.codec</pattern>
+                  <shadedPattern>org.apache.ambari.metrics.relocated.commons.codec</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>org.apache.curator</pattern>
                   <shadedPattern>org.apache.ambari.metrics.sink.relocated.curator</shadedPattern>
                 </relocation>
