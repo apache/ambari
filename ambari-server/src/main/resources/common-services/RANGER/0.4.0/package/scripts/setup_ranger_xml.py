@@ -120,6 +120,13 @@ def setup_ranger_admin(upgrade_type=None):
     create_parents=True
   )
 
+  File(format('{ranger_conf}/ranger-admin-env.sh'),
+    content = format("export JAVA_HOME={java_home}"),
+    owner = params.unix_user,
+    group = params.unix_group,
+    mode = 0755
+  )
+
   if params.stack_supports_pid:
     File(format('{ranger_conf}/ranger-admin-env-piddir.sh'),
       content = format("export RANGER_PID_DIR_PATH={ranger_pid_dir}\nexport RANGER_USER={unix_user}"),
