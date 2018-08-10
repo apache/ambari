@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.GROUP_MAPPING_RULES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -26,12 +27,18 @@ import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
+import org.apache.ambari.server.events.JpaInitializedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -39,6 +46,7 @@ import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -46,6 +54,10 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.ldap.LdapBatchDto;
+import org.apache.ambari.server.security.ldap.LdapGroupDto;
+import org.apache.ambari.server.security.ldap.LdapUserDto;
+import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -195,16 +207,14 @@ public class TestUsers {
     try {
       users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, false);
       fail("Null password should not be allowed");
-    }
-    catch (AmbariException e) {
+    } catch (AmbariException e) {
       assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
     }
 
     try {
       users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "", false);
       fail("Empty password should not be allowed");
-    }
-    catch (AmbariException e) {
+    } catch (AmbariException e) {
       assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
     }
   }
@@ -528,7 +538,66 @@ public class TestUsers {
     assertEquals(3, userEntity2.getAuthenticationEntities().size());
   }
 
-    private UserAuthenticationEntity getAuthenticationEntity(UserEntity userEntity, UserAuthenticationType type) {
+  @Test
+  public void testProcessLdapSync() {
+    // Setup LDAP properties
+    AmbariConfigurationEntity entity = new AmbariConfigurationEntity();
+    entity.setCategoryName(GROUP_MAPPING_RULES.getConfigurationCategory().getCategoryName());
+    entity.setPropertyName(GROUP_MAPPING_RULES.key());
+    entity.setPropertyValue("admins");
+    injector.getInstance(AmbariConfigurationDAO.class).create(entity);
+
+    AmbariEventPublisher eventPublisher = injector.getInstance(AmbariEventPublisher.class);
+    eventPublisher.publish(new JpaInitializedEvent());
+    eventPublisher.publish(new AmbariConfigurationChangedEvent(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.name()));
+
+    LdapBatchDto batchInfo = new LdapBatchDto();
+    LdapUserDto userToBeCreated;
+    LdapGroupDto groupToBeCreated;
+
+    userToBeCreated = new LdapUserDto();
+    userToBeCreated.setDn("dn=user1");
+    userToBeCreated.setUid("user1");
+    userToBeCreated.setUserName("User1");
+    batchInfo.getUsersToBeCreated().add(userToBeCreated);
+
+    userToBeCreated = new LdapUserDto();
+    userToBeCreated.setDn("dn=user2");
+    userToBeCreated.setUid("user2");
+    userToBeCreated.setUserName("User2");
+    batchInfo.getUsersToBeCreated().add(userToBeCreated);
+
+    groupToBeCreated = new LdapGroupDto();
+    groupToBeCreated.setGroupName("admins");
+    groupToBeCreated.setMemberAttributes(Collections.singleton("dn=User1"));
+    batchInfo.getGroupsToBeCreated().add(groupToBeCreated);
+
+    groupToBeCreated = new LdapGroupDto();
+    groupToBeCreated.setGroupName("non-admins");
+    groupToBeCreated.setMemberAttributes(Collections.singleton("dn=User2"));
+    batchInfo.getGroupsToBeCreated().add(groupToBeCreated);
+
+    batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto("admins", "user1"));
+    batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto("non-admins", "user2"));
+
+    users.processLdapSync(batchInfo);
+
+    assertNotNull(users.getUser("user1"));
+    assertNotNull(users.getUser("user2"));
+
+    Collection<AmbariGrantedAuthority> authorities;
+
+    authorities = users.getUserAuthorities("user1");
+    assertNotNull(authorities);
+    assertEquals(1, authorities.size());
+    assertEquals("AMBARI.ADMINISTRATOR", authorities.iterator().next().getPrivilegeEntity().getPermission().getPermissionName());
+
+    authorities = users.getUserAuthorities("user2");
+    assertNotNull(authorities);
+    assertEquals(0, authorities.size());
+  }
+
+  private UserAuthenticationEntity getAuthenticationEntity(UserEntity userEntity, UserAuthenticationType type) {
     assertNotNull(userEntity);
     Collection<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
     assertNotNull(authenticationEntities);
