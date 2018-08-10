@@ -109,7 +109,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
   }
 
   protected setXScaleDomain(data: GraphScaleItem[]): void {
-    this.xScale.domain(d3.extent(data, item => item.tick)).nice();
+    this.xScale.domain(d3.extent(data, item => item.tick)).nice().domain();
   }
 
   /**
