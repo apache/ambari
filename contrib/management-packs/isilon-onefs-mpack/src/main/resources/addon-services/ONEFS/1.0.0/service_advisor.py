@@ -108,6 +108,7 @@ else:
   class ONEFSServiceAdvisor(service_advisor.ServiceAdvisor):
     def getServiceConfigurationRecommendations(self, configs, clusterData, services, hosts):
       try:
+        self.recommendHadoopProxyUsers(configs, services, hosts)
         putCoreSiteProperty = self.putProperty(configs, "core-site", services)
         putHdfsSiteProperty = self.putProperty(configs, "hdfs-site", services)
         onefs_host = Uri.onefs(services)
