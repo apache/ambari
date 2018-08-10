@@ -162,6 +162,16 @@ public class LogFeederProps implements LogFeederProperties {
   public boolean solrFilterStorage;
 
   @LogSearchPropertyDescription(
+    name = LogFeederConstants.USE_ZK_FILTER_STORAGE_PROPERTY,
+    description = "Use zk as a log level filter storage (works only with local config)",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.USE_ZK_FILTER_STORAGE_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.USE_ZK_FILTER_STORAGE_PROPERTY + ":" + LogFeederConstants.USE_ZK_FILTER_STORAGE_DEFAULT +"}")
+  public boolean zkFilterStorage;
+
+  @LogSearchPropertyDescription(
     name = LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_PROPERTY,
     description = "Monitor log level filters (in solr) periodically - used for checking updates.",
     examples = {"false"},
@@ -332,6 +342,14 @@ public class LogFeederProps implements LogFeederProperties {
 
   public void setSolrUrlsStr(String solrUrlsStr) {
     this.solrUrlsStr = solrUrlsStr;
+  }
+
+  public boolean isZkFilterStorage() {
+    return zkFilterStorage;
+  }
+
+  public void setZkFilterStorage(boolean zkFilterStorage) {
+    this.zkFilterStorage = zkFilterStorage;
   }
 
   public String[] getSolrUrls() {
