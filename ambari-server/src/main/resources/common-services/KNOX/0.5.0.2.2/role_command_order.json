@@ -1,7 +1,0 @@
-{
-  "general_deps" : {
-    "_comment" : "dependencies for KNOX",
-    "KNOX_GATEWAY-START" : ["RANGER_USERSYNC-START", "NAMENODE-START"],
-    "KNOX_SERVICE_CHECK-SERVICE_CHECK" : ["KNOX_GATEWAY-START"]
-  }
-}
