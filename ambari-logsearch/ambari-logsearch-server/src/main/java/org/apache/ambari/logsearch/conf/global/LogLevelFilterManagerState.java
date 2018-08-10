@@ -21,7 +21,7 @@ package org.apache.ambari.logsearch.conf.global;
 import javax.inject.Named;
 
 @Named
-public class SolrLogLevelFilterManagerState {
+public class LogLevelFilterManagerState {
 
   private volatile boolean logLevelFilterManagerIsReady;
 

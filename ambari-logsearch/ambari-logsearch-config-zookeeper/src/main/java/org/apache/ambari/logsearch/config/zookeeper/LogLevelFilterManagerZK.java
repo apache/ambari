@@ -43,6 +43,22 @@ public class LogLevelFilterManagerZK implements LogLevelFilterManager {
   private final Gson gson;
   private final List<ACL> aclList;
 
+  public LogLevelFilterManagerZK(Map<String, String> properties) throws Exception {
+    this.client = LogSearchConfigZKHelper.createZKClient(properties);
+    this.serverCache = new TreeCache(client, "/");
+    this.aclList = LogSearchConfigZKHelper.getAcls(properties);
+    this.gson = LogSearchConfigZKHelper.createGson();
+    this.serverCache.start();
+  }
+
+  public LogLevelFilterManagerZK(Map<String, String> properties, CuratorFramework client) throws Exception {
+    this.client = client;
+    this.serverCache = new TreeCache(client, "/");
+    this.aclList = LogSearchConfigZKHelper.getAcls(properties);
+    this.gson = LogSearchConfigZKHelper.createGson();
+    this.serverCache.start();
+  }
+
   public LogLevelFilterManagerZK(CuratorFramework client, TreeCache serverCache, List<ACL> aclList, Gson gson) {
     this.client = client;
     this.serverCache = serverCache;
@@ -91,4 +107,15 @@ public class LogLevelFilterManagerZK implements LogLevelFilterManager {
     return logLevelFilters;
   }
 
+  public CuratorFramework getClient() {
+    return client;
+  }
+
+  public TreeCache getServerCache() {
+    return serverCache;
+  }
+
+  public Gson getGson() {
+    return gson;
+  }
 }
