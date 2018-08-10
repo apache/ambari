@@ -16,8 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management import Hook
 
-from resource_management import *
 
 class BeforeSetKeytabHook(Hook):
 
@@ -32,6 +32,7 @@ class BeforeSetKeytabHook(Hook):
     :return:
     """
     self.run_custom_hook('before-ANY')
+
 
 if __name__ == "__main__":
   BeforeSetKeytabHook().execute()

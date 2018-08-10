@@ -20,17 +20,22 @@ package org.apache.ambari.server.serveraction.kerberos.stageutils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
+import org.apache.commons.collections.MapUtils;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -216,5 +221,40 @@ public class KerberosKeytabController {
       builder.add(rkp);
     }
     return builder.build();
+  }
+
+  /**
+   * Adjust service component filter according to installed services
+   *
+   * @param cluster                cluster
+   * @param serviceComponentFilter
+   * @return
+   * @throws AmbariException
+   */
+  public Map<String, Collection<String>> adjustServiceComponentFilter(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter) throws AmbariException {
+    Map<String, Collection<String>> adjustedFilter = new HashMap<>();
+
+    Map<String, Service> installedServices = (cluster == null) ? null : cluster.getServicesByName();
+
+    if (!MapUtils.isEmpty(installedServices)) {
+      if (serviceComponentFilter != null) {
+        // prune off services that are not installed, or considered installed - like AMBARI
+        for (Map.Entry<String, ? extends Collection<String>> entry : serviceComponentFilter.entrySet()) {
+          String serviceName = entry.getKey();
+
+          if (installedServices.containsKey(serviceName)) {
+            adjustedFilter.put(serviceName, entry.getValue());
+          }
+        }
+      } else {
+        // return only the set of installed services
+        for (String serviceName : installedServices.keySet()) {
+          // Add an entry to indicate the service and all of it's components should be considered
+          adjustedFilter.put(serviceName, Collections.singletonList("*"));
+        }
+      }
+    }
+
+    return adjustedFilter;
   }
 }

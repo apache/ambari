@@ -20,10 +20,10 @@ package org.apache.ambari.logfeeder.output;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.Hashing;
+import org.apache.ambari.logfeeder.common.IdGeneratorHelper;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
-import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
@@ -31,6 +31,7 @@ import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -41,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class OutputManagerImpl extends OutputManager {
   private static final Logger LOG = Logger.getLogger(OutputManagerImpl.class);
@@ -126,9 +126,6 @@ public class OutputManagerImpl extends OutputManager {
     }
 
     jsonObj.put("seq_num", new Long(docCounter++));
-    if (jsonObj.get("id") == null) {
-      jsonObj.put("id", UUID.randomUUID().toString());
-    }
     if (jsonObj.get("event_count") == null) {
       jsonObj.put("event_count", new Integer(1));
     }
@@ -147,16 +144,30 @@ public class OutputManagerImpl extends OutputManager {
         jsonObj.put("message_md5", "" + Hashing.md5().hashBytes(logMessage.getBytes()).asLong());
       }
     }
-    if (logLevelFilterHandler.isAllowed(jsonObj, inputMarker)
+    List<String> defaultLogLevels = getDefaultLogLevels(input);
+    if (logLevelFilterHandler.isAllowed(jsonObj, inputMarker, defaultLogLevels)
       && !outputLineFilter.apply(jsonObj, inputMarker.getInput())) {
       List<? extends Output> outputList = input.getOutputList();
       for (Output output : outputList) {
         try {
+          if (jsonObj.get("id") == null) {
+            jsonObj.put("id", IdGeneratorHelper.generateUUID(jsonObj, output.getIdFields()));
+          }
           output.write(jsonObj, inputMarker);
         } catch (Exception e) {
           LOG.error("Error writing. to " + output.getShortDescription(), e);
         }
       }
+    }
+  }
+
+  private List<String> getDefaultLogLevels(Input input) {
+    List<String> defaultLogLevels = logFeederProps.getIncludeDefaultLogLevels();
+    List<String> overrideDefaultLogLevels = input.getInputDescriptor().getDefaultLogLevels();
+    if (CollectionUtils.isNotEmpty(overrideDefaultLogLevels)) {
+      return overrideDefaultLogLevels;
+    } else {
+      return defaultLogLevels;
     }
   }
 
@@ -181,7 +192,8 @@ public class OutputManagerImpl extends OutputManager {
   }
 
   public void write(String jsonBlock, InputMarker inputMarker) {
-    if (logLevelFilterHandler.isAllowed(jsonBlock, inputMarker)) {
+    List<String> defaultLogLevels = getDefaultLogLevels(inputMarker.getInput());
+    if (logLevelFilterHandler.isAllowed(jsonBlock, inputMarker, defaultLogLevels)) {
       List<? extends Output> outputList = inputMarker.getInput().getOutputList();
       for (Output output : outputList) {
         try {

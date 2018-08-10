@@ -132,5 +132,10 @@ public class GangliaReportPropertyProviderTest {
         throws SystemException {
       return true;
     }
+
+    @Override
+    public boolean isCollectorHostExternal(String clusterName) {
+      return false;
+    }
   }
 }

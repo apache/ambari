@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
@@ -191,7 +192,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
-  
+
     stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
 
     expect(metaInfo.getClusterProperties()).andReturn(ImmutableSet.of()).anyTimes();
@@ -657,6 +658,37 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     String updatedVal = properties.get("webhcat-site").get("templeton.zookeeper.hosts");
     assertEquals("%HOSTGROUP::group1%:5050,%HOSTGROUP::group2%:9090", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_MultiHostProperty__WithPrefixAndPorts() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
+    typeProps.put("atlas.server.bind.address",
+      "http://testhost:21000,http://testhost2:21000,http://testhost2a:21000,http://testhost2b:21000");
+    properties.put("application-properties", typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Collection<String> hgComponents = Sets.newHashSet("NAMENODE", "SECONDARY_NAMENODE", "ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = Sets.newHashSet("DATANODE", "HDFS_CLIENT", "ZOOKEEPER_SERVER");
+    Set<String> hosts2 = Sets.newHashSet("testhost2", "testhost2a", "testhost2b");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, hosts2);
+
+    Collection<String> hgComponents3 = Sets.newHashSet("HDFS_CLIENT", "ZOOKEEPER_CLIENT");
+    Set<String> hosts3 = Sets.newHashSet("testhost3", "testhost3a");
+    TestHostGroup group3 = new TestHostGroup("group3", hgComponents3, hosts3);
+
+    Collection<TestHostGroup> hostGroups = Sets.newHashSet(group1, group2, group3);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    String updatedVal = properties.get("application-properties").get("atlas.server.bind.address");
+    assertEquals("http://%HOSTGROUP::group1%:21000,http://%HOSTGROUP::group2%:21000", updatedVal);
   }
 
   @Test
@@ -1363,6 +1395,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.log.server.web-service.url", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
       Collections.emptyMap());
@@ -1406,6 +1440,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
     assertEquals("Yarn ResourceManager timeline web service url was incorrectly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.log.server.web-service.url"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly exported",
+        createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly exported",
+        createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -1429,6 +1467,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", "0.0.0.0" + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", "0.0.0.0" + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
       Collections.emptyMap());
@@ -1470,6 +1510,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly exported",
       "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -2357,6 +2401,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2386,12 +2431,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group1Components.add("SECONDARY_NAMENODE");
     group1Components.add("RESOURCEMANAGER");
     group1Components.add("APP_TIMELINE_SERVER");
+    group1Components.add("TIMELINE_READER");
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
 
     Collection<String> group2Components = new HashSet<>();
     group2Components.add("DATANODE");
     group2Components.add("HDFS_CLIENT");
     group2Components.add("APP_TIMELINE_SERVER");
+    group2Components.add("TIMELINE_READER");
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
@@ -2399,6 +2446,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
@@ -2430,12 +2478,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group1Components.add("SECONDARY_NAMENODE");
     group1Components.add("RESOURCEMANAGER");
     group1Components.add("APP_TIMELINE_SERVER");
+    group1Components.add("TIMELINE_READER");
     TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
 
     Collection<String> group2Components = new HashSet<>();
     group2Components.add("DATANODE");
     group2Components.add("HDFS_CLIENT");
     group2Components.add("APP_TIMELINE_SERVER");
+    group2Components.add("TIMELINE_READER");
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
@@ -2443,6 +2493,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
@@ -2480,6 +2531,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+    expect(stack.getCardinality("TIMELINE_READER")).andReturn(new Cardinality("0-1")).anyTimes();
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2742,6 +2794,43 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     List<String> hostArray = Arrays.asList(newValue.split(","));
     Assert.assertTrue(hostArray.containsAll(hosts1) && hosts1.containsAll(hostArray));
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdater__hostgroup__multipleHostGroups() throws Exception {
+
+    final String typeName = "application-properties";
+    final String propertyName = "atlas.rest.address";
+    final String originalValue = "http://%HOSTGROUP::group1%:21000,http://%HOSTGROUP::group2%:21000";
+    final String component = "ATLAS_SERVER";
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    Set<String> components = ImmutableSet.of(component);
+
+    Set<String> group1Hosts = ImmutableSet.of("testhost1a", "testhost1b", "testhost1c");
+    Set<String> group2Hosts = ImmutableSet.of("testhost2a", "testhost2b", "testhost2c");
+
+    TestHostGroup group1 = new TestHostGroup("group1", components, group1Hosts);
+    TestHostGroup group2 = new TestHostGroup("group2", components, group2Hosts);
+
+    Collection<TestHostGroup> hostGroups = ImmutableSet.of(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu =
+      new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component, ',', true, true, true);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    Set<String> expectedAddresses =
+      Sets.union(group1Hosts, group2Hosts).stream().map(host -> "http://" + host + ":21000").collect(toSet());
+    Set<String> replacedAddresses = ImmutableSet.copyOf(newValue.split(","));
+    assertEquals(expectedAddresses, replacedAddresses);
   }
 
   @Test
@@ -3268,6 +3357,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
 
@@ -3275,6 +3366,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
+    hgComponents.add("TIMELINE_READER");
     hgComponents.add("HISTORYSERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
 
@@ -3313,6 +3405,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly updated",
       createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp HTTPS address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
   }
 
   @Test
@@ -3338,6 +3434,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.reader.webapp.https.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
     yarnSiteProperties.put("yarn.resourcemanager.hostname.rm1", expectedHostName);
@@ -3362,6 +3460,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
+    hgComponents.add("TIMELINE_READER");
     hgComponents.add("HISTORYSERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
 
@@ -3400,6 +3499,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly updated",
       createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline reader webapp address was incorrectly updated",
+      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline reader ebapp HTTPS address was incorrectly updated",
+      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.reader.webapp.https.address"));
 
     // verify that dynamically-named RM HA properties are exported as expected
     List<String> properties = Arrays.asList(

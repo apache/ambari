@@ -146,17 +146,9 @@
                 <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
                       aria-expanded="false">
                   <span class="glyphicon glyphicon-bell"></span>
-                  {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                  {{! alerts exist }}
-                    <span {{bindAttr class=":numberCircle App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}}>
-                      {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                    </span>
-                  {{else}}
-                  {{! no alerts }}
-                    <span {{translateAttr title="titlebar.alerts.noAlerts"}} class="numberCircle alerts-none-count">
-                      {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                    </span>
-                  {{/if}}
+                  {{view App.AlertBadgeView
+                    criticalCountBinding="App.router.mainAlertDefinitionsController.criticalAlertInstancesCount"
+                    warningCountBinding="App.router.mainAlertDefinitionsController.warningAlertInstancesCount"}}
                 </span>
                 <div id="notifications-dropdown" class="dropdown-menu row">
                   {{view App.AlertInstancesPopupView}}

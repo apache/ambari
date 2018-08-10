@@ -25,7 +25,7 @@ import org.apache.ambari.logfeeder.input.InputFileMarker;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterGrokDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.FilterGrokDescriptorImpl;
 import org.apache.log4j.Logger;
 import org.easymock.Capture;
 import org.easymock.CaptureType;

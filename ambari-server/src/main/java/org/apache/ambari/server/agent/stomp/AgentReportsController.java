@@ -27,16 +27,20 @@ import javax.ws.rs.WebApplicationException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotRegisteredException;
-import org.apache.ambari.server.agent.AgentReport;
 import org.apache.ambari.server.agent.AgentReportsProcessor;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.CommandStatusAgentReport;
 import org.apache.ambari.server.agent.ComponentStatus;
+import org.apache.ambari.server.agent.ComponentStatusAgentReport;
+import org.apache.ambari.server.agent.ComponentVersionAgentReport;
 import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.HostStatusAgentReport;
 import org.apache.ambari.server.agent.stomp.dto.AckReport;
 import org.apache.ambari.server.agent.stomp.dto.CommandStatusReports;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReport;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReports;
+import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
 import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.state.Alert;
@@ -70,6 +74,15 @@ public class AgentReportsController {
     agentReportsProcessor = injector.getInstance(AgentReportsProcessor.class);
   }
 
+  @MessageMapping("/component_version")
+  public ReportsResponse handleComponentVersionReport(@Header String simpSessionId, ComponentVersionReports message)
+      throws WebApplicationException, InvalidStateTransitionException, AmbariException {
+
+    agentReportsProcessor.addAgentReport(new ComponentVersionAgentReport(hh,
+        agentSessionManager.getHost(simpSessionId).getHostName(), message));
+    return new ReportsResponse();
+  }
+
   @MessageMapping("/component_status")
   public ReportsResponse handleComponentReportStatus(@Header String simpSessionId, ComponentStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
@@ -85,8 +98,8 @@ public class AgentReportsController {
       }
     }
 
-    agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
-        statuses, null, null));
+    agentReportsProcessor.addAgentReport(new ComponentStatusAgentReport(hh,
+        agentSessionManager.getHost(simpSessionId).getHostName(), statuses));
     return new ReportsResponse();
   }
 
@@ -98,15 +111,15 @@ public class AgentReportsController {
       statuses.addAll(clusterReport.getValue());
     }
 
-    agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
-        null, statuses, null));
+    agentReportsProcessor.addAgentReport(new CommandStatusAgentReport(hh,
+        agentSessionManager.getHost(simpSessionId).getHostName(), statuses));
     return new ReportsResponse();
   }
 
   @MessageMapping("/host_status")
   public ReportsResponse handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
-    agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
-        null, null, message));
+    agentReportsProcessor.addAgentReport(new HostStatusAgentReport(hh,
+        agentSessionManager.getHost(simpSessionId).getHostName(), message));
     return new ReportsResponse();
   }
 

@@ -351,13 +351,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   componentsCount: null,
   hostsCount: null,
 
-  alertsCount: Em.computed.alias('controller.content.alertsCount'),
-
-  hasNoAlerts: Em.computed.equal('alertsCount', 0),
-
-  hasCriticalAlerts: Em.computed.alias('controller.content.hasCriticalAlerts'),
-
-  hasNonCriticalAlertsOnly: Em.computed.and('!hasNoAlerts', '!hasCriticalAlerts'),
+  /**
+   * @type {boolean}
+   */
+  shouldShowNoneCount: true,
 
   /**
    * Define if service has alert definitions defined

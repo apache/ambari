@@ -41,13 +41,9 @@ import javax.persistence.TableGenerator;
 )
 
 @NamedQueries({
-        @NamedQuery(name = "allViewUrls",
-                query = "SELECT viewUrl FROM ViewURLEntity viewUrl"),
-        @NamedQuery(name = "viewUrlByName", query =
-                "SELECT viewUrlEntity " +
-                        "FROM ViewURLEntity viewUrlEntity " +
-                        "WHERE viewUrlEntity.urlName=:urlName")})
-
+        @NamedQuery(name = "allViewUrls", query = "SELECT viewUrl FROM ViewURLEntity viewUrl"),
+        @NamedQuery(name = "viewUrlByName", query ="SELECT viewUrlEntity FROM ViewURLEntity viewUrlEntity WHERE viewUrlEntity.urlName=:urlName"),
+        @NamedQuery(name = "viewUrlBySuffix", query ="SELECT viewUrlEntity FROM ViewURLEntity viewUrlEntity WHERE viewUrlEntity.urlSuffix=:urlSuffix")})
 
 @Entity
 public class ViewURLEntity {

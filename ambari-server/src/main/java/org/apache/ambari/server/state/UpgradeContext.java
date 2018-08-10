@@ -754,6 +754,7 @@ public class UpgradeContext {
 
   /**
    * Gets whether the service is supported in this upgrade.
+   * subset can be further trimmed by determing that an installed service is
    *
    * @param serviceName
    * @return

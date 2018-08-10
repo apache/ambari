@@ -58,9 +58,14 @@ RESOURCE_TO_JSON_FIELDS = {
 }
 
 EXCEPTIONS_TO_RETRY = {
-  # "ExceptionName": (try_count, try_sleep_seconds)
-  "LeaseExpiredException": (20, 6),
-  "RetriableException": (20, 6),
+  # ("ExceptionName"): ("required text fragment", try_count, try_sleep_seconds)
+
+  # Happens when multiple nodes try to put same file at the same time.
+  # Needs a longer retry time, to wait for other nodes success.
+  "FileNotFoundException": (" does not have any open files", 6, 30),
+
+  "LeaseExpiredException": ("", 20, 6),
+  "RetriableException": ("", 20, 6),
 }
 
 class HdfsResourceJar:
@@ -173,6 +178,11 @@ class WebHDFSCallException(Fail):
       return self.result_message["RemoteException"]["exception"]
     return None
 
+  def get_exception_text(self):
+    if isinstance(self.result_message, dict) and "RemoteException" in self.result_message and "message" in self.result_message["RemoteException"]:
+      return self.result_message["RemoteException"]["message"]
+    return None
+
 class WebHDFSUtil:
   def __init__(self, hdfs_site, nameservice, run_user, security_enabled, logoutput=None):
     self.is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
@@ -199,9 +209,15 @@ class WebHDFSUtil:
       return self._run_command(*args, **kwargs)
     except WebHDFSCallException as ex:
       exception_name = ex.get_exception_name()
+      exception_text = ex.get_exception_text()
       if exception_name in EXCEPTIONS_TO_RETRY:
-        try_count, try_sleep = EXCEPTIONS_TO_RETRY[exception_name]
-        last_exception = ex
+
+        required_text, try_count, try_sleep = EXCEPTIONS_TO_RETRY[exception_name]
+
+        if not required_text or (exception_text and required_text in exception_text):
+          last_exception = ex
+        else:
+          raise
       else:
         raise
 

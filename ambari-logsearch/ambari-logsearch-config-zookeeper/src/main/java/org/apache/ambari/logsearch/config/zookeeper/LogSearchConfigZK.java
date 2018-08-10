@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.logsearch.config.api.LogLevelFilterManager;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
@@ -107,6 +108,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
   protected CuratorFramework client;
   protected TreeCache outputCache;
   protected Gson gson;
+  protected LogLevelFilterManager logLevelFilterManager;
 
   public void init(Map<String, String> properties) throws Exception {
     this.properties = properties;
@@ -154,15 +156,13 @@ public class LogSearchConfigZK implements LogSearchConfig {
   }
 
   @Override
-  public void createLogLevelFilter(String clusterName, String logId, LogLevelFilter filter) throws Exception {
-    String nodePath = String.format("/%s/loglevelfilter/%s", clusterName, logId);
-    String logLevelFilterJson = gson.toJson(filter);
-    try {
-      client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, logLevelFilterJson.getBytes());
-      LOG.info("Uploaded log level filter for the log " + logId + " for cluster " + clusterName);
-    } catch (NodeExistsException e) {
-      LOG.debug("Did not upload log level filters for log " + logId + " as it was already uploaded by another Log Feeder");
-    }
+  public LogLevelFilterManager getLogLevelFilterManager() {
+    return this.logLevelFilterManager;
+  }
+
+  @Override
+  public void setLogLevelFilterManager(LogLevelFilterManager logLevelFilterManager) {
+    this.logLevelFilterManager = logLevelFilterManager;
   }
 
   protected List<ACL> getAcls() {

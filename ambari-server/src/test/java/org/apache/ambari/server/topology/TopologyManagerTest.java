@@ -225,7 +225,7 @@ public class TopologyManagerTest {
   private final Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().
     map(
       serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
-          SERVICE_NAMES.get(serviceId), null, null, null, false, false, false, false, false)
+          SERVICE_NAMES.get(serviceId), null, null, null, false, false, false, false, false, false, false)
     ).
     collect(toSet());
 

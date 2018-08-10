@@ -31,7 +31,22 @@ App.ServicesConfigView = Em.View.extend({
       this.get('controller').selectProperService();
       this.set('controller.selectedService.isActive', true);
       this.get('controller').selectedServiceObserver();
+      Em.run.next(this, function () {
+        this.enableRightArrow();
+      });
     }
+  },
+  
+  isLeftArrowDisabled: true,
+  
+  isRightArrowDisabled: true,
+  
+  isNavArrowsHidden: Em.computed.and('isLeftArrowDisabled', 'isRightArrowDisabled'),
+  
+  enableRightArrow: function () {
+    var container = $(this.get('element')).find('.tabs-container');
+    var content = container.find('ul');
+    this.set('isRightArrowDisabled', container.width() >= content.width());
   },
 
   getScrollInterval: function () {

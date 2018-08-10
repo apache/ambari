@@ -40,9 +40,9 @@ App.HostComponent = DS.Model.extend({
 
   serviceDisplayName: Em.computed.truncate('service.displayName', 14, 11),
 
-  getDisplayName: Em.computed.truncate('displayName', 19, 16),
+  getDisplayName: Em.computed.truncate('displayName', 30, 25),
 
-  getDisplayNameAdvanced:Em.computed.truncate('displayNameAdvanced', 19, 16),
+  getDisplayNameAdvanced:Em.computed.truncate('displayNameAdvanced', 30, 25),
 
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();
@@ -137,16 +137,25 @@ App.HostComponent = DS.Model.extend({
   }.property('componentName', 'App.components.nonHDP'),
 
   /**
+   * @type {number}
+   */
+  warningCount: 0,
+  /**
+   * @type {number}
+   */
+  criticalCount: 0,
+
+  /**
    * Does component have Critical Alerts
    * @type {boolean}
    */
-  hasCriticalAlerts: false,
+  hasCriticalAlerts: Em.computed.gte('criticalCount', 0),
 
   /**
    * Number of the Critical and Warning alerts for current component
    * @type {number}
    */
-  alertsCount: 0,
+  alertsCount: Em.computed.sumProperties('warningCount', 'criticalCount'),
 
   statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';

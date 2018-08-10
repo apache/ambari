@@ -113,7 +113,6 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
          }]);
       }
     }
-
     return $.Deferred().resolve().promise();
   },
 

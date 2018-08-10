@@ -38,20 +38,20 @@ public class MetricTestHelper {
   }
 
   public static TimelineMetrics prepareSingleTimelineMetric(long startTime,
-                                                        String host,
-                                                        String metricName,
-                                                        double val) {
+                                                            String host,
+                                                            String metricName,
+                                                            double val) {
     return prepareSingleTimelineMetric(startTime, host, null, metricName, val);
   }
 
   public static TimelineMetrics prepareSingleTimelineMetric(long startTime,
-                                                        String host,
-                                                        String instanceId,
-                                                        String metricName,
-                                                        double val) {
+                                                            String host,
+                                                            String instanceId,
+                                                            String metricName,
+                                                            double val) {
     TimelineMetrics m = new TimelineMetrics();
     m.setMetrics(Arrays.asList(
-        createTimelineMetric(startTime, metricName, host, null, instanceId, val)));
+      createTimelineMetric(startTime, metricName, host, null, instanceId, val)));
 
     return m;
   }
@@ -71,11 +71,11 @@ public class MetricTestHelper {
 
 
   public static TimelineMetric createTimelineMetric(long startTime,
-                                                String metricName,
-                                                String host,
-                                                String appId,
-                                                String instanceId,
-                                                double val) {
+                                                    String metricName,
+                                                    String host,
+                                                    String appId,
+                                                    String instanceId,
+                                                    double val) {
     TimelineMetric m = new TimelineMetric();
     m.setHostName(host);
     m.setAppId(appId != null ? appId : "host");
@@ -104,16 +104,27 @@ public class MetricTestHelper {
     return metric;
   }
 
-  public static TimelineClusterMetric createEmptyTimelineClusterMetric(
-      String name, long startTime) {
-    TimelineClusterMetric metric = new TimelineClusterMetric(name,
-        "test_app", "instance_id", startTime);
+  public static TimelineMetric createEmptyTimelineMetric(String metricName, long startTime) {
+    TimelineMetric metric = new TimelineMetric();
+    metric.setMetricName(metricName);
+    metric.setAppId("test_app");
+    metric.setInstanceId("test_instance");
+    metric.setHostName("test_host");
+    metric.setStartTime(startTime);
 
     return metric;
   }
 
   public static TimelineClusterMetric createEmptyTimelineClusterMetric(
-      long startTime) {
+    String name, long startTime) {
+    TimelineClusterMetric metric = new TimelineClusterMetric(name,
+      "test_app", "instance_id", startTime);
+
+    return metric;
+  }
+
+  public static TimelineClusterMetric createEmptyTimelineClusterMetric(
+    long startTime) {
     return createEmptyTimelineClusterMetric("disk_used", startTime);
   }
 }

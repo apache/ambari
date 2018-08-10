@@ -34,6 +34,10 @@ App.RepositoryVersion = DS.Model.extend({
   displayNameSimple: function() {
     return this.get('stackVersionType') + '-' + this.get('repositoryVersion').split('-')[0];
   }.property('stackVersionType', 'repositoryVersion'),
+  
+  displayNameFull: function() {
+    return this.get('stackVersionType') + '-' + this.get('repositoryVersion');
+  }.property('stackVersionType', 'repositoryVersion'),
 
   isPatch: Em.computed.equal('type', 'PATCH'),
 

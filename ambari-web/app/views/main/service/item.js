@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainServiceItemView = Em.View.extend({
+App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
   templateName: require('templates/main/service/item'),
 
   serviceName: Em.computed.alias('controller.content.serviceName'),
@@ -67,7 +67,9 @@ App.MainServiceItemView = Em.View.extend({
          cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2interactive')),
          service: 'HIVE',
-         component: 'HIVE_SERVER_INTERACTIVE'
+         component: 'HIVE_SERVER_INTERACTIVE',
+         dependsFromAnotherProperty: true,
+         depend: this.get('enableHiveInteractive')
        },
        {
          cssClass: 'glyphicon glyphicon-plus',
@@ -289,7 +291,8 @@ App.MainServiceItemView = Em.View.extend({
 
         if (App.isAuthorized('HOST.ADD_DELETE_COMPONENTS')) {
           self.addActionMap().filterProperty('service', serviceName).forEach(function (item) {
-            if (App.get('components.addableToHost').contains(item.component)) {
+            if (App.get('components.addableToHost').contains(item.component) &&
+              (!item.dependsFromAnotherProperty || item.depend)) {
 
               var isEnabled = App.HostComponent.find().filterProperty('componentName', item.component).length < App.get('allHostNames.length');
 
@@ -395,6 +398,10 @@ App.MainServiceItemView = Em.View.extend({
   willInsertElement: function () {
     var self = this;
     this.get('controller').loadConfigs();
+    if (this.get('controller.content.serviceName') === 'HIVE') {
+      this.loadHiveConfigs();
+    }
+
     this.get('maintenanceObsFields').forEach(function (field) {
       self.addObserver('controller.' + field, self, 'observeMaintenance');
     });

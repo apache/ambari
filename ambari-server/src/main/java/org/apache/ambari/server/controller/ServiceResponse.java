@@ -41,13 +41,16 @@ public class ServiceResponse {
   private final boolean ssoIntegrationSupported;
   private final boolean ssoIntegrationDesired;
   private final boolean ssoIntegrationEnabled;
+  private final boolean ssoIntegrationRequiresKerberos;
+  private final boolean kerberosEnabled;
 
   public ServiceResponse(Long clusterId, String clusterName, Long serviceGroupId,
       String serviceGroupName, Long serviceId, String serviceName, String serviceType,
       StackId desiredStackId, String desiredRepositoryVersion, String desiredState,
       boolean credentialStoreSupported, boolean credentialStoreEnabled,
       boolean ssoIntegrationSupported, boolean ssoIntegrationDesired,
-      boolean ssoIntegrationEnabled) {
+      boolean ssoIntegrationEnabled, boolean ssoIntegrationRequiresKerberos,
+      boolean kerberosEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceGroupId = serviceGroupId;
@@ -62,6 +65,8 @@ public class ServiceResponse {
     setDesiredState(desiredState);
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
+    this.ssoIntegrationRequiresKerberos = ssoIntegrationRequiresKerberos;
+    this.kerberosEnabled = kerberosEnabled;
   }
 
   /**
@@ -270,7 +275,7 @@ public class ServiceResponse {
 
   @Override
   public int hashCode() {
-    int result = clusterId != null? clusterId.intValue() : 0;
+    int result = clusterId != null ? clusterId.intValue() : 0;
     result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 71 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
     result = 71 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
@@ -302,6 +307,22 @@ public class ServiceResponse {
   @ApiModelProperty(name = "sso_integration_enabled")
   public boolean isSsoIntegrationEnabled() {
     return ssoIntegrationEnabled;
+  }
+
+  /**
+   * Indicates if Kerberos is required for SSO integration
+   */
+  @ApiModelProperty(name = "sso_integration_requires_kerberos")
+  public boolean isSsoIntegrationRequiresKerberos() {
+    return ssoIntegrationRequiresKerberos;
+  }
+
+  /**
+   * Indicates whether the service is configured for Kerberos or not
+   */
+  @ApiModelProperty(name = "kerberos_enabled")
+  public boolean isKerberosEnabled() {
+    return kerberosEnabled;
   }
 
   /**

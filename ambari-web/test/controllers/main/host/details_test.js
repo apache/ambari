@@ -3725,6 +3725,11 @@ describe('App.MainHostDetailsController', function () {
     });
     it("dependecies should be added", function () {
       var opt = {scope: '*', installedComponents: ['C2']};
+      this.mock.returns([
+        App.StackServiceComponent.createRecord({componentName: 'C1'}),
+        App.StackServiceComponent.createRecord({componentName: 'C2'}),
+        App.StackServiceComponent.createRecord({componentName: 'C3'})
+      ]);
       this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
         dependencies: [{componentName: 'C3'}]
       }));
@@ -3743,6 +3748,11 @@ describe('App.MainHostDetailsController', function () {
     });
     it("scope is host", function () {
       var opt = {scope: 'host', hostName: 'host1'};
+      this.mock.returns([
+        App.StackServiceComponent.createRecord({componentName: 'C1'}),
+        App.StackServiceComponent.createRecord({componentName: 'C2'}),
+        App.StackServiceComponent.createRecord({componentName: 'C3'})
+      ]);
       this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
         dependencies: [{componentName: 'C3', scope: 'host'}]
       }));

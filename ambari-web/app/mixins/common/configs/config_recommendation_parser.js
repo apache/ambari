@@ -55,7 +55,6 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     App.assertFunction(updateCallback);
     App.assertFunction(removeCallback);
     App.assertFunction(updateBoundariesCallback);
-
     var propertiesToDelete = [];
     configs.forEach(function (config) {
       var name = Em.get(config, 'name'),
@@ -87,6 +86,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
                 updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], name, fileName, configGroup);
               }
             }
+            Em.tryInvoke(config, 'validate');
           }
         }
       }
@@ -157,8 +157,8 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     var name = Em.get(config, 'name'),
         fileName = Em.get(config, 'filename'),
         group = Em.get(config, 'group.name'),
-        value = Em.get(config, 'value');
-
+        value = Em.get(config, 'value'),
+        prevRecommeneded = Em.get(config, 'recommendedValue');
     Em.set(config, 'recommendedValue', recommendedValue);
     if (this.allowUpdateProperty(parentProperties, name, fileName, group, value)) {
       var allowConfigUpdate = true;
@@ -169,6 +169,15 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
           allowConfigUpdate = false;
         }
       }
+
+      if (prevRecommeneded !== value) {
+        allowConfigUpdate = false;
+      }
+
+      if (name === "capacity-scheduler") {
+        allowConfigUpdate = this.compareCapacitySchedulerValues(prevRecommeneded, value);
+      }
+
       if (allowConfigUpdate) {
         Em.setProperties(config, {
           value: recommendedValue,
@@ -186,6 +195,45 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     }
     Em.tryInvoke(config, 'validate');
     return config;
+  },
+
+  /**
+   * Configs with value across multiple lines could have them in a different order
+   * Eg: capacity-scheduler
+   *
+   * @param {String} prevRec
+   * @param {String} value
+   * @returns {Boolean}
+   * @method isPrevRecAndValueEqual
+   */
+
+  compareCapacitySchedulerValues: function (prevRec, value) {
+
+
+    let prevRecArr = prevRec.split("\n");
+    let valueArr = value.split("\n");
+
+    //first value being added is capacity-scheduler=null. Remove that for comparison
+    if (valueArr[0].includes("capacity-scheduler")) {
+      valueArr = valueArr.splice(1);
+    }
+
+    if (prevRecArr.length !== valueArr.length) {
+      return false;
+    }
+    if (prevRecArr.length < 2 || valueArr.length < 2) {
+      return prevRec === value;
+    }
+    let strMap = {};
+    for (var i=0; i <prevRecArr.length; i++) {
+      strMap[prevRecArr[i]] = true;
+    }
+    for (var i=0; i<valueArr.length; i++) {
+      if (!strMap[valueArr[i]]) {
+        return false;
+      }
+    }
+    return true;
   },
 
   /**

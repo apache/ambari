@@ -853,6 +853,9 @@ Options:
                         only if no backup path in the ini file
   --version=INDEX_VERSION
                         lucene index version for migration (6.6.2 or 7.3.1)
+  --solr-async-request-tries=SOLR_ASYNC_REQUEST_TRIES
+                        number of max tries for async Solr requests (e.g.:
+                        delete operation)
   --request-tries=REQUEST_TRIES
                         number of tries for BACKUP/RESTORE status api calls in
                         the request

@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.collections.PredicateUtils;
 import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
@@ -151,6 +152,14 @@ public class ServiceInfo implements Validable {
    */
   @XmlElements(@XmlElement(name = "credential-store"))
   private CredentialStoreInfo credentialStoreInfo;
+
+  /**
+   * The configuration that can be used to determine if Kerberos has been enabled for this service.
+   * <p>
+   * It is expected that this value is in the form of a valid JSON predicate ({@link PredicateUtils#fromJSON(String)}
+   */
+  @XmlElement(name = "kerberosEnabledTest")
+  private String kerberosEnabledTest = null;
 
   /**
    * Single Sign-on support information
@@ -681,6 +690,27 @@ public class ServiceInfo implements Validable {
   }
 
   /**
+   * Gets the JSON predicate ({@link PredicateUtils#fromJSON(String)} that can be used to determine
+   * if Kerberos has been enabled for this service or not.
+   *
+   * @return a valid JSON predicate ({@link PredicateUtils#fromJSON(String)}
+   */
+  public String getKerberosEnabledTest() {
+    return kerberosEnabledTest;
+  }
+
+  /**
+   * Sets the JSON predicate ({@link PredicateUtils#fromJSON(String)} that can be used to determine
+   * if Kerberos has been enabled for this service or not.
+   *
+   * @param kerberosEnabledTest a valid JSON predicate ({@link PredicateUtils#fromJSON(String)}
+   */
+  public void setKerberosEnabledTest(String kerberosEnabledTest) {
+    this.kerberosEnabledTest = kerberosEnabledTest;
+  }
+
+
+  /**
    * Gets the value for the SSO integration support
    *
    * @return the {@link SingleSignOnInfo}
@@ -707,8 +737,22 @@ public class ServiceInfo implements Validable {
     return (singleSignOnInfo != null) && singleSignOnInfo.isSupported();
   }
 
+  /**
+   * @deprecated Use {@link #getSingleSignOnEnabledTest()} instead
+   */
   public String getSingleSignOnEnabledConfiguration() {
     return singleSignOnInfo != null ? singleSignOnInfo.getEnabledConfiguration() : null;
+  }
+
+  public String getSingleSignOnEnabledTest() {
+    return singleSignOnInfo != null ? singleSignOnInfo.getSsoEnabledTest() : null;
+  }
+
+  /**
+   * @return the boolean flag is Kerberos is required for SSO integration
+   */
+  public boolean isKerberosRequiredForSingleSignOnIntegration() {
+    return singleSignOnInfo != null && singleSignOnInfo.isKerberosRequired();
   }
 
   @Override
@@ -720,6 +764,8 @@ public class ServiceInfo implements Validable {
     sb.append(serviceType);
     sb.append("\nversion:");
     sb.append(version);
+    sb.append("\nKerberos enabled test:");
+    sb.append(kerberosEnabledTest);
     sb.append("\ncomment:");
     sb.append(comment);
 
@@ -1325,9 +1371,9 @@ public class ServiceInfo implements Validable {
     // validate single sign-in support information
     if (singleSignOnInfo != null) {
       if (singleSignOnInfo.isSupported()) {
-        if (StringUtils.isEmpty(singleSignOnInfo.getEnabledConfiguration())) {
+        if (StringUtils.isEmpty(singleSignOnInfo.getSsoEnabledTest()) && StringUtils.isEmpty(singleSignOnInfo.getEnabledConfiguration())) {
           setValid(false);
-          addError("Single Sign-on support is indicated for service " + getName() + " but no test configuration has been set (enabledConfiguration).");
+          addError("Single Sign-on support is indicated for service " + getName() + " but no test configuration has been set (enabledConfiguration or ssoEnabledTest).");
         }
       }
     }

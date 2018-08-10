@@ -25,8 +25,6 @@ import 'rxjs/add/operator/startWith';
 
 import {CanComponentDeactivate} from '@modules/shared/services/can-deactivate-guard.service';
 
-import {UtilsService} from '@app/services/utils.service';
-import {ShipperClusterServiceConfigurationModel} from '../../models/shipper-cluster-service-configuration.model';
 import {ShipperCluster} from '../../models/shipper-cluster.type';
 import {ShipperClusterService} from '../../models/shipper-cluster-service.type';
 import {ShipperClusterServiceConfigurationInterface} from '../../models/shipper-cluster-service-configuration.interface';
@@ -34,7 +32,6 @@ import {ShipperConfigurationModel} from '../../models/shipper-configuration.mode
 import * as formValidators from '../../directives/validator.directive';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subscription} from 'rxjs/Subscription';
-import {ShipperClusterServiceValidationModel} from '@modules/shipper/models/shipper-cluster-service-validation.model';
 import {ActivatedRoute} from '@angular/router';
 
 @Component({
@@ -62,11 +59,14 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
   @Input()
   validationResponse: {[key: string]: any};
 
-  @Output()
-  configurationSubmit: EventEmitter<ShipperClusterServiceConfigurationModel> = new EventEmitter<ShipperClusterServiceConfigurationModel>();
+  @Input()
+  disabled = false;
 
   @Output()
-  validationSubmit: EventEmitter<ShipperClusterServiceValidationModel> = new EventEmitter<ShipperClusterServiceValidationModel>();
+  configurationSubmit: EventEmitter<FormGroup> = new EventEmitter<FormGroup>();
+
+  @Output()
+  validationSubmit: EventEmitter<FormGroup> = new EventEmitter<FormGroup>();
 
   private configurationComponents$: Observable<string[]>;
 
@@ -107,7 +107,6 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private utilsService: UtilsService,
     private formBuilder: FormBuilder,
     private activatedRoute: ActivatedRoute,
     private changeDetectionRef: ChangeDetectorRef
@@ -181,10 +180,6 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
     }
   }
 
-  onServiceParamsChange = (service): void => {
-
-  }
-
   leaveDirtyFormConfirmed = () => {
     this.canDeactivateModalResult.next(true);
     this.isLeavingDirtyForm = false;
@@ -232,33 +227,26 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
         Validators.required,
         formValidators.getConfigurationServiceValidator(this.configurationForm.controls.configuration)
       ]),
-      sampleData: this.formBuilder.control('', Validators.required)
+      sampleData: this.formBuilder.control('', Validators.required),
+      configuration: this.formBuilder.control('', Validators.required)
     });
     this.subscriptions.push(
       this.configurationForm.valueChanges.subscribe(() => {
         this.validatorForm.controls.componentName.updateValueAndValidity();
+        this.validatorForm.controls.configuration.setValue(this.configurationForm.controls.configuration.value);
       })
     );
   }
 
-  onConfigurationSubmit(configurationForm: FormGroup): void {
+  onConfigurationSubmit(): void {
     if (this.configurationForm.valid) {
-      const rawValue = this.configurationForm.getRawValue();
-      const serviceName: string = Array.isArray(rawValue.serviceName) ? rawValue.serviceName.shift().value : rawValue.serviceName;
-      this.configurationSubmit.emit({
-        cluster: rawValue.clusterName,
-        service: serviceName,
-        configuration: JSON.parse(rawValue.configuration)
-      });
+      this.configurationSubmit.emit(this.configurationForm);
     }
   }
 
   onValidationSubmit(): void {
-    if (this.validatorForm) {
-      this.validationSubmit.emit({
-        configuration: this.configurationForm.controls.configuration.value,
-        ...this.validatorForm.getRawValue()
-      });
+    if (this.validatorForm.valid) {
+      this.validationSubmit.emit(this.validatorForm);
     }
   }
 

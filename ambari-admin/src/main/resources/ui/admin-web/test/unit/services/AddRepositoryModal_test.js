@@ -26,7 +26,7 @@ describe('AddRepositoryModal Service', function () {
     AddRepositoryModal = _AddRepositoryModal_;
     $modal = _$modal_;
 
-    spyOn($modal, 'open').andReturn({
+    spyOn($modal, 'open').and.returnValue({
       result: {
         then: function() {
         }

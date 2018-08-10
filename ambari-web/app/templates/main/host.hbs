@@ -77,11 +77,12 @@
               <a  rel="UsageTooltip" data-original-title="{{unbound host.hostName}}" href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
             </span>
             {{#if host.criticalWarningAlertsCount}}
-              {{#if host.alertsSummary.CRITICAL}}
-                <span class="label alerts-crit-count" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
-              {{else}}
-                <span class="label alerts-warn-count" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
-              {{/if}}
+              <span {{action "goToHostAlerts" host target="controller"}}>
+                {{view App.AlertBadgeView
+                       classNames="medium-size"
+                       criticalCountBinding="host.alertsSummary.CRITICAL"
+                       warningCountBinding="host.alertsSummary.WARNING"}}
+              </span>
             {{/if}}
           </td>
           <td class="restart">

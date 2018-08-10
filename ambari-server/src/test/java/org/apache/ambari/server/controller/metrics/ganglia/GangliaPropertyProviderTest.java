@@ -1019,5 +1019,10 @@ public class GangliaPropertyProviderTest {
         throws SystemException {
       return isComponentLive;
     }
+
+    @Override
+    public boolean isCollectorHostExternal(String clusterName) {
+      return false;
+    }
   }
 }

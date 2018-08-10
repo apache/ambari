@@ -48,6 +48,11 @@ public class OverriddenMetricsHostProvider implements MetricHostProvider {
     return getOverriddenHost(componentName).map(host -> replaceVariables(clusterName, host));
   }
 
+  @Override
+  public boolean isCollectorHostExternal(String clusterName) {
+    return metricHostProvider.isCollectorHostExternal(clusterName);
+  }
+
   private Optional<String> getOverriddenHost(String componentName) {
     return Optional.ofNullable(overriddenHosts.get(componentName));
   }

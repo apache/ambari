@@ -47,9 +47,9 @@
 <td class="component-name-block">
   <span>
     {{#if component.displayNameAdvanced}}
-      <span {{bindAttr title="component.displayNameAdvanced"}}>{{component.getDisplayNameAdvanced}}&nbsp;/</span>
+      <span rel="componentNameTooltip" {{bindAttr data-original-title="component.displayNameAdvanced"}}>{{component.getDisplayNameAdvanced}}&nbsp;/</span>
     {{else}}
-      <span {{bindAttr title="component.displayName"}}>{{component.getDisplayName}}&nbsp;/</span>
+      <span rel="componentNameTooltip" {{bindAttr data-original-title="component.displayName"}}>{{component.getDisplayName}}&nbsp;/</span>
     {{/if}}
     <span class="hidden-lg"><br/></span>
     <a href="#" {{action routeToService component.service}} {{bindAttr title="component.service.displayName"}}>
