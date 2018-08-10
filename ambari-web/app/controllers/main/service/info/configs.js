@@ -230,7 +230,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     var filterColumns = [];
 
     this.get('propertyFilters').forEach(function(filter) {
-      if (this.get('canBeExcluded') && !(Em.isNone(filter.dependentOn) || this.get(filter.dependentOn))) {
+      if (filter.canBeExcluded && !(Em.isNone(filter.dependentOn) || this.get(filter.dependentOn))) {
         return; // exclude column
       }
       filterColumns.push(Ember.Object.create({
@@ -362,6 +362,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       }
       self.trackRequest(self.loadServiceConfigVersions());
     }));
+  },
+  
+  saveConfigs: function() {
+    const newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
+    const isDefault = this.get('selectedConfigGroup.name') === App.ServiceConfigGroup.defaultGroupName;
+    this.set('currentDefaultVersion', isDefault ? newVersionToBeCreated : this.get('currentDefaultVersion'));
+    this._super();
   },
 
   /**

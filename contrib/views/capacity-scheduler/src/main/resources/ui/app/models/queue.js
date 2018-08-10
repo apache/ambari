@@ -256,6 +256,10 @@ App.Queue = DS.Model.extend({
   maximum_applications: DS.attr('number', { defaultValue: null }),
   maximum_am_resource_percent: DS.attr('number', { defaultValue: null }),
   priority: DS.attr('number', {defaultValue: 0}),
+  maximum_allocation_mb:DS.attr('number'),
+  maximum_allocation_vcores:DS.attr('number'),
+  maximum_application_lifetime:DS.attr('number'),
+  default_application_lifetime:DS.attr('number'),
 
   disable_preemption: DS.attr('string', {defaultValue: ''}),
   isPreemptionInherited: DS.attr('boolean', {defaultValue: true}),
@@ -338,5 +342,15 @@ App.Queue = DS.Model.extend({
 
   isLeafQ: function() {
     return this.get('queues') === null;
-  }.property('queues')
+  }.property('queues'),
+
+  /**
+   * To reset the maximum_application_lifetime and default_application_lifetime if current Q is no longer Leaf Queue 
+   */
+  watchChangeLeafQueue: function () {
+    if (this.get('isLeafQ') == false) {
+      this.set('maximum_application_lifetime', null);
+      this.set('default_application_lifetime', null);
+    }
+  }.observes('isLeafQ')
 });

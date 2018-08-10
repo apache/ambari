@@ -24,7 +24,6 @@ import org.apache.ambari.logfeeder.input.InputFileMarker;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -291,11 +290,6 @@ public class OutputKafka extends Output<LogFeederProps, InputFileMarker> {
   public String getOutputType() {
     throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
   }
-
-  @Override
-  public void outputConfigChanged(OutputProperties outputProperties) {
-    throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
-  };
 
   @Override
   public Long getPendingCount() {

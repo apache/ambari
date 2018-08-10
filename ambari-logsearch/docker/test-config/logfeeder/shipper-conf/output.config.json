@@ -3,6 +3,7 @@
     {
       "is_enabled": "true",
       "comment": "Output to solr for service logs",
+      "collection" : "hadoop_logs",
       "destination": "solr",
       "zk_connect_string": "localhost:9983",
       "type": "service",
@@ -18,6 +19,7 @@
     {
       "comment": "Output to solr for audit records",
       "is_enabled": "true",
+      "collection" : "audit_logs",
       "destination": "solr",
       "zk_connect_string": "localhost:9983",
       "type": "audit",

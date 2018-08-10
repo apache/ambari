@@ -26,11 +26,11 @@ import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,8 +47,6 @@ public abstract class Output<PROP_TYPE extends LogFeederProperties, INPUT_MARKER
   protected MetricData writeBytesMetric = new MetricData(getWriteBytesMetricName(), false);
 
   public abstract String getOutputType();
-
-  public abstract void outputConfigChanged(OutputProperties outputProperties);
 
   public abstract void copyFile(File inputFile, InputMarker inputMarker) throws Exception;
 
@@ -80,6 +78,13 @@ public abstract class Output<PROP_TYPE extends LogFeederProperties, INPUT_MARKER
 
   public void setDestination(String destination) {
     this.destination = destination;
+  }
+
+  /**
+   * Get the list of fields that will be used for ID generation of log entries.
+   */
+  public List<String> getIdFields() {
+    return new ArrayList<>();
   }
 
   public boolean isClosed() {

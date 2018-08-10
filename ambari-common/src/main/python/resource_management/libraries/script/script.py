@@ -259,11 +259,8 @@ class Script(object):
     to structured out.
     :return: True or False
     """
-    from resource_management.libraries.functions.default import default
-    if self.command_name.lower() == "status":
-      request_version = default("/commandParams/request_version", None)
-      if request_version is not None:
-        return True
+    if self.command_name.lower() == "get_version":
+      return True
     else:
       # Populate version only on base commands
       version_reporting_commands = ["start", "install", "restart"]
@@ -368,6 +365,9 @@ class Script(object):
 
       if self.should_expose_component_version():
         self.save_component_version_to_structured_out()
+
+  def get_version(self, env):
+    pass
 
   def execute_prefix_function(self, command_name, afix, env):
     """
@@ -977,7 +977,7 @@ class Script(object):
     else:
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      if True:
+      if "upgrade_type" in inspect.getargspec(self.stop).args:
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:

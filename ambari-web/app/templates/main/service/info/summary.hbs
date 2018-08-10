@@ -58,9 +58,11 @@
             {{#if view.hasAlertDefinitions}}
               <span {{action "showServiceAlertsPopup" controller.content target="controller"}} class="pull-right">
                 <i class="glyphicon glyphicon-bell"></i>
-                <span {{bindAttr class=":label view.hasCriticalAlerts:alerts-crit-count view.hasNonCriticalAlertsOnly:alerts-warn-count view.hasNoAlerts:alerts-none-count"}}>
-                  {{view.alertsCount}}
-                </span>
+                {{view App.AlertBadgeView
+                       classNames="medium-size"
+                       criticalCountBinding="view.controller.content.criticalCount"
+                       warningCountBinding="view.controller.content.warningCount"
+                       shouldShowNoneCountBinding="view.shouldShowNoneCount"}}
               </span>
             {{/if}}
           </div>

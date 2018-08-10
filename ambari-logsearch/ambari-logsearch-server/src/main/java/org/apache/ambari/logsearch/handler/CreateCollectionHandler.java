@@ -19,9 +19,6 @@
 package org.apache.ambari.logsearch.handler;
 
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
-import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
-import org.apache.ambari.logsearch.config.zookeeper.model.outputconfig.impl.OutputSolrPropertiesImpl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -54,22 +51,14 @@ public class CreateCollectionHandler implements SolrZkRequestHandler<Boolean> {
   private static final String MODIFY_COLLECTION_QUERY = "/admin/collections?action=MODIFYCOLLECTION&collection=%s&%s=%d";
   private static final String MAX_SHARDS_PER_NODE = "maxShardsPerNode";
 
-  private final LogSearchConfigServer logSearchConfig;
   private final List<String> allCollectionList;
 
-  public CreateCollectionHandler(LogSearchConfigServer logSearchConfig, List<String> allCollectionList) {
-    this.logSearchConfig = logSearchConfig;
+  public CreateCollectionHandler(List<String> allCollectionList) {
     this.allCollectionList = allCollectionList;
   }
 
   @Override
   public Boolean handle(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig) throws Exception {
-    if (solrPropsConfig.getLogType() != null) {
-      OutputSolrProperties outputSolrProperties = new OutputSolrPropertiesImpl(solrPropsConfig.getCollection(),
-          solrPropsConfig.getSplitInterval());
-      logSearchConfig.saveOutputSolrProperties(solrPropsConfig.getLogType(), outputSolrProperties);
-    }
-
     boolean result;
     if (solrPropsConfig.isSolrImplicitRouting()) {
       result = setupCollectionsWithImplicitRouting(solrClient, solrPropsConfig, this.allCollectionList);

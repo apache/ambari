@@ -21,45 +21,47 @@
   <div class="row">
     <div class="shipper-form-configuration col-md-6">
       <form [formGroup]="configurationForm" (ngSubmit)="onConfigurationSubmit($event)">
-        <h2>{{(serviceName ? 'shipperConfiguration.form.titleEdit' : 'shipperConfiguration.form.titleAdd') | translate}}</h2>
-        <div [ngClass]="{'has-error': serviceNameField.invalid, 'form-group': true}">
-          <label>
-            {{'shipperConfiguration.form.serviceLabel' | translate}}
-            <span *ngIf="serviceNameField.errors && serviceNameField.errors.serviceNameExists"
-                  class="help-block validation-block pull-right">
-              {{'shipperConfiguration.form.errors.serviceName.exists' | translate}}
-            </span>
-            <span *ngIf="serviceNameField.errors && serviceNameField.errors.required"
-                  class="help-block validation-block pull-right">
-              {{'common.form.errors.required' | translate}}
-            </span>
-          </label>
-          <input *ngIf="!serviceName" formControlName="serviceName" class="form-control">
-          <ng-container *ngIf="serviceName">
-            <div class="shipper-configuration-service-name">{{serviceName}}</div>
-            <input type="hidden" name="serviceName" formControlName="serviceName">
-          </ng-container>
-        </div>
-        <input type="hidden" name="clusterName" formControlName="clusterName">
-        <div [ngClass]="{'has-error': configurationField.invalid, 'form-group': true}">
-          <label>
-            {{'shipperConfiguration.form.configurationJSONLabel' | translate}}
-            <span *ngIf="configurationField.errors && configurationField.errors.invalidJSON"
-                  class="help-block validation-block pull-right">
-              {{'shipperConfiguration.form.errors.configuration.invalidJSON' | translate}}
-            </span>
-            <span *ngIf="configurationField.errors && configurationField.errors.required"
-                  class="help-block validation-block pull-right">
-              {{'common.form.errors.required' | translate}}
-            </span>
-          </label>
-          <textarea class="form-control configuration" name="configuration"
-            formControlName="configuration"></textarea>
-        </div>
-        <button class="btn btn-primary pull-right" type="submit"
-                [disabled]="(!configurationForm.valid || configurationForm.pristine)">
-          {{'shipperConfiguration.form.saveBtn.label' | translate}}
-        </button>
+        <fieldset [disabled]="disabled">
+          <h2>{{(serviceName ? 'shipperConfiguration.form.titleEdit' : 'shipperConfiguration.form.titleAdd') | translate}}</h2>
+          <div [ngClass]="{'has-error': serviceNameField.invalid, 'form-group': true}">
+            <label>
+              {{'shipperConfiguration.form.serviceLabel' | translate}}
+              <span *ngIf="serviceNameField.errors && serviceNameField.errors.serviceNameExists"
+                    class="help-block validation-block pull-right">
+                {{'shipperConfiguration.form.errors.serviceName.exists' | translate}}
+              </span>
+              <span *ngIf="serviceNameField.errors && serviceNameField.errors.required"
+                    class="help-block validation-block pull-right">
+                {{'common.form.errors.required' | translate}}
+              </span>
+            </label>
+            <input *ngIf="!serviceName" formControlName="serviceName" class="form-control">
+            <ng-container *ngIf="serviceName">
+              <div class="shipper-configuration-service-name">{{serviceName}}</div>
+              <input type="hidden" name="serviceName" formControlName="serviceName">
+            </ng-container>
+          </div>
+          <input type="hidden" name="clusterName" formControlName="clusterName">
+          <div [ngClass]="{'has-error': configurationField.invalid, 'form-group': true}">
+            <label>
+              {{'shipperConfiguration.form.configurationJSONLabel' | translate}}
+              <span *ngIf="configurationField.errors && configurationField.errors.invalidJSON"
+                    class="help-block validation-block pull-right">
+                {{'shipperConfiguration.form.errors.configuration.invalidJSON' | translate}}
+              </span>
+              <span *ngIf="configurationField.errors && configurationField.errors.required"
+                    class="help-block validation-block pull-right">
+                {{'common.form.errors.required' | translate}}
+              </span>
+            </label>
+            <textarea class="form-control configuration" name="configuration"
+              formControlName="configuration"></textarea>
+          </div>
+          <button class="btn btn-primary pull-right" type="submit"
+                  [disabled]="(!configurationForm.valid || configurationForm.pristine)">
+            {{'shipperConfiguration.form.saveBtn.label' | translate}}
+          </button>
+        </fieldset>
       </form>
     </div>
     <div class="shipper-form-validator col-md-6">

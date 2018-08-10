@@ -73,8 +73,18 @@ class FileCache():
   def reset(self):
     self.uptodate_paths = [] # Paths that already have been recently checked
 
+  def get_server_url_prefix(self, command):
+    """
+     Returns server url prefix if exists
 
-  def get_service_base_dir(self, command, server_url_prefix):
+    :type command dict
+    """
+    try:
+      return command['ambariLevelParams']['jdk_location']
+    except KeyError:
+      return ""
+
+  def get_service_base_dir(self, command):
     """
     Returns a base directory for service
     """
@@ -82,11 +92,9 @@ class FileCache():
       service_subpath = command['commandParams']['service_package_folder']
     else:
       service_subpath = command['serviceLevelParams']['service_package_folder']
-    return self.provide_directory(self.cache_dir, service_subpath,
-                                  server_url_prefix)
+    return self.provide_directory(self.cache_dir, service_subpath, self.get_server_url_prefix(command))
 
-
-  def get_hook_base_dir(self, command, server_url_prefix):
+  def get_hook_base_dir(self, command):
     """
     Returns a base directory for hooks
     """
@@ -94,20 +102,18 @@ class FileCache():
       hooks_path = command['clusterLevelParams']['hooks_folder']
     except KeyError:
       return None
-    return self.provide_directory(self.cache_dir, hooks_path,
-                                  server_url_prefix)
+    return self.provide_directory(self.cache_dir, hooks_path, self.get_server_url_prefix(command))
 
-
-  def get_custom_actions_base_dir(self, server_url_prefix):
+  def get_custom_actions_base_dir(self, command):
     """
     Returns a base directory for custom action scripts
     """
     return self.provide_directory(self.cache_dir,
                                   self.CUSTOM_ACTIONS_CACHE_DIRECTORY,
-                                  server_url_prefix)
+                                  self.get_server_url_prefix(command))
 
 
-  def get_custom_resources_subdir(self, command, server_url_prefix):
+  def get_custom_resources_subdir(self, command):
     """
     Returns a custom directory which must be a subdirectory of the resources dir
     """
@@ -116,20 +122,16 @@ class FileCache():
     except KeyError:
       return None
 
-    return self.provide_directory(self.cache_dir,
-                                  custom_dir,
-                                  server_url_prefix)
+    return self.provide_directory(self.cache_dir, custom_dir, self.get_server_url_prefix(command))
 
-
-  def get_host_scripts_base_dir(self, server_url_prefix):
+  def get_host_scripts_base_dir(self, command):
     """
     Returns a base directory for host scripts (host alerts, etc) which
     are scripts that are not part of the main agent code
     """
     return self.provide_directory(self.cache_dir,
                                   self.HOST_SCRIPTS_CACHE_DIRECTORY,
-                                  server_url_prefix)
-
+                                  self.get_server_url_prefix(command))
 
   def auto_cache_update_enabled(self):
     from AmbariConfig import AmbariConfig
@@ -182,7 +184,7 @@ class FileCache():
                                                  subdirectory, self.ARCHIVE_NAME)
           membuffer = self.fetch_url(download_url)
           # extract only when the archive is not zero sized
-          if (membuffer.getvalue().strip()):
+          if membuffer.getvalue().strip():
             self.invalidate_directory(full_path)
             self.unpack_archive(membuffer, full_path)
             self.write_hash_sum(full_path, remote_hash)
@@ -193,7 +195,7 @@ class FileCache():
             pass
         # Finally consider cache directory up-to-date
         self.uptodate_paths.append(full_path)
-    except CachingException, e:
+    except CachingException as e:
       if self.tolerate_download_failures:
         # ignore
         logger.warn("Error occurred during cache update. "
@@ -209,9 +211,7 @@ class FileCache():
 
     return full_path
 
-
-  def build_download_url(self, server_url_prefix,
-                         directory, filename):
+  def build_download_url(self, server_url_prefix, directory, filename):
     """
     Builds up a proper download url for file. Used for downloading files
     from the server.
@@ -220,7 +220,6 @@ class FileCache():
     """
     return "{0}/{1}/{2}".format(server_url_prefix,
                                 urllib.pathname2url(directory), filename)
-
 
   def fetch_url(self, url):
     """
@@ -242,10 +241,8 @@ class FileCache():
         if not buff:
           break
       return memory_buffer
-    except Exception, err:
-      raise CachingException("Can not download file from"
-                             " url {0} : {1}".format(url, str(err)))
-
+    except Exception as err:
+      raise CachingException("Can not download file from url {0} : {1}".format(url, str(err)))
 
   def read_hash_sum(self, directory):
     """
@@ -257,8 +254,7 @@ class FileCache():
       with open(hash_file) as fh:
         return fh.readline().strip()
     except:
-      return None # We don't care
-
+      return None
 
   def write_hash_sum(self, directory, new_hash):
     """
@@ -270,10 +266,8 @@ class FileCache():
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
       os.chmod(hash_file, 0o644)
-    except Exception, err:
-      raise CachingException("Can not write to file {0} : {1}".format(hash_file,
-                                                                 str(err)))
-
+    except Exception as err:
+      raise CachingException("Can not write to file {0} : {1}".format(hash_file, str(err)))
 
   def invalidate_directory(self, directory):
     """
@@ -287,7 +281,7 @@ class FileCache():
     logger.debug("Invalidating directory {0}".format(directory))
     try:
       if os.path.exists(directory):
-        if os.path.isfile(directory): # It would be a strange situation
+        if os.path.isfile(directory):  # It would be a strange situation
           os.unlink(directory)
         elif os.path.isdir(directory):
           """
@@ -298,11 +292,10 @@ class FileCache():
           execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, directory)
         # create directory itself and any parent directories
       os.makedirs(directory)
-    except Exception, err:
+    except Exception as err:
       logger.exception("Can not invalidate cache directory {0}".format(directory))
       raise CachingException("Can not invalidate cache directory {0}: {1}",
                              directory, str(err))
-
 
   def unpack_archive(self, mem_buffer, target_directory):
     """
@@ -317,9 +310,7 @@ class FileCache():
         if not os.path.isdir(concrete_dir):
           os.makedirs(concrete_dir)
         logger.debug("Unpacking file {0} to {1}".format(name, concrete_dir))
-        if filename!='':
+        if filename != '':
           zfile.extract(name, target_directory)
-    except Exception, err:
-      raise CachingException("Can not unpack zip file to "
-                             "directory {0} : {1}".format(
-                            target_directory, str(err)))
+    except Exception as err:
+      raise CachingException("Can not unpack zip file to directory {0} : {1}".format(target_directory, str(err)))

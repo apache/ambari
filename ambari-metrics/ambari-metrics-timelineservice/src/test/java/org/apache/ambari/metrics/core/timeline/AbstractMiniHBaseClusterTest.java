@@ -20,6 +20,7 @@ package org.apache.ambari.metrics.core.timeline;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
 import static org.apache.phoenix.end2end.ParallelStatsDisabledIT.tearDownMiniCluster;
 import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
@@ -37,6 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.annotation.Nonnull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,11 +73,49 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
   protected Connection conn;
   protected PhoenixHBaseAccessor hdb;
   protected TimelineMetricMetadataManager metadataManager;
+  private static StandaloneHBaseTestingUtility utility;
 
   public final Log LOG;
 
   public AbstractMiniHBaseClusterTest() {
     LOG = LogFactory.getLog(this.getClass());
+  }
+
+
+  protected static void setUpTestDriver(ReadOnlyProps props) throws Exception {
+    setUpTestDriver(props, props);
+  }
+
+  protected static void setUpTestDriver(ReadOnlyProps serverProps, ReadOnlyProps clientProps) throws Exception {
+    if (driver == null) {
+      String url = checkClusterInitialized(serverProps);
+      driver = initAndRegisterTestDriver(url, clientProps);
+    }
+  }
+
+  private static String checkClusterInitialized(ReadOnlyProps serverProps) throws Exception {
+    if(!clusterInitialized) {
+      url = setUpTestCluster(config, serverProps);
+      clusterInitialized = true;
+    }
+
+    return url;
+  }
+
+  protected static String setUpTestCluster(@Nonnull Configuration conf, ReadOnlyProps overrideProps) throws Exception {
+    return initEmbeddedMiniCluster(conf, overrideProps);
+  }
+
+  private static String initEmbeddedMiniCluster(Configuration conf, ReadOnlyProps overrideProps) throws Exception {
+    setUpConfigForMiniCluster(conf, overrideProps);
+    utility = new StandaloneHBaseTestingUtility(conf);
+
+    try {
+      utility.startStandaloneHBaseCluster();
+      return getLocalClusterUrl(utility);
+    } catch (Throwable var3) {
+      throw new RuntimeException(var3);
+    }
   }
 
   @BeforeClass
@@ -309,5 +350,18 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
         }
       }
     }
+  }
+
+  @After
+  public void cleanup() throws SQLException {
+    for (String table : PHOENIX_TABLES) {
+      executeUpdate("DELETE FROM " + table);
+    }
+  }
+
+  private void executeUpdate(String query) throws SQLException {
+    Connection conn = getConnection(getUrl());
+    Statement stmt = conn.createStatement();
+    stmt.executeUpdate(query);
   }
 }

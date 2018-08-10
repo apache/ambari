@@ -315,9 +315,11 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
     var dependentComponents = [];
 
     componentsToAdd.forEach(function (_component) {
-      var dependencies = App.StackServiceComponent.find(_component.componentName).get('dependencies').filterProperty('scope', 'host').map(function (_dependency) {
+      var componentToAdd = App.StackServiceComponent.find(_component.componentName);
+      var installedComponents = App.HostComponent.find().filterProperty('hostName', _component.hostName).mapProperty('componentName').uniq();
+      var dependencies = componentToAdd.missingDependencies(installedComponents, {'scope': 'host'}).map(function (_dependency) {
         return {
-          componentName: _dependency.componentName,
+          componentName: _dependency.chooseCompatible(),
           hostName: _component.hostName,
           isClient: App.StackServiceComponent.find(_dependency.componentName).get('isClient')
         }

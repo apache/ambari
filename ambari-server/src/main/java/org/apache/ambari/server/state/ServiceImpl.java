@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +36,9 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ServiceKey;
+import org.apache.ambari.server.collections.Predicate;
+import org.apache.ambari.server.collections.PredicateUtils;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
@@ -58,6 +62,7 @@ import org.apache.ambari.server.orm.entities.ServiceDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.serveraction.kerberos.Component;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +88,9 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
   private final boolean ssoIntegrationSupported;
-  private final String ssoEnabledConfiguration;
+  private final Predicate ssoEnabledTest;
+  private final boolean ssoRequiresKerberos;
+  private final Predicate kerberosEnabledTest;
   private AmbariMetaInfo ambariMetaInfo;
   private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
@@ -92,6 +99,9 @@ public class ServiceImpl implements Service {
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
+  @Inject
+  private AmbariManagementController ambariManagementController;
 
   @Inject
   private ConfigHelper configHelper;
@@ -128,12 +138,12 @@ public class ServiceImpl implements Service {
 
   @AssistedInject
   ServiceImpl(@Assisted Cluster cluster, @Assisted ServiceGroup serviceGroup,
-              @Assisted List<ServiceKey> serviceDependencies,
-              @Assisted("serviceName") String serviceName, @Assisted("serviceType") String serviceType,
-              ClusterDAO clusterDAO, ServiceGroupDAO serviceGroupDAO,
-              ClusterServiceDAO clusterServiceDAO, ServiceDesiredStateDAO serviceDesiredStateDAO,
-              ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
-              AmbariEventPublisher eventPublisher) throws AmbariException {
+      @Assisted List<ServiceKey> serviceDependencies, @Assisted("serviceName") String serviceName,
+      @Assisted("serviceType") String serviceType, ClusterDAO clusterDAO,
+      ServiceGroupDAO serviceGroupDAO, ClusterServiceDAO clusterServiceDAO,
+      ServiceDesiredStateDAO serviceDesiredStateDAO,
+      ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
+      AmbariEventPublisher eventPublisher) throws AmbariException {
     this.cluster = cluster;
     this.serviceGroup = serviceGroup;
     this.clusterDAO = clusterDAO;
@@ -196,7 +206,16 @@ public class ServiceImpl implements Service {
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
-    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoEnabledTest = compileSsoEnabledPredicate(sInfo);
+    ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
+    kerberosEnabledTest = compileKerberosEnabledPredicate(sInfo);
+
+    if (ssoIntegrationSupported && ssoRequiresKerberos && (kerberosEnabledTest == null)) {
+      LOG.warn("The service, {}, requires Kerberos to be enabled for SSO integration support; " +
+              "however, the kerberosEnabledTest specification has not been specified in the metainfo.xml file. " +
+              "Automated SSO integration will not be allowed for this service.",
+          serviceName);
+    }
 
     persist(serviceEntity);
   }
@@ -236,8 +255,8 @@ public class ServiceImpl implements Service {
             LOG.error(String.format("Can not get component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s",
               stackId.getStackName(), stackId.getStackVersion(),
               serviceEntity.getServiceName(), serviceComponentDesiredStateEntity.getComponentName()));
-            ex.printStackTrace();
-          }
+          ex.printStackTrace();
+        }
       }
     }
 
@@ -249,7 +268,16 @@ public class ServiceImpl implements Service {
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
     ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
-    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
+    ssoEnabledTest = compileSsoEnabledPredicate(sInfo);
+    ssoRequiresKerberos = sInfo.isKerberosRequiredForSingleSignOnIntegration();
+    kerberosEnabledTest = compileKerberosEnabledPredicate(sInfo);
+
+    if (ssoIntegrationSupported && ssoRequiresKerberos && (kerberosEnabledTest == null)) {
+      LOG.warn("The service, {}, requires Kerberos to be enabled for SSO integration support; " +
+              "however, the kerberosEnabledTest specification has not been specified in the metainfo.xml file. " +
+              "Automated SSO integration will not be allowed for this service.",
+          serviceName);
+    }
   }
 
 
@@ -313,7 +341,7 @@ public class ServiceImpl implements Service {
   @Override
   public Set<String> getServiceHosts() {
     Set<String> hostNames = new HashSet<>();
-    for (ServiceComponent serviceComponent  : getServiceComponents().values()) {
+    for (ServiceComponent serviceComponent : getServiceComponents().values()) {
       hostNames.addAll(serviceComponent.getServiceComponentsHosts());
     }
     return hostNames;
@@ -434,7 +462,7 @@ public class ServiceImpl implements Service {
   public void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting DesiredState of Service, clusterName={}, clusterId={}, serviceName={}, oldDesiredState={}, newDesiredState={}",
-        cluster.getClusterName(), cluster.getClusterId(), getName(), getDesiredState(), state);
+          cluster.getClusterName(), cluster.getClusterId(), getName(), getDesiredState(), state);
     }
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
@@ -455,11 +483,21 @@ public class ServiceImpl implements Service {
     Mpack mpack = ambariMetaInfo.getMpack(serviceGroup.getMpackId());
     Module module = mpack.getModule(getServiceType());
 
+    Map<String, Map<String, String>> existingConfigurations;
+
+    try {
+      existingConfigurations = configHelper.calculateExistingConfigurations(ambariManagementController, cluster);
+    } catch (AmbariException e) {
+      LOG.warn("Failed to get the existing configurations for the cluster.  Predicate calculations may not be correct due to missing data.");
+      existingConfigurations = Collections.emptyMap();
+    }
+
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
         getServiceId(), getName(), getServiceType(), serviceGroup.getStackId(), module.getVersion(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
-        ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled());
+        ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled(existingConfigurations),
+        isKerberosRequiredForSsoIntegration(), isKerberosEnabled(existingConfigurations));
 
     r.setMaintenanceState(getMaintenanceState().name());
     return r;
@@ -516,7 +554,7 @@ public class ServiceImpl implements Service {
       return desiredStateEntity.isCredentialStoreEnabled();
     } else {
       LOG.warn("Trying to fetch a member from an entity object that may " +
-              "have been previously deleted, serviceName = " + getName());
+          "have been previously deleted, serviceName = " + getName());
     }
     return false;
   }
@@ -532,7 +570,7 @@ public class ServiceImpl implements Service {
   public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting CredentialStoreEnabled of Service, clusterName={}, clusterId={}, serviceName={}, oldCredentialStoreEnabled={}, newCredentialStoreEnabled={}",
-        cluster.getClusterName(), cluster.getClusterId(), getName(), isCredentialStoreEnabled(), credentialStoreEnabled);
+          cluster.getClusterName(), cluster.getClusterId(), getName(), isCredentialStoreEnabled(), credentialStoreEnabled);
     }
 
     ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
@@ -544,7 +582,7 @@ public class ServiceImpl implements Service {
         StackId stackId = serviceGroup.getStackId();
         serviceCredentialStoreUpdateEvent =
             new ServiceCredentialStoreUpdateEvent(getClusterId(), stackId.getStackName(),
-                                                  stackId.getStackVersion(), getName(), getServiceType(), getServiceGroupName());
+                stackId.getStackVersion(), getName(), getServiceType(), getServiceGroupName());
       }
       desiredStateEntity.setCredentialStoreEnabled(credentialStoreEnabled);
       desiredStateEntity = serviceDesiredStateDAO.merge(desiredStateEntity);
@@ -555,7 +593,7 @@ public class ServiceImpl implements Service {
       }
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
-              + "previously deleted, serviceName = " + getName());
+          + "previously deleted, serviceName = " + getName());
     }
   }
 
@@ -847,26 +885,63 @@ public class ServiceImpl implements Service {
     return maintenanceState.get();
   }
 
+  @Override
+  public boolean isKerberosEnabled() {
+    if (kerberosEnabledTest != null) {
+      Map<String, Map<String, String>> existingConfigurations;
+
+      try {
+        existingConfigurations = configHelper.calculateExistingConfigurations(ambariManagementController, cluster);
+      } catch (AmbariException e) {
+        LOG.warn("Failed to get the existing configurations for the cluster.  Predicate calculations may not be correct due to missing data.");
+        existingConfigurations = Collections.emptyMap();
+      }
+      return isKerberosEnabled(existingConfigurations);
+    }
+
+    return false;
+  }
+
+  @Override
+  public boolean isKerberosEnabled(Map<String, Map<String, String>> configurations) {
+    return kerberosEnabledTest != null && kerberosEnabledTest.evaluate(configurations);
+  }
+
   // Refresh the cached reference on setters
   private ServiceDesiredStateEntity getServiceDesiredStateEntity() {
     return serviceDesiredStateDAO.findByServiceId(serviceId);
   }
 
-  public boolean isSsoIntegrationDesired() {
+  private Predicate compileSsoEnabledPredicate(ServiceInfo sInfo) {
+    if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledTest())) {
+      if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledConfiguration())) {
+        LOG.warn("Both <ssoEnabledTest> and <enabledConfiguration> have been declared within <sso> for {}; using <ssoEnabledTest>", serviceName);
+      }
+      return PredicateUtils.fromJSON(sInfo.getSingleSignOnEnabledTest());
+    } else if (StringUtils.isNotBlank(sInfo.getSingleSignOnEnabledConfiguration())) {
+      LOG.warn("Only <enabledConfiguration> have been declared  within <sso> for {}; converting its value to an equals predicate", serviceName);
+      final String equalsPredicateJson = "{\"equals\": [\"" + sInfo.getSingleSignOnEnabledConfiguration() + "\", \"true\"]}";
+      return PredicateUtils.fromJSON(equalsPredicateJson);
+    }
+    return null;
+  }
+
+  private Predicate compileKerberosEnabledPredicate(ServiceInfo sInfo) {
+    if (StringUtils.isNotBlank(sInfo.getKerberosEnabledTest())) {
+      return PredicateUtils.fromJSON(sInfo.getKerberosEnabledTest());
+    }
+    return null;
+  }
+
+  private boolean isSsoIntegrationDesired() {
     return ambariServerConfigurationHandler.getSSOEnabledServices().contains(serviceName);
   }
 
-  public boolean isSsoIntegrationEnabled() {
-    return ssoIntegrationSupported && ssoEnabledConfigValid() && "true".equalsIgnoreCase(ssoEnabledConfigValue());
+  private boolean isSsoIntegrationEnabled(Map<String, Map<String, String>> existingConfigurations) {
+    return ssoIntegrationSupported && ssoEnabledTest != null && ssoEnabledTest.evaluate(existingConfigurations);
   }
 
-  private boolean ssoEnabledConfigValid() {
-    return ssoEnabledConfiguration != null && ssoEnabledConfiguration.split("/").length == 2;
-  }
-
-  private String ssoEnabledConfigValue() {
-    String configType = ssoEnabledConfiguration.split("/")[0];
-    String propertyName = ssoEnabledConfiguration.split("/")[1];
-    return configHelper.getValueFromDesiredConfigurations(cluster, configType, propertyName);
+  private boolean isKerberosRequiredForSsoIntegration() {
+    return ssoRequiresKerberos;
   }
 }

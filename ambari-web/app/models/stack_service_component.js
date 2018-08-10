@@ -18,6 +18,22 @@
 
 var App = require('app');
 var numberUtils = require('utils/number_utils');
+
+var ComponentDependency = Ember.Object.extend({
+  componentName: null,
+  compatibleComponents: [],
+
+  /**
+   * Find the first compatible component which belongs to a service that is installed
+   */
+  chooseCompatible: function() {
+    var compatibleComponent = this.get('compatibleComponents').find(function(component) {
+      return App.Service.find().someProperty('serviceName', component.get('serviceName'))
+    });
+    return (compatibleComponent ? compatibleComponent : this.get('compatibleComponents')[0]).get('componentName');
+  }
+});
+
 /**
  * This model loads all serviceComponents supported by the stack
  * @type {*}
@@ -87,11 +103,19 @@ App.StackServiceComponent = DS.Model.extend({
     dependencies = opt.scope === '*' ? dependencies : dependencies.filterProperty('scope', opt.scope);
     if (dependencies.length === 0) return [];
     installedComponents = installedComponents.map(function(each) { return App.StackServiceComponent.find(each); });
-    return dependencies.filter(function (dependency) {
+    var missingComponents = dependencies.filter(function (dependency) {
       return !installedComponents.some(function(each) {
         return each.compatibleWith(App.StackServiceComponent.find(dependency.componentName));
       });
     }).mapProperty('componentName');
+    return missingComponents.map(function (missingComponentName) {
+      return ComponentDependency.create({
+        'componentName': missingComponentName,
+        'compatibleComponents': App.StackServiceComponent.find().filter(function (each) {
+          return each.compatibleWith(App.StackServiceComponent.find(missingComponentName));
+        })
+      });
+    });
   },
 
   /** @property {Boolean} isRequired - component required to install **/

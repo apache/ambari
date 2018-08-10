@@ -185,13 +185,13 @@ public class TimelineMetricMetadataManager {
       }
     }
 
-      metricMetadataSync = new TimelineMetricMetadataSync(this);
+    metricMetadataSync = new TimelineMetricMetadataSync(this);
     // Schedule the executor to sync to store
     if (scheduleMetadateSync) {
       executorService.scheduleWithFixedDelay(metricMetadataSync,
-          metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
-          metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
-          TimeUnit.SECONDS);
+        metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
+        metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
+        TimeUnit.SECONDS);
     }
     // Read from store and initialize map
     try {
@@ -592,7 +592,11 @@ public class TimelineMetricMetadataManager {
       timelineMetric.setInstanceId(key.instanceId);
 
       byte[] hostUuid = ArrayUtils.subarray(uuid, TIMELINE_METRIC_UUID_LENGTH, HOSTNAME_UUID_LENGTH + TIMELINE_METRIC_UUID_LENGTH);
-      timelineMetric.setHostName(uuidHostMap.get(new TimelineMetricUuid(hostUuid)));
+      String hostname = uuidHostMap.get(new TimelineMetricUuid(hostUuid));
+      if (hostname == null) {
+        return null;
+      }
+      timelineMetric.setHostName(hostname);
       return timelineMetric;
     }
   }
@@ -736,7 +740,7 @@ public class TimelineMetricMetadataManager {
    * @throws IOException
    */
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadataByAppId(String appId, String metricPattern,
-                                                                             boolean includeBlacklistedMetrics) throws SQLException, IOException {
+                                                                                    boolean includeBlacklistedMetrics) throws SQLException, IOException {
 
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata = getMetadataCache();
 
@@ -839,8 +843,8 @@ public class TimelineMetricMetadataManager {
           cacheValue.setType(oldValue.getType());
           cacheValue.setIsWhitelisted(oldValue.isWhitelisted());
         } else if (oldValue.getSeriesStartTime() < cacheValue.getSeriesStartTime() &&
-                   cacheValue.getSeriesStartTime() != 0L &&
-                   cacheValue.isWhitelisted())
+          cacheValue.getSeriesStartTime() != 0L &&
+          cacheValue.isWhitelisted())
         {
           LOG.info(String.format("Updating startTime for %s", key));
           cacheValue.setSeriesStartTime(oldValue.getSeriesStartTime());

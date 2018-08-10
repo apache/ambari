@@ -61,7 +61,8 @@
   width: 115px;
   text-align: center;
   line-height: 20px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  margin-top: 2px;
 }
 
 .groups-filter {
@@ -162,7 +163,8 @@
 #alert-instances-table {
   > thead > tr > th,  > thead > tr > td,
   > tbody > tr > th,  > tbody > tr > td,
-  > tfoot > tr > th,  > tfoot > tr > td {
+  > tfoot > tr > th,  > tfoot > tr > td,
+  .timeago {
     vertical-align: middle;
   }
 
@@ -364,23 +366,7 @@
 
 }
 
-.alert-mixin {
-  border-radius: 50%;
-  color: #ffffff;
-  text-align: center;
-  display: inline-block;
-  position: relative;
-}
-
 .service-block .summary-box-header {
-  .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
-    .alert-mixin;
-    padding: 3px 5px;
-    font-size: 10px;
-    min-width: 16px;
-    height: 16px;
-    top: -3px;
-  }
   .glyphicon {
     color: #999999;
     cursor: pointer;
@@ -391,25 +377,9 @@
 }
 
 .alerts-block {
-  .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
-    .alert-mixin;
-    padding: 3px 5px;
-    font-size: 10px;
-    min-width: 16px;
-    height: 16px;
-  }
+  margin-right: 6px;
 }
 
-.summary-value {
-  .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
-    .alert-mixin;
-    padding: 3px 0;
-    font-size: 9px;
-    width: 15px;
-    height: 15px;
-    top: -3px;
-  }
-}
 
 .alerts-crit-count, .alerts-warn-count, .alerts-none-count {
   cursor: pointer;

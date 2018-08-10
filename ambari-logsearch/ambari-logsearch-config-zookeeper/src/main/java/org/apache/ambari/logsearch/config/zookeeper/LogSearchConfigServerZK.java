@@ -24,14 +24,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.ambari.logsearch.config.api.LogLevelFilterManager;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputAdapter;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputAdapter;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.slf4j.Logger;
@@ -57,6 +57,8 @@ public class LogSearchConfigServerZK extends LogSearchConfigZK implements LogSea
     }
     serverCache = new TreeCache(client, "/");
     serverCache.start();
+    LogLevelFilterManager logLevelFilterManager = new LogLevelFilterManagerZK(client, serverCache, getAcls(), gson);
+    setLogLevelFilterManager(logLevelFilterManager);
   }
 
   @Override
@@ -97,42 +99,4 @@ public class LogSearchConfigServerZK extends LogSearchConfigZK implements LogSea
     return childData == null ? null : InputConfigGson.gson.fromJson(new String(childData.getData()), InputConfigImpl.class);
   }
 
-  @Override
-  public void setLogLevelFilters(String clusterName, LogLevelFilterMap filters) throws Exception {
-    for (Map.Entry<String, LogLevelFilter> e : filters.getFilter().entrySet()) {
-      String nodePath = String.format("/%s/loglevelfilter/%s", clusterName, e.getKey());
-      String logLevelFilterJson = gson.toJson(e.getValue());
-      String currentLogLevelFilterJson = new String(serverCache.getCurrentData(nodePath).getData());
-      if (!logLevelFilterJson.equals(currentLogLevelFilterJson)) {
-        client.setData().forPath(nodePath, logLevelFilterJson.getBytes());
-        LOG.info("Set log level filter for the log " + e.getKey() + " for cluster " + clusterName);
-      }
-    }
-  }
-
-  @Override
-  public LogLevelFilterMap getLogLevelFilters(String clusterName) {
-    String parentPath = String.format("/%s/loglevelfilter", clusterName);
-    Map<String, ChildData> logLevelFilterNodes = serverCache.getCurrentChildren(parentPath);
-    TreeMap<String, LogLevelFilter> filters = new TreeMap<>();
-    for (Map.Entry<String, ChildData> e : logLevelFilterNodes.entrySet()) {
-      LogLevelFilter logLevelFilter = gson.fromJson(new String(e.getValue().getData()), LogLevelFilter.class);
-      filters.put(e.getKey(), logLevelFilter);
-    }
-    
-    LogLevelFilterMap logLevelFilters = new LogLevelFilterMap();
-    logLevelFilters.setFilter(filters);
-    return logLevelFilters;
-  }
-
-  @Override
-  public void saveOutputSolrProperties(String type, OutputSolrProperties outputSolrProperties) throws Exception {
-    String nodePath = String.format("/output/solr/%s", type);
-    String data = gson.toJson(outputSolrProperties);
-    if (outputCache.getCurrentData(nodePath) == null) {
-      client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, data.getBytes());
-    } else {
-      client.setData().forPath(nodePath, data.getBytes());
-    }
-  }
 }

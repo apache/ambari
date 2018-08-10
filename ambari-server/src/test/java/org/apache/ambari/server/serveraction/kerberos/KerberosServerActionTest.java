@@ -77,6 +77,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
     ExecutionCommand mockExecutionCommand = createMock(ExecutionCommand.class);
     HostRoleCommand mockHostRoleCommand = createMock(HostRoleCommand.class);
     kerberosKeytabController = createMock(KerberosKeytabController.class);
+    expect(kerberosKeytabController.adjustServiceComponentFilter(anyObject(), anyObject())).andReturn(null).anyTimes();
     expect(kerberosKeytabController.getFilteredKeytabs(null, null, null))
       .andReturn(
         Sets.newHashSet(new ResolvedKerberosKeytab(
@@ -96,6 +97,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
       protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                               KerberosOperationHandler operationHandler,
                                               Map<String, String> kerberosConfiguration,
+                                              boolean includedInFilter,
                                               Map<String, Object> requestSharedDataContext)
           throws AmbariException {
         Assert.assertNotNull(requestSharedDataContext);

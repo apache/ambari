@@ -21,6 +21,7 @@ limitations under the License.
 import threading
 import logging
 
+from ambari_agent.CommandHooksOrchestrator import HooksOrchestrator
 from ambari_agent.FileCache import FileCache
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
@@ -69,6 +70,7 @@ class InitializerModule:
     self.server_responses_listener = None
     self.file_cache = None
     self.customServiceOrchestrator = None
+    self.hooks_orchestrator = None
     self.recovery_manager = None
     self.commandStatuses = None
     self.action_queue = None
@@ -92,6 +94,7 @@ class InitializerModule:
     self.server_responses_listener = ServerResponsesListener(self)
     self.file_cache = FileCache(self.config)
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
+    self.hooks_orchestrator = HooksOrchestrator(self)
     self.recovery_manager = RecoveryManager(self)
     self.commandStatuses = CommandStatusDict(self)
 

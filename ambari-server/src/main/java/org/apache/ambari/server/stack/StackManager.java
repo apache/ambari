@@ -710,10 +710,6 @@ public class StackManager {
       }
     }
 
-    if (stackMap.isEmpty()) {
-      throw new AmbariException("Unable to find stack definitions under " +
-          "stackRoot = " + stackRoot.getAbsolutePath());
-    }
     return stackModules;
   }
 

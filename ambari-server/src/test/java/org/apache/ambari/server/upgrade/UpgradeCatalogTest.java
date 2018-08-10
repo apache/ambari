@@ -81,10 +81,7 @@ public class UpgradeCatalogTest {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
-      catalogBinder.addBinding().to(UpgradeCatalog201.class);
-      catalogBinder.addBinding().to(UpgradeCatalog251.class);
-      catalogBinder.addBinding().to(UpgradeCatalog252.class);
-      catalogBinder.addBinding().to(UpgradeCatalog270.class);
+      catalogBinder.addBinding().to(UpgradeCatalog271.class);
     }
   }
 
@@ -114,13 +111,12 @@ public class UpgradeCatalogTest {
     Set<UpgradeCatalog> upgradeCatalogSet = schemaUpgradeHelper.getAllUpgradeCatalogs();
 
     Assert.assertNotNull(upgradeCatalogSet);
-    Assert.assertEquals(4, upgradeCatalogSet.size());
+    Assert.assertEquals(1, upgradeCatalogSet.size());
 
-    List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "2.5.1");
+    List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "2.7.1");
 
     Assert.assertNotNull(upgradeCatalogs);
-    Assert.assertEquals(2, upgradeCatalogs.size());
-    Assert.assertEquals("2.0.1", upgradeCatalogs.get(0).getTargetVersion());
-    Assert.assertEquals("2.5.1", upgradeCatalogs.get(1).getTargetVersion());
+    Assert.assertEquals(1, upgradeCatalogs.size());
+    Assert.assertEquals("2.7.1", upgradeCatalogs.get(0).getTargetVersion());
   }
 }

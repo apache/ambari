@@ -136,7 +136,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
     }
 
     if (existingMetric != null) {
-      hostAggregate.setSum(hostAggregate.getSum() / perMetricCount);
+      hostAggregate.setSum(hostAggregate.getSum() / (perMetricCount - 1));
       hostAggregate.setNumberOfSamples(Math.round((float)hostAggregate.getNumberOfSamples() / (float)perMetricCount));
     }
 

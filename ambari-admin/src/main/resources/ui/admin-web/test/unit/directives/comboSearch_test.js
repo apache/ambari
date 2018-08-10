@@ -164,7 +164,7 @@ describe('#comboSearch', function () {
   describe('#updateFilters', function() {
     it('filter function from parent scope should be called', function () {
       var isoScope = element.isolateScope();
-      spyOn(isoScope, 'extractFilters').andReturn([{}]);
+      spyOn(isoScope, 'extractFilters').and.returnValue([{}]);
 
       isoScope.updateFilters([{}]);
 
