@@ -609,7 +609,10 @@ class Master(Script):
           del interpreter_settings[setting_key]
 
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy2':
-        if params.livy2_livyserver_host:
+        # Honor this Zeppelin setting if it exists
+        if 'zeppelin.livy.url' in params.config['configurations']['zeppelin-config']:
+          interpreter['properties']['zeppelin.livy.url'] = params.config['configurations']['zeppelin-config']['zeppelin.livy.url']
+        elif params.livy2_livyserver_host:
           interpreter['properties']['zeppelin.livy.url'] = params.livy2_livyserver_protocol + \
                                                            "://" + params.livy2_livyserver_host + \
                                                            ":" + params.livy2_livyserver_port
