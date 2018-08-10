@@ -235,6 +235,13 @@ def kms(upgrade_type=None):
       create_parents=True
     )
 
+    File(format('{kms_conf_dir}/ranger-kms-env.sh'),
+      content = format("export JAVA_HOME={java_home}"),
+      owner = params.kms_user,
+      group = params.kms_group,
+      mode = 0755
+    )
+
     if params.stack_supports_pid:
       File(format('{kms_conf_dir}/ranger-kms-env-piddir.sh'),
         content = format("export RANGER_KMS_PID_DIR_PATH={ranger_kms_pid_dir}\nexport KMS_USER={kms_user}"),
