@@ -230,6 +230,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
         this.dragStartX = Math.max(0, this.getDragX(containers[0]) - this.margin.left);
         this.dragArea = this.svg.insert('rect', ':first-child').attr('x', this.dragStartX).attr('y', 0).attr('width', 0)
           .attr('height', this.height).attr('class', 'drag-area');
+        this.createInvertDragArea(this.dragStartX, this.dragStartX);
       })
       .on('drag', (datum: undefined, index: number, containers: d3.ContainerElement[]): void => {
         const mousePos = this.getDragX(containers[0]);
@@ -239,6 +240,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
         this.dragArea.attr('x', startX).attr('width', currentWidth);
         const timeRange = this.getTimeRangeByXRanges(startX, startX + currentWidth);
         this.setChartTimeGap(new Date(timeRange[0]), new Date(timeRange[1]));
+        this.setInvertDragArea(startX, startX + currentWidth);
       })
       .on('end', (): void => {
         const dragAreaDetails = this.dragArea.node().getBBox();
@@ -248,6 +250,7 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
           const dateRange: [number, number] = this.getTimeRangeByXRanges(startX, endX);
           this.selectArea.emit(dateRange);
           this.dragArea.remove();
+          this.clearInvertDragArea();
           this.setChartTimeGap(new Date(dateRange[0]), new Date(dateRange[1]));
         }
       })
