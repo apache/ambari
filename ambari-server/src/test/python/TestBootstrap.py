@@ -36,7 +36,7 @@ from mock.mock import create_autospec
 from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 @not_for_platform(PLATFORM_WINDOWS)
-class TestBootstrap:#(TestCase):
+class TestBootstrap(TestCase):
 
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)

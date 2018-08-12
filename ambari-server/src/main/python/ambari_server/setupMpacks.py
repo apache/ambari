@@ -617,7 +617,7 @@ def _uninstall_mpack(mpack_name, mpack_version):
         staged_mpack_metadata = read_mpack_metadata(staged_mpack_dir)
         if not staged_mpack_metadata:
           print_error_msg("Skipping malformed management pack {0}-{1}. Metadata file missing!".format(
-                  staged_mpack_name, staged_mpack_version))
+                          mpack_name, mpack_version))
           continue
         staged_mpack_name = staged_mpack_metadata.name
         staged_mpack_version = staged_mpack_metadata.version

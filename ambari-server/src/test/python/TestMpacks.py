@@ -589,11 +589,11 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.download_mpack")
   @patch("ambari_server.setupMpacks.run_os_command")
   @patch("ambari_server.setupMpacks.set_file_permissions")
-
   def test_upgrade_stack_mpack(self, set_file_permissions_mock, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                _uninstall_mpack_mock, add_replay_log_mock, get_ambari_properties_mock,
                                get_ambari_version_mock, create_symlink_mock, read_ambari_user_mock, os_mkdir_mock, shutil_move_mock,
                                os_path_exists_mock, create_symlink_using_path_mock):
+
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/mystack-1.0.0.1.tar.gz"
     download_mpack_mock.side_effect = ["/tmp/mystack-1.0.0.1.tar.gz", "/tmp/mystack-1.0.0.1.tar.gz"]
@@ -603,11 +603,11 @@ class TestMpacks(TestCase):
 
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     os_path_exists_mock.side_effect = [True, True, True, True, True, True, True, True, True, True,
-                                       True, True, True, True, True, True, True, False, False, True,
+                                       True, True, True, True, True, True, True, False, False, False, True,
                                        True, False, False, True, False, False, False, False, False, True,
                                        True, True, True, False, True, True, False, True, True, False,
                                        False, False, False, False, True, True, True, True, True, True,
-                                       True, False, True, False, True, True, True, True, True, True,
+                                       True, False, True, False, True, True, True, True, True, True, True,
                                        True]
 
     get_ambari_properties_mock.return_value = configs
@@ -765,10 +765,10 @@ class TestMpacks(TestCase):
            os.path.join(dashboards_directory, "grafana-dashboards/SERVICEC"), True)
     ]
 
-    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls, True)
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     run_os_command_mock.assert_has_calls(run_os_command_calls)
-    os_mkdir_mock.assert_has_calls(os_mkdir_calls)
+    os_mkdir_mock.assert_has_calls(os_mkdir_calls, True)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
     self.assertEqual(18, create_symlink_mock.call_count) 
     create_symlink_using_path_mock.assert_has_calls(create_symlink_using_path_calls)
