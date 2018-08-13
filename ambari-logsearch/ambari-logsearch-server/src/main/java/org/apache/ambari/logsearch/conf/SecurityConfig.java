@@ -22,8 +22,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
-import org.apache.ambari.logsearch.conf.global.SolrLogLevelFilterManagerState;
-import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
@@ -44,7 +43,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -90,8 +88,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private SolrCollectionState solrEventHistoryState;
 
   @Inject
-  @Named("solrLogLevelFilterManagerState")
-  private SolrLogLevelFilterManagerState solrLogLevelFilterManagerState;
+  @Named("logLevelFilterManagerState")
+  private LogLevelFilterManagerState logLevelFilterManagerState;
 
   @Inject
   private LogSearchConfigState logSearchConfigState;
@@ -190,7 +188,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogSearchConfigStateFilter logSearchConfigStateFilter() {
-    if (logSearchConfigApiConfig.isSolrFilterStorage()) {
+    if (logSearchConfigApiConfig.isSolrFilterStorage() || logSearchConfigApiConfig.isZkFilterStorage()) {
       return new LogSearchConfigStateFilter(shipperConfigInputRequestMatcher(), logSearchConfigState, logSearchConfigApiConfig.isConfigApiEnabled());
     } else {
       return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState, logSearchConfigApiConfig.isConfigApiEnabled());
@@ -199,8 +197,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogSearchLogLevelFilterManagerFilter logSearchLogLevelFilterManagerFilter() {
-    boolean enabled = logSearchConfigApiConfig.isSolrFilterStorage() && !logSearchConfigApiConfig.isConfigApiEnabled();
-    return new LogSearchLogLevelFilterManagerFilter(logLevelFilterRequestMatcher(), solrLogLevelFilterManagerState, enabled);
+    boolean enabled = (logSearchConfigApiConfig.isSolrFilterStorage() || logSearchConfigApiConfig.isZkFilterStorage())
+      && !logSearchConfigApiConfig.isConfigApiEnabled();
+    return new LogSearchLogLevelFilterManagerFilter(logLevelFilterRequestMatcher(), logLevelFilterManagerState, enabled);
   }
 
   @Bean

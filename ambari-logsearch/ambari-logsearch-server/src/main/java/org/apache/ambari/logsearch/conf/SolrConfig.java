@@ -20,7 +20,7 @@ package org.apache.ambari.logsearch.conf;
 
 import org.apache.ambari.logsearch.conf.global.SolrAuditLogsState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
-import org.apache.ambari.logsearch.conf.global.SolrLogLevelFilterManagerState;
+import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.conf.global.SolrServiceLogsState;
 import org.apache.ambari.logsearch.conf.global.SolrEventHistoryState;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
@@ -52,11 +52,6 @@ public class SolrConfig {
   @Bean(name = "solrEventHistoryState")
   public SolrCollectionState solrEventHistoryState() {
     return new SolrEventHistoryState();
-  }
-
-  @Bean(name = "solrLogLevelFilterManagerState")
-  public SolrLogLevelFilterManagerState solrLogLevelFilterManagerState() {
-    return new SolrLogLevelFilterManagerState();
   }
 
   @Bean
