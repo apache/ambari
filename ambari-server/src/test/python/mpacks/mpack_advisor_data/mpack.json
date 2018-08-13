@@ -1,159 +1,159 @@
 {
-    "definition": "ods-1.0.0-b509-definition.tar.gz", 
-    "description": "Hortonworks Operational Data Store for services like HBASE.", 
-    "displayName": "Hortonworks Operational Data Store", 
-    "id": "ods", 
-    "modules": [
+  "definition": "ods-1.0.0-b509-definition.tar.gz",
+  "description": "Hortonworks Operational Data Store for services like HBASE.",
+  "displayName": "Hortonworks Operational Data Store",
+  "id": "ods",
+  "modules": [
+    {
+      "category": "CLIENT",
+      "components": [
         {
-            "category": "CLIENT", 
-            "components": [
-                {
-                    "category": "CLIENT", 
-                    "id": "hadoop_client", 
-                    "isExternal": false, 
-                    "name": "HADOOP_CLIENT", 
-                    "version": "3.0.0.0-b235"
-                }
-            ], 
-            "definition": "hadoop_clients-3.0.0.0-b235-definition.tar.gz", 
-            "dependencies": [
-                {
-                    "id": "hdfs", 
-                    "name": "HDFS", 
-                    "type": "RUNTIME"
-                }, 
-                {
-                    "id": "yarn", 
-                    "name": "YARN", 
-                    "type": "RUNTIME"
-                }, 
-                {
-                    "id": "mapreduce2", 
-                    "name": "MAPREDUCE2", 
-                    "type": "RUNTIME"
-                }
-            ], 
-            "description": "Clients for HDFS, YARN and MAPREDUCE services", 
-            "displayName": "Hadoop Clients", 
-            "hidden": true, 
-            "id": "hadoop_clients", 
-            "name": "HADOOP_CLIENTS", 
-            "version": "3.0.0.0-b235"
-        }, 
-        {
-            "category": "CLIENT", 
-            "components": [
-                {
-                    "category": "CLIENT", 
-                    "id": "zookeeper_client", 
-                    "isExternal": false, 
-                    "name": "ZOOKEEPER_CLIENT", 
-                    "version": "3.4.0.0-b43"
-                }
-            ], 
-            "definition": "zookeeper_clients-3.4.0.0-b43-definition.tar.gz", 
-            "dependencies": [
-                {
-                    "id": "zookeeper", 
-                    "name": "ZOOKEEPER", 
-                    "type": "RUNTIME"
-                }
-            ], 
-            "description": "Clients for ZooKeeper", 
-            "displayName": "ZooKeeper Clients", 
-            "hidden": true, 
-            "id": "zookeeper_clients", 
-            "name": "ZOOKEEPER_CLIENTS", 
-            "version": "3.4.0.0-b43"
-        }, 
-        {
-            "category": "SERVER", 
-            "components": [
-                {
-                    "category": "MASTER", 
-                    "id": "hbase_master", 
-                    "isExternal": false, 
-                    "name": "HBASE_MASTER", 
-                    "version": "2.0.0.0-b257"
-                }, 
-                {
-                    "category": "SLAVE", 
-                    "id": "hbase_regionserver", 
-                    "isExternal": false, 
-                    "name": "HBASE_REGIONSERVER", 
-                    "version": "2.0.0.0-b257"
-                }
-            ], 
-            "definition": "hbase-2.0.0.0-b257-definition.tar.gz", 
-            "dependencies": [
-                {
-                    "id": "zookeeper_clients", 
-                    "name": "ZOOKEEPER_CLIENTS", 
-                    "type": "INSTALL"
-                }, 
-                {
-                    "id": "hbase_clients", 
-                    "name": "HBASE_CLIENTS", 
-                    "type": "INSTALL"
-                }
-            ], 
-            "description": "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ", 
-            "displayName": "HBase", 
-            "hidden": false, 
-            "id": "hbase", 
-            "name": "HBASE", 
-            "version": "2.0.0.0-b257"
-        }, 
-        {
-            "category": "CLIENT", 
-            "components": [
-                {
-                    "category": "CLIENT", 
-                    "id": "hbase_client", 
-                    "isExternal": false, 
-                    "name": "HBASE_CLIENT", 
-                    "version": "2.0.0.0-b257"
-                }
-            ], 
-            "definition": "hbase_clients-2.0.0.0-b257-definition.tar.gz", 
-            "dependencies": [
-                {
-                    "id": "zookeeper_clients", 
-                    "name": "ZOOKEEPER_CLIENTS", 
-                    "type": "INSTALL"
-                }, 
-                {
-                    "id": "hbase", 
-                    "name": "HBASE", 
-                    "type": "RUNTIME"
-                }
-            ], 
-            "description": "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ", 
-            "displayName": "HBase", 
-            "hidden": false, 
-            "id": "hbase_clients", 
-            "name": "HBASE_CLIENTS", 
-            "version": "2.0.0.0-b257"
+          "category": "CLIENT",
+          "id": "hadoop_client",
+          "isExternal": false,
+          "name": "HADOOP_CLIENT",
+          "version": "3.0.0.0-b235"
         }
-    ], 
-    "name": "ODS", 
-    "osSpecifics": [
+      ],
+      "definition": "hadoop_clients-3.0.0.0-b235-definition.tar.gz",
+      "dependencies": [
         {
-            "osFamily": "ubuntu12,ubuntu14", 
-            "packages": [
-                "ods-1-0-0-b509"
-            ]
-        }, 
+          "id": "hdfs",
+          "name": "HDFS",
+          "type": "RUNTIME"
+        },
         {
-            "osFamily": "redhat7", 
-            "packages": [
-                "ods_1_0_0_b509"
-            ]
+          "id": "yarn",
+          "name": "YARN",
+          "type": "RUNTIME"
+        },
+        {
+          "id": "mapreduce2",
+          "name": "MAPREDUCE2",
+          "type": "RUNTIME"
         }
-    ], 
-    "prerequisites": {
-        "max-ambari-version": "3.1.0.0", 
-        "min-ambari-version": "3.0.0.0"
-    }, 
-    "version": "1.0.0-b509"
+      ],
+      "description": "Clients for HDFS, YARN and MAPREDUCE services",
+      "displayName": "Hadoop Clients",
+      "hidden": true,
+      "id": "hadoop_clients",
+      "name": "HADOOP_CLIENTS",
+      "version": "3.0.0.0-b235"
+    },
+    {
+      "category": "CLIENT",
+      "components": [
+        {
+          "category": "CLIENT",
+          "id": "zookeeper_client",
+          "isExternal": false,
+          "name": "ZOOKEEPER_CLIENT",
+          "version": "3.4.0.0-b43"
+        }
+      ],
+      "definition": "zookeeper_clients-3.4.0.0-b43-definition.tar.gz",
+      "dependencies": [
+        {
+          "id": "zookeeper",
+          "name": "ZOOKEEPER",
+          "type": "RUNTIME"
+        }
+      ],
+      "description": "Clients for ZooKeeper",
+      "displayName": "ZooKeeper Clients",
+      "hidden": true,
+      "id": "zookeeper_clients",
+      "name": "ZOOKEEPER_CLIENTS",
+      "version": "3.4.0.0-b43"
+    },
+    {
+      "category": "SERVER",
+      "components": [
+        {
+          "category": "MASTER",
+          "id": "hbase_master",
+          "isExternal": false,
+          "name": "HBASE_MASTER",
+          "version": "2.0.0.0-b257"
+        },
+        {
+          "category": "SLAVE",
+          "id": "hbase_regionserver",
+          "isExternal": false,
+          "name": "HBASE_REGIONSERVER",
+          "version": "2.0.0.0-b257"
+        }
+      ],
+      "definition": "hbase-2.0.0.0-b257-definition.tar.gz",
+      "dependencies": [
+        {
+          "id": "zookeeper_clients",
+          "name": "ZOOKEEPER_CLIENTS",
+          "type": "INSTALL"
+        },
+        {
+          "id": "hbase_clients",
+          "name": "HBASE_CLIENTS",
+          "type": "INSTALL"
+        }
+      ],
+      "description": "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
+      "displayName": "HBase",
+      "hidden": false,
+      "id": "hbase",
+      "name": "HBASE",
+      "version": "2.0.0.0-b257"
+    },
+    {
+      "category": "CLIENT",
+      "components": [
+        {
+          "category": "CLIENT",
+          "id": "hbase_client",
+          "isExternal": false,
+          "name": "HBASE_CLIENT",
+          "version": "2.0.0.0-b257"
+        }
+      ],
+      "definition": "hbase_clients-2.0.0.0-b257-definition.tar.gz",
+      "dependencies": [
+        {
+          "id": "zookeeper_clients",
+          "name": "ZOOKEEPER_CLIENTS",
+          "type": "INSTALL"
+        },
+        {
+          "id": "hbase",
+          "name": "HBASE",
+          "type": "RUNTIME"
+        }
+      ],
+      "description": "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
+      "displayName": "HBase",
+      "hidden": false,
+      "id": "hbase_clients",
+      "name": "HBASE_CLIENTS",
+      "version": "2.0.0.0-b257"
+    }
+  ],
+  "name": "ODS",
+  "osSpecifics": [
+    {
+      "osFamily": "ubuntu12,ubuntu14",
+      "packages": [
+        "ods-1-0-0-b509"
+      ]
+    },
+    {
+      "osFamily": "redhat7",
+      "packages": [
+        "ods_1_0_0_b509"
+      ]
+    }
+  ],
+  "prerequisites": {
+    "max-ambari-version": "3.1.0.0",
+    "min-ambari-version": "3.0.0.0"
+  },
+  "version": "1.0.0-b509"
 }
