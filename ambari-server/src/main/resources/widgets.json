@@ -48,17 +48,12 @@
               "name": "mem_free",
               "metric_path": "metrics/memory/mem_free",
               "service_name": "STACK"
-            },
-            {
-              "name": "mem_cached",
-              "metric_path": "metrics/memory/mem_cached",
-              "service_name": "STACK"
             }
           ],
           "values": [
             {
               "name": "Host Memory Used %",
-              "value": "${((mem_total - mem_free - mem_cached)/mem_total)*100}"
+              "value": "${((mem_total - mem_free)/mem_total)*100}"
             }
           ],
           "properties": {
@@ -81,7 +76,7 @@
           "values": [
             {
               "name": "Host Memory Used %",
-              "value": "${cpu_wio*100}"
+              "value": "${cpu_wio}"
             }
           ],
           "properties": {
