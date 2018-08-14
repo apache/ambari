@@ -467,6 +467,13 @@ public class Configuration {
       "api.csrfPrevention.enabled", "true");
 
   /**
+   * Determines whether Gzip handler is enabled for Jetty.
+   */
+  @Markdown(description = "Determines whether jetty Gzip compression is enabled or not.")
+  public static final ConfigurationProperty<String> GZIP_HANDLER_JETTY_ENABLED = new ConfigurationProperty<>(
+    "gzip.handler.jetty.enabled", "true");
+
+  /**
    * Determines whether HTTP body data is compressed with GZIP.
    */
   @Markdown(description = "Determines whether data sent to and from the Ambari service should be compressed.")
@@ -3794,6 +3801,15 @@ public class Configuration {
    */
   public boolean isApiGzipped() {
     return Boolean.parseBoolean(getProperty(API_GZIP_COMPRESSION_ENABLED));
+  }
+
+
+  /**
+   * Check to see if the API responses should be compressed via gzip or not
+   * @return false if not, true if gzip compression needs to be used.
+   */
+  public boolean isGzipHandlerEnabledForJetty() {
+    return Boolean.parseBoolean(getProperty(GZIP_HANDLER_JETTY_ENABLED));
   }
 
   /**
