@@ -18,8 +18,8 @@ AMBARI_AGENT_BINARY="/etc/init.d/ambari-agent"
 AMBARI_AGENT_BINARY_SYMLINK="/usr/sbin/ambari-agent"
 
 # setting ambari-agent binary symlink
-if [ ! -f "$AMBARI_AGENT_BINARY_SYMLINK" ]; then
-  ln -s "$AMBARI_AGENT_BINARY" "$AMBARI_AGENT_BINARY_SYMLINK"
+if [ ! -f "${AMBARI_AGENT_BINARY_SYMLINK}" ]; then
+  ln -s "${AMBARI_AGENT_BINARY}" "${AMBARI_AGENT_BINARY_SYMLINK}"
 fi
 
 exit 0

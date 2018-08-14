@@ -21,9 +21,10 @@
 
 INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh"
 
+
 if [ "$1" -eq 0 ]; then  # Action is uninstall
-    if [ -f "$INSTALL_HELPER" ]; then
-      $INSTALL_HELPER remove
+    if [ -f "${INSTALL_HELPER}" ]; then
+      ${INSTALL_HELPER} remove
     fi
 fi
 
