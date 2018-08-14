@@ -20,9 +20,6 @@ import {Component, OnInit, ElementRef, ViewChild, HostListener, Input, OnDestroy
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/skipWhile';
-import 'rxjs/add/operator/skip';
-import 'rxjs/add/operator/throttleTime';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
@@ -50,7 +47,7 @@ import {LogsStateService} from '@app/services/storage/logs-state.service';
 })
 export class LogsContainerComponent implements OnInit, OnDestroy {
 
-  private isFilterPanelFixedPostioned: boolean = false;
+  private isFilterPanelFixedPostioned = false;
 
   tabs: Observable<LogTypeTab[]> = this.tabsStorage.getAll().map((tabs: LogTypeTab[]) => {
     return tabs.map((tab: LogTypeTab) => {
@@ -159,7 +156,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
 
     // set the position of the filter panel depending on the scroll height: so it is fixed when it would be out from the screen
     this.subscriptions.push(
-      Observable.fromEvent(window, 'scroll').subscribe(this.setFixedPositionValue)
+      Observable.fromEvent(window, 'scroll').debounceTime(10).subscribe(this.setFixedPositionValue)
     );
 
   }
