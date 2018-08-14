@@ -119,6 +119,13 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>logsearch.web.service_logs.component.labels</name>
+    <value>hst_agent:HST Agent,hst_server:HST Server,activity_analyser:Activity Analyzer,ams_hbase_master:AMS HBase Master,ams_hbase_regionserver:AMS HBase RegionServer,ams_collector:AMS Metrics Collector,ams_monitor:AMS Metric Monitor,ams_grafana:AMS Grafana,ranger_kms:Ranger KMS,mapred_historyserver:MapReduce History Server,zookeeper:ZooKeeper Server,logsearch_app:Log Search Server,logsearch_feeder:Log Feeder,logsearch_perf:Log Search Performance,zeppelin:Zeppelin Notebook,spark2_jobhistory_server:Spark History Server,spark2_thriftserver:Spark Thrift Server,livy2_server:Spark Livy Server,ranger_dbpatch:Ranger DB Patch,ambari_config_changes:Ambari Config Change,ambari_eclipselink:Ambari EclipseLink,ambari_server_check_database:Ambari Check DB,storm_drpc:Storm DRPC,storm_ui:Storm UI,oozie_app:Oozie Server,kafka_logcleaner:Kafka Log Cleaner,kafka_server:Kafka Server,kafka_statechange:Kafka State Change,hbase_master:HBase Master,hbase_regionserver:HBase RegionServer,hbase_phoenix_server:HBase Phoenix Query Server,atlas_app:Atlas Metadata Server,yarn_nodemanager:YARN NodeManager,yarn_resourcemanager:YARN ResourceManager,yarn_timelineserver:YARN Timeline Server,yarn_historyserver:YARN History Server,yarn_jobsummary:YARN Job Summary,knox_cli:Knox CLI,knox_ldap:Knox LDAP,hive_server:HiveServer2,hive_server_interactive:HiveServer2 Interactive,hdfs_datanode:HDFS DataNode,hdfs_namenode:HDFS NameNode,hdfs_journalnode:HDFS JournalNode,hdfs_secondary_namenode:HDFS Secondary NameNode,hdfs_zkfc:HDFS ZKFailoverController,hdfs_nfs3:HDFS NFSGateway</value>
+    <display-name>Log Search Component Names</display-name>
+    <description>Component name mapping for the Log Search UI (mycomponent1:My Label1,mycomponent2:My Label2), by default _ are replaced with spaces and first letters and latters after undersocre transformed to uppercase latters </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>logsearch.service.logs.split.interval.mins</name>
     <value>15</value>
     <display-name>Log Search Service Logs split interval</display-name>
