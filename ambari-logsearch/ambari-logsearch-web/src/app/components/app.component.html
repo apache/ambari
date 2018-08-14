@@ -17,7 +17,7 @@
 
 <header>
   <nav class="navbar" [class.authorized]="isAuthorized$ | async">
-    <h1 [ngClass]="{'full-flex-width': !(isAuthorized$ | async), 'pull-left': (isBaseDataAvailable$ | async)}">{{'common.title' | translate}}</h1>
+    <h1>{{'common.title' | translate}}</h1>
     <breadcrumbs *ngIf="(isAuthorized$ | async) && (isBaseDataAvailable$ | async)"></breadcrumbs>
     <top-menu *ngIf="(isAuthorized$ | async) && (isBaseDataAvailable$ | async)"></top-menu>
   </nav>
