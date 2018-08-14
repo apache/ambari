@@ -48,7 +48,7 @@ export class DataLoadingIndicatorComponent implements OnDestroy {
           [key]: dataStates[key]
         }), {});
     });
-  private currentWatchedDataStatesAsArray$: Observable<DataAvaibilityObject[]> = this.currentWatchedDataStates$.map((dataStates) => {
+  currentWatchedDataStatesAsArray$: Observable<DataAvaibilityObject[]> = this.currentWatchedDataStates$.map((dataStates) => {
     return Object.keys(dataStates).reduce((statesArray, key): DataAvaibilityObject[] => {
       return [
         ...statesArray,
@@ -59,7 +59,7 @@ export class DataLoadingIndicatorComponent implements OnDestroy {
       ];
     }, []);
   });
-  private dataLoadingProgress$: Observable<number> = this.currentWatchedDataStates$.map((dataStates): number => {
+  dataLoadingProgress$: Observable<number> = this.currentWatchedDataStates$.map((dataStates): number => {
     const keys: string[] = Object.keys(dataStates);
     const total: number = keys.length;
     const totalAvailable: number = keys.filter(
@@ -67,7 +67,7 @@ export class DataLoadingIndicatorComponent implements OnDestroy {
     ).length;
     return totalAvailable / total;
   });
-  private hasDataStateError$: Observable<boolean> = this.currentWatchedDataStates$.map((dataStates): boolean => {
+  hasDataStateError$: Observable<boolean> = this.currentWatchedDataStates$.map((dataStates): boolean => {
     return Object.keys(dataStates).reduce((hasError: boolean, key) => {
       return hasError || dataStates[key] === DataAvailabilityValues.ERROR;
     }, false);
