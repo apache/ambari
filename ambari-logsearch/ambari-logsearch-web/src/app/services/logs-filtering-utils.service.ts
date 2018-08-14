@@ -265,8 +265,8 @@ export class LogsFilteringUtilsService {
       }
     },
     pageSize: [{
-      label: '10',
-      value: '10'
+      label: '100',
+      value: '100'
     }],
     page: 0,
     query: [],
