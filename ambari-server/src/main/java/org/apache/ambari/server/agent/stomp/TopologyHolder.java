@@ -106,6 +106,8 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
                 .setComponentName(sch.getServiceComponentName())
                 .setServiceName(sch.getServiceName())
                 .setServiceGroupName(serviceGroupName)
+                .setVersion(sch.getVersion())
+                .setMpackVersion(sch.getMpackVersion())
                 .setHostIds(hostOrderIds)
                 .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(sch))
                 .setCommandParams(ambariManagementController.getTopologyCommandParams(sch))
@@ -224,6 +226,8 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
               .setComponentName(sch.getServiceComponentName())
               .setServiceName(sch.getServiceName())
               .setServiceGroupName(sch.getServiceGroupName())
+              .setVersion(sch.getVersion())
+              .setMpackVersion(sch.getMpackVersion())
               .setCommandParams(ambariManagementController.getTopologyCommandParams(sch))
               .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(sch))
               .build();
