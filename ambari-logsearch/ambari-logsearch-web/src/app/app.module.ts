@@ -38,7 +38,6 @@ import {ShipperModule} from '@modules/shipper/shipper.module';
 
 import {ServiceInjector} from '@app/classes/service-injector';
 
-import {MockApiDataService} from '@app/services/mock-api-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -115,23 +114,6 @@ import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-res
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {LoginScreenGuardService} from '@app/services/login-screen-guard.service';
-
-export function getXHRBackend(
-  injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions
-): XHRBackend | InMemoryBackendService {
-  if (environment.production) {
-    return new XHRBackend(browser, options, xsrf);
-  } else {
-    return new InMemoryBackendService(
-      injector,
-      new MockApiDataService(),
-      {
-        passThruUnknownUrl: true,
-        rootPath: ''
-      }
-    );
-  }
-}
 
 @NgModule({
   declarations: [
@@ -230,11 +212,6 @@ export function getXHRBackend(
     TabsService,
     TabGuard,
     LogsBreadcrumbsResolverService,
-    {
-      provide: XHRBackend,
-      useFactory: getXHRBackend,
-      deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
-    },
     AuthService,
     AuthGuardService,
     HistoryManagerService,

@@ -7,7 +7,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 Run `npm start` or `yarn start` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
 ## Webpack Development Config
-In order to use Webpack Devserver proxy without changing the main config file and commit accidentally we can use a `webpack.config.dev.js` file for that. So you can set a service URL in order to test the UI against real data.
+In order to use the UI without changing the main webpack config file (and commit accidentally) we can use a `webpack.config.dev.js` file for that. So you can set a service URL proxy.
 
 The content of the `webpack.config.dev.js` can be:
 ```
@@ -18,13 +18,14 @@ module.exports = merge(baseConfig, {
   devServer: {
     historyApiFallback: true,
     proxy: {
-      '/': 'http://c7401.ambari.apache.org:61888'
+      '/api': 'http://c7401.ambari.apache.org:61888/', // proxying the api requests
+      '/login': 'http://c7401.ambari.apache.org:61888/', // proxying the login action
+      '/logout': 'http://c7401.ambari.apache.org:61888/' // proxying the the logout action
     }
   }
 });
 ```
-And you can start it that way: `NODE_ENV=production yarn start --config webpack.config.dev.js`
-You have to set the `NODE_ENV` to production in order to skip the mock data usage
+And you can start it that way: `yarn start --config webpack.config.dev.js`
 
 ## Code scaffolding
 
