@@ -58,6 +58,7 @@ CREATE TABLE clusters (
   cluster_info VARCHAR2(255) NULL,
   cluster_name VARCHAR2(100) NOT NULL UNIQUE,
   provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
+  blueprint_provisioning_state VARCHAR2(255) DEFAULT 'NONE',
   security_type VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   desired_cluster_state VARCHAR2(255) NULL,
   desired_stack_id NUMBER(19) NOT NULL,
