@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.MapDateDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.MapDateDescriptorImpl;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.junit.Test;

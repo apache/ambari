@@ -27,4 +27,6 @@ public interface InputFileDescriptor extends InputFileBaseDescriptor {
   Integer getPathUpdateIntervalMin();
 
   Integer getMaxAgeMin();
+
+  Boolean getDockerEnabled();
 }

@@ -122,11 +122,19 @@ class TestServerUtils(TestCase):
       SSL_API: "true"
     })
     context = get_ssl_context(properties)
-    self.assertIsNotNone(context)
+    if hasattr(ssl, 'SSLContext'):
+      self.assertIsNotNone(context)
+    else:
+      self.assertIsNone(context)
 
     context = get_ssl_context(properties, ssl.PROTOCOL_TLSv1)
-    self.assertIsNotNone(context)
-    self.assertEqual(ssl.PROTOCOL_TLSv1, context.protocol)
+    if hasattr(ssl, 'SSLContext'):
+      self.assertIsNotNone(context)
+      self.assertEqual(ssl.PROTOCOL_TLSv1, context.protocol)
+    else:
+      self.assertIsNone(context)
+
+
 
     properties = FakeProperties({
       SSL_API: "false"

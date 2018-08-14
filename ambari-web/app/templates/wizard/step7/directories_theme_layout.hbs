@@ -23,33 +23,35 @@
         <div class="panel panel-default">
           {{#each row in view.content.sectionRows}}
             {{#each section in row}}
-              {{#view App.DirectoriesLayoutCategoryView}}
-                <div class="panel-heading" {{action "toggleCollapsed" target="view"}}>
-                  <h3 class="panel-title">
-                    <i {{bindAttr class=":pull-right :panel-toggle view.isCollapsed:icon-angle-down:icon-angle-up"}}></i>
-                    <a class="panel-toggle category-header" {{QAAttr "category-header"}}>
-                      <span class="category-name" {{QAAttr "category-name"}}>{{section.displayName}}</span>
-                    </a>
-                  </h3>
-                </div>
-                <div class="panel-body collapse in" {{QAAttr "panel-body"}}>
-                  <div class="service-config-section">
-                    {{#each subRow in section.subsectionRows}}
-                      {{#each subsection in subRow}}
-                        {{#each config in subsection.configs}}
-                          {{#if config.widget}}
-                            {{#if config.isVisible}}
-                              {{#unless config.isHiddenByFilter}}
-                                {{view config.widget configBinding="config" canEditBinding="view.parentView.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="view.parentView.content" inlineControls=true}}
-                              {{/unless}}
+              {{#unless section.isHiddenByFilter}}
+                {{#view App.DirectoriesLayoutCategoryView}}
+                  <div class="panel-heading" {{action "toggleCollapsed" target="view"}}>
+                    <h3 class="panel-title">
+                      <i {{bindAttr class=":pull-right :panel-toggle view.isCollapsed:icon-angle-down:icon-angle-up"}}></i>
+                      <a class="panel-toggle category-header" {{QAAttr "category-header"}}>
+                        <span class="category-name" {{QAAttr "category-name"}}>{{section.displayName}}</span>
+                      </a>
+                    </h3>
+                  </div>
+                  <div class="panel-body collapse in" {{QAAttr "panel-body"}}>
+                    <div class="service-config-section">
+                      {{#each subRow in section.subsectionRows}}
+                        {{#each subsection in subRow}}
+                          {{#each config in subsection.configs}}
+                            {{#if config.widget}}
+                              {{#if config.isVisible}}
+                                {{#unless config.isHiddenByFilter}}
+                                  {{view config.widget configBinding="config" canEditBinding="view.parentView.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="view.parentView.content" inlineControls=true}}
+                                {{/unless}}
+                              {{/if}}
                             {{/if}}
-                          {{/if}}
+                          {{/each}}
                         {{/each}}
                       {{/each}}
-                    {{/each}}
+                    </div>
                   </div>
-                </div>
-              {{/view}}
+                {{/view}}
+              {{/unless}}
             {{/each}}
           {{/each}}
         </div>

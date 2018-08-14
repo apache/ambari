@@ -110,40 +110,45 @@
     background: none transparent;
   }
 
-  table td {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    word-wrap: break-word;
-    &.log-action {
-      overflow: visible;
-      padding-left: .25em;
-      padding-right: 0;
-      width: 1em;
-      /deep/ .btn, /deep/ .filter-label {
-        font-size: 1em;
-        height: auto;
-        line-height: 1em;
-        padding: 0;
-      }
-    }
-    &.log-time {
-      min-width: 7em;
-      padding-left: 0;
-      text-align: right;
-    }
-    &.log-level {
+  table {
+    thead th {
       text-transform: uppercase;
-      min-width: 8em;
-      .log-colors;
     }
-    &.log-type {
-      color: @link-color;
-    }
-    &.log-message {
-      width: 100%;
-    }
-    &.log-event_count {
-      width: 3em;
+    td {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      word-wrap: break-word;
+      &.log-action {
+        overflow: visible;
+        padding-left: .25em;
+        padding-right: 0;
+        width: 1em;
+        /deep/ .btn, /deep/ .filter-label {
+          font-size: 1em;
+          height: auto;
+          line-height: 1em;
+          padding: 0;
+        }
+      }
+      &.log-time {
+        min-width: 7em;
+        padding-left: 0;
+        text-align: right;
+      }
+      &.log-level {
+        text-transform: uppercase;
+        min-width: 8em;
+        .log-colors;
+      }
+      &.log-type {
+        color: @link-color;
+      }
+      &.log-message {
+        width: 100%;
+      }
+      &.log-event_count {
+        width: 3em;
+      }
     }
   }
 

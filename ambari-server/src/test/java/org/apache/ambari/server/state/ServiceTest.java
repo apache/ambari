@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -280,6 +281,62 @@ public class ServiceTest {
     entity = dao.findByName(clusterName, "service_group", serviceName);
     Assert.assertNotNull(entity);
     Assert.assertEquals(MaintenanceState.ON, entity.getServiceDesiredStateEntity().getMaintenanceState());
+  }
+
+  /**
+   * Tests the kerberosEnabledTest value set in the HDFS metainfo file (stacks/HDP/0.1/services/HDFS/metainfo.xml):
+   * <pre>
+   * {
+   *   "or": [
+   *     {
+   *       "equals": [
+   *         "core-site/hadoop.security.authentication",
+   *         "kerberos"
+   *       ]
+   *     },
+   *     {
+   *       "equals": [
+   *         "hdfs-site/hadoop.security.authentication",
+   *         "kerberos"
+   *       ]
+   *     }
+   *   ]
+   * }
+   * </pre>
+   */
+  @Test
+  public void testServiceKerberosEnabledTest() throws Exception {
+    String serviceName = "HDFS";
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>() );
+    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName);
+    cluster.addService(s);
+
+    Service service = cluster.getService(serviceName);
+    Assert.assertNotNull(service);
+
+
+    Map<String, Map<String, String>> map = new HashMap<>();
+
+    Assert.assertFalse(service.isKerberosEnabled(null));
+
+    Assert.assertFalse(service.isKerberosEnabled(map));
+
+    map.put("core-site", Collections.singletonMap("hadoop.security.authentication", "none"));
+    map.put("hdfs-site", Collections.singletonMap("hadoop.security.authentication", "none"));
+    Assert.assertFalse(service.isKerberosEnabled(map));
+
+    map.put("core-site", Collections.singletonMap("hadoop.security.authentication", "kerberos"));
+    map.put("hdfs-site", Collections.singletonMap("hadoop.security.authentication", "none"));
+    Assert.assertTrue(service.isKerberosEnabled(map));
+
+    map.put("core-site", Collections.singletonMap("hadoop.security.authentication", "none"));
+    map.put("hdfs-site", Collections.singletonMap("hadoop.security.authentication", "kerberos"));
+    Assert.assertTrue(service.isKerberosEnabled(map));
+
+    map.put("core-site", Collections.singletonMap("hadoop.security.authentication", "kerberos"));
+    map.put("hdfs-site", Collections.singletonMap("hadoop.security.authentication", "kerberos"));
+    Assert.assertTrue(service.isKerberosEnabled(map));
+
   }
 
   private void addHostToCluster(String hostname,

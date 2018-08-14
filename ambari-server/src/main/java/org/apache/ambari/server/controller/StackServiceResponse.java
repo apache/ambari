@@ -83,6 +83,7 @@ public class StackServiceResponse {
   private boolean isSupportDeleteViaUI;
 
   private final boolean ssoIntegrationSupported;
+  private final boolean ssoIntegrationRequiresKerberos;
 
   /**
    * Constructor.
@@ -121,6 +122,7 @@ public class StackServiceResponse {
     credentialStoreEnabled = service.isCredentialStoreEnabled();
     isSupportDeleteViaUI = service.isSupportDeleteViaUI();
     ssoIntegrationSupported = service.isSingleSignOnSupported();
+    ssoIntegrationRequiresKerberos = service.isKerberosRequiredForSingleSignOnIntegration();
   }
 
   @ApiModelProperty(name = "selection")
@@ -354,6 +356,14 @@ public class StackServiceResponse {
   @ApiModelProperty(name = "sso_integration_supported")
   public boolean isSsoIntegrationSupported() {
     return ssoIntegrationSupported;
+  }
+
+  /**
+   * Indicates if Kerberos is required for SSO integration
+   */
+  @ApiModelProperty(name = "sso_integration_requires_kerberos")
+  public boolean isSsoIntegrationRequiresKerberos() {
+    return ssoIntegrationRequiresKerberos;
   }
 
   public interface StackServiceResponseSwagger extends ApiModel {

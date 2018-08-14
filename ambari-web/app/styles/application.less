@@ -20,7 +20,7 @@
 
 body {
   overflow-y: scroll;
-  line-height: 1.3em;
+  line-height: @default-line-height;
 }
 
 html, body {
@@ -531,6 +531,10 @@ h1 {
   visibility: hidden;
 }
 
+.not-visible {
+  visibility: hidden;
+}
+
 .show, .shown {
   visibility: visible;
 }
@@ -899,6 +903,13 @@ a:focus {
     color: #333333;
     span {
       display: inline-block;
+      &.endpoint-value {
+        padding-left: 30px;
+        word-break: break-word;
+      }
+      .clip-board{
+        margin-left: 5px;
+      }
     }
   }
   .master-group-title {
@@ -2167,6 +2178,26 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 
 .config-validation-warnings {
   table {
+    table-layout: fixed;
+    td, th {
+      &.issue-type-cell {
+        width: 5%;
+      }
+      &.service-name-cell {
+        width: 15%;
+      }
+      &.property-name-cell {
+        width: 15%;
+      }
+      &.property-value-cell {
+        width: 25%;
+        overflow: hidden;
+        overflow-wrap: break-word;
+      }
+      &.property-description-cell {
+        width: 40%;
+      }
+    }
     tbody{
       tr {
         &.warning {
@@ -2217,13 +2248,18 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 #config-dependencies {
   max-height: 500px;
   overflow-y: visible;
-  td {
-    min-width: 120px;
-    word-break: break-all;
+  td, th {
     &.check-box-col {
       min-width: 5px;
       width: 5px;
+      .checkbox {
+        display: inline-block;
+      }
     }
+  }
+  td {
+    min-width: 120px;
+    word-break: break-all;
     &.config-dependency-name {
       min-width: @config-dependency-t-name-width;
     }
@@ -2288,6 +2324,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 .progress-counter {
   position: relative;
   .counters-label {
+    color: @dark-gray;
     font-weight: bold;
     left: 45%;
     position: absolute;

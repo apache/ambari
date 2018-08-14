@@ -279,7 +279,7 @@ public class ClusterConfigurationRequestTest {
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().map(
       serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
-          null, null, null, null, false, false, false, false, false)
+            null, null, null, null, false, false, false, false, false, false, false)
     ).collect(toSet());
     expect(ambariContext.getServices(anyString())).andReturn(services).anyTimes();
 
@@ -353,7 +353,7 @@ public class ClusterConfigurationRequestTest {
     Set<ServiceResponse> services = IntStream.range(0, serviceNames.size()).boxed().
       map(
         serviceId -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 1L, "CORE", (long)serviceId, SERVICE_NAMES.get(serviceId),
-            null, null, null, null, false, false, false, false, false)
+            null, null, null, null, false, false, false, false, false, false, false)
       ).
       collect(toSet());
   expect(ambariContext.getServices(anyString())).andReturn(services).anyTimes();
@@ -525,7 +525,7 @@ public class ClusterConfigurationRequestTest {
     Set<ServiceResponse> serviceResponses = serviceNames.stream().
       map(
         sName -> new ServiceResponse(CLUSTER_ID, CLUSTER_NAME, 0L, "HDPCORE", serviceIds.getAndIncrement(),
-          sName, sName, stackId, "1.0.0.0-b292", "INSTALLED", true, false, true, false, false)).
+          sName, sName, stackId, "1.0.0.0-b292", "INSTALLED", true, false, true, false, false, false, false)).
       collect(toSet());
 
     Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();

@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logsearch.config.api.model.inputconfig;
 
+import java.util.List;
 import java.util.Map;
 
 public interface InputDescriptor {
@@ -53,4 +54,6 @@ public interface InputDescriptor {
   String getGroup();
 
   Boolean isInitDefaultFields();
+
+  List<String> getDefaultLogLevels();
 }

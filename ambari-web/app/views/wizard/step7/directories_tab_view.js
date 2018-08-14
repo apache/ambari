@@ -82,6 +82,8 @@ App.DirectoriesTabOnStep7View = Em.View.extend({
   isLeftArrowDisabled: true,
 
   isRightArrowDisabled: true,
+  
+  isNavArrowsHidden: Em.computed.and('isLeftArrowDisabled', 'isRightArrowDisabled'),
 
   enableRightArrow: function () {
     var container = $(this.get('element')).find('.tabs-container');

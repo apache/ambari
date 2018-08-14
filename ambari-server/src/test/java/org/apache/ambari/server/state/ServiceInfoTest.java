@@ -828,6 +828,7 @@ public class ServiceInfoTest {
             "      <sso>" +
             "        <supported>true</supported>" +
             "        <enabledConfiguration>config-type/property_name</enabledConfiguration>" +
+            "        <kerberosRequired>true</kerberosRequired> " +
             "      </sso>" +
             "    </service>" +
             "  </services>" +
@@ -841,6 +842,7 @@ public class ServiceInfoTest {
     assertTrue(singleSignOnInfo.isSupported());
     assertEquals(Boolean.TRUE, singleSignOnInfo.getSupported());
     assertEquals("config-type/property_name", singleSignOnInfo.getEnabledConfiguration());
+    assertTrue(singleSignOnInfo.isKerberosRequired());
 
     // Explicit SSO setting (false)
     serviceInfoXml =
@@ -888,6 +890,64 @@ public class ServiceInfoTest {
     assertTrue(singleSignOnInfo.isSupported());
     assertEquals(Boolean.TRUE, singleSignOnInfo.getSupported());
     assertNull(singleSignOnInfo.getEnabledConfiguration());
+    assertNull(singleSignOnInfo.getSsoEnabledTest());
+  }
+
+  /**
+   * Tests the presence and absence of the kerberosEnabledTest block.
+   */
+  @Test
+  public void testKerberosEnabledTest() throws Exception {
+    Map<String, ServiceInfo> serviceInfoMap;
+    ServiceInfo service;
+
+    String kerberosEnabledTest =
+        "{\n" +
+            "  \"or\": [\n" +
+            "    {\n" +
+            "      \"equals\": [\n" +
+            "        \"core-site/hadoop.security.authentication\",\n" +
+            "        \"kerberos\"\n" +
+            "      ]\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"equals\": [\n" +
+            "        \"hdfs-site/hadoop.security.authentication\",\n" +
+            "        \"kerberos\"\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+    String serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>HDFS</name>\n" +
+        "      <kerberosEnabledTest>\n" +
+        kerberosEnabledTest +
+        "      </kerberosEnabledTest>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    service = serviceInfoMap.get("HDFS");
+    assertEquals(kerberosEnabledTest, service.getKerberosEnabledTest().trim());
+
+    /*
+     * <kerberosEnabledTest> is missing
+     */
+    serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>HDFS</name>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    service = serviceInfoMap.get("HDFS");
+    assertNull(service.getKerberosEnabledTest());
   }
 
   private static Map<String, ServiceInfo> getServiceInfo(String xml) throws JAXBException {

@@ -1285,22 +1285,18 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlets</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -1738,12 +1734,11 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
-      <version>0.1.45</version>
+      <version>0.1.54</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -1798,7 +1793,7 @@
     <dependency>
       <groupId>org.kohsuke</groupId>
       <artifactId>libpam4j</artifactId>
-      <version>1.8</version>
+      <version>1.10</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jna</groupId>
@@ -1818,6 +1813,10 @@
         <exclusion>
           <groupId>commons-collections</groupId>
           <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.directory.api</groupId>
+          <artifactId>api-ldap-model</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

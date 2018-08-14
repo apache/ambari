@@ -46,7 +46,7 @@ import com.google.inject.Inject;
  * <p/>
  * This class mainly relies on the KerberosServerAction to iterate through metadata identifying
  * the Kerberos principals that need to be created. For each identity in the metadata, this implementation's
- * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, Map)}
+ * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}
  * is invoked attempting the creation of the relevant principal.
  */
 public class CreatePrincipalsServerAction extends KerberosServerAction {
@@ -109,6 +109,8 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
    * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
+   * @param includedInFilter         a Boolean value indicating whather the principal is included in
+   *                                 the current filter or not
    * @param requestSharedDataContext a Map to be used as shared data among all ServerActions related
    *                                 to a given request  @return a CommandReport, indicating an error
    *                                 condition; or null, indicating a success condition
@@ -118,6 +120,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
   protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                           KerberosOperationHandler operationHandler,
                                           Map<String, String> kerberosConfiguration,
+                                          boolean includedInFilter,
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
     CommandReport commandReport = null;
@@ -133,6 +136,12 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
 
       boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
       boolean servicePrincipal = resolvedPrincipal.isService();
+
+      if(!includedInFilter) {
+        // If this principal is to be filtered out, skip... unless is has not yet been created...
+        regenerateKeytabs = false;
+      }
+
       if (regenerateKeytabs) {
         // force recreation of principal due to keytab regeneration
         // regenerate only service principals if request filtered by hosts

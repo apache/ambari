@@ -29,6 +29,7 @@ from threading import Thread
 import copy
 import signal
 
+from ambari_agent.models.commands import CommandStatus, AgentCommand
 from mock.mock import patch, MagicMock, call
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.PythonExecutor import PythonExecutor
@@ -365,10 +366,10 @@ class TestActionQueue(TestCase):
     
     actionQueue = ActionQueue(initializer_module)
     execution_command = {
-      'commandType' : ActionQueue.EXECUTION_COMMAND,
+      'commandType' : AgentCommand.execution,
     }
     status_command = {
-      'commandType' : ActionQueue.STATUS_COMMAND,
+      'commandType' : AgentCommand.status,
     }
     wrong_command = {
       'commandType' : "SOME_WRONG_COMMAND",
@@ -1078,14 +1079,14 @@ class TestActionQueue(TestCase):
 
     execute_command = copy.deepcopy(self.background_command)
     actionQueue.put([execute_command])
-    actionQueue.processBackgroundQueueSafeEmpty();
+    actionQueue.process_background_queue_safe_empty()
     # actionQueue.controller.statusCommandExecutor.process_results();
     
     # assert that python execturor start
     self.assertTrue(runCommand_mock.called)
     runningCommand = actionQueue.commandStatuses.current_state.get(execute_command['taskId'])
     self.assertTrue(runningCommand is not None)
-    self.assertEqual(runningCommand[1]['status'], ActionQueue.IN_PROGRESS_STATUS)
+    self.assertEqual(runningCommand[1]['status'], CommandStatus.in_progress)
     
     reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
     self.assertEqual(len(reports), 1)
@@ -1130,7 +1131,7 @@ class TestActionQueue(TestCase):
     actionQueue.on_background_command_complete_callback = wraped(actionQueue.on_background_command_complete_callback,
                                                                  None, command_complete_w)
     actionQueue.put([self.background_command])
-    actionQueue.processBackgroundQueueSafeEmpty();
+    actionQueue.process_background_queue_safe_empty();
     
     with lock:
       complete_done.wait(0.1)

@@ -24,8 +24,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
 import org.apache.ambari.logsearch.domain.StoryDataRegistry;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Then;

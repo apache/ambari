@@ -21,6 +21,7 @@ import pprint
 
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.LiveStatus import LiveStatus
+from ambari_agent.models.commands import CommandStatus, RoleCommand, CustomCommand, AgentCommand
 
 logger = logging.getLogger()
 
@@ -576,25 +577,25 @@ class RecoveryManager:
     if self.ROLE_COMMAND not in command or not self.configured_for_recovery(command['role']):
       return
 
-    if status == ActionQueue.COMPLETED_STATUS:
-      if command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START:
+    if status == CommandStatus.completed:
+      if command[self.ROLE_COMMAND] == RoleCommand.start:
         self.update_current_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
         logger.info("After EXECUTION_COMMAND (START), with taskId={}, current state of {} to {}".format(
           command['taskId'], command[self.ROLE], self.get_current_status(command[self.ROLE])))
 
-      elif command['roleCommand'] == ActionQueue.ROLE_COMMAND_STOP or command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_INSTALL:
+      elif command['roleCommand'] == RoleCommand.stop or command[self.ROLE_COMMAND] == RoleCommand.install:
         self.update_current_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
         logger.info("After EXECUTION_COMMAND (STOP/INSTALL), with taskId={}, current state of {} to {}".format(
           command['taskId'], command[self.ROLE], self.get_current_status(command[self.ROLE])))
 
-      elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_CUSTOM_COMMAND:
-        if 'custom_command' in command and command['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART:
+      elif command[self.ROLE_COMMAND] == RoleCommand.custom_command:
+        if 'custom_command' in command and command['custom_command'] == CustomCommand.restart:
           self.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
           logger.info("After EXECUTION_COMMAND (RESTART), current state of {} to {}".format(
             command[self.ROLE], self.get_current_status(command[self.ROLE])))
 
-    elif status == ActionQueue.FAILED_STATUS:
-      if command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_INSTALL:
+    elif status == CommandStatus.failed:
+      if command[self.ROLE_COMMAND] == RoleCommand.install:
         self.update_current_status(command[self.ROLE], self.INSTALL_FAILED)
         logger.info("After EXECUTION_COMMAND (INSTALL), with taskId={}, current state of {} to {}".format(
           command['taskId'], command[self.ROLE], self.get_current_status(command[self.ROLE])))
@@ -606,25 +607,25 @@ class RecoveryManager:
     if not self.enabled():
       return
 
-    if self.COMMAND_TYPE not in command or not command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
+    if self.COMMAND_TYPE not in command or not command[self.COMMAND_TYPE] == AgentCommand.execution:
       return
 
     if self.ROLE not in command:
       return
 
-    if command[self.ROLE_COMMAND] in (ActionQueue.ROLE_COMMAND_INSTALL, ActionQueue.ROLE_COMMAND_STOP) \
+    if command[self.ROLE_COMMAND] in (RoleCommand.install, RoleCommand.stop) \
         and self.configured_for_recovery(command[self.ROLE]):
 
       self.update_desired_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
       logger.info("Received EXECUTION_COMMAND (STOP/INSTALL), desired state of {} to {}".format(
         command[self.ROLE], self.get_desired_status(command[self.ROLE])))
 
-    elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START and self.configured_for_recovery(command[self.ROLE]):
+    elif command[self.ROLE_COMMAND] == RoleCommand.start and self.configured_for_recovery(command[self.ROLE]):
       self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
       logger.info("Received EXECUTION_COMMAND (START), desired state of {} to {}".format(
         command[self.ROLE], self.get_desired_status(command[self.ROLE])))
 
-    elif 'custom_command' in command and  command['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART \
+    elif 'custom_command' in command and command['custom_command'] == CustomCommand.restart \
             and self.configured_for_recovery(command[self.ROLE]):
 
       self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
@@ -644,7 +645,7 @@ class RecoveryManager:
       command = {
         self.CLUSTER_ID: self.cluster_id,
         self.ROLE_COMMAND: command_name,
-        self.COMMAND_TYPE: ActionQueue.AUTO_EXECUTION_COMMAND,
+        self.COMMAND_TYPE: AgentCommand.auto_execution,
         self.TASK_ID: command_id,
         self.ROLE: component,
         self.COMMAND_ID: command_id

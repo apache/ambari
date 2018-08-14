@@ -518,14 +518,20 @@ class TestSetupSso(unittest.TestCase):
                   "href": "http://c7401:8080/api/v1/clusters/cluster1/services/HDFS",
                   "ServiceInfo": {
                       "cluster_name": "cluster1",
-                      "service_name": "HDFS"
+                      "service_name": "HDFS",
+                      "sso_integration_supported": true,
+                      "sso_integration_requires_kerberos": false,
+                      "kerberos_enabled": false
                   }
               },
               {
                   "href": "http://c7401:8080/api/v1/clusters/cluster1/services/ZOOKEPER",
                   "ServiceInfo": {
                       "cluster_name": "cluster1",
-                      "service_name": "ZOOKEPER"
+                      "service_name": "ZOOKEPER",
+                      "sso_integration_supported": true,
+                      "sso_integration_requires_kerberos": false,
+                      "kerberos_enabled": false
                   }
               }
             ]
@@ -538,14 +544,20 @@ class TestSetupSso(unittest.TestCase):
           "href": "http://c7401:8080/api/v1/clusters/cluster1/services/HDFS",
           "ServiceInfo": {
             "cluster_name": "cluster1",
-            "service_name": "HDFS"
+            "service_name": "HDFS",
+            "sso_integration_supported": True,
+            "sso_integration_requires_kerberos": False,
+            "kerberos_enabled": False
           }
         },
         {
           "href": "http://c7401:8080/api/v1/clusters/cluster1/services/ZOOKEPER",
           "ServiceInfo": {
             "cluster_name": "cluster1",
-            "service_name": "ZOOKEPER"
+            "service_name": "ZOOKEPER",
+            "sso_integration_supported": True,
+            "sso_integration_requires_kerberos": False,
+            "kerberos_enabled": False
           }
         }
       ]

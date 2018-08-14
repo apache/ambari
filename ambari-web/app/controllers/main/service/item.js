@@ -1514,7 +1514,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var self = this,
       displayName = App.format.role(serviceName, true),
       popupHeader = Em.I18n.t('services.service.delete.popup.header'),
-      popupPrimary = Em.I18n.t('common.delete'),
+      popupPrimary = Em.I18n.t('common.proceed'),
       warningMessage = Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
         (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
       callback = this.loadConfigRecommendations.bind(this, null, function () {
@@ -1538,8 +1538,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       primary: popupPrimary,
       primaryClass: 'btn-danger',
       disablePrimary: Em.computed.alias('controller.isRecommendationInProgress'),
-      classNameBindings: ['controller.changedProperties.length:common-modal-wrapper', 'controller.changedProperties.length:modal-full-width'],
-      modalDialogClasses: Em.computed.ifThenElse('controller.changedProperties.length', ['modal-lg'], []),
+      classNameBindings: ['controller.changedProperties.length:common-modal-wrapper'],
+      modalDialogClasses: Em.computed.ifThenElse('controller.changedProperties.length', ['modal-xlg'], []),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/delete_service_warning_popup'),
         warningMessage: new Em.Handlebars.SafeString(warningMessage)

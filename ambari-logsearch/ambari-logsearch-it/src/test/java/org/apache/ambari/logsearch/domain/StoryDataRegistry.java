@@ -18,7 +18,7 @@
  */
 package org.apache.ambari.logsearch.domain;
 
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputAdapter;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputAdapter;
 import org.apache.solr.client.solrj.SolrClient;
 import org.jbehave.web.selenium.WebDriverProvider;
 

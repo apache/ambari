@@ -25,6 +25,7 @@ require('views/common/timeline_view');
 require('views/common/breadcrumbs_view');
 require('views/common/clock_view');
 require('views/common/checkbox_view');
+require('views/common/alert_badge');
 require('views/common/log_search_ui_link_view');
 require('views/common/log_file_search_view');
 require('views/common/log_tail_view');

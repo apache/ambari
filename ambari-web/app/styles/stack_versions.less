@@ -220,6 +220,9 @@
       i[disabled='disabled'] {
         color: inherit;
       }
+      i.glyphicon-warning-sign {
+        color: @health-status-red;
+      }
       .label {
         padding: 5px 20px;
         font-size: 14px;
@@ -357,7 +360,8 @@
         }
       }
       .btn.btn-primary:not(.dropdown-toggle) {
-        padding: 4px 5px;
+        padding-left: 5px;
+        padding-right: 5px;
         min-width: 70px;
       }
       .open .dropdown-menu {
@@ -409,6 +413,29 @@
   }
   .nav.nav-tabs {
     margin-bottom: 20px;
+  }
+  .stack-error-row {
+    .image-container {
+      display: inline-block;
+      vertical-align: top;
+      margin-top: 5px;
+      margin-right: 15px;
+      i {
+        vertical-align: middle;
+        font-size: 22px;
+      }
+    }
+    .message-container {
+      display: inline-block;
+      max-width: 70%;
+    }
+    .stack-name {
+      margin-left: 15px;
+    }
+    .btn-container {
+      line-height: 36px;
+      float: right;
+    }
   }
 }
 

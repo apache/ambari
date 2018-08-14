@@ -25,6 +25,7 @@ import javax.inject.Named;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.conf.SolrAuditLogPropsConfig;
+import org.apache.ambari.logsearch.conf.SolrClientsHolder;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.configurer.SolrAuditAliasConfigurer;
@@ -41,13 +42,14 @@ public class AuditSolrDao extends SolrDaoBase {
   @Inject
   private SolrAuditLogPropsConfig solrAuditLogPropsConfig;
 
-  @Inject
-  @Named("auditSolrTemplate")
   private SolrTemplate auditSolrTemplate;
 
   @Inject
   @Named("solrAuditLogsState")
   private SolrCollectionState solrAuditLogsState;
+
+  @Inject
+  private SolrClientsHolder solrClientsHolder;
 
   public AuditSolrDao() {
     super(LogType.AUDIT);
@@ -69,7 +71,7 @@ public class AuditSolrDao extends SolrDaoBase {
     String rangerAuditCollection = solrAuditLogPropsConfig.getRangerCollection();
 
     try {
-      new SolrCollectionConfigurer(this, true).start();
+      new SolrCollectionConfigurer(this, true, solrClientsHolder, SolrClientsHolder.CollectionType.AUDIT).start();
       boolean createAlias = (aliasNameIn != null && StringUtils.isNotBlank(rangerAuditCollection));
       if (createAlias) {
         new SolrAuditAliasConfigurer(this).start();
