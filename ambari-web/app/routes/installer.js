@@ -448,9 +448,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.saveComponentsFromConfigs(controller.get('content.componentsFromConfigs'));
         controller.setDBProperty('recommendationsHostGroup', wizardStep7Controller.get('content.recommendationsHostGroup'));
         controller.setDBProperty('masterComponentHosts', wizardStep7Controller.get('content.masterComponentHosts'));
-        App.clusterStatus.setClusterStatus({
-          localdb: App.db.data
-        });
         router.transitionTo('step8');
         console.timeEnd('step7 next');
       }
