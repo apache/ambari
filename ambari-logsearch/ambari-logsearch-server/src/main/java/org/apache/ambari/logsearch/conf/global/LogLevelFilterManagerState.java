@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,30 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.common;
-
-import com.google.common.base.Splitter;
-import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZKHelper;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.data.ACL;
-import org.apache.zookeeper.data.Id;
+package org.apache.ambari.logsearch.conf.global;
 
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.List;
 
 @Named
-public class ACLPropertiesSplitter {
+public class LogLevelFilterManagerState {
 
-  public List<ACL> parseAcls(String aclStr) {
-    List<ACL> acls = new ArrayList<>();
-    List<String> aclStrList = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(aclStr);
-    for (String unparcedAcl : aclStrList) {
-      String[] parts = unparcedAcl.split(":");
-      if (parts.length == 3) {
-        acls.add(new ACL(LogSearchConfigZKHelper.parsePermission(parts[2]), new Id(parts[0], parts[1])));
-      }
-    }
-    return acls;
+  private volatile boolean logLevelFilterManagerIsReady;
+
+  public boolean isLogLevelFilterManagerIsReady() {
+    return logLevelFilterManagerIsReady;
+  }
+
+  public void setLogLevelFilterManagerIsReady(boolean logLevelFilterManagerIsReady) {
+    this.logLevelFilterManagerIsReady = logLevelFilterManagerIsReady;
   }
 }

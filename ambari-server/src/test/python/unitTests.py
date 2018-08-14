@@ -275,15 +275,6 @@ def main():
                                   'service': service,
                                   'stack': stack})
 
-  #add tests for services under common-services
-  comm_serv_folder = os.path.join(pwd, 'common-services')
-  for service in os.listdir(comm_serv_folder):
-    current_service_dir = os.path.join(comm_serv_folder, service)
-    if os.path.isdir(current_service_dir) and service not in SERVICE_EXCLUDE:
-      test_variants.append({'directory': current_service_dir,
-                          'service': service,
-                          'stack': None})
-
   #run tests for every service in every stack in separate process
   has_failures = False
   test_runs = 0

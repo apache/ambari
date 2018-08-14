@@ -617,7 +617,7 @@
             <email>jluniya@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>PMC</role>
+                <role>PMC Chair</role>
             </roles>
             <organization>
                 Hortonworks
@@ -1295,7 +1295,7 @@
             <email>yusaku@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>PMC Chair</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -1315,7 +1315,51 @@
       </developers>
       <contributors>
         <contributor>
+          <name>Dhanya Balasundaran</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Shreya Bhat</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Anusha Bilgi</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Jasmeen Kaur</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Kishor Ramakrishnan</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Pradarttana Panda</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Srikanth Janardhan</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Vivek Rathod</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Supreeth Sharma</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Vivek Sharma</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
           <name>Sanket Shah</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Yesha Vora</name>
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
