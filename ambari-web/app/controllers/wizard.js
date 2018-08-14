@@ -46,7 +46,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     'allHostNamesPattern',
     'serviceComponents',
     'fileNamesToUpdate',
-    'componentsFromConfigs'
+    'componentsFromConfigs',
+    'stepsSavedState',
+    'operatingSystems',
+    'repositories',
+    'selectedMpacks',
+    'selectedServices'
   ],
 
   sensibleConfigs: [
@@ -1389,6 +1394,53 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
+   * Loads info about registered mpacks on the server into the controller's content.
+   * If the data is already loaded into the localStorage, it is copied from there.
+   * If not, it is loaded from the server and stored in both localStorage and the controller's content.
+   */
+  loadRegisteredMpacks: function () {
+    let dfd;
+    let registeredMpacks = this.getDBProperty('registeredMpacks');
+    
+    if (registeredMpacks) {
+      this.set('content.registeredMpacks', registeredMpacks);
+      
+      //TODO: keep doing this for now
+      registeredMpacks.forEach(rmp => {
+        App.stackMapper.map(JSON.parse(JSON.stringify(rmp)));
+      });
+
+      dfd = $.Deferred();
+      dfd.resolve();
+    } else {
+      dfd = App.ajax.send({
+        name: 'mpack.get_registered_mpacks',
+        sender: this,
+        success: 'loadRegisteredMpacksCallback',
+        error: 'defaultErrorCallback'
+      });
+    }
+
+    return dfd.promise();
+  },
+
+  loadRegisteredMpacksCallback: function (response) {
+    const registeredMpacks = response.items;
+
+    //TODO: keep doing this for now
+    registeredMpacks.forEach(rmp => {
+      App.stackMapper.map(JSON.parse(JSON.stringify(rmp)));
+    });
+ 
+    this.setDBProperty('registeredMpacks', registeredMpacks);
+    this.set('content.registeredMpacks', registeredMpacks);
+  },
+
+  defaultErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
+  },
+
+  /**
    * Load services data from server.
    */
   loadServicesFromServer: function () {
@@ -1440,7 +1492,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         sender: this,
         data: {},
         success: 'loadHostsSuccessCallback',
-        error: 'loadHostsErrorCallback'
+        error: 'defaultErrorCallback'
       });
     }
     return dfd.promise();
@@ -1462,22 +1514,76 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.hosts', installedHosts);
   },
 
-  loadHostsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
+  /**
+   * Loads info about existing service groups on the server into the controller's content.
+   * If the data is already loaded into the localStorage, it is copied from there.
+   * If not, it is loaded from the server and stored in both localStorage and the controller's content.
+   */
+  loadServiceGroups: function () {
+    let dfd;
+    const serviceGroups = this.getDBProperty('serviceGroups');
+    const serviceInstances = this.getDBProperty('serviceInstances');
+
+    if (serviceGroups && serviceInstances) {
+      this.set('content.serviceGroups', serviceGroups);
+      this.set('content.serviceInstances', serviceInstances);
+      dfd = $.Deferred();
+      dfd.resolve();
+    } else {
+      dfd = App.ajax.send({
+        name: 'servicegroup.get_all_details',
+        sender: this,
+        success: 'loadServiceGroupsCallback',
+        error: 'loadServiceGroupsErrorCallback'
+      });
+    }
+
+    return dfd.promise();
   },
 
-  loadRegisteredMpacks: function () {
-    this.set('content.registeredMpacks', this.getDBProperty('registeredMpacks') || []);
-    const registeredMpacks = this.get('content.registeredMpacks');
-    
-    //TODO: mpacks - currently we create a service group for each mpack; this will be changed in the future
-    const serviceGroups = registeredMpacks.map(rmp => rmp.MpackInfo.mpack_name);
+  /**
+   * Shapes raw service group info into service group and service instance objects for use by the wizard.
+   */
+  loadServiceGroupsCallback: function (response) {
+    const serviceGroups = response.items.map(item =>
+      ({
+        name: item.service_group_name,
+        mpackVersionId: item.mpack_name + item.mpack_version
+      })
+    );
+    this.setDBProperty('serviceGroups', serviceGroups);
     this.set('content.serviceGroups', serviceGroups);
 
-    registeredMpacks.forEach(rmp => {
-      App.stackMapper.map(JSON.parse(JSON.stringify(rmp)));
-    });
+    const serviceInstances = response.items.reduce((serviceInstances, item) => 
+      serviceInstances.concat(item.services.map(service => 
+        ({
+          name: service.ServiceInfo.service_name,
+          serviceGroupName: service.ServiceInfo.service_group_name
+        })
+      ))
+    , []);
+    this.setDBProperty('serviceInstances', serviceInstances);
+    this.set('content.serviceInstances', serviceInstances);
   },
+
+  loadServiceGroupsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    if (jqXHR.status === 404) {
+      //likely we are in the installer and no cluster was created yet,
+      //so act as if there were no error and we just got back an empty list of service groups
+      this.loadServiceGroupsCallback({ items: [] });
+    } else {
+      App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
+    }  
+  },
+
+  /**
+   * All service groups currently "in the cart."
+   * This includes the ones already existing in the cluster
+   * and any new ones added by the user in the current wizard.
+   */
+  allServiceGroups: function () {
+    return this.get('content.serviceGroups').concat(this.get('content.addedServiceGroups'));
+  }.property('content.serviceGroups.@each', 'content.addedServiceGroups.@each'),
 
   /**
    * Determine if <code>Assign Slaves and Clients</code> step ("step7") should be skipped

@@ -17,12 +17,12 @@
 }}
 <div class="option">
   <div class="option-title">
-    {{usecase.displayName}}&nbsp;<span class="glyphicon glyphicon-question-sign"></span>
+    {{useCase.displayName}}&nbsp;<span class="glyphicon glyphicon-question-sign"></span>
   </div>
-  <div class="option-description">{{usecase.description}}</div>
-  {{#if usecase.selected}}
-  <button class="btn btn-default option-add-button checked" {{action toggle target="view"}}></button>
+  <div class="option-description">{{useCase.description}}</div>
+  {{#if useCase.selected}}
+    <button class="btn btn-default option-add-button checked" {{action toggle target="view"}}></button>
   {{else}}
-  <button class="btn btn-default option-add-button" {{action toggle target="view"}}></button>
+    <button class="btn btn-default option-add-button" {{action toggle target="view"}}></button>
   {{/if}}
 </div>

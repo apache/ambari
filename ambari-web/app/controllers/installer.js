@@ -27,7 +27,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   isCheckInProgress: false,
 
-  totalSteps: function() {
+  totalSteps: function () {
     const steps = this.get("steps");
 
     if (steps) {
@@ -42,7 +42,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step2",
     "step3",
     "configureDownload",
-	  "selectMpacks",
+    "selectMpacks",
     "customMpackRepos",
     "downloadMpacks",
     "customProductRepos",
@@ -115,6 +115,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     mpackServiceVersions: [],
     mpackServices: [],
     serviceGroups: [],
+    serviceInstances: [],
     // Tracks which steps have been saved before.
     // If you revisit a step, we will know if the step has been saved previously and we can warn about making changes.
     // If a previously saved step is changed, setStepSaved() will "unsave" all subsequent steps so we don't warn on every screen.
@@ -155,7 +156,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'selectedServices',
     'selectedStack',
     'downloadConfig',
-    'stepsSavedState'
+    'stepsSavedState',
+    'serviceGroups',
+    'addedServiceGroups',
+    'serviceInstances',
+    'addedServiceInstances',
+    'registeredMpacks'
   ],
 
   init: function () {
@@ -182,10 +188,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return jQuery.extend({}, this.get('clusterStatusTemplate'));
   },
 
-   /**
-   * Remove host from model. Used at <code>Confirm hosts(step2)</code> step
-   * @param hosts Array of hosts, which we want to delete
-   */
+  /**
+  * Remove host from model. Used at <code>Confirm hosts(step2)</code> step
+  * @param hosts Array of hosts, which we want to delete
+  */
   removeHosts: function (hosts) {
     var dbHosts = this.getDBProperty('hosts');
     hosts.forEach(function (_hostInfo) {
@@ -225,7 +231,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.MpackServiceMapper.map(serviceInfo);
   },
 
-  loadMpackServiceInfoError: function(request, status, error) {
+  loadMpackServiceInfoError: function (request, status, error) {
     const message = Em.I18n.t('installer.error.mpackServiceInfo');
 
     this.addError(message);
@@ -281,14 +287,18 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     for (var hostName in rawHosts) {
       var host = rawHosts[hostName];
       hosts.pushObject(Em.Object.create({
-          id: host.name,
-          hostName: host.name,
-          hostComponents: host.hostComponents || []
-        }
+        id: host.name,
+        hostName: host.name,
+        hostComponents: host.hostComponents || []
+      }
       ))
     }
     return hosts;
   }.property('content.hosts'),
+
+  allServiceGroups: function () {
+    return [].concat(this.get('content.serviceGroups')).concat(this.get('content.addedServiceGroups'));
+  }.property('content.serviceGroups', 'content.addedServiceGroups'),
 
   stacks: [],
 
@@ -501,9 +511,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    */
   loadMasterComponentHosts: function (lookInMemoryOnly) {
     var props = this.getDBProperties(['masterComponentHosts', 'hosts']),
-        masterComponentHosts = this.get("content.masterComponentHosts"),
-        hosts = props.hosts || {},
-        hostNames = Em.keys(hosts);
+      masterComponentHosts = this.get("content.masterComponentHosts"),
+      hosts = props.hosts || {},
+      hostNames = Em.keys(hosts);
 
     if (!lookInMemoryOnly && !masterComponentHosts) {
       masterComponentHosts = props.masterComponentHosts;
@@ -583,7 +593,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    */
   postVersionDefinitionFile: function (isXMLdata, data) {
     var dfd = $.Deferred();
-    var name = isXMLdata? 'wizard.step1.post_version_definition_file.xml' : 'wizard.step1.post_version_definition_file.url';
+    var name = isXMLdata ? 'wizard.step1.post_version_definition_file.xml' : 'wizard.step1.post_version_definition_file.url';
 
     App.ajax.send({
       name: name,
@@ -607,17 +617,17 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       // load the data info to display for details and contents panel
       data.VersionDefinition.id = Em.get(dataInfo, 'data.VersionDefinition.available') || data.VersionDefinition.id;
       var response = {
-        id : data.VersionDefinition.id,
-        stackVersion : data.VersionDefinition.stack_version,
+        id: data.VersionDefinition.id,
+        stackVersion: data.VersionDefinition.stack_version,
         stackName: data.VersionDefinition.stack_name,
         type: data.VersionDefinition.type,
         stackNameVersion: data.VersionDefinition.stack_name + '-' + data.VersionDefinition.stack_version, /// HDP-2.3
         actualVersion: data.VersionDefinition.repository_version, /// 2.3.4.0-3846
-        version: data.VersionDefinition.release ? data.VersionDefinition.release.version: null, /// 2.3.4.0
-        releaseNotes: data.VersionDefinition.release ? data.VersionDefinition.release.notes: null,
+        version: data.VersionDefinition.release ? data.VersionDefinition.release.version : null, /// 2.3.4.0
+        releaseNotes: data.VersionDefinition.release ? data.VersionDefinition.release.notes : null,
         displayName: data.VersionDefinition.release ? data.VersionDefinition.stack_name + '-' + data.VersionDefinition.release.version :
-        data.VersionDefinition.stack_name + '-' + data.VersionDefinition.repository_version, //HDP-2.3.4.0
-        repoVersionFullName : data.VersionDefinition.stack_name + '-' + data.VersionDefinition.repository_version,
+          data.VersionDefinition.stack_name + '-' + data.VersionDefinition.repository_version, //HDP-2.3.4.0
+        repoVersionFullName: data.VersionDefinition.stack_name + '-' + data.VersionDefinition.repository_version,
         osList: data.operating_systems,
         updateObj: data
       };
@@ -650,7 +660,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    */
   postVersionDefinitionFileStep8: function (isXMLdata, data) {
     var dfd = $.Deferred();
-    var name = isXMLdata == true? 'wizard.step8.post_version_definition_file.xml' : 'wizard.step8.post_version_definition_file';
+    var name = isXMLdata == true ? 'wizard.step8.post_version_definition_file.xml' : 'wizard.step8.post_version_definition_file';
     App.ajax.send({
       name: name,
       sender: this,
@@ -684,11 +694,11 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     params.dfd.reject(data);
     var header = Em.I18n.t('installer.step1.useLocalRepo.uploadFile.error.title');
     var body = '';
-    if(request && request.responseText) {
+    if (request && request.responseText) {
       try {
         var json = $.parseJSON(request.responseText);
         body = json.message;
-      } catch (err) {}
+      } catch (err) { }
     }
     App.db.setLocalRepoVDFData(undefined);
     App.showAlertPopup(header, body);
@@ -1003,11 +1013,21 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     ],
     'selectMpacks': [
       {
-        type: 'sync',
+        type: 'async',
         callback: function () {
-          this.load('selectedServices');
-          this.load('selectedMpacks');
-          this.load('advancedMode');
+          return this.loadRegisteredMpacks()
+            .then(() => {
+              this.load('selectedServices');
+              this.load('selectedMpacks');
+              this.load('addedServiceGroups');
+              this.load('addedServiceInstances');
+              this.load('advancedMode');
+              
+              const dfd = $.Deferred();
+              dfd.resolve();
+              return dfd.promise();
+            }
+          );
         }
       }
     ],
@@ -1015,7 +1035,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       {
         type: 'async',
         callback: function () {
-          this.loadRegisteredMpacks();
           return this.loadSelectedServiceInfo(this.getStepSavedState('customProductRepos'));
         }
       },
@@ -1037,7 +1056,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           this.loadConfirmedHosts();
           this.loadComponentsFromConfigs();
           this.loadRecommendations();
-          this.loadRegisteredMpacks();
         }
       }
     ],

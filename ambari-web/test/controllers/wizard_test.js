@@ -19,7 +19,7 @@
 var App = require('app');
 require('models/cluster');
 require('controllers/wizard');
-
+var testHelpers = require('test/helpers');
 var c;
 
 function getSteps(start, count) {
@@ -202,7 +202,7 @@ describe('App.WizardController', function () {
     afterEach(function () {
       wizardController.getDBProperties.restore();
     });
-    it('should load service confgig group', function () {
+    it('should load service config group', function () {
       wizardController.loadServiceConfigGroups();
       expect(wizardController.get('content.configGroups')).to.eql([
         {
@@ -1982,6 +1982,98 @@ describe('App.WizardController', function () {
       var stepName = wizardController.getNextStepName();
 
       expect(stepName).to.equal("step2");
+    });
+  });
+
+  describe("#loadRegisteredMpacks", function() {
+    it("should send ajax request if local db is not populated", function() {
+      sinon.stub(wizardController, 'getDBProperty').returns(false);
+
+      wizardController.loadRegisteredMpacks();
+      var args = testHelpers.findAjaxRequest('name', 'mpack.get_registered_mpacks');
+      expect(args).to.be.exist;
+      
+      wizardController.getDBProperty.restore();
+    });
+
+    it("should populate content.registeredMpacks", function() {
+      var expected = [];
+
+      sinon.stub(wizardController, 'getDBProperty').returns(expected);
+
+      wizardController.loadRegisteredMpacks();
+      expect(wizardController.get('content.registeredMpacks')).to.equal(expected);
+      
+      wizardController.getDBProperty.restore();
+    });
+  });
+
+  describe("#loadRegisteredMpacksCallback", function() {
+    it("should call setDBProperty and populate content.registeredMpacks", function () {
+      var expected = [];
+      var stub = sinon.stub(wizardController, 'setDBProperty');
+      
+      wizardController.loadRegisteredMpacksCallback({ items: expected });
+      expect(stub.called).to.be.true;
+      expect(wizardController.get('content.registeredMpacks')).to.equal(expected);
+
+      wizardController.setDBProperty.restore();
+    });
+  });
+
+  describe("#loadServiceGroups", function() {
+    it("should send ajax request if local db is not populated", function() {
+      sinon.stub(wizardController, 'getDBProperty').returns(false);
+
+      wizardController.loadServiceGroups();
+      var args = testHelpers.findAjaxRequest('name', 'servicegroup.get_all_details');
+      expect(args).to.be.exist;
+      
+      wizardController.getDBProperty.restore();
+    });
+
+    it("should populate content.serviceGroups and content.serviceInstances", function() {
+      var serviceGroups = 'serviceGroups';
+      var serviceInstances = 'serviceInstances';
+      var stub = sinon.stub(wizardController, 'getDBProperty');
+      stub.withArgs(serviceGroups).returns(serviceGroups);
+      stub.withArgs(serviceInstances).returns(serviceInstances);
+
+      wizardController.loadServiceGroups();
+      expect(wizardController.get('content.serviceGroups')).to.equal(serviceGroups);
+      expect(wizardController.get('content.serviceInstances')).to.equal(serviceInstances);
+      
+      wizardController.getDBProperty.restore();
+    });
+  });
+
+  describe("#loadServiceGroupsCallback", function() {
+    it("should call setDBProperty and populate content.serviceGroups and content.serviceInstances", function () {
+      var data = [{
+        service_group_name: 'name',
+        mpack_name: 'mpackName',
+        mpack_version: 'version',
+        services: [{
+          ServiceInfo: {
+            service_name: 'serviceName',
+            service_group_name: 'name'
+          }
+        }]
+      }];
+      var stub = sinon.stub(wizardController, 'setDBProperty');
+      
+      wizardController.loadServiceGroupsCallback({ items: data });
+      expect(stub.calledTwice).to.be.true;
+      expect(wizardController.get('content.serviceGroups')).to.deep.equal([{
+        name: 'name',
+        mpackVersionId: 'mpackNameversion'
+      }]);
+      expect(wizardController.get('content.serviceInstances')).to.deep.equal([{
+        name: 'serviceName',
+        serviceGroupName: 'name'
+      }]);
+
+      wizardController.setDBProperty.restore();
     });
   });
 });

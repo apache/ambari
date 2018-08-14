@@ -32,6 +32,13 @@ var validationUtils = require('utils/validator');
  */
 App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, App.HostComponentRecommendationMixin, {
 
+  serviceGroups: Em.computed.alias('wizardController.allServiceGroups'),
+
+  hasServiceGroups: function () {
+    const serviceGroups = this.get('serviceGroups');
+    return serviceGroups && serviceGroups.length > 0;
+  }.property('serviceGroups'),
+
   /**
    * Array of master component names to show on the page
    * By default is empty, this means that masters of all selected services should be shown
@@ -174,7 +181,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    * Check if <code>installerWizard</code> used
    * @type {bool}
    */
-  isInstallerWizard: Em.computed.equal('content.controllerName', 'installerController'),
+  isInstaller: Em.computed.equal('content.controllerName', 'installerController'),
 
   /**
    * Master components which could be assigned to multiple hosts
@@ -465,7 +472,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    */
   getRecommendationRequestData: function(options) {
     var res = this._super(options);
-    if (!this.get('isInstallerWizard')) {
+    if (!this.get('isInstaller')) {
       res.data.recommendations = this.getCurrentMasterSlaveBlueprint();
     }
     return res;
@@ -492,7 +499,8 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       isRecommendationsLoaded: false,
       backFromNextStep: false,
       selectedServicesMasters: [],
-      servicesMasters: []
+      servicesMasters: [],
+      generalErrorMessages: []
     });
     App.StackServiceComponent.find().forEach(function (stackComponent) {
       stackComponent.set('serviceComponentId', 1);
@@ -520,12 +528,16 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
         self.set('backFromNextStep', true);
       }
       
-      self.getRecommendedHosts({
-        hosts: self.getHosts(),
-        mpack_instances: self.get('wizardController').getMpackInstances()
-      }).then(function () {
-        self.loadStepCallback(self.createComponentInstallationObjects(), self);
-      });
+      if (self.get('hasServiceGroups')) {
+        self.getRecommendedHosts({
+          hosts: self.getHosts(),
+          mpack_instances: self.get('wizardController').getMpackInstances()
+        }).then(function () {
+          self.loadStepCallback(self.createComponentInstallationObjects(), self);
+        });
+      } else {
+        self.get('generalErrorMessages').pushObject(Em.I18n.t('assign.master.no.servicegroups'));
+      }
     });
   },
 
@@ -592,12 +604,11 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    */
   renderHostInfo: function () {
     var self = this;
-    var isInstaller = (this.get('wizardController.name') === 'installerController' || this.get('content.controllerName') === 'installerController');
     return App.ajax.send({
-      name: isInstaller ? 'hosts.info.install' : 'hosts.high_availability.wizard',
+      name: this.get('isInstaller') ? 'hosts.info.install' : 'hosts.high_availability.wizard',
       sender: this,
       data: {
-        hostNames: isInstaller ? this.getHosts().join() : null
+        hostNames: this.get('isInstaller') ? this.getHosts().join() : null
       }
     }).success(function(data) {
       self.loadWizardHostsSuccessCallback(data)
@@ -680,7 +691,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
 
     App.StackServiceComponent.find().forEach(function(component) {
       var isMasterCreateOnConfig = this.get('mastersToCreate').contains(component.get('componentName'));
-      if (this.get('isInstallerWizard') && (component.get('isShownOnInstallerAssignMasterPage') || isMasterCreateOnConfig) ) {
+      if (this.get('isInstaller') && (component.get('isShownOnInstallerAssignMasterPage') || isMasterCreateOnConfig) ) {
         stackMasterComponentsMap[component.get('componentName')] = component;
       } else if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName')) || isMasterCreateOnConfig) {
         stackMasterComponentsMap[component.get('componentName')] = component;
@@ -1200,26 +1211,28 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
 
     this.set('validationInProgress', true);
     
-    this.getRecommendedHosts({
-      hosts: hostNames,
-      mpack_instances: mpackInstances,
-      components: this.getCurrentComponentHostMap()
-    }).done(function() {
-      self.validateSelectedHostComponents({
+    if (this.get('hasServiceGroups')) {
+      this.getRecommendedHosts({
         hosts: hostNames,
         mpack_instances: mpackInstances,
-        blueprint: self.get('recommendations')
+        components: this.getCurrentComponentHostMap()
       }).always(function() {
-        if (callback) {
-          callback();
-        }
-        self.set('validationInProgress', false);
-        if (self.get('runQueuedValidation')) {
-          self.set('runQueuedValidation', false);
-          self.recommendAndValidate(callback);
-        }
-      });
-    });
+        self.validateSelectedHostComponents({
+          hosts: hostNames,
+          mpack_instances: mpackInstances,
+          blueprint: self.get('recommendations')
+        }).then(function() {
+          if (callback) {
+            callback();
+          }
+          self.set('validationInProgress', false);
+          if (self.get('runQueuedValidation')) {
+            self.set('runQueuedValidation', false);
+            self.recommendAndValidate(callback);
+          }
+        });
+      }, true);
+    }
   },
 
   getCurrentComponentHostMap: function() {
@@ -1254,7 +1267,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     }
   },
 
-  nextButtonDisabled: Em.computed.or('App.router.btnClickInProgress', 'submitDisabled', 'validationInProgress', '!isLoaded'),
+  nextButtonDisabled: Em.computed.or('App.router.btnClickInProgress', 'submitDisabled', 'validationInProgress', '!isLoaded', '!hasServiceGroups'),
 
   /**
    * Submit button click handler
@@ -1274,8 +1287,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
         self.recommendAndValidate(function () {
           self.showValidationIssuesAcceptBox(self._goNextStepIfValid.bind(self));
         });
-      }
-      else {
+      } else {
         this.updateIsSubmitDisabled();
         this._goNextStepIfValid();
         this.set('submitButtonClicked', false);

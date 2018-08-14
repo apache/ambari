@@ -3201,14 +3201,14 @@ var urls = {
     real: '/registries/{registryId}/mpacks/{name}/versions/{version}',
   },
 
-  'registry.recommendation.usecases': {
+  'registry.recommendation.useCases': {
     real: '/registries/{registryId}/recommendations',
     format: function (data) {
       return {
         type: 'POST',
         data: JSON.stringify({
           recommend: "scenario-mpacks",
-          selected_scenarios: data.usecases
+          selected_scenarios: data.useCases
         })
       };
     }
@@ -3222,7 +3222,15 @@ var urls = {
         url: 'http://' + data.hsiHost + ':' + data.port + '/leader'
       }
     }
-  }
+  },
+
+  'servicegroup.get_all': {
+    'real': '/clusters/{clusterName}/servicegroups'
+  },
+
+  'servicegroup.get_all_details': {
+    'real': '/clusters/{clusterName}/servicegroups?fields=*'
+  },
 };
 /**
  * Replace data-placeholders to its values

@@ -556,8 +556,6 @@ describe('App.InstallerController', function () {
         sinon.stub(App.stackMapper, 'map');
         installerController.loadRegisteredMpacks();
         expect(App.stackMapper.map.calledThrice).to.be.true;
-        const serviceGroups = installerController.get('content.serviceGroups');
-        expect(serviceGroups).to.deep.equal(["mpack1", "mpack2", "mpack3"]);
         installerController.getDBProperty.restore();
         App.stackMapper.map.restore();
       });  

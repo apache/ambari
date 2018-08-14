@@ -238,24 +238,6 @@ describe('App.AddServiceController', function() {
 
   });
 
-  describe('#loadHostsErrorCallback', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.defaultErrorHandler.restore();
-    });
-
-    it('should execute default error handler', function () {
-      addServiceController.loadHostsErrorCallback({status: '500'}, 'textStatus', 'errorThrown', {url: 'url', type: 'GET'});
-      expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
-      expect(App.ajax.defaultErrorHandler.calledWith({status: '500'}, 'url', 'GET', '500')).to.be.true;
-    });
-
-  });
-
   describe('#loadServices', function() {
     var mock = {
       db: {}
