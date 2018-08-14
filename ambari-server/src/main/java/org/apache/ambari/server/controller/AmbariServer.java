@@ -470,13 +470,16 @@ public class AmbariServer {
 
       enableLog4jMonitor(configsMap);
 
-      GzipHandler gzipHandler = new GzipHandler();
-      gzipHandler.setHandler(root);
-
-      //TODO minimal set, perhaps is needed to add some other mime types
-      gzipHandler.setIncludedMimeTypes("text/html", "text/plain", "text/xml", "text/css", "application/javascript",
+      if (configs.isGzipHandlerEnabledForJetty()) {
+        GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setHandler(root);
+        //TODO minimal set, perhaps is needed to add some other mime types
+        gzipHandler.setIncludedMimeTypes("text/html", "text/plain", "text/xml", "text/css", "application/javascript",
           "application/x-javascript", "application/xml", "application/x-www-form-urlencoded", "application/json");
-      handlerList.addHandler(gzipHandler);
+        handlerList.addHandler(gzipHandler);
+      } else {
+        handlerList.addHandler(root);
+      }
 
       server.setHandler(handlerList);
 
