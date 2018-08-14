@@ -56,6 +56,7 @@ import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
@@ -160,6 +161,8 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
 
   @Mock
   private TopologyValidatorService topologyValidatorServiceMock;
+  @Mock(type = MockType.NICE)
+  private AmbariEventPublisher eventPublisher;
 
   private final Configuration stackConfig = new Configuration(new HashMap<>(),
     new HashMap<>());
