@@ -73,7 +73,7 @@ export class TimeHistogramComponent extends TimeGraphComponent {
     const columnWidth = this.columnWidth[this.chartTimeGap.unit] || this.columnWidth.base;
 
     // drawing the axis
-    this.drawXAxis(null, (columnWidth / 2) + 2);
+    this.drawXAxis();
     this.drawYAxis();
 
     // populate the data and drawing the bars
