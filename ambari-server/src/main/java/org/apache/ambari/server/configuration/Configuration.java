@@ -469,7 +469,7 @@ public class Configuration {
   /**
    * Determines whether Gzip handler is enabled for Jetty.
    */
-  @Markdown(description = "Determines whether data sent to and from the Ambari service should be compressed.")
+  @Markdown(description = "Determines whether jetty Gzip compression is enabled or not.")
   public static final ConfigurationProperty<String> GZIP_HANDLER_JETTY_ENABLED = new ConfigurationProperty<>(
     "gzip.handler.jetty.enabled", "true");
 
