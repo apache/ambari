@@ -974,11 +974,8 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public BlueprintProvisioningState getBlueprintProvisioningState() {
-    BlueprintProvisioningState blueprintProvisioningState = null;
     ClusterEntity clusterEntity = getClusterEntity();
-    blueprintProvisioningState = clusterEntity.getBlueprintProvisioningState();
-
-    return blueprintProvisioningState;
+    return clusterEntity.getBlueprintProvisioningState();
   }
 
   @Override
@@ -2808,25 +2805,28 @@ public class ClusterImpl implements Cluster {
             e.getKey(), Collections.emptyMap(), e.getValue(),
             "internal", "Removing temporary configurations after successful deployment"
           );
-          setBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
-          metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(this));
           LOG.info("Removed temporary configurations: {} / {}", e.getKey(), e.getValue());
         } catch (AmbariException ex) {
           LOG.warn("Failed to remove temporary configurations: {} / {}", e.getKey(), e.getValue(), ex);
         }
       }
+      changeBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
     }
   }
 
   @Subscribe
   public void onClusterProvisionStarted(ClusterProvisionStartedEvent event) {
     if (event.getClusterId() == getClusterId()) {
-      setBlueprintProvisioningState(BlueprintProvisioningState.IN_PROGRESS);
-      try {
-        metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(this));
-      } catch (AmbariException e) {
-        LOG.error("Metadata update failed after setting blueprint provision state to IN_PROGRESS", e);
-      }
+      changeBlueprintProvisioningState(BlueprintProvisioningState.IN_PROGRESS);
+    }
+  }
+
+  private void changeBlueprintProvisioningState(BlueprintProvisioningState newState) {
+    setBlueprintProvisioningState(newState);
+    try {
+      metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(this));
+    } catch (AmbariException e) {
+      LOG.error("Metadata update failed after setting blueprint provision state to {}", newState, e);
     }
   }
 
