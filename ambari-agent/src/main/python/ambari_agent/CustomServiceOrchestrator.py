@@ -535,6 +535,7 @@ class CustomServiceOrchestrator(object):
       try:
         os.unlink(status_commands_stdout)
         os.unlink(status_commands_stderr)
+        os.unlink(status_structured_out)
       except OSError:
         pass # Ignore failure
 
