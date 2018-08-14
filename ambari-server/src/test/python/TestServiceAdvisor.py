@@ -35,6 +35,7 @@ class TestServiceAdvisor(TestCase):
     imp.load_module('stack_advisor', fp, stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
 
   serviceAdvisorPath = os.path.join(resources_path, 'stacks/service_advisor.py')
+  os.environ["advisor"] = "mpack"
   with open(serviceAdvisorPath, 'rb') as fp:
     service_advisor_impl = imp.load_module('service_advisor_impl', fp, serviceAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
 

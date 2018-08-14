@@ -171,31 +171,33 @@ def get_packages(scope, service_name = None, component_name = None):
   :param component_name: the component name, such as ZOOKEEPER_SERVER
   :return:  the packages to use with stack-select or None
   """
+  from resource_management.libraries.execution_command.execution_command import ExecutionCommand
   from resource_management.libraries.functions.default import default
 
   if scope not in _PACKAGE_SCOPES:
     raise Fail("The specified scope of {0} is not valid".format(scope))
 
   config = Script.get_config()
+  execution_command = Script.get_execution_command()
 
   if service_name is None or component_name is None:
     if 'role' not in config or 'serviceName' not in config:
       raise Fail("Both the role and the service name must be included in the command in order to determine which packages to use with the stack-select tool")
 
-    service_name = config['serviceName']
-    component_name = config['role']
+    service_name = execution_command.get_component_instance_name()
+    component_name = execution_command.get_component_type()
 
 
-  stack_name = default("/stackSettings/stack_name", None)
+  stack_name = execution_command.get_mpack_name()
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
 
-  stack_packages_setting = stack_settings.get_stack_setting_value(stack_settings.STACK_PACKAGES_SETTING)
+  stack_packages_setting = execution_command.get_value("stackSettings/"+stack_settings.STACK_PACKAGES_SETTING)
   # TODO : Removed the below if of reading from cluster_env, once we have removed stack_packages from there
   # and have started using /stackSettings as source of truth.
   if stack_packages_setting is None:
     Logger.debug("Couldn't retrieve 'stack_packages' from /stackSettings. Retrieving from cluster_env now.")
-    stack_packages_setting = default("/configurations/cluster-env/"+stack_settings.STACK_PACKAGES_SETTING, None)
+    stack_packages_setting = execution_command.get_value("clusterSettings/"+stack_settings.STACK_PACKAGES_SETTING)
 
   if stack_packages_setting is None:
     raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
