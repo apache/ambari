@@ -1,4 +1,3 @@
-#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -38,7 +37,7 @@ common-services directory:${var_dir}/resources/common-services:${common_service_
 
  echo "${backup_folders}"| while IFS=: read title source destination; do
    if [ -d "${source}" ]; then
-     echo "Backing up ${title}: ${source} -> ${destination}" 1>&0
+     echo "Backing up ${title}: ${source} -> ${destination}"
      mv -f "${source}" "${destination}"
    fi
  done
@@ -85,20 +84,19 @@ common-services directory:${var_dir}/resources/common-services:${common_service_
   local jars_exist=$?
   if [ -d "${ambari_views_folder}" ] && [ -d "${ambari_views_backup_folder}" ] && [ ${jars_exist} -eq 0 ]; then
       echo "Backing up Ambari view jars: ${ambari_views_folder}/*.jar -> ${ambari_views_backup_folder}/"
-      cp -u "${ambari_views_folder}/*.jar" "${ambari_views_backup_folder}/"
+      cp -u ${ambari_views_folder}/*.jar "${ambari_views_backup_folder}/" 1>/dev/null 2>&1
   fi
 
   # backup Ambari Server Jar
 
-  local ambari_server_jar_files="${usr_dir}/ambari-server-*.jar"
+  local ambari_server_jar_files=${usr_dir}/ambari-server-*.jar
   local ambari_server_jar_files_backup_folder="${usr_backup_dir}"
-
-  if [ ! -d "${ambari_server_jar_files_backup_folder}" ]; then
-      mkdir -p "${ambari_server_jar_files_backup_folder}"
-  fi
 
   for f in ${ambari_server_jar_files}; do
       if [ -f "${f}" ]; then
+          if [ ! -d "${ambari_server_jar_files_backup_folder}" ]; then
+              mkdir -p "${ambari_server_jar_files_backup_folder}"
+          fi
           echo "Backing up Ambari server jar: ${f} -> ${ambari_server_jar_files_backup_folder}/"
           mv -f "${f}" "${ambari_server_jar_files_backup_folder}/"
       fi
