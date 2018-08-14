@@ -265,6 +265,8 @@ class WebHDFSUtil:
 
       if file_to_put:
         cmd += ["--data-binary", "@"+file_to_put, "-H", "Content-Type: application/octet-stream"]
+      else:
+        cmd += ["-d", "", "-H", "Content-Length: 0"]
 
     if self.security_enabled:
       cmd += ["--negotiate", "-u", ":"]
