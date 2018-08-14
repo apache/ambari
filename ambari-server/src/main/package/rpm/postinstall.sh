@@ -20,12 +20,12 @@ INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh"
 case "$1" in
   1) # Action install
     if [ -f "$INSTALL_HELPER" ]; then
-        $INSTALL_HELPER install
+        ${INSTALL_HELPER} install
     fi
   ;;
   2) # Action upgrade
     if [ -f "$INSTALL_HELPER" ]; then
-        $INSTALL_HELPER upgrade
+        ${INSTALL_HELPER} upgrade
     fi
   ;;
 esac

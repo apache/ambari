@@ -1,4 +1,3 @@
-#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,16 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh"
-INSTALL_HELPER_ORIG="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh.orig"
 
-if [ "$1" == "upgrade" ]; then
-  if [ -f "${INSTALL_HELPER}" ]; then
-    ${INSTALL_HELPER} upgrade
-  fi
-else
-  if [ -f "${INSTALL_HELPER_ORIG}" ]; then
-    ${INSTALL_HELPER_ORIG} cleanup
-    rm -f ${INSTALL_HELPER_ORIG} 1>/dev/null 2>&1
-  fi
+if [ "$1" -eq 0 ]; then  # Action is uninstall
+    if [ -f "/var/lib/ambari-agent/install-helper.sh.orig" ]; then
+      /var/lib/ambari-agent/install-helper.sh.orig cleanup
+      rm -f /var/lib/ambari-agent/install-helper.sh.orig 1>/dev/null 2>&1
+    fi
 fi
+
+exit 0
