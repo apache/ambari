@@ -56,6 +56,7 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
@@ -69,6 +70,7 @@ import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMet
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.ClusterEvent;
+import org.apache.ambari.server.events.ClusterProvisionStartedEvent;
 import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.ConfigsUpdateEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
@@ -111,6 +113,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
@@ -279,6 +282,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler;
+
+  @Inject
+  private MetadataHolder metadataHolder;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -963,6 +969,22 @@ public class ClusterImpl implements Cluster {
   public void setProvisioningState(State provisioningState) {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setProvisioningState(provisioningState);
+    clusterEntity = clusterDAO.merge(clusterEntity);
+  }
+
+  @Override
+  public BlueprintProvisioningState getBlueprintProvisioningState() {
+    BlueprintProvisioningState blueprintProvisioningState = null;
+    ClusterEntity clusterEntity = getClusterEntity();
+    blueprintProvisioningState = clusterEntity.getBlueprintProvisioningState();
+
+    return blueprintProvisioningState;
+  }
+
+  @Override
+  public void setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
+    ClusterEntity clusterEntity = getClusterEntity();
+    clusterEntity.setBlueprintProvisioningState(blueprintProvisioningState);
     clusterEntity = clusterDAO.merge(clusterEntity);
   }
 
@@ -2786,10 +2808,24 @@ public class ClusterImpl implements Cluster {
             e.getKey(), Collections.emptyMap(), e.getValue(),
             "internal", "Removing temporary configurations after successful deployment"
           );
+          setBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
+          metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(this));
           LOG.info("Removed temporary configurations: {} / {}", e.getKey(), e.getValue());
         } catch (AmbariException ex) {
           LOG.warn("Failed to remove temporary configurations: {} / {}", e.getKey(), e.getValue(), ex);
         }
+      }
+    }
+  }
+
+  @Subscribe
+  public void onClusterProvisionStarted(ClusterProvisionStartedEvent event) {
+    if (event.getClusterId() == getClusterId()) {
+      setBlueprintProvisioningState(BlueprintProvisioningState.IN_PROGRESS);
+      try {
+        metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(this));
+      } catch (AmbariException e) {
+        LOG.error("Metadata update failed after setting blueprint provision state to IN_PROGRESS", e);
       }
     }
   }
