@@ -14,7 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, AfterViewInit, ElementRef, ViewChild, OnChanges, SimpleChanges, HostListener, ChangeDetectorRef} from '@angular/core';
+import {
+  Component,
+  Input,
+  AfterViewInit,
+  ElementRef,
+  ViewChild,
+  OnChanges,
+  OnInit,
+  OnDestroy,
+  SimpleChanges,
+  HostListener,
+  ChangeDetectorRef
+} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
+import {Subscription} from 'rxjs/Subscription';
+import 'rxjs/add/operator/debounceTime';
 
 /**
  * This is a simple UI component to display the log message. The goal is to be able to show one line and be collapsile
@@ -26,7 +41,7 @@ import {Component, Input, AfterViewInit, ElementRef, ViewChild, OnChanges, Simpl
   templateUrl: './log-message.component.html',
   styleUrls: ['./log-message.component.less']
 })
-export class LogMessageComponent implements AfterViewInit, OnChanges {
+export class LogMessageComponent implements AfterViewInit, OnChanges, OnInit, OnDestroy {
 
   /**
    * This is the element reference to the message log container element. So that we can calculate if the caret should be
@@ -40,7 +55,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    * @type {boolean}
    */
   @Input()
-  isOpen: boolean = false;
+  isOpen = false;
 
   /**
    * This is a helper property to handle the changes on the parent component. The goal of this input is to be able to
@@ -61,7 +76,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    * the content container element. Handled by the @checkAddCaret method
    * @type {boolean}
    */
-  private addCaret: boolean = false;
+  private addCaret = false;
 
   /**
    * This is a regexp tester to check if the log message is multiline text or single line. Doing by checking the new
@@ -79,7 +94,13 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
     return this.multiLineTestRegexp.test(this.message);
   }
 
-  constructor(private cdRef:ChangeDetectorRef) {}
+  /**
+   * The array to collect all the subscriptions created by the instance in order to unsubscribe when the component
+   * destroyed
+   */
+  protected subscriptions: Subscription[] = [];
+
+  constructor(private cdRef: ChangeDetectorRef) {}
 
   /**
    * This change handler's goal is to check if we should add the caret or not. Mainly it is because currently we have
@@ -91,6 +112,16 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
     if (changes.listenChangesOn !== undefined) {
       this.checkAddCaret();
     }
+  }
+
+  ngOnInit() {
+    this.subscriptions.push(
+      Observable.fromEvent(window, 'resize').debounceTime(100).subscribe(this.onWindowResize)
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
   }
 
   /**
@@ -105,17 +136,16 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    * caret corresponding the new size of the content container element.
    * Using the arrow function will keep the instance scope.
    */
-  @HostListener('window:resize', ['$event'])
   onWindowResize = (): void => {
     this.checkAddCaret();
-  };
+  }
 
   /**
    * The goal is to perform a height check on the content container element. It is based on the comparison of the
    * scrollHeight and the clientHeight.
    */
   checkAddCaret = (): void =>  {
-    let el = this.content.nativeElement;
+    const el = this.content.nativeElement;
     this.addCaret = this.isMultiLineMessage || (el.scrollHeight > el.clientHeight) || (el.scrollWidth > el.clientWidth);
     this.cdRef.detectChanges();
   };
@@ -125,7 +155,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    * component element css classes will follow its state.
    * @param ev {MouseEvent}
    */
-  onCaretClick(ev:MouseEvent) {
+  onCaretClick(ev: MouseEvent) {
     ev.preventDefault();
     this.toggleOpen();
   }
@@ -134,7 +164,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    * This is a simple property toggle method of the @isOpen property.
    * The goal is to separate this logic from the event handling and give a way to call it from anywhere.
    */
-  toggleOpen():void {
+  toggleOpen(): void {
     this.isOpen = !this.isOpen;
   }
 
