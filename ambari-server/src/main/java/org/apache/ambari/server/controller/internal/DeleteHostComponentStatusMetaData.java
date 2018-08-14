@@ -33,9 +33,9 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
     removedHostComponents = new HashSet<>();
   }
 
-  public void addDeletedHostComponent(String componentName, String serviceName, String hostName, Long hostId,
+  public void addDeletedHostComponent(String componentName, String serviceName, String serviceGroupName, String hostName, Long hostId,
                                       String clusterId, String version, State lastComponentState) {
-    removedHostComponents.add(new HostComponent(componentName, serviceName, hostId,
+    removedHostComponents.add(new HostComponent(componentName, serviceName, serviceGroupName, hostId,
         hostName, clusterId, version, lastComponentState));
     addDeletedKey(componentName + "/" + hostName);
   }
@@ -55,16 +55,18 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
   public class HostComponent {
     private String componentName;
     private String serviceName;
+    private String serviceGroupName;
     private Long hostId;
     private String hostName;
     private String clusterId;
     private String version;
     private State lastComponentState;
 
-    public HostComponent(String componentName, String serviceName, Long hostId, String hostName,
+    public HostComponent(String componentName, String serviceName, String serviceGroupName, Long hostId, String hostName,
                          String clusterId, String version, State lastComponentState) {
       this.componentName = componentName;
       this.serviceName = serviceName;
+      this.serviceGroupName = serviceGroupName;
       this.hostId = hostId;
       this.hostName = hostName;
       this.clusterId = clusterId;
@@ -102,6 +104,14 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
 
     public void setServiceName(String serviceName) {
       this.serviceName = serviceName;
+    }
+
+    public String getServiceGroupName() {
+      return serviceGroupName;
+    }
+
+    public void setServiceGroupName(String serviceGroupName) {
+      this.serviceGroupName = serviceGroupName;
     }
 
     public String getHostName() {

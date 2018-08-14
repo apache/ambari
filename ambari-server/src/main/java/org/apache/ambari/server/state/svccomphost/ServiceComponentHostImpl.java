@@ -1461,6 +1461,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       eventPublisher.publish(event);
       deleteMetaData.addDeletedHostComponent(componentName,
           serviceName,
+          serviceGroupName,
           hostName,
           getHost().getHostId(),
           Long.toString(clusterId),

@@ -33,8 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -81,6 +79,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
@@ -593,9 +592,6 @@ public class HeartbeatProcessor extends AbstractService{
    * Process reports of components versions
    * @throws AmbariException
    */
-  @Experimental(
-      feature = ExperimentalFeature.VERSION_REPORTING,
-      comment = "This needs to be rewritten using the new structured output")
   public void processVersionReports(ComponentVersionReports versionReports, String hostname) throws AmbariException {
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
     for (Cluster cl : clusters) {
@@ -604,19 +600,16 @@ public class HeartbeatProcessor extends AbstractService{
         if (Long.valueOf(status.getKey()).equals(cl.getClusterId())) {
           for (ComponentVersionReport versionReport : status.getValue()) {
             try {
-              Service svc = cl.getService(versionReport.getServiceName());
+              Service svc = cl.getService(versionReport.getServiceGroupName(), versionReport.getServiceName());
 
               String componentName = versionReport.getComponentName();
               if (svc.getServiceComponents().containsKey(componentName)) {
-                ServiceComponent svcComp = svc.getServiceComponent(
-                    componentName);
-                ServiceComponentHost scHost = svcComp.getServiceComponentHost(
-                    hostname);
-
-                String version = versionReport.getVersion();
+                ServiceComponent svcComp = svc.getServiceComponent(componentName);
+                ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
 
                 HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cl,
-                    scHost, null);
+                    scHost, versionReport.getVersionStructuredOutput());
+
                 versionEventPublisher.publish(event);
               }
             } catch (ServiceNotFoundException e) {
@@ -825,6 +818,16 @@ public class HeartbeatProcessor extends AbstractService{
 
     @SerializedName("version")
     public String version;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("mpackVersion", mpackVersion)
+          .add("version", version).toString();
+    }
   }
 
   /**
@@ -834,5 +837,14 @@ public class HeartbeatProcessor extends AbstractService{
   public static class UpgradeSummaryStructuredOuut {
     @SerializedName("direction")
     public String direction;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("direction", direction).toString();
+    }
   }
 }

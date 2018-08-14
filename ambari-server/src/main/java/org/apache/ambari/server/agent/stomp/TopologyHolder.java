@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -44,7 +45,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -90,15 +90,26 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
       for (Service service : cl.getServices()) {
         for (ServiceComponent component : service.getServiceComponents().values()) {
           Map<String, ServiceComponentHost> componentsMap = component.getServiceComponentHosts();
-          for (ServiceComponentHost sch : componentsMap.values()) {
+          if (!componentsMap.isEmpty()) {
+
+            //TODO will be a need to change to multi-instance usage
+            ServiceComponentHost sch = componentsMap.entrySet().iterator().next().getValue();
+
+            Set<String> hostNames = cl.getHosts(sch.getServiceName(), sch.getServiceComponentName());
+            Set<Long> hostOrderIds = clusterHosts.stream()
+              .filter(h -> hostNames.contains(h.getHostName()))
+              .map(Host::getHostId)
+              .collect(Collectors.toSet());
+            String serviceGroupName = sch.getServiceGroupName();
+
             TopologyComponent topologyComponent = TopologyComponent.newBuilder()
-              .setComponentName(sch.getServiceComponentName())
-              .setServiceName(sch.getServiceName())
-              .setVersion(sch.getVersion())
-              .setHostIds(Sets.newHashSet(sch.getHost().getHostId()))
-              .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(sch))
-              .setCommandParams(ambariManagementController.getTopologyCommandParams(sch))
-              .build();
+                .setComponentName(sch.getServiceComponentName())
+                .setServiceName(sch.getServiceName())
+                .setServiceGroupName(serviceGroupName)
+                .setHostIds(hostOrderIds)
+                .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(sch))
+                .setCommandParams(ambariManagementController.getTopologyCommandParams(sch))
+                .build();
             topologyComponents.add(topologyComponent);
           }
         }
@@ -206,16 +217,17 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         Map<String, ServiceComponentHost> componentsMap = component.getServiceComponentHosts();
         if (!componentsMap.isEmpty()) {
 
-          for (ServiceComponentHost sch : componentsMap.values()) {
-            TopologyComponent topologyComponent = TopologyComponent.newBuilder()
+          //TODO will be a need to change to multi-instance usage
+          ServiceComponentHost sch = componentsMap.entrySet().iterator().next().getValue();
+
+          TopologyComponent topologyComponent = TopologyComponent.newBuilder()
               .setComponentName(sch.getServiceComponentName())
               .setServiceName(sch.getServiceName())
-              .setVersion(sch.getVersion())
+              .setServiceGroupName(sch.getServiceGroupName())
               .setCommandParams(ambariManagementController.getTopologyCommandParams(sch))
               .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(sch))
               .build();
-            topologyComponents.add(topologyComponent);
-          }
+          topologyComponents.add(topologyComponent);
         }
       }
     }

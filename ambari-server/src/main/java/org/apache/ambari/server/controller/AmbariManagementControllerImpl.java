@@ -822,6 +822,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       TopologyComponent newComponent = TopologyComponent.newBuilder()
           .setComponentName(sch.getServiceComponentName())
           .setServiceName(sc.getServiceName())
+          .setServiceGroupName(sc.getServiceGroupName())
           .setServiceType(sc.getServiceType())
           .setVersion(sch.getVersion())
           .setHostIds(hostIds)
