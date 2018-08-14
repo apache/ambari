@@ -18,10 +18,10 @@
 <div class="tabs-container container-fluid">
   <div class="row">
     <div class="col-md-12 tabs-menu-container">
-      <tabs class="pull-left" [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
+      <tabs [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
         (tabClosed)="onCloseTab($event[0], $event[1])"
         [switchMode]="'ROUTE_SEGMENT'" [basePathForRoutingMode]="routerPath" queryParamsHandling="merge"></tabs>
-      <action-menu class="pull-right"></action-menu>
+      <action-menu></action-menu>
     </div>
   </div>
 </div>
