@@ -1282,8 +1282,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
       for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
         updateKerberosIdentities(serviceDescriptor);
-        for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
-          updateKerberosIdentities(componentDescriptor);
+        if (MapUtils.isNotEmpty(serviceDescriptor.getComponents())) {
+          for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
+            updateKerberosIdentities(componentDescriptor);
+          }
         }
       }
 
