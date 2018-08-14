@@ -1192,6 +1192,10 @@
         "namenode_hosts": [
             "c6401.ambari.apache.org"
         ],
+        "hdfs_client_hosts": [
+            "c6401.ambari.apache.org",
+            "c6402.ambari.apache.org"
+        ],
         "hbase_master_hosts": [
             "c6402.ambari.apache.org"
         ],
