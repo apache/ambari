@@ -23,7 +23,7 @@ import * as d3 from 'd3';
 import * as d3sc from 'd3-scale-chromatic';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/operator/throttleTime';
+import 'rxjs/add/operator/debounceTime';
 import {
 GraphPositionOptions, GraphMarginOptions, GraphTooltipInfo, LegendItem, GraphEventData, GraphEmittedEvent
 } from '@app/classes/graph';
@@ -52,10 +52,10 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
   width: number;
 
   @Input()
-  height: number = 150;
+  height = 150;
 
   @Input()
-  tickPadding: number = 10;
+  tickPadding = 10;
 
   @Input()
   colors: HomogeneousObject<string> = {};
@@ -68,42 +68,42 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
    * @type {boolean}
    */
   @Input()
-  isTimeGraph: boolean = false;
+  isTimeGraph = false;
 
   /**
    * Indicates whether X axis direction is right to left
    * @type {boolean}
    */
   @Input()
-  reverseXRange: boolean = false;
+  reverseXRange = false;
 
   /**
    * Indicates whether Y axis direction is top to bottom
    * @type {boolean}
    */
   @Input()
-  reverseYRange: boolean = false;
+  reverseYRange = false;
 
   /**
    * Indicates whether X axis ticks with fractional values should be displayed on chart (if any)
    * @type {boolean}
    */
   @Input()
-  allowFractionalXTicks: boolean = true;
+  allowFractionalXTicks = true;
 
   /**
    * Indicates whether Y axis ticks with fractional values should be displayed on chart (if any)
    * @type {boolean}
    */
   @Input()
-  allowFractionalYTicks: boolean = true;
+  allowFractionalYTicks = true;
 
   /**
    * Indicated whether Y values equal to 0 should be skipped in tooltip
    * @type {boolean}
    */
   @Input()
-  skipZeroValuesInTooltip: boolean = true;
+  skipZeroValuesInTooltip = true;
 
   /**
    * Indicates whether X axis event should be emitted with formatted string values that are displayed
@@ -111,7 +111,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
    * @type {boolean}
    */
   @Input()
-  emitFormattedXTick: boolean = false;
+  emitFormattedXTick = false;
 
   /**
    * Indicates whether Y axis event should be emitted with formatted string values that are displayed
@@ -119,7 +119,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
    * @type {boolean}
    */
   @Input()
-  emitFormattedYTick: boolean = false;
+  emitFormattedYTick = false;
 
   @Output()
   xTickContextMenu: EventEmitter<GraphEmittedEvent<MouseEvent>> = new EventEmitter();
@@ -135,9 +135,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
   })
   tooltipRef: ElementRef;
 
-  private readonly xAxisClassName: string = 'axis-x';
+  private readonly xAxisClassName = 'axis-x';
 
-  private readonly yAxisClassName: string = 'axis-y';
+  private readonly yAxisClassName = 'axis-y';
 
   protected utils: UtilsService;
 
@@ -179,7 +179,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
    * It should be true when the tooltip is out from the window.
    * @type {boolean}
    */
-  private tooltipOnTheLeft: boolean = false;
+  private tooltipOnTheLeft = false;
 
   protected subscriptions: Subscription[] = [];
 
@@ -196,7 +196,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
 
   ngOnInit() {
     this.subscriptions.push(
-      Observable.fromEvent(window, 'resize').throttleTime(100).subscribe(this.onWindowResize)
+      Observable.fromEvent(window, 'resize').debounceTime(100).subscribe(this.onWindowResize)
     );
     this.setLegendItems();
   }
