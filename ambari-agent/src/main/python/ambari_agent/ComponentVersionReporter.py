@@ -58,10 +58,11 @@ class ComponentVersionReporter(threading.Thread):
           if current_host_id not in component_dict.hostIds:
             continue
 
+          service_group_name = component_dict.serviceGroupName
           service_name = component_dict.serviceName
           component_name = component_dict.componentName
 
-          result = self.check_component_version(cluster_id, service_name, component_name)
+          result = self.check_component_version(cluster_id, service_group_name, service_name, component_name)
 
           if result:
             cluster_reports[cluster_id].append(result)
@@ -70,7 +71,7 @@ class ComponentVersionReporter(threading.Thread):
     except:
       logger.exception("Exception in ComponentVersionReporter")
 
-  def check_component_version(self, cluster_id, service_name, component_name):
+  def check_component_version(self, cluster_id, service_group_name, service_name, component_name):
     """
     Returns components version
     """
@@ -79,6 +80,7 @@ class ComponentVersionReporter(threading.Thread):
       return None
 
     command_dict = {
+      'serviceGroupName': service_group_name,
       'serviceName': service_name,
       'role': component_name,
       'clusterId': cluster_id,
@@ -87,16 +89,17 @@ class ComponentVersionReporter(threading.Thread):
 
     version_result = self.customServiceOrchestrator.requestComponentStatus(command_dict, command_name=AgentCommand.get_version)
 
-    if version_result['exitcode'] or not 'structuredOut' in version_result or not 'version' in version_result['structuredOut']:
+    if version_result['exitcode'] or not 'structuredOut' in version_result or not 'version_reporting' in version_result['structuredOut']:
       logger.error("Could not get version for component {0} of {1} service cluster_id={2}. Command returned: {3}".format(component_name, service_name, cluster_id, version_result))
       return None
 
     # TODO: check if no strout or version if not there
 
     result = {
+      'serviceGroupName': service_group_name,
       'serviceName': service_name,
       'componentName': component_name,
-      'version': version_result['structuredOut']['version'],
+      'version_reporting': version_result['structuredOut']['version_reporting'],
       'clusterId': cluster_id,
     }
 

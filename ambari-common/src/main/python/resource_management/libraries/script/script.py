@@ -25,20 +25,18 @@ import re
 import os
 import sys
 import logging
-import platform
 import inspect
 import tarfile
 import traceback
 import time
 from optparse import OptionParser
 import resource_management
-from ambari_commons import OSCheck, OSConst
+from ambari_commons import OSCheck
 from ambari_commons.constants import UPGRADE_TYPE_EXPRESS
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.network import reconfigure_urllib2_opener
-from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_protocol
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons.inet_utils import ensure_ssl_using_protocol
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.core import sudo
@@ -54,14 +52,11 @@ from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.libraries.functions.repository_util import CommandRepository, RepositoryUtil
-from resource_management.core.resources.system import Execute
 from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.execution_command.execution_command import ExecutionCommand
-from resource_management.libraries.execution_command.module_configs import ModuleConfigs
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -268,6 +263,7 @@ class Script(object):
 
     return False
 
+
   def execute(self):
     """
     Sets up logging;
@@ -366,8 +362,16 @@ class Script(object):
       if self.should_expose_component_version():
         self.save_component_version_to_structured_out()
 
+
   def get_version(self, env):
+    """
+    A dummy method which is used to ask for the version of installed components on startup using t
+    he topology information which is sent to the agent.
+    :param env:
+    :return: nothing
+    """
     pass
+
 
   def execute_prefix_function(self, command_name, afix, env):
     """

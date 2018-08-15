@@ -119,6 +119,7 @@ public class STOMPComponentsDeleteHandler {
       TopologyComponent deletedComponent = TopologyComponent.newBuilder()
           .setComponentName(hostComponent.getComponentName())
           .setServiceName(hostComponent.getServiceName())
+          .setServiceGroupName(hostComponent.getServiceGroupName())
           .setVersion(hostComponent.getVersion())
           .setHostIds(new HashSet<>(Arrays.asList(hostComponent.getHostId())))
           .setHostNames(new HashSet<>(Arrays.asList(hostComponent.getHostName())))

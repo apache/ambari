@@ -18,20 +18,29 @@
 
 package org.apache.ambari.server.agent.stomp.dto;
 
+import org.apache.ambari.server.agent.HeartbeatProcessor.ComponentVersionStructuredOut;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ComponentVersionReport {
   private String componentName;
   private String serviceName;
-  private String version;
+  private String serviceGroupName;
   private Long clusterId;
+
+  @JsonProperty("version_reporting")
+  private ComponentVersionStructuredOut componentVersionStructuredOut;
 
   public ComponentVersionReport() {
   }
 
-  public ComponentVersionReport(String componentName, String serviceName, String version, Long clusterId) {
+  public ComponentVersionReport(Long clusterId, String serviceGroupName, String serviceName, String componentName,
+      ComponentVersionStructuredOut componentVersionStructuredOut) {
     this.componentName = componentName;
     this.serviceName = serviceName;
-    this.version = version;
+    this.serviceGroupName = serviceGroupName;
     this.clusterId = clusterId;
+    this.componentVersionStructuredOut = componentVersionStructuredOut;
   }
 
   public String getComponentName() {
@@ -42,6 +51,14 @@ public class ComponentVersionReport {
     this.componentName = componentName;
   }
 
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public void setServiceGroupName(String serviceGroupName) {
+    this.serviceGroupName = serviceGroupName;
+  }
+
   public String getServiceName() {
     return serviceName;
   }
@@ -50,12 +67,13 @@ public class ComponentVersionReport {
     this.serviceName = serviceName;
   }
 
-  public String getVersion() {
-    return version;
+  public ComponentVersionStructuredOut getVersionStructuredOutput() {
+    return componentVersionStructuredOut;
   }
 
-  public void setVersion(String version) {
-    this.version = version;
+  public void setVersionStructuredOutput(
+      ComponentVersionStructuredOut componentVersionStructuredOut) {
+    this.componentVersionStructuredOut = componentVersionStructuredOut;
   }
 
   public Long getClusterId() {

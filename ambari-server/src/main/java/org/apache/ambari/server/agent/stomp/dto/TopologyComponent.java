@@ -20,6 +20,7 @@ package org.apache.ambari.server.agent.stomp.dto;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -34,8 +35,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class TopologyComponent {
   private String componentName;
   private String serviceName;
+  private String serviceGroupName;
   private String serviceType;
   private String version;
+  private String mpackVersion;
   private Set<Long> hostIds = new HashSet<>();
   private Set<String> hostNames = new HashSet<>();
   private Set<String> publicHostNames = new HashSet<>();
@@ -65,6 +68,11 @@ public class TopologyComponent {
       return this;
     }
 
+    public Builder setServiceGroupName(String serviceGroupName) {
+      TopologyComponent.this.setServiceGroupName(serviceGroupName);
+      return this;
+    }
+
     public Builder setServiceType(String serviceType) {
       TopologyComponent.this.setServiceType(serviceType);
       return this;
@@ -72,6 +80,11 @@ public class TopologyComponent {
 
     public Builder setVersion(String version) {
       TopologyComponent.this.setVersion(version);
+      return this;
+    }
+
+    public Builder setMpackVersion(String mpackVersion) {
+      TopologyComponent.this.setMpackVersion(mpackVersion);
       return this;
     }
 
@@ -187,6 +200,7 @@ public class TopologyComponent {
     return TopologyComponent.newBuilder().setComponentName(getComponentName())
         .setServiceType(getServiceType())
         .setServiceName(getServiceName())
+        .setServiceGroupName(getServiceGroupName())
         .setComponentLevelParams(getComponentLevelParams() == null ? null : new TreeMap<>(getComponentLevelParams()))
         .setHostIds(getHostIds() == null ? null : new HashSet<>(getHostIds()))
         .setHostNames(getHostNames() == null ? null : new HashSet<>(getHostNames()))
@@ -211,12 +225,28 @@ public class TopologyComponent {
     this.serviceName = serviceName;
   }
 
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public void setServiceGroupName(String serviceGroupName) {
+    this.serviceGroupName = serviceGroupName;
+  }
+
   public String getVersion() {
     return version;
   }
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public String getMpackVersion() {
+    return mpackVersion;
+  }
+
+  public void setMpackVersion(String mpackVersion) {
+    this.mpackVersion = mpackVersion;
   }
 
   public Set<Long> getHostIds() {
@@ -228,11 +258,11 @@ public class TopologyComponent {
   }
 
   public void addHostId(Long hostId) {
-    this.hostIds.add(hostId);
+    hostIds.add(hostId);
   }
 
   public void addHostName(String hostName) {
-    this.hostNames.add(hostName);
+    hostNames.add(hostName);
   }
 
   public TreeMap<String, String> getComponentLevelParams() {
@@ -285,19 +315,21 @@ public class TopologyComponent {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     TopologyComponent that = (TopologyComponent) o;
-
-    if (!componentName.equals(that.componentName)) return false;
-    return serviceName.equals(that.serviceName);
+    return Objects.equals(serviceGroupName, that.serviceGroupName)
+        && Objects.equals(serviceName, that.serviceName)
+        && Objects.equals(componentName, that.componentName);
   }
 
   @Override
   public int hashCode() {
-    int result = componentName.hashCode();
-    result = 31 * result + serviceName.hashCode();
-    return result;
+    return Objects.hash(serviceGroupName, serviceName, componentName);
   }
 }
