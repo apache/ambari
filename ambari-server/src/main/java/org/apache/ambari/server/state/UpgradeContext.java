@@ -433,25 +433,6 @@ public class UpgradeContext {
   }
 
   /**
-   * Gets the upgrade pack for this upgrade.
-   *
-   * @return the upgrade pack
-   */
-  public UpgradePack getUpgradePack() {
-    return m_upgradePack;
-  }
-
-  /**
-   * Sets the upgrade pack for this upgrade
-   *
-   * @param upgradePack
-   *          the upgrade pack to set
-   */
-  public void setUpgradePack(UpgradePack upgradePack) {
-    m_upgradePack = upgradePack;
-  }
-
-  /**
    * Gets the cluster that the upgrade is for.
    *
    * @return the cluster (never {@code null}).
@@ -601,7 +582,13 @@ public class UpgradeContext {
       return false;
     }
 
-    return m_upgradePack.isDowngradeAllowed();
+    for (MpackChangeSummary summary : m_serviceGroups.values()) {
+      if (!summary.getUpgradePack().isDowngradeAllowed()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
