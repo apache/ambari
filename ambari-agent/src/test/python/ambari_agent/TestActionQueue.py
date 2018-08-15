@@ -508,7 +508,7 @@ class TestActionQueue(TestCase):
     initializer_module = InitializerModule()
     initializer_module.init()
     initializer_module.config = config
-    initializer_module.recovery_manager = RecoveryManager(tempfile.mktemp())
+    initializer_module.recovery_manager = RecoveryManager(MagicMock())
     initializer_module.recovery_manager.update_config(5, 5, 1, 11, True, False, False)
 
     with patch("__builtin__.open") as open_mock:
@@ -952,7 +952,7 @@ class TestActionQueue(TestCase):
                                 get_mock, process_command_mock, gpeo_mock):
     CustomServiceOrchestrator_mock.return_value = None
     dummy_controller = MagicMock()
-    dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
+    dummy_controller.recovery_manager = RecoveryManager(MagicMock())
     config = MagicMock()
     gpeo_mock.return_value = 0
     config.get_parallel_exec_option = gpeo_mock
