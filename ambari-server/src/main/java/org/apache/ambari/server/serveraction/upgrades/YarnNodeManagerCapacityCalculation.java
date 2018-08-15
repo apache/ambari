@@ -19,6 +19,7 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,8 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
+
+import com.google.common.collect.Sets;
 
 /**
  * Determines the current cluster capacity in terms of NodeManagers mulitplied
@@ -104,14 +107,14 @@ public class YarnNodeManagerCapacityCalculation extends AbstractUpgradeServerAct
 
       Map<String, String> csProperties = csConfig.getProperties();
       String old_root_queues = csProperties.get(CAPACITY_SCHEDULER_ROOT_QUEUES);
-      String[] queues = old_root_queues.split(",");
+      Set<String> queues = Sets.newHashSet(old_root_queues.split(","));
       boolean isYarnSystemQueueExist = false;
-      for (String queue : queues) {
-        if (queue.trim().equals(YARN_SYSTEM_SERVICE_QUEUE_NAME)) {
-          isYarnSystemQueueExist = true;
-          break;
-        }
-      }
+
+      isYarnSystemQueueExist = queues.stream()
+          .map(queue -> queue.trim())
+          .filter(queueName -> YARN_SYSTEM_SERVICE_QUEUE_NAME.equals(queueName))
+          .findFirst()
+          .isPresent();
 
       String new_root_queues = old_root_queues + "," + YARN_SYSTEM_SERVICE_QUEUE_NAME;
       // create yarn-system queue if doesn't exist under root queues.
