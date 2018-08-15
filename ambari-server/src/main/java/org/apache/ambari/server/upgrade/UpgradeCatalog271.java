@@ -35,6 +35,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -55,6 +56,8 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
 
   private static final String SERVICE_CONFIG_MAPPING_TABLE = "serviceconfigmapping";
   private static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
+  protected static final String CLUSTERS_TABLE = "clusters";
+  protected static final String CLUSTERS_BLUEPRINT_PROVISIONING_STATE_COLUMN = "blueprint_provisioning_state";
 
   @Inject
   DaoUtils daoUtils;
@@ -91,6 +94,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    addBlueprintProvisioningState();
   }
 
   /**
@@ -259,5 +263,11 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
 
     dba.executeQuery(serviceConfigMappingRemoveSQL);
     dba.executeQuery(clusterConfigRemoveSQL);
+  }
+
+  protected void addBlueprintProvisioningState() throws SQLException {
+    dbAccessor.addColumn(CLUSTERS_TABLE,
+        new DBAccessor.DBColumnInfo(CLUSTERS_BLUEPRINT_PROVISIONING_STATE_COLUMN, String.class, 255,
+            BlueprintProvisioningState.NONE, true));
   }
 }

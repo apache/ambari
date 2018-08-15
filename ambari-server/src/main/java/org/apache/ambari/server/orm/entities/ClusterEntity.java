@@ -42,6 +42,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
 
@@ -94,6 +95,11 @@ public class ClusterEntity {
   @Basic
   @Column(name = "cluster_info", insertable = true, updatable = true)
   private String clusterInfo = "";
+
+  @Basic
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "blueprint_provisioning_state", insertable = true, updatable = true)
+  private BlueprintProvisioningState blueprintProvisioningState = BlueprintProvisioningState.NONE;
 
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
@@ -346,5 +352,13 @@ public class ClusterEntity {
 
   public void setUpgradeEntity(UpgradeEntity upgradeEntity) {
     this.upgradeEntity = upgradeEntity;
+  }
+
+  public BlueprintProvisioningState getBlueprintProvisioningState() {
+    return blueprintProvisioningState;
+  }
+
+  public void setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
+    this.blueprintProvisioningState = blueprintProvisioningState;
   }
 }

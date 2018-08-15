@@ -58,6 +58,8 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.ClusterProvisionStartedEvent;
+import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.SettingDAO;
@@ -378,12 +380,12 @@ public class TopologyManagerTest {
     PowerMock.verify(System.class);
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO, eventPublisher);
 
     PowerMock.reset(System.class);
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO, eventPublisher);
   }
 
   @Test
@@ -393,6 +395,16 @@ public class TopologyManagerTest {
 
     topologyManager.provisionCluster(request);
     //todo: assertions
+  }
+
+  @Test
+  public void testBlueprintProvisioningStateEvent() throws Exception {
+    expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).anyTimes();
+    eventPublisher.publish(anyObject(ClusterProvisionStartedEvent.class));
+    expectLastCall().once();
+    replayAll();
+
+    topologyManager.provisionCluster(request);
   }
 
   @Test
@@ -437,6 +449,8 @@ public class TopologyManagerTest {
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
     expect(logicalRequest.isFinished()).andReturn(true).anyTimes();
     expect(logicalRequest.isSuccessful()).andReturn(true).anyTimes();
+    eventPublisher.publish(anyObject(ClusterProvisionedEvent.class));
+    expectLastCall().once();
     replayAll();
     topologyManager.provisionCluster(request);
     requestFinished();
@@ -541,7 +555,7 @@ public class TopologyManagerTest {
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
             clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO,
-            configureClusterTaskFactory, configureClusterTask);
+            configureClusterTaskFactory, configureClusterTask, eventPublisher);
   }
 
   @Test(expected = InvalidTopologyException.class)

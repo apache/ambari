@@ -118,6 +118,11 @@ public abstract class AmbariEvent {
     CLUSTER_PROVISIONED,
 
     /**
+     * The cluster provision was started.
+     */
+    CLUSTER_PROVISION_STARTED,
+
+    /**
      * The service component recovery enabled field changed.
      */
     SERVICE_COMPONENT_RECOVERY_CHANGED,

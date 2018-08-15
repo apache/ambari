@@ -33,6 +33,7 @@ class RecoveryManager:
   * Generate INSTALL command
   * Generate START command
   """
+  BLUEPRINT_STATE_IN_PROGRESS = 'IN_PROGRESS'
   COMMAND_TYPE = "commandType"
   PAYLOAD_LEVEL = "payloadLevel"
   SERVICE_NAME = "serviceName"
@@ -97,6 +98,7 @@ class RecoveryManager:
     self.active_command_count = 0
     self.cluster_id = None
     self.initializer_module = initializer_module
+    self.metadata_cache = initializer_module.metadata_cache
 
     self.actions = {}
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
@@ -108,6 +110,14 @@ class RecoveryManager:
   def on_execution_command_finish(self):
     with self.__active_command_lock:
       self.active_command_count -= 1
+
+  def is_blueprint_provisioning(self):
+    try:
+      blueprint_state = self.metadata_cache[self.cluster_id]['clusterLevelParams']['blueprint_provisioning_state']
+    except KeyError:
+      blueprint_state = 'NONE'
+
+    return blueprint_state == RecoveryManager.BLUEPRINT_STATE_IN_PROGRESS
 
   def has_active_command(self):
     return self.active_command_count > 0
@@ -638,6 +648,10 @@ class RecoveryManager:
     """
     if self.has_active_command():
       logger.info("Recovery is paused, tasks waiting in pipeline for this host.")
+      return None
+
+    if self.is_blueprint_provisioning():
+      logger.info("Recovery is paused, blueprint is being provisioned.")
       return None
 
     if self.enabled():
