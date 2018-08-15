@@ -2180,13 +2180,15 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     table-layout: fixed;
     td, th {
       &.issue-type-cell {
-        width: 5%;
+        width: 8%;
       }
       &.service-name-cell {
         width: 15%;
       }
       &.property-name-cell {
-        width: 15%;
+        width: 20%;
+        overflow: hidden;
+        overflow-wrap: break-word;
       }
       &.property-value-cell {
         width: 25%;
@@ -2194,7 +2196,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         overflow-wrap: break-word;
       }
       &.property-description-cell {
-        width: 40%;
+        width: 32%;
       }
     }
     tbody{
