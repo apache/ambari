@@ -67,7 +67,7 @@ def setup_infra_solr(name = None):
          group=params.user_group
          )
 
-    File(format("{infra_solr_conf}/log4j.properties"),
+    File(format("{infra_solr_conf}/log4j2.xml"),
          content=InlineTemplate(params.solr_log4j_content),
          owner=params.infra_solr_user,
          group=params.user_group
