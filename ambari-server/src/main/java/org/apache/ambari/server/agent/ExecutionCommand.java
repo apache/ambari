@@ -550,6 +550,7 @@ public class ExecutionCommand extends AgentCommand {
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
     String USER_GROUPS = "user_groups";
+    String BLUEPRINT_PROVISIONING_STATE = "blueprint_provisioning_state";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
