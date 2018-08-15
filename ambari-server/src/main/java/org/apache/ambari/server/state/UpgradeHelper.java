@@ -251,7 +251,7 @@ public class UpgradeHelper {
 
     for (LifecycleType lifecycle : LifecycleType.ordered()) {
 
-      groupsInUpgrade.values().forEach(detail -> {
+      groupsInUpgrade.forEach((serviceGroup, detail) -> {
 
         Mpack target = detail.getTarget();
         UpgradePack upgradePack = detail.getUpgradePack();
@@ -262,7 +262,7 @@ public class UpgradeHelper {
         }
 
         try {
-          groups.addAll(createSequence(context, upgradePack, target, lifecycle));
+          groups.addAll(createSequence(context, upgradePack, target, serviceGroup, lifecycle));
         } catch (AmbariException e) {
           throw new IllegalArgumentException(e);
         }
@@ -286,7 +286,7 @@ public class UpgradeHelper {
    * @return the list of holders
    */
   private List<UpgradeGroupHolder> createSequence(UpgradeContext context, UpgradePack upgradePack,
-      Mpack mpack, LifecycleType lifecycleType) throws AmbariException {
+      Mpack mpack, ServiceGroup serviceGroup, LifecycleType lifecycleType) throws AmbariException {
 
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
@@ -320,6 +320,8 @@ public class UpgradeHelper {
       groupHolder.supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       groupHolder.allowRetry = group.allowRetry;
       groupHolder.processingGroup = group.isProcessingGroup();
+      groupHolder.upgradePack = upgradePack;
+      groupHolder.serviceGroup = serviceGroup;
 
       // !!! all downgrades are skippable
       if (context.getDirection().isDowngrade()) {
@@ -785,6 +787,16 @@ public class UpgradeHelper {
      * List of stages for the group
      */
     public List<StageWrapper> items = new ArrayList<>();
+
+    /**
+     * Upgrade Pack backing this grouping
+     */
+    public UpgradePack upgradePack;
+
+    /**
+     * Service Group backing this grouping
+     */
+    public ServiceGroup serviceGroup;
 
     /**
      * {@inheritDoc}
