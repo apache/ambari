@@ -21,9 +21,11 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_NE
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_OLD_NAME;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +56,64 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog271.class);
 
+  private static final String SOLR_NEW_LOG4J2_XML = "<Configuration>\n" +
+    "  <Appenders>\n" +
+    "\n" +
+    "    <Console name=\"STDOUT\" target=\"SYSTEM_OUT\">\n" +
+    "      <PatternLayout>\n" +
+    "        <Pattern>\n" +
+    "          %d{ISO8601} [%t] %-5p [%X{collection} %X{shard} %X{replica} %X{core}] %C (%F:%L) - %m%n\n" +
+    "        </Pattern>\n" +
+    "      </PatternLayout>\n" +
+    "    </Console>\n" +
+    "\n" +
+    "    <RollingFile\n" +
+    "        name=\"RollingFile\"\n" +
+    "        fileName=\"{{infra_solr_log_dir}}/solr.log\"\n" +
+    "        filePattern=\"{{infra_solr_log_dir}}/solr.log.%i\" >\n" +
+    "      <PatternLayout>\n" +
+    "        <Pattern>\n" +
+    "          %d{ISO8601} [%t] %-5p [%X{collection} %X{shard} %X{replica} %X{core}] %C (%F:%L) - %m%n\n" +
+    "        </Pattern>\n" +
+    "      </PatternLayout>\n" +
+    "      <Policies>\n" +
+    "        <OnStartupTriggeringPolicy />\n" +
+    "        <SizeBasedTriggeringPolicy size=\"{{infra_log_maxfilesize}} MB\"/>\n" +
+    "      </Policies>\n" +
+    "      <DefaultRolloverStrategy max=\"{{infra_log_maxbackupindex}}\"/>\n" +
+    "    </RollingFile>\n" +
+    "\n" +
+    "    <RollingFile\n" +
+    "        name=\"SlowFile\"\n" +
+    "        fileName=\"{{infra_solr_log_dir}}/solr_slow_requests.log\"\n" +
+    "        filePattern=\"{{infra_solr_log_dir}}/solr_slow_requests.log.%i\" >\n" +
+    "      <PatternLayout>\n" +
+    "        <Pattern>\n" +
+    "          %d{ISO8601} [%t] %-5p [%X{collection} %X{shard} %X{replica} %X{core}] %C (%F:%L) - %m%n\n" +
+    "        </Pattern>\n" +
+    "      </PatternLayout>\n" +
+    "      <Policies>\n" +
+    "        <OnStartupTriggeringPolicy />\n" +
+    "        <SizeBasedTriggeringPolicy size=\"{{infra_log_maxfilesize}} MB\"/>\n" +
+    "      </Policies>\n" +
+    "      <DefaultRolloverStrategy max=\"{{infra_log_maxbackupindex}}\"/>\n" +
+    "    </RollingFile>\n" +
+    "\n" +
+    "  </Appenders>\n" +
+    "  <Loggers>\n" +
+    "    <Logger name=\"org.apache.hadoop\" level=\"warn\"/>\n" +
+    "    <Logger name=\"org.apache.solr.update.LoggingInfoStream\" level=\"off\"/>\n" +
+    "    <Logger name=\"org.apache.zookeeper\" level=\"warn\"/>\n" +
+    "    <Logger name=\"org.apache.solr.core.SolrCore.SlowRequest\" level=\"warn\" additivity=\"false\">\n" +
+    "      <AppenderRef ref=\"SlowFile\"/>\n" +
+    "    </Logger>\n" +
+    "\n" +
+    "    <Root level=\"warn\">\n" +
+    "      <AppenderRef ref=\"RollingFile\"/>\n" +
+    "      <!-- <AppenderRef ref=\"STDOUT\"/> -->\n" +
+    "    </Root>\n" +
+    "  </Loggers>\n" +
+    "</Configuration>";
   private static final String SERVICE_CONFIG_MAPPING_TABLE = "serviceconfigmapping";
   private static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
   protected static final String CLUSTERS_TABLE = "clusters";
@@ -114,6 +174,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     updateRangerKmsDbUrl();
     renameAmbariInfraInConfigGroups();
     removeLogSearchPatternConfigs();
+    updateSolrConfigurations();
   }
 
   /**
@@ -269,5 +330,43 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(CLUSTERS_TABLE,
         new DBAccessor.DBColumnInfo(CLUSTERS_BLUEPRINT_PROVISIONING_STATE_COLUMN, String.class, 255,
             BlueprintProvisioningState.NONE, true));
+  }
+
+  /**
+   * Upgrade lucene version to 7.4.0 in Solr config of Log Search collections and Solr Log4j config
+   */
+  protected void updateSolrConfigurations() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap == null || clusterMap.isEmpty())
+      return;
+
+    for (final Cluster cluster : clusterMap.values()) {
+      updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.4.0"));
+      updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.4.0"));
+      updateConfig(cluster, "infra-solr-log4j", (content) -> SOLR_NEW_LOG4J2_XML);
+    }
+  }
+
+  private void updateConfig(Cluster cluster, String configType, Function<String, String> contentUpdater) throws AmbariException {
+    Config config = cluster.getDesiredConfigByType(configType);
+    if (config == null)
+      return;
+    if (config.getProperties() == null || !config.getProperties().containsKey("content"))
+      return;
+
+    String content = config.getProperties().get("content");
+    content = contentUpdater.apply(content);
+    updateConfigurationPropertiesForCluster(cluster, configType, Collections.singletonMap("content", content), true, true);
+  }
+
+  private String updateLuceneMatchVersion(String content, String newLuceneMatchVersion) {
+    return content.replaceAll("<luceneMatchVersion>.*</luceneMatchVersion>",
+      "<luceneMatchVersion>" + newLuceneMatchVersion + "</luceneMatchVersion>");
   }
 }
