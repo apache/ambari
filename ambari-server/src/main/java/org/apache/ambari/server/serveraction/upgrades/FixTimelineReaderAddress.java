@@ -49,9 +49,9 @@ public class FixTimelineReaderAddress extends AbstractUpgradeServerAction {
   private static final Logger LOG = LoggerFactory.getLogger(CreateAndConfigureAction.class);
   private static final String YARN_SITE = "yarn-site";
   private static final String TIMELINE_READER = "TIMELINE_READER";
-  private static final String[] HOST_PROPERTIES = new String[] {
-    "yarn.timeline-service.reader.webapp.address",
-    "yarn.timeline-service.reader.webapp.https.address"
+  private static final String HTTP_ADDRESS = "yarn.timeline-service.reader.webapp.address";
+  private static final String HTTPS_ADDRESS = "yarn.timeline-service.reader.webapp.https.address";
+  private static final String[] HOST_PROPERTIES = new String[] {HTTP_ADDRESS, HTTPS_ADDRESS
   };
 
   @Override
@@ -68,13 +68,30 @@ public class FixTimelineReaderAddress extends AbstractUpgradeServerAction {
         if (oldHost == null) {
           continue;
         }
-        String newHost = oldHost.replace("localhost", hostNameOf(cluster, "YARN", TIMELINE_READER));
+        String newHost = replace(oldHost, hostNameOf(cluster, "YARN", TIMELINE_READER), defaultPort(propertyName));
         updatedHosts.add(newHost);
         updateConfig(cluster, propertyName, newHost, config);
       }
       return commandReport(String.format("Updated %s hosts to: %s", TIMELINE_READER, join(updatedHosts, ", ")));
     } catch (ObjectNotFoundException e) {
       return commandReport("Skipping " + this.getClass().getSimpleName() + ". Reason: " + e.getMessage());
+    }
+  }
+
+  private int defaultPort(String propertyName) {
+    switch (propertyName) {
+      case HTTP_ADDRESS:  return 8198;
+      case HTTPS_ADDRESS: return 8199;
+      default: throw new IllegalArgumentException("Unknown property: " + propertyName);
+    }
+  }
+
+  private String replace(String oldHost, String newHost, int defaultPort) {
+    if (oldHost.contains(":")) {
+      String hostPart = oldHost.split(":")[0];
+      return oldHost.replace(hostPart, newHost);
+    } else {
+      return newHost + ":" + defaultPort;
     }
   }
 
