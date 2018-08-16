@@ -19,38 +19,17 @@
 describe('#Editablelist directive', function () {
 
   describe('Editing', function () {
-    var scope, element, isoScope;
-    var $location, $modal, $httpBackend;
+    var scope, element;
+    var $location, $modal;
 
     beforeEach(module('ambariAdminConsole'));
     beforeEach(module('views/directives/editableList.html'));
 
-    beforeEach(inject(function($rootScope, $compile, _$location_, _$modal_, _$httpBackend_) {
+    beforeEach(inject(function($rootScope, $compile, _$location_, _$modal_) {
       $location = _$location_;
       $modal = _$modal_;
-      $httpBackend = _$httpBackend_;
 
-      $httpBackend.whenGET(/\/api\/v1\/users\?Users\/user_name\.matches\(\.\*\.\*\)&from=0&page_size=20&_=\d+/).respond(200, {
-        items: [
-          {
-            Users: {
-              user_name: 'user1'
-            }
-          },
-          {
-            Users: {
-              user_name: 'user2'
-            }
-          },
-          {
-            Users: {
-              user_name: 'user3'
-            }
-          }
-        ]
-      });
-
-      spyOn($modal, 'open').and.returnValue({
+      spyOn($modal, 'open').andReturn({
         result:{
           then: function() {
           }
@@ -69,10 +48,6 @@ describe('#Editablelist directive', function () {
 
       element = $compile(element)(scope);
       scope.$digest();
-
-      isoScope = element.isolateScope();
-
-      $httpBackend.flush();
     }));
 
     afterEach(function() {
@@ -81,6 +56,7 @@ describe('#Editablelist directive', function () {
     
 
     it('Updates permissions after save', function () {
+      var isoScope = element.isolateScope();
       isoScope.items.push('user3');
       
       expect(scope.permissionsEdit.TestPermission.USER).toEqual(['user1', 'user2']);
@@ -92,14 +68,17 @@ describe('#Editablelist directive', function () {
     });
 
     it('Show dialog window if user trying to leave page without save', function() {
+      var isoScope = element.isolateScope();
       isoScope.items.push('user3');
       isoScope.editMode = true;
       
+      expect(isoScope.editMode).toBe(true);
       scope.$broadcast('$locationChangeStart', 'some#url');
       expect($modal.open).toHaveBeenCalled();
     });
 
     it('Saves current user in editing window if user click "save"', function() {
+      var isoScope = element.isolateScope();
       isoScope.editMode = true;
       isoScope.input = 'user3';
       isoScope.save();
