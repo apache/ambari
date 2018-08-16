@@ -361,7 +361,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
   installedStackServices: function() {
     return App.Service.find().map(function(each) {
-       return App.StackService.find().findProperty('serviceName', item).get('displayName');
+      return App.StackService.find(each.get('serviceName'));
     });
   },
 
