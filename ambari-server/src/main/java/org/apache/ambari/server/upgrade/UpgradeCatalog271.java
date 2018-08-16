@@ -56,7 +56,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog271.class);
 
-  private static final String SOLR_NEW_LOG$J2_XML = "<Configuration>\n" +
+  private static final String SOLR_NEW_LOG4J2_XML = "<Configuration>\n" +
     "  <Appenders>\n" +
     "\n" +
     "    <Console name=\"STDOUT\" target=\"SYSTEM_OUT\">\n" +
@@ -349,7 +349,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     for (final Cluster cluster : clusterMap.values()) {
       updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.4.0"));
       updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> updateLuceneMatchVersion(content,"7.4.0"));
-      updateConfig(cluster, "infra-solr-log4j", (content) -> SOLR_NEW_LOG$J2_XML);
+      updateConfig(cluster, "infra-solr-log4j", (content) -> SOLR_NEW_LOG4J2_XML);
     }
   }
 
