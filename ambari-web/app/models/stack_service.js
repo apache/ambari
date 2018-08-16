@@ -31,7 +31,7 @@ var Dependency = Ember.Object.extend({
   }),
 
   compatibleServices: function(services) {
-    return services.filterProperty('serviceName', this.get('name'));
+    return services.filter(item => item === this.get('name'));
   },
 
   isMissing: function(selectedServices) {
@@ -140,7 +140,7 @@ App.StackService = DS.Model.extend({
 
   dependencies: function(availableServices) {
     var result = [];
-    this.get('requiredServices').forEach(function(serviceName) {
+    this.get('requiredServices').forEach(function (serviceName) {
       var service = availableServices.findProperty('serviceName', serviceName);
       if (service) {
         result.push(Dependency.fromService(service));
@@ -152,7 +152,7 @@ App.StackService = DS.Model.extend({
   /**
    * Add dependencies which are not already included in selectedServices to the given missingDependencies collection
   */
-  collectMissingDependencies: function(selectedServices, availableServices, missingDependencies) {
+  collectMissingDependencies: function (selectedServices, availableServices, missingDependencies) {
     this._missingDependencies(selectedServices, availableServices).forEach(function (dependency) {
       this._addMissingDependency(dependency, availableServices, missingDependencies);
     }.bind(this));
