@@ -840,7 +840,7 @@ def update_database_name_property(upgrade=False):
     if properties == -1:
       err = "Error getting ambari properties"
       raise FatalException(-1, err)
-    print_warning_msg("{0} property isn't set in {1} . Setting it to default value - {3}".format(JDBC_DATABASE_NAME_PROPERTY, AMBARI_PROPERTIES_FILE, configDefaults.DEFAULT_DB_NAME))
+    print_warning_msg("{0} property isn't set in {1} . Setting it to default value - {2}".format(JDBC_DATABASE_NAME_PROPERTY, AMBARI_PROPERTIES_FILE, configDefaults.DEFAULT_DB_NAME))
     properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, configDefaults.DEFAULT_DB_NAME)
     conf_file = find_properties_file()
     try:
