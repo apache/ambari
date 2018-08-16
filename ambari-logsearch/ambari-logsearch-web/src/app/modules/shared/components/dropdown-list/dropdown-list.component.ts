@@ -30,23 +30,25 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 })
 export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecked {
 
-  private shouldRenderAdditionalComponents: boolean = false;
+  private shouldRenderAdditionalComponents = false;
 
   @Input()
   items: ListItem[] = [];
 
-  private itemsSelected: ListItem[] = [];
+  itemsSelected: ListItem[] = [];
 
-  private itemsUnSelected: ListItem[] = [];
+  itemsUnSelected: ListItem[] = [];
+
+  defaultSelection: ListItem[] = [];
 
   @Input()
-  isMultipleChoice?: boolean = false;
+  isMultipleChoice? = false;
 
   @Input()
   additionalLabelComponentSetter?: string;
 
   @Input()
-  actionArguments: any[] = [];
+  actionArguments = [];
 
   @Output()
   selectedItemChange: EventEmitter<ListItem | ListItem[]> = new EventEmitter();
@@ -58,6 +60,9 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
 
   @Input()
   useLocalFilter = false;
+
+  @Input()
+  useClearToDefaultSelection = false;
 
   @ViewChild('filter')
   filterRef: ElementRef;
@@ -78,11 +83,17 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
 
   ngOnInit() {
     this.separateSelections();
+    this.setDefaultSelection(this.items);
+    this.selectedItemChange.subscribe(this.separateSelections);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.hasOwnProperty('items')) {
+      const previousItems = changes.items.previousValue;
       this.separateSelections();
+      if ((!this.defaultSelection || !this.defaultSelection.length) && (!previousItems || !previousItems.length)) {
+        this.setDefaultSelection(this.items);
+      }
       this.shouldRenderAdditionalComponents = true;
     }
   }
@@ -91,18 +102,46 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
     this.renderAdditionalComponents();
   }
 
-  private separateSelections() {
-    this.itemsSelected = this.items ? this.items.filter((item: ListItem) => item.isChecked) : [];
-    this.itemsUnSelected = this.items ? this.items.filter((item: ListItem) => !item.isChecked) : [];
+  getSelectedItems(): ListItem[] {
+    return this.items ? this.items.filter((item: ListItem) => item.isChecked) : [];
+  }
+
+  getUnSelectedItems(): ListItem[] {
+    return this.items ? this.items.filter((item: ListItem) => !item.isChecked) : [];
+  }
+
+  private setDefaultSelection(items) {
+    this.defaultSelection = this.getSelectedItems();
+  }
+
+  private separateSelections = () => {
+    this.itemsSelected = this.getSelectedItems();
+    this.itemsUnSelected = this.getUnSelectedItems();
     this.shouldRenderAdditionalComponents = true;
   }
 
   private clearSelection() {
     this.unSelectAll();
-    this.separateSelections();
   }
 
-  private onClearSelectionClick = (event): void => {
+  private clearToDefaultSelection() {
+    if (this.defaultSelection && this.defaultSelection.length) {
+      this.items.forEach((item: ListItem) => {
+        item.isChecked = this.defaultSelection.findIndex((defaultItem) => defaultItem.value === item.value) !== -1;
+        if (item.onSelect && item.isChecked) {
+          item.onSelect(...this.actionArguments);
+        }
+      });
+      this.selectedItemChange.emit(this.items);
+    }
+  }
+
+  onClearToDefaultSelectionClick = (event): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearToDefaultSelection();
+  }
+  onClearSelectionClick = (event): void => {
     event.preventDefault();
     event.stopPropagation();
     this.clearSelection();
@@ -115,7 +154,6 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
     } else {
       this.unSelectAll();
     }
-    this.separateSelections();
   }
 
   selectAll() {
@@ -172,7 +210,6 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
     if (item.onSelect) {
       item.onSelect(...this.actionArguments);
     }
-    this.separateSelections();
     this.selectedItemChange.emit(item);
   }
 

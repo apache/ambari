@@ -53,9 +53,12 @@
     </label>
   </li>
   <li *ngIf="items && items.length" class="divider"></li>
-  <li class="selections" *ngIf="itemsSelected.length>0">
-    <span>{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
-    <a href="#" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>
+  <li *ngIf="itemsSelected.length>0 || (useClearToDefaultSelection && defaultSelection && defaultSelection.length)"
+    class="selections" [class.use-clear-to-default]="useClearToDefaultSelection && defaultSelection && defaultSelection.length">
+    <span class="total-selection">{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
+    <a *ngIf="useClearToDefaultSelection && defaultSelection && defaultSelection.length" href="#" class="clear-to-default"
+     (click)="onClearToDefaultSelectionClick($event)">{{'dropdown.selection.clearToDefault' | translate}}</a>
+    <a href="#" class="clear" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>
   </li>
   <ng-container *ngFor="let item of itemsSelected">
     <ng-container

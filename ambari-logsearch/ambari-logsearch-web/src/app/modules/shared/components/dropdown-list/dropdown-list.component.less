@@ -76,10 +76,31 @@
     }
     &.selections {
       font-size: .75em;
-      padding: .1em 20px;
+      padding: .5em 20px;
+      &.use-clear-to-default {
+        span.total-selection {
+          display: block;
+        }
+        a {
+          padding: 3px 5px;
+          &:first-of-type {
+            padding-left: 0;
+          }
+          &:last-of-type {
+            padding-right: 0;
+          }
+        }
+      }
       a {
         display: inline;
+        &:hover {
+          background: transparent none;
+          text-decoration: underline;
+        }
       }
+    }
+    &.selections:hover {
+      background: transparent none;
     }
   }
 }
