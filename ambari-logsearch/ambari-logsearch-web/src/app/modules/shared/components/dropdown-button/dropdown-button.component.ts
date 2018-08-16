@@ -31,36 +31,41 @@ export class DropdownButtonComponent {
   label?: string;
 
   @Input()
-  buttonClass: string = 'btn-link';
+  buttonClass = 'btn-link';
 
   @Input()
   iconClass?: string;
 
   @Input()
-  hideCaret: boolean = false;
+  hideCaret = false;
 
   @Input()
-  showSelectedValue: boolean = true;
+  showSelectedValue = true;
 
-  @Input() options: ListItem[] = [];
+  @Input()
+  isRightAlign = false;
+
+  @Input()
+  isDropup = false;
+
+  @Input()
+  showCommonLabelWithSelection = false;
+
+  @Output()
+  selectItem: EventEmitter<any> = new EventEmitter();
+
+  // PROXY PROPERTIES TO DROPDOWN LIST COMPONENT
+  @Input()
+  options: ListItem[] = [];
 
   @Input()
   listItemArguments: any[] = [];
 
   @Input()
-  isMultipleChoice: boolean = false;
+  isMultipleChoice = false;
 
   @Input()
-  isRightAlign: boolean = false;
-
-  @Input()
-  isDropup: boolean = false;
-
-  @Input()
-  showCommonLabelWithSelection: boolean = false;
-
-  @Output()
-  selectItem: EventEmitter<any> = new EventEmitter();
+  useClearToDefaultSelection = false;
 
   protected selectedItems?: ListItem[] = [];
 
