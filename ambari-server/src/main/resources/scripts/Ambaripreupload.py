@@ -254,6 +254,7 @@ with Environment() as env:
     params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0777)
     params.HdfsResource(format('{hdfs_path_prefix}/warehouse/tablespace/external/hive'), owner='hive', type='directory', action=['create_on_execute'], mode=01777)
     params.HdfsResource(format('{hdfs_path_prefix}/user/hive'), owner='hive', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hive/.yarn/package/LLAP'), owner='hive', type='directory', action=['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/tmp'), mode=0777, action=['create_on_execute'], type='directory', owner='hdfs')
     params.HdfsResource(format('{hdfs_path_prefix}/user/ambari-qa'), type='directory', action=['create_on_execute'], mode=0770)
     params.HdfsResource(format('{hdfs_path_prefix}/user/oozie'), owner='oozie', type='directory', action=['create_on_execute'], mode=0775)
