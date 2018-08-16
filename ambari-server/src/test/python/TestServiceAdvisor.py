@@ -19,9 +19,11 @@ limitations under the License.
 import imp
 import json
 import os
+from unittest import SkipTest
 from unittest import TestCase
 
 
+@SkipTest
 class TestServiceAdvisor(TestCase):
   test_directory = os.path.dirname(os.path.abspath(__file__))
   resources_path = os.path.join(test_directory, '../../main/resources')
