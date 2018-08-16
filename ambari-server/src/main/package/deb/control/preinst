@@ -29,14 +29,14 @@ do_backups(){
 
   # data format:  "title:source:destination"; each new record on new line
   local backup_folders="configs:${etc_dir}/conf.save:${etc_dir}/conf_$(date '+%d_%m_%y_%H_%M').save
-Ambari properties:${etc_dir}/conf/ambari.properties:${etc_dir}/conf/ambari.propertie.rpmsave
+Ambari properties:${etc_dir}/conf/ambari.properties:${etc_dir}/conf/ambari.properties.rpmsave
 Ambari properties:${var_dir}/ambari-env.sh:${var_dir}/ambari-env.sh.rpmsave
 JAAS login file:${etc_dir}/conf/krb5JAASLogin.conf:${etc_dir}/conf/krb5JAASLogin.conf.rpmsave
 stacks directory:${var_dir}/resources/stacks:${stacks_backup_folder}
 common-services directory:${var_dir}/resources/common-services:${common_service_backup_folder}"
 
  echo "${backup_folders}"| while IFS=: read title source destination; do
-   if [ -d "${source}" ]; then
+   if [ -e "${source}" ]; then
      echo "Backing up ${title}: ${source} -> ${destination}"
      mv -f "${source}" "${destination}"
    fi

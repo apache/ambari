@@ -26,7 +26,7 @@ ambari-agent.ini::${etc_dir}/conf/ambari-agent.ini:${etc_dir}/conf/ambari-agent.
 sudoers:Please restore the file if you were using it for ambari-agent non-root functionality:${sudoers_dir}/ambari-agent:${sudoers_dir}/ambari-agent.bak"
 
   echo "${backup_folders}" | while IFS=: read title notes source target; do
-    if [ -d "${source}" ] || [ -f "${source}" ]; then
+    if [ -e "${source}" ]; then
       echo -n "Moving ${title}: ${source} -> ${target}"
 
       if [ ! -z ${notes} ]; then
