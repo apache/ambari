@@ -781,6 +781,15 @@ class Script(object):
 
     service_name = config['serviceName'] if 'serviceName' in config else None
     repos = CommandRepository(config['repositoryFile'])
+
+    from resource_management.libraries.functions import lzo_utils
+
+    # remove repos with 'GPL' tag when GPL license is not approved
+    repo_tags_to_skip = set()
+    if not lzo_utils.is_gpl_license_accepted():
+      repo_tags_to_skip.add("GPL")
+    repos.items = [r for r in repos.items if not (repo_tags_to_skip & r.tags)]
+
     repo_ids = [repo.repo_id for repo in repos.items]
     Logger.info("Command repositories: {0}".format(", ".join(repo_ids)))
     repos.items = [x for x in repos.items if (not x.applicable_services or service_name in x.applicable_services) ]
