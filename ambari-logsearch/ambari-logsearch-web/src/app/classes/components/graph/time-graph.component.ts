@@ -250,9 +250,9 @@ export class TimeGraphComponent extends GraphComponent implements OnInit {
           const dateRange: [number, number] = this.getTimeRangeByXRanges(startX, endX);
           this.selectArea.emit(dateRange);
           this.dragArea.remove();
-          this.clearInvertDragArea();
           this.setChartTimeGap(new Date(dateRange[0]), new Date(dateRange[1]));
         }
+        this.clearInvertDragArea();
       })
     );
     d3.selectAll(`svg#${this.svgId} .value, svg#${this.svgId} .axis`).call(d3.drag().on('start', (): void => {
