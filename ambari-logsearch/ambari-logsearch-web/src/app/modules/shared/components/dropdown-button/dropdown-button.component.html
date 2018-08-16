@@ -29,7 +29,8 @@
       <span *ngIf="!hideCaret" class="caret"></span>
     </span>
   </button>
-  <ul data-component="dropdown-list" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
-      [items]="options" [isMultipleChoice]="isMultipleChoice" (selectedItemChange)="updateSelection($event)"
-      [actionArguments]="listItemArguments"></ul>
+  <ul data-component="dropdown-list" (selectedItemChange)="updateSelection($event)"
+    [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
+    [items]="options" [actionArguments]="listItemArguments" [isMultipleChoice]="isMultipleChoice"
+    [useClearToDefaultSelection]="useClearToDefaultSelection"></ul>
 </div>
