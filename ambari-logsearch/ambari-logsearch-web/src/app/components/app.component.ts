@@ -34,7 +34,7 @@ export class AppComponent {
   isBaseDataAvailable$: Observable<boolean> = this.appState.getParameter('baseDataSetState')
     .map((dataSetState: DataAvailability) => dataSetState === DataAvailabilityValues.AVAILABLE);
 
-  private notificationServiceOptions: Options = {
+  notificationServiceOptions: Options = {
     timeOut: 2000,
     showProgressBar: true,
     pauseOnHover: true,
