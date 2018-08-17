@@ -366,12 +366,13 @@ XML_HEADER = """<?xml version="1.0"?>
 
 # Go though all stacks and update the repoinfo.xml files
 # replace <latest> tag with the passed url
-def update_latest_in_repoinfos_for_all_stacks(stacks_root, json_url_string):
+def update_latest_in_repoinfos_for_stacks(stacks_root, json_url_string, predicate=lambda stack_name: stack_name == 'HDP'):
   for stack_name in os.walk(stacks_root).next()[1]:
-    for stack_version in os.walk(os.path.join(stacks_root, stack_name)).next()[1]:
-      repoinfo_xml_path = os.path.join(stacks_root, stack_name, stack_version, "repos", "repoinfo.xml")
-      if os.path.exists(repoinfo_xml_path):
-        replace_latest(repoinfo_xml_path, json_url_string)
+    if predicate(stack_name):
+      for stack_version in os.walk(os.path.join(stacks_root, stack_name)).next()[1]:
+        repoinfo_xml_path = os.path.join(stacks_root, stack_name, stack_version, "repos", "repoinfo.xml")
+        if os.path.exists(repoinfo_xml_path):
+          replace_latest(repoinfo_xml_path, json_url_string)
 
 
 # replace <latest> tag in the file with the passed url
