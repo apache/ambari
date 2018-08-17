@@ -21,7 +21,7 @@ var App = require('app');
 App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_version_column'),
   isVersionColumnView: true,
-  classNames: ['version-column', 'col-md-4'],
+  classNames: ['version-column', 'version'],
 
   /**
    * Indicates whether block for version type should be displayed.
@@ -43,20 +43,19 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     this.adjustColumnWidth();
   },
 
-  adjustColumnWidth: function() {
-    //set the width, height of each version column dynamically
-    var reposCount = App.RepositoryVersion.find().filterProperty('isVisible').get('length');
-    var widthFactor = reposCount > 3 ? 0.18: 0.31;
-    $('.version-column').width($('.versions-slides').width() * widthFactor);
-    var height = App.Service.find().get('length') > 10 ? ((App.Service.find().get('length') - 10) * 40 + 500) : 500;
-    $('.version-column').height(height);
-
-    // set the lines width of the table, line up the labels
-    $('.border-extended-table').width(reposCount * 100 + 100 + "%");
-    $('.border-extended-table').css("max-width", reposCount * 100 + 100 + "%");
+  adjustColumnWidth: function () {
+    //set the width of each version column dynamically
+    const reposCount = App.RepositoryVersion.find().filterProperty('isVisible').get('length'),
+      widthFactor = reposCount > 3 ? 0.19 : 0.31,
+      columnBorderWidth = 1, // from ambari-web/app/styles/stack_versions.less
+      columnPadding = 5, // from ambari-web/app/styles/stack_versions.less
+      columnWrapperPadding = 7, // from ambari-web/app/styles/stack_versions.less
+      width = $('.versions-slides').width() * widthFactor + 2 * (columnBorderWidth + columnPadding + columnWrapperPadding);
+    $('.version-column.version').width(width);
+    $('.versions-slides-bar').width(width * reposCount + columnWrapperPadding);
   }.observes('parentView.repoVersions.@each.isVisible'),
 
-  services: function() {
+  services: function () {
     const originalServices = this.get('content.stackServices');
     // sort the services in the order the same as service menu
     return App.Service.find().map(service => {
@@ -88,7 +87,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     });
   }.property(),
 
-  getNotUpgradable: function(isAvailable, isUpgradable) {
+  getNotUpgradable: function (isAvailable, isUpgradable) {
     return this.get('content.isMaint') && !this.get('isUpgrading') && this.get('content.status') !== 'CURRENT' && isAvailable && !isUpgradable;
   },
 
@@ -97,16 +96,16 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
    * @param {Em.Object} stackService
    * @returns {boolean}
    */
-  isStackServiceAvailable: function(stackService) {
+  isStackServiceAvailable: function (stackService) {
     var self = this;
     if (!stackService) {
       return false;
     }
-    if ( this.get('content.isCurrent') ){
+    if (this.get('content.isCurrent')) {
       var originalService = App.Service.find(stackService.get('name'));
       return stackService.get('isAvailable') && originalService.get('desiredRepositoryVersionId') === this.get('content.id');
     }
-    else{
+    else {
       return stackService.get('isAvailable')
     }
   },
@@ -131,4 +130,3 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     });
   }
 });
-
