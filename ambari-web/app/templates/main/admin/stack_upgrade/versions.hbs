@@ -69,20 +69,20 @@
   </div>
 </div>
 <div id="versions-section" class="row col-md-12">
-  <div {{bindAttr class=":col-md-3 :left-menu-table view.hasSpecialTypeRepoVersion:has-special-type-repo-version"}}>
-    <table class="table border-extended-table">
-      <thead>
-      </thead>
-      <tbody>
-        {{#each service in view.services}}
-          <tr>
-            <td class="service-display-name">{{service.displayName}}</td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
+  <div {{bindAttr class=":col-md-2 :version-column :left-menu-table view.hasSpecialTypeRepoVersion:has-special-type-repo-version"}}>
+    {{#each service in view.services}}
+      <div class="service-cell-wrapper">
+        <div class="service-cell service-version-info">
+          <span class="service-label">{{service.displayName}}</span>
+        </div>
+      </div>
+    {{/each}}
+    <div class="service-cell-wrapper">
+      <div class="service-cell">
+      </div>
+    </div>
   </div>
-  <div class="col-md-9 versions-slides">
+  <div class="col-md-10 versions-slides">
     {{#if isLoaded}}
       <div class="versions-slides-bar">
         {{#each version in view.repoVersions}}

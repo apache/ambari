@@ -17,9 +17,39 @@
  */
 @import 'common.less';
 
-@left-menu-table-z-index: 999;
-@left-menu-table-margin-top: 150px;
+@versions-slides-margin-top: 10px;
+@versions-slides-padding-top: 15px;
+@service-cell-wrapper-horizontal-padding: 7px;
+@service-cell-border-width: 1px;
+@service-cell-vertical-padding: 6px;
+@version-display-name-line-height: 18px;
+@version-display-name-padding-bottom: 5px;
+@version-display-name-height: @version-display-name-line-height + @version-display-name-padding-bottom;
+@version-repository-name-line-height: @default-line-height-calculated;
+@version-repository-name-height: @version-repository-name-line-height + @default-paragraph-margin-bottom;
+@version-show-details-padding: 5px;
+@version-show-details-line-height: @default-line-height-calculated;
+@version-show-details-border-bottom-width: 1px;
+@version-show-details-height: (2 * @version-show-details-padding) + @version-show-details-line-height
+  + @version-show-details-border-bottom-width;
+@version-state-vertical-margin: 5px;
+@version-state-content-height: 35px;
+@version-state-height: (2 * @version-state-vertical-margin) + @version-state-content-height;
+@service-section-margin-top: -1 * @service-cell-vertical-padding;
+@left-menu-table-padding-top: @service-cell-border-width + (2 * @service-cell-vertical-padding)
+  + @version-display-name-height + @version-repository-name-height + @version-show-details-height
+  + @version-state-height + @service-section-margin-top;
 @version-line-height: 20px;
+@out-of-sync-badge-left: -1px;
+@current-version-background: #e6f1f6;
+@current-version-box-shadow: 0 8px 6px -6px #a3a3a3;
+
+.c {
+  font-size: @version-display-name-height;
+  line-height: @version-repository-name-height;
+  width: @version-show-details-height;
+  height: @version-state-height;
+}
 
 #advancedRepoAccordion{
   .panel-heading {
@@ -126,106 +156,53 @@
     }
   }
 }
-.version-box-popup {
-  .modal{
-    overflow: visible;
-    .modal-dialog{
-      width: 340px;
-    }
-    .modal-body {
-      padding: 0px 0px;
-      overflow: visible;
-      padding: 0;
-    }
-  }
-  .version-box-in-popup.version-box {
-    padding: 0;
-    margin: 0;
-    border: none;
-    .out-of-sync-badge {
-      top: 0;
-      left: 0;
-    }
-  }
-}
 
-#stack-upgrade-page,
-.version-box-popup {
-  .versions-slides {
-    overflow-x: auto;
-    padding-bottom: 25px;
-    padding-left: 0;
-    margin-top: 10px;
-    margin-left: -1px;
-    .versions-slides-bar {
-      display: inline-flex;
-    }
-  }
-  .left-menu-table {
-    padding: 10px 0;
-    margin-top: @left-menu-table-margin-top;
-    &.has-special-type-repo-version {
-      margin-top: @left-menu-table-margin-top + @version-line-height;
-    }
-    .border-extended-table {
-      width: 100%;
-      position: relative;
-      z-index: @left-menu-table-z-index;
-      background: transparent;
-      td.service-display-name {
-        border-top: 1px solid #d2d9dd;
-        border-bottom: 1px solid #d2d9dd;
-      }
-    }
-  }
-  div.current-version-box {
-    background: none repeat scroll 0 0 #e6f1f6;
-    box-shadow: 0 8px 6px -6px black;
-  }
+#stack-upgrade-page, .version-box-popup {
   .version-box {
-    position: relative;
-    background: none repeat scroll 0 0 #fff;
-    border: 1px solid #d2d9dd;
-    margin: 15px 15px 0 0;
-    padding: 0 5px;
-    a.not-active:hover {
-      text-decoration: none;
-    }
     .out-of-sync-badge {
       background-color: transparent;
       font-size: 30px;
       top: -8px;
       position: absolute;
-      left: -8px;
+      left: @out-of-sync-badge-left;
       color: orange;
       z-index: 3;
       height: 24px;
       width: 24px;
       border-radius: 24px;
       background-color: #fff;
-      &:before{
+      &:before {
         position: relative;
-        top:-4px;
+        top: -4px;
       }
     }
     .state {
-      margin: 15px 0;
-      line-height: 30px;
-      padding-top: 5px;
-      height: 35px;
+      line-height: @version-line-height;
+      height: @version-state-content-height;
+      .btn.btn-primary:not(.dropdown-toggle) {
+        padding-left: 5px;
+        padding-right: 5px;
+        min-width: 70px;
+      }
+      .open .dropdown-menu {
+        min-width: 90px;
+      }
       i {
         color: #0088cc;
         font-size: 16px;
-      }
-      i[disabled='disabled'] {
-        color: inherit;
-      }
-      i.glyphicon-warning-sign {
-        color: @health-status-red;
+        &[disabled='disabled'] {
+          color: inherit;
+        }
+        &.glyphicon-warning-sign {
+          color: @health-status-red;
+        }
       }
       .label {
         padding: 5px 20px;
         font-size: 14px;
+      }
+      .state-label {
+        cursor: auto;
       }
       .btn-group {
         display: inline-block;
@@ -236,7 +213,6 @@
       }
     }
     .installing {
-      margin-top: 10px;
       padding-top: 0;
       padding-bottom: 10px;
       .progress {
@@ -245,196 +221,235 @@
         margin: 0 20%;
       }
     }
-    .host-link a {
-      color: #0088cc;
-      font-size: 14px;
-      font-weight: normal;
-    }
-    .version {
-      color: #000;
-      text-align: center;
-      font-weight: 500;
-      font-size: @version-line-height;
-      line-height: @version-line-height;
-      padding: 5px 5px 0 5px;
-      margin-bottom: 0;
-      span {
-        margin-left: 20px;
-      }
-      .pull-right .not-active {
-        font-size: 15px;
-        color: #0088cc;
-        line-height: @version-line-height;
-      }
-    }
-    .repository-name {
-      text-align: center;
-      color: #888;
-      font-size: 12px;
-      margin: 0 0px -18px 1px;
-      padding: 1px;
-    }
-    .patch-icon {
-      text-align: center;
-      color: @health-status-orange;
-      height: @version-line-height;
-      font-size: 14px;
-      margin: 18px 0px -18px 1px;
-      padding: 1px;
-    }
-    .hosts-section {
-      margin-top: 16px;
-      padding-bottom: 8px;
-      width: 100%;
-      text-align: center;
-      background: #f8f8f8;
-      border-top: 1px solid #e4e4e4;
-    }
-    .hosts-section .hosts-bar {
-      font-size: 14px;
-      font-weight: 500;
-      padding: 8px;
-    }
-    .hosts-section .host-link {
-      margin: 0;
-      font-size: 12px;
-    }
+  }
+}
+
+#stack-upgrade-page {
+  .versions-slides {
+    overflow-x: auto;
+    padding: @versions-slides-padding-top 0 11px;
+    margin-top: @versions-slides-margin-top;
+    margin-left: -1px;
   }
   .version-column {
-    min-height: 500px;
-    width: 115px;
-    margin: 15px 7px 0 7px;
-    .version-column-display-name {
-      color: #000;
+    float: left;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    position: relative;
+    .service-cell-wrapper {
+      border-style: solid;
+      border-color: #d2d9dd;
+      border-width: 1px 0 0;
       text-align: center;
-      font-weight: 500;
-      font-size: 16px;
-      line-height: 18px;
-      padding: 5px;
-      margin-bottom: 0;
-    }
-    .version-column-repository-name {
-      text-align: center;
-      font-size: 12px;
-      color: #888;
-    }
-    .version-column-display-type {
-      text-align: center;
-      height: @version-line-height;
-      margin-bottom: 0;
-      color: @health-status-orange;
-    }
-    .version-column-show-details {
-      text-align: center;
-      font-size: 13px;
-      padding: 5px;
-      border-bottom: 1px solid #e4e4e4;
-      margin-bottom: 0;
-      a {
-        cursor: pointer;
-      }
-    }
-    .state {
-      margin: 5px 0 15px 0;
-      line-height: @version-line-height;
-      height: 35px;
-      .label-wrapper {
-        .btn {
-          cursor: auto;
-          text-transform: none;
-          .state-label-text {
-            cursor: text;
+      padding: 0 @service-cell-wrapper-horizontal-padding;
+      .service-cell {
+        border-style: solid;
+        border-color: #d2d9dd;
+        border-width: 0 1px;
+        background: #fff;
+        padding: @service-cell-vertical-padding 5px;
+        &.service-version-info {
+          line-height: @version-line-height;
+          .service-label {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            &.label {
+              padding-left: 15px;
+              padding-right: 15px;
+              background-color: #a3a3a3;
+              &.available {
+                background-color: #468847;
+              }
+            }
           }
-          &.btn-primary {
-            background-color: @bootstrap-success;
-            border-color: @bootstrap-success;
-          }
-          &.dropdown-toggle {
+          .not-upgradable {
+            line-height: @version-line-height;
+            padding-left: 10px;
+            margin-right: -20px;
             cursor: pointer;
-            padding-right: 8px;
-            padding-left: 8px;
+            color: @blue;
           }
-          &:active {
-            box-shadow: none;
+          .icon-info-sign {
+            color: @blue;
           }
         }
       }
-      .btn.btn-primary:not(.dropdown-toggle) {
-        padding-left: 5px;
-        padding-right: 5px;
-        min-width: 70px;
+      &.repo-info {
+        border-top-width: 0;
+        .service-cell {
+          border-top-width: @service-cell-border-width;
+          .version-column-display-name {
+            color: #000;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: @version-display-name-line-height;
+            padding: 0 5px @version-display-name-padding-bottom;
+            margin-bottom: 0;
+          }
+          .version-column-repository-name {
+            font-size: 12px;
+            color: #888;
+          }
+          .version-column-display-type {
+            height: @version-line-height;
+            color: @health-status-orange;
+          }
+          .version-column-show-details {
+            font-size: 13px;
+            padding: @version-show-details-padding;
+            border-bottom: 1px solid #e4e4e4;
+            margin: 0 5px;
+            a {
+              cursor: pointer;
+            }
+          }
+          .state {
+            margin: @version-state-vertical-margin 0;
+          }
+        }
       }
-      .open .dropdown-menu {
-        min-width: 90px;
-        z-index: @left-menu-table-z-index + 2;
+      &:last-of-type {
+        padding-bottom: 14px;
+        .service-cell {
+          border-bottom-width: @service-cell-border-width;
+        }
       }
     }
-    .state.installing {
-      margin: 5px 0 15px 0;
-    }
-    .services-section {
-      width: 100%;
-      text-align: center;
+    .service-section {
       padding-bottom: 4px;
-      margin-top: -5px;
-      .service-version-info {
-        line-height: @version-line-height;
-        margin-bottom: 9px;
-        padding-top: 6px;
-        text-align: center;
-        span.label {
-          padding: 5px 15px;
-          background-color: #a3a3a3;
-          z-index: 100;
-          position: relative;
+      margin-top: @service-section-margin-top;
+    }
+    &.current-version-box {
+      .service-cell-wrapper:last-of-type {
+        .service-cell {
+          box-shadow: @current-version-box-shadow;
+        }
+      }
+      .service-cell {
+        background-color: @current-version-background;
+      }
+    }
+    &.left-menu-table {
+      box-sizing: border-box;
+      padding: @left-menu-table-padding-top 0 0 5px;
+      margin-top: @versions-slides-margin-top + @versions-slides-padding-top;
+      background: #fff;
+      &.has-special-type-repo-version {
+        padding-top: @left-menu-table-padding-top + @version-line-height;
+      }
+      .service-cell-wrapper {
+        text-align: left;
+        font-size: @table-font-size;
+        color: @table-color;
+        .service-cell {
+          border-width: 0;
+        }
+        &:last-of-type {
+          padding-bottom: 0;
+          .service-cell {
+            border-bottom-width: 0;
+          }
         }
       }
     }
+    &:first-of-type {
+      .out-of-sync-badge {
+        left: @out-of-sync-badge-left + @service-cell-wrapper-horizontal-padding;
+      }
+      .service-cell-wrapper {
+        padding-left: 2 * @service-cell-wrapper-horizontal-padding;
+      }
+    }
   }
-  div.version-column {
-    .not-upgradable {
-      position: absolute;
-      z-index: @left-menu-table-z-index + 1;
-      line-height: @version-line-height;
-      padding-left: 10px;
-      margin-right: -20px;
-      cursor: pointer;
+}
+
+.version-box-popup {
+  .modal {
+    overflow: visible;
+    .modal-dialog {
+      width: 340px;
     }
-    .icon-info-sign {
-      color: @blue;
-    }
-    .services-section {
-      .service-version-info {
-        span.label.available {
-          background-color: #468847;
+    .modal-body {
+      overflow: visible;
+      padding: 0;
+      .version-box {
+        position: relative;
+        background-color: #fff;
+        &.current-version-box {
+          background-color: @current-version-background;
+          box-shadow: @current-version-box-shadow;
+        }
+        a.not-active:hover {
+          text-decoration: none;
+        }
+        .out-of-sync-badge {
+          top: 0;
+          left: 0;
+        }
+        .installing {
+          margin-top: 10px;
+        }
+        .host-link a {
+          color: #0088cc;
+          font-size: 14px;
+          font-weight: normal;
+        }
+        .version {
+          color: #000;
+          text-align: center;
+          font-weight: 500;
+          font-size: @version-line-height;
+          line-height: @version-line-height;
+          padding: 5px 5px 0 5px;
+          margin-bottom: 0;
+          span {
+            margin-left: 20px;
+          }
+          .pull-right .not-active {
+            font-size: 15px;
+            color: #0088cc;
+            line-height: @version-line-height;
+          }
+        }
+        .repository-name {
+          text-align: center;
+          color: #888;
+          font-size: 12px;
+          margin: 0 0px -18px 1px;
+          padding: 1px;
+        }
+        .patch-icon {
+          text-align: center;
+          color: @health-status-orange;
+          height: @version-line-height;
+          font-size: 14px;
+          margin: 18px 0px -18px 1px;
+          padding: 1px;
+        }
+        .state {
+          margin: 15px 0;
+          padding-top: 5px;
+        }
+        .hosts-section {
+          margin-top: 16px;
+          padding-bottom: 8px;
+          width: 100%;
+          text-align: center;
+          background: #f8f8f8;
+          border-top: 1px solid #e4e4e4;
+        }
+        .hosts-section .hosts-bar {
+          font-size: 14px;
+          font-weight: 500;
+          padding: 8px;
+        }
+        .hosts-section .host-link {
+          margin: 0;
+          font-size: 12px;
         }
       }
-    }
-  }
-  .nav.nav-tabs {
-    margin-bottom: 20px;
-  }
-  .stack-error-row {
-    .image-container {
-      display: inline-block;
-      vertical-align: top;
-      margin-top: 5px;
-      margin-right: 15px;
-      i {
-        vertical-align: middle;
-        font-size: 22px;
-      }
-    }
-    .message-container {
-      display: inline-block;
-      max-width: 70%;
-    }
-    .stack-name {
-      margin-left: 15px;
-    }
-    .btn-container {
-      line-height: 36px;
-      float: right;
     }
   }
 }

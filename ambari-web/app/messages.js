@@ -1827,7 +1827,7 @@ Em.I18n.translations = {
   'admin.stackVersions.manageVersions': "Manage Versions",
   'admin.stackVersions.manageVersions.popup.body': 'You are about to leave the <b>Cluster Management</b> interface' +
     ' and go to the <b>Ambari Administration</b> interface. You can return to cluster management by using the' +
-    ' “Go to Dashboard” link in the Ambari Administration > Clusters section.',
+    ' “Dashboard” link in the Ambari Administration > Clusters section.',
   'admin.stackVersions.version.installNow': "Install Packages",
   'admin.stackVersions.version.reinstall': "Reinstall Packages",
   'admin.stackVersions.version.installError': "Installation Error!",
