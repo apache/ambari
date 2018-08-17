@@ -362,9 +362,24 @@ class PGConfig(LinuxDBMSConfig):
   PG_HBA_DIR = None
 
   if OSCheck.is_redhat_family() and OSCheck.get_os_major_version() in OSConst.systemd_redhat_os_major_versions:
+    if os.path.isfile("/usr/bin/postgresql-setup"):
+      PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
+    else:
+      versioned_script_path = glob.glob("/usr/pgsql-*/bin/postgresql*-setup")
+      # versioned version of psql
+      if versioned_script_path:
+        PG_INITDB_CMD = "{0} initdb".format(versioned_script_path[0])
+
+        psql_service_file = glob.glob("/usr/lib/systemd/system/postgresql-*.service")
+        if psql_service_file:
+          psql_service_file_name = os.path.basename(psql_service_file[0])
+          PG_SERVICE_NAME = psql_service_file_name[:-8] # remove .service
+      else:
+        raise FatalException(1, "Cannot find postgresql-setup script.")
+
     SERVICE_CMD = "/usr/bin/env systemctl"
     PG_ST_CMD = "%s status %s" % (SERVICE_CMD, PG_SERVICE_NAME)
-    PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
+
     PG_START_CMD = AMBARI_SUDO_BINARY + " %s start %s" % (SERVICE_CMD, PG_SERVICE_NAME)
     PG_RESTART_CMD = AMBARI_SUDO_BINARY + " %s restart %s" % (SERVICE_CMD, PG_SERVICE_NAME)
     PG_HBA_RELOAD_CMD = AMBARI_SUDO_BINARY + " %s reload %s" % (SERVICE_CMD, PG_SERVICE_NAME)
