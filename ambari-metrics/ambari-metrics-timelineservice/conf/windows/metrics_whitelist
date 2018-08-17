@@ -305,9 +305,9 @@ kafka.server.ReplicaManager.UnderReplicatedPartitions
 load_fifteen
 load_five
 load_one
-master.AssignmentManger.ritCount
-master.AssignmentManger.ritCountOverThreshold
-master.AssignmentManger.ritOldestAge
+master.AssignmentManager.ritCount
+master.AssignmentManager.ritCountOverThreshold
+master.AssignmentManager.ritOldestAge
 master.Master.QueueCallTime_median
 master.Master.TotalCallTime_num_ops
 master.Master.exceptions
