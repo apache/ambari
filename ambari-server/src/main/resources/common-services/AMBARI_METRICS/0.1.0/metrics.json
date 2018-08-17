@@ -260,98 +260,98 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_75th_percentile": {
-              "metric": "master.AssignmentManger.Assign_75th_percentile",
+            "metrics/hbase/master/AssignmentManager/Assign_75th_percentile": {
+              "metric": "master.AssignmentManager.Assign_75th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_95th_percentile": {
-              "metric": "master.AssignmentManger.Assign_95th_percentile",
+            "metrics/hbase/master/AssignmentManager/Assign_95th_percentile": {
+              "metric": "master.AssignmentManager.Assign_95th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_99th_percentile": {
-              "metric": "master.AssignmentManger.Assign_99th_percentile",
+            "metrics/hbase/master/AssignmentManager/Assign_99th_percentile": {
+              "metric": "master.AssignmentManager.Assign_99th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_max": {
-              "metric": "master.AssignmentManger.Assign_max",
+            "metrics/hbase/master/AssignmentManager/Assign_max": {
+              "metric": "master.AssignmentManager.Assign_max",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_mean": {
-              "metric": "master.AssignmentManger.Assign_mean",
+            "metrics/hbase/master/AssignmentManager/Assign_mean": {
+              "metric": "master.AssignmentManager.Assign_mean",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_median": {
-              "metric": "master.AssignmentManger.Assign_median",
+            "metrics/hbase/master/AssignmentManager/Assign_median": {
+              "metric": "master.AssignmentManager.Assign_median",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_min": {
-              "metric": "master.AssignmentManger.Assign_min",
+            "metrics/hbase/master/AssignmentManager/Assign_min": {
+              "metric": "master.AssignmentManager.Assign_min",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_num_ops": {
-              "metric": "master.AssignmentManger.Assign_num_ops",
+            "metrics/hbase/master/AssignmentManager/Assign_num_ops": {
+              "metric": "master.AssignmentManager.Assign_num_ops",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_75th_percentile": {
-              "metric": "master.AssignmentManger.BulkAssign_75th_percentile",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_75th_percentile": {
+              "metric": "master.AssignmentManager.BulkAssign_75th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_95th_percentile": {
-              "metric": "master.AssignmentManger.BulkAssign_95th_percentile",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_95th_percentile": {
+              "metric": "master.AssignmentManager.BulkAssign_95th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_99th_percentile": {
-              "metric": "master.AssignmentManger.BulkAssign_99th_percentile",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_99th_percentile": {
+              "metric": "master.AssignmentManager.BulkAssign_99th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_max": {
-              "metric": "master.AssignmentManger.BulkAssign_max",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_max": {
+              "metric": "master.AssignmentManager.BulkAssign_max",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_mean": {
-              "metric": "master.AssignmentManger.BulkAssign_mean",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_mean": {
+              "metric": "master.AssignmentManager.BulkAssign_mean",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_median": {
-              "metric": "master.AssignmentManger.BulkAssign_median",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_median": {
+              "metric": "master.AssignmentManager.BulkAssign_median",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_min": {
-              "metric": "master.AssignmentManger.BulkAssign_min",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_min": {
+              "metric": "master.AssignmentManager.BulkAssign_min",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_num_ops": {
-              "metric": "master.AssignmentManger.BulkAssign_num_ops",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_num_ops": {
+              "metric": "master.AssignmentManager.BulkAssign_num_ops",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/ritCount": {
-              "metric": "master.AssignmentManger.ritCount",
+            "metrics/hbase/master/AssignmentManager/ritCount": {
+              "metric": "master.AssignmentManager.ritCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/ritCountOverThreshold": {
-              "metric": "master.AssignmentManger.ritCountOverThreshold",
+            "metrics/hbase/master/AssignmentManager/ritCountOverThreshold": {
+              "metric": "master.AssignmentManager.ritCountOverThreshold",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/ritOldestAge": {
-              "metric": "master.AssignmentManger.ritOldestAge",
+            "metrics/hbase/master/AssignmentManager/ritOldestAge": {
+              "metric": "master.AssignmentManager.ritOldestAge",
               "pointInTime": true,
               "temporal": true
             },
@@ -1494,98 +1494,98 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_75th_percentile": {
-              "metric": "master.AssignmentManger.Assign_75th_percentile",
+            "metrics/hbase/master/AssignmentManager/Assign_75th_percentile": {
+              "metric": "master.AssignmentManager.Assign_75th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_95th_percentile": {
-              "metric": "master.AssignmentManger.Assign_95th_percentile",
+            "metrics/hbase/master/AssignmentManager/Assign_95th_percentile": {
+              "metric": "master.AssignmentManager.Assign_95th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_99th_percentile": {
-              "metric": "master.AssignmentManger.Assign_99th_percentile",
+            "metrics/hbase/master/AssignmentManager/Assign_99th_percentile": {
+              "metric": "master.AssignmentManager.Assign_99th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_max": {
-              "metric": "master.AssignmentManger.Assign_max",
+            "metrics/hbase/master/AssignmentManager/Assign_max": {
+              "metric": "master.AssignmentManager.Assign_max",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_mean": {
-              "metric": "master.AssignmentManger.Assign_mean",
+            "metrics/hbase/master/AssignmentManager/Assign_mean": {
+              "metric": "master.AssignmentManager.Assign_mean",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_median": {
-              "metric": "master.AssignmentManger.Assign_median",
+            "metrics/hbase/master/AssignmentManager/Assign_median": {
+              "metric": "master.AssignmentManager.Assign_median",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_min": {
-              "metric": "master.AssignmentManger.Assign_min",
+            "metrics/hbase/master/AssignmentManager/Assign_min": {
+              "metric": "master.AssignmentManager.Assign_min",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/Assign_num_ops": {
-              "metric": "master.AssignmentManger.Assign_num_ops",
+            "metrics/hbase/master/AssignmentManager/Assign_num_ops": {
+              "metric": "master.AssignmentManager.Assign_num_ops",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_75th_percentile": {
-              "metric": "master.AssignmentManger.BulkAssign_75th_percentile",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_75th_percentile": {
+              "metric": "master.AssignmentManager.BulkAssign_75th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_95th_percentile": {
-              "metric": "master.AssignmentManger.BulkAssign_95th_percentile",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_95th_percentile": {
+              "metric": "master.AssignmentManager.BulkAssign_95th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_99th_percentile": {
-              "metric": "master.AssignmentManger.BulkAssign_99th_percentile",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_99th_percentile": {
+              "metric": "master.AssignmentManager.BulkAssign_99th_percentile",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_max": {
-              "metric": "master.AssignmentManger.BulkAssign_max",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_max": {
+              "metric": "master.AssignmentManager.BulkAssign_max",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_mean": {
-              "metric": "master.AssignmentManger.BulkAssign_mean",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_mean": {
+              "metric": "master.AssignmentManager.BulkAssign_mean",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_median": {
-              "metric": "master.AssignmentManger.BulkAssign_median",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_median": {
+              "metric": "master.AssignmentManager.BulkAssign_median",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_min": {
-              "metric": "master.AssignmentManger.BulkAssign_min",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_min": {
+              "metric": "master.AssignmentManager.BulkAssign_min",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/BulkAssign_num_ops": {
-              "metric": "master.AssignmentManger.BulkAssign_num_ops",
+            "metrics/hbase/master/AssignmentManager/BulkAssign_num_ops": {
+              "metric": "master.AssignmentManager.BulkAssign_num_ops",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/ritCount": {
-              "metric": "master.AssignmentManger.ritCount",
+            "metrics/hbase/master/AssignmentManager/ritCount": {
+              "metric": "master.AssignmentManager.ritCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/ritCountOverThreshold": {
-              "metric": "master.AssignmentManger.ritCountOverThreshold",
+            "metrics/hbase/master/AssignmentManager/ritCountOverThreshold": {
+              "metric": "master.AssignmentManager.ritCountOverThreshold",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/master/assignmentManger/ritOldestAge": {
-              "metric": "master.AssignmentManger.ritOldestAge",
+            "metrics/hbase/master/AssignmentManager/ritOldestAge": {
+              "metric": "master.AssignmentManager.ritOldestAge",
               "pointInTime": true,
               "temporal": true
             },

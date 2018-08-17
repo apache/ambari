@@ -86,7 +86,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "master.AssignmentManger.ritCount",
+              "metric": "master.AssignmentManager.ritCount",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -155,7 +155,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "master.AssignmentManger.ritCountOverThreshold",
+              "metric": "master.AssignmentManager.ritCountOverThreshold",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -224,7 +224,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "master.AssignmentManger.ritOldestAge",
+              "metric": "master.AssignmentManager.ritOldestAge",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
