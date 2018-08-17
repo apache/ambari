@@ -45,7 +45,7 @@ from ambari_server.serverConfiguration import configDefaults, get_resources_loca
   AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir, write_gpl_license_accepted, set_property
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
-from ambari_server.utils import compare_versions, get_json_url_from_repo_file, update_latest_in_repoinfos_for_all_stacks
+from ambari_server.utils import compare_versions, get_json_url_from_repo_file, update_latest_in_repoinfos_for_stacks
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, get_ssl_context
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
@@ -321,7 +321,7 @@ def upgrade(args):
     print "Ambari repo file contains latest json url {0}, updating stacks repoinfos with it...".format(json_url)
     properties = get_ambari_properties()
     stack_root = get_stack_location(properties)
-    update_latest_in_repoinfos_for_all_stacks(stack_root, json_url)
+    update_latest_in_repoinfos_for_stacks(stack_root, json_url)
   else:
     print "Ambari repo file doesn't contain latest json url, skipping repoinfos modification"
 
