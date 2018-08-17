@@ -31,6 +31,7 @@ from resource_management.libraries.functions.cluster_settings import get_cluster
 config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
+stack_settings = Script.get_stack_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 
@@ -41,7 +42,7 @@ host_sys_prepped = execution_command.is_host_system_prepared()
 
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_unformatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 major_stack_version = get_major_version(stack_version_formatted)

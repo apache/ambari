@@ -179,6 +179,7 @@ def get_packages(scope, service_name = None, component_name = None):
 
   config = Script.get_config()
   execution_command = Script.get_execution_command()
+  stack_settings = execution_command.get_stack_settings()
 
   if service_name is None or component_name is None:
     if 'role' not in config or 'serviceName' not in config:
@@ -188,17 +189,11 @@ def get_packages(scope, service_name = None, component_name = None):
     component_name = execution_command.get_component_type()
 
 
-  stack_name = execution_command.get_mpack_name()
+  stack_name = stack_settings.get_mpack_name()
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
 
-  stack_packages_setting = execution_command.get_value("stackSettings/"+stack_settings.STACK_PACKAGES_SETTING)
-  # TODO : Removed the below if of reading from cluster_env, once we have removed stack_packages from there
-  # and have started using /stackSettings as source of truth.
-  if stack_packages_setting is None:
-    Logger.debug("Couldn't retrieve 'stack_packages' from /stackSettings. Retrieving from cluster_env now.")
-    stack_packages_setting = execution_command.get_value("clusterSettings/"+stack_settings.STACK_PACKAGES_SETTING)
-
+  stack_packages_setting = stack_settings.get_stack_packages()
   if stack_packages_setting is None:
     raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
 

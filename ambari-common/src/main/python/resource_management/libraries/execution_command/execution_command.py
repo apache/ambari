@@ -21,7 +21,10 @@ limitations under the License.
 __all__ = ["ExecutionCommand"]
 
 from resource_management.libraries.execution_command import module_configs
+from resource_management.libraries.execution_command import stack_settings
+from resource_management.libraries.execution_command import cluster_settings
 
+from resource_management.libraries.functions.decorator import deprecated
 
 class ExecutionCommand(object):
   """
@@ -40,6 +43,8 @@ class ExecutionCommand(object):
     """
     self.__execution_command = command
     self.__module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"), self.__get_value("configurationAttributes"))
+    self.__stack_settings = stack_settings.StackSettings(self.__get_value("stackSettings"))
+    self.__cluster_settings = cluster_settings.ClusterSettings(self.__get_value("clusterSettings"))
 
   def __get_value(self, key, default_value=None):
     """
@@ -77,12 +82,18 @@ class ExecutionCommand(object):
   def get_module_configs(self):
     return self.__module_configs
 
+  def get_stack_settings(self):
+    return self.__stack_settings
+
+  def get_cluster_settings(self):
+    return self.__cluster_settings
+
   def get_module_name(self):
     """
     Retrieve service type from command.json, eg. 'zookeeper', 'hdfs'
     :return: service type
     """
-    return self.__get_value("serviceType")
+    return self.__get_value("serviceName")
 
   def get_component_type(self):
     """
@@ -128,6 +139,13 @@ class ExecutionCommand(object):
     :return: list of components
     """
     return self.__get_value("localComponents", [])
+
+  def get_role_command(self):
+    """
+    Retrieve execution command
+    :return: String, i.e "ACTIONEXECUTE", "INSTALL", "START" etc
+    """
+    return self.__get_value("roleCommand")
 
   """
   Ambari variables section
@@ -251,51 +269,6 @@ class ExecutionCommand(object):
     return self.__get_value("ambariLevelParams/gpl_license_accepted", False)
 
   """
-  Cluster related variables section
-  """
-
-  def get_mpack_name(self):
-    """
-    Retrieve mpack name from command.json, i.e "stack_name": "HDPCORE"
-    :return: mpack name string
-    """
-    return self.__get_value("stackSettings/stack_name")
-
-  def get_mpack_version(self):
-    """
-    Retrieve mpack version from command.json, i.e "stack_version": "1.0.0-b224"
-    :return: mpack version string
-    """
-    return self.__get_value("stackSettings/stack_version")
-
-  def get_user_groups(self):
-    """
-    Retrieve ambari server user groups, i.e "user_groups": "{\"zookeeper\":[\"hadoop\"],\"ambari-qa\":[\"hadoop\"]}"
-    :return: a user group dict object
-    """
-    return self.__get_value("stackSettings/user_groups")
-
-  def get_group_list(self):
-    """
-    Retrieve a list of user groups from command.json, i.e "group_list": "[\"hadoop\"]"
-    :return: a list of groups
-    """
-    group_list = self.__get_value("stackSettings/group_list")
-    if not group_list:
-      group_list = "[]"
-    return group_list
-
-  def get_user_list(self):
-    """
-    Retrieve a list of users from command.json, i.e "user_list": "[\"zookeeper\",\"ambari-qa\"]"
-    :return: a list of users
-    """
-    user_list = self.__get_value("stackSettings/user_list")
-    if not user_list:
-      user_list = "[]"
-    return user_list
-
-  """
   Agent related variable section
   """
 
@@ -306,13 +279,6 @@ class ExecutionCommand(object):
     """
     return self.__get_value("agentLevelParams/hostname")
 
-  def check_agent_config_execute_in_parallel(self):
-    """
-    Check if config commands can be executed in parallel in ambari agent
-    :return: True or False
-    """
-    return int(self.__get_value("agentConfigParams/agent/parallel_execution", 0))
-
   def get_agent_cache_dir(self):
     """
     The root directory in which ambari agent stores cache or log etc,
@@ -320,6 +286,20 @@ class ExecutionCommand(object):
     :return: the cache directory path
     """
     return self.__get_value('agentLevelParams/agentCacheDir')
+
+  def check_agent_config_execute_in_parallel(self):
+    """
+    Check if config commands can be executed in parallel in ambari agent
+    :return: True or False
+    """
+    return int(self.__get_value("agentLevelParams/agentConfigParams/agent/parallel_execution", 0))
+
+  def check_agent_proxy_settings(self):
+    """
+    Check if system proxy is set or not on agent
+    :return: True by default
+    """
+    return self.__get_value("agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True)
 
   """
   Host related variables section
@@ -376,7 +356,7 @@ class ExecutionCommand(object):
     return self.__get_value('commandParams/phase')
 
   def get_dfs_type(self):
-    return self.__get_value('stackSettings/dfs_type')
+    return self.__get_value('commandParams/dfs_type')
 
   def get_module_package_folder(self):
     return self.__get_value('commandParams/service_package_folder')

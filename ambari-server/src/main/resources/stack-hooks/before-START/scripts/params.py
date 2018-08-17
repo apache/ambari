@@ -37,6 +37,8 @@ from resource_management.libraries.functions.cluster_settings import get_cluster
 config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
+stack_settings = Script.get_stack_settings()
+cluster_settings  = Script.get_cluster_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 artifact_dir = tmp_dir + "/AMBARI-artifacts"
@@ -56,7 +58,7 @@ sysprep_skip_copy_fast_jar_hdfs = host_sys_prepped and get_cluster_setting_value
 # Whether to skip setting up the unlimited key JCE policy
 sysprep_skip_setup_jce = host_sys_prepped and get_cluster_setting_value('sysprep_skip_setup_jce')
 
-stack_version_unformatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
@@ -265,7 +267,7 @@ net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_
 has_core_site = bool(module_configs.get_all_properties(module_name, "core-site"))
 hdfs_user_keytab = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user_keytab')
 kinit_path_local = get_kinit_path()
-stack_version_unformatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_principal_name')

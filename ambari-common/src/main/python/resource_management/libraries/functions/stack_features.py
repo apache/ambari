@@ -46,18 +46,13 @@ def check_stack_feature(stack_feature, stack_version):
   from resource_management.libraries.functions.version import compare_versions
 
   execution_command = Script.get_execution_command()
-  stack_name = execution_command.get_mpack_name()
+  stack_settings = Script.get_stack_settings()
+  stack_name = stack_settings.get_mpack_name()
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
   # TODO: If stack_features is needed, this should be added in execution_command lib
-  stack_features_setting = execution_command.get_value("stackSettings/"+stack_settings.STACK_FEATURES_SETTING)
-  # TODO : Removed the below if of reading from cluster_env, once we have removed stack_features from there
-  # and have started using /stackSettings as source of truth.
-  if stack_features_setting is None:
-    Logger.debug("Couldn't retrieve 'stack_features' from /stackSettings. Retrieving from cluster_env now.")
-    stack_features_setting = execution_command.get_value("clusterSettings/"+stack_settings.STACK_FEATURES_SETTING)
-
+  stack_features_setting = stack_settings.get_stack_features()
 
   if not stack_version:
     Logger.debug("Cannot determine if feature %s is supported since did not provide a stack version." % stack_feature)
@@ -107,13 +102,14 @@ def get_stack_feature_version(config):
   from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
   execution_command = Script.get_execution_command()
+  stack_settings = Script.get_stack_settings()
 
   if "stackSettings" not in config and "commandParams" not in config:
     raise Fail("Unable to determine the correct version since stackSettings and commandParams were not present in the configuration dictionary")
 
   # should always be there
   # Actually not always, i.e if we restart zookeeper service and no stack_version is included in command.json
-  stack_version = execution_command.get_mpack_version()
+  stack_version = stack_settings.get_mpack_version()
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)
