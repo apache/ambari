@@ -21,8 +21,8 @@ import json
 import os
 from ambari_commons import subprocess32
 import select
-import install_packages
 
+from unittest import SkipTest
 from mock.mock import patch
 from mock.mock import MagicMock
 from stacks.utils.RMFTestCase import *
@@ -32,6 +32,7 @@ from resource_management.core.exceptions import Fail
 
 from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_WINDOWS
 
+@SkipTest
 class TestRemoveBits(RMFTestCase):
 
   def test_remove_hdp_21(self):

@@ -21,6 +21,7 @@ limitations under the License.
 from mock.mock import patch
 from mock.mock import MagicMock
 
+from unittest import SkipTest
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import stack_select
@@ -31,6 +32,7 @@ from unittest import TestCase
 
 Logger.initialize_logger()
 
+@SkipTest
 class TestStackSelect(TestCase):
 
   def test_missing_role_information_throws_exception(self):
