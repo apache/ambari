@@ -24,8 +24,6 @@ from resource_management.libraries.execution_command import module_configs
 from resource_management.libraries.execution_command import stack_settings
 from resource_management.libraries.execution_command import cluster_settings
 
-from resource_management.libraries.functions.decorator import deprecated
-
 class ExecutionCommand(object):
   """
   The class has two private objects: _execution_command maps to a command.json and
@@ -267,6 +265,52 @@ class ExecutionCommand(object):
     :return: True or False
     """
     return self.__get_value("ambariLevelParams/gpl_license_accepted", False)
+
+  """
+  Cluster related variables section
+  TODO: deprecated, but some scripts still use them, will remove them gradually
+  """
+
+  def get_mpack_name(self):
+    """
+    Retrieve mpack name from command.json, i.e "stack_name": "HDPCORE"
+    :return: mpack name string
+    """
+    return self.__get_value("stackSettings/stack_name")
+
+  def get_mpack_version(self):
+    """
+    Retrieve mpack version from command.json, i.e "stack_version": "1.0.0-b224"
+    :return: mpack version string
+    """
+    return self.__get_value("stackSettings/stack_version")
+
+  def get_user_groups(self):
+    """
+    Retrieve ambari server user groups, i.e "user_groups": "{\"zookeeper\":[\"hadoop\"],\"ambari-qa\":[\"hadoop\"]}"
+    :return: a user group dict object
+    """
+    return self.__get_value("stackSettings/user_groups")
+
+  def get_group_list(self):
+    """
+    Retrieve a list of user groups from command.json, i.e "group_list": "[\"hadoop\"]"
+    :return: a list of groups
+    """
+    group_list = self.__get_value("stackSettings/group_list")
+    if not group_list:
+      group_list = "[]"
+    return group_list
+
+  def get_user_list(self):
+    """
+    Retrieve a list of users from command.json, i.e "user_list": "[\"zookeeper\",\"ambari-qa\"]"
+    :return: a list of users
+    """
+    user_list = self.__get_value("stackSettings/user_list")
+    if not user_list:
+      user_list = "[]"
+    return user_list
 
   """
   Agent related variable section

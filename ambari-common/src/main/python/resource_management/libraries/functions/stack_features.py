@@ -23,8 +23,6 @@ import ambari_simplejson as json
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions import stack_settings
 
 # executionCommand for STOP
 _ROLE_COMMAND_STOP = 'STOP'
@@ -42,7 +40,7 @@ def check_stack_feature(stack_feature, stack_version):
   :return: Will return True if successful, otherwise, False.
   """
   from resource_management.libraries.script.script import Script
-  from resource_management.libraries.execution_command.execution_command import ExecutionCommand
+  from resource_management.libraries.execution_command.stack_settings import StackSettings
   from resource_management.libraries.functions.version import compare_versions
 
   execution_command = Script.get_execution_command()
@@ -67,7 +65,7 @@ def check_stack_feature(stack_feature, stack_version):
 
     data = data[stack_name]
 
-    for feature in data[stack_settings.STACK_FEATURES_SETTING]:
+    for feature in data[StackSettings.STACK_FEATURES_SETTING]:
       if feature["name"] == stack_feature:
         if "min_version" in feature:
           min_version = feature["min_version"]

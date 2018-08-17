@@ -34,7 +34,6 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_tools
-from resource_management.libraries.functions import stack_settings
 from resource_management.libraries.functions.decorator import deprecated
 from resource_management.core import shell
 from resource_management.core import sudo

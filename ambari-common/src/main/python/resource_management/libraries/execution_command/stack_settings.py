@@ -21,6 +21,16 @@ limitations under the License.
 __all__ = ["StackSettings"]
 
 class StackSettings(object):
+  
+  # Stack related configs from stack's stack_settings.json
+  # TODO: these strings may be removed later
+  STACK_NAME_SETTING = "stack_name"
+  STACK_TOOLS_SETTING = "stack_tools"
+  STACK_FEATURES_SETTING = "stack_features"
+  STACK_PACKAGES_SETTING = "stack_packages"
+  STACK_ROOT_SETTING = "stack_root"
+  STACK_SELECT_SETTING = "stack_select"
+
   """
   This class maps to "/clusterSettings" in command.json which includes cluster setting information of a cluster
   """

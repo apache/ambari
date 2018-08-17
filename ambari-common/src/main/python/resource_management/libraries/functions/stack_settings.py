@@ -27,7 +27,6 @@ STACK_TOOLS_SETTING = "stack_tools"
 STACK_FEATURES_SETTING = "stack_features"
 STACK_PACKAGES_SETTING = "stack_packages"
 STACK_ROOT_SETTING = "stack_root"
-
 STACK_SELECT_SETTING = "stack_select"
 
 
