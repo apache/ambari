@@ -39,8 +39,8 @@
     },
     "ObjectPendingFinalizationCount" : 0
   }, {
-    "name" : "Hadoop:service=HBase,name=Master,sub=AssignmentManger",
-    "modelerType" : "Master,sub=AssignmentManger",
+    "name" : "Hadoop:service=HBase,name=Master,sub=AssignmentManager",
+    "modelerType" : "Master,sub=AssignmentManager",
     "tag.Context" : "master",
     "tag.Hostname" : "c6401.ambari.apache.org",
     "ritOldestAge" : 0,
