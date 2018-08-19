@@ -365,7 +365,8 @@ def check_folder_until_size_not_changes(dir):
     if stdout:
       actual_size_str = stdout.strip()
       if actual_size_str == size_str:
-        break
+        size_changed = False
+        continue
       else:
         Logger.info(format("Actual size of '{dir}' is {actual_size_str}, wait 5 sec and check again, to make sure no copy operation is in progress..."))
         time.sleep(5)
