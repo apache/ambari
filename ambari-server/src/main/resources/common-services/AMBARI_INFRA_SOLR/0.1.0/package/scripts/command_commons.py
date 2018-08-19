@@ -352,3 +352,22 @@ def check_folder_exists(dir):
   if returncode:
     return False
   return True
+
+def check_folder_until_size_not_changes(dir):
+  """
+  Call du -d 0 <folder> | cut -f 1 on specific directory until the size not changes (so copy operation has finished)
+  """
+  cmd = format("du -d 0 {dir} | cut -f 1")
+  size_changed = True
+  size_str = "-1"
+  while size_changed:
+    returncode, stdout = call(cmd, user=params.infra_solr_user, timeout=300)
+    if stdout:
+      actual_size_str = stdout.strip()
+      if actual_size_str == size_str:
+        size_changed = False
+        continue
+      else:
+        Logger.info(format("Actual size of '{dir}' is {actual_size_str}, wait 5 sec and check again, to make sure no copy operation is in progress..."))
+        time.sleep(5)
+        size_str = actual_size_str

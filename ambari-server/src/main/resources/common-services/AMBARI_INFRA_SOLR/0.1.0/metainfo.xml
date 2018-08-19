@@ -49,7 +49,8 @@
               <commandScript>
                 <script>scripts/infra_solr.py</script>
                 <scriptType>PYTHON</scriptType>
-                <timeout>1200</timeout>
+                <timeout>36000</timeout>
+                <background>true</background>
               </commandScript>
             </customCommand>
             <customCommand>

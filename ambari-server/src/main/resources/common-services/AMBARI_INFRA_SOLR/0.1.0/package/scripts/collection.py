@@ -79,6 +79,9 @@ def backup_collection(env):
       command_commons.snapshot_status_check(status_check_cmd, status_check_json_output, core, True,
                                             log_output=command_commons.log_output, tries=command_commons.request_tries,
                                             time_interval=command_commons.request_time_interval)
+      snapshot_folder=format("{index_location}/snapshot.{core}")
+      if command_commons.check_folder_exists(snapshot_folder):
+        command_commons.check_folder_until_size_not_changes(snapshot_folder)
 
 
 def restore_collection(env):
