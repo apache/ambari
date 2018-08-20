@@ -144,7 +144,10 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @type {?Em.Object}
    */
   stackVersionError: function() {
-    const errorStack = this.get('repoVersions').filterProperty('status', 'OUT_OF_SYNC').findProperty('isStandard');
+    const errorStack = this.get('repoVersions')
+    .filterProperty('isVisible')
+    .filterProperty('status', 'OUT_OF_SYNC')
+    .findProperty('isStandard');
     if (errorStack) {
       return Em.Object.create({
         repoId: errorStack.get('id'),
