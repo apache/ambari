@@ -22,6 +22,7 @@ import os
 from ambari_commons import subprocess32
 import select
 
+from unittest import SkipTest
 from stacks.utils.RMFTestCase import *
 from mock.mock import patch, MagicMock
 from resource_management.core.base import Resource
@@ -37,6 +38,7 @@ subproc_mock.return_value = MagicMock()
 subproc_stdout = MagicMock()
 subproc_mock.return_value.stdout = subproc_stdout
 
+@SkipTest
 @patch.object(os, "read", new=MagicMock(return_value=None))
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch("pty.openpty", new = MagicMock(return_value=(1,5)))

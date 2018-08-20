@@ -18,12 +18,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from unittest import SkipTest
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 from resource_management import Hook
 from resource_management.core.exceptions import Fail
 import json
 
+@SkipTest
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())

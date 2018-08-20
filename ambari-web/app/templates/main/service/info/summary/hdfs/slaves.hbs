@@ -29,7 +29,7 @@
         <div class="summary-value main-info">
           {{#if App.router.clusterController.isServiceContentFullyLoaded}}
             <span>
-              {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.dataNodesStarted" totalComponentsBinding="view.dataNodesTotal"}}
                 {{view.liveComponents}}/{{view.totalComponents}}
               {{/view}}
             </span>

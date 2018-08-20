@@ -21,11 +21,13 @@ limitations under the License.
 
 import json
 
+from unittest import SkipTest
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
 
+@SkipTest
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("os.path.isfile", new = MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):

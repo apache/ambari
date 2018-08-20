@@ -433,25 +433,6 @@ public class UpgradeContext {
   }
 
   /**
-   * Gets the upgrade pack for this upgrade.
-   *
-   * @return the upgrade pack
-   */
-  public UpgradePack getUpgradePack() {
-    return m_upgradePack;
-  }
-
-  /**
-   * Sets the upgrade pack for this upgrade
-   *
-   * @param upgradePack
-   *          the upgrade pack to set
-   */
-  public void setUpgradePack(UpgradePack upgradePack) {
-    m_upgradePack = upgradePack;
-  }
-
-  /**
    * Gets the cluster that the upgrade is for.
    *
    * @return the cluster (never {@code null}).
@@ -601,7 +582,13 @@ public class UpgradeContext {
       return false;
     }
 
-    return m_upgradePack.isDowngradeAllowed();
+    for (MpackChangeSummary summary : m_serviceGroups.values()) {
+      if (!summary.getUpgradePack().isDowngradeAllowed()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -650,9 +637,13 @@ public class UpgradeContext {
 
       UpgradeServiceGroupSummary serviceGroupSummary = new UpgradeServiceGroupSummary();
       serviceGroupSummary.type = m_type;
+      serviceGroupSummary.serviceGroupId = serviceGroup.getServiceGroupId();
+      serviceGroupSummary.serviceGroupName = serviceGroup.getServiceGroupName();
       serviceGroupSummary.sourceMpackId = changeSummary.getSource().getResourceId();
+      serviceGroupSummary.sourceMpackVersion = changeSummary.getSource().getVersion();
       serviceGroupSummary.sourceStack = changeSummary.getSource().getStackId().getStackId();
       serviceGroupSummary.targetMpackId = changeSummary.getTarget().getRegistryId();
+      serviceGroupSummary.targetMpackVersion = changeSummary.getTarget().getVersion();
       serviceGroupSummary.targetStack = changeSummary.getTarget().getStackId().getStackId();
       serviceGroupSummary.services = new LinkedHashMap<>();
 
@@ -660,6 +651,7 @@ public class UpgradeContext {
 
       for( ModuleVersionChange moduleVersionChange : changeSummary.getModuleVersionChanges() ) {
         UpgradeServiceSummary upgradeServiceSummary = new UpgradeServiceSummary();
+        upgradeServiceSummary.serviceName = moduleVersionChange.getSource().getName();
         upgradeServiceSummary.sourceVersion = moduleVersionChange.getSource().getVersion();
         upgradeServiceSummary.targetVersion = moduleVersionChange.getTarget().getVersion();
         upgradeServiceSummary.components = new LinkedHashMap<>();
@@ -667,6 +659,7 @@ public class UpgradeContext {
 
         for( ModuleComponentVersionChange componentVersionChange : moduleVersionChange.getComponentChanges() ) {
           UpgradeComponentSummary componentSummary = new UpgradeComponentSummary();
+          componentSummary.componentName = componentVersionChange.getSource().getName();
           componentSummary.sourceVersion = componentVersionChange.getSource().getVersion();
           componentSummary.targetVersion = componentVersionChange.getTarget().getVersion();
 
@@ -1221,6 +1214,12 @@ public class UpgradeContext {
     @SerializedName("type")
     public UpgradeType type;
 
+    @SerializedName("serviceGroupId")
+    public Long serviceGroupId;
+
+    @SerializedName("serviceGroupName")
+    public String serviceGroupName;
+
     @SerializedName("sourceMpackId")
     public long sourceMpackId;
 
@@ -1233,8 +1232,11 @@ public class UpgradeContext {
     @SerializedName("targetStack")
     public String targetStack;
 
-    @SerializedName("downgradeAllowed")
-    public boolean isDowngradeAllowed = true;
+    @SerializedName("sourceMpackVersion")
+    public String sourceMpackVersion;
+
+    @SerializedName("targetMpackVersion")
+    public String targetMpackVersion;
 
     /**
      * A mapping of service name to service summary information for services
@@ -1242,40 +1244,6 @@ public class UpgradeContext {
      */
     @SerializedName("services")
     public Map<String, UpgradeServiceSummary> services;
-
-    /**
-     * The ID of the repository associated with the upgrade. For an
-     * {@link Direction#UPGRADE}, this is the target repository, for a
-     * {@link Direction#DOWNGRADE} this was the repository being downgraded
-     * from.
-     */
-    @SerializedName("associatedRepositoryId")
-    public long associatedRepositoryId;
-
-    /**
-     * The ID of the repository associated with the upgrade. For an
-     * {@link Direction#UPGRADE}, this is the target stack, for a
-     * {@link Direction#DOWNGRADE} this was the stack that is being downgraded
-     * from.
-     */
-    @SerializedName("associatedStackId")
-    public String associatedStackId;
-
-    /**
-     * The ID of the repository associated with the upgrade. For an
-     * {@link Direction#UPGRADE}, this is the target versopm, for a
-     * {@link Direction#DOWNGRADE} this was the version that is being downgraded
-     * from.
-     */
-    @SerializedName("associatedVersion")
-    public String associatedVersion;
-
-    /**
-     * MAINT or PATCH upgrades are meant to just be switching the bits and no other
-     * incompatible changes.
-     */
-    @SerializedName("isSwitchBits")
-    public boolean isSwitchBits = false;
   }
 
   /**
@@ -1283,6 +1251,9 @@ public class UpgradeContext {
    * service component upgrade information during an upgrade.
    */
   public static class UpgradeServiceSummary {
+    @SerializedName("serviceName")
+    public String serviceName;
+
     @SerializedName("sourceVersion")
     public String sourceVersion;
 
@@ -1301,6 +1272,9 @@ public class UpgradeContext {
    * the component source and target versions during an upgrade.
    */
   public static class UpgradeComponentSummary {
+    @SerializedName("componentName")
+    public String componentName;
+
     @SerializedName("sourceVersion")
     public String sourceVersion;
 

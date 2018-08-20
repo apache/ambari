@@ -28,7 +28,7 @@ Logger.initialize_logger()
 
 class TestUpgradeSummary(TestCase):
 
-  def test_get_stack_feature_version_missing_params(self):
+  def test_upgrade_summary(self):
     """
     Tests that simple upgrade information can be extracted from JSON
     :return:
@@ -39,17 +39,18 @@ class TestUpgradeSummary(TestCase):
     summary = upgrade_summary.get_upgrade_summary()
     self.assertEqual(False, summary.is_revert)
     self.assertEqual("UPGRADE", summary.direction)
-    self.assertEqual("STANDARD", summary.orchestration)
-    self.assertEqual("rolling_upgrade", summary.type)
 
-    services = summary.services
-    self.assertEqual("2.4.0.0-1234", services["HDFS"].source_version)
-    self.assertEqual("2.5.9.9-9999", services["HDFS"].target_version)
+    service_groups = summary.service_groups
+    self.assertEqual("express_upgrade", service_groups["SG1"].type)
 
-    self.assertEqual("2.4.0.0-1234", upgrade_summary.get_source_version("HDFS"))
-    self.assertEqual("2.5.9.9-9999", upgrade_summary.get_target_version("HDFS"))
+    services = service_groups["SG1"].services
+    self.assertEqual("3.0.0.0-b1", services["HDFS"].source_version)
+    self.assertEqual("3.1.0.0-b1", services["HDFS"].target_version)
 
-    self.assertTrue(upgrade_summary.get_downgrade_from_version("HDFS") is None)
+    self.assertEqual("3.0.0.0-b1", upgrade_summary.get_source_version(service_group_name = "SG1", service_name = "HDFS"))
+    self.assertEqual("3.1.0.0-b1", upgrade_summary.get_target_version(service_group_name = "SG1", service_name = "HDFS"))
+
+    self.assertTrue(upgrade_summary.get_downgrade_from_version(service_group_name = "SG1", service_name="HDFS") is None)
 
 
   def test_get_downgrade_from_version(self):
@@ -60,8 +61,8 @@ class TestUpgradeSummary(TestCase):
     command_json = TestUpgradeSummary._get_cluster_simple_downgrade_json()
     Script.config = command_json
 
-    self.assertTrue(upgrade_summary.get_downgrade_from_version("FOO") is None)
-    self.assertEqual("2.5.9.9-9999", upgrade_summary.get_downgrade_from_version("HDFS"))
+    self.assertTrue(upgrade_summary.get_downgrade_from_version(service_group_name = "FOO", service_name =  "BAR") is None)
+    self.assertEqual("3.1.0.0-b1", upgrade_summary.get_downgrade_from_version(service_group_name = "SG1", service_name =  "HDFS"))
 
 
   @staticmethod
@@ -72,35 +73,34 @@ class TestUpgradeSummary(TestCase):
     """
     return {
       "roleCommand":"ACTIONEXECUTE",
-      "hostLevelParams": {
-        "stack_name": "HDP",
-        "stack_version": "2.4",
-      },
-      "commandParams": {
-        "source_stack": "2.4",
-        "target_stack": "2.5",
-        "upgrade_direction": "upgrade",
-        "version": "2.5.9.9-9999"
-      },
       "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":1,
-            "sourceStackId":"HDP-2.4",
-            "sourceVersion":"2.4.0.0-1234",
-            "targetRepositoryId":2,
-            "targetStackId":"HDP-2.5",
-            "targetVersion":"2.5.9.9-9999"
+        "serviceGroups":{
+          "SG1":{
+            "type":"express_upgrade",
+            "serviceGroupId": 1,
+            "serviceGroupName": "SG1",
+            "sourceMpackId": 50,
+            "targetMpackId": 100,
+            "sourceStack": "HDPCORE-1.0",
+            "targetStack": "HDPCORE-1.5",
+            "sourceMpackVersion": "1.0.0.0-b1",
+            "targetMpackVersion": "1.5.0.0-b1",
+            "services":{
+              "HDFS":{
+                "serviceName": "HDFS",
+                "sourceVersion":"3.0.0.0-b1",
+                "targetVersion":"3.1.0.0-b1",
+                "components": {
+                  "componentName": "NAMENODE",
+                  "sourceVersion": "3.0.0.0-b1",
+                  "targetVersion":"3.1.0.0-b1",
+                }
+              }
+            }
           }
         },
         "direction":"UPGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
-        "isDowngradeAllowed": True,
-        "isSwitchBits": False
+        "isRevert":False
       }
     }
 
@@ -112,34 +112,30 @@ class TestUpgradeSummary(TestCase):
     """
     return {
       "roleCommand":"ACTIONEXECUTE",
-      "hostLevelParams": {
-        "stack_name": "HDP",
-        "stack_version": "2.4",
-      },
-      "commandParams": {
-        "source_stack": "2.5",
-        "target_stack": "2.4",
-        "upgrade_direction": "downgrade",
-        "version": "2.4.0.0-1234"
-      },
       "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
+        "serviceGroups":{
+          "SG1":{
+            "type": "express_upgrade",
+            "serviceGroupId": 1,
+            "serviceGroupName": "SG1",
+            "sourceMpackId": 100,
+            "targetMpackId": 50,
+            "sourceStack": "HDPCORE-1.5",
+            "targetStack": "HDPCORE-1.0",
+            "sourceMpackVersion": "1.5.0.0-b1",
+            "targetMpackVersion": "1.0.0.0-b1",
+            "services":{
+              "HDFS":{
+                "serviceName": "HDFS",
+                "sourceVersion":"3.1.0.0-b1",
+                "targetVersion":"3.0.0.0-b1",
+                "components": {
+                }
+              }
+            }
           }
         },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
-        "isDowngradeAllowed": True,
-        "isSwitchBits": False
+        "direction": "DOWNGRADE",
+        "isRevert": False
       }
     }

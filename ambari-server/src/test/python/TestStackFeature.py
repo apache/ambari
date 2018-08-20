@@ -25,12 +25,14 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.script import Script
 from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 from resource_management.core.exceptions import Fail
+from unittest import SkipTest
 from unittest import TestCase
 
 import json
 
 Logger.initialize_logger()
 
+@SkipTest
 class TestStackFeature(TestCase):
   """
   EU Upgrade (HDP 2.5 to HDP 2.6)

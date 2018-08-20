@@ -86,6 +86,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
@@ -126,8 +127,6 @@ import com.google.inject.persist.Transactional;
  */
 @StaticallyInject
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
-
-  static final String DUMMY_SERVICE_GROUP = "CORE"; // FIXME need a service group name, since null or "" is not allowed
 
   public static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   public static final String UPGRADE_PLAN_ID = "Upgrade/upgrade_plan_id";
@@ -727,10 +726,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    * @throws AuthorizationException
    */
-  protected UpgradeEntity createUpgrade(UpgradeContext upgradeContext, UpgradePlanEntity upgradePlan)
+  @Transactional(rollbackOn = {RuntimeException.class, AmbariException.class, AuthorizationException.class})
+  UpgradeEntity createUpgrade(UpgradeContext upgradeContext, UpgradePlanEntity upgradePlan)
       throws AmbariException, AuthorizationException {
 
-    UpgradePack pack = upgradeContext.getUpgradePack();
     Cluster cluster = upgradeContext.getCluster();
     Direction direction = upgradeContext.getDirection();
 
@@ -744,7 +743,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // Non Rolling Upgrades require a group with name "UPDATE_DESIRED_REPOSITORY_ID".
     // This is needed as a marker to indicate which version to use when an upgrade is paused.
-    if (pack.getType() == UpgradeType.EXPRESS) {
+    if (upgradeContext.getType() == UpgradeType.EXPRESS) {
       boolean foundUpdateDesiredRepositoryIdGrouping = false;
       for (UpgradeGroupHolder group : groups) {
         if (group.groupClass == UpdateStackGrouping.class) {
@@ -755,8 +754,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       if (!foundUpdateDesiredRepositoryIdGrouping) {
         throw new AmbariException(String.format(
-            "Express upgrade packs are required to have a group of type %s. The upgrade pack %s is missing this grouping.",
-            "update-stack", pack.getName()));
+            "Express upgrade packs are required to have a group of type %s.",
+            "update-stack"));
       }
     }
 
@@ -766,7 +765,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradeEntity upgrade = new UpgradeEntity();
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setDirection(direction);
-    upgrade.setUpgradeType(pack.getType());
+    upgrade.setUpgradeType(upgradeContext.getType());
     upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
     upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());
     upgrade.setDowngradeAllowed(upgradeContext.isDowngradeAllowed());
@@ -776,7 +775,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     addComponentHistoryToUpgrade(cluster, upgrade, upgradeContext);
 
     // update configs and move mpack versions for some upgrade types
-    switch (pack.getType()) {
+    switch (upgradeContext.getType()) {
       case ROLLING:
       case HOST_ORDERED: {
         s_upgradeHelper.updateDesiredMpacksAndConfigs(upgradeContext);
@@ -792,11 +791,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     //
     // HDP 2.2 to 2.3 should start with the config-upgrade.xml from HDP 2.2
     // HDP 2.2 to 2.4 should start with HDP 2.2 and merge in HDP 2.3's config-upgrade.xml
-    ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(upgradeContext);
+
 
     // create the upgrade and request
     for (UpgradeGroupHolder group : groups) {
       List<UpgradeItemEntity> itemEntities = new ArrayList<>();
+
+      @Experimental(feature=ExperimentalFeature.MPACK_UPGRADES, comment="to be implemented")
+      ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(upgradeContext);
 
       for (StageWrapper wrapper : group.items) {
         switch(wrapper.getType()) {
@@ -817,6 +819,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntity.setHosts(wrapper.getHostsJson());
 
               injectVariables(configHelper, cluster, itemEntity);
+
               if (makeServerSideStage(group, upgradeContext, null, req,
                   itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
                 itemEntities.add(itemEntity);
@@ -968,21 +971,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     boolean skippable = group.skippable;
     boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
     boolean allowRetry = group.allowRetry;
+    ServiceGroup serviceGroup = group.serviceGroup;
 
     switch (wrapper.getType()) {
       case CONFIGURE:
       case START:
       case STOP:
       case RESTART:
-        makeCommandStage(context, request, stackId, entity, wrapper, skippable,
+        makeCommandStage(context, request, stackId, entity, serviceGroup, wrapper, skippable,
             supportsAutoSkipOnFailure, allowRetry);
         break;
       case UPGRADE_TASKS:
-        makeActionStage(context, request, stackId, entity, wrapper, skippable,
+        makeActionStage(context, request, stackId, entity, serviceGroup, wrapper, skippable,
             supportsAutoSkipOnFailure, allowRetry);
         break;
       case SERVICE_CHECK:
-        makeServiceCheckStage(context, request, stackId, entity, wrapper,
+        makeServiceCheckStage(context, request, stackId, entity, serviceGroup, wrapper,
             skippable, supportsAutoSkipOnFailure, allowRetry);
         break;
       default:
@@ -1032,7 +1036,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
-      StackId stackId, UpgradeItemEntity entity,
+      StackId stackId, UpgradeItemEntity entity, ServiceGroup serviceGroup,
       StageWrapper wrapper, boolean skippable, boolean supportsAutoSkipOnFailure,
       boolean allowRetry) throws AmbariException {
 
@@ -1063,9 +1067,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     applyAdditionalParameters(wrapper, params);
 
     // add each host to this stage
-    //TODO pass service group name once upgrade is fixed
-    RequestResourceFilter filter = new RequestResourceFilter(DUMMY_SERVICE_GROUP, serviceName, componentName,
-        new ArrayList<>(wrapper.getHosts()));
+    RequestResourceFilter filter = new RequestResourceFilter(serviceGroup.getServiceGroupName(),
+        serviceName, componentName, new ArrayList<>(wrapper.getHosts()));
 
     ActionExecutionContext actionContext = buildActionExecutionContext(cluster, context,
         EXECUTE_TASK_ROLE, stackId, Collections.singletonList(filter), params,
@@ -1121,7 +1124,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   private void makeCommandStage(UpgradeContext context, RequestStageContainer request,
-      StackId stackId, UpgradeItemEntity entity,
+      StackId stackId, UpgradeItemEntity entity, ServiceGroup serviceGroup,
       StageWrapper wrapper, boolean skippable, boolean supportsAutoSkipOnFailure,
       boolean allowRetry) throws AmbariException {
 
@@ -1130,13 +1133,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
-      String serviceName = tw.getService();
-      String componentName = tw.getComponent();
-
       // add each host to this stage
-      //TODO pass service group name once upgrade is fixed
-      filters.add(new RequestResourceFilter(DUMMY_SERVICE_GROUP, tw.getService(), tw.getComponent(),
-          new ArrayList<>(tw.getHosts())));
+      filters.add(new RequestResourceFilter(serviceGroup.getServiceGroupName(),
+          tw.getService(), tw.getComponent(), new ArrayList<>(tw.getHosts())));
     }
 
     String function = null;
@@ -1198,15 +1197,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeServiceCheckStage(UpgradeContext context, RequestStageContainer request,
-      StackId stackId, UpgradeItemEntity entity,
+      StackId stackId, UpgradeItemEntity entity, ServiceGroup serviceGroup,
       StageWrapper wrapper, boolean skippable, boolean supportsAutoSkipOnFailure,
       boolean allowRetry) throws AmbariException {
 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
-      //TODO pass service group name once upgrade is fixed
-      filters.add(new RequestResourceFilter(DUMMY_SERVICE_GROUP, tw.getService(), "", Collections.emptyList()));
+      filters.add(new RequestResourceFilter(serviceGroup.getServiceGroupName(),
+          tw.getService(), "", Collections.emptyList()));
     }
 
     Cluster cluster = context.getCluster();
@@ -1261,7 +1260,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       ServerSideActionTask task, ConfigUpgradePack configUpgradePack) throws AmbariException {
 
     Cluster cluster = context.getCluster();
-    UpgradePack upgradePack = context.getUpgradePack();
+    UpgradePack upgradePack = group.upgradePack;
 
     Map<String, String> commandParams = getNewParameterMap(request, context);
     commandParams.put(UpgradeContext.COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
@@ -1637,7 +1636,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
      * @return the {@link ConfigUpgradePack} which contains all of the necessary
      *         configuration definitions for the upgrade.
      */
+    @Experimental(feature=ExperimentalFeature.MPACK_UPGRADES,
+        comment="to be implemented when configs are worked out")
     public static ConfigUpgradePack build(UpgradeContext cx) {
+      /*
       final UpgradePack upgradePack = cx.getUpgradePack();
       final StackId stackId = null;
 
@@ -1645,6 +1647,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         stackId.getStackName(), stackId.getStackVersion());
 
       return configUpgradePack;
+      */
+
+      return null;
     }
   }
 
