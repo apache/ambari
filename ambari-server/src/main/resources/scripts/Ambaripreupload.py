@@ -152,7 +152,8 @@ with Environment() as env:
     hdfs_lib_dir = hdfs_home_dir + '/lib'
     hadoop_home_dir = '/usr/hdp/' + stack_version + '/hadoop'
     hadoop_lib_dir = hadoop_home_dir + '/lib'
-   
+    hadoop_mapreduce_dir = '/usr/hdp/' + stack_version + '/hadoop-mapreduce'
+
     oozie_secure = ''
     oozie_home="/usr/hdp/" + stack_version + "/oozie"
     oozie_setup_sh=format("/usr/hdp/" + stack_version + "/oozie/bin/oozie-setup.sh")
@@ -313,7 +314,8 @@ with Environment() as env:
     Logger.info(format("Creating {yarn_service_tarball}"))
     folders = [params.yarn_home_dir, params.yarn_lib_dir, params.hdfs_home_dir, params.hdfs_lib_dir,
                params.hadoop_home_dir,
-               params.hadoop_lib_dir]
+               params.hadoop_lib_dir,
+               params.hadoop_mapreduce_dir]
     with closing(tarfile.open(params.yarn_service_tarball, "w:gz")) as tar:
       for folder in folders:
         for filepath in glob.glob(format("{folder}/*.jar")):
