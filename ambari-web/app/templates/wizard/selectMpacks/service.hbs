@@ -21,7 +21,7 @@
       {{service.displayName}} 
       <select {{action changeVersion on="change" target="view"}}>
         {{#each ver in service.versions}}
-        <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
+          <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
         {{/each}}
       </select>
     </p>
@@ -29,8 +29,8 @@
   </div>
   <div class="option-description">{{service.description}}</div>
   {{#if service.displayedVersion.selected}}
-  <button class="btn btn-default option-add-button checked"></button>
+    <button class="btn btn-default option-add-button checked disabled"></button>
   {{else}}
-  <button class="btn btn-default option-add-button" {{action add target="view"}}></button>
+    <button class="btn btn-default option-add-button" {{action add target="view"}}></button>
   {{/if}}
 </div>

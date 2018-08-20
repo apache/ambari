@@ -303,6 +303,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.save('selectedServiceNames');
         controller.save('selectedServices');
         controller.save('selectedMpacks');
+        controller.save('serviceGroups');
+        controller.save('addedServiceGroups');
+        controller.save('serviceInstances');
+        controller.save('addedServiceInstances');
         controller.save('advancedMode');
         var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
         // Clear subsequent settings if user changed service selections
@@ -415,7 +419,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       App.set('router.nextBtnClickInProgress', true);
       const controller = router.get('installerController');
       controller.save('registeredMpacks');
-      controller.save('serviceGroups');
       controller.save('selectedStack');
       const downloadConfig = controller.get('content.downloadConfig');
       if (downloadConfig && downloadConfig.useCustomRepo) {

@@ -675,7 +675,7 @@ Em.I18n.translations = {
   'installer.selectMpacks.body.header.services': 'Services',
   'installer.selectMpacks.body.selected.header': 'Selected Management Packs',
   'installer.selectMpacks.loadRegistryFailed': 'Could not load available management packs. The software registry may not be available.',
-  'installer.selectMpacks.noUsecasesAvailable': 'No use cases are available.',
+  'installer.selectMpacks.noUseCasesAvailable': 'No use cases are available.',
   'installer.selectMpacks.noMpacksAvailable': 'No management packs are available.',
   'installer.selectMpacks.noServicesAvailable': 'No services are available.',
   'installer.selectMpacks.noMpacksSelected': 'No management packs selected.',
@@ -1115,15 +1115,14 @@ Em.I18n.translations = {
   'installer.step7.preInstallChecks.notRunChecksWarnPopup.primary':'Ignore and Proceed',
   'installer.step7.preInstallChecks.notRunChecksWarnPopup.secondary':'Run Pre Install Checks',
   'installer.step7.preInstallChecks.checksPopup.header':'Pre Install Checks',
-
-
   'installer.step7.assign.master.body':'Assign <strong>{0}</strong> to {1} you want to run {2} on.',
   'installer.step7.assign.master.dependent.component.body':'If not present {0} will also be installed on the selected host. ',
   'installer.step7.missing.service.header':'Missing Service',
   'installer.step7.missing.service.body': '{0} service should be added to the cluster to {1}.',
-  'assign.master.popup.header':'Select {0} host',
-  'assign.master.popup.cancel.body':'Not selecting {0} host will disable interactive query.',
 
+  'assign.master.popup.header': 'Select {0} host',
+  'assign.master.popup.cancel.body':'Not selecting {0} host will disable interactive query.',
+  'assign.master.no.servicegroups': 'No management packs found.', //TODO - mpacks: replace "management packs" with "service groups" in the future
 
   'installer.step8.header': 'Review',
   'installer.step8.body': 'Please review the configuration before installation',

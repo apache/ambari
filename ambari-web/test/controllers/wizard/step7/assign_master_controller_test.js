@@ -295,7 +295,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
     });
   });
 
-  describe("#getAllMissingDependentServices()", function () {
+  describe("#getAllMissingDependentServices", function () {
 
     beforeEach(function() {
       sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
@@ -322,7 +322,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       App.StackService.find.restore();
     });
 
-    it("test", function() {
+    it("should return missing dependencies", function() {
       view.set('configActionComponent', Em.Object.create({
         componentName: 'C1'
       }));

@@ -17,24 +17,30 @@
 }}
 <div class="option">
   <div class="option-title">
-    <p>{{mpackVersion.mpack.displayName}} {{mpackVersion.version}}</p>
+    <p>{{serviceGroup.name}} {{serviceGroup.mpackVersion.version}}</p>
   </div>
   {{#if controller.content.advancedMode}}
-  <button class="option-remove-button" {{action removeMpack mpackVersion.id target="view" }}></button>
+    {{#if serviceGroup.canRemove}}
+      <button class="option-remove-button" {{action removeServiceGroup serviceGroup.name target="view"}}></button>
+    {{/if}}
   {{/if}}
   <div class="option-body">
-  {{#each service in mpackVersion.services}}
-    {{#if service.selected}}
+    {{#each serviceInstance in serviceGroup.serviceInstances}}
       {{#if controller.content.advancedMode}}
-      <button class="capsule capsule-selected" {{action removeService service.id target="view"}}>
-        {{service.name}}&nbsp;{{service.version}}&nbsp;<i class="icon icon-remove"></i>
-      </button>
+        {{#if serviceInstance.canRemove}}
+          <button class="capsule capsule-selected" {{action removeServiceInstance serviceInstance.id target="view"}}>
+            {{serviceInstance.name}}&nbsp;{{serviceInstance.version}}&nbsp;<i class="icon icon-remove"></i>
+          </button>
+        {{else}}
+          <button class="capsule capsule-selected">
+            {{serviceInstance.name}}&nbsp;{{serviceInstance.version}}
+          </button>
+        {{/if}}
       {{else}}
-      <button class="capsule capsule-selected">
-        {{service.name}}&nbsp;{{service.version}}
-      </button>
+        <button class="capsule capsule-selected">
+          {{serviceInstance.name}}&nbsp;{{serviceInstance.version}}
+        </button>
       {{/if}}
-    {{/if}}
-  {{/each}}
+    {{/each}}
   </div>
 </div>

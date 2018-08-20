@@ -783,8 +783,11 @@
     background-color: #ddd;
     margin-bottom: 5px;
     outline: none;
-    &:hover {
+    &:hover:not(.disabled) {
       background-color: #ccc;
+    }
+    &.disabled {
+      cursor: not-allowed;
     }
   }
 
@@ -831,6 +834,9 @@
       border-style: solid;
       border-radius: 50%;
       outline: none;
+      &.disabled {
+        border: initial;
+      }
       &.checked:after {
         content: '\f00c';
       }
