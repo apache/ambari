@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -172,7 +173,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateRangerLogDirConfigs();
     updateRangerKmsDbUrl();
-    renameAmbariInfraInConfigGroups();
+    renameAmbariInfraService();
     removeLogSearchPatternConfigs();
     updateSolrConfigurations();
   }
@@ -273,7 +274,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected void renameAmbariInfraInConfigGroups() {
+  protected void renameAmbariInfraService() {
     LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR in config group records");
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -300,6 +301,14 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
       serviceConfigUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
       serviceConfigUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
       serviceConfigUpdate.executeUpdate();
+    });
+
+    executeInTransaction(() -> {
+      TypedQuery<UpgradeHistoryEntity> upgradeHistoryUpdate = entityManager.createQuery(
+        "UPDATE UpgradeHistoryEntity SET service_name = :newServiceName WHERE service_name = :oldServiceName", UpgradeHistoryEntity.class);
+      upgradeHistoryUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
+      upgradeHistoryUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
+      upgradeHistoryUpdate.executeUpdate();
     });
 
 
