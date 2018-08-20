@@ -20,7 +20,7 @@ import java.util.Map;
 import org.apache.directory.api.ldap.model.entry.DefaultAttribute;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.entry.StringValue;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.easymock.TestSubject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -96,7 +96,7 @@ public class GroupMemberAttrDetectorTest {
       Entry entry = new DefaultEntry();
       try {
         entry.setDn("dn=" + member.name() + "-" + i);
-        entry.add(new DefaultAttribute(member.attrName(), new StringValue("xxx")));
+        entry.add(new DefaultAttribute(member.attrName(), new Value("xxx")));
         entryList.add(entry);
       } catch (Exception e) {
         LOG.error(e.getMessage());
