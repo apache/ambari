@@ -92,7 +92,7 @@ public class UpgradeCatalog271Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateRangerLogDirConfigs = UpgradeCatalog271.class.getDeclaredMethod("updateRangerLogDirConfigs");
     Method updateRangerKmsDbUrl = UpgradeCatalog271.class.getDeclaredMethod("updateRangerKmsDbUrl");
-    Method renameAmbariInfraInConfigGroups = UpgradeCatalog271.class.getDeclaredMethod("renameAmbariInfraInConfigGroups");
+    Method renameAmbariInfraInConfigGroups = UpgradeCatalog271.class.getDeclaredMethod("renameAmbariInfraService");
     Method removeLogSearchPatternConfigs = UpgradeCatalog271.class.getDeclaredMethod("removeLogSearchPatternConfigs");
     Method updateSolrConfigurations = UpgradeCatalog271.class.getDeclaredMethod("updateSolrConfigurations");
 
@@ -114,7 +114,7 @@ public class UpgradeCatalog271Test {
     upgradeCatalog271.updateRangerKmsDbUrl();
     expectLastCall().once();
 
-    upgradeCatalog271.renameAmbariInfraInConfigGroups();
+    upgradeCatalog271.renameAmbariInfraService();
     expectLastCall().once();
 
     upgradeCatalog271.removeLogSearchPatternConfigs();
