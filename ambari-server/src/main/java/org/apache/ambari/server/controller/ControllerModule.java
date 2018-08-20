@@ -57,6 +57,9 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
+import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.checks.PreUpgradeCheck;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
@@ -431,6 +434,13 @@ public class ControllerModule extends AbstractModule {
     InternalAuthenticationInterceptor ambariAuthenticationInterceptor = new InternalAuthenticationInterceptor();
     requestInjection(ambariAuthenticationInterceptor);
     bindInterceptor(any(), annotatedWith(RunWithInternalSecurityContext.class), ambariAuthenticationInterceptor);
+
+    if (configuration.isUseLegacyStackAdvisor()) {
+      bind(AdvisorBlueprintProcessor.class).to(StackAdvisorBlueprintProcessor.class);
+    }
+    else {
+      bind(AdvisorBlueprintProcessor.class).to(MpackAdvisorBlueprintProcessor.class);
+    }
   }
 
   // ----- helper methods ----------------------------------------------------

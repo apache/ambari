@@ -148,6 +148,8 @@ public interface ClusterTopology {
    */
   Stream<ResolvedComponent> getComponents();
 
+  Map<String, Set<ResolvedComponent>> getComponentsByHostgroup();
+
   /**
    * Get the components that are included in the specified host group.
    *
@@ -254,4 +256,6 @@ public interface ClusterTopology {
   Set<String> getHostNames();
 
   SecurityConfiguration getSecurity();
+
+  Set<MpackInstance> getMpacks();
 }

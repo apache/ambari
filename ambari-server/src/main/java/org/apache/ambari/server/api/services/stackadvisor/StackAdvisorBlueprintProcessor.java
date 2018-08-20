@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
@@ -49,7 +50,7 @@ import com.google.inject.Singleton;
  * Generate advised configurations for blueprint cluster provisioning by the stack advisor.
  */
 @Singleton
-public class StackAdvisorBlueprintProcessor {
+public class StackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor {
 
   private static final Logger LOG = LoggerFactory.getLogger(StackAdvisorBlueprintProcessor.class);
 

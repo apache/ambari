@@ -53,6 +53,7 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
+import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
@@ -950,6 +951,7 @@ public class AmbariServer {
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));
     StackAdvisorBlueprintProcessor.init(injector.getInstance(StackAdvisorHelper.class));
+    MpackAdvisorBlueprintProcessor.init(injector.getInstance(MpackAdvisorHelper.class), injector.getInstance(AmbariMetaInfo.class));
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
 
     BaseService.init(injector.getInstance(RequestAuditLogger.class));

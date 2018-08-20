@@ -445,10 +445,19 @@ public class Configuration {
    * The location and name of the Python mpack advisor script executed when
    * configuring services.
    */
-  @Markdown(description = "The location and name of the Python stack advisor script executed when configuring services.")
+  @Markdown(description = "The location and name of the Python mpack advisor script executed when configuring services.")
   public static final ConfigurationProperty<String> MPACK_ADVISOR_SCRIPT = new ConfigurationProperty<>(
       "mpackadvisor.script",
       AmbariPath.getPath("/var/lib/ambari-server/resources/scripts/mpack_advisor_wrapper.py"));
+
+  /**
+   * If set to true, the legacy stack advisor will be used instead of the newer mpack advisor (default value is false).
+   */
+  @Markdown(description = "If set to true, the legacy stack advisor will be used instead of the newer mpack advisor (default value is false).")
+  public static final ConfigurationProperty<Boolean> USE_LEGACY_STACK_ADVISOR = new ConfigurationProperty<>(
+    "use.legacy.stackadvisor",
+    false);
+
 
   /**
    * The name of the shell script used to wrap all invocations of Python by Ambari.
@@ -3366,6 +3375,10 @@ public class Configuration {
 
   public String getMpackAdvisorScript() {
     return getProperty(MPACK_ADVISOR_SCRIPT);
+  }
+
+  public boolean isUseLegacyStackAdvisor() {
+    return Boolean.valueOf(getProperty(USE_LEGACY_STACK_ADVISOR));
   }
 
   /**

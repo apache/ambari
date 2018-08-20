@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,9 +78,9 @@ public abstract class MpackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
   private static final String BLUEPRINT_HOST_GROUPS_NAME_PROPERTY = "name";
   private static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY = "components";
-  private static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY = "name";
-  private static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_MPACK_INSTANCE_PROPERTY = "mpack_instance";
-  private static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_SERVICE_INSTANCE_PROPERTY = "service_instance";
+  public static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY = "name";
+  public static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_MPACK_INSTANCE_PROPERTY = "mpack_instance";
+  public static final String BLUEPRINT_HOST_GROUPS_COMPONENTS_SERVICE_INSTANCE_PROPERTY = "service_instance";
 
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed_configurations";
   private static final String OPERATION_PROPERTY = "operation";
@@ -408,33 +407,24 @@ public abstract class MpackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
     Map<String, Map<String, Set<String>>> mpacksToComponentsHostsMap = new HashMap<>();
     if (null != bindingHostGroups && null != hostGroups) {
-      Iterator hgItr = hostGroups.iterator();
-      while (hgItr.hasNext()) {
-        HostGroup hostGrp = (HostGroup) hgItr.next();
+      for (HostGroup hostGrp: hostGroups) {
         String hgName = hostGrp.getName();
         Set<Map<String, String>> components = hostGrp.getComponents();
 
         Set<String> hosts = bindingHostGroups.get(hgName);
-        Iterator compItr = components.iterator();
-        while (compItr.hasNext()) {
-          Map<String, String> compValueMap = (Map<String, String>) compItr.next();
+        for (Map<String, String> compValueMap: components) {
           String compName = compValueMap.get("name");
           String compMpackname = compValueMap.get("mpack_instance");
-          Map<String, Set<String>> mpackToComponentsHostsMap = mpacksToComponentsHostsMap.get(compMpackname);
-          if (mpackToComponentsHostsMap == null) {
-            mpackToComponentsHostsMap = new HashMap<>();
-            mpacksToComponentsHostsMap.put(compMpackname, mpackToComponentsHostsMap);
-          }
+          Map<String, Set<String>> componentsHostsMap = mpacksToComponentsHostsMap.computeIfAbsent(
+            compMpackname,
+            __ -> new HashMap<>());
+
           // Check if 'compName' exists. If exists, fetch and update to its existing hosts.
           // else, add the 'compName' along with its hosts.
-          Set<String> updatedHosts = mpackToComponentsHostsMap.get(compName);
-          if (updatedHosts == null || updatedHosts.isEmpty()) {
-            mpackToComponentsHostsMap.put(compName, hosts);
-          } else {
-            // Fetch and update the existing host(s) Set.
-            updatedHosts.addAll(hosts);
-            mpackToComponentsHostsMap.put(compName, updatedHosts);
-          }
+          Set<String> updatedHosts = componentsHostsMap.computeIfAbsent(
+            compName,
+            __ -> new HashSet<>());
+          updatedHosts.addAll(hosts);
         }
       }
     }

@@ -34,6 +34,13 @@ public class ServiceInstance implements Configurable {
     this.configuration = configuration;
   }
 
+  public ServiceInstance(String name, String type, Configuration configuration, MpackInstance mpackInstance) {
+    this.name = name;
+    this.type = type;
+    this.configuration = configuration;
+    this.mpackInstance = mpackInstance;
+  }
+
   public String getName() {
     return name;
   }

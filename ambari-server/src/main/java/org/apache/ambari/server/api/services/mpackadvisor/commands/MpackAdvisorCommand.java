@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +35,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.base.Preconditions;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
@@ -164,11 +164,13 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
 
   protected abstract void validate(MpackAdvisorRequest request) throws MpackAdvisorException;
 
-  protected ObjectNode adjust(String servicesJSON, MpackAdvisorRequest request) {
+  protected ObjectNode adjust(String servicesJSON, MpackAdvisorRequest request, MpackInstance mpack) {
     try {
       ObjectNode root = (ObjectNode) this.mapper.readTree(servicesJSON);
+      Preconditions.checkNotNull(root.get(SERVICES_PROPERTY),
+        "No services found for mpack %s (%s-%s).", mpack.getMpackName(), mpack.getMpackType(), mpack.getMpackVersion());
 
-      populateComponentHostsMap(root, request.getComponentHostsMap());
+      populateComponentHostsMap(root, request.getMpackComponentHostsMap());
       populateServiceAdvisors(root);
       populateServicesConfigurations(root, request);
       populateClusterLevelConfigurations(root, request);
@@ -180,7 +182,7 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
       // should not happen
       String message = "Error parsing services.json file content: " + e.getMessage();
       LOG.warn(message, e);
-      throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(message).build());
+      throw new WebApplicationException(e, Response.status(Status.BAD_REQUEST).entity(message).build());
     }
   }
 
@@ -222,30 +224,26 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
   }
 
   private void populateServicesConfigurations(ObjectNode root, MpackAdvisorRequest request) {
-    Collection<MpackInstance> mpackInstances = request.getMpackInstances();
-    Iterator<MpackInstance> mpackInstanceItr = mpackInstances.iterator();
     ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
-    while (mpackInstanceItr.hasNext()) {
-      MpackInstance mpackInstance = mpackInstanceItr.next();
-      Collection<ServiceInstance> serviceInstances = mpackInstance.getServiceInstances();
-      Iterator<ServiceInstance> serviceInstanceItr = serviceInstances.iterator();
-      while (serviceInstanceItr.hasNext()) {
-        ServiceInstance serviceInstance = serviceInstanceItr.next();
+    for (MpackInstance mpackInstance: request.getMpackInstances()) {
+      for (ServiceInstance serviceInstance: mpackInstance.getServiceInstances()) {
         Configuration configurations = serviceInstance.getConfiguration();
-        // We have read configuration properties in attributes as it allows the following format:
-        // eg: {configType -> {attributeName -> {propName, attributeValue}}}
-        Map<String, Map<String, Map<String, String>>> configProperties = configurations.getAttributes();
-        for (String siteName : configProperties.keySet()) {
-          ObjectNode siteNode = configurationsNode.putObject(siteName);
+        if (null != configurations) {
+          // We have read configuration properties in attributes as it allows the following format:
+          // eg: {configType -> {attributeName -> {propName, attributeValue}}}
+          Map<String, Map<String, Map<String, String>>> configProperties = configurations.getAttributes();
+          for (String siteName : configProperties.keySet()) {
+            ObjectNode siteNode = configurationsNode.putObject(siteName);
 
-          Map<String, Map<String, String>> siteMap = configProperties.get(siteName);
-          for (String properties : siteMap.keySet()) {
-            ObjectNode propertiesNode = siteNode.putObject(properties);
+            Map<String, Map<String, String>> siteMap = configProperties.get(siteName);
+            for (String properties : siteMap.keySet()) {
+              ObjectNode propertiesNode = siteNode.putObject(properties);
 
-            Map<String, String> propertiesMap = siteMap.get(properties);
-            for (String propertyName : propertiesMap.keySet()) {
-              String propertyValue = propertiesMap.get(propertyName);
-              propertiesNode.put(propertyName, propertyValue);
+              Map<String, String> propertiesMap = siteMap.get(properties);
+              for (String propertyName : propertiesMap.keySet()) {
+                String propertyValue = propertiesMap.get(propertyName);
+                propertiesNode.put(propertyName, propertyValue);
+              }
             }
           }
         }
@@ -270,15 +268,9 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
 
   private void populateComponentHostsMap(ObjectNode root, Map<String, Map<String, Set<String>>> mpacksToComponentsHostsMap) {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
-    Iterator<JsonNode> servicesIter = services.getElements();
-
-    while (servicesIter.hasNext()) {
-      JsonNode service = servicesIter.next();
+    for (JsonNode service: services) {
       ArrayNode components = (ArrayNode) service.get(SERVICES_COMPONENTS_PROPERTY);
-      Iterator<JsonNode> componentsIter = components.getElements();
-
-      while (componentsIter.hasNext()) {
-        JsonNode component = componentsIter.next();
+      for (JsonNode component: components) {
         ObjectNode componentInfo = (ObjectNode) component.get(COMPONENT_INFO_PROPERTY);
         String componentMpackName = componentInfo.get(COMPONENT_MPACK_NAME_PROPERTY).getTextValue();
         String componentName = componentInfo.get(COMPONENT_NAME_PROPERTY).getTextValue();
@@ -301,14 +293,11 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
 
   protected void populateServiceAdvisors(ObjectNode root) {
     ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
-    Iterator<JsonNode> servicesIter = services.getElements();
-
     ObjectNode version = (ObjectNode) root.get("Versions");
     String stackName = version.get("stack_name").asText();
     String stackVersion = version.get("stack_version").asText();
 
-    while (servicesIter.hasNext()) {
-      JsonNode service = servicesIter.next();
+    for (JsonNode service: services) {
       ObjectNode serviceVersion = (ObjectNode) service.get(STACK_SERVICES_PROPERTY);
       String serviceName = serviceVersion.get("service_name").getTextValue();
       try {
@@ -439,9 +428,7 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
 
     try {
       JsonNode root = mapper.readTree(hostsJSON);
-      Iterator<JsonNode> iterator = root.get("items").getElements();
-      while (iterator.hasNext()) {
-        JsonNode next = iterator.next();
+      for (JsonNode next: root.get("items")) {
         String hostName = next.get("Hosts").get("host_name").getTextValue();
         registeredHosts.add(hostName);
       }
@@ -491,15 +478,14 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
         LOG.warn(message);
         throw new MpackAdvisorException(message);
       }
-
-      updatedServicesInfoForMpack = adjust(servicesInfoFromMpack, request);
+      updatedServicesInfoForMpack = adjust(servicesInfoFromMpack, request, mpackInstance);
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Services information: {}", servicesInfoFromMpack);
       }
 
-      for (Iterator<JsonNode> svcInstanceItr = updatedServicesInfoForMpack.get("services").getElements(); svcInstanceItr.hasNext(); ) {
-        updatedServicesAcrossMpacks.add(svcInstanceItr.next());
+      for (JsonNode svcInstance: updatedServicesInfoForMpack.get("services")) {
+        updatedServicesAcrossMpacks.add(svcInstance);
       }
     }
 

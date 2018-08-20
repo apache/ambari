@@ -64,11 +64,33 @@ public class MpackInstance implements Configurable {
     this.configuration = configuration;
   }
 
+  public MpackInstance(String mpackName,
+                       String mpackType,
+                       String mpackVersion,
+                       String url,
+                       Configuration configuration,
+                       Collection<ServiceInstance> serviceInstances) {
+    this.mpackName = mpackName;
+    this.mpackType = mpackType;
+    this.mpackVersion = mpackVersion;
+    this.url = url;
+    this.configuration = configuration;
+    this.serviceInstances = serviceInstances;
+  }
+
+
   public MpackInstance(String mpackName, String mpackType, String mpackVersion, Collection<ServiceInstance> serviceInstances) {
     this.mpackName = mpackName;
     this.mpackType = mpackType;
     this.mpackVersion = mpackVersion;
     this.serviceInstances = serviceInstances;
+  }
+
+  /**
+   * @return a shallow copy of this object
+   */
+  public MpackInstance copy() {
+    return new MpackInstance(mpackName, mpackType, mpackVersion, url, configuration, serviceInstances);
   }
 
   public MpackInstance() { }

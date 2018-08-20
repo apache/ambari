@@ -63,6 +63,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final Set<StackId> stackIds;
   private final StackDefinition stack;
   private final SecurityConfiguration securityConfig;
+  private final Set<MpackInstance> mpacks;
   private Long clusterId;
   private final Blueprint blueprint;
   private final Configuration configuration;
@@ -76,6 +77,17 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final Map<String, Set<ResolvedComponent>> resolvedComponents;
   private final Setting setting;
 
+  /**
+   * This is to collect configurations formerly (in Ambari 2.x) belonging to cluster-env and already migrated to
+   * cluster settings. Eventually all configurations from cluster-env should be migrated and this collection
+   * should be removed.
+   */
+  private static final Set<String> SAFE_TO_REMOVE_FROM_CLUSTER_ENV = ImmutableSet.of(
+    ConfigHelper.COMMAND_RETRY_ENABLED,
+    ConfigHelper.COMMAND_RETRY_MAX_TIME_IN_SEC,
+    ConfigHelper.COMMANDS_TO_RETRY
+  );
+
   public ClusterTopologyImpl(
     AmbariContext ambariContext,
     ExportBlueprintRequest topologyRequest,
@@ -88,6 +100,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.configuration = topologyRequest.getConfiguration();
     configRecommendationStrategy = ConfigRecommendationStrategy.getDefault();
     securityConfig = blueprint.getSecurity();
+    this.mpacks = ImmutableSet.of(); // TODO: fix
 
     provisionAction = null;
     provisionRequest = null;
@@ -102,20 +115,37 @@ public class ClusterTopologyImpl implements ClusterTopology {
     adjustTopology();
   }
 
-  /**
-   * This is to collect configurations formerly (in Ambari 2.x) belonging to cluster-env and already migrated to
-   * cluster settings. Eventually all configurations from cluster-env should be migrated and this collection
-   * should be removed.
-   */
-  private static final Set<String> SAFE_TO_REMOVE_FROM_CLUSTER_ENV = ImmutableSet.of(
-    ConfigHelper.COMMAND_RETRY_ENABLED,
-    ConfigHelper.COMMAND_RETRY_MAX_TIME_IN_SEC,
-    ConfigHelper.COMMANDS_TO_RETRY
-  );
+  public ClusterTopologyImpl(
+    AmbariContext ambariContext,
+    BlueprintBasedClusterProvisionRequest request,
+    Map<String, Set<ResolvedComponent>> resolvedComponents
+  ) throws InvalidTopologyException {
+    this.ambariContext = ambariContext;
+    this.clusterId = request.getClusterId();
+    this.blueprint = request.getBlueprint();
+    this.configuration = request.getConfiguration();
+    this.provisionRequest = request;
+    this.resolvedComponents = resolvedComponents;
+    configRecommendationStrategy =
+      Optional.ofNullable(request.getConfigRecommendationStrategy()).orElse(ConfigRecommendationStrategy.getDefault());
+    provisionAction = request.getProvisionAction();
+    securityConfig = request.getSecurity();
+
+    defaultPassword = request.getDefaultPassword();
+    stackIds = request.getStackIds();
+    stack = request.getStack();
+    setting = request.getSetting();
+    blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServiceTypes()));
+
+    this.mpacks = request.getAllMpacks();
+
+    checkForDuplicateHosts(request.getHostGroupInfo());
+    registerHostGroupInfo(request.getHostGroupInfo());
+    adjustTopology();
+  }
 
   /**
-   * This method adjusts cluster topologies coming from the Ambari 2.x blueprint structure for Ambari
-   * 3.x.
+   * This method adjusts cluster topologies coming from the Ambari 2.x blueprint structure for Ambari 3.x.
    * Currently it extract configuration from cluster-env and transforms it into cluster settings.
    */
   private void adjustTopology() {
@@ -149,33 +179,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
     Sets.intersection(propertiesToConvert, SAFE_TO_REMOVE_FROM_CLUSTER_ENV).forEach(
       prop -> configuration.removeProperty(ConfigHelper.CLUSTER_ENV, prop)
     );
-  }
-
-  public ClusterTopologyImpl(
-    AmbariContext ambariContext,
-    BlueprintBasedClusterProvisionRequest request,
-    Map<String, Set<ResolvedComponent>> resolvedComponents
-  ) throws InvalidTopologyException {
-    this.ambariContext = ambariContext;
-    this.clusterId = request.getClusterId();
-    this.blueprint = request.getBlueprint();
-    this.configuration = request.getConfiguration();
-    this.provisionRequest = request;
-    this.resolvedComponents = resolvedComponents;
-    configRecommendationStrategy =
-      Optional.ofNullable(request.getConfigRecommendationStrategy()).orElse(ConfigRecommendationStrategy.getDefault());
-    provisionAction = request.getProvisionAction();
-    securityConfig = request.getSecurity();
-
-    defaultPassword = request.getDefaultPassword();
-    stackIds = request.getStackIds();
-    stack = request.getStack();
-    setting = request.getSetting();
-    blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServiceTypes()));
-
-    checkForDuplicateHosts(request.getHostGroupInfo());
-    registerHostGroupInfo(request.getHostGroupInfo());
-    adjustTopology();
   }
 
   public ClusterTopologyImpl withAdditionalComponents(Map<String, Set<ResolvedComponent>> additionalComponents) throws InvalidTopologyException {
@@ -337,6 +340,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
       .flatMap(Collection::stream);
   }
 
+  @Override
+  public Map<String, Set<ResolvedComponent>> getComponentsByHostgroup() {
+    return resolvedComponents;
+  }
+
   @Override @Nonnull
   public Stream<ResolvedComponent> getComponentsInHostGroup(String hostGroup) {
     return resolvedComponents.computeIfAbsent(hostGroup, __ -> ImmutableSet.of()).stream();
@@ -480,6 +488,12 @@ public class ClusterTopologyImpl implements ClusterTopology {
       ).collect(toSet());
     }
   }
+
+  @Override
+  public Set<MpackInstance> getMpacks() {
+    return mpacks;
+  }
+
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {
     LOG.debug("Registering requested host group information for {} host groups", requestedHostGroupInfoMap.size());

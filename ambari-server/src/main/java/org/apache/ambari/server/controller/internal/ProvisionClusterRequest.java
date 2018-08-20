@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestMpackInstanceEntity;
@@ -202,6 +203,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     setProvisionAction(parseProvisionAction(properties));
 
     mpackInstances = BlueprintFactory.createMpackInstances(properties);
+    Preconditions.checkArgument(!getAllMpacks().isEmpty(), "No mpacks (stacks) have been defined. Cluster provisioning cannot continue.");
     stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet()); // FIXME persist these
 
     try {
