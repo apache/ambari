@@ -611,7 +611,7 @@ class Script(object):
     :return: cluster_settings object
     """
     if not Script.cluster_settings:
-      Script.cluster_settings = Script.execution_command.get_cluster_settings
+      Script.cluster_settings = Script.execution_command.get_cluster_settings()
     return Script.cluster_settings
 
   @staticmethod
@@ -621,7 +621,7 @@ class Script(object):
     :return: stack_settings object
     """
     if not Script.stack_settings:
-      Script.stack_settings = Script.execution_command.get_stack_settings
+      Script.stack_settings = Script.execution_command.get_stack_settings()
     return Script.stack_settings
 
   @staticmethod
