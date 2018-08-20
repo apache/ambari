@@ -113,7 +113,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateRangerLogDirConfigs();
     updateRangerKmsDbUrl();
-    renameAmbariInfraInConfigGroupsAndUpgradeHistory();
+    renameAmbariInfraService();
     removeLogSearchPatternConfigs();
   }
 
@@ -213,7 +213,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected void renameAmbariInfraInConfigGroupsAndUpgradeHistory() {
+  protected void renameAmbariInfraService() {
     LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR in config group records");
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
