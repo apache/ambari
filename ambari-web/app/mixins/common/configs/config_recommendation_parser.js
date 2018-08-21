@@ -158,7 +158,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         fileName = Em.get(config, 'filename'),
         group = Em.get(config, 'group.name'),
         value = Em.get(config, 'value'),
-        prevRecommeneded = Em.get(config, 'recommendedValue');
+        isUserOverriden = Em.get(config, 'didUserOverrideValue');;
     Em.set(config, 'recommendedValue', recommendedValue);
     if (this.allowUpdateProperty(parentProperties, name, fileName, group, value)) {
       var allowConfigUpdate = true;
@@ -170,7 +170,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         }
       }
 
-      if (prevRecommeneded !== value && name !== "capacity-scheduler") {
+      if (isUserOverriden && name !== "capacity-scheduler") {
         allowConfigUpdate = false;
       }
 
@@ -184,7 +184,12 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       if (!Em.isNone(recommendedValue) && !Em.get(config, 'hiddenBySection')) {
         Em.set(config, 'isVisible', true);
       }
-      this.applyRecommendation(name, fileName, group, recommendedValue, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
+      let recommendationExists = this.getRecommendation(name, fileName, group);
+      if (recommendationExists && isUserOverriden) {
+        this.removeRecommendation(name, fileName, group);
+      } else if (!isUserOverriden) {
+        this.applyRecommendation(name, fileName, group, recommendedValue, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
+      }
     }
     if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
       Em.set(config, 'initialValue', recommendedValue);
