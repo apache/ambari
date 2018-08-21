@@ -442,6 +442,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (clusterName != null) {
       STOMPUpdatePublisher.publish(new RequestUpdateEvent(requestEntity,
           hostRoleCommandDAO, topologyManager, clusterName, hostRoleCommandEntities));
+    } else {
+      LOG.debug("No STOMP request update event was fired for new request due no cluster related, " +
+              "request id: {}, command name: {}",
+          requestEntity.getRequestId(),
+          requestEntity.getCommandName());
     }
   }
 
