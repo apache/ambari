@@ -36,7 +36,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
@@ -288,16 +288,16 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     EntityManager entityManager = getEntityManagerProvider().get();
 
     executeInTransaction(() -> {
-      TypedQuery<ServiceConfigEntity> serviceConfigUpdate = entityManager.createQuery(
-              "UPDATE ConfigGroupEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", ServiceConfigEntity.class);
+      TypedQuery<ConfigGroupEntity> serviceConfigUpdate = entityManager.createQuery(
+              "UPDATE ConfigGroupEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", ConfigGroupEntity.class);
       serviceConfigUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
       serviceConfigUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
       serviceConfigUpdate.executeUpdate();
     });
 
     executeInTransaction(() -> {
-      TypedQuery<ServiceConfigEntity> serviceConfigUpdate = entityManager.createQuery(
-              "UPDATE ConfigGroupEntity SET tag = :newServiceName WHERE tag = :oldServiceName", ServiceConfigEntity.class);
+      TypedQuery<ConfigGroupEntity> serviceConfigUpdate = entityManager.createQuery(
+              "UPDATE ConfigGroupEntity SET tag = :newServiceName WHERE tag = :oldServiceName", ConfigGroupEntity.class);
       serviceConfigUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
       serviceConfigUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
       serviceConfigUpdate.executeUpdate();
@@ -305,7 +305,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
 
     executeInTransaction(() -> {
       TypedQuery<UpgradeHistoryEntity> upgradeHistoryUpdate = entityManager.createQuery(
-        "UPDATE UpgradeHistoryEntity SET service_name = :newServiceName WHERE service_name = :oldServiceName", UpgradeHistoryEntity.class);
+        "UPDATE UpgradeHistoryEntity SET serviceName = :newServiceName WHERE serviceName = :oldServiceName", UpgradeHistoryEntity.class);
       upgradeHistoryUpdate.setParameter("newServiceName", AMBARI_INFRA_NEW_NAME);
       upgradeHistoryUpdate.setParameter("oldServiceName", AMBARI_INFRA_OLD_NAME);
       upgradeHistoryUpdate.executeUpdate();
