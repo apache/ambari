@@ -279,8 +279,8 @@ public class IPAKerberosOperationHandler extends KDCKerberosOperationHandler {
     }
 
     String[] createKeytabFileCommand = (StringUtils.isEmpty(encryptionTypeSpec))
-        ? new String[]{executableIpaGetKeytab, "-s", getAdminServerHost(), "-p", principal, "-k", keytabFileDestinationPath}
-        : new String[]{executableIpaGetKeytab, "-s", getAdminServerHost(), "-e", encryptionTypeSpec, "-p", principal, "-k", keytabFileDestinationPath};
+        ? new String[]{executableIpaGetKeytab, "-s", getAdminServerHost(true), "-p", principal, "-k", keytabFileDestinationPath}
+        : new String[]{executableIpaGetKeytab, "-s", getAdminServerHost(true), "-e", encryptionTypeSpec, "-p", principal, "-k", keytabFileDestinationPath};
 
     ShellCommandUtil.Result result = executeCommand(createKeytabFileCommand);
     if (!result.isSuccessful()) {
