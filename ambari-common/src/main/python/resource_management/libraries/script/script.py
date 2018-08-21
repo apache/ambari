@@ -1133,7 +1133,7 @@ class Script(object):
     if Script.instance is None:
 
       from resource_management.libraries.functions.default import default
-      use_proxy = default("/agentConfigParams/agent/use_system_proxy_settings", True)
+      use_proxy = default("/agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True)
       if not use_proxy:
         reconfigure_urllib2_opener(ignore_system_proxy=True)
 
