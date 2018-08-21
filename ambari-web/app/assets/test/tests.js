@@ -96,6 +96,7 @@ var files = [
   'test/controllers/main/admin/highAvailability/journalNode/progress_controller_test',
   'test/controllers/main/admin/highAvailability/journalNode/step1_controller_test',
   'test/controllers/main/admin/highAvailability/journalNode/step2_controller_test',
+  'test/controllers/main/admin/highAvailability/journalNode/step3_controller_test',
   'test/controllers/main/admin/highAvailability/journalNode/step4_controller_test',
   'test/controllers/main/admin/highAvailability/journalNode/step6_controller_test',
   'test/controllers/main/admin/highAvailability/journalNode/step7_controller_test',
