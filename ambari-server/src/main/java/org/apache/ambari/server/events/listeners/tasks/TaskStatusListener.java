@@ -154,6 +154,16 @@ public class TaskStatusListener {
                 hostRoleCommand.getHostName()));
             requestsToPublish.add(new RequestUpdateEvent(hostRoleCommand.getRequestId(),
                 activeRequestMap.get(hostRoleCommand.getRequestId()).getStatus(), hostRoleCommands));
+          } else {
+            LOG.debug("No STOMP request update event was fired for host component status change due no cluster related, " +
+                    "request id: {}, role: {}, role command: {}, host: {}, task id: {}, old state: {}, new state: {}",
+                hostRoleCommand.getRequestId(),
+                hostRoleCommand.getRole(),
+                hostRoleCommand.getRoleCommand(),
+                hostRoleCommand.getHostName(),
+                hostRoleCommand.getTaskId(),
+                activeTasksMap.get(reportedTaskId).getStatus(),
+                hostRoleCommand.getStatus());
           }
         }
       }
