@@ -24,7 +24,7 @@
   <name>Isilon OneFS Ambari Management Pack</name>
   <url>http://ambari.apache.org/</url>
   <properties>
-    <minAmbariVersion>2.7.0.0</minAmbariVersion>
+    <minAmbariVersion>2.7.1.0</minAmbariVersion>
     <maxAmbariVersion></maxAmbariVersion>
     <nifiversion>1.0.0</nifiversion>
     <custom.tests>false</custom.tests>
