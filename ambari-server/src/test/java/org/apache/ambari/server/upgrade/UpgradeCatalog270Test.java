@@ -658,8 +658,8 @@ public class UpgradeCatalog270Test {
     final ResultSet resultSetMock = niceMock(ResultSet.class);
     expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
     expect(resultSetMock.next()).andReturn(Boolean.TRUE).once();
-    expect(resultSetMock.getInt(1)).andReturn(1);
-    expect(resultSetMock.getTimestamp(2)).andReturn(new Timestamp(1l));
+    expect(resultSetMock.getInt(1)).andReturn(1).anyTimes();
+    expect(resultSetMock.getTimestamp(2)).andReturn(new Timestamp(1l)).anyTimes();
     replay(connectionMock, preparedStatementMock, resultSetMock);
 
     expect(dbAccessor.updateTable(eq(USERS_TABLE), eq(temporaryColumnName), eq(1l), anyString())).andReturn(anyInt());

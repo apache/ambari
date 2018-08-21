@@ -622,7 +622,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         PreparedStatement pstmt = dbAccessor.getConnection().prepareStatement("SELECT " + USERS_USER_ID_COLUMN + ", " + USERS_CREATE_TIME_COLUMN + " FROM " + USERS_TABLE + " WHERE " + temporaryColumnName + " IS NULL ORDER BY " + USERS_USER_ID_COLUMN);
         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) {
-        currentUserCreateTimes.put(rs.getInt(1), rs.getTimestamp(2));
+        currentUserCreateTimes.put(rs.getInt(1), rs.getTimestamp(2) == null ? new Timestamp(System.currentTimeMillis()) : rs.getTimestamp(2));
       }
     }
     return currentUserCreateTimes;
