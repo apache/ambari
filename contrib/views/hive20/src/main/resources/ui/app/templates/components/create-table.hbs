@@ -21,7 +21,7 @@
     <div class="form-group {{if hasTableNameError 'has-error'}}">
       <label class="col-md-1 control-label">Name</label>
       <div class="col-md-11">
-        {{input type="text" class="form-control" placeholder="Table name" value=tableName}}
+        {{input type="text" class="form-control" placeholder="Table name" value=tableName key-up="sanitizeTableName"  }}
         {{#if hasTableNameError}}
           <span class="help-block">Name cannot be empty</span>
         {{/if}}

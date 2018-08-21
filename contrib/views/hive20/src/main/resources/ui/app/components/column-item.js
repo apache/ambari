@@ -67,6 +67,11 @@ export default Ember.Component.extend({
     delete() {
       console.log('deleting column');
       this.sendAction('columnDeleted', this.get('column'));
+    },
+
+    sanitizeColumnName() {
+      let sanitizedColumnName = DOMPurify.sanitize(this.get('column.name'));
+      this.set('column.name', sanitizedColumnName);
     }
   }
 });
