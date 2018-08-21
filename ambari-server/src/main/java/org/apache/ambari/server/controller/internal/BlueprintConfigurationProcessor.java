@@ -1943,7 +1943,7 @@ public class BlueprintConfigurationProcessor {
 
             throw new IllegalArgumentException(
               String.format("Unable to update configuration property '%s' with topology information. " +
-                "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
+                "Component '%s' is mapped to an invalid number of host groups '%s'.", propertyName, component, matchingGroupCount));
           }
         }
       }
@@ -2946,8 +2946,8 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.log.server.web-service.url", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
 
     // TIMELINE_READER
-    yarnSiteMap.put("yarn.timeline-service.reader.webapp.address", new SingleHostTopologyUpdater("TIMELINE_READER"));
-    yarnSiteMap.put("yarn.timeline-service.reader.webapp.https.address", new SingleHostTopologyUpdater("TIMELINE_READER"));
+    yarnSiteMap.put("yarn.timeline-service.reader.webapp.address", new MultipleHostTopologyUpdater("TIMELINE_READER"));
+    yarnSiteMap.put("yarn.timeline-service.reader.webapp.https.address", new MultipleHostTopologyUpdater("TIMELINE_READER"));
 
     // HIVE_SERVER
     hiveSiteMap.put("hive.server2.authentication.ldap.url", new SingleHostTopologyUpdater("HIVE_SERVER2"));
