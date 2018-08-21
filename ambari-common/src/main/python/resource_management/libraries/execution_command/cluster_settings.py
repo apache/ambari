@@ -39,7 +39,7 @@ class ClusterSettings(object):
   def is_cluster_security_enabled(self):
     """
     Check cluster security enabled or not
-    :return: "True" or "False" string
+    :return: True or False
     """
     security_enabled = self.__get_value("security_enabled")
     return True if security_enabled.lower() == "true" else False
@@ -54,7 +54,7 @@ class ClusterSettings(object):
   def check_recovery_enabled(self):
     """
     Check if the cluster can be enabled or not
-    :return: "True" or "False" string
+    :return: True or False
     """
     recovery_enabled =  self.__get_value("recovery_enabled")
     return True if recovery_enabled.lower() == "true" else False
@@ -104,7 +104,7 @@ class ClusterSettings(object):
   def check_override_uid(self):
     """
     Check if override_uid is true or false
-    :return: "true" or "false" string
+    :return: True or False
     """
     override_uid =  self.__get_value("override_uid")
     return True if override_uid and override_uid.lower() == "true" else False
@@ -112,7 +112,7 @@ class ClusterSettings(object):
   def check_sysprep_skip_copy_fast_jar_hdfs(self):
     """
     Check sysprep_skip_copy_fast_jar_hdfs is true or false
-    :return: "true" or "false" string
+    :return: True or False
     """
     skip = self.__get_value("sysprep_skip_copy_fast_jar_hdfs")
     return True if skip and skip.lower() == "true" else False
@@ -120,7 +120,7 @@ class ClusterSettings(object):
   def check_sysprep_skip_setup_jce(self):
     """
     Check sysprep_skip_setup_jce is true or false
-    :return: "true" or "false" string
+    :return: True or False
     """
     skip = self.__get_value("sysprep_skip_setup_jce")
     return True if skip and skip.lower() == "true" else False
@@ -128,7 +128,7 @@ class ClusterSettings(object):
   def check_sysprep_skip_create_users_and_groups(self):
     """
     Check sysprep_skip_copy_create_users_and_groups is true or false
-    :return: "true" or "false" string
+    :return: True or False
     """
     skip = self.__get_value("sysprep_skip_create_users_and_groups")
     return True if skip and skip.lower() == "true" else False
@@ -136,7 +136,7 @@ class ClusterSettings(object):
   def check_ignore_groupsusers_create(self):
     """
     Check ignore_groupsuers_create is true or false
-    :return: "true" or "false" string
+    :return: True or False
     """
     ignored = self.__get_value("ignore_groupsusers_create")
     return True if ignored and ignored.lower() == "true" else False
@@ -144,7 +144,7 @@ class ClusterSettings(object):
   def check_fetch_nonlocal_groups(self):
     """
     Check fetch_nonlocal_group is true or false
-    :return: "true" or "false" string
+    :return: True or False
     """
     fetch_nonlocal_group = self.__get_value("fetch_nonlocal_groups")
     return True if fetch_nonlocal_group and fetch_nonlocal_group.lower() == "true" else False
