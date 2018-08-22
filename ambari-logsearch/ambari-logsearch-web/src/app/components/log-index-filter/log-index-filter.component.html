@@ -41,7 +41,7 @@
           <input type="checkbox" attr.id="{{component.name}}"
                  [attr.checked]="isAllLevelsCheckedForComponent(component.name) ? 'checked' : null"
                  (change)="processAllLevelsForComponent(component.name, $event.target.checked)">
-          <label attr.for="{{component.name}}">{{component.label}}</label>
+          <label attr.for="{{component.name}}">{{component.label  | componentLabel | async}}</label>
         </td>
         <td *ngFor="let levelName of levelNames" class="checkbox-column">
           <input type="checkbox" attr.id="{{getCheckBoxId(component.name, levelName)}}"
