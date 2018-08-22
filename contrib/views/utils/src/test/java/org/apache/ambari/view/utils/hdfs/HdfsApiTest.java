@@ -23,7 +23,10 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
+import org.apache.hadoop.io.erasurecode.ECSchema;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,6 +35,11 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
+
+import static org.apache.ambari.view.utils.hdfs.HdfsApi.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HdfsApiTest {
   private FileSystem fs;
@@ -61,6 +69,61 @@ public class HdfsApiTest {
     hdfsCluster.shutdown();
   }
 
+  @Test
+  public void testWith_EC_And_Encryption(){
+//    Have to mock DummyFileStatus, because we cannot rely on internal class of hdfs
+    DummyFileStatus fileStatus = mock(DummyFileStatus.class);
+    FsPermission fsPermission = new FsPermission((short)0777);
+    String ecPolicyName = "Some-EC-Policy";
+    ECSchema ecSchema = new ECSchema("someSchema", 1, 1);
+    ErasureCodingPolicy erasureCodingPolicy = new ErasureCodingPolicy(ecPolicyName, ecSchema, 1024, (byte)0);
+    when(fileStatus.getPermission()).thenReturn(fsPermission);
+    when(fileStatus.getPath()).thenReturn(new Path("/test/path"));
+    when(fileStatus.getErasureCodingPolicy()).thenReturn(erasureCodingPolicy);
+    when(fileStatus.isErasureCoded()).thenReturn(true);
+    when(fileStatus.isEncrypted()).thenReturn(true);
+    Map<String, Object> json = hdfsApi.fileStatusToJSON(fileStatus);
+
+    Assert.assertEquals(Boolean.TRUE, json.get(KeyIsErasureCoded));
+    Assert.assertEquals(Boolean.TRUE, json.get(KeyIsEncrypted));
+    Assert.assertEquals(json.get(KeyErasureCodingPolicyName), ecPolicyName);
+  }
+
+  @Test
+  public void testWithout_EC_And_Encryption(){
+//    Have to mock DummyFileStatus, because we cannot rely on internal class of hdfs
+    FsPermission fsPermission = new FsPermission((short)0777);
+
+    DummyFileStatus fileStatus = mock(DummyFileStatus.class);
+    when(fileStatus.getPermission()).thenReturn(fsPermission);
+
+    when(fileStatus.getPath()).thenReturn(new Path("/test/path"));
+    when(fileStatus.getErasureCodingPolicy()).thenReturn(null);
+    when(fileStatus.isErasureCoded()).thenReturn(false);
+    when(fileStatus.isEncrypted()).thenReturn(false);
+    Map<String, Object> json = hdfsApi.fileStatusToJSON(fileStatus);
+
+    Assert.assertEquals(Boolean.FALSE, json.get(KeyIsErasureCoded));
+    Assert.assertEquals(Boolean.FALSE, json.get(KeyIsEncrypted));
+    Assert.assertNull(json.get(KeyErasureCodingPolicyName));
+  }
+
+  @Test
+  public void testNonHdfsFileStatus(){
+//    Have to mock DummyNonHdfsFileStatus, because we cannot rely on internal class of hdfs
+    DummyNonHdfsFileStatus fileStatus = mock(DummyNonHdfsFileStatus.class);
+    FsPermission fsPermission = new FsPermission((short)0777);
+    when(fileStatus.getPermission()).thenReturn(fsPermission);
+    when(fileStatus.getPath()).thenReturn(new Path("/test/path"));
+
+    when(fileStatus.isErasureCoded()).thenReturn(false);
+    when(fileStatus.isEncrypted()).thenReturn(false);
+    Map<String, Object> json = hdfsApi.fileStatusToJSON(fileStatus);
+
+    Assert.assertEquals(Boolean.FALSE, json.get(KeyIsErasureCoded));
+    Assert.assertEquals( Boolean.FALSE,json.get(KeyIsEncrypted));
+    Assert.assertNull(json.get(KeyErasureCodingPolicyName));
+  }
   @Test
   public void filterAndTruncateDirStatus() throws Exception {
     {
