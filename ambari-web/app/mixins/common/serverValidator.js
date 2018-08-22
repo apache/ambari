@@ -197,8 +197,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       name: 'config.validations',
       sender: this,
       data: validationData,
-      success: 'validationSuccess',
-      error: 'validationError'
+      success: 'validationSuccess'
     });
   },
 
@@ -374,9 +373,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var parsed = this.parseValidation(data);
     this.set('configErrorList', this.collectAllIssues(parsed.configErrorsMap, parsed.generalErrors));
   },
-
-  validationError: Em.K,
-
+  
   valueObserver: function () {
     var self = this;
     if (this.get('isInstallWizard') && this.get('currentTabName') === 'all-configurations') {
