@@ -30,13 +30,6 @@ select.form-control {
   }
 }
 
-.popover {
-  word-wrap: break-word;  
-  small {
-    font-size: 1.3rem;
-  }
-}
-
 .alert {
   & > ul, ol {
     padding-left: inherit;
@@ -140,10 +133,17 @@ select.form-control {
 }
 
 .popover {
+  word-wrap: break-word;
   z-index: 10000;
   width: 350px;
   .popover-inner {
     word-wrap: break-word;
+  }
+  .popover-content {
+    white-space: pre-line;
+  }
+  small {
+    font-size: 1.3rem;
   }
 }
 

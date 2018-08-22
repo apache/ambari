@@ -475,7 +475,7 @@ App.config = Em.Object.create({
     var additionalDescription = Em.I18n.t('services.service.config.password.additionalDescription');
     if ('password' === displayType) {
       if (description && !description.contains(additionalDescription)) {
-        return description + '<br />' + additionalDescription;
+        return description + '\n' + additionalDescription;
       } else {
         return additionalDescription;
       }

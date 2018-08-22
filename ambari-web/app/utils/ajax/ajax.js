@@ -3446,7 +3446,7 @@ var ajax = Em.Object.extend({
    * Upon error with one of these statuses modal should be displayed
    * @type {Array}
    */
-  statuses: ['500', '401', '407', '413'],
+  statuses: [500, 401, 407, 413],
 
   /**
    * defaultErrorHandler function is referred from App.ajax.send function and App.HttpClient.defaultErrorHandler function
