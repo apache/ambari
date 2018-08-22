@@ -50,6 +50,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
   },
 
   reconfigureServices: function () {
+    var servicesModel = App.Service.find();
     var configs = [];
     var data = this.get('content.serviceConfigProperties');
     var note = Em.I18n.t('admin.nameNodeFederation.wizard,step4.save.configuration.note');
@@ -58,10 +59,17 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
         desired_config: this.reconfigureSites(['hdfs-site'], data, note)
       }
     });
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+    if (servicesModel.someProperty('serviceName', 'RANGER')) {
       configs.push({
         Clusters: {
           desired_config: this.reconfigureSites(['ranger-tagsync-site'], data, note)
+        }
+      });
+    }
+    if (servicesModel.someProperty('serviceName', 'ACCUMULO')) {
+      configs.push({
+        Clusters: {
+          desired_config: this.reconfigureSites(['accumulo-site'], data, note)
         }
       });
     }
