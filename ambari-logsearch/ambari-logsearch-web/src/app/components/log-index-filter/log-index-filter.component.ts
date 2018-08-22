@@ -20,6 +20,7 @@ import {Component, OnInit, Output, EventEmitter, forwardRef, OnDestroy} from '@a
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
+import {Subscription} from 'rxjs/Subscription';
 import {Moment} from 'moment';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
@@ -30,7 +31,6 @@ import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {HostsService} from '@app/services/storage/hosts.service';
-import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'log-index-filter',
@@ -63,7 +63,7 @@ export class LogIndexFilterComponent implements OnInit, OnDestroy, ControlValueA
     return clusterNames.map(this.utils.getListItemFromString);
   });
 
-  activeClusterName: string = '';
+  activeClusterName = '';
 
   private subscriptions: Subscription[] = [];
 
