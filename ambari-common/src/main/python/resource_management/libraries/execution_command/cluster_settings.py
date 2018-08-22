@@ -42,7 +42,7 @@ class ClusterSettings(object):
     :return: True or False
     """
     security_enabled = self.__get_value("security_enabled")
-    return True if security_enabled.lower() == "true" else False
+    return True if security_enabled and security_enabled.lower() == "true" else False
 
   def get_recovery_max_count(self):
     """
@@ -57,7 +57,7 @@ class ClusterSettings(object):
     :return: True or False
     """
     recovery_enabled =  self.__get_value("recovery_enabled")
-    return True if recovery_enabled.lower() == "true" else False
+    return True if recovery_enabled and recovery_enabled.lower() == "true" else False
 
   def get_recovery_type(self):
     """
