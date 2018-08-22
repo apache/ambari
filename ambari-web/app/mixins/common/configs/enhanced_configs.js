@@ -628,14 +628,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   },
 
   /**
-   * disable saving recommended value for current config
+   * disable saving recommended value for current config. Remove recommendation for useroverriden values
    * @param config
    * @param {boolean} saveRecommended
    * @method removeCurrentFromDependentList
    */
   removeCurrentFromDependentList: function (config, saveRecommended) {
-    var recommendation = this.getRecommendation(config.get('name'), config.get('filename'), config.get('group.name'));
-    if (recommendation) this.saveRecommendation(recommendation, saveRecommended);
+    let name = config.get('name'),
+      fileName = config.get('filename'),
+      group = config.get('group.name');
+    var recommendation = this.getRecommendation(name, fileName, group);
+    if (recommendation) {
+      if (config.get('didUserOverrideValue')) {
+        this.removeRecommendation(name, fileName, group);
+      } else {
+        this.saveRecommendation(recommendation, saveRecommended);
+      }
+    }
   },
 
   updateAttributesFromTheme: function (serviceName) {
