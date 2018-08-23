@@ -13,34 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-STACKS_FOLDER="/var/lib/ambari-agent/cache/stacks"
-STACKS_FOLDER_OLD=/var/lib/ambari-agent/cache/stacks_$(date '+%d_%m_%y_%H_%M').old
 
-COMMON_SERVICES_FOLDER="/var/lib/ambari-agent/cache/common-services"
-COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-agent/cache/common-services_$(date '+%d_%m_%y_%H_%M').old
+do_backups(){
+  local etc_dir="/etc/ambari-agent"
+  local var_dir="/var/lib/ambari-agent"
+  local sudoers_dir="/etc/sudoers.d"
 
-if [ -d "/etc/ambari-agent/conf.save" ]
-then
-    mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
-fi
+  # format: title note source target
+  local backup_folders="stack folders::${var_dir}/cache/stacks:${var_dir}/cache/stacks_$(date '+%d_%m_%y_%H_%M').old
+common services folder::${var_dir}/cache/common-services:${var_dir}/cache/common-services_$(date '+%d_%m_%y_%H_%M').old
+ambari-agent.ini::${etc_dir}/conf/ambari-agent.ini:${etc_dir}/conf/ambari-agent.ini.old
+sudoers:Please restore the file if you were using it for ambari-agent non-root functionality:${sudoers_dir}/ambari-agent:${sudoers_dir}/ambari-agent.bak"
 
-BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
-ORIG=/etc/ambari-agent/conf/ambari-agent.ini
+  echo "${backup_folders}" | while IFS=: read title notes source target; do
+    if [ -e "${source}" ]; then
+      echo -n "Moving ${title}: ${source} -> ${target}"
 
-BAK_SUDOERS=/etc/sudoers.d/ambari-agent.bak
-ORIG_SUDOERS=/etc/sudoers.d/ambari-agent
+      if [ ! -z ${notes} ]; then
+        echo ", ${notes}"
+      else
+        echo ""
+      fi
 
-[ -f $ORIG ] && mv -f $ORIG $BAK
-[ -f $ORIG_SUDOERS ] && echo "Moving $ORIG_SUDOERS to $BAK_SUDOERS. Please restore the file if you were using it for ambari-agent non-root functionality" && mv -f $ORIG_SUDOERS $BAK_SUDOERS
+      mv -f "${source}" "${target}"
+    fi
+  done
+}
 
-if [ -d "$STACKS_FOLDER" ]
-then
-    mv -f "$STACKS_FOLDER" "$STACKS_FOLDER_OLD"
-fi
-
-if [ -d "$COMMON_SERVICES_FOLDER" ]
-then
-    mv -f "$COMMON_SERVICES_FOLDER" "$COMMON_SERVICES_FOLDER_OLD"
-fi
+do_backups
 
 exit 0

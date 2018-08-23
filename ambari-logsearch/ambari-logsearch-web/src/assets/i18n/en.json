@@ -12,6 +12,7 @@
 
   "dropdown.selection": "Selected ({{total}})",
   "dropdown.selection.clear": "(Clear)",
+  "dropdown.selection.clearToDefault": "(Set defaults)",
   "dropdown.selection.all": "All {{listName}} ({{total}})",
 
   "modal.submit": "OK",

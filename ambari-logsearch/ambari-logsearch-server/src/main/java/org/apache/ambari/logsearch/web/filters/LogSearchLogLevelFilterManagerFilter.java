@@ -21,7 +21,7 @@ package org.apache.ambari.logsearch.web.filters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.VResponse;
-import org.apache.ambari.logsearch.conf.global.SolrLogLevelFilterManagerState;
+import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,14 +44,14 @@ public class LogSearchLogLevelFilterManagerFilter implements Filter {
   private static final String SOLR_FILTER_MANAGER_NOT_AVAILABLE = "Solr log level filter manager is not available";
 
   private final RequestMatcher requestMatcher;
-  private final SolrLogLevelFilterManagerState solrLogLevelFilterManagerState;
+  private final LogLevelFilterManagerState logLevelFilterManagerState;
   private final boolean enabled;
 
   public LogSearchLogLevelFilterManagerFilter(RequestMatcher requestMatcher,
-                                              SolrLogLevelFilterManagerState solrLogLevelFilterManagerState,
+                                              LogLevelFilterManagerState logLevelFilterManagerState,
                                               boolean enabled) {
     this.requestMatcher = requestMatcher;
-    this.solrLogLevelFilterManagerState = solrLogLevelFilterManagerState;
+    this.logLevelFilterManagerState = logLevelFilterManagerState;
     this.enabled = enabled;
   }
 
@@ -84,7 +84,7 @@ public class LogSearchLogLevelFilterManagerFilter implements Filter {
   }
 
   private VResponse getErrorResponse() {
-    if (!solrLogLevelFilterManagerState.isLogLevelFilterManagerIsReady()) {
+    if (!logLevelFilterManagerState.isLogLevelFilterManagerIsReady()) {
       return RESTErrorUtil.createMessageResponse(SOLR_FILTER_MANAGER_NOT_AVAILABLE, MessageEnums.SOLR_CONFIGURATION_API_SOLR_NOT_AVAILEBLE);
     }
 

@@ -60,6 +60,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
+import org.apache.ambari.server.events.ClusterProvisionStartedEvent;
 import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
@@ -339,6 +340,7 @@ public class TopologyManager {
     StackId stackId = Iterables.getFirst(topology.getStackIds(), null); // FIXME need for stackId in ClusterRequest will be removed
     ambariContext.persistInstallStateForUI(clusterName, stackId);
     clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
+    ambariEventPublisher.publish(new ClusterProvisionStartedEvent(clusterId));
     return getRequestStatus(logicalRequest.getRequestId());
   }
 

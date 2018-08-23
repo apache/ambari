@@ -436,8 +436,18 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     TaskCreateEvent taskCreateEvent = new TaskCreateEvent(hostRoleCommands);
     taskEventPublisher.publish(taskCreateEvent);
     List<HostRoleCommandEntity> hostRoleCommandEntities = hostRoleCommandDAO.findByRequest(requestEntity.getRequestId());
-    STOMPUpdatePublisher.publish(new RequestUpdateEvent(requestEntity,
-        hostRoleCommandDAO, topologyManager, clusterName, hostRoleCommandEntities));
+
+    // "requests" STOMP topic is used for clusters related requests only.
+    // Requests without clusters (like host checks) should be posted to divided topic.
+    if (clusterName != null) {
+      STOMPUpdatePublisher.publish(new RequestUpdateEvent(requestEntity,
+          hostRoleCommandDAO, topologyManager, clusterName, hostRoleCommandEntities));
+    } else {
+      LOG.debug("No STOMP request update event was fired for new request due no cluster related, " +
+              "request id: {}, command name: {}",
+          requestEntity.getRequestId(),
+          requestEntity.getCommandName());
+    }
   }
 
   @Override

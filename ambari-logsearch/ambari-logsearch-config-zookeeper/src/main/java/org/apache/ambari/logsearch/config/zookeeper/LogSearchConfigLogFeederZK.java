@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.ambari.logsearch.config.api.LogLevelFilterManager;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
-import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.json.JsonHelper;
 import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
 import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
@@ -47,20 +46,14 @@ import com.google.gson.JsonParser;
 public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements LogSearchConfigLogFeeder {
   private static final Logger LOG = LoggerFactory.getLogger(LogSearchConfigLogFeederZK.class);
 
-  private static final long WAIT_FOR_ROOT_SLEEP_SECONDS = 10;
-
   private TreeCache logFeederClusterCache;
 
   @Override
   public void init(Map<String, String> properties, String clusterName) throws Exception {
     super.init(properties);
-    while (client.checkExists().forPath("/") == null) {
-      LOG.info("Root node is not present yet, going to sleep for " + WAIT_FOR_ROOT_SLEEP_SECONDS + " seconds");
-      Thread.sleep(WAIT_FOR_ROOT_SLEEP_SECONDS * 1000);
-    }
-    
-    logFeederClusterCache = new TreeCache(client, String.format("/%s", clusterName));
-    LogLevelFilterManager logLevelFilterManager = new LogLevelFilterManagerZK(client, null, getAcls(), gson);
+    LogSearchConfigZKHelper.waitUntilRootAvailable(client);
+    logFeederClusterCache = LogSearchConfigZKHelper.createClusterCache(client, clusterName);
+    LogLevelFilterManager logLevelFilterManager = new LogLevelFilterManagerZK(client, null, LogSearchConfigZKHelper.getAcls(properties), gson);
     setLogLevelFilterManager(logLevelFilterManager);
   }
 
@@ -99,7 +92,7 @@ public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements Log
         if (event.getData().getPath().startsWith(configPathStab + "input/")) {
           handleInputConfigChange(eventType, nodeName, nodeData);
         } else if (event.getData().getPath().startsWith(configPathStab + "loglevelfilter/")) {
-          handleLogLevelFilterChange(eventType, nodeName, nodeData);
+          LogSearchConfigZKHelper.handleLogLevelFilterChange(eventType, nodeName, nodeData, gson, logLevelFilterMonitor);
         }
       }
 
@@ -143,23 +136,6 @@ public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements Log
           LOG.error("Could not load input configuration for service " + serviceName + ":\n" + inputConfig, e);
         }
       }
-
-      private void handleLogLevelFilterChange(Type eventType, String nodeName, String nodeData) {
-        switch (eventType) {
-          case NODE_ADDED:
-          case NODE_UPDATED:
-            LOG.info("Node added/updated under loglevelfilter ZK node: " + nodeName);
-            LogLevelFilter logLevelFilter = gson.fromJson(nodeData, LogLevelFilter.class);
-            logLevelFilterMonitor.setLogLevelFilter(nodeName, logLevelFilter);
-            break;
-          case NODE_REMOVED:
-            LOG.info("Node removed loglevelfilter input ZK node: " + nodeName);
-            logLevelFilterMonitor.removeLogLevelFilter(nodeName);
-            break;
-          default:
-            break;
-        }
-      }
     };
     logFeederClusterCache.getListenable().addListener(listener);
     logFeederClusterCache.start();
@@ -173,7 +149,7 @@ public class LogSearchConfigLogFeederZK extends LogSearchConfigZK implements Log
       if (logFeederClusterCache.getCurrentData(globalConfigNodePath) != null) {
         client.setData().forPath(globalConfigNodePath, data.getBytes());
       } else {
-        client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(globalConfigNodePath, data.getBytes());
+        client.create().creatingParentContainersIfNeeded().withACL(LogSearchConfigZKHelper.getAcls(properties)).forPath(globalConfigNodePath, data.getBytes());
       }
     } catch (Exception e) {
       LOG.warn("Exception during global config node creation/update", e);

@@ -201,7 +201,7 @@ class _TestRecoveryManager(TestCase):
     self.assertFalse(rm.execute("NODEMANAGER2"))
 
   def test_recovery_required(self):
-    rm = RecoveryManager(True, False)
+    rm = RecoveryManager(MagicMock(), False)
     rm.update_config(12, 5, 1, 15, True, False, False, )
     rm.update_recovery_config({'recoveryConfig':{'components':[
       {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
@@ -235,7 +235,7 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
-    rm = RecoveryManager(True, True)
+    rm = RecoveryManager(MagicMock(), True)
 
     rm.update_current_status("NODEMANAGER", "INIT")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
@@ -251,7 +251,7 @@ class _TestRecoveryManager(TestCase):
 
   def test_recovery_required2(self):
 
-    rm = RecoveryManager(True, True)
+    rm = RecoveryManager(MagicMock(), True)
     rm.update_config(15, 5, 1, 16, True, False, False)
     rm.update_recovery_config({'recoveryConfig':{'components':[
       {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
@@ -260,7 +260,7 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
-    rm = RecoveryManager( True, True)
+    rm = RecoveryManager( MagicMock(), True)
     rm.update_config(15, 5, 1, 16, True, False, False)
     rm.update_recovery_config({'recoveryConfig':{'components':[
       {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
@@ -273,7 +273,7 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("DATANODE", "STARTED")
     self.assertFalse(rm.requires_recovery("DATANODE"))
 
-    rm = RecoveryManager(True, True)
+    rm = RecoveryManager(MagicMock(), True)
     rm.update_config(15, 5, 1, 16, True, False, False)
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
@@ -346,7 +346,7 @@ class _TestRecoveryManager(TestCase):
     time_mock.side_effect = \
       [1000, 1001, 1104, 1105, 1106, 1807, 1808, 1809, 1810, 1811, 1812]
 
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(MagicMock())
     rm.update_config(5, 5, 0, 11, True, False, False)
 
     command1 = copy.deepcopy(self.command)
@@ -428,7 +428,7 @@ class _TestRecoveryManager(TestCase):
   def test_reset_if_window_passed_since_last_attempt(self, time_mock):
     time_mock.side_effect = \
       [1000, 1071, 1372]
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(MagicMock())
 
     rm.update_config(2, 5, 1, 4, True, True, False)
 
@@ -447,7 +447,7 @@ class _TestRecoveryManager(TestCase):
   @patch.object(RecoveryManager, "_now_")
   def test_is_action_info_stale(self, time_mock):
 
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(MagicMock())
     rm.update_config(5, 60, 5, 16, True, False, False)
 
     time_mock.return_value = 0

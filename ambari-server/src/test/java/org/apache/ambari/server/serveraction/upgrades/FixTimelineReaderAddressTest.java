@@ -67,7 +67,7 @@ public class FixTimelineReaderAddressTest extends EasyMockSupport {
     expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(config).anyTimes();
     expect(config.getProperties()).andReturn(new HashMap<String, String>() {{
       put("yarn.timeline-service.reader.webapp.address", "localhost:8080");
-      put("yarn.timeline-service.reader.webapp.https.address", "localhost:8081");
+      put("yarn.timeline-service.reader.webapp.https.address", "{{timeline_reader_address_https}}");
     }}).anyTimes();
     expect(yarn.getServiceComponent("TIMELINE_READER")).andReturn(timelineReader).anyTimes();
     expect(timelineReader.getServiceComponentHosts()).andReturn(new HashMap<String, ServiceComponentHost>(){{
@@ -82,7 +82,7 @@ public class FixTimelineReaderAddressTest extends EasyMockSupport {
     }});
     expectLastCall();
     config.updateProperties(new HashMap<String, String>() {{
-      put("yarn.timeline-service.reader.webapp.https.address", "newhost:8081");
+      put("yarn.timeline-service.reader.webapp.https.address", "newhost:8199");
     }});
     expectLastCall();
     replayAll();

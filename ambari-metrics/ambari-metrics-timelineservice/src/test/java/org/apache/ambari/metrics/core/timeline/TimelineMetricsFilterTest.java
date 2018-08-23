@@ -27,7 +27,6 @@ import org.easymock.EasyMock;
 import org.junit.Test;
 
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -91,9 +90,7 @@ public class TimelineMetricsFilterTest {
     expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
     replay(configuration);
 
-    URL fileUrl = ClassLoader.getSystemResource("test_data/metric_blacklist.dat");
-
-    metricsConf.set("timeline.metrics.blacklist.file", fileUrl.getPath());
+    metricsConf.set("timeline.metrics.blacklist.file", getTestBlacklistFilePath());
     TimelineMetricsFilter.initializeMetricFilter(configuration);
 
     TimelineMetric timelineMetric = new TimelineMetric();
@@ -183,8 +180,7 @@ public class TimelineMetricsFilterTest {
     metricsConf.set("timeline.metrics.apps.whitelist", "namenode,nimbus");
     metricsConf.set("timeline.metrics.apps.blacklist", "datanode,kafka_broker");
     metricsConf.set("timeline.metrics.whitelist.file", getTestWhitelistFilePath());
-    URL fileUrl2 = ClassLoader.getSystemResource("test_data/metric_blacklist.dat");
-    metricsConf.set("timeline.metrics.blacklist.file", fileUrl2.getPath());
+    metricsConf.set("timeline.metrics.blacklist.file", getTestBlacklistFilePath());
     expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
 
     Set<String> whitelist = new HashSet<>();
@@ -255,5 +251,9 @@ public class TimelineMetricsFilterTest {
 
   private static String getTestWhitelistFilePath() throws URISyntaxException {
     return ClassLoader.getSystemResource("test_data/metric_whitelist.dat").toURI().getPath();
+  }
+
+  private static String getTestBlacklistFilePath() throws URISyntaxException {
+    return ClassLoader.getSystemResource("test_data/metric_blacklist.dat").toURI().getPath();
   }
 }

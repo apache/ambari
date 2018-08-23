@@ -98,6 +98,9 @@ public class LogFeederConstants {
   public static final String USE_SOLR_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.solr.enabled";
   public static final boolean USE_SOLR_FILTER_STORAGE_DEFAULT = false;
 
+  public static final String USE_ZK_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.zk.enabled";
+  public static final boolean USE_ZK_FILTER_STORAGE_DEFAULT = false;
+
   public static final String MONITOR_SOLR_FILTER_STORAGE_PROPERTY = "logfeeder.configs.filter.solr.monitor.enabled";
   public static final boolean MONITOR_SOLR_FILTER_STORAGE_DEFAULT = true;
 

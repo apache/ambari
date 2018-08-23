@@ -170,12 +170,8 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         }
       }
 
-      if (prevRecommeneded !== value) {
+      if (prevRecommeneded !== value && name !== "capacity-scheduler") {
         allowConfigUpdate = false;
-      }
-
-      if (name === "capacity-scheduler") {
-        allowConfigUpdate = this.compareCapacitySchedulerValues(prevRecommeneded, value);
       }
 
       if (allowConfigUpdate) {
@@ -196,46 +192,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     Em.tryInvoke(config, 'validate');
     return config;
   },
-
-  /**
-   * Configs with value across multiple lines could have them in a different order
-   * Eg: capacity-scheduler
-   *
-   * @param {String} prevRec
-   * @param {String} value
-   * @returns {Boolean}
-   * @method isPrevRecAndValueEqual
-   */
-
-  compareCapacitySchedulerValues: function (prevRec, value) {
-
-
-    let prevRecArr = prevRec.split("\n");
-    let valueArr = value.split("\n");
-
-    //first value being added is capacity-scheduler=null. Remove that for comparison
-    if (valueArr[0].includes("capacity-scheduler")) {
-      valueArr = valueArr.splice(1);
-    }
-
-    if (prevRecArr.length !== valueArr.length) {
-      return false;
-    }
-    if (prevRecArr.length < 2 || valueArr.length < 2) {
-      return prevRec === value;
-    }
-    let strMap = {};
-    for (var i=0; i <prevRecArr.length; i++) {
-      strMap[prevRecArr[i]] = true;
-    }
-    for (var i=0; i<valueArr.length; i++) {
-      if (!strMap[valueArr[i]]) {
-        return false;
-      }
-    }
-    return true;
-  },
-
+  
   /**
    * Add config based on recommendations
    *
