@@ -19,6 +19,7 @@
 import Ember from 'ember';
 import Helper from '../configs/helpers';
 import FileFormats from '../configs/file-format';
+import { sanitize } from 'dom-purify';
 
 export default Ember.Component.extend({
   init() {
@@ -42,6 +43,11 @@ export default Ember.Component.extend({
   actions: {
     activate(link) {
       console.log("Activate: ", link);
+    },
+
+    sanitizeTableName() {
+      let sanitizedTableName = DOMPurify.sanitize(this.get('tableName'));
+      this.set('tableName', sanitizedTableName);
     },
 
     create() {

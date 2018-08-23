@@ -18,7 +18,7 @@
 
 <td>
   <div class="{{if column.nameError 'has-error'}}">
-    {{input type="text" class="form-control" value=column.name disabled=(not column.editing)}}
+    {{input type="text" class="form-control" value=column.name key-up="sanitizeColumnName" disabled=(not column.editing)}}
     {{#if column.nameError}}
       <span class="help-block">{{column.nameError.error}}</span>
     {{/if}}
