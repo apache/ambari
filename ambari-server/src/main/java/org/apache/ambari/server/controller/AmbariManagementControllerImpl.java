@@ -18,16 +18,38 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.BLUEPRINT_PROVISIONING_STATE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLUSTER_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DFS_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom;
 
 import java.io.File;
@@ -85,6 +107,8 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
+import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
+import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -107,6 +131,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -213,6 +238,7 @@ import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -251,6 +277,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private static final String CLUSTER_PHASE_PROPERTY = "phase";
   private static final String CLUSTER_PHASE_INITIAL_INSTALL = "INITIAL_INSTALL";
   private static final String CLUSTER_PHASE_INITIAL_START = "INITIAL_START";
+  private static final String AMBARI_SERVER_HOST = "ambari_server_host";
+  private static final String AMBARI_SERVER_PORT = "ambari_server_port";
+  private static final String AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl";
 
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
@@ -795,6 +824,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   /**
    * {@inheritDoc}
    */
+  @Override
   public TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
@@ -5445,6 +5475,57 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return QuickLinkVisibilityControllerFactory.get(quickLinkProfileJson);
   }
 
+  /**
+   * Collects full metadata info about clusters for agent.
+   * @return metadata info about clusters
+   * @throws AmbariException
+   */
+  public MetadataUpdateEvent getClustersMetadata() throws AmbariException {
+    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+
+    for (Cluster cl : clusters.getClusters().values()) {
+      StackId stackId = cl.getDesiredStackVersion();
+
+      SecurityType securityType = cl.getSecurityType();
+
+      MetadataCluster metadataCluster = new MetadataCluster(securityType, getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl, stackId), null);
+      metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
+    }
+
+    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
+        getMetadataAmbariLevelParams(), getMetadataAgentConfigs(), UpdateEventType.CREATE);
+    return metadataUpdateEvent;
+  }
+
+  public MetadataUpdateEvent getClusterMetadata(Cluster cl) throws AmbariException {
+    final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    MetadataCluster metadataCluster = new MetadataCluster(cl.getSecurityType(), getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl, cl.getDesiredStackVersion()), null);
+    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
+  }
+
+  @Override
+  public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) throws AmbariException {
+    final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.clusterLevelParamsMetadataCluster(null, getMetadataClusterLevelParams(cl, cl.getDesiredStackVersion())));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
+  }
+
+  public MetadataUpdateEvent getClusterMetadataOnRepoUpdate(Cluster cl) throws AmbariException {
+    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(cl), true));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
+  }
+
+  public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceName) throws AmbariException {
+    return getClusterMetadataOnServiceCredentialStoreUpdate(cl, serviceName);
+  }
+
+  public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceName) throws AmbariException {
+    final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.serviceLevelParamsMetadataCluster(null, getMetadataServiceLevelParams(cl), false));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
+  }
 
   // TODO: synchronization?
   @Override
@@ -5648,6 +5729,154 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
 
     return commandParams;
+  }
+
+  public TreeMap<String, String> getMetadataClusterLevelParams(Cluster cluster, StackId stackId)
+      throws AmbariException {
+    TreeMap<String, String> clusterLevelParams = new TreeMap<>();
+    clusterLevelParams.put(STACK_NAME, stackId.getStackName());
+    clusterLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+
+    clusterLevelParams.putAll(getMetadataClusterLevelConfigsParams(cluster, stackId));
+    clusterLevelParams.put(CLUSTER_NAME, cluster.getClusterName());
+    clusterLevelParams.put(HOOKS_FOLDER, configs.getProperty(Configuration.HOOKS_FOLDER));
+    clusterLevelParams.put(BLUEPRINT_PROVISIONING_STATE,
+        cluster.getBlueprintProvisioningState().toString());
+
+    return clusterLevelParams;
+  }
+
+  private TreeMap<String, String> getMetadataClusterLevelConfigsParams(Cluster cluster,
+      StackId stackId) throws AmbariException {
+    TreeMap<String, String> clusterLevelParams = new TreeMap<>();
+
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs(false);
+    if (MapUtils.isNotEmpty(desiredConfigs)) {
+
+      Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId,
+          PropertyType.USER, cluster, desiredConfigs);
+      String userList = gson.toJson(userSet);
+      clusterLevelParams.put(USER_LIST, userList);
+
+      // Create a user_group mapping and send it as part of the hostLevelParams
+      Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(stackId, cluster,
+          desiredConfigs);
+      String userGroups = gson.toJson(userGroupsMap);
+      clusterLevelParams.put(USER_GROUPS, userGroups);
+
+      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId,
+          PropertyType.GROUP, cluster, desiredConfigs);
+      String groupList = gson.toJson(groupSet);
+      clusterLevelParams.put(GROUP_LIST, groupList);
+    }
+    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId,
+        PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
+    clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
+
+    for (Service service : cluster.getServices()) {
+      ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(service);
+      String serviceType = serviceInfoInstance.getServiceType();
+      if (serviceType != null) {
+        LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
+            serviceInfoInstance.getName());
+        clusterLevelParams.put(DFS_TYPE, serviceInfoInstance.getServiceType());
+        break;
+      }
+    }
+
+    return clusterLevelParams;
+  }
+
+  public TreeMap<String, MetadataServiceInfo> getMetadataServiceLevelParams(Cluster cluster)
+      throws AmbariException {
+    TreeMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
+    for (Service service : cluster.getServices()) {
+      serviceLevelParams.putAll(getMetadataServiceLevelParams(service));
+    }
+    return serviceLevelParams;
+  }
+
+  public TreeMap<String, MetadataServiceInfo> getMetadataServiceLevelParams(Service service)
+      throws AmbariException {
+    TreeMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
+    Cluster cluster = service.getCluster();
+    ServiceGroup serviceGroup = cluster.getServiceGroup(service.getServiceGroupId());
+
+    if (null != serviceGroup) {
+      long mpackId = serviceGroup.getMpackId();
+      Mpack mpack = ambariMetaInfo.getMpack(mpackId);
+      StackId serviceStackId = mpack.getStackId();
+
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(serviceStackId.getStackName(),
+          serviceStackId.getStackVersion(), service.getName());
+      Long statusCommandTimeout = null;
+      if (serviceInfo.getCommandScript() != null) {
+        statusCommandTimeout = new Long(
+            customCommandExecutionHelper.getStatusCommandTimeout(serviceInfo));
+      }
+
+      String servicePackageFolder = serviceInfo.getServicePackageFolder();
+
+      // Get the map of service config type to password properties for the
+      // service
+      Map<String, Map<String, String>> configCredentials;
+      configCredentials = configCredentialsForService.get(service.getName());
+      if (configCredentials == null) {
+        configCredentials = configHelper.getCredentialStoreEnabledProperties(serviceStackId,
+            service);
+        configCredentialsForService.put(service.getName(), configCredentials);
+      }
+
+      serviceLevelParams.put(serviceInfo.getName(),
+          new MetadataServiceInfo(serviceInfo.getServiceType(), serviceInfo.getVersion(),
+              service.isCredentialStoreEnabled(), configCredentials, statusCommandTimeout,
+              servicePackageFolder));
+    }
+    return serviceLevelParams;
+  }
+
+  public TreeMap<String, String> getMetadataAmbariLevelParams() {
+    TreeMap<String, String> clusterLevelParams = new TreeMap<>();
+    clusterLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
+    clusterLevelParams.put(JAVA_HOME, getJavaHome());
+    clusterLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
+    clusterLevelParams.put(JDK_NAME, getJDKName());
+    clusterLevelParams.put(JCE_NAME, getJCEName());
+    clusterLevelParams.put(DB_NAME, getServerDB());
+    clusterLevelParams.put(MYSQL_JDBC_URL, getMysqljdbcUrl());
+    clusterLevelParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
+    clusterLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
+    clusterLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
+    clusterLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
+    clusterLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
+
+    boolean serverUseSsl = configs.getApiSSLAuthentication();
+    int port = serverUseSsl ? configs.getClientSSLApiPort() : configs.getClientApiPort();
+    clusterLevelParams.put(AMBARI_SERVER_HOST, StageUtils.getHostName());
+    clusterLevelParams.put(AMBARI_SERVER_PORT, Integer.toString(port));
+    clusterLevelParams.put(AMBARI_SERVER_USE_SSL, Boolean.toString(serverUseSsl));
+
+    for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
+      clusterLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
+    }
+    for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
+      clusterLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
+    }
+    clusterLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
+
+    return clusterLevelParams;
+  }
+
+  public SortedMap<String, SortedMap<String, String>> getMetadataAgentConfigs() {
+    SortedMap<String, SortedMap<String, String>> agentConfigs = new TreeMap<>();
+    Map<String, Map<String, String>> agentConfigsMap = configs.getAgentConfigsMap();
+
+    for (String key : agentConfigsMap.keySet()) {
+      agentConfigs.put(key, new TreeMap<>(agentConfigsMap.get(key)));
+    }
+
+    return agentConfigs;
   }
 
   @Override

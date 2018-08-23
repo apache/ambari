@@ -113,7 +113,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, {})
 
-    rm = RecoveryManager(tempfile.mktemp(), True)
+    rm = RecoveryManager(MagicMock(), True)
     alert = RecoveryAlert(definition_json, definition_json['source'], self.config, rm)
     alert.set_helpers(collector, cluster_configuration, MagicMock())
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
@@ -871,7 +871,7 @@ class TestAlerts(TestCase):
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
 
-    rm = RecoveryManager(tempfile.mktemp())
+    rm = RecoveryManager(MagicMock())
     definition_json['source']['type'] = 'RECOVERY'
     alert = RecoveryAlert(definition_json, definition_json['source'], self.config, rm)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'No recovery operations executed for {2}{0}.')

@@ -1614,14 +1614,14 @@ public class KerberosHelperImpl implements KerberosHelper {
               // validating owner and group
               boolean differentOwners = false;
               String warnTemplate = "Keytab '{}' on host '{}' has different {}, originally set to '{}' and '{}:{}' has '{}', using '{}'";
-              if (!resolvedKeytab.getOwnerName().equals(sameKeytab.getOwnerName())) {
+              if (!StringUtils.equals(resolvedKeytab.getOwnerName(), sameKeytab.getOwnerName())) {
                 LOG.warn(warnTemplate,
                   keytabFilePath, hostname, "owners", sameKeytab.getOwnerName(),
                   serviceName, componentName, resolvedKeytab.getOwnerName(),
                   sameKeytab.getOwnerName());
                 differentOwners = true;
               }
-              if (!resolvedKeytab.getOwnerAccess().equals(sameKeytab.getOwnerAccess())) {
+              if (!StringUtils.equals(resolvedKeytab.getOwnerAccess(), sameKeytab.getOwnerAccess())) {
                 LOG.warn(warnTemplate,
                   keytabFilePath, hostname, "owner access", sameKeytab.getOwnerAccess(),
                   serviceName, componentName, resolvedKeytab.getOwnerAccess(),

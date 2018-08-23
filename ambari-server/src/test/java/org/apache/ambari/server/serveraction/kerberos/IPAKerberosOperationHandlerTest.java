@@ -19,24 +19,32 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 public class IPAKerberosOperationHandlerTest extends KDCKerberosOperationHandlerTest {
 
@@ -65,6 +73,43 @@ public class IPAKerberosOperationHandlerTest extends KDCKerberosOperationHandler
         bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
       }
     });
+  }
+
+  @Test
+  public void testGetAdminServerHost() throws KerberosOperationException {
+    ShellCommandUtil.Result kinitResult = createMock(ShellCommandUtil.Result.class);
+    expect(kinitResult.isSuccessful()).andReturn(true).anyTimes();
+
+    Capture<String[]> capturedKinitCommand = newCapture(CaptureType.ALL);
+
+    IPAKerberosOperationHandler handler = createMockedHandler(methodExecuteCommand);
+    expect(handler.executeCommand(capture(capturedKinitCommand), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+        .andReturn(kinitResult)
+        .anyTimes();
+
+
+    Map<String,String> config = new HashMap<>();
+    config.put("encryption_types", "aes des3-cbc-sha1 rc4 des-cbc-md5");
+
+    replayAll();
+
+    config.put("admin_server_host", "kdc.example.com");
+    handler.open(getAdminCredentials(), DEFAULT_REALM, config);
+    Assert.assertEquals("kdc.example.com", handler.getAdminServerHost(false));
+    Assert.assertEquals("kdc.example.com", handler.getAdminServerHost(true));
+    handler.close();
+
+    config.put("admin_server_host", "kdc.example.com:749");
+    handler.open(getAdminCredentials(), DEFAULT_REALM, config);
+    Assert.assertEquals("kdc.example.com", handler.getAdminServerHost(false));
+    Assert.assertEquals("kdc.example.com:749", handler.getAdminServerHost(true));
+    handler.close();
+
+    verifyAll();
+
+    Assert.assertTrue(capturedKinitCommand.hasCaptured());
+    List<String[]> capturedValues = capturedKinitCommand.getValues();
+    Assert.assertEquals(2, capturedValues.size());
   }
 
   @Override

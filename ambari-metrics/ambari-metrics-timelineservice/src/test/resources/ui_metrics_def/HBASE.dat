@@ -13,7 +13,7 @@ dfs.FSNamesystem.Snapshots
 dfs.FSNamesystem.TransactionsSinceLastLogRoll
 master.Server.averageLoad
 jvm.JvmMetrics.MemHeapUsedM
-master.AssignmentManger.ritCount
+master.AssignmentManager.ritCount
 dfs.FSNamesystem.PendingDataNodeMessageCount
 dfs.FSNamesystem.StaleDataNodes
 |hostname|

@@ -38,6 +38,7 @@ import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.local.LogSearchConfigLogFeederLocal;
 import org.apache.ambari.logsearch.config.solr.LogLevelFilterManagerSolr;
 import org.apache.ambari.logsearch.config.solr.LogLevelFilterUpdaterSolr;
+import org.apache.ambari.logsearch.config.zookeeper.LogLevelFilterManagerZK;
 import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigLogFeederZK;
 import org.apache.solr.client.solrj.SolrClient;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +48,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import javax.inject.Inject;
+import java.util.HashMap;
 
 @Configuration
 @PropertySource(value = {
@@ -92,11 +94,17 @@ public class ApplicationConfig {
   }
 
   @Bean
-  public LogLevelFilterManager logLevelFilterManager() {
+  public LogLevelFilterManager logLevelFilterManager() throws Exception {
     if (logFeederProps.isSolrFilterStorage()) {
       SolrClient solrClient = new LogFeederSolrClientFactory().createSolrClient(
         logFeederProps.getSolrZkConnectString(), logFeederProps.getSolrUrls(), "history");
       return new LogLevelFilterManagerSolr(solrClient);
+    } else if (logFeederProps.isUseLocalConfigs() && logFeederProps.isZkFilterStorage()) {
+      final HashMap<String, String> map = new HashMap<>();
+      for (final String name : logFeederProps.getProperties().stringPropertyNames()) {
+        map.put(name, logFeederProps.getProperties().getProperty(name));
+      }
+      return new LogLevelFilterManagerZK(map);
     } else { // no default filter manager
       return null;
     }

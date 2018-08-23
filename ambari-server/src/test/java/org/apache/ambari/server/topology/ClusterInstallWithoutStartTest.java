@@ -73,6 +73,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
@@ -179,6 +180,11 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
+
+  @Mock
+  private TopologyValidatorService topologyValidatorServiceMock;
+  @Mock(type = MockType.NICE)
+  private AmbariEventPublisher eventPublisher;
 
   @Mock
   private ComponentResolver componentResolver;

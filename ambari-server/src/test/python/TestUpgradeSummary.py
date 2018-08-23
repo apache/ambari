@@ -91,9 +91,11 @@ class TestUpgradeSummary(TestCase):
                 "sourceVersion":"3.0.0.0-b1",
                 "targetVersion":"3.1.0.0-b1",
                 "components": {
-                  "componentName": "NAMENODE",
-                  "sourceVersion": "3.0.0.0-b1",
-                  "targetVersion":"3.1.0.0-b1",
+                  "NAMENODE":{
+                    "componentName": "NAMENODE",
+                    "sourceVersion": "3.0.0.0-b1",
+                    "targetVersion":"3.1.0.0-b1",
+                  }
                 }
               }
             }

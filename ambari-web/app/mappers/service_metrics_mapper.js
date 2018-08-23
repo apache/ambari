@@ -737,8 +737,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var activeHostComponentIndex = component.host_components.indexOf(activeMaster);
           self.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
           var regionsArray = null;
-          if (!Em.none(Em.get(component.host_components[0], 'metrics.master.AssignmentManger.ritCount'))) {
-            regionsArray = App.parseJSON(component.host_components[0].metrics.master.AssignmentManger.ritCount);
+          if (!Em.none(Em.get(component.host_components[0], 'metrics.master.AssignmentManager.ritCount'))) {
+            regionsArray = App.parseJSON(component.host_components[0].metrics.master.AssignmentManager.ritCount);
           }
           //regions_in_transition can have various type of value: null, array or int
           if (Array.isArray(regionsArray)) {

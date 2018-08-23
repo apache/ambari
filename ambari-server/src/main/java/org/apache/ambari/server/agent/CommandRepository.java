@@ -243,6 +243,7 @@ public class CommandRepository {
     private List<String> m_applicableServices;
 
     @SerializedName("tags")
+    @JsonProperty("tags")
     private Set<RepoTag> m_tags;
 
 

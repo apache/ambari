@@ -52,12 +52,9 @@ public class LogSearchConfigServerZK extends LogSearchConfigZK implements LogSea
     if (client.checkExists().forPath("/") == null) {
       client.create().creatingParentContainersIfNeeded().forPath("/");
     }
-    if (client.checkExists().forPath("/output") == null) {
-      client.create().creatingParentContainersIfNeeded().forPath("/output");
-    }
     serverCache = new TreeCache(client, "/");
     serverCache.start();
-    LogLevelFilterManager logLevelFilterManager = new LogLevelFilterManagerZK(client, serverCache, getAcls(), gson);
+    LogLevelFilterManager logLevelFilterManager = new LogLevelFilterManagerZK(client, serverCache, LogSearchConfigZKHelper.getAcls(properties), gson);
     setLogLevelFilterManager(logLevelFilterManager);
   }
 

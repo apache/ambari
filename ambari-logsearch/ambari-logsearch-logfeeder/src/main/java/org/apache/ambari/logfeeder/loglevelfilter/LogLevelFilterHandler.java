@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logfeeder.loglevelfilter;
 
+import com.google.gson.Gson;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
@@ -25,9 +26,14 @@ import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
+import org.apache.ambari.logsearch.config.zookeeper.LogLevelFilterManagerZK;
+import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZKHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,13 +70,28 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private LogSearchConfig config;
   private Map<String, LogLevelFilter> filters = new ConcurrentHashMap<>();
 
+  // Use these 2 only if local config is used with zk log level filter storage
+  private TreeCache clusterCache = null;
+  private TreeCacheListener listener = null;
+
   public LogLevelFilterHandler(LogSearchConfig config) {
     this.config = config;
   }
 
   @PostConstruct
-  public void init() {
+  public void init() throws Exception {
     TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
+    if (logFeederProps.isZkFilterStorage() && logFeederProps.isUseLocalConfigs()) {
+      LogLevelFilterManagerZK filterManager = (LogLevelFilterManagerZK) config.getLogLevelFilterManager();
+      CuratorFramework client = filterManager.getClient();
+      client.start();
+      Gson gson = filterManager.getGson();
+      LogSearchConfigZKHelper.waitUntilRootAvailable(client);
+      TreeCache clusterCache = LogSearchConfigZKHelper.createClusterCache(client, logFeederProps.getClusterName());
+      TreeCacheListener listener = LogSearchConfigZKHelper.createTreeCacheListener(
+        logFeederProps.getClusterName(), gson, this);
+      LogSearchConfigZKHelper.addAndStartListenersOnCluster(clusterCache, listener);
+    }
     if (config.getLogLevelFilterManager() != null) {
       TreeMap<String, LogLevelFilter> sortedFilters = config.getLogLevelFilterManager()
         .getLogLevelFilters(logFeederProps.getClusterName())
