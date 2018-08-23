@@ -22,6 +22,7 @@ __all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "DownloadS
 
 from unittest import TestCase
 import json
+import codecs
 import os
 import imp
 import sys
@@ -39,6 +40,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
     from resource_management.libraries.script.script import Script
     from resource_management.libraries.script.config_dictionary import UnknownConfiguration
     from resource_management.libraries.functions.repository_util import RepositoryUtil
+    from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
 PATH_TO_STACKS = "main/resources/stacks/HDP"
 PATH_TO_STACK_TESTS = "test/python/stacks/"
@@ -100,20 +102,28 @@ class RMFTestCase(TestCase):
       raise RuntimeError("Please specify either config_file or config_dict parameter")
 
     # add the stack tools & features from the stack if the test case's JSON file didn't have them
-    if "stack_tools" not in self.config_dict["configurations"]["cluster-env"]:
-      self.config_dict["configurations"]["cluster-env"]["stack_tools"] = RMFTestCase.get_stack_tools()
+    if "stack_tools" not in self.config_dict["stackSettings"]:
+      self.config_dict["stackSettings"]["stack_tools"] = RMFTestCase.get_stack_tools()
 
-    if "stack_features" not in self.config_dict["configurations"]["cluster-env"]:
-      self.config_dict["configurations"]["cluster-env"]["stack_features"] = RMFTestCase.get_stack_features()
+    if "stack_features" not in self.config_dict["stackSettings"]:
+      self.config_dict["stackSettings"]["stack_features"] = RMFTestCase.get_stack_features()
 
-    if "stack_packages" not in self.config_dict["configurations"]["cluster-env"]:
-      self.config_dict["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
+    if "stack_packages" not in self.config_dict["stackSettings"]:
+      self.config_dict["stackSettings"]["stack_packages"] = RMFTestCase.get_stack_packages()
 
     if config_overrides:
       for key, value in config_overrides.iteritems():
         self.config_dict[key] = value
 
     self.config_dict = ConfigDictionary(self.config_dict)
+    self.execution_command = ExecutionCommand(self.config_dict)
+    self.module_configs = self.execution_command.get_module_configs()
+    self.stack_settings = self.execution_command.get_stack_settings()
+    self.cluster_settings = self.execution_command.get_cluster_settings()
+    Script.execution_command = self.execution_command
+    Script.module_configs = self.module_configs
+    Script.stack_settings = self.stack_settings
+    Script.cluster_settings = self.cluster_settings
 
     # append basedir to PYTHONPATH
     scriptsdir = os.path.dirname(script_path)
@@ -151,19 +161,23 @@ class RMFTestCase(TestCase):
       with patch('resource_management.core.shell.checked_call', side_effect=checked_call_mocks) as mocks_dict['checked_call']:
         with patch('resource_management.core.shell.call', side_effect=call_mocks) as mocks_dict['call']:
           with patch.object(Script, 'get_config', return_value=self.config_dict) as mocks_dict['get_config']:
-            with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
-              with patch.object(Script, 'post_start') as mocks_dict['post_start']:
-                with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
-                  with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
-                    with patch('resource_management.libraries.functions.stack_select.is_package_supported', return_value=True):
-                      with patch('resource_management.libraries.functions.stack_select.get_supported_packages', return_value=MagicMock()):
-                        with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
-                          with patch('resource_management.libraries.functions.stack_select.unsafe_get_stack_versions', return_value = (("",0,[]))):
-                            if not try_install:
-                              with patch.object(Script, 'install_packages') as install_mock_value:
-                                method(RMFTestCase.env, *command_args)
-                            else:
-                              method(RMFTestCase.env, *command_args)
+            with patch.object(Script, 'get_execution_command', return_value=self.execution_command) as mocks_dict['get_execution_command']:
+              with patch.object(Script, 'get_module_configs', return_value=self.module_configs) as mocks_dict['get_module_configs']:
+                with patch.object(Script, 'get_stack_settings', return_value=self.stack_settings) as mocks_dict['get_stack_settings']:
+                  with patch.object(Script, 'get_cluster_settings', return_value=self.cluster_settings) as mocks_dict['get_cluster_settings']:
+                    with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
+                      with patch.object(Script, 'post_start') as mocks_dict['post_start']:
+                        with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
+                          with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
+                            with patch('resource_management.libraries.functions.stack_select.is_package_supported', return_value=True):
+                              with patch('resource_management.libraries.functions.stack_select.get_supported_packages', return_value=MagicMock()):
+                                with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
+                                  with patch('resource_management.libraries.functions.stack_select.unsafe_get_stack_versions', return_value = (("",0,[]))):
+                                    if not try_install:
+                                      with patch.object(Script, 'install_packages') as install_mock_value:
+                                        method(RMFTestCase.env, *command_args)
+                                    else:
+                                      method(RMFTestCase.env, *command_args)
 
     sys.path.remove(scriptsdir)
 
@@ -220,6 +234,9 @@ class RMFTestCase(TestCase):
 
   def getConfig(self):
     return self.config_dict
+
+  def get_resources(self):
+    return RMFTestCase.env.resource_list
           
   @staticmethod
   def get_src_folder():

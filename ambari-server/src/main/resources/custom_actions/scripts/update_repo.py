@@ -54,6 +54,7 @@ class UpdateRepo(Script):
                             [components.replace(",", " ") if components else self.UBUNTU_REPO_COMPONENTS_POSTFIX]
 
         Repository(repo_id,
+                 #repo_id = repo_id,
                  action = "create",
                  base_url = base_url,
                  mirror_list = None,

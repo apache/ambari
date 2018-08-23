@@ -25,14 +25,12 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.script import Script
 from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 from resource_management.core.exceptions import Fail
-from unittest import SkipTest
 from unittest import TestCase
 
 import json
 
 Logger.initialize_logger()
 
-@SkipTest
 class TestStackFeature(TestCase):
   """
   EU Upgrade (HDP 2.5 to HDP 2.6)
@@ -125,10 +123,10 @@ class TestStackFeature(TestCase):
     """
     command_json = TestStackFeature._get_cluster_upgrade_restart_json()
     Script.config = command_json
+    Script.config["stackSettings"] = {"stack_name": "HDP"}
+    Script.config["stackSettings"]["stack_features"] = {}
+    Script.config["stackSettings"]["stack_features"] = json.dumps(TestStackFeature._get_stack_feature_json())
     Script.execution_command = ExecutionCommand(Script.config)
-    Script.config["clusterSettings"] = {}
-    Script.config["clusterSettings"]["stack_features"] = {}
-    Script.config["clusterSettings"]["stack_features"] = json.dumps(TestStackFeature._get_stack_feature_json())
 
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertTrue(check_stack_feature("stack-feature-1", stack_feature_version))
@@ -136,9 +134,11 @@ class TestStackFeature(TestCase):
     self.assertFalse(check_stack_feature("stack-feature-3", stack_feature_version))
 
     command_json = TestStackFeature._get_cluster_install_command_json()
+    # pay attention: update does not work for nested dict
     Script.config.update(command_json)
+    Script.execution_command = ExecutionCommand(Script.config)
 
-    stack_feature_version = get_stack_feature_version(command_json)
+    stack_feature_version = get_stack_feature_version(Script.config)
     self.assertTrue(check_stack_feature("stack-feature-1", stack_feature_version))
     self.assertTrue(check_stack_feature("stack-feature-2", stack_feature_version))
     self.assertFalse(check_stack_feature("stack-feature-3", stack_feature_version))
@@ -158,6 +158,10 @@ class TestStackFeature(TestCase):
         "stack_version": "2.4",
       },
       "commandParams": {
+        "source_stack": "2.4",
+        "target_stack": "2.5",
+        "upgrade_direction": "upgrade",
+        "version": "2.4",
         "command_timeout": "1800",
         "script_type": "PYTHON",
         "script": "install_packages.py"
@@ -256,6 +260,10 @@ class TestStackFeature(TestCase):
     return {
       "serviceName":"HDFS",
       "roleCommand":"STOP",
+      "stackSettings": {
+        "stack_name": "HDP",
+        "stack_version": "2.4"
+      },
       "clusterLevelParams":{
         "stack_name":"HDP",
         "stack_version":"2.5",
@@ -266,15 +274,32 @@ class TestStackFeature(TestCase):
         "upgrade_direction":"downgrade",
         "version":"2.5.9.9-9999"
       },
-      "upgradeSummary":{
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
+      "upgradeSummary": {
+        "serviceGroups": {
+          "SG1": {
+            "type": "express_upgrade",
+            "serviceGroupId": 1,
+            "serviceGroupName": "SG1",
+            "sourceMpackId": 50,
+            "targetMpackId": 100,
+            "sourceStack": "HDPCORE-1.0",
+            "targetStack": "HDPCORE-1.5",
+            "sourceMpackVersion": "1.0.0.0-b1",
+            "targetMpackVersion": "1.5.0.0-b1",
+            "services": {
+              "HDFS": {
+                "serviceName": "HDFS",
+                "sourceVersion": "3.0.0.0-b1",
+                "targetVersion": "3.1.0.0-b1",
+                "components": {
+                  "NAMENODE": {
+                    "componentName": "NAMENODE",
+                    "sourceVersion": "3.0.0.0-b1",
+                    "targetVersion": "3.1.0.0-b1",
+                  }
+                }
+              }
+            }
           }
         },
         "direction":"DOWNGRADE",

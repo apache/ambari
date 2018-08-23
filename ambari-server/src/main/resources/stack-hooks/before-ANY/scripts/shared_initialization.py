@@ -49,7 +49,7 @@ def setup_users():
            fetch_nonlocal_groups = params.fetch_nonlocal_groups,
            )
 
-    if params.override_uid == "true":
+    if params.override_uid == True:
       set_uid(params.smoke_user, params.smoke_user_dirs)
     else:
       Logger.info('Skipping setting uid for smoke user as host is sys prepped')
@@ -108,7 +108,7 @@ def get_uid(user, return_existing=False):
   """
   import params
   user_str = str(user) + "_uid"
-  service_env = [ serviceEnv for serviceEnv in params.module_configs if params.module_configs.get_property_value(params.module_name, serviceEnv, user_str)]
+  service_env = [ serviceEnv for serviceEnv in params.module_configs.get_raw_config_dict() if params.module_configs.get_property_value(params.module_name, serviceEnv, user_str)]
 
   if service_env and params.module_configs.get_property_value(params.module_name, service_env[0], user_str):
     service_env_str = str(service_env[0])
@@ -129,6 +129,33 @@ def get_uid(user, return_existing=False):
     else:
       # do not return UID for existing user, used in User resource call to let OS to choose UID for us
       return None
+
+def setup_hadoop_env():
+  import params
+  stackversion = params.stack_version_unformatted
+  Logger.info("FS Type: {0}".format(params.dfs_type))
+  if params.has_namenode or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
+    if params.security_enabled:
+      tc_owner = "root"
+    else:
+      tc_owner = params.hdfs_user
+
+    # create /etc/hadoop
+    Directory(params.hadoop_dir, mode=0755)
+
+    # write out hadoop-env.sh, but only if the directory exists
+    if os.path.exists(params.hadoop_conf_dir):
+      File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'), owner=tc_owner,
+        group=params.user_group,
+        content=InlineTemplate(params.hadoop_env_sh_template))
+
+    # Create tmp dir for java.io.tmpdir
+    # Handle a situation when /tmp is set to noexec
+    Directory(params.hadoop_java_io_tmpdir,
+              owner=params.hdfs_user,
+              group=params.user_group,
+              mode=01777
+    )
 
 
 def setup_java():

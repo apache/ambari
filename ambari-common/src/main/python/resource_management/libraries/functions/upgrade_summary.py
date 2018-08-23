@@ -22,7 +22,7 @@ from collections import namedtuple
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.constants import Direction
 
-UpgradeSummary = namedtuple("UpgradeSummary", "direction is_revert service_groups")
+UpgradeSummary = namedtuple("UpgradeSummary", "direction is_revert orchestration service_groups")
 
 UpgradeServiceGroupSummary = namedtuple("UpgradeServiceGroupSummary", "type service_group_id  service_group_name source_mpack_id target_mpack_id source_stack target_stack source_mpack_version target_mpack_version services")
 UpgradeServiceSummary = namedtuple("UpgradeServiceSummary", "service_name source_version target_version components")
@@ -74,6 +74,7 @@ def get_upgrade_summary():
 
   return UpgradeSummary(direction=upgrade_summary["direction"],
     is_revert = upgrade_summary["isRevert"],
+    orchestration = upgrade_summary["orchestration"],
     service_groups = service_group_summary_dict)
 
 

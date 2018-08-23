@@ -614,7 +614,7 @@ class Script(object):
     The dict object holds cluster_settings block in command.json which maps cluster configurations
     :return: cluster_settings object
     """
-    if not Script.cluster_settings:
+    if not Script.cluster_settings and Script.execution_command:
       Script.cluster_settings = Script.execution_command.get_cluster_settings()
     return Script.cluster_settings
 
@@ -624,7 +624,7 @@ class Script(object):
     The dict object holds stack_settings block in command.json which maps stack configurations
     :return: stack_settings object
     """
-    if not Script.stack_settings:
+    if not Script.stack_settings and Script.execution_command:
       Script.stack_settings = Script.execution_command.get_stack_settings()
     return Script.stack_settings
 

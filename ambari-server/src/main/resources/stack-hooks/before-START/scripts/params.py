@@ -38,7 +38,7 @@ config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
 stack_settings = Script.get_stack_settings()
-cluster_settings  = Script.get_cluster_settings()
+cluster_settings = Script.get_cluster_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 artifact_dir = tmp_dir + "/AMBARI-artifacts"
@@ -56,7 +56,7 @@ host_sys_prepped = execution_command.is_host_system_prepared()
 sysprep_skip_copy_fast_jar_hdfs = host_sys_prepped and get_cluster_setting_value('sysprep_skip_copy_fast_jar_hdfs')
 
 # Whether to skip setting up the unlimited key JCE policy
-sysprep_skip_setup_jce = host_sys_prepped and get_cluster_setting_value('sysprep_skip_setup_jce')
+sysprep_skip_setup_jce = host_sys_prepped and cluster_settings.check_sysprep_skip_setup_jce()
 
 stack_version_unformatted = stack_settings.get_mpack_version()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
@@ -81,7 +81,7 @@ create_lib_snappy_symlinks = False
 current_service = module_name
 
 #security params
-security_enabled = get_cluster_setting_value('security_enabled')
+security_enabled = cluster_settings.is_cluster_security_enabled()
 
 ambari_server_resources_url = execution_command.get_jdk_location()
 if ambari_server_resources_url and ambari_server_resources_url.endswith('/'):

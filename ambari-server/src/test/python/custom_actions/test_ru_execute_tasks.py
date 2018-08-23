@@ -28,7 +28,6 @@ from mock.mock import MagicMock
 
 # Module imports
 from stacks.utils.RMFTestCase import *
-from only_for_platform import not_for_platform, only_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 from resource_management import Script, ConfigDictionary
 from resource_management.libraries.functions.default import default

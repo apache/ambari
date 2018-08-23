@@ -18,14 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from unittest import SkipTest
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 from resource_management import Hook
 from resource_management.core.exceptions import Fail
+from resource_management.core.resources.jcepolicyinfo import JcePolicyInfo
 import json
 
-@SkipTest
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
@@ -378,6 +377,7 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch.object(JcePolicyInfo, "is_unlimited_key_jce_policy", new=MagicMock(return_value=False))
   def test_that_jce_is_required_in_secured_cluster(self):
     try:
       self.executeScript("before-START/scripts/hook.py",

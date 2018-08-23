@@ -17,15 +17,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+from resource_management.core.logger import Logger
 import alert_disk_space
 from mock.mock import patch, MagicMock
 from ambari_commons.os_check import OSCheck
-from stacks.utils.RMFTestCase import *
+from stacks.utils.RMFTestCase import RMFTestCase
 
 from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 if get_platform() != PLATFORM_WINDOWS:
   from pwd import getpwnam
+
+Logger.initialize_logger()
 
 class TestAlertDiskSpace(RMFTestCase):
 
