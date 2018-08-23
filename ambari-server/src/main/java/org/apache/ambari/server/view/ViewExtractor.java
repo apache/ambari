@@ -64,7 +64,7 @@ public class ViewExtractor {
    * @param viewArchive  the view archive file
    * @param archiveDir   the view archive directory
    *
-   * @param viewsAdditionalClasspath
+   * @param viewsAdditionalClasspath: list of additional paths to be added to every view's classpath
    * @return the class loader for the archive classes
    *
    * @throws ExtractionException if the archive can not be extracted
@@ -226,9 +226,8 @@ public class ViewExtractor {
 
   /**
    * Add all the files in libDir to urlList ignoring directories.
-   * @param urlList
-   * @param libDir
-   * @throws MalformedURLException
+   * @param urlList: the list to which all paths needs to be appended
+   * @param libDir: the path of which all the files needs to be appended to urlList
    */
   private void addDirToClasspath(List<URL> urlList, File libDir) throws MalformedURLException {
     if (libDir.exists()) {
