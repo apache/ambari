@@ -77,16 +77,4 @@ describe('App.ManageJournalNodeWizardStep3Controller', function () {
       App.HDFSService.find.restore();
     });
   });
-
-  describe('#checkNnCheckPointsStatuses', function () {
-    it('it should set properties, isActiveNameNodesStarted and isNextEnabled should be false if no items', function () {
-      sinon.stub(controller, 'setProperties');
-      controller.checkNnCheckPointsStatuses(Em.Object.create({}));
-      expect(controller.setProperties.calledWith({
-        isActiveNameNodesStarted: 0,
-        isNextEnabled: 0
-      })).to.be.true;
-      controller.setProperties.restore();
-    });
-  });
 });
