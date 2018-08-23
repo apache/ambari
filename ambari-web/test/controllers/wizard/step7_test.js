@@ -2105,6 +2105,323 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  describe('#initTabs', function () {
+
+    beforeEach(function () {
+      sinon.stub(installerStep7Controller, 'setSkippedTabs', Em.K);
+    });
+
+    afterEach(function () {
+      installerStep7Controller.setSkippedTabs.restore();
+    });
+
+    it('should call setSkippedTabs', function () {
+      installerStep7Controller.initTabs();
+      expect(installerStep7Controller.setSkippedTabs.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#setSkippedTabs', function () {
+
+    beforeEach(function () {
+      installerStep7Controller.reopen({
+        tabs: [
+          Em.Object.create({
+            name: 'credentials',
+            displayName: 'Credentials',
+            icon: 'glyphicon-lock',
+            isActive: false,
+            isDisabled: false,
+            isSkipped: false,
+            validateOnSwitch: false,
+            tabView: App.CredentialsTabOnStep7View
+          }),
+          Em.Object.create({
+            name: 'databases',
+            displayName: 'Databases',
+            icon: 'glyphicon-align-justify',
+            isActive: false,
+            isDisabled: false,
+            isSkipped: false,
+            validateOnSwitch: false,
+            tabView: App.DatabasesTabOnStep7View
+          }),
+        ],
+      });
+      installerStep7Controller.set('content.selectedServiceNames', Em.A(["HDFS", "YARN", "MAPREDUCE2", "TEZ", "ZOOKEEPER", "AMBARI_METRICS", "SMARTSENSE"]));
+    });
+
+    afterEach(function () {
+      App.Tab.find.restore();
+    });
+
+    it('set tab "credentials"\'s properties "isDisabled" and "isSkipped" to false', function () {
+      sinon.stub(App.Tab, 'find').returns([
+        Em.Object.create({themeName: 'credentials', serviceName: 'AMBARI_METRICS',}),
+        Em.Object.create({themeName: 'credentials', serviceName: 'SMARTSENSE',})
+      ]);
+      installerStep7Controller.setSkippedTabs();
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'credentials').get('isDisabled')).to.be.equal(false);
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'credentials').get('isSkipped')).to.be.equal(false);
+    });
+
+    it('set tab "credentials"\'s properties "isDisabled" and "isSkipped" to true', function () {
+      sinon.stub(App.Tab, 'find').returns([
+        Em.Object.create({themeName: 'credentials'}),
+        Em.Object.create({themeName: 'credentials'})
+      ]);
+      installerStep7Controller.setSkippedTabs();
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'credentials').get('isDisabled')).to.be.equal(true);
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'credentials').get('isSkipped')).to.be.equal(true);
+    });
+
+    it('set tab "databases"\'s properties "isDisabled" and "isSkipped" to false', function () {
+      sinon.stub(App.Tab, 'find').returns([
+        Em.Object.create({themeName: 'database', serviceName: 'AMBARI_METRICS'}),
+        Em.Object.create({themeName: 'database', serviceName: 'SMARTSENSE'})
+      ]);
+      installerStep7Controller.setSkippedTabs();
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'databases').get('isDisabled')).to.be.equal(false);
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'databases').get('isSkipped')).to.be.equal(false);
+    });
+
+    it('set tab "databases"\'s properties "isDisabled" and "isSkipped" to true', function () {
+      sinon.stub(App.Tab, 'find').returns([
+        Em.Object.create({themeName: 'database'}),
+        Em.Object.create({themeName: 'database'})
+      ]);
+      installerStep7Controller.setSkippedTabs();
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'databases').get('isDisabled')).to.be.equal(true);
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'databases').get('isSkipped')).to.be.equal(true);
+    })
+
+  });
+
+  describe('#currentTabIndex', function () {
+
+    it('get current Tabs Index return 0 because first tab is active', function () {
+      installerStep7Controller.reopen({
+        tabs: [
+          Em.Object.create({name: 'credentials', isActive: true}),
+          Em.Object.create({name: 'databases', isActive: false}),
+        ],
+      });
+      expect(installerStep7Controller.get('currentTabIndex')).to.be.equal(0);
+    });
+
+    it('get current Tabs Index return 1 because second tab is active', function () {
+      installerStep7Controller.reopen({
+        tabs: [
+          Em.Object.create({name: 'credentials', isActive: false}),
+          Em.Object.create({name: 'databases', isActive: true}),
+        ],
+      });
+      expect(installerStep7Controller.get('currentTabIndex')).to.be.equal(1);
+    });
+
+    it('get current Tab Index return -1', function () {
+      installerStep7Controller.reopen({
+        tabs: [
+          Em.Object.create({name: 'credentials', isActive: false}),
+          Em.Object.create({name: 'databases', isActive: false}),
+        ],
+      });
+      expect(installerStep7Controller.get('currentTabIndex')).to.be.equal(-1);
+    })
+
+  });
+
+  describe('#currentTabName', function () {
+
+    it('should return current tab name', function () {
+      installerStep7Controller.reopen({
+        tabs: [
+          Em.Object.create({name: 'credentials', isActive: true,}),
+          Em.Object.create({name: 'databases', isActive: false}),
+        ],
+      });
+      expect(installerStep7Controller.get('currentTabName')).to.be.equal('credentials');
+    });
+
+    it('should return current tab name', function () {
+      installerStep7Controller.reopen({
+        tabs: [
+          Em.Object.create({name: 'credentials', isActive: false,}),
+          Em.Object.create({name: 'databases', isActive: true}),
+        ],
+      });
+      expect(installerStep7Controller.get('currentTabName')).to.be.equal('databases');
+    });
+
+  });
+
+  describe('#selectTab', function () {
+
+    it('tab "isActive" property stay "false"', function () {
+      var event = {context: Ember.Object.create({isDisabled: true, isActive: false})};
+      installerStep7Controller.selectTab(event);
+      expect(event.context.get('isActive')).to.be.equal(false);
+    });
+
+    it('tab "isActive" property changed to "true"', function () {
+      var event = {
+        context: Ember.Object.create({isDisabled: false, isActive: false})
+      };
+      installerStep7Controller.selectTab(event);
+      expect(event.context.get('isActive')).to.be.equal(true);
+    });
+
+  });
+
+  describe('#isNextDisabled', function () {
+
+    it('if tabName is "credentials" return value based on credentialsTabNextEnabled', function () {
+      installerStep7Controller.reopen({tabs: [Em.Object.create({name: 'credentials', isActive: true})], credentialsTabNextEnabled: false});
+      expect(installerStep7Controller.get('isNextDisabled')).to.be.equal(true);
+    });
+
+    it('if tabName is "credentials" return value based on credentialsTabNextEnabled', function () {
+      installerStep7Controller.reopen({tabs: [Em.Object.create({name: 'credentials', isActive: true})], credentialsTabNextEnabled: true});
+      expect(installerStep7Controller.get('isNextDisabled')).to.be.equal(false);
+    });
+
+    it('if tabName is "databases" return value based on databasesTabNextEnabled', function () {
+      installerStep7Controller.reopen({tabs: [Em.Object.create({name: 'databases', isActive: true})], databasesTabNextEnabled: false});
+      expect(installerStep7Controller.get('isNextDisabled')).to.be.equal(true);
+    });
+
+    it('if tabName is "databases" return value based on databasesTabNextEnabled', function () {
+      installerStep7Controller.reopen({tabs: [Em.Object.create({name: 'databases', isActive: true})], databasesTabNextEnabled: true});
+      expect(installerStep7Controller.get('isNextDisabled')).to.be.equal(false);
+    });
+
+    it('if tabName is "all-configurations" return value based on isSubmitDisabled', function () {
+      installerStep7Controller.reopen({tabs: [Em.Object.create({name: 'all-configurations', isActive: true})], isSubmitDisabled: true});
+      expect(installerStep7Controller.get('isNextDisabled')).to.be.equal(true);
+    });
+
+    it('if tabName is "all-configurations" return value based on isSubmitDisabled', function () {
+      installerStep7Controller.reopen({tabs: [Em.Object.create({name: 'all-configurations', isActive: true})], isSubmitDisabled: false});
+      expect(installerStep7Controller.get('isNextDisabled')).to.be.equal(false);
+    });
+
+    it('if tabName is not "credentials", "databases", "all-configurations" return false', function () {
+      installerStep7Controller.reopen({tabs: [Em.Object.create({name: 'directories', isActive: true})]});
+      expect(installerStep7Controller.get('isNextDisabled')).to.be.equal(false);
+    });
+
+  });
+
+  describe('#disableTabs', function () {
+
+    beforeEach(function () {
+      installerStep7Controller.reopen({
+        tabs: [
+          Em.Object.create({
+            name: 'credentials',
+            isActive: false,
+            isDisabled: false,
+            isSkipped: true,
+          }),
+          Em.Object.create({
+            name: 'databases',
+            isActive: true,
+            isDisabled: false,
+            isSkipped: false,
+          }),
+          Em.Object.create({
+            name: 'all-configurations',
+            isActive: true,
+            isDisabled: false,
+            isSkipped: false,
+          }),
+        ],
+      });
+    });
+
+    it('set "isDisabled" properties to false in all tabs except with name "credentials"', function () {
+      installerStep7Controller.set('credentialsTabNextEnabled', false);
+      installerStep7Controller.disableTabs();
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'databases').get('isDisabled')).to.be.equal(true);
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'all-configurations').get('isDisabled')).to.be.equal(true);
+    });
+
+    it('don\'t set "isDisabled" properties to false in all tabs because of credentialsTabNextEnabled', function () {
+      installerStep7Controller.set('credentialsTabNextEnabled', true);
+      installerStep7Controller.disableTabs();
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'databases').get('isDisabled')).to.be.equal(false);
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'all-configurations').get('isDisabled')).to.be.equal(false);
+    });
+
+    it('don\'t set "isDisabled" properties to false in all tabs because of credentials "isDisabled" is true', function () {
+      installerStep7Controller.get('tabs').findProperty('name', 'credentials').set('isDisabled', true);
+      installerStep7Controller.set('credentialsTabNextEnabled', true);
+      installerStep7Controller.disableTabs();
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'databases').get('isDisabled')).to.be.equal(false);
+      expect(installerStep7Controller.get('tabs').findProperty('name', 'all-configurations').get('isDisabled')).to.be.equal(false);
+    });
+
+  });
+
+  describe('#showConfigProperty', function () {
+
+    it('set props "isActive" to true in entered showConfigProperty event and "false" in all another stepConfigs', function() {
+      var event = {context: Ember.Object.create({
+          serviceName: 'AMBARI_METRICS',
+          name: 'all-configurations',
+          isActive: false,
+      })};
+      installerStep7Controller.set('stepConfigs', Em.A([
+        Em.Object.create({serviceName: 'HDFS', isActive: true, configGroups: [{},{}]}),
+        Em.Object.create({serviceName: 'AMBARI_METRICS', isActive: false, configGroups: [{},{}]}),
+        Em.Object.create({serviceName: 'MAPREDUCE2', isActive: true, configGroups: [{},{}]}),
+      ]));
+      installerStep7Controller.set('filterColumns', [
+        {selected: true},
+        {selected: false},
+        {selected: true}
+      ]);
+      installerStep7Controller.showConfigProperty(event);
+      expect(installerStep7Controller.get('filterColumns').everyProperty('selected', false)).to.be.equal(true);
+      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('isActive')).to.be.equal(false);
+      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'AMBARI_METRICS').get('isActive')).to.be.equal(true);
+    });
+
+  });
+
+  describe('#setIssues', function () {
+
+    beforeEach(function () {
+      sinon.stub(installerStep7Controller, 'ringBell', Em.K);
+    });
+
+    afterEach(function() {
+      installerStep7Controller.ringBell.restore();
+    });
+
+    it('should not ring bell if validations counter doesn\'t  change', function() {
+      installerStep7Controller.set('validationsCounter', 3);
+      installerStep7Controller.set('stepConfigs', [
+        {configsWithErrors: {length: 1}},
+        {configsWithErrors: {length: 2}}
+      ]);
+      installerStep7Controller.setIssues();
+      expect(installerStep7Controller.ringBell.called).to.be.equal(false);
+    });
+
+    it('should ring bell if validations counter changes', function() {
+      installerStep7Controller.set('validationsCounter', 4);
+      installerStep7Controller.set('stepConfigs', [
+        {configsWithErrors: {length: 2}},
+        {configsWithErrors: {length: 3}}
+      ]);
+      installerStep7Controller.setIssues();
+      expect(installerStep7Controller.ringBell.called).to.be.equal(true);
+    });
+
+  });
+
   App.TestAliases.testAsComputedEqual(installerStep7Controller, 'isInstallWizard', 'content.controllerName', 'installerController');
 
   App.TestAliases.testAsComputedEqual(installerStep7Controller, 'isAddServiceWizard', 'content.controllerName', 'addServiceController');
