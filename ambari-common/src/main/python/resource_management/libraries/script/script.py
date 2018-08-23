@@ -108,6 +108,8 @@ class Script(object):
   config = None
   execution_command = None
   module_configs = None
+  cluster_settings = None
+  stack_settings = None
   stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
@@ -205,7 +207,8 @@ class Script(object):
       return;
 
     execution_command = self.get_execution_command()
-    mpack_name = execution_command.get_mpack_name()
+    stack_settings = execution_command.get_stack_settings()
+    mpack_name = stack_settings.get_mpack_name()
     mpack_instance_name = execution_command.get_servicegroup_name()
     module_name = execution_command.get_module_name()
     component_type = execution_command.get_component_type()
@@ -298,12 +301,6 @@ class Script(object):
     logging_level_str = logging._levelNames[self.logging_level]
     Logger.initialize_logger(__name__, logging_level=logging_level_str)
 
-    # on windows we need to reload some of env variables manually because there is no default paths for configs(like
-    # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
-    # in agent, so other Script executions will not be able to access to new env variables
-    if OSCheck.is_windows_family():
-      reload_windows_env()
-
     # !!! status commands re-use structured output files; if the status command doesn't update the
     # the file (because it doesn't have to) then we must ensure that the file is reset to prevent
     # old, stale structured output from a prior status command from being used
@@ -320,6 +317,8 @@ class Script(object):
         Script.config = ConfigDictionary(json.load(f))
         Script.execution_command = ExecutionCommand(Script.config)
         Script.module_configs = Script.execution_command.get_module_configs()
+        Script.cluster_settings = Script.execution_command.get_cluster_settings()
+        Script.stack_settings = Script.execution_command.get_stack_settings()
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
@@ -515,11 +514,9 @@ class Script(object):
     if not available_packages_in_repos:
       available_packages_in_repos = self.load_available_packages()
 
-    from resource_management.libraries.functions.default import default
-
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
     package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter)) + "$"
-    repo = default('/repositoryFile', None)
+    repo = Script.execution_command.get_repository_file()
     name_with_version = None
 
     if repo:
@@ -537,7 +534,6 @@ class Script(object):
       raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
 
   def format_package_name(self, name):
-    from resource_management.libraries.functions.default import default
     """
     This function replaces ${stack_version} placeholder with actual version.  If the package
     version is passed from the server, use that as an absolute truth.
@@ -554,18 +550,8 @@ class Script(object):
 
     # repositoryFile is the truth
     # package_version should be made to the form W_X_Y_Z_nnnn
-    package_version = default("repositoryFile/repoVersion", None)
-
-    # TODO remove legacy checks
-    if package_version is None:
-      package_version = default("roleParams/package_version", None)
-
-    # TODO remove legacy checks
-    if package_version is None:
-      package_version = default("hostLevelParams/package_version", None)
-
-    if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
-      return self.get_package_from_available(name)
+    repositoryFileDict = Script.execution_command.get_repository_file()
+    package_version = repositoryFileDict.get("mpackVersion")
 
     if package_version is not None:
       package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
@@ -573,8 +559,8 @@ class Script(object):
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but
     # use the supplied version to build the package_version
-    effective_version = default("commandParams/version", None)
-    role_command = default("roleCommand", None)
+    effective_version = Script.execution_command.get_new_mpack_version_for_upgrade()
+    role_command = Script.execution_command.get_role_command()
 
     if (package_version is None or '*' in package_version) \
         and effective_version is not None and 'INSTALL' == role_command:
@@ -615,10 +601,32 @@ class Script(object):
   @staticmethod
   def get_module_configs():
     """
-    The dot access dict object holds configurations block in command.json which maps service configurations
-    :return:
+    The dict object holds configurations block in command.json which maps service configurations
+    :return: module_configs object
     """
+    if not Script.module_configs:
+      Script.module_configs = Script.execution_command.get_module_configs()
     return Script.module_configs
+
+  @staticmethod
+  def get_cluster_settings():
+    """
+    The dict object holds cluster_settings block in command.json which maps cluster configurations
+    :return: cluster_settings object
+    """
+    if not Script.cluster_settings:
+      Script.cluster_settings = Script.execution_command.get_cluster_settings()
+    return Script.cluster_settings
+
+  @staticmethod
+  def get_stack_settings():
+    """
+    The dict object holds stack_settings block in command.json which maps stack configurations
+    :return: stack_settings object
+    """
+    if not Script.stack_settings:
+      Script.stack_settings = Script.execution_command.get_stack_settings()
+    return Script.stack_settings
 
   @staticmethod
   def get_password(user):
@@ -667,9 +675,7 @@ class Script(object):
     such as DATANODE or HBASE_MASTER.
     :return:  the component name, such as hbase-master
     """
-    from resource_management.libraries.functions.default import default
-
-    command_role = default("/role", default_role)
+    command_role = Script.execution_command.get_component_type()
     if command_role in role_directory_map:
       return role_directory_map[command_role]
     else:
@@ -681,10 +687,10 @@ class Script(object):
     Gets the name of the stack from stackSettings/stack_name.
     :return: a stack name or None
     """
-    from resource_management.libraries.functions.default import default
-    stack_name = default("/stackSettings/stack_name", None)
+    stack_name = Script.get_stack_settings().get_mpack_name()
     if stack_name is None:
-      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
+      repositoryFileDict = Script.execution_command.get_repository_file()
+      stack_name = repositoryFileDict.get("mpackName", "HDPCORE")
 
     return stack_name
 
@@ -694,20 +700,8 @@ class Script(object):
     Get the stack-specific install root directory
     :return: stack_root
     """
-    from resource_management.libraries.functions.default import default
     stack_name = Script.get_stack_name()
-    stack_root_json = default("/configurations/cluster-env/stack_root", None)
-
-    if stack_root_json is None:
-      return "/usr/{0}".format(stack_name.lower())
-
-    stack_root = json.loads(stack_root_json)
-
-    if stack_name not in stack_root:
-      Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
-      return "/usr/{0}".format(stack_name.lower())
-
-    return stack_root[stack_name]
+    return "/usr/{0}".format(stack_name.lower())
 
   @staticmethod
   def get_stack_version():
@@ -729,9 +723,7 @@ class Script(object):
 
   @staticmethod
   def in_stack_upgrade():
-    from resource_management.libraries.functions.default import default
-
-    upgrade_direction = default("/commandParams/upgrade_direction", None)
+    upgrade_direction = Script.execution_command.check_upgrade_direction()
     return upgrade_direction is not None and upgrade_direction in [Direction.UPGRADE, Direction.DOWNGRADE]
 
 
@@ -827,8 +819,9 @@ class Script(object):
     from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
     config = self.get_config()
     execution_command = self.get_execution_command()
-    mpack_name = execution_command.get_mpack_name()
-    mpack_version = execution_command.get_mpack_version()
+    stack_settings = self.get_stack_settings()
+    mpack_name = stack_settings.get_mpack_name()
+    mpack_version = stack_settings.get_mpack_version()
     mpack_instance_name = execution_command.get_servicegroup_name()
     module_name = execution_command.get_module_name()
     component_type = execution_command.get_component_type()
@@ -1137,8 +1130,8 @@ class Script(object):
   def get_instance():
     if Script.instance is None:
 
-      from resource_management.libraries.functions.default import default
-      use_proxy = default("/agentConfigParams/agent/use_system_proxy_settings", True)
+      # default value is True
+      use_proxy = Script.execution_command.check_agent_proxy_settings()
       if not use_proxy:
         reconfigure_urllib2_opener(ignore_system_proxy=True)
 

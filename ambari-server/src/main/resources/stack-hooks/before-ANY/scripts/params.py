@@ -38,6 +38,8 @@ from resource_management.libraries.functions.namenode_ha_utils import get_proper
 config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
+stack_settings = Script.get_stack_settings()
+cluster_settings = Script.get_cluster_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 
@@ -59,8 +61,8 @@ sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = execution_command.get_ambari_server_host()
 
-stack_version_unformatted = execution_command.get_mpack_version()
-stack_version_formatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
+stack_version_formatted = stack_settings.get_mpack_version()
 
 upgrade_type = Script.get_upgrade_type(execution_command.get_upgrade_type())
 version = execution_command.get_new_mpack_version_for_upgrade()
@@ -109,7 +111,7 @@ def is_secure_port(port):
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 
-mpack_name = execution_command.get_mpack_name()
+mpack_name = stack_settings.get_mpack_name()
 mpack_instance_name = execution_command.get_servicegroup_name()
 module_name = execution_command.get_module_name()
 component_type = execution_command.get_component_type()
@@ -257,7 +259,7 @@ user_to_groups_dict = {}
 
 #Append new user-group mapping to the dict
 try:
-  user_group_map = ast.literal_eval(execution_command.get_user_groups())
+  user_group_map = ast.literal_eval(stack_settings.get_user_groups())
   for key in user_group_map.iterkeys():
     user_to_groups_dict[key] = user_group_map[key]
 except ValueError:
@@ -265,8 +267,8 @@ except ValueError:
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
-user_list = json.loads(execution_command.get_user_list())
-group_list = json.loads(execution_command.get_group_list())
+user_list = json.loads(stack_settings.get_user_list())
+group_list = json.loads(stack_settings.get_group_list())
 host_sys_prepped = execution_command.is_host_system_prepared()
 
 tez_am_view_acls = module_configs.get_property_value(module_name, 'tez-site', 'tez.am.view-acls')
