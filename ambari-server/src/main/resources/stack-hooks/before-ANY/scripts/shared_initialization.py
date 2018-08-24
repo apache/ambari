@@ -130,34 +130,6 @@ def get_uid(user, return_existing=False):
       # do not return UID for existing user, used in User resource call to let OS to choose UID for us
       return None
 
-def setup_hadoop_env():
-  import params
-  stackversion = params.stack_version_unformatted
-  Logger.info("FS Type: {0}".format(params.dfs_type))
-  if params.has_namenode or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
-    if params.security_enabled:
-      tc_owner = "root"
-    else:
-      tc_owner = params.hdfs_user
-
-    # create /etc/hadoop
-    Directory(params.hadoop_dir, mode=0755)
-
-    # write out hadoop-env.sh, but only if the directory exists
-    if os.path.exists(params.hadoop_conf_dir):
-      File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'), owner=tc_owner,
-        group=params.user_group,
-        content=InlineTemplate(params.hadoop_env_sh_template))
-
-    # Create tmp dir for java.io.tmpdir
-    # Handle a situation when /tmp is set to noexec
-    Directory(params.hadoop_java_io_tmpdir,
-              owner=params.hdfs_user,
-              group=params.user_group,
-              mode=01777
-    )
-
-
 def setup_java():
   """
   Install jdk using specific params.
