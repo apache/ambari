@@ -376,7 +376,7 @@ def get_current_version(service=None, use_upgrading_version_during_upgrade=True)
 
 
   # if there is no upgrade, then use the command's version
-  if not Script.in_stack_upgrade() or use_upgrading_version_during_upgrade:
+  if not upgrade_summary.is_upgrade_in_progress() or use_upgrading_version_during_upgrade:
     Logger.info("Tarball version was calcuated as {0}. Use Command Version: {1}".format(
       version, use_upgrading_version_during_upgrade))
 

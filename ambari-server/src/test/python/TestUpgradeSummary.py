@@ -20,7 +20,7 @@ limitations under the License.
 
 
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions import upgrade_summary
+from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
 from resource_management.libraries.script import Script
 from unittest import TestCase
 
@@ -36,21 +36,22 @@ class TestUpgradeSummary(TestCase):
     command_json = TestUpgradeSummary._get_cluster_simple_upgrade_json()
     Script.config = command_json
 
-    summary = upgrade_summary.get_upgrade_summary()
+    summary = UpgradeSummary()
     self.assertEqual(False, summary.is_revert)
     self.assertEqual("UPGRADE", summary.direction)
 
     service_groups = summary.service_groups
-    self.assertEqual("express_upgrade", service_groups["SG1"].type)
+    service_group = summary.get_service_group_summary("SG1")
+    self.assertEqual("express_upgrade", service_group.type)
 
-    services = service_groups["SG1"].services
+    services = service_group.services
     self.assertEqual("3.0.0.0-b1", services["HDFS"].source_version)
     self.assertEqual("3.1.0.0-b1", services["HDFS"].target_version)
 
-    self.assertEqual("3.0.0.0-b1", upgrade_summary.get_source_version(service_group_name = "SG1", service_name = "HDFS"))
-    self.assertEqual("3.1.0.0-b1", upgrade_summary.get_target_version(service_group_name = "SG1", service_name = "HDFS"))
+    self.assertEqual("3.0.0.0-b1", summary.get_service_summary(service_group_name = "SG1", service_name = "HDFS").source_version)
+    self.assertEqual("3.1.0.0-b1", summary.get_service_summary(service_group_name = "SG1", service_name = "HDFS").target_version)
 
-    self.assertTrue(upgrade_summary.get_downgrade_from_version(service_group_name = "SG1", service_name="HDFS") is None)
+    self.assertTrue(summary.get_downgrade_from_version(service_group_name = "SG1", service_name="HDFS") is None)
 
 
   def test_get_downgrade_from_version(self):
@@ -61,8 +62,10 @@ class TestUpgradeSummary(TestCase):
     command_json = TestUpgradeSummary._get_cluster_simple_downgrade_json()
     Script.config = command_json
 
-    self.assertTrue(upgrade_summary.get_downgrade_from_version(service_group_name = "FOO", service_name =  "BAR") is None)
-    self.assertEqual("3.1.0.0-b1", upgrade_summary.get_downgrade_from_version(service_group_name = "SG1", service_name =  "HDFS"))
+    summary = UpgradeSummary()
+
+    self.assertTrue(summary.get_downgrade_from_version(service_group_name = "FOO", service_name =  "BAR") is None)
+    self.assertEqual("3.1.0.0-b1", summary.get_downgrade_from_version(service_group_name = "SG1", service_name =  "HDFS"))
 
 
   @staticmethod

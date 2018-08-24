@@ -327,7 +327,7 @@ public class UpgradeContext {
       // depending on the direction, we must either have a target repository or an upgrade we are downgrading from
       switch(m_direction){
         case UPGRADE:{
-          m_type = calculateUpgradeType(upgradeRequestMap, null);
+          m_type = upgradePlan.getUpgradeType();
 
           List<UpgradePlanDetailEntity> details = upgradePlan.getDetails();
           for (UpgradePlanDetailEntity detail : details) {
