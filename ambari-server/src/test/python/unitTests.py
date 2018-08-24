@@ -246,6 +246,7 @@ def main():
   ambari_server_folder = get_parent_path(pwd, 'ambari-server')
   ambari_agent_folder = os.path.normpath(os.path.join(ambari_server_folder, "../ambari-agent"))
   ambari_common_folder = os.path.normpath(os.path.join(ambari_server_folder, "../ambari-common"))
+  mpack_instance_manager_folder = os.path.normpath(os.path.join(ambari_server_folder, "../mpack-instance-manager"))
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python"))
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python/ambari_jinja2"))
   sys.path.append(os.path.join(ambari_common_folder, "src/test/python"))
@@ -255,6 +256,7 @@ def main():
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/scripts"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/custom_actions/scripts"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/host_scripts"))
+  sys.path.append(os.path.join(mpack_instance_manager_folder, "src/main/python/instance_manager"))
 
   stacks_folder = os.path.join(pwd, 'stacks')
   #generate test variants(path, service, stack)
