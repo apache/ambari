@@ -106,7 +106,7 @@ class RMFTestCase(TestCase):
       self.config_dict["stackSettings"]["stack_tools"] = RMFTestCase.get_stack_tools()
 
     if "stack_features" not in self.config_dict["stackSettings"]:
-      self.config_dict["stackSettings"]["stack_features"] = RMFTestCase.get_stack_features()
+      self.config_dict["stackSettings"]["stack_features"] = RMFTestCase.get_stack_features_from_file()
 
     if "stack_packages" not in self.config_dict["stackSettings"]:
       self.config_dict["stackSettings"]["stack_packages"] = RMFTestCase.get_stack_packages()
@@ -256,7 +256,7 @@ class RMFTestCase(TestCase):
       return f.read()
 
   @staticmethod
-  def get_stack_features():
+  def get_stack_features_from_file():
     """
     Read stack_features config property from resources/stacks/configs/stack_features.json
     """
