@@ -284,6 +284,8 @@ class TestStackFeature(TestCase):
             "serviceGroupName": "SG1",
             "sourceMpackId": 50,
             "targetMpackId": 100,
+            "sourceMpackName": "HDPCORE-1.0",
+            "targetMpackName": "HDPCORE-1.5",
             "sourceStack": "HDPCORE-1.0",
             "targetStack": "HDPCORE-1.5",
             "sourceMpackVersion": "1.0.0.0-b1",
