@@ -49,7 +49,10 @@ def check_stack_feature(stack_feature, stack_version):
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
-  stack_features_setting = stack_settings.get_stack_features()
+  # TODO call stack_settings.get_stack_features() will fail in TestStackFeature, need more investigation
+  stack_features_setting = None
+  if Script.config and "stackSettings" in Script.config and "stack_features" in Script.config["stackSettings"]:
+    stack_features_setting = Script.config["stackSettings"]["stack_features"]
 
   if not stack_version:
     Logger.debug("Cannot determine if feature %s is supported since did not provide a stack version." % stack_feature)
