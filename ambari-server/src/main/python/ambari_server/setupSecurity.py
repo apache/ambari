@@ -93,6 +93,7 @@ LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
 LDAP_USE_SSL="ambari.ldap.connectivity.use_ssl"
+LDAP_DISABLE_ENDPOINT_IDENTIFICATION = "ambari.ldap.advance.disable_endpoint_identification"
 NO_AUTH_METHOD_CONFIGURED = "no auth method"
 
 def read_master_key(isReset=False, options = None):
@@ -750,6 +751,7 @@ def setup_ldap(options):
 
   ldap_property_list_opt = [LDAP_MGR_USERNAME_PROPERTY,
                             LDAP_MGR_PASSWORD_PROPERTY,
+                            LDAP_DISABLE_ENDPOINT_IDENTIFICATION,
                             SSL_TRUSTSTORE_TYPE_PROPERTY,
                             SSL_TRUSTSTORE_PATH_PROPERTY,
                             SSL_TRUSTSTORE_PASSWORD_PROPERTY]
@@ -790,6 +792,10 @@ def setup_ldap(options):
       ts_password = None
 
       if ldaps:
+        disable_endpoint_identification = get_validated_string_input("Disable endpoint identification during SSL handshake [true/false] (false): ", "false",
+                                                                     REGEX_TRUE_FALSE, "Invalid characters in the input!", False, allowEmpty=True, answer=options.ldap_sync_disable_endpoint_identification)
+        ldap_property_value_map[LDAP_DISABLE_ENDPOINT_IDENTIFICATION] = disable_endpoint_identification
+
         truststore_default = "n"
         truststore_set = bool(SSL_TRUSTSTORE_PATH_DEFAULT)
         if truststore_set:

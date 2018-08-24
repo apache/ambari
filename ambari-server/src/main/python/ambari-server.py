@@ -565,6 +565,7 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-referral', default=None, help="Referral method [follow/ignore] for LDAP", dest="ldap_referral")
   parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
   parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
+  parser.add_option('--ldap-sync-disable-endpoint-identification', default=None, help="Determines whether to disable endpoint identification (hostname verification) during SSL handshake for LDAP sync. This option takes effect only if --ldap-ssl is set to 'true'", dest="ldap_sync_disable_endpoint_identification")
   parser.add_option('--ldap-force-lowercase-usernames', default=None, help="Declares whether to force the ldap user name to be lowercase or leave as-is", dest="ldap_force_lowercase_usernames")
   parser.add_option('--ldap-pagination-enabled', default=None, help="Determines whether results from LDAP are paginated when requested", dest="ldap_pagination_enabled")
   parser.add_option('--ldap-force-setup', action="store_true", default=False, help="Forces the use of LDAP even if other (i.e. PAM) authentication method is configured already or if there is no authentication method configured at all", dest="ldap_force_setup")

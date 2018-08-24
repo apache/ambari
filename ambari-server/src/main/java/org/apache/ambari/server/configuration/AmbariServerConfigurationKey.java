@@ -73,6 +73,7 @@ public enum AmbariServerConfigurationKey {
   REFERRAL_HANDLING(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.advanced.referrals", PLAINTEXT, "follow", "Determines whether to follow LDAP referrals to other URLs when the LDAP controller doesn't have the requested object."),
   PAGINATION_ENABLED(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.advanced.pagination_enabled", PLAINTEXT, "true", "Determines whether results from LDAP are paginated when requested."),
   COLLISION_BEHAVIOR(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.advance.collision_behavior", PLAINTEXT, "convert", "Determines how to handle username collision while updating from LDAP."),
+  DISABLE_ENDPOINT_IDENTIFICATION(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.advance.disable_endpoint_identification", PLAINTEXT, "false", "Determines whether to disable endpoint identification (hostname verification) during SSL handshake while updating from LDAP."),
 
   /* ********************************************************
    * SSO Configuration Keys
