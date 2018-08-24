@@ -136,6 +136,8 @@ class TestStackFeature(TestCase):
     command_json = TestStackFeature._get_cluster_install_command_json()
     # pay attention: update does not work for nested dict
     Script.config.update(command_json)
+    Script.config["stackSettings"]["stack_features"] = {}
+    Script.config["stackSettings"]["stack_features"] = json.dumps(TestStackFeature._get_stack_feature_json())
     Script.execution_command = ExecutionCommand(Script.config)
 
     stack_feature_version = get_stack_feature_version(Script.config)

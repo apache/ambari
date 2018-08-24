@@ -49,7 +49,6 @@ def check_stack_feature(stack_feature, stack_version):
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
-  # TODO: If stack_features is needed, this should be added in execution_command lib
   stack_features_setting = stack_settings.get_stack_features()
 
   if not stack_version:
