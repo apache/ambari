@@ -28,9 +28,14 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
 from unittest import TestCase
+from unittest import SkipTest
 
 Logger.initialize_logger()
 
+"""
+After upgrade_summary code has been modified, this test case class becomes invalid, no stack select feature is supported any more
+"""
+@SkipTest
 class TestStackSelect(TestCase):
 
   def test_missing_role_information_throws_exception(self):

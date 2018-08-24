@@ -147,8 +147,8 @@ def get_stack_feature_version(config):
   is_downgrade = upgrade_direction.lower() == Direction.DOWNGRADE.lower()
   # guaranteed to have a STOP command now during an UPGRADE/DOWNGRADE, check direction
   if is_downgrade:
-    from resource_management.libraries.functions import upgrade_summary
-    version_for_stack_feature_checks = upgrade_summary.get_source_version(default_version = version_for_stack_feature_checks)
+    from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
+    version_for_stack_feature_checks = UpgradeSummary().get_service_source_version(service_group_name=None, service_name=None, default_version=version_for_stack_feature_checks)
   else:
     # UPGRADE
       version_for_stack_feature_checks = command_version if command_version is not None else stack_version
