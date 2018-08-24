@@ -67,12 +67,15 @@ import org.apache.ambari.server.events.UpgradeUpdateEvent;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.dao.UpgradePlanDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
@@ -86,6 +89,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Mpack.MpackChangeSummary;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
@@ -305,6 +309,20 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    */
   @Inject
   private static Provider<KerberosHelper> s_kerberosHelper;
+
+  /**
+   * Used for looking up {@link ServiceGroupEntity} instances when creating
+   * {@link UpgradeHistoryEntity}.
+   */
+  @Inject
+  private static ServiceGroupDAO s_serviceGroupDAO;
+
+  /**
+   * Used for looking up {@link MpackEntity} instances when creating
+   * {@link UpgradeHistoryEntity}.
+   */
+  @Inject
+  private static MpackDAO s_mpackDAO;
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeResourceProvider.class);
 
@@ -1558,10 +1576,23 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param upgradeContext
    *          the upgrade context for this upgrade (not {@code null}).
    */
-  @Experimental(feature = ExperimentalFeature.MPACK_UPGRADES, comment = "Need to implement")
   private void addComponentHistoryToUpgrade(Cluster cluster, UpgradeEntity upgrade,
       UpgradeContext upgradeContext) throws AmbariException {
+
+    Map<ServiceGroup, MpackChangeSummary> serviceGroupsInUpgrade = upgradeContext.getServiceGroups();
+    for( ServiceGroup serviceGroup : serviceGroupsInUpgrade.keySet() ) {
+      MpackChangeSummary mpackChangeSummary = serviceGroupsInUpgrade.get(serviceGroup);
+      ServiceGroupEntity serviceGroupEntity = s_serviceGroupDAO.findByPK(serviceGroup.getServiceGroupId());
+      MpackEntity sourceMpackEntity = s_mpackDAO.findById(mpackChangeSummary.getSource().getResourceId());
+      MpackEntity targetMpackEntity = s_mpackDAO.findById(mpackChangeSummary.getTarget().getResourceId());
+
+      UpgradeHistoryEntity history = new UpgradeHistoryEntity(upgrade, serviceGroupEntity,
+          sourceMpackEntity, targetMpackEntity);
+
+      upgrade.addHistory(history);
+    }
   }
+
 
   /**
    * Constructs an {@link ActionExecutionContext}, setting common parameters for
