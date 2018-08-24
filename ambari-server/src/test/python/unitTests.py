@@ -256,6 +256,7 @@ def main():
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/scripts"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/custom_actions/scripts"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/host_scripts"))
+  sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/stacks"))
   sys.path.append(os.path.join(mpack_instance_manager_folder, "src/main/python/instance_manager"))
 
   stacks_folder = os.path.join(pwd, 'stacks')
