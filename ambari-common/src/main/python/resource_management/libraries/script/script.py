@@ -25,16 +25,12 @@ import re
 import os
 import sys
 import logging
-import inspect
 import tarfile
 import traceback
 import time
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck
-from ambari_commons.constants import UPGRADE_TYPE_EXPRESS
-from ambari_commons.constants import UPGRADE_TYPE_ROLLING
-from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.network import reconfigure_urllib2_opener
 from ambari_commons.inet_utils import ensure_ssl_using_protocol
 from resource_management.libraries.resources import XmlConfig
@@ -46,8 +42,8 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
-from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
@@ -401,8 +397,15 @@ class Script(object):
 
   def pre_start(self, env=None):
     """
-    Executed before any start method. Posts contents of relevant *.out files to command execution log.
+    Executed before any start method, this will perform the following actions:
+      - Executes any pre-upgrade logic if there is an upgrade in progres.
+      - Posts contents of relevant *.out files to command execution log.
     """
+    # invoke pre-start upgrade function if in an upgrade
+    upgrade_summary = UpgradeSummary()
+    if Script.is_upgrade_in_progress():
+      self._update_mpack_instance_versions(env, upgrade_summary)
+
     if self.log_out_files:
       log_folder = self.get_log_folder()
       user = self.get_user()
@@ -418,6 +421,11 @@ class Script(object):
       show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
 
   def post_start(self, env=None):
+    # invoke post-start upgrade function if in an upgrade
+    upgrade_summary = UpgradeSummary()
+    if Script.is_upgrade_in_progress():
+      self.post_upgrade_restart(env, upgrade_summary)
+
     pid_files = self.get_pid_files()
     if pid_files == []:
       Logger.logger.warning("Pid files for current script are not defined")
@@ -721,64 +729,6 @@ class Script(object):
 
     return format_stack_version(stack_version_unformatted)
 
-  @staticmethod
-  def in_stack_upgrade():
-    upgrade_direction = Script.execution_command.check_upgrade_direction()
-    return upgrade_direction is not None and upgrade_direction in [Direction.UPGRADE, Direction.DOWNGRADE]
-
-
-  @staticmethod
-  def is_stack_greater(stack_version_formatted, compare_to_version):
-    """
-    Gets whether the provided stack_version_formatted (normalized)
-    is greater than the specified stack version
-    :param stack_version_formatted: the version of stack to compare
-    :param compare_to_version: the version of stack to compare to
-    :return: True if the command's stack is greater than the specified version
-    """
-    if stack_version_formatted is None or stack_version_formatted == "":
-      return False
-
-    return compare_versions(stack_version_formatted, compare_to_version) > 0
-
-  @staticmethod
-  def is_stack_greater_or_equal(compare_to_version):
-    """
-    Gets whether the hostLevelParams/stack_version, after being normalized,
-    is greater than or equal to the specified stack version
-    :param compare_to_version: the version to compare to
-    :return: True if the command's stack is greater than or equal the specified version
-    """
-    return Script.is_stack_greater_or_equal_to(Script.get_stack_version(), compare_to_version)
-
-  @staticmethod
-  def is_stack_greater_or_equal_to(stack_version_formatted, compare_to_version):
-    """
-    Gets whether the provided stack_version_formatted (normalized)
-    is greater than or equal to the specified stack version
-    :param stack_version_formatted: the version of stack to compare
-    :param compare_to_version: the version of stack to compare to
-    :return: True if the command's stack is greater than or equal to the specified version
-    """
-    if stack_version_formatted is None or stack_version_formatted == "":
-      return False
-
-    return compare_versions(stack_version_formatted, compare_to_version) >= 0
-
-  @staticmethod
-  def is_stack_less_than(compare_to_version):
-    """
-    Gets whether the hostLevelParams/stack_version, after being normalized,
-    is less than the specified stack version
-    :param compare_to_version: the version to compare to
-    :return: True if the command's stack is less than the specified version
-    """
-    stack_version_formatted = Script.get_stack_version()
-
-    if stack_version_formatted is None:
-      return False
-
-    return compare_versions(stack_version_formatted, compare_to_version) < 0
 
   def install(self, env):
     """
@@ -931,7 +881,39 @@ class Script(object):
     """
     self.fail_with_error("stop method isn't implemented")
 
-  def pre_upgrade_restart(self, env):
+  def _update_mpack_instance_versions(self, env, upgrade_summary):
+    """
+    Used to preform non-overridable actions, such as invoking the mpack instance manager to
+    switch versions, before restarting components during upgrade.
+
+    :param env:
+    :param upgrade_summary:
+    :return:
+    """
+    from resource_management.libraries.functions import mpack_manager_helper
+
+    execution_command = self.get_execution_command();
+    service_group_name = execution_command.get_servicegroup_name()
+    service_name = execution_command.get_module_name()
+    component_name = execution_command.get_component_type()
+
+    service_group_summary = upgrade_summary.get_service_group_summary(service_group_name)
+    if service_group_summary is None:
+      Logger.info("There is no upgrade information for the service group {0}, so it will be skipped".format(service_group_name))
+      return
+
+    target_mpack_name = service_group_summary.target_mpack_name
+    target_mpack_version = service_group_summary.target_mpack_version
+
+    Logger.info("Upgrading {0}'s {1}/{2} to {3}-{4}".format(service_group_name, service_name,
+      component_name, target_mpack_name, target_mpack_version))
+
+    mpack_manager_helper.set_mpack_instance(target_mpack_name, target_mpack_version, service_group_name,
+      module_name = service_name, components = [component_name])
+
+    self.pre_upgrade_restart(env, upgrade_summary)
+
+  def pre_upgrade_restart(self, env, upgrade_summary):
     """
     To be overridden by subclasses
     """
@@ -956,53 +938,23 @@ class Script(object):
     except KeyError:
       pass
 
-    upgrade_type_command_param = ""
-    direction = None
-    if config is not None:
-      command_params = config["commandParams"] if "commandParams" in config else None
-      if command_params is not None:
-        upgrade_type_command_param = command_params["upgrade_type"] if "upgrade_type" in command_params else ""
-        direction = command_params["upgrade_direction"] if "upgrade_direction" in command_params else None
-
-    upgrade_type = Script.get_upgrade_type(upgrade_type_command_param)
-    is_stack_upgrade = upgrade_type is not None
-
     # need this before actually executing so that failures still report upgrade info
-    if is_stack_upgrade:
-      upgrade_info = {"upgrade_type": upgrade_type_command_param}
-      if direction is not None:
-        upgrade_info["direction"] = direction.upper()
-
-      Script.structuredOut.update(upgrade_info)
+    if Script.is_upgrade_in_progress():
+      upgrade_summary = UpgradeSummary()
+      upgrade_dict = { "direction" : upgrade_summary.direction }
+      Script.structuredOut.update({"upgrade_summary": upgrade_dict})
 
     if componentCategory and componentCategory.strip().lower() == 'CLIENT'.lower():
-      if is_stack_upgrade:
-        self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
+      if Script.is_upgrade_in_progress():
+        self._pre_upgrade_restart(env)
 
       self.install(env)
     else:
-      # To remain backward compatible with older stacks, only pass upgrade_type if available.
-      # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      if "upgrade_type" in inspect.getargspec(self.stop).args:
-        self.stop(env, upgrade_type=upgrade_type)
-      else:
-        if is_stack_upgrade:
-          self.stop(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
-        else:
-          self.stop(env)
-
-      if is_stack_upgrade:
-        # Remain backward compatible with the rest of the services that haven't switched to using
-        # the pre_upgrade_restart method. Once done. remove the else-block.
-        self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
+      self.stop(env)
 
       service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
       try:
-        #TODO Once the logic for pid is available from Ranger and Ranger KMS code, will remove the below if block.
-        services_to_skip = ['RANGER', 'RANGER_KMS']
-        if service_name in services_to_skip:
-          Logger.info('Temporarily skipping status check for {0} service only.'.format(service_name))
-        elif is_stack_upgrade:
+        if Script.is_upgrade_in_progress():
           Logger.info('Skipping status check for {0} service during upgrade'.format(service_name))
         else:
           self.status(env)
@@ -1012,23 +964,12 @@ class Script(object):
       except ClientComponentHasNoStatus as e:
         pass  # expected
 
-      # To remain backward compatible with older stacks, only pass upgrade_type if available.
-      # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
       self.pre_start(env)
-      if "upgrade_type" in inspect.getargspec(self.start).args:
-        self.start(env, upgrade_type=upgrade_type)
-      else:
-        if is_stack_upgrade:
-          self.start(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
-        else:
-          self.start(env)
+      self.start(env)
       self.post_start(env)
 
-      if is_stack_upgrade:
-        self.post_upgrade_restart(env, upgrade_type=upgrade_type)
 
-
-  def post_upgrade_restart(self, env):
+  def post_upgrade_restart(self, env, upgrade_summary):
     """
     To be overridden by subclasses
     """
@@ -1147,20 +1088,18 @@ class Script(object):
       Script.instance = Script()
     return Script.instance
 
-  @staticmethod
-  def get_upgrade_type(upgrade_type_command_param):
-    upgrade_type = None
-    if upgrade_type_command_param.lower() == "rolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_ROLLING
-    elif upgrade_type_command_param.lower() == "express_upgrade":
-      upgrade_type = UPGRADE_TYPE_EXPRESS
-    elif upgrade_type_command_param.lower() == "host_ordered_upgrade":
-      upgrade_type = UPGRADE_TYPE_HOST_ORDERED
-
-    return upgrade_type
-
 
   def __init__(self):
     self.available_packages_in_repos = []
     if Script.instance is not None:
       raise Fail("An instantiation already exists! Use, get_instance() method.")
+
+
+  @staticmethod
+  def is_upgrade_in_progress():
+    """
+    Gets whether an upgrade is in progress
+    :return:  True if an upgrade is in progress (or suspended), False otherwise
+    """
+    config = Script.get_config()
+    return "upgradeSummary" in config and config["upgradeSummary"] is not None

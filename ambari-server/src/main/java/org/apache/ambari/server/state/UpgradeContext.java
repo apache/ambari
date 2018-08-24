@@ -327,7 +327,7 @@ public class UpgradeContext {
       // depending on the direction, we must either have a target repository or an upgrade we are downgrading from
       switch(m_direction){
         case UPGRADE:{
-          m_type = calculateUpgradeType(upgradeRequestMap, null);
+          m_type = upgradePlan.getUpgradeType();
 
           List<UpgradePlanDetailEntity> details = upgradePlan.getDetails();
           for (UpgradePlanDetailEntity detail : details) {
@@ -640,9 +640,11 @@ public class UpgradeContext {
       serviceGroupSummary.serviceGroupId = serviceGroup.getServiceGroupId();
       serviceGroupSummary.serviceGroupName = serviceGroup.getServiceGroupName();
       serviceGroupSummary.sourceMpackId = changeSummary.getSource().getResourceId();
+      serviceGroupSummary.sourceMpackName = changeSummary.getSource().getName();
       serviceGroupSummary.sourceMpackVersion = changeSummary.getSource().getVersion();
       serviceGroupSummary.sourceStack = changeSummary.getSource().getStackId().getStackId();
-      serviceGroupSummary.targetMpackId = changeSummary.getTarget().getRegistryId();
+      serviceGroupSummary.targetMpackId = changeSummary.getTarget().getResourceId();
+      serviceGroupSummary.targetMpackName = changeSummary.getTarget().getName();
       serviceGroupSummary.targetMpackVersion = changeSummary.getTarget().getVersion();
       serviceGroupSummary.targetStack = changeSummary.getTarget().getStackId().getStackId();
       serviceGroupSummary.services = new LinkedHashMap<>();
@@ -1231,6 +1233,12 @@ public class UpgradeContext {
 
     @SerializedName("targetStack")
     public String targetStack;
+
+    @SerializedName("sourceMpackName")
+    public String sourceMpackName;
+
+    @SerializedName("targetMpackName")
+    public String targetMpackName;
 
     @SerializedName("sourceMpackVersion")
     public String sourceMpackVersion;

@@ -29,7 +29,6 @@ from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option_value
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 from ambari_commons.constants import AMBARI_SUDO_BINARY
@@ -62,13 +61,7 @@ sudo = AMBARI_SUDO_BINARY
 ambari_server_hostname = execution_command.get_ambari_server_host()
 
 stack_version_unformatted = stack_settings.get_mpack_version()
-stack_version_formatted = stack_settings.get_mpack_version()
 
-upgrade_type = Script.get_upgrade_type(execution_command.get_upgrade_type())
-version = execution_command.get_new_mpack_version_for_upgrade()
-# Handle upgrade and downgrade
-if (upgrade_type is not None) and version:
-  stack_version_formatted = format_stack_version(version)
 """
 ??? is this the same as ambariLevelParams/java_home and ambariLevelParams/java_name ???
 """
