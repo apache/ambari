@@ -18,8 +18,7 @@ limitations under the License.
 """
 
 from resource_management import Hook
-from shared_initialization import setup_users, setup_java, setup_hadoop_env
-from shared_initialization import setup_java
+from shared_initialization import setup_users, setup_java
 
 
 class BeforeAnyHook(Hook):
