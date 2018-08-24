@@ -897,18 +897,18 @@ class Script(object):
     service_name = execution_command.get_module_name()
     component_name = execution_command.get_component_type()
 
-    service_group_summary = upgrade_summary.get_service_group_summary()
+    service_group_summary = upgrade_summary.get_service_group_summary(service_group_name)
     if service_group_summary is None:
       Logger.info("There is no upgrade information for the service group {0}, so it will be skipped".format(service_group_name))
       return
 
-    target_mpack = service_group_summary.target_stack
+    target_mpack_name = service_group_summary.target_mpack_name
     target_mpack_version = service_group_summary.target_mpack_version
 
     Logger.info("Upgrading {0}'s {1}/{2} to {3}-{4}".format(service_group_name, service_name,
-      component_name, target_mpack, target_mpack_version))
+      component_name, target_mpack_name, target_mpack_version))
 
-    mpack_manager_helper.set_mpack_instance(target_mpack, target_mpack_version, service_group_name,
+    mpack_manager_helper.set_mpack_instance(target_mpack_name, target_mpack_version, service_group_name,
       module_name = service_name, components = [component_name])
 
     self.pre_upgrade_restart(env, upgrade_summary)

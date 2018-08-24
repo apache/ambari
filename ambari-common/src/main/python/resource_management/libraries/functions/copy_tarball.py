@@ -367,16 +367,15 @@ def get_current_version(service=None, use_upgrading_version_during_upgrade=True)
   :return: Version, or False if an error occurred.
   """
 
-  from resource_management.libraries.functions import upgrade_summary
+  from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
+
+  upgrade_summary = UpgradeSummary if Script.is_upgrade_in_progress() else None
 
   # get the version for this command
   version = stack_features.get_stack_feature_version(Script.get_config())
-  if service is not None:
-    version = upgrade_summary.get_target_version(service_name=service, default_version=version)
-
 
   # if there is no upgrade, then use the command's version
-  if not upgrade_summary.is_upgrade_in_progress() or use_upgrading_version_during_upgrade:
+  if upgrade_summary is None or use_upgrading_version_during_upgrade:
     Logger.info("Tarball version was calcuated as {0}. Use Command Version: {1}".format(
       version, use_upgrading_version_during_upgrade))
 
@@ -385,7 +384,7 @@ def get_current_version(service=None, use_upgrading_version_during_upgrade=True)
   # we're in an upgrade and we need to use an older version
   current_version = stack_select.get_role_component_current_stack_version()
   if service is not None:
-    current_version = upgrade_summary.get_source_version(service_name=service, default_version=current_version)
+    current_version = upgrade_summary.get_service_source_version(service_name=service, default_version=current_version)
 
   if current_version is None:
     Logger.warning("Unable to determine the current version of the component for this command; unable to copy the tarball")

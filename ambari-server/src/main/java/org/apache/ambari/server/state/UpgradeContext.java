@@ -640,9 +640,11 @@ public class UpgradeContext {
       serviceGroupSummary.serviceGroupId = serviceGroup.getServiceGroupId();
       serviceGroupSummary.serviceGroupName = serviceGroup.getServiceGroupName();
       serviceGroupSummary.sourceMpackId = changeSummary.getSource().getResourceId();
+      serviceGroupSummary.sourceMpackName = changeSummary.getSource().getName();
       serviceGroupSummary.sourceMpackVersion = changeSummary.getSource().getVersion();
       serviceGroupSummary.sourceStack = changeSummary.getSource().getStackId().getStackId();
-      serviceGroupSummary.targetMpackId = changeSummary.getTarget().getRegistryId();
+      serviceGroupSummary.targetMpackId = changeSummary.getTarget().getResourceId();
+      serviceGroupSummary.targetMpackName = changeSummary.getTarget().getName();
       serviceGroupSummary.targetMpackVersion = changeSummary.getTarget().getVersion();
       serviceGroupSummary.targetStack = changeSummary.getTarget().getStackId().getStackId();
       serviceGroupSummary.services = new LinkedHashMap<>();
@@ -1231,6 +1233,12 @@ public class UpgradeContext {
 
     @SerializedName("targetStack")
     public String targetStack;
+
+    @SerializedName("sourceMpackName")
+    public String sourceMpackName;
+
+    @SerializedName("targetMpackName")
+    public String targetMpackName;
 
     @SerializedName("sourceMpackVersion")
     public String sourceMpackVersion;

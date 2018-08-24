@@ -24,9 +24,13 @@ from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
 
-UpgradeServiceGroupSummary = namedtuple("UpgradeServiceGroupSummary", "type service_group_id  service_group_name source_mpack_id target_mpack_id source_stack target_stack source_mpack_version target_mpack_version services")
-UpgradeServiceSummary = namedtuple("UpgradeServiceSummary", "service_name source_version target_version components")
-UpgradeComponentSummary = namedtuple("UpgradeComponentSummary", "component_name source_version target_version")
+UpgradeServiceGroupSummary = namedtuple("UpgradeServiceGroupSummary",
+  ["type", "service_group_id", "service_group_name", "source_mpack_id", "target_mpack_id",
+    "source_mpack_name", "target_mpack_name", "source_mpack_version", "target_mpack_version",
+    "source_stack", "target_stack", "services"])
+
+UpgradeServiceSummary = namedtuple("UpgradeServiceSummary", ["service_name", "source_version", "target_version", "components"])
+UpgradeComponentSummary = namedtuple("UpgradeComponentSummary", ["component_name", "source_version", "target_version"])
 
 __all__ = ["UpgradeSummary"]
 
@@ -56,10 +60,12 @@ class UpgradeSummary(object):
         service_group_name = service_group_summary_json["serviceGroupName"],
         source_mpack_id = service_group_summary_json["sourceMpackId"],
         target_mpack_id = service_group_summary_json["targetMpackId"],
-        source_stack = service_group_summary_json["sourceStack"],
-        target_stack = service_group_summary_json["targetStack"],
+        source_mpack_name =  service_group_summary_json["sourceMpackName"],
+        target_mpack_name = service_group_summary_json["targetMpackName"],
         source_mpack_version = service_group_summary_json["sourceMpackVersion"],
         target_mpack_version = service_group_summary_json["targetMpackVersion"],
+        source_stack = service_group_summary_json["sourceStack"],
+        target_stack = service_group_summary_json["targetStack"],
         services = service_summary_dict)
 
       service_group_summary_dict[service_group_name] = service_group_summary
@@ -163,3 +169,35 @@ class UpgradeSummary(object):
       return None
 
     return service_group_summary.services[service_name]
+
+
+  def get_service_source_version(self, service_group_name, service_name, default_version = None):
+    """
+    Gets the source version of the service (aka the module) during an upgrade. This will not
+    return an mpack verison, but the specific module version instead.
+    :param service_group_name: the service group name
+    :param service_name: the service (module) name
+    :param default_version:  the default version to return.
+    :return:
+    """
+    service_summary = self.get_service_summary(service_group_name, service_name)
+    if service_summary is None:
+      return default_version
+
+    return service_summary.source_version
+
+
+  def get_service_target_version(self, service_group_name, service_name, default_version = None):
+    """
+    Gets the target version of the service (aka the module) during an upgrade. This will not
+    return an mpack verison, but the specific module version instead.
+    :param service_group_name: the service group name
+    :param service_name: the service (module) name
+    :param default_version:  the default version to return.
+    :return:
+    """
+    service_summary = self.get_service_summary(service_group_name, service_name)
+    if service_summary is None:
+      return default_version
+
+    return service_summary.target_version
