@@ -77,11 +77,11 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
   protected int renameLdapSynchCollisionBehaviorValue() throws SQLException {
     int numberOfRecordsRenamed = 0;
     if (dbAccessor.tableExists(AMBARI_CONFIGURATION_TABLE)) {
-      LOG.debug(String.format("Executing: %s", RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL));
+      LOG.debug("Executing: {}", RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL);
       numberOfRecordsRenamed = dbAccessor.executeUpdate(RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL);
-      LOG.info(String.format("Renamed %d %s with incorrect LDAP configuration property name", numberOfRecordsRenamed, 1 >= numberOfRecordsRenamed ? "record" : "records"));
+      LOG.info("Renamed {} {} with incorrect LDAP configuration property name", numberOfRecordsRenamed, 1 >= numberOfRecordsRenamed ? "record" : "records");
     } else {
-      LOG.info(String.format("%s table does not exists; nothing to update", AMBARI_CONFIGURATION_TABLE));
+      LOG.info("{} table does not exists; nothing to update", AMBARI_CONFIGURATION_TABLE);
     }
     return numberOfRecordsRenamed;
   }
