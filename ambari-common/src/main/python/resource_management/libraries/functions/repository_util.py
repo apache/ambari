@@ -59,7 +59,6 @@ class RepositoryUtil:
           self.command_repository.stack_name, self.command_repository.version_string))
       return {}
 
-    append_to_file = False  # initialize to False to create the file anew.
     repo_files = {}
     for repository in self.command_repository.items:
       if repository.repo_id is None:
@@ -75,15 +74,16 @@ class RepositoryUtil:
             self.command_repository.stack_name, self.command_repository.version_string, repository.repo_id))
       else:
         Repository(repository.repo_id,
-                   action="create",
+                   action="prepare",
                    base_url=repository.base_url,
                    mirror_list=repository.mirrors_list,
                    repo_file_name=self.command_repository.repo_filename,
                    repo_template=self.template,
-                   components=repository.ubuntu_components,
-                   append_to_file=append_to_file)
-        append_to_file = True
+                   components=repository.ubuntu_components
+        )
         repo_files[repository.repo_id] = self.command_repository.repo_filename
+
+    Repository(None, action="create")
 
     return repo_files
 

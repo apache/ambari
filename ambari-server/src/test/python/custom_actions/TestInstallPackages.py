@@ -130,21 +130,22 @@ class TestInstallPackages(RMFTestCase):
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=False,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=True,
+      )
+      self.assertResourceCalled('Repository', None,
+                                action=['create'],
       )
       self.assertNoMoreResources()
 
@@ -249,23 +250,23 @@ class TestInstallPackages(RMFTestCase):
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=False,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=True,
                                 )
-
+      self.assertResourceCalled('Repository', None,
+                                action=['create'],
+      )
       self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
@@ -317,21 +318,22 @@ class TestInstallPackages(RMFTestCase):
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=False,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2',
                                 base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=True,
+      )
+      self.assertResourceCalled('Repository', None,
+                                action=['create'],
       )
       self.assertNoMoreResources()
 
@@ -403,22 +405,23 @@ class TestInstallPackages(RMFTestCase):
                         'package_installation_result': 'FAIL'})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=u'ambari-hdp-1',
                                 mirror_list=None,
-                                append_to_file=False,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=u'ambari-hdp-1',
                                 mirror_list=None,
-                                append_to_file=True,
                                 )
+      self.assertResourceCalled('Repository', None,
+                                action=['create'],
+      )
       self.assertNoMoreResources()
 
       TestInstallPackages._install_failed = False
@@ -473,23 +476,23 @@ class TestInstallPackages(RMFTestCase):
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=False,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=True,
                                 )
-
+      self.assertResourceCalled('Repository', None,
+                                action=['create'],
+      )
       self.assertNoMoreResources()
 
 
@@ -551,22 +554,23 @@ class TestInstallPackages(RMFTestCase):
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
                                 base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=False,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=True,
                                 )
+      self.assertResourceCalled('Repository', None,
+                                action=['create'],
+      )
       self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
@@ -1257,23 +1261,23 @@ class TestInstallPackages(RMFTestCase):
 
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
                                 base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=False,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                                action=['create'],
+                                action=['prepare'],
                                 components=[u'HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
-                                append_to_file=True,
       )
-
+      self.assertResourceCalled('Repository', None,
+                                action=['create'],
+      )
       self.assertNoMoreResources()
 
   def test_os_family_check_with_inheritance(self):
