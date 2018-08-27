@@ -93,7 +93,7 @@ LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
 LDAP_USE_SSL="ambari.ldap.connectivity.use_ssl"
-LDAP_DISABLE_ENDPOINT_IDENTIFICATION = "ambari.ldap.advance.disable_endpoint_identification"
+LDAP_DISABLE_ENDPOINT_IDENTIFICATION = "ambari.ldap.advanced.disable_endpoint_identification"
 NO_AUTH_METHOD_CONFIGURED = "no auth method"
 
 def read_master_key(isReset=False, options = None):
