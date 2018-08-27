@@ -1474,6 +1474,75 @@ input.radio:checked + label:after {
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-body {
   padding: 15px 10px 20px 20px;
 }
+.alert {
+  position: relative;
+  background: #FFF;
+  font-size: 12px;
+  color: #676767;
+  border-radius: 2px;
+  border: 1px solid;
+  box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.2);
+  padding: 15px;
+}
+.alert .title {
+  font-size: 14px;
+}
+.alert .close {
+  background: transparent;
+  border: 0;
+  position: relative;
+  top: -10px;
+  right: -5px;
+  float: right;
+  font-weight: normal;
+  opacity: 1;
+  color: #999;
+  cursor: pointer;
+  font-size: 20px;
+}
+.alert .alert-icon {
+  font-size: 24px;
+  position: absolute;
+  top: calc(50% - 12px);
+  left: 15px;
+}
+.alert.alert-with-icon {
+  padding-left: 50px;
+}
+.alert.alert-success {
+  border-color: #1EB475;
+}
+.alert.alert-success .title {
+  color: #1EB475;
+}
+.alert.alert-success .alert-icon {
+  color: #1EB475;
+}
+.alert.alert-warning {
+  border-color: #E98A40;
+}
+.alert.alert-warning .title {
+  color: #E98A40;
+}
+.alert.alert-warning .alert-icon {
+  color: #E98A40;
+}
+.alert.alert-danger {
+  border-color: #EF6162;
+}
+.alert.alert-danger .title {
+  color: #EF6162;
+}
+.alert.alert-danger .alert-icon {
+  color: #EF6162;
+}
+.alert.alert-info {
+  background: #FFF;
+  border-color: #999;
+}
+.alert.alert-info .title {
+  color: #333;
+}
 h1,
 h2,
 h3,
