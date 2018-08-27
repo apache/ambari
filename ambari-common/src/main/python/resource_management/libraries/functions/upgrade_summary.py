@@ -24,8 +24,6 @@ from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
 
-UpgradeSummary = namedtuple("UpgradeSummary", "direction is_revert orchestration service_groups")
-
 UpgradeServiceGroupSummary = namedtuple("UpgradeServiceGroupSummary",
   ["type", "service_group_id", "service_group_name", "source_mpack_id", "target_mpack_id",
     "source_mpack_name", "target_mpack_name", "source_mpack_version", "target_mpack_version",
