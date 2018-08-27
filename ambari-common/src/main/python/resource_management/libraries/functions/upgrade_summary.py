@@ -90,6 +90,7 @@ class UpgradeSummary(object):
 
     self.direction = upgrade_summary["direction"]
     self.is_revert = upgrade_summary["isRevert"]
+    self.orchestration = upgrade_summary["orchestration"]
     self.service_groups = service_group_summary_dict
 
 
