@@ -51,6 +51,7 @@ import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.serv
 import {RouterTestingModule} from '@angular/router/testing';
 import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 import {NotificationService} from '@modules/shared/services/notification.service';
+import {ComponentLabelPipe} from "@app/pipes/component-label";
 
 describe('LogIndexFilterComponent', () => {
   let component: LogIndexFilterComponent;
@@ -81,7 +82,8 @@ describe('LogIndexFilterComponent', () => {
       declarations: [
         LogIndexFilterComponent,
         DropdownButtonComponent,
-        DropdownListComponent
+        DropdownListComponent,
+        ComponentLabelPipe
       ],
       providers: [
         ...MockHttpRequestModules,
