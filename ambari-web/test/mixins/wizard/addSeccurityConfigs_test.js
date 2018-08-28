@@ -337,6 +337,9 @@ describe('App.AddSecurityConfigs', function () {
               },
               {
                 name: 'foo'
+              },
+              {
+                name: '/foo'
               }
             ],
             components: [
@@ -347,6 +350,9 @@ describe('App.AddSecurityConfigs', function () {
                   },
                   {
                     name: 'foo'
+                  },
+                  {
+                    name: '/foo'
                   }
                 ]
               }
