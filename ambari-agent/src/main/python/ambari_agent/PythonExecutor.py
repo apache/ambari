@@ -31,6 +31,7 @@ from ambari_commons import shell
 
 from Grep import Grep
 from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
+from resource_management.libraries.functions.log_process_information import log_process_information
 
 
 class PythonExecutor(object):
