@@ -59,4 +59,17 @@
       }
     }
   }
+  .request-indicator {
+    background: #fff;
+    bottom: calc(-1 * (3em + .3em));
+    color: @info-color;
+    opacity: .7;
+    padding: .3em;
+    position: fixed;
+    right: 0;
+    transition: bottom 500ms ease-in-out;
+    &.open {
+      bottom: 0;
+    }
+  }
 }

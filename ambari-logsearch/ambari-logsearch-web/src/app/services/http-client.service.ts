@@ -31,6 +31,7 @@ import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-pa
 import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params';
 import {ServiceLogsTruncatedQueryParams} from '@app/classes/queries/service-logs-truncated-query-params';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 @Injectable()
 export class HttpClientService extends Http {
@@ -99,6 +100,9 @@ export class HttpClientService extends Http {
   };
 
   private readonly unauthorizedStatuses = [401, 403, 419];
+
+  requestsPending: BehaviorSubject<number> = new BehaviorSubject(0);
+  requestInProgress: Observable<boolean> = this.requestsPending.map((totalRequest: number) => totalRequest > 0);
 
   constructor(backend: XHRBackend, defaultOptions: RequestOptions, private appState: AppStateService) {
     super(backend, defaultOptions);
@@ -171,11 +175,15 @@ export class HttpClientService extends Http {
       }
       return handled;
     };
-    return super.request(this.generateUrl(url), options).first().share()
+    const req = super.request(this.generateUrl(url), options).first().share()
       .map(response => response)
       .catch((error: any) => {
+        this.requestsPending.next(this.requestsPending.getValue() - 1);
         return handleResponseError(error) ? Observable.of(error) : Observable.throw(error);
       });
+      req.subscribe(() => this.requestsPending.next(this.requestsPending.getValue() - 1));
+      this.requestsPending.next(this.requestsPending.getValue() + 1);
+      return req;
   }
 
   get(url: string, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {

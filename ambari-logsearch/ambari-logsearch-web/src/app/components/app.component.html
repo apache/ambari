@@ -25,3 +25,7 @@
 <data-loading-indicator *ngIf="!(isBaseDataAvailable$ | async) && (isAuthorized$ | async)"></data-loading-indicator>
 <main-container *ngIf="!(isAuthorized$ | async) || (isBaseDataAvailable$ | async)"></main-container>
 <simple-notifications [options]="notificationServiceOptions"></simple-notifications>
+<div class="request-indicator" [class.open]="httpClient.requestInProgress | async">
+  <i class="fa fa-spin fa-gear"></i>
+  {{ 'common.loading' | translate }}
+</div>
