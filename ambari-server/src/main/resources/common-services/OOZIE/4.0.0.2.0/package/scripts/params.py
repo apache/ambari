@@ -37,3 +37,4 @@ host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 sysprep_skip_copy_oozie_share_lib_to_hdfs = False
 if host_sys_prepped:
   sysprep_skip_copy_oozie_share_lib_to_hdfs = default("/configurations/cluster-env/sysprep_skip_copy_oozie_share_lib_to_hdfs", False)
+sysprep_skip_oozie_schema_create = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_oozie_schema_create", False)
