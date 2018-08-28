@@ -137,7 +137,8 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     //// SYNC BETWEEN PARAMS AND FORM
     // sync to filters form when the query params changed (only when there is no other way sync)
     this.subscriptions.push(
-      this.activatedRoute.params.filter(() => !this.paramsSyncInProgress.getValue())
+      this.activatedRoute.params
+        .filter(() => !this.paramsSyncInProgress.getValue())
         .subscribe(this.onParamsChange)
     );
     // Sync from form to params on form values change

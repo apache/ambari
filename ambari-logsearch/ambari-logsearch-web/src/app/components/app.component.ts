@@ -22,6 +22,7 @@ import {Observable} from 'rxjs/Observable';
 import {Options} from 'angular2-notifications/src/options.type';
 import {notificationIcons} from '@modules/shared/services/notification.service';
 import { DataAvailability, DataAvailabilityValues } from '@app/classes/string';
+import {HttpClientService} from '@app/services/http-client.service';
 
 @Component({
   selector: 'app-root',
@@ -45,7 +46,8 @@ export class AppComponent {
   };
 
   constructor(
-    private appState: AppStateService
+    private appState: AppStateService,
+    public httpClient: HttpClientService
   ) {}
 
 }
