@@ -68,6 +68,8 @@ stack_name_uppercase = stack_name.upper()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+sysprep_skip_oozie_schema_create = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_oozie_schema_create", False)
 
 stack_root = status_params.stack_root
 

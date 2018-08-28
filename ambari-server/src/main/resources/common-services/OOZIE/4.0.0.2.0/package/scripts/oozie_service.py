@@ -109,10 +109,13 @@ def oozie_service(action = 'start', upgrade_type=None):
                  user=params.oozie_user,
         )
 
-      Execute( format("cd {oozie_tmp_dir} && {oozie_home}/bin/ooziedb.sh create -sqlfile oozie.sql -run"), 
-               user = params.oozie_user, not_if = no_op_test,
-               ignore_failures = True 
-      )
+      if params.sysprep_skip_oozie_schema_create:
+        Logger.info("Skipping creation of oozie schema as host is sys prepped")
+      else:
+        Execute( format("cd {oozie_tmp_dir} && {oozie_home}/bin/ooziedb.sh create -sqlfile oozie.sql -run"),
+                 user = params.oozie_user, not_if = no_op_test,
+                 ignore_failures = True
+        )
       
       if params.security_enabled:
         Execute(kinit_if_needed,
