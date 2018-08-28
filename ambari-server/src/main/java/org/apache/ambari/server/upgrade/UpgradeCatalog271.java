@@ -19,11 +19,13 @@ package org.apache.ambari.server.upgrade;
 
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_NEW_NAME;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_OLD_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.YARN_SERVICE;
 
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -33,6 +35,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
@@ -42,6 +46,7 @@ import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,6 +181,7 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
     renameAmbariInfraService();
     removeLogSearchPatternConfigs();
     updateSolrConfigurations();
+    updateTimelineReaderAddress();
   }
 
   /**
@@ -271,6 +277,49 @@ public class UpgradeCatalog271 extends AbstractUpgradeCatalog {
           }
         }
       }
+    }
+  }
+
+  /**
+   * Replace placeholder values in timeline reader address.
+   * In Ambari 2.7 these properties are set to {{timeline_reader_address_http}} and {{timeline_reader_address_https}} and the stack code substitutes the proper host names.
+   * In Ambari 2.7.1 the stack code no longer does this but the stack advisor and a SingleHostTopologyUpdater is responsible for replacing the hosts.
+   */
+  protected void updateTimelineReaderAddress() throws AmbariException {
+    Clusters clusters = injector.getInstance(AmbariManagementController.class).getClusters();
+    if (clusters == null || clusters.getClusters() == null) {
+      return;
+    }
+    for (Cluster cluster : clusters.getClusters().values()) {
+      Set<String> installedServices = cluster.getServices().keySet();
+      if (installedServices.contains(YARN_SERVICE) && cluster.getService(YARN_SERVICE).getServiceComponents().keySet().contains("TIMELINE_READER")) {
+        String timelineReaderHost = hostNameOf(cluster, YARN_SERVICE, "TIMELINE_READER").orElse("localhost");
+        updateProperty(cluster, "yarn-site", "yarn.timeline-service.reader.webapp.address", timelineReaderHost + ":8198");
+        updateProperty(cluster, "yarn-site", "yarn.timeline-service.reader.webapp.https.address", timelineReaderHost + ":8199");
+      }
+    }
+  }
+
+  private void updateProperty(Cluster cluster, String configType, String propertyName, String newValue) throws AmbariException {
+    Config config = cluster.getDesiredConfigByType(configType);
+    if (config == null) {
+      return;
+    }
+    String oldValue = config.getProperties().get(propertyName);
+    if (oldValue != null) {
+      Map<String, String> newProperty = new HashMap<>();
+      newProperty.put(propertyName, newValue);
+      updateConfigurationPropertiesForCluster(cluster, configType, newProperty, true, false);
+    }
+  }
+
+  private Optional<String> hostNameOf(Cluster cluster, String serviceName, String componentName) throws AmbariException {
+    try {
+      ServiceComponent component = cluster.getService(serviceName).getServiceComponent(componentName);
+      Set<String> hosts = component.getServiceComponentHosts().keySet();
+      return hosts.isEmpty() ? Optional.empty() : Optional.of(hosts.iterator().next());
+    } catch (ServiceComponentNotFoundException | ServiceNotFoundException e) {
+      return Optional.empty();
     }
   }
 
