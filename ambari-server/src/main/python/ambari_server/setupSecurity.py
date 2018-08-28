@@ -682,7 +682,7 @@ def init_ldap_properties_list_reqd(properties, options, ldap_type):
     LdapPropTemplate(properties, options.ldap_base_dn, "ambari.ldap.attributes.user.search_base", "Search Base{0}: ", REGEX_ANYTHING, False, "dc=ambari,dc=apache,dc=org"),
     LdapPropTemplate(properties, options.ldap_referral, "ambari.ldap.advanced.referrals", "Referral method [follow/ignore]{0}: ", REGEX_REFERRAL, True, "follow"),
     LdapPropTemplate(properties, options.ldap_bind_anonym, "ambari.ldap.connectivity.anonymous_bind", "Bind anonymously [true/false]{0}: ", REGEX_TRUE_FALSE, False, "false"),
-    LdapPropTemplate(properties, options.ldap_sync_username_collisions_behavior, "ambari.ldap.advance.collision_behavior", "Handling behavior for username collisions [convert/skip] for LDAP sync{0}: ", REGEX_SKIP_CONVERT, False, "skip"),
+    LdapPropTemplate(properties, options.ldap_sync_username_collisions_behavior, "ambari.ldap.advanced.collision_behavior", "Handling behavior for username collisions [convert/skip] for LDAP sync{0}: ", REGEX_SKIP_CONVERT, False, "skip"),
     LdapPropTemplate(properties, options.ldap_force_lowercase_usernames, "ambari.ldap.advanced.force_lowercase_usernames", "Force lower-case user names [true/false]{0}:", REGEX_TRUE_FALSE, True),
     LdapPropTemplate(properties, options.ldap_pagination_enabled, "ambari.ldap.advanced.pagination_enabled", "Results from LDAP are paginated when requested [true/false]{0}:", REGEX_TRUE_FALSE, True)
   ]
