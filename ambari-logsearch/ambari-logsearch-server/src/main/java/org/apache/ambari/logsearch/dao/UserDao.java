@@ -18,27 +18,25 @@
  */
 package org.apache.ambari.logsearch.dao;
 
+import static java.util.Collections.singletonList;
+
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Repository;
 import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.ambari.logsearch.util.FileUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.web.model.Privilege;
 import org.apache.ambari.logsearch.web.model.Role;
 import org.apache.ambari.logsearch.web.model.User;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserDao {
@@ -72,16 +70,16 @@ public class UserDao {
           boolean isUpdated = this.encryptAllPassword();
           userInfos.put("users", userList);
           if (isUpdated) {
-            String jsonStr = JSONUtil.mapToJSON(userInfos);
+            String jsonStr = JSONUtil.toJson(userInfos);
             JSONUtil.writeJSONInFile(jsonStr, jsonFile, true);
           }
         } else {
-          userList = new ArrayList<HashMap<String, String>>();
+          userList = new ArrayList<>();
         }
 
       } catch (Exception exception) {
         logger.error("Error while reading user prop file :" + exception.getMessage());
-        userList = new ArrayList<HashMap<String, String>>();
+        userList = new ArrayList<>();
       }
     } else {
       logger.info("File auth is disabled.");
@@ -90,7 +88,7 @@ public class UserDao {
 
   public User loadUserByUsername(String username) {
     logger.debug(" loadUserByUsername username" + username);
-    HashMap<String, String> userInfo = findByusername(username);
+    HashMap<String, String> userInfo = findByUsername(username);
     if (userInfo == null) {
       return null;
     }
@@ -105,28 +103,20 @@ public class UserDao {
     r.setName("ROLE_USER");
     Privilege priv = new Privilege();
     priv.setName("READ_PRIVILEGE");
-    r.setPrivileges(Arrays.asList(priv));
-    user.setAuthorities(Arrays.asList((GrantedAuthority)r));
+    r.setPrivileges(singletonList(priv));
+    user.setAuthorities(singletonList(r));
     
     return user;
   }
 
-  private HashMap<String, String> findByusername(final String username) {
+  private HashMap<String, String> findByUsername(final String username) {
     if (userList == null) {
       return null;
     }
-    @SuppressWarnings("unchecked")
-    HashMap<String, String> userInfo = (HashMap<String, String>) CollectionUtils.find(userList,
-        new Predicate() {
-          @Override
-          public boolean evaluate(Object args) {
-            HashMap<String, String> tmpUserInfo = (HashMap<String, String>) args;
-            String objUsername = tmpUserInfo.get(USER_NAME);
-            return (objUsername != null && username != null && username.equalsIgnoreCase(objUsername));
-          }
-        });
-    
-    return userInfo;
+    return userList.stream()
+            .filter(args -> (username != null && username.equalsIgnoreCase(args.get(USER_NAME))))
+            .findFirst()
+            .orElse(null);
   }
 
   private boolean encryptAllPassword() {

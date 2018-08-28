@@ -19,9 +19,15 @@
 
 package org.apache.ambari.logsearch.dao;
 
+import static org.apache.solr.common.SolrException.ErrorCode.SERVER_ERROR;
+import static org.apache.solr.common.SolrException.ErrorCode.UNKNOWN;
+
+import java.io.IOException;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.LogType;
-import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.conf.LogSearchConfigApiConfig;
 import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
@@ -29,10 +35,8 @@ import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
 import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -40,13 +44,10 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.SolrResponseBase;
 import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrException;
 import org.springframework.data.solr.core.DefaultQueryParser;
-import org.springframework.data.solr.core.SolrCallback;
 import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.core.query.SolrDataQuery;
-
-import javax.inject.Inject;
-import java.io.IOException;
 
 public abstract class SolrDaoBase {
 
@@ -94,17 +95,15 @@ public abstract class SolrDaoBase {
         QueryResponse queryResponse = getSolrClient().query(solrQuery, METHOD.POST);
         logSolrEvent(event, solrQuery, queryResponse);
         return queryResponse;
-      } catch (Exception e){
-        LOG.error("Error during solrQuery=" + e);
-        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      } catch (SolrServerException | IOException e) {
+        throw new SolrException(SERVER_ERROR, "Error during solrQuery=" + solrQuery, e);
       }
     } else {
-      throw RESTErrorUtil.createRESTException("Solr configuration improper for " + logType.getLabel() +" logs",
-          MessageEnums.ERROR_SYSTEM);
+      throw new SolrException(UNKNOWN, String.format("Solr configuration improper for %s logs", logType.getLabel()));
     }
   }
 
-  public UpdateResponse deleteByQuery(SolrQuery solrQuery, String event) {
+  private UpdateResponse deleteByQuery(SolrQuery solrQuery, String event) {
     SolrUtil.removeDoubleOrTripleEscapeFromFilters(solrQuery);
     LOG.info("Solr delete query will be processed: " + solrQuery);
     if (getSolrClient() != null) {
@@ -113,12 +112,10 @@ public abstract class SolrDaoBase {
         logSolrEvent(event, solrQuery, updateResponse);
         return updateResponse;
       } catch (Exception e) {
-        LOG.error("Error during delete solrQuery=" + e);
-        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+        throw new SolrException(SERVER_ERROR, "Error during delete solrQuery=" + solrQuery, e);
       }
     } else {
-      throw RESTErrorUtil.createRESTException("Solr configuration improper for " + logType.getLabel() + " logs",
-        MessageEnums.ERROR_SYSTEM);
+      throw new SolrException(UNKNOWN, String.format("Solr configuration improper for %s logs", logType.getLabel()));
     }
   }
 
@@ -135,19 +132,16 @@ public abstract class SolrDaoBase {
   }
 
   public long count(final SolrDataQuery solrDataQuery) {
-    return getSolrTemplate().execute(new SolrCallback<Long>() {
-      @Override
-      public Long doInSolr(SolrClient solrClient) throws SolrServerException, IOException {
-        SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(solrDataQuery);
-        solrQuery.setStart(0);
-        solrQuery.setRows(0);
-        QueryResponse queryResponse = solrClient.query(solrQuery);
-        long count = solrClient.query(solrQuery).getResults().getNumFound();
-        LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() + " Count SolrQuery :- " +
-          solrQuery + "\nQuery Time Execution :- " + queryResponse.getQTime() + " Total Time Elapsed is :- " +
-          queryResponse.getElapsedTime() + " Count result :- " + count);
-        return count;
-      }
+    return getSolrTemplate().execute(solrClient -> {
+      SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(solrDataQuery);
+      solrQuery.setStart(0);
+      solrQuery.setRows(0);
+      QueryResponse queryResponse = solrClient.query(solrQuery);
+      long count = solrClient.query(solrQuery).getResults().getNumFound();
+      LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() + " Count SolrQuery :- " +
+        solrQuery + "\nQuery Time Execution :- " + queryResponse.getQTime() + " Total Time Elapsed is :- " +
+        queryResponse.getElapsedTime() + " Count result :- " + count);
+      return count;
     });
   }
 

@@ -16,19 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.rest.error;
+package org.apache.ambari.logsearch.manager;
 
-import javax.inject.Named;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
-
-@Named
-@Provider
-public class WebApplicationExceptionMapper implements ExceptionMapper<WebApplicationException> {
-  @Override
-  public Response toResponse(WebApplicationException exception) {
-    return exception.getResponse();
+public class UnsupportedFormatException extends RuntimeException {
+  public UnsupportedFormatException(String message) {
+    super(message);
   }
 }

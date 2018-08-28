@@ -18,10 +18,24 @@
  */
 package org.apache.ambari.logsearch.manager;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.ID;
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.SEQUENCE_ID;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.KEY_LOG_MESSAGE;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,18 +49,13 @@ import javax.inject.Named;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-
 import org.apache.ambari.logsearch.common.LabelFallbackHandler;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
-import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.conf.UIMappingConfig;
+import org.apache.ambari.logsearch.converter.BaseServiceLogRequestQueryConverter;
+import org.apache.ambari.logsearch.converter.ServiceLogTruncatedRequestQueryConverter;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.model.metadata.FieldMetadata;
@@ -73,28 +82,23 @@ import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
 import org.apache.ambari.logsearch.model.response.NodeListResponse;
 import org.apache.ambari.logsearch.model.response.ServiceLogData;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
-import org.apache.ambari.logsearch.converter.BaseServiceLogRequestQueryConverter;
-import org.apache.ambari.logsearch.converter.ServiceLogTruncatedRequestQueryConverter;
 import org.apache.ambari.logsearch.solr.ResponseDataGenerator;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
-import org.apache.ambari.logsearch.util.DownloadUtil;
 import org.apache.ambari.logsearch.util.DateUtil;
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.ambari.logsearch.util.DownloadUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.solr.core.DefaultQueryParser;
 import org.springframework.data.solr.core.query.Criteria;
@@ -103,14 +107,12 @@ import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
-import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
-import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.ID;
-import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.SEQUENCE_ID;
-import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
-import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
-import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.KEY_LOG_MESSAGE;
-import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
-import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 @Named
 public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogResponse> {
@@ -139,12 +141,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
     Boolean isLastPage = request.isLastPage();
     SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
     if (StringUtils.isNotBlank(keyword)) {
-      try {
         return (ServiceLogResponse) getPageByKeyword(request, event);
-      } catch (SolrException | SolrServerException e) {
-        logger.error("Error while getting keyword=" + keyword, e);
-        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-      }
     } else if (isLastPage) {
       ServiceLogResponse logResponse = getLastPage(serviceLogsSolrDao, solrQuery, event);
       if (logResponse == null){
@@ -179,7 +176,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
     return responseDataGenerator.generateSimpleGraphResponse(response, hierarchy);
   }
 
-  public CountDataListResponse getFieldCount(String field, String clusters) {
+  private CountDataListResponse getFieldCount(String field, String clusters) {
     SimpleFacetQuery facetQuery = conversionService.convert(field, SimpleFacetQuery.class);
     if (StringUtils.isNotEmpty(clusters)) {
       List<String> clusterFilterList = Splitter.on(",").splitToList(clusters);
@@ -242,12 +239,11 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
     return responseDataGenerator.generateBarGraphDataResponseWithRanges(response, LEVEL, true);
   }
 
-  public LogListResponse<ServiceLogData> getPageByKeyword(ServiceLogRequest request, String event)
-    throws SolrServerException {
+  private LogListResponse<ServiceLogData> getPageByKeyword(ServiceLogRequest request, String event) {
     String defaultChoice = "0";
     String keyword = request.getKeyWord();
     if (StringUtils.isBlank(keyword)) {
-      throw RESTErrorUtil.createRESTException("Keyword was not given", MessageEnums.DATA_NOT_FOUND);
+      throw new MalformedInputException("Keyword was not given");
     }
 
     boolean isNext = !defaultChoice.equals(request.getKeywordType()); // 1 is next, 0 is previous
@@ -263,7 +259,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
     int maxRows = Integer.parseInt(request.getPageSize());
     Date logDate = getDocDateFromNextOrLastPage(request, keyword, isNext, currentPageNumber, maxRows);
     if (logDate == null) {
-      throw RESTErrorUtil.createRESTException("The keyword " + "\"" + keyword + "\"" + " was not found", MessageEnums.ERROR_SYSTEM);
+      throw new MalformedInputException(String.format("The keyword \"%s\" was not found", keyword));
     }
 
     String nextOrPreviousPageDate = DateUtil.convertDateWithMillisecondsToSolrDate(logDate);
@@ -326,13 +322,13 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
       kewordNextSolrQuery.setSort(LOGTIME, SolrQuery.ORDER.asc);
     }
     kewordNextSolrQuery.addSort(SEQUENCE_ID, SolrQuery.ORDER.desc);
-    QueryResponse  queryResponse = serviceLogsSolrDao.process(kewordNextSolrQuery, event);
+    QueryResponse queryResponse = serviceLogsSolrDao.process(kewordNextSolrQuery, event);
     if (queryResponse == null) {
-      throw RESTErrorUtil.createRESTException("The keyword " + "\"" + keyword + "\"" + " was not found", MessageEnums.ERROR_SYSTEM);
+      throw new NotFoundException(String.format("The keyword \"%s\" was not found", keyword));
     }
     List<SolrServiceLogData> solrServiceLogDataList = queryResponse.getBeans(SolrServiceLogData.class);
     if (!CollectionUtils.isNotEmpty(solrServiceLogDataList)) {
-      throw RESTErrorUtil.createRESTException("The keyword " + "\"" + keyword + "\"" + " was not found", MessageEnums.ERROR_SYSTEM);
+      throw new NotFoundException(String.format("The keyword \"%s\" was not found", keyword));
     }
     return solrServiceLogDataList.get(0);
   }
@@ -343,7 +339,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
       lastOrFirstLogIndex = ((currentPageNumber + 1) * maxRows);
     } else {
       if (currentPageNumber == 0) {
-        throw RESTErrorUtil.createRESTException("This is the first Page", MessageEnums.DATA_NOT_FOUND);
+        throw new NotFoundException("This is the first Page");
       }
       lastOrFirstLogIndex = (currentPageNumber * maxRows) - 1;
     }
@@ -356,11 +352,11 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
     QueryResponse queryResponse = serviceLogsSolrDao.process(nextPageLogTimeQuery);
     if (queryResponse == null) {
-      throw RESTErrorUtil.createRESTException(String.format("Cannot process next page query for \"%s\" ", keyword), MessageEnums.ERROR_SYSTEM);
+      throw new MalformedInputException(String.format("Cannot process next page query for \"%s\" ", keyword));
     }
     SolrDocumentList docList = queryResponse.getResults();
     if (docList == null || docList.isEmpty()) {
-      throw RESTErrorUtil.createRESTException(String.format("Next page element for \"%s\" is not found", keyword), MessageEnums.ERROR_SYSTEM);
+      throw new MalformedInputException(String.format("Next page element for \"%s\" is not found", keyword));
     }
 
     SolrDocument solrDoc = docList.get(0);
@@ -372,66 +368,47 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
   }
 
   public Response export(ServiceLogExportRequest request) {
-    String defaultFormat = "text";
+    String defaultFormat = "txt";
     SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
-    String from = request.getFrom();
-    String to = request.getTo();
-    String utcOffset = StringUtils.isBlank(request.getUtcOffset()) ? "0" : request.getUtcOffset();
     String format = request.getFormat() != null && defaultFormat.equalsIgnoreCase(request.getFormat()) ? ".txt" : ".json";
-    String fileName = "Component_Logs_" + DateUtil.getCurrentDateInString();
+    DateTimeFormatter fileNameFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    String fileName = "Component_Logs_" + fileNameFormat.format(LocalDateTime.now());
 
-    if (!DateUtil.isDateValid(from) || !DateUtil.isDateValid(to)) {
-      logger.error("Not valid date format. Valid format should be" + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z);
-      throw RESTErrorUtil.createRESTException("Not valid date format. Valid format should be"
-          + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z, MessageEnums.INVALID_INPUT_DATA);
-
-    } else {
-      from = from.replace("T", " ");
-      from = from.replace(".", ",");
-
-      to = to.replace("T", " ");
-      to = to.replace(".", ",");
-
-      to = DateUtil.addOffsetToDate(to, Long.parseLong(utcOffset), "yyyy-MM-dd HH:mm:ss,SSS");
-      from = DateUtil.addOffsetToDate(from, Long.parseLong(utcOffset), "yyyy-MM-dd HH:mm:ss,SSS");
-    }
-
-    String textToSave = "";
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      if (response == null) {
-        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-      }
       SolrDocumentList docList = response.getResults();
-      if (docList == null) {
-        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-      }
+      String textToSave;
 
-      if (format.toLowerCase(Locale.ENGLISH).equals(".txt")) {
+      if (".txt".equals(format.toLowerCase(Locale.ENGLISH))) {
+        String utcOffset = StringUtils.isBlank(request.getUtcOffset()) ? "+0" : request.getUtcOffset();
+        DateTimeFormatter inputDateFormat = DateTimeFormatter.ofPattern(LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z);
+        DateTimeFormatter outputDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSSX");
+        OffsetDateTime from = LocalDateTime.parse(request.getFrom(), inputDateFormat).atOffset(ZoneOffset.of(utcOffset));
+        OffsetDateTime to = LocalDateTime.parse(request.getTo(), inputDateFormat).atOffset(ZoneOffset.of(utcOffset));
+
         Template template = freemarkerConfiguration.getTemplate(SERVICE_LOG_TEMPLATE);
         Map<String, Object> models = new HashMap<>();
-        DownloadUtil.fillModelsForLogFile(docList, models, request, format, from, to);
+        DownloadUtil.fillModelsForLogFile(docList, models, request, format, outputDateFormat.format(from), outputDateFormat.format(to));
         StringWriter stringWriter = new StringWriter();
         template.process(models, stringWriter);
         textToSave = stringWriter.toString();
-      } else if (format.toLowerCase(Locale.ENGLISH).equals(".json")) {
+      } else if (".json".equals(format.toLowerCase(Locale.ENGLISH))) {
         textToSave = convertObjToString(docList);
       } else {
-        throw RESTErrorUtil.createRESTException(
-            "unsoported format either should be json or text",
-            MessageEnums.ERROR_SYSTEM);
+        throw new UnsupportedFormatException(String.format("Unsupported format %s Either should be json or text", format.toLowerCase(Locale.ENGLISH)));
       }
       File file = File.createTempFile(fileName, format);
-      FileOutputStream fis = new FileOutputStream(file);
-      fis.write(textToSave.getBytes());
-      fis.close();
+      try (FileOutputStream fis = new FileOutputStream(file)) {
+        fis.write(textToSave.getBytes());
+      }
       return Response
         .ok(file, MediaType.APPLICATION_OCTET_STREAM)
         .header("Content-Disposition", "attachment;filename=" + fileName + format)
         .build();
-    } catch (SolrException | TemplateException | IOException e) {
-      logger.error("Error during solrQuery=" + solrQuery, e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } catch (TemplateException e) {
+      throw new RuntimeException("Error while rendering freemarker template!", e);
     }
   }
 
@@ -469,7 +446,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
   public ServiceLogResponse getAfterBeforeLogs(ServiceLogTruncatedRequest request) {
     ServiceLogResponse logResponse = new ServiceLogResponse();
-    List<ServiceLogData> docList = null;
+    List<ServiceLogData> docList;
     String scrollType = request.getScrollType() != null ? request.getScrollType() : "";
 
     String logTime = null;
@@ -492,14 +469,11 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
       return logResponse;
     }
     if (LogSearchConstants.SCROLL_TYPE_BEFORE.equals(scrollType) || LogSearchConstants.SCROLL_TYPE_AFTER.equals(scrollType)) {
-      List<ServiceLogData> solrDocList = new ArrayList<>();
       ServiceLogResponse beforeAfterResponse = whenScroll(request, logTime, sequenceId, scrollType);
       if (beforeAfterResponse.getLogList() == null) {
         return logResponse;
       }
-      for (ServiceLogData solrDoc : beforeAfterResponse.getLogList()) {
-        solrDocList.add(solrDoc);
-      }
+      List<ServiceLogData> solrDocList = new ArrayList<>(beforeAfterResponse.getLogList());
       logResponse.setLogList(solrDocList);
       return logResponse;
 
@@ -509,15 +483,11 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
       List<ServiceLogData> before = whenScroll(request, logTime, sequenceId, LogSearchConstants.SCROLL_TYPE_BEFORE).getLogList();
       List<ServiceLogData> after = whenScroll(request, logTime, sequenceId, LogSearchConstants.SCROLL_TYPE_AFTER).getLogList();
       if (before != null && !before.isEmpty()) {
-        for (ServiceLogData solrDoc : Lists.reverse(before)) {
-          initial.add(solrDoc);
-        }
+        initial.addAll(Lists.reverse(before));
       }
       initial.add(docList.get(0));
       if (after != null && !after.isEmpty()) {
-        for (ServiceLogData solrDoc : after) {
-          initial.add(solrDoc);
-        }
+        initial.addAll(after);
       }
       logResponse.setLogList(initial);
       return logResponse;
@@ -534,10 +504,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
   @Override
   protected List<ServiceLogData> convertToSolrBeans(QueryResponse response) {
-    List<SolrServiceLogData> solrServiceLogData = response.getBeans(SolrServiceLogData.class);
-    List<ServiceLogData> serviceLogData = new ArrayList<>();
-    serviceLogData.addAll(solrServiceLogData);
-    return serviceLogData;
+    return new ArrayList<>(response.getBeans(SolrServiceLogData.class));
   }
 
   @Override
@@ -547,9 +514,8 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
   private <T extends LogData> List<T> getLogDataListByFieldType(Class<T> clazz, QueryResponse response, List<Count> fieldList) {
     List<T> groupList = getComponentBeans(clazz, response);
-    String temp = "";
     for (Count cnt : fieldList) {
-      T logData = createNewFieldByType(clazz, cnt, temp);
+      T logData = createNewFieldByType(clazz, cnt);
       groupList.add(logData);
     }
     return groupList;
@@ -586,9 +552,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
     if (docList == null) {
       return collection;
     }
-    List<T> logDataListByFieldType = getLogDataListByFieldType(clazz, response, fieldList);
-    List<LogData> groupList = new ArrayList<>();
-    groupList.addAll(logDataListByFieldType);
+    List<LogData> groupList = new ArrayList<>(getLogDataListByFieldType(clazz, response, fieldList));
 
     collection.setGroupList(groupList);
     if (!docList.isEmpty()) {
@@ -599,9 +563,9 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends LogData> T createNewFieldByType(Class<T> clazz, Count count, String temp) {
-    temp = count.getName();
-    LogData result = null;
+  private <T extends LogData> T createNewFieldByType(Class<T> clazz, Count count) {
+    String temp = count.getName();
+    LogData result;
     if (clazz.equals(SolrHostLogData.class)) {
       result = new SolrHostLogData();
       ((SolrHostLogData)result).setHost(temp);
@@ -624,7 +588,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
   public StatusMessage deleteLogs(ServiceLogRequest request) {
     SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
     UpdateResponse updateResponse = serviceLogsSolrDao.deleteByQuery(solrQuery, "/service/logs");
-    return new StatusMessage(updateResponse.getStatus());
+    return StatusMessage.with(updateResponse.getStatus());
   }
 
   public List<String> getClusters() {

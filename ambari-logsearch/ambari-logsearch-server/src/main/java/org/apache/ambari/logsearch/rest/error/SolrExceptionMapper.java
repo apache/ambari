@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,40 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.common;
+package org.apache.ambari.logsearch.rest.error;
 
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
+import javax.inject.Named;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 
-public class StatusMessage {
-  public static StatusMessage with(int status) {
-    return new StatusMessage(status, null);
-  }
+import org.apache.solr.common.SolrException;
 
-  public static StatusMessage with(Response.Status status, String message) {
-    return new StatusMessage(status.getStatusCode(), message);
-  }
+@Named
+@Provider
+public class SolrExceptionMapper implements ExceptionMapper<SolrException> {
+  @Override
+  public Response toResponse(SolrException exception) {
+    Response.Status status = Response.Status.fromStatusCode(exception.code());
+    if (status == null)
+      status = INTERNAL_SERVER_ERROR;
 
-  private int status;
-  private String message;
-
-  private StatusMessage(int status, String message) {
-    this.status = status;
-    this.message = message;
-  }
-
-  public int getStatus() {
-    return status;
-  }
-
-  public void setStatus(int status) {
-    this.status = status;
-  }
-
-  public int getStatusCode() {
-    return status;
-  }
-
-  public String getMessage() {
-    return message;
+    return GeneralExceptionMapper.toResponse(exception, status);
   }
 }

@@ -20,6 +20,7 @@
 package org.apache.ambari.logsearch.dao;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -87,24 +88,36 @@ public class EventHistorySolrDao extends SolrDaoBase {
     }
   }
 
-  public void deleteEventHistoryData(String id) throws SolrException, SolrServerException, IOException {
-    removeDoc("id:" + id);
+  public UpdateResponse deleteEventHistoryData(String id) {
+    return removeDoc("id:" + id);
   }
 
-  public UpdateResponse addDocs(SolrInputDocument doc) throws SolrServerException, IOException, SolrException {
-    UpdateResponse updateResoponse = getSolrClient().add(doc);
-    LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() +
-      " Update Time Execution :- " + updateResoponse.getQTime() + " Total Time Elapsed is :- " + updateResoponse.getElapsedTime());
-    getSolrClient().commit();
-    return updateResoponse;
+  private UpdateResponse removeDoc(String query) {
+    try {
+      UpdateResponse updateResoponse = getSolrClient().deleteByQuery(query);
+      getSolrClient().commit();
+      LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() +
+              " Remove Time Execution :- " + updateResoponse.getQTime() + " Total Time Elapsed is :- " + updateResoponse.getElapsedTime());
+      return updateResoponse;
+    } catch (SolrServerException e) {
+      throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, e);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
-  public UpdateResponse removeDoc(String query) throws SolrServerException, IOException, SolrException {
-    UpdateResponse updateResoponse = getSolrClient().deleteByQuery(query);
-    getSolrClient().commit();
-    LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() +
-      " Remove Time Execution :- " + updateResoponse.getQTime() + " Total Time Elapsed is :- " + updateResoponse.getElapsedTime());
-    return updateResoponse;
+  public UpdateResponse addDocs(SolrInputDocument doc) {
+    try {
+      UpdateResponse updateResoponse = getSolrClient().add(doc);
+      LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() +
+              " Update Time Execution :- " + updateResoponse.getQTime() + " Total Time Elapsed is :- " + updateResoponse.getElapsedTime());
+      getSolrClient().commit();
+      return updateResoponse;
+    } catch (SolrServerException e) {
+      throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, e);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   @Override
