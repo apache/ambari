@@ -95,6 +95,7 @@ public class UpgradeCatalog271Test {
     Method renameAmbariInfraInConfigGroups = UpgradeCatalog271.class.getDeclaredMethod("renameAmbariInfraService");
     Method removeLogSearchPatternConfigs = UpgradeCatalog271.class.getDeclaredMethod("removeLogSearchPatternConfigs");
     Method updateSolrConfigurations = UpgradeCatalog271.class.getDeclaredMethod("updateSolrConfigurations");
+    Method updateTimelineReaderAddress = UpgradeCatalog271.class.getDeclaredMethod("updateTimelineReaderAddress");
 
     UpgradeCatalog271 upgradeCatalog271 = createMockBuilder(UpgradeCatalog271.class)
       .addMockedMethod(updateRangerKmsDbUrl)
@@ -103,6 +104,7 @@ public class UpgradeCatalog271Test {
       .addMockedMethod(renameAmbariInfraInConfigGroups)
       .addMockedMethod(removeLogSearchPatternConfigs)
       .addMockedMethod(updateSolrConfigurations)
+      .addMockedMethod(updateTimelineReaderAddress)
       .createMock();
 
     upgradeCatalog271.addNewConfigurationsFromXml();
@@ -121,6 +123,9 @@ public class UpgradeCatalog271Test {
     expectLastCall().once();
 
     upgradeCatalog271.updateSolrConfigurations();
+    expectLastCall().once();
+
+    upgradeCatalog271.updateTimelineReaderAddress();
     expectLastCall().once();
 
     replay(upgradeCatalog271);
