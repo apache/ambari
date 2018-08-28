@@ -21,7 +21,7 @@ var App = require('app');
 function counterOrNA(key) {
   var _key = 'model.{0}.length'.format(key);
   return Em.computed(_key, function () {
-    if (Em.isNone(this.get('model.'+ key)) || this.get('model.metricsNotAvailable')) {
+    if (Em.isNone(this.get('model.' + key)) || this.get('model.metricsNotAvailable')) {
       return Em.I18n.t('services.service.summary.notAvailable');
     }
     return this.get(_key);
@@ -34,7 +34,7 @@ App.YarnContainersView = App.TextDashboardWidgetView.extend({
     return [
       this.get('containersAllocated') + ' ' + Em.I18n.t('dashboard.services.yarn.containers.allocated'),
       this.get('containersPending') + ' ' + Em.I18n.t('dashboard.services.yarn.containers.pending'),
-      this.get('containersReserved')+ ' ' + Em.I18n.t('dashboard.services.yarn.containers.reserved')
+      this.get('containersReserved') + ' ' + Em.I18n.t('dashboard.services.yarn.containers.reserved')
     ];
   }.property('containersAllocated', 'containersPending', 'containersReserved'),
 
@@ -70,9 +70,9 @@ App.YarnContainersView = App.TextDashboardWidgetView.extend({
    * @type {boolean}
    */
   someMetricsNA: function () {
-    return Em.isNone(this.get('containersAllocated')) ||
-           Em.isNone(this.get('containersPending')) ||
-           Em.isNone(this.get('containersReserved'));
+    return this.get('containersAllocated') === Em.I18n.t('services.service.summary.notAvailable') ||
+      this.get('containersPending') === Em.I18n.t('services.service.summary.notAvailable') ||
+      this.get('containersReserved') === Em.I18n.t('services.service.summary.notAvailable');
   }.property('containersAllocated', 'containersPending', 'containersReserved'),
 
   /**
