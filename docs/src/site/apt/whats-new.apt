@@ -54,17 +54,6 @@ What's New with Ambari?
 
     * Made it easer to setup SSO for Ambari, Atlas, and Ranger.
 
-  * Ambari 2.6.2 added the following features:
-
-    * Protecting Zeppelin Notebook SSL credentials
-
-    * Setting appropriate HTTP headers for using Cloud Object Stores with HDP
-
-  * Ambari 2.6.1 added the following feature:
-
-    * Conditionally Install LZO packages through Ambari (AMBARI-22457)
-
-
 Getting Ambari Source
 
   See {{{https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Development} Ambari Development guide}} on how to check out the source and build it.
