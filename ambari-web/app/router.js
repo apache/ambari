@@ -342,7 +342,7 @@ App.Router = Em.Router.extend({
    * @param {?object} data
    */
   onAuthenticationError: function (data) {
-    if (data.status === 403) {
+    if ((data.status === 403) || (data.status === 401)) {
       try {
         var responseJson = JSON.parse(data.responseText);
         if (responseJson.jwtProviderUrl && this.get('location.lastSetURL') !== this.get('localUserAuthUrl')) {

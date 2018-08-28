@@ -462,6 +462,26 @@ describe('App.Router', function () {
         },
         redirectCalled: false,
         m: 'jwtProviderUrl is present, current location is local login url, no redirect'
+      },
+      {
+        lastSetURL: '/main/dashboard',
+        isResolved: false,
+        responseData: {
+          responseText: JSON.stringify({jwtProviderUrl: 'http://some.com?originalUrl='}),
+          status: 401
+        },
+        redirectCalled: true,
+        m: 'jwtProviderUrl is present, current location not local login url, redirect according to jwtProviderUrl value'
+      },
+      {
+        lastSetURL: '/login/local',
+        isResolved: false,
+        responseData: {
+          responseText: JSON.stringify({jwtProviderUrl: 'http://some.com?originalUrl='}),
+          status: 401
+        },
+        redirectCalled: false,
+        m: 'jwtProviderUrl is present, current location is local login url, no redirect'
       }
     ].forEach(function (test) {
       describe(test.m, function () {
