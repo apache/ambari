@@ -59,6 +59,7 @@ App.showClusterCheckPopup = function (data, popup, configs) {
     secondary: secondary,
     header: popup.header,
     classNames: ['cluster-check-popup'],
+    modalDialogClasses: ['modal-xlg'],
     bodyClass: Em.View.extend({
       failTitle: popup.failTitle,
       failAlert: popup.failAlert,

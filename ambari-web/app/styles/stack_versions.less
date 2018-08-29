@@ -618,6 +618,8 @@
     }
     .img-thumbnail {
       background-color: #e4e4e4;
+      text-align: center;
+      padding: 10px;
       .method-name,.method-icon,.method-description {
         color: #333;
       }
@@ -630,25 +632,13 @@
       .method-name {
         font-size: 16px;
         font-weight: bold;
-        text-align: center;
         margin-top: 2px;
       }
       .method-description {
         margin-top: 5px;
-        text-align: center;
       }
     }
 
-    .ROLLING {
-      .method-icon {
-        margin-left: 88px;
-      }
-    }
-    .NON_ROLLING, .HOST_ORDERED {
-      .method-icon {
-        margin-left: 94px;
-      }
-    }
     .selected.ROLLING, .selected.NON_ROLLING {
       background-color: #d3e7ca;
       box-shadow: 0 8px 6px -6px #b3b3b3;
@@ -700,7 +690,6 @@
         display: inline-block;
         width: auto;
         height: @spinner-small-height;
-        padding-left: @spinner-small-width + 4px;
         i {
           font-size: 1em;
         }
@@ -727,10 +716,13 @@
       font-size: 16px;
     }
   }
-  .tolerance-text .tolerance-option {
-    margin: 5px 15px;
-    .ember-checkbox {
-      margin-top: 0;
+  .tolerance-text {
+    margin-bottom: 30px;
+    .tolerance-option {
+      margin: 5px 15px;
+      .ember-checkbox {
+        margin-top: 0;
+      }
     }
   }
   .text {
