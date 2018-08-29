@@ -104,6 +104,7 @@ import org.apache.ambari.server.actionmanager.StageHelper;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.rest.AgentResource;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
@@ -406,6 +407,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private AmbariActionExecutionHelper actionExecutionHelper;
+
+  @Inject
+  private AgentConfigsHolder agentConfigsHolder;
 
   private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
 
@@ -5532,6 +5536,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException {
 
     Set<ServiceConfigVersionResponse> serviceConfigVersionResponses = new HashSet<>();
+    Set<Long> updatedClusterIds = new HashSet<>();
     for (ServiceConfigVersionRequest request : requests) {
       request.setIsCurrent(true);
       Cluster cluster = getClusters().getCluster(request.getClusterName());
@@ -5556,6 +5561,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         if (!desiredConfigs.isEmpty()) {
           Set<Config> configs = new HashSet<>();
           String note = null;
+          updatedClusterIds.add(cluster.getClusterId());
 
           for (ConfigurationRequest cr : desiredConfigs) {
             String configType = cr.getType();
@@ -5588,6 +5594,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           if (!configs.isEmpty()) {
+            updatedClusterIds.add(cluster.getClusterId());
             Map<String, Config> existingConfigTypeToConfig = new HashMap<>();
             for (Config config : configs) {
               Config existingConfig = cluster.getDesiredConfigByType(config.getType());
@@ -5620,6 +5627,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (request.getVersion() != null) {
+        updatedClusterIds.add(cluster.getClusterId());
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
           throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
         }
@@ -5641,6 +5649,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
       serviceConfigVersionResponses.add(serviceConfigVersionResponse);
+    }
+
+    if (!updatedClusterIds.isEmpty()) {
+      for (Long clusterId : updatedClusterIds) {
+        agentConfigsHolder.updateData(clusterId, null);
+      }
     }
     return serviceConfigVersionResponses;
   }
