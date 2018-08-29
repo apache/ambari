@@ -215,7 +215,7 @@ class AptManager(GenericManager):
     pattern = re.compile("has missing dependency|E:")
 
     if r.code or (r.out and pattern.search(r.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (VERIFY_DEPENDENCY_CMD, code, out))
+      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (self.properties.verify_dependency_cmd, r.code, r.out))
       Logger.error(err_msg)
       return False
 
