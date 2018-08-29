@@ -896,7 +896,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   showPreparingUpgradeIndicator: function () {
     return App.ModalPopup.show({
-      header: '',
+      header: Em.I18n.t('admin.stackUpgrade.dialog.prepareUpgrade.header'),
       showFooter: false,
       showCloseButton: false,
       bodyClass: Em.View.extend({
@@ -909,12 +909,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
          */
         barWidth: 'width: 100%;',
         progressBarClass: 'progress log_popup',
-
-        /**
-         * Popup-message
-         * @type {string}
-         */
-        message: Em.I18n.t('admin.stackUpgrade.dialog.prepareUpgrade.header'),
 
         /**
          * Hide popup when upgrade wizard is open
