@@ -21,6 +21,12 @@ import static org.apache.ambari.server.controller.internal.HostComponentResource
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.COMPONENT_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_NAME;
+import static org.apache.ambari.server.orm.entities.PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME;
+import static org.apache.ambari.server.orm.entities.PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME;
+import static org.apache.ambari.server.orm.entities.PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME;
+import static org.apache.ambari.server.orm.entities.PermissionEntity.CLUSTER_USER_PERMISSION_NAME;
+import static org.apache.ambari.server.orm.entities.PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME;
+import static org.apache.ambari.server.orm.entities.PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,8 +65,11 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -93,6 +102,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static HostRoleCommandDAO s_hostRoleCommandDAO = null;
+
+  @Inject
+  private static PermissionDAO permissionDao;
 
   @Inject
   private static TopologyManager topologyManager;
@@ -183,6 +195,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_USER_NAME
   );
 
+  private static Set<String> ALLOWED_PERMISSION_NAMES = ImmutableSet.<String>builder().add(AMBARI_ADMINISTRATOR_PERMISSION_NAME, CLUSTER_ADMINISTRATOR_PERMISSION_NAME,
+      CLUSTER_OPERATOR_PERMISSION_NAME, CLUSTER_USER_PERMISSION_NAME, SERVICE_ADMINISTRATOR_PERMISSION_NAME, SERVICE_OPERATOR_PERMISSION_NAME).build();
   // ----- Constructors ----------------------------------------------------
 
   /**
@@ -285,6 +299,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
+    authorizeGetResources();
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources = new HashSet<>();
 
@@ -322,6 +338,22 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     return resources;
+  }
+
+  private void authorizeGetResources() throws SystemException {
+    final Set<RoleAuthorization> requiredAuthorizations = Sets.newHashSet();
+    for (String allowedPermissionName : ALLOWED_PERMISSION_NAMES) {
+      PermissionEntity permission = permissionDao.findByName(allowedPermissionName);
+      if (permission != null) {
+        for (RoleAuthorizationEntity roleAuthorization : permission.getAuthorizations()) {
+          requiredAuthorizations.add(RoleAuthorization.translate(roleAuthorization.getAuthorizationId()));
+        }
+      }
+    }
+
+    if (!AuthorizationHelper.isAuthorized(null, null, requiredAuthorizations)) {
+      throw new AuthorizationException(String.format("The authenticated user is not authorized to fetch request related information."));
+    }
   }
 
   @Override
