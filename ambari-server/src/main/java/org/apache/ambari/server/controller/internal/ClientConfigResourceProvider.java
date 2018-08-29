@@ -64,19 +64,8 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.ClientConfigFileDefinition;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -396,10 +385,17 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
         TreeMap<String, String> clusterLevelParams = null;
         TreeMap<String, String> ambariLevelParams = null;
+        TreeMap<String, String> topologyCommandParams = new TreeMap<>();
         if (getManagementController() instanceof AmbariManagementControllerImpl){
           AmbariManagementControllerImpl controller = ((AmbariManagementControllerImpl)getManagementController());
           clusterLevelParams = controller.getMetadataClusterLevelParams(cluster, stackId);
           ambariLevelParams = controller.getMetadataAmbariLevelParams();
+
+          Service s = cluster.getService(serviceName);
+          ServiceComponent sc = s.getServiceComponent(componentName);
+          ServiceComponentHost sch = sc.getServiceComponentHost(response.getHostname());
+
+          topologyCommandParams = controller.getTopologyCommandParams(cluster.getClusterId(), serviceName, componentName, sch);
         }
         TreeMap<String, String> agentLevelParams = new TreeMap<>();
         agentLevelParams.put("hostname", hostName);
@@ -410,6 +406,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         commandParams.put("env_configs_list", envConfigs);
         commandParams.put("properties_configs_list", propertiesConfigs);
         commandParams.put("output_file", componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION);
+        commandParams.putAll(topologyCommandParams);
 
         Map<String, Object> jsonContent = new TreeMap<>();
         jsonContent.put("configurations", configurations);
