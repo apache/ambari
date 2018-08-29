@@ -371,6 +371,9 @@ if security_enabled:
     jn_principal_name = jn_principal_name.replace('_HOST', hostname.lower())
   jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
   hdfs_kinit_cmd = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};")
+
+  zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  zk_principal_user = zk_principal_name.split('/')[0]
 else:
   dn_kinit_cmd = ""
   nn_kinit_cmd = ""

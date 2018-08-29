@@ -290,6 +290,10 @@ fi
 
 export HADOOP_NAMENODE_INIT_HEAPSIZE="-Xms{{namenode_heapsize}}"
 
+{% if zk_principal_user is defined %}
+HADOOP_OPTS="-Dzookeeper.sasl.client.username={{zk_principal_user}} $HADOOP_OPTS"
+{% endif %}
+
 # Extra Java runtime options.  Empty by default.
 export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}"
 
