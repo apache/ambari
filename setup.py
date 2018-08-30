@@ -41,9 +41,14 @@ def create_package_dir_map():
     package_dirs[ambari_server_package] = AMBARI_SERVER_TEST_PYTHON_FOLDER + '/' + ambari_server_package.replace(".", "/")
   return package_dirs
 
+def get_version():
+  ambari_version = os.environ["AMBARI_VERSION"] if "AMBARI_VERSION" in os.environ else "3.0.0.dev0"
+  print ambari_version
+  return ambari_version
+
 setup(
   name = "ambari-python",
-  version = "dev-3.0.0",
+  version = get_version(),
   author = "Apache Software Foundation",
   author_email = "dev@ambari.apache.org",
   description = ("Framework for provison/manage/monitor Hadoop clusters"),
