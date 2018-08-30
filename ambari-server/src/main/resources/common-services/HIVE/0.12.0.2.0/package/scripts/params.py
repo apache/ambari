@@ -26,5 +26,7 @@ if OSCheck.is_windows_family():
 else:
   from params_linux import *
 
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+sysprep_skip_hive_schema_create = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_hive_schema_create", False)
 sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 retryAble = default("/commandParams/command_retry_enabled", False)

@@ -391,6 +391,10 @@ def hive(name=None):
 def create_metastore_schema():
   import params
 
+  if params.sysprep_skip_hive_schema_create:
+    Logger.info("Skipping creation of Hive Metastore schema as host is sys prepped")
+    return
+
   create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
                              "{hive_schematool_bin}/schematool -initSchema "
                              "-dbType {hive_metastore_db_type} "
