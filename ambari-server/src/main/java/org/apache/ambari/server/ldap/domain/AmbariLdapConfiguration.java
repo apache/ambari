@@ -204,6 +204,10 @@ public class AmbariLdapConfiguration {
     return configValue(AmbariServerConfigurationKey.REFERRAL_HANDLING);
   }
 
+  public boolean disableEndpointIdentification() {
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.DISABLE_ENDPOINT_IDENTIFICATION));
+  }
+
   public Map<String, String> toMap() {
     return (configurationMap == null) ? Collections.emptyMap() : new HashMap<>(configurationMap);
   }
@@ -269,6 +273,7 @@ public class AmbariLdapConfiguration {
     ldapServerProperties.setSyncUserMemberFilter(configValue(AmbariServerConfigurationKey.USER_MEMBER_FILTER));
     ldapServerProperties.setSyncGroupMemberFilter(configValue(AmbariServerConfigurationKey.GROUP_MEMBER_FILTER));
     ldapServerProperties.setPaginationEnabled(parseBoolean(configValue(AmbariServerConfigurationKey.PAGINATION_ENABLED)));
+    ldapServerProperties.setDisableEndpointIdentification(disableEndpointIdentification());
 
     if (hasAnyValueWithKey(AmbariServerConfigurationKey.GROUP_BASE, AmbariServerConfigurationKey.GROUP_OBJECT_CLASS, AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE,
         AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE, AmbariServerConfigurationKey.GROUP_MAPPING_RULES, AmbariServerConfigurationKey.GROUP_SEARCH_FILTER)) {

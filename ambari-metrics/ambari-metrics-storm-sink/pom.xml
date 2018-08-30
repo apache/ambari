@@ -127,6 +127,11 @@ limitations under the License.
               <pattern>org.apache.commons.codec</pattern>
               <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.codec</shadedPattern>
             </relocation>
+            <!-- The ambari-metrics-common package already has the org.apache.commons.lang, so just point there -->
+            <relocation>
+              <pattern>org.apache.commons.lang</pattern>
+              <shadedPattern>org.apache.ambari.metrics.relocated.commons.lang</shadedPattern>
+            </relocation>
           </relocations>
         </configuration>
       </plugin>

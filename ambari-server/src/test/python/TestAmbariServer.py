@@ -8711,6 +8711,7 @@ class TestAmbariServer(TestCase):
     options.ambari_admin_password = None
     options.ldap_sync_admin_name = None
     options.ldap_sync_username_collisions_behavior = None
+    options.ldap_sync_disable_endpoint_identification = None
     options.ldap_force_lowercase_usernames = None
     options.ldap_pagination_enabled = None
     options.ldap_sync_admin_password = None
