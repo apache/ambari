@@ -40,20 +40,25 @@ def create_package_dir_map():
   for ambari_server_package in ambari_server_packages:
     package_dirs[ambari_server_package] = AMBARI_SERVER_TEST_PYTHON_FOLDER + '/' + ambari_server_package.replace(".", "/")
   return package_dirs
-
+__version__ = "3.0.0.dev0"
 def get_version():
-  ambari_version = os.environ["AMBARI_VERSION"] if "AMBARI_VERSION" in os.environ else "3.0.0.dev0"
+  ambari_version = os.environ["AMBARI_VERSION"] if "AMBARI_VERSION" in os.environ else __version__
   print ambari_version
   return ambari_version
 
 """
 Example usage:
 - build package with specific version:
-  export AMBARI_VERSION=2.7.1; python setup.py sdist -d "my/dist/location"
+  python setup.py sdist -d "my/dist/location"
 - build and install package with specific version:
-  export AMBARI_VERSION=2.7.1; python setup.py sdist -d "my/dist/location" install
+  python setup.py sdist -d "my/dist/location" install
 - build and upload package with specific version:
-  export AMBARI_VERSION=2.7.1; python setup.py sdist -d "my/dist/location" upload -r "http://localhost:8080"
+  python setup.py sdist -d "my/dist/location" upload -r "http://localhost:8080"
+
+Installing from pip:
+- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1  // 3.0.0.dev0 is the snapshot version
+
+Note: using 'export AMBARI_VERSION=2.7.1' before commands you can redefine the package version, but you will need this export during the pip install as well
 """
 setup(
   name = "ambari-python",
