@@ -46,6 +46,15 @@ def get_version():
   print ambari_version
   return ambari_version
 
+"""
+Example usage:
+- build package with specific version:
+  export AMBARI_VERSION=2.7.1; python setup.py sdist -d "my/dist/location"
+- build and install package with specific version:
+  export AMBARI_VERSION=2.7.1; python setup.py sdist -d "my/dist/location" install
+- build and upload package with specific version:
+  export AMBARI_VERSION=2.7.1; python setup.py sdist -d "my/dist/location" upload -r "http://localhost:8080"
+"""
 setup(
   name = "ambari-python",
   version = get_version(),
