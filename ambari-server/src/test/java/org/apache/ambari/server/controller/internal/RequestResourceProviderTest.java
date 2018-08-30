@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 
 
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.STALE_CONFIGS;
-import static org.apache.ambari.server.orm.entities.PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME;
 import static org.apache.ambari.server.security.TestAuthenticationFactory.createAdministrator;
 import static org.apache.ambari.server.security.TestAuthenticationFactory.createViewUser;
 import static org.easymock.EasyMock.anyObject;
@@ -76,11 +75,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
-import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
@@ -115,7 +111,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -128,7 +123,6 @@ public class RequestResourceProviderTest {
 
   private RequestDAO requestDAO;
   private HostRoleCommandDAO hrcDAO;
-  private PermissionDAO permissionDao;
   private TopologyManager topologyManager;
 
   @Before
@@ -136,7 +130,6 @@ public class RequestResourceProviderTest {
 
     requestDAO = createNiceMock(RequestDAO.class);
     hrcDAO = createNiceMock(HostRoleCommandDAO.class);
-    permissionDao = createNiceMock(PermissionDAO.class);
     topologyManager = createNiceMock(TopologyManager.class);
 
     reset(topologyManager);
@@ -159,10 +152,6 @@ public class RequestResourceProviderTest {
     field = RequestResourceProvider.class.getDeclaredField("s_hostRoleCommandDAO");
     field.setAccessible(true);
     field.set(null, hrcDAO);
-
-    field = RequestResourceProvider.class.getDeclaredField("permissionDao");
-    field.setAccessible(true);
-    field.set(null, permissionDao);
 
     field = RequestResourceProvider.class.getDeclaredField("topologyManager");
     field.setAccessible(true);
@@ -287,12 +276,6 @@ public class RequestResourceProviderTest {
   }
 
   private void prepareGetAuthorizationExpectations(boolean allowedToAuthorize) {
-    final PermissionEntity permission = createNiceMock(PermissionEntity.class);
-    final RoleAuthorizationEntity roleAuthorization = createNiceMock(RoleAuthorizationEntity.class);
-    expect(roleAuthorization.getAuthorizationId()).andReturn(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS.getId()).anyTimes();
-    expect(permission.getAuthorizations()).andReturn(Sets.newHashSet(roleAuthorization)).anyTimes();
-    expect(permissionDao.findByName(AMBARI_ADMINISTRATOR_PERMISSION_NAME)).andReturn(permission).anyTimes();
-    replay(permissionDao, permission, roleAuthorization);
     SecurityContextHolder.getContext().setAuthentication(allowedToAuthorize ? createAdministrator() : createViewUser(1L));
   }
 
@@ -1768,6 +1751,8 @@ public class RequestResourceProviderTest {
         ? Optional.of("some reason")
         : Optional.<String>absent();
       expect(logicalRequest.getFailureReason()).andReturn(failureReason).anyTimes();
+
+      prepareGetAuthorizationExpectations();
 
       replayAll();
 

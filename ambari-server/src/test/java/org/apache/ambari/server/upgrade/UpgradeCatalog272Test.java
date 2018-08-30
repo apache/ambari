@@ -21,6 +21,7 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGUR
 import static org.apache.ambari.server.upgrade.UpgradeCatalog272.RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
@@ -49,10 +50,15 @@ public class UpgradeCatalog272Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     final Method renameLdapSynchCollisionBehaviorValue = UpgradeCatalog272.class.getDeclaredMethod("renameLdapSynchCollisionBehaviorValue");
+    final Method createRoleAuthorizations = UpgradeCatalog272.class.getDeclaredMethod("createRoleAuthorizations");
 
-    final UpgradeCatalog272 upgradeCatalog272 = createMockBuilder(UpgradeCatalog272.class).addMockedMethod(renameLdapSynchCollisionBehaviorValue).createMock();
+    final UpgradeCatalog272 upgradeCatalog272 = createMockBuilder(UpgradeCatalog272.class).addMockedMethod(renameLdapSynchCollisionBehaviorValue)
+        .addMockedMethod(createRoleAuthorizations).createMock();
 
     expect(upgradeCatalog272.renameLdapSynchCollisionBehaviorValue()).andReturn(0).once();
+
+    upgradeCatalog272.createRoleAuthorizations();
+    expectLastCall().once();
 
     replay(upgradeCatalog272);
 
@@ -83,5 +89,7 @@ public class UpgradeCatalog272Test {
     assertEquals(expectedResult, upgradeCatalog272.renameLdapSynchCollisionBehaviorValue());
     verify(dbAccessor);
   }
+  
+  
 
 }

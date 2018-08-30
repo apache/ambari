@@ -21,12 +21,10 @@ import static org.apache.ambari.server.controller.internal.HostComponentResource
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.COMPONENT_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_NAME;
-import static org.apache.ambari.server.orm.entities.PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME;
-import static org.apache.ambari.server.orm.entities.PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME;
-import static org.apache.ambari.server.orm.entities.PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME;
-import static org.apache.ambari.server.orm.entities.PermissionEntity.CLUSTER_USER_PERMISSION_NAME;
-import static org.apache.ambari.server.orm.entities.PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME;
-import static org.apache.ambari.server.orm.entities.PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.AMBARI_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.CLUSTER_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.HOST_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.SERVICE_VIEW_STATUS_INFO;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,11 +63,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
-import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -102,9 +97,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static HostRoleCommandDAO s_hostRoleCommandDAO = null;
-
-  @Inject
-  private static PermissionDAO permissionDao;
 
   @Inject
   private static TopologyManager topologyManager;
@@ -195,8 +187,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_USER_NAME
   );
 
-  private static Set<String> ALLOWED_PERMISSION_NAMES = ImmutableSet.<String>builder().add(AMBARI_ADMINISTRATOR_PERMISSION_NAME, CLUSTER_ADMINISTRATOR_PERMISSION_NAME,
-      CLUSTER_OPERATOR_PERMISSION_NAME, CLUSTER_USER_PERMISSION_NAME, SERVICE_ADMINISTRATOR_PERMISSION_NAME, SERVICE_OPERATOR_PERMISSION_NAME).build();
   // ----- Constructors ----------------------------------------------------
 
   /**
@@ -299,8 +289,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    authorizeGetResources();
-
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources = new HashSet<>();
 
@@ -311,9 +299,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
 
     if (null == predicate) {
+      authorizeGetResources(null);
       // the no-arg call to /requests is here
-      resources.addAll(
-          getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
+      resources.addAll(getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
     } else {
       // process /requests with a predicate
       // process /clusters/[cluster]/requests
@@ -332,6 +320,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
         }
 
+        authorizeGetResources(clusterName);
         resources.addAll(getRequestResources(clusterName, requestId, requestStatus, maxResults,
             ascOrder, requestedIds));
       }
@@ -340,18 +329,19 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     return resources;
   }
 
-  private void authorizeGetResources() throws SystemException {
-    final Set<RoleAuthorization> requiredAuthorizations = Sets.newHashSet();
-    for (String allowedPermissionName : ALLOWED_PERMISSION_NAMES) {
-      PermissionEntity permission = permissionDao.findByName(allowedPermissionName);
-      if (permission != null) {
-        for (RoleAuthorizationEntity roleAuthorization : permission.getAuthorizations()) {
-          requiredAuthorizations.add(RoleAuthorization.translate(roleAuthorization.getAuthorizationId()));
-        }
-      }
+  private void authorizeGetResources(String clusterName) throws NoSuchParentResourceException, AuthorizationException {
+    final boolean ambariLevelRequest = StringUtils.isBlank(clusterName);
+    final ResourceType resourceType = ambariLevelRequest ? ResourceType.AMBARI : ResourceType.CLUSTER;
+    Long resourceId;
+    try {
+      resourceId = ambariLevelRequest ? null : getClusterResourceId(clusterName);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException("Error while fetching cluster resource ID", e);
     }
+    final Set<RoleAuthorization> requiredAuthorizations = ambariLevelRequest ? Sets.newHashSet(AMBARI_VIEW_STATUS_INFO)
+        : Sets.newHashSet(CLUSTER_VIEW_STATUS_INFO, HOST_VIEW_STATUS_INFO, SERVICE_VIEW_STATUS_INFO);
 
-    if (!AuthorizationHelper.isAuthorized(null, null, requiredAuthorizations)) {
+    if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, requiredAuthorizations)) {
       throw new AuthorizationException(String.format("The authenticated user is not authorized to fetch request related information."));
     }
   }

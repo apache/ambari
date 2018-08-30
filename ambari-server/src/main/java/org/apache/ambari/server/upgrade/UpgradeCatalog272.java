@@ -18,11 +18,13 @@
 package org.apache.ambari.server.upgrade;
 
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.LDAP_CONFIGURATION;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.AMBARI_VIEW_STATUS_INFO;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_TABLE;
 
 import java.sql.SQLException;
+import java.util.Collections;
 
 import org.apache.ambari.server.AmbariException;
 import org.slf4j.Logger;
@@ -72,6 +74,7 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     renameLdapSynchCollisionBehaviorValue();
+    createRoleAuthorizations();
   }
 
   protected int renameLdapSynchCollisionBehaviorValue() throws SQLException {
@@ -86,4 +89,8 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
     return numberOfRecordsRenamed;
   }
 
+  protected void createRoleAuthorizations() throws SQLException {
+    addRoleAuthorization(AMBARI_VIEW_STATUS_INFO.getId(), "View status information", Collections.singleton("AMBARI.ADMINISTRATOR:AMBARI"));
+    LOG.info("Added new role authorization {}", AMBARI_VIEW_STATUS_INFO.getId());
+  }
 }
