@@ -17,10 +17,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from setuptools import setup
+import os
+from os.path import dirname
+from setuptools import find_packages, setup
+
+AMBARI_COMMON_PYTHON_FOLDER = "ambari-common/src/main/python"
+AMBARI_SERVER_TEST_PYTHON_FOLDER = "ambari-server/src/test/python"
+
+def get_ambari_common_packages():
+  return find_packages(AMBARI_COMMON_PYTHON_FOLDER, exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
+
+def get_ambari_server_stack_package():
+  return ["stacks.utils"]
+
+def create_package_dir_map():
+  package_dirs = {}
+  ambari_common_packages = get_ambari_common_packages()
+  for ambari_common_package in ambari_common_packages:
+    package_dirs[ambari_common_package] = AMBARI_COMMON_PYTHON_FOLDER + '/' + ambari_common_package.replace(".", "/")
+
+  ambari_server_packages = get_ambari_server_stack_package()
+  for ambari_server_package in ambari_server_packages:
+    package_dirs[ambari_server_package] = AMBARI_SERVER_TEST_PYTHON_FOLDER + '/' + ambari_server_package.replace(".", "/")
+  return package_dirs
 
 setup(
-  name = "ambari-commons",
+  name = "ambari-python",
   version = "dev-3.0.0",
   author = "Apache Software Foundation",
   author_email = "dev@ambari.apache.org",
@@ -28,7 +50,9 @@ setup(
   license = "AP2",
   keywords = "hadoop, ambari",
   url = "https://ambari.apache.org",
-  packages=['ambari_commons', 'ambari_jinja2', 'ambari_simplejson', 'ambari_stomp', 'ambari_ws4py', 'pluggable_stack_definition','resource_management', 'urlinfo_processor'],
+  packages = get_ambari_common_packages() + get_ambari_server_stack_package(),
+  package_dir = create_package_dir_map(),
+  include_package_data = True,
   long_description="The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters. "
                    "Ambari provides an intuitive, easy-to-use Hadoop management web UI backed by its RESTful APIs."
 )
