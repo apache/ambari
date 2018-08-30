@@ -372,6 +372,10 @@
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
+
+            <exclude>ambari_python.egg-info/**</exclude>
+            <exclude>dist/**</exclude>
+            <exclude>build/**</exclude>
           </excludes>
         </configuration>
         <executions>
