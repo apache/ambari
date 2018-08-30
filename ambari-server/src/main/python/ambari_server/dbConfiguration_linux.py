@@ -177,10 +177,10 @@ class LinuxDBMSConfig(DBMSConfig):
     client_usage_cmd_init = self._get_remote_script_line(self.init_script_file)
 
     print_warning_msg('To reset Ambari Server schema ' +
-                      'you must run the following DDL against the database to '
+                      'you must run the following DDL directly from the database shell to '
                       + 'drop the schema:' + os.linesep + client_usage_cmd_drop
                       + os.linesep + 'Then you must run the following DDL ' +
-                      'against the database to create the schema: ' + os.linesep +
+                      'directly from the database shell to create the schema: ' + os.linesep +
                       client_usage_cmd_init + os.linesep)
 
   def _get_default_driver_path(self, properties):
@@ -272,7 +272,7 @@ class LinuxDBMSConfig(DBMSConfig):
   # Let the console user initialize the remote database schema
   def _setup_remote_db(self):
     setup_msg = "Before starting Ambari Server, you must run the following DDL " \
-                "against the database to create the schema: {0}".format(self.init_script_file)
+                "directly from the database shell to create the schema: {0}".format(self.init_script_file)
 
     print_warning_msg(setup_msg)
 
