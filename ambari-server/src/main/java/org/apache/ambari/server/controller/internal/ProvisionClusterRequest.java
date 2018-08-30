@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestMpackInstanceEntity;
@@ -55,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

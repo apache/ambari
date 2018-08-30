@@ -35,7 +35,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.base.Preconditions;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
@@ -64,6 +63,8 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Parent for all commands.
@@ -168,7 +169,7 @@ public abstract class MpackAdvisorCommand<T extends MpackAdvisorResponse> extend
     try {
       ObjectNode root = (ObjectNode) this.mapper.readTree(servicesJSON);
       Preconditions.checkNotNull(root.get(SERVICES_PROPERTY),
-        "No services found for mpack %s (%s-%s).", mpack.getMpackName(), mpack.getMpackType(), mpack.getMpackVersion());
+        "No services found for mpack %s (%s-%s). Is the mpack installed?", mpack.getMpackName(), mpack.getMpackType(), mpack.getMpackVersion());
 
       populateComponentHostsMap(root, request.getMpackComponentHostsMap());
       populateServiceAdvisors(root);
