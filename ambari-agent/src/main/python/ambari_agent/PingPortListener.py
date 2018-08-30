@@ -25,7 +25,7 @@ import socket
 from ambari_commons import subprocess32
 
 logger = logging.getLogger(__name__)
-FUSER_CMD = "fuser {0}/tcp 2>/dev/null | awk '{1}'"
+FUSER_CMD = "timeout 10 fuser {0}/tcp 2>/dev/null | awk '{1}'"
 PSPF_CMD = "ps -fp {0}"
 PORT_IN_USE_MESSAGE = "Could not open port {0} because port already used by another process:\n{1}"
 
@@ -38,6 +38,9 @@ class PingPortListener(threading.Thread):
     self.config = config
     self.host = '0.0.0.0'
     self.port = int(self.config.get('agent','ping_port'))
+
+    logger.debug("Checking Ping port listener port {0}".format(self.port))
+
     if not self.port == None and not self.port == 0:
       (stdoutdata, stderrdata) = self.run_os_command_in_shell(FUSER_CMD.format(str(self.port), "{print $1}"))
       if stdoutdata.strip() and stdoutdata.strip().isdigit():

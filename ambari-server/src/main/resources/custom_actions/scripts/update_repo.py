@@ -54,7 +54,7 @@ class UpdateRepo(Script):
                             [components.replace(",", " ") if components else self.UBUNTU_REPO_COMPONENTS_POSTFIX]
 
         Repository(repo_id,
-                 action = "create",
+                 action = "prepare",
                  base_url = base_url,
                  mirror_list = None,
                  repo_file_name = repo_name,
@@ -62,6 +62,7 @@ class UpdateRepo(Script):
                  components = ubuntu_components, # ubuntu specific
         )
         structured_output["repo_update"] = {"exit_code" : 0, "message": format("Repository files successfully updated!")}
+      Repository(None, action="create")
     except Exception, exception:
       Logger.logger.exception("ERROR: There was an unexpected error while updating repositories")
       raise Fail("Failed to update repo files!")

@@ -18,48 +18,46 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import logging
+import logging.config
+import logging.handlers
 import optparse
-import sys
 import os
 import signal
-import logging
-import logging.handlers
-import logging.config
-
-from optparse import OptionValueError
+import sys
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import set_verbose, set_silent, \
   print_info_msg, print_warning_msg, print_error_msg, set_debug_mode_from_options
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import remove_file
+from optparse import OptionValueError
+
 from ambari_server.BackupRestore import main as BackupRestore_main
+from ambari_server.checkDatabase import check_database
+from ambari_server.dbCleanup import db_purge
 from ambari_server.dbConfiguration import DATABASE_NAMES, LINUX_DBMS_KEYS_LIST
+from ambari_server.enableStack import enable_stack_version
+from ambari_server.hostUpdate import update_host_names
+from ambari_server.kerberos_setup import setup_kerberos
 from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, PID_NAME
-from ambari_server.serverUtils import is_server_runing, refresh_stack_hash, wait_for_server_to_stop
 from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, set_current
+from ambari_server.serverUtils import is_server_runing, refresh_stack_hash, wait_for_server_to_stop
+from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
+  REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
+  SETUP_ACTION, SETUP_SECURITY_ACTION, RESTART_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
+  SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
+  DB_PURGE_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, \
+  MIGRATE_LDAP_PAM_ACTION, KERBEROS_SETUP_ACTION
 from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.setupMpacks import install_mpack, uninstall_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
   SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
+from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam, \
+  migrate_ldap_pam, LDAP_TYPES
 from ambari_server.setupSso import setup_sso
-from ambari_server.dbCleanup import db_purge
-from ambari_server.hostUpdate import update_host_names
-from ambari_server.checkDatabase import check_database
-from ambari_server.enableStack import enable_stack_version
-
-from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
-  REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
-  SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, RESTART_ACTION, UPGRADE_ACTION, \
-  SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
-  SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
-  DB_PURGE_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, MIGRATE_LDAP_PAM_ACTION, KERBEROS_SETUP_ACTION
-from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam, migrate_ldap_pam
 from ambari_server.userInput import get_validated_string_input
-from ambari_server.kerberos_setup import setup_kerberos
-
 from ambari_server_main import server_process_main
-from ambari_server.ambariPath import AmbariPath
 
 logger = logging.getLogger()
 
@@ -552,6 +550,7 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-secondary-host', action="callback", callback=check_ldap_url_options, type='str', default=None, help="Secondary Host for LDAP (must not be used together with --ldap-secondary-url)", dest="ldap_secondary_host")
   parser.add_option('--ldap-secondary-port', action="callback", callback=check_ldap_url_options, type='int', default=None, help="Secondary Port for LDAP (must not be used together with --ldap-secondary-url)", dest="ldap_secondary_port")
   parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
+  parser.add_option('--ldap-use-generic-defaults', action="store_true", default=None, help="Disables ldap type query and generic defaults will be offered for non existent properties".format("/".join(LDAP_TYPES)), dest="ldap_use_generic_defaults")
   parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
   parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
   parser.add_option('--ldap-group-class', default=None, help="Group Attribute Object Class for LDAP", dest="ldap_group_class")
@@ -565,6 +564,7 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-referral', default=None, help="Referral method [follow/ignore] for LDAP", dest="ldap_referral")
   parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
   parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
+  parser.add_option('--ldap-sync-disable-endpoint-identification', default=None, help="Determines whether to disable endpoint identification (hostname verification) during SSL handshake for LDAP sync. This option takes effect only if --ldap-ssl is set to 'true'", dest="ldap_sync_disable_endpoint_identification")
   parser.add_option('--ldap-force-lowercase-usernames', default=None, help="Declares whether to force the ldap user name to be lowercase or leave as-is", dest="ldap_force_lowercase_usernames")
   parser.add_option('--ldap-pagination-enabled', default=None, help="Determines whether results from LDAP are paginated when requested", dest="ldap_pagination_enabled")
   parser.add_option('--ldap-force-setup', action="store_true", default=False, help="Forces the use of LDAP even if other (i.e. PAM) authentication method is configured already or if there is no authentication method configured at all", dest="ldap_force_setup")

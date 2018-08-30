@@ -183,7 +183,6 @@ public class SchemaUpgradeHelper {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
-      catalogBinder.addBinding().to(UpgradeCatalog271.class);
       catalogBinder.addBinding().to(UpdateAlertScriptPaths.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 

@@ -22,13 +22,13 @@ Ambari Agent
 
 PROVIDERS = dict(
   amazon=dict(
-    Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
+    Repository="resource_management.libraries.providers.repository.RhelRepositoryProvider",
   ),
   redhat=dict(
-    Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
+    Repository="resource_management.libraries.providers.repository.RhelRepositoryProvider",
   ),
   suse=dict(
-    Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
+    Repository="resource_management.libraries.providers.repository.SuseRepositoryProvider",
   ),
   ubuntu=dict(
     Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
