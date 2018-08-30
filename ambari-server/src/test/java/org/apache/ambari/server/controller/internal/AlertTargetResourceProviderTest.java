@@ -270,7 +270,7 @@ public class AlertTargetResourceProviderTest {
     testCreateResources(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testCreateResourcesAsClusterAdministrator() throws Exception {
     testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -331,7 +331,7 @@ public class AlertTargetResourceProviderTest {
     testCreateResourcesWithGroups(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testCreateResourcesWithGroupsAsClusterAdministrator() throws Exception {
     testCreateResourcesWithGroups(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -407,7 +407,7 @@ public class AlertTargetResourceProviderTest {
     testCreateGlobalTarget(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testCreateGlobalTargetAsClusterAdministrator() throws Exception {
     testCreateGlobalTarget(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -473,7 +473,7 @@ public class AlertTargetResourceProviderTest {
     testCreateResourceWithRecipientArray(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testCreateResourceWithRecipientArrayAsClusterAdministrator() throws Exception {
     testCreateResourceWithRecipientArray(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -537,7 +537,7 @@ public class AlertTargetResourceProviderTest {
     testCreateResourceWithAlertStates(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testCreateResourceWithAlertStatesAsClusterAdministrator() throws Exception {
     testCreateResourceWithAlertStates(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -604,7 +604,7 @@ public class AlertTargetResourceProviderTest {
     testUpdateResources(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testUpdateResourcesAsClusterAdministrator() throws Exception {
     testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -679,7 +679,7 @@ public class AlertTargetResourceProviderTest {
     testUpdateResourcesWithGroups(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testUpdateResourcesWithGroupsAsClusterAdministrator() throws Exception {
     testUpdateResourcesWithGroups(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -761,7 +761,7 @@ public class AlertTargetResourceProviderTest {
     testDeleteResources(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testDeleteResourcesAsClusterAdministrator() throws Exception {
     testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
   }
@@ -829,7 +829,7 @@ public class AlertTargetResourceProviderTest {
     testOverwriteDirective(TestAuthenticationFactory.createAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
   public void testOverwriteDirectiveAsClusterAdministrator() throws Exception {
     testOverwriteDirective(TestAuthenticationFactory.createClusterAdministrator());
   }
