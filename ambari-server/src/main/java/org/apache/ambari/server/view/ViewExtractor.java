@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,11 +64,12 @@ public class ViewExtractor {
    * @param viewArchive  the view archive file
    * @param archiveDir   the view archive directory
    *
+   * @param viewsAdditionalClasspath: list of additional paths to be added to every view's classpath
    * @return the class loader for the archive classes
    *
    * @throws ExtractionException if the archive can not be extracted
    */
-  public ClassLoader extractViewArchive(ViewEntity view, File viewArchive, File archiveDir)
+  public ClassLoader extractViewArchive(ViewEntity view, File viewArchive, File archiveDir, List<File> viewsAdditionalClasspath)
       throws ExtractionException {
 
     String archivePath = archiveDir.getAbsolutePath();
@@ -158,7 +160,7 @@ public class ViewExtractor {
 
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(archivePath, false);
 
-      return getArchiveClassLoader(viewConfig, archiveDir);
+      return getArchiveClassLoader(viewConfig, archiveDir, viewsAdditionalClasspath);
 
     } catch (Exception e) {
       String msg = "Caught exception trying to extract the view archive " + archivePath + ".";
@@ -187,7 +189,7 @@ public class ViewExtractor {
   // ----- archiveUtility methods ----------------------------------------------------
 
   // get a class loader for the given archive directory
-  private ClassLoader getArchiveClassLoader(ViewConfig viewConfig, File archiveDir)
+  private ClassLoader getArchiveClassLoader(ViewConfig viewConfig, File archiveDir, List<File> viewsAdditionalClasspath)
       throws IOException {
 
     String    archivePath = archiveDir.getAbsolutePath();
@@ -200,9 +202,34 @@ public class ViewExtractor {
       urlList.add(classesDir.toURI().toURL());
     }
 
+        // include libs in additional classpath
+    for (File file : viewsAdditionalClasspath) {
+      if (file.isDirectory()) {
+        // add all files inside this dir.
+        addDirToClasspath(urlList, file);
+      } else if (file.isFile()) {
+        urlList.add(file.toURI().toURL());
+      }
+    }
+
     // include any libraries in the lib directory
     String libPath = archivePath + File.separator + ARCHIVE_LIB_DIR;
-    File   libDir  = archiveUtility.getFile(libPath);
+    File libDir = archiveUtility.getFile(libPath);
+    addDirToClasspath(urlList, libDir);
+
+    // include the archive directory
+    urlList.add(archiveDir.toURI().toURL());
+
+    LOG.trace("classpath for view {} is : {}", viewConfig.getName(), urlList);
+    return new ViewClassLoader(viewConfig, urlList.toArray(new URL[urlList.size()]));
+  }
+
+  /**
+   * Add all the files in libDir to urlList ignoring directories.
+   * @param urlList: the list to which all paths needs to be appended
+   * @param libDir: the path of which all the files needs to be appended to urlList
+   */
+  private void addDirToClasspath(List<URL> urlList, File libDir) throws MalformedURLException {
     if (libDir.exists()) {
       File[] files = libDir.listFiles();
       if (files != null) {
@@ -213,11 +240,6 @@ public class ViewExtractor {
         }
       }
     }
-
-    // include the archive directory
-    urlList.add(archiveDir.toURI().toURL());
-
-    return new ViewClassLoader(viewConfig, urlList.toArray(new URL[urlList.size()]));
   }
 
 
