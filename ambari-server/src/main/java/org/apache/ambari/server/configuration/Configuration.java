@@ -2269,6 +2269,15 @@ public class Configuration {
       "views.http.cache-control", "no-store");
 
   /**
+   * The value that is additional classpath for the views. It will take comma separated paths. If the individual path is jar
+   * it will be included otherwise if it is a directory then all the files inside it will be included in the classpath. Directories
+   * WILL NOT BE traversed recursively
+   */
+  @Markdown(description = "Additional class path added to each Ambari View. Comma separated jars or directories")
+  public static final ConfigurationProperty<String> VIEWS_ADDITIONAL_CLASSPATH_VALUE = new ConfigurationProperty<>(
+      "views.additional.classpath", "");
+
+  /**
    * The value that will be used to set the {@code PRAGMA} HTTP response header.
    * HTTP response header for Ambari View requests.
    */
@@ -3744,6 +3753,19 @@ public class Configuration {
    */
   public String getViewsCacheControlHTTPResponseHeader() {
     return getProperty(VIEWS_HTTP_CACHE_CONTROL_HEADER_VALUE);
+  }
+
+  /**
+   * Get the comma separated additional classpath, that should be added to view's classloader.
+   * <p/>
+   * By default it will be empty. i.e. no additional classpath.
+   * If present it will be comma separated path entries. Each entry can be a file or a directory.
+   * If entry is a file it will be added as it is.
+   * If entry is a directory, all the files inside this directory will be added to the classpath.
+   * @return the view's additional classpath value - null or "" indicates that the value is not set
+   */
+  public String getViewsAdditionalClasspath() {
+    return getProperty(VIEWS_ADDITIONAL_CLASSPATH_VALUE);
   }
 
   /**
