@@ -33,8 +33,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -79,6 +81,13 @@ public class ViewExtractorTest {
 
   @Test
   public void testExtractViewArchive() throws Exception {
+
+    File addDirPath = createNiceMock(File.class);
+    File addDirPathFile1 = createNiceMock(File.class);
+    File addDirPathFile2 = createNiceMock(File.class);
+    File addDirPath2 = createNiceMock(File.class);
+    File addFilePath = createNiceMock(File.class);
+    List<File> viewsAdditionalClasspath = Arrays.asList(addDirPath, addDirPath2, addFilePath);
 
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
     resourceTypeEntity.setId(10);
@@ -132,14 +141,32 @@ public class ViewExtractorTest {
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
+    expect(addDirPath.isDirectory()).andReturn(true);
+    expect(addDirPath.exists()).andReturn(true);
+    expect(addDirPath.listFiles()).andReturn(new File[]{addDirPathFile1, addDirPathFile2});
+    expect(addDirPathFile1.isDirectory()).andReturn(false);
+    expect(addDirPathFile1.toURI()).andReturn(new URI("file://file1"));
+    expect(addDirPathFile2.isDirectory()).andReturn(false);
+    expect(addDirPathFile2.toURI()).andReturn(new URI("file://file2"));
+
+    expect(addDirPath2.isDirectory()).andReturn(true);
+    expect(addDirPath2.exists()).andReturn(true);
+    expect(addDirPath2.listFiles()).andReturn(new File[]{});
+
+    expect(addFilePath.isDirectory()).andReturn(false);
+    expect(addFilePath.isFile()).andReturn(true);
+    expect(addFilePath.toURI()).andReturn(new URI("file://file3"));
+
     replay(extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir, libDir, metaInfDir, viewJarFile,
-        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO);
+        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO,
+            addDirPath, addDirPathFile1, addDirPathFile2, addDirPath2, addFilePath);
 
     ViewExtractor viewExtractor = getViewExtractor(viewDefinition);
-    viewExtractor.extractViewArchive(viewDefinition, viewArchive, archiveDir);
+    viewExtractor.extractViewArchive(viewDefinition, viewArchive, archiveDir, viewsAdditionalClasspath);
 
     verify(extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir, libDir, metaInfDir, viewJarFile,
-        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO);
+        jarEntry, fos, configuration, viewDir, fileEntry, viewDAO,
+            addDirPath, addDirPathFile1, addDirPathFile2, addDirPath2, addFilePath);
   }
 
   @Test

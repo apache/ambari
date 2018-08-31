@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -1814,7 +1815,9 @@ public class ViewRegistry {
 
     try {
       // extract the archive and get the class loader
-      ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
+      List<File> additionalPaths = getViewsAdditionalClasspath(configuration);
+
+      ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, additionalPaths);
 
       configureViewLogging(viewDefinition, cl);
 
@@ -1852,6 +1855,19 @@ public class ViewRegistry {
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
     }
+  }
+
+  private static List<File> getViewsAdditionalClasspath(Configuration configuration) {
+    String viewsAdditionalClasspath = configuration.getViewsAdditionalClasspath();
+    List<File> additionalPaths = new LinkedList<>();
+    if(null != viewsAdditionalClasspath && !viewsAdditionalClasspath.trim().isEmpty()) {
+      String[] paths = viewsAdditionalClasspath.trim().split(",");
+      for(String path : paths) {
+        if(null != path && !path.trim().isEmpty())
+        additionalPaths.add(new File(path));
+      }
+    }
+    return additionalPaths;
   }
 
   private void migrateDataFromPreviousVersion(ViewEntity viewDefinition, String serverVersion) {
@@ -2110,7 +2126,8 @@ public class ViewRegistry {
         if (!systemOnly || viewDefinition.isSystem()) {
           ClassLoader classLoader = null;
           try {
-            classLoader = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
+            List<File> additionalPaths = getViewsAdditionalClasspath(configuration);
+            classLoader = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, additionalPaths);
             return true;
           } finally {
             if (classLoader instanceof Closeable) {

@@ -1517,6 +1517,7 @@ public class ViewRegistryTest {
     File viewDir = createNiceMock(File.class);
     File extractedArchiveDir = createNiceMock(File.class);
     File viewArchive = createNiceMock(File.class);
+
     File archiveDir = createNiceMock(File.class);
     File entryFile  = createNiceMock(File.class);
     File classesDir = createNiceMock(File.class);
@@ -1613,7 +1614,7 @@ public class ViewRegistryTest {
     else {
       expect(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work")).andReturn(true);
     }
-    expect(viewExtractor.extractViewArchive(capture(viewEntityCapture), eq(viewArchive), eq(archiveDir))).andReturn(null);
+    expect(viewExtractor.extractViewArchive(capture(viewEntityCapture), eq(viewArchive), eq(archiveDir), anyObject(List.class))).andReturn(null);
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
