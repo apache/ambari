@@ -21,6 +21,10 @@ import static org.apache.ambari.server.controller.internal.HostComponentResource
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.COMPONENT_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_NAME;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_NAME;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.AMBARI_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.CLUSTER_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.HOST_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.SERVICE_VIEW_STATUS_INFO;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -295,9 +299,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
 
     if (null == predicate) {
+      authorizeGetResources(null);
       // the no-arg call to /requests is here
-      resources.addAll(
-          getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
+      resources.addAll(getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
     } else {
       // process /requests with a predicate
       // process /clusters/[cluster]/requests
@@ -316,12 +320,30 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
         }
 
+        authorizeGetResources(clusterName);
         resources.addAll(getRequestResources(clusterName, requestId, requestStatus, maxResults,
             ascOrder, requestedIds));
       }
     }
 
     return resources;
+  }
+
+  private void authorizeGetResources(String clusterName) throws NoSuchParentResourceException, AuthorizationException {
+    final boolean ambariLevelRequest = StringUtils.isBlank(clusterName);
+    final ResourceType resourceType = ambariLevelRequest ? ResourceType.AMBARI : ResourceType.CLUSTER;
+    Long resourceId;
+    try {
+      resourceId = ambariLevelRequest ? null : getClusterResourceId(clusterName);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException("Error while fetching cluster resource ID", e);
+    }
+    final Set<RoleAuthorization> requiredAuthorizations = ambariLevelRequest ? Sets.newHashSet(AMBARI_VIEW_STATUS_INFO)
+        : Sets.newHashSet(CLUSTER_VIEW_STATUS_INFO, HOST_VIEW_STATUS_INFO, SERVICE_VIEW_STATUS_INFO);
+
+    if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, requiredAuthorizations)) {
+      throw new AuthorizationException(String.format("The authenticated user is not authorized to fetch request related information."));
+    }
   }
 
   @Override
