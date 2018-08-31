@@ -696,7 +696,18 @@ public class StackManager {
       if (stack.isFile()) {
         continue;
       }
-      parseAllModulesInStack(stack, stackModules, stack.getName());
+      for (File stackFolder : stack.listFiles(StackDirectory.FILENAME_FILTER)) {
+        if (stackFolder.isFile()) {
+          continue;
+        }
+        String stackName = stackFolder.getParentFile().getName();
+        String stackVersion = stackFolder.getName();
+
+        StackModule stackModule = new StackModule(new StackDirectory(stackFolder.getPath()), stackContext);
+        String stackKey = stackName + StackManager.PATH_DELIMITER + stackVersion;
+        stackModules.put(stackKey, stackModule);
+        stackMap.put(stackKey, stackModule.getModuleInfo());
+      }
     }
 
     return stackModules;
@@ -708,32 +719,6 @@ public class StackManager {
 
   public void unlinkStackAndExtension(StackInfo stack, ExtensionInfo extension) throws AmbariException {
     stack.removeExtension(extension);
-  }
-
-  private void parseAllModulesInStack(File stack, Map<String, StackModule> stackModules, String stackName) throws AmbariException{
-    for (File stackFolder : stack.listFiles()) {
-      if (stackFolder.isFile()) {
-        continue;
-      }
-      // The current stack layout is: /var/lib/ambari-server/resource/HDP/{2.1/services}|{services}
-      for (File subFolder : stackFolder.listFiles()) {
-        if (subFolder.isFile()) {
-          continue;
-        }
-        if (subFolder.getName().equals("services")) {
-          // Now it is time to start processing each module
-          for (File module : subFolder.listFiles()) {
-            StackModule stackModule = new StackModule(new StackDirectory(module.getPath()), stackContext);
-            String moduleKey = module.getName();
-            stackModules.put(moduleKey, stackModule);
-            stackMap.put(moduleKey, stackModule.getModuleInfo());
-          }
-        } else {
-          // Handle /var/lib/ambari-server/resource/HDP/{2.1/services} case
-          parseAllModulesInStack(subFolder, stackModules, stackName);
-        }
-      }
-    }
   }
 
   /**
