@@ -89,6 +89,9 @@ cluster_name = config['clusterName']
 
 java_version = expect("/ambariLevelParams/java_version", int)
 
+zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+zk_principal_user = zk_principal_name.split('/')[0]
+
 zk_root = default('/configurations/application-properties/atlas.server.ha.zookeeper.zkroot', '/apache_atlas')
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 atlas_kafka_group_id = default('/configurations/application-properties/atlas.kafka.hook.group.id', None)
