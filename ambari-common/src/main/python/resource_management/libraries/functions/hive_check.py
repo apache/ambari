@@ -25,8 +25,9 @@ from resource_management.core.signal_utils import TerminateStrategy
 
 
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
-                           transport_mode="binary", http_endpoint="cliservice", ssl=False, ssl_keystore=None,
-                           ssl_password=None, check_command_timeout=30, ldap_username="", ldap_password=""):
+                           hive_user='hive', transport_mode="binary", http_endpoint="cliservice",
+                           ssl=False, ssl_keystore=None, ssl_password=None, check_command_timeout=30,
+                           ldap_username="", ldap_password=""):
   """
   Hive thrift SASL port check
   """
@@ -71,8 +72,10 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
     finally:
       kinit_lock.release()
 
-  cmd = "! beeline -u '%s' %s -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
-        (format(";".join(beeline_url)), format(credential_str))
+  # -n the user to connect as (ignored when using the hive principal in the URL, can be different from the user running the beeline command)
+  # -e ';' executes a SQL commmand of NOOP
+  cmd = "beeline -n %s -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -i -e 'Connected to:' -e 'Transaction isolation:'" % \
+        (format(hive_user), format(";".join(beeline_url)), format(credential_str))
 
   Execute(cmd,
     user=smokeuser,
