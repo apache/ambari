@@ -53,18 +53,21 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     return App.ajax.send({
       name: 'config.tags',
       sender: this,
-      success: 'onLoadConfigsTags',
-      error: 'onTaskError'
+      success: 'onLoadConfigsTags'
     });
   },
 
 
   onLoadConfigsTags: function (data) {
+    var servicesModel = App.Service.find();
     var urlParams = '(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')';
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+    if (servicesModel.someProperty('serviceName', 'RANGER')) {
       urlParams += '|(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')' +
       '|(type=ranger-tagsync-site&tag=' + data.Clusters.desired_configs['ranger-tagsync-site'].tag + ')' +
           '|(type=ranger-hdfs-security&tag=' + data.Clusters.desired_configs['ranger-hdfs-security'].tag + ')'
+    }
+    if (servicesModel.someProperty('serviceName', 'ACCUMULO')) {
+      urlParams += '|(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')';
     }
     App.ajax.send({
       name: 'admin.get.all_configurations',
@@ -72,8 +75,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
       data: {
         urlParams: urlParams
       },
-      success: 'onLoadConfigs',
-      error: 'onTaskError'
+      success: 'onLoadConfigs'
     });
   },
 
@@ -131,6 +133,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
   },
 
   tweakServiceConfigs: function (configs) {
+    var servicesModel = App.Service.find();
     var dependencies = this.prepareDependencies();
     var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name');
     nameServices.push(dependencies.newNameservice);
@@ -147,7 +150,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
       ]);
     }
 
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+    if (servicesModel.someProperty('serviceName', 'RANGER')) {
       var hdfsRangerConfigs = this.get('serverConfigData').items.findProperty('type', 'ranger-hdfs-security').properties;
       var reponamePrefix = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}' ? dependencies.clustername + '_hadoop_' : hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_';
       var coreSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'core-site').properties;
@@ -157,6 +160,46 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
         configs.push(this.createRangerServiceProperty(nameService, reponamePrefix, "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".nameservice." + nameService + ".ranger.service"));
         configs.push(this.createRangerServiceProperty(defaultFSNS, reponamePrefix, "ranger.tagsync.atlas.hdfs.instance." + App.get('clusterName') + ".ranger.service"));
       }, this);
+    }
+
+    if (servicesModel.someProperty('serviceName', 'ACCUMULO')) {
+      var hdfsNameSpacesModel = App.HDFSService.find().objectAt(0).get('masterComponentGroups');
+      var newNameSpace = this.get('content.nameServiceId');
+      var volumesValue = nameServices.map(function (ns) {
+        return 'hdfs://' + ns + '/apps/accumulo/data';
+      }).join();
+      var replacementsValue = nameServices.map(function (ns) {
+        var hostName;
+        if (ns === newNameSpace) {
+          var hostNames = this.get('content.masterComponentHosts').filter(function (hc) {
+            return hc.component === 'NAMENODE' && !hc.isInstalled;
+          }).mapProperty('hostName');
+          hostName = hostNames[0];
+        } else {
+          var nameSpaceObject = hdfsNameSpacesModel.findProperty('name', ns);
+          hostName = nameSpaceObject && nameSpaceObject.hosts[0];
+        }
+        return 'hdfs://' + hostName + ':8020/apps/accumulo/data hdfs://' + ns + '/apps/accumulo/data';
+      }, this).join();
+      configs.push({
+        name: 'instance.volumes',
+        displayName: 'instance.volumes',
+        isReconfigurable: false,
+        value: volumesValue,
+        recommendedValue: volumesValue,
+        category: 'ACCUMULO',
+        filename: 'accumulo-site',
+        serviceName: 'MISC'
+      }, {
+        name: 'instance.volumes.replacements',
+        displayName: 'instance.volumes.replacements',
+        isReconfigurable: false,
+        value: replacementsValue,
+        recommendedValue: replacementsValue,
+        category: 'ACCUMULO',
+        filename: 'accumulo-site',
+        serviceName: 'MISC'
+      });
     }
 
     configs.forEach(function (config) {

@@ -70,8 +70,7 @@ describe('App.NameNodeFederationWizardStep3Controller', function () {
       expect(App.ajax.send.calledWith({
         name: 'config.tags',
         sender: controller,
-        success: 'onLoadConfigsTags',
-        error: 'onTaskError'
+        success: 'onLoadConfigsTags'
       })).to.be.true;
     });
   });
@@ -91,6 +90,9 @@ describe('App.NameNodeFederationWizardStep3Controller', function () {
           },
           'ranger-hdfs-security': {
             tag: 'test4'
+          },
+          'accumulo-site': {
+            tag: 'test5'
           }
         }
       }
@@ -98,7 +100,7 @@ describe('App.NameNodeFederationWizardStep3Controller', function () {
 
     afterEach(function(){
       App.Service.find.restore();
-    })
+    });
 
     it('should build short url params if no Ranger present', function () {
       sinon.stub(App.Service, 'find').returns([]);
@@ -109,8 +111,7 @@ describe('App.NameNodeFederationWizardStep3Controller', function () {
         data: {
           urlParams: '(type=hdfs-site&tag=test)'
         },
-        success: 'onLoadConfigs',
-        error: 'onTaskError'
+        success: 'onLoadConfigs'
       }));
     });
 
@@ -123,8 +124,20 @@ describe('App.NameNodeFederationWizardStep3Controller', function () {
         data: {
           urlParams: '(type=hdfs-site&tag=test)|(type=core-site&tag=test1)|(type=ranger-tagsync-site&tag=test2)|(type=ranger-hdfs-security&tag=test3)'
         },
-        success: 'onLoadConfigs',
-        error: 'onTaskError'
+        success: 'onLoadConfigs'
+      }));
+    });
+
+    it('should build long url params if Accumulo is present', function () {
+      sinon.stub(App.Service, 'find').returns([{serviceName: 'ACCUMULO'}]);
+      controller.onLoadConfigsTags(data);
+      expect(App.ajax.send.calledWith({
+        name: 'admin.get.all_configurations',
+        sender: controller,
+        data: {
+          urlParams: '(type=hdfs-site&tag=test)|(type=accumulo-site&tag=test5)'
+        },
+        success: 'onLoadConfigs'
       }));
     });
   });
