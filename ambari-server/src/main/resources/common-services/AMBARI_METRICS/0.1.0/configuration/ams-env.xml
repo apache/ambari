@@ -187,7 +187,7 @@ export AMS_HBASE_INIT_CHECK_ENABLED={{ams_hbase_init_check_enabled}}
 # AMS Collector options
 export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native"
 {% if security_enabled %}
-export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config={{ams_collector_jaas_config_file}}"
+export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{ams_collector_jaas_config_file}}"
 {% endif %}
 
 # AMS Collector GC options

@@ -63,6 +63,9 @@ sudo = AMBARI_SUDO_BINARY
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 
+zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+zk_principal_user = zk_principal_name.split('/')[0]
+
 hbase_regionserver_shutdown_timeout = expect('/configurations/ams-hbase-env/hbase_regionserver_shutdown_timeout', int,
                                              30)
 
