@@ -30,6 +30,9 @@ def get_ambari_common_packages():
 def get_ambari_server_stack_package():
   return ["stacks.utils"]
 
+def get_extra_common_packages():
+  return ["urlinfo_processor", "ambari_jinja2", "ambari_jinja2._markupsafe"]
+
 def create_package_dir_map():
   package_dirs = {}
   ambari_common_packages = get_ambari_common_packages()
@@ -39,7 +42,12 @@ def create_package_dir_map():
   ambari_server_packages = get_ambari_server_stack_package()
   for ambari_server_package in ambari_server_packages:
     package_dirs[ambari_server_package] = AMBARI_SERVER_TEST_PYTHON_FOLDER + '/' + ambari_server_package.replace(".", "/")
+  package_dirs["ambari_jinja2"] = AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2"
+  package_dirs["ambari_jinja2._markupsafe"] = AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2/_markupsafe"
+  package_dirs["urlinfo_processor"] = AMBARI_COMMON_PYTHON_FOLDER + "/urlinfo_processor"
+
   return package_dirs
+
 __version__ = "3.0.0.dev0"
 def get_version():
   ambari_version = os.environ["AMBARI_VERSION"] if "AMBARI_VERSION" in os.environ else __version__
@@ -69,8 +77,12 @@ setup(
   license = "AP2",
   keywords = "hadoop, ambari",
   url = "https://ambari.apache.org",
-  packages = get_ambari_common_packages() + get_ambari_server_stack_package(),
+  packages = get_ambari_common_packages() + get_ambari_server_stack_package() + get_extra_common_packages(),
   package_dir = create_package_dir_map(),
+  install_requires=[
+   'mock==1.0.1',
+   'coilmq==1.0.1'
+  ],
   include_package_data = True,
   long_description="The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters. "
                    "Ambari provides an intuitive, easy-to-use Hadoop management web UI backed by its RESTful APIs."
