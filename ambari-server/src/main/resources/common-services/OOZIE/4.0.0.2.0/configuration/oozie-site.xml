@@ -339,4 +339,26 @@
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
+    <property>
+    <name>oozie.https.port</name>
+    <value>11443</value>
+    <display-name>Oozie HTTPS Port</display-name>
+    <description>Oozie HTTPS Port</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.https.keystore.file</name>
+    <value/>
+    <display-name>Oozie HTTPS Keystore</display-name>
+    <description>Keystore to be used for SSL</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.https.keystore.pass</name>
+    <value/>
+    <display-name>Oozie HTTPS Keystore Passphrase</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Passphrase to be used for the provided keystore</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
