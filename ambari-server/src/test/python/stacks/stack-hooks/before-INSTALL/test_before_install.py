@@ -36,31 +36,31 @@ class TestHookBeforeInstall(RMFTestCase):
                        config_file="default.json"
     )
     self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
-        append_to_file = False,
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60',
-        action = ['create'],
+        action = ['prepare'],
         components = [u'HDP', 'main'],
         repo_template = '[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
         repo_file_name = u'ambari-hdpcore-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-2.6-GPL-repo-1',
-        append_to_file = True,
-        base_url = u'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60',
-        action = ['create'],
+        base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60',
+        action = ['prepare'],
         components = [u'HDP-GPL', 'main'],
         repo_template = u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
         repo_file_name = u'ambari-hdpcore-1',
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
-        append_to_file = True,
-        base_url = u'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
-        action = ['create'],
+        base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
+        action = ['prepare'],
         components = [u'HDP-UTILS', 'main'],
         repo_template = u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
         repo_file_name = u'ambari-hdpcore-1',
         mirror_list = None,
+    )
+    self.assertResourceCalled('Repository', None,
+                              action=['create'],
     )
 
     self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
@@ -94,24 +94,25 @@ class TestHookBeforeInstall(RMFTestCase):
                        target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_file="repository_file.json"
     )
-    self.assertResourceCalled('Repository', u'HDP-2.6-repo-1',
-        action=['create'],
-        base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-        components=[u'HDP', 'main'],
+    self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
+        action=['prepare'],
+        base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+        components=['HDP', 'main'],
         mirror_list=None,
         repo_file_name=u'ambari-hdpcore-1',
         repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-        append_to_file=False)
-
-    self.assertResourceCalled('Repository', u'HDP-UTILS-1.1.0.22-repo-1',
-        action=['create'],
-        base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
-        components=[u'HDP-UTILS', 'main'],
+    )
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
+        action=['prepare'],
+        base_url='http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
+        components=['HDP-UTILS', 'main'],
         mirror_list=None,
-        repo_file_name=u'ambari-hdpcore-1',
-        repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-        append_to_file=True)
-
+        repo_file_name='ambari-hdpcore-1',
+        repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+    )
+    self.assertResourceCalled('Repository', None,
+                              action=['prepare'],
+    )
     self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()

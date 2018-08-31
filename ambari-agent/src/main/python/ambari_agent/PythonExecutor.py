@@ -31,6 +31,7 @@ from ambari_commons import shell
 
 from Grep import Grep
 from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
+from resource_management.libraries.functions.log_process_information import log_process_information
 
 
 class PythonExecutor(object):
@@ -139,9 +140,8 @@ class PythonExecutor(object):
     """
     Log some useful information after task failure.
     """
-    pass
-    #logger.info("Command %s failed with exitcode=%s", pprint.pformat(pythonCommand), result['exitcode'])
-    #log_process_information(logger)
+    self.logger.info("Command %s failed with exitcode=%s", pprint.pformat(python_command), result['exitcode'])
+    log_process_information(self.logger)
 
   def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
