@@ -69,8 +69,8 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
-HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
-HADOOPUSER_DEFAULT = 'hadoop'
+HIVE_USER_KEY = '{{hive-env/hive_user}}'
+HIVE_USER_DEFAULT = 'hive'
 
 CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
 CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
@@ -87,16 +87,9 @@ def get_tokens():
           HIVE_SERVER2_AUTHENTICATION_KEY, HIVE_SERVER_PRINCIPAL_KEY,
           SMOKEUSER_KEYTAB_KEY, SMOKEUSER_PRINCIPAL_KEY, HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
           HIVE_SERVER_TRANSPORT_MODE_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL,
-          HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD, HIVE_LDAP_USERNAME, HIVE_LDAP_PASSWORD)
+          HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD, HIVE_LDAP_USERNAME, HIVE_LDAP_PASSWORD,
+          HIVE_USER_KEY)
 
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def get_tokens():
-  """
-  Returns a tuple of tokens in the format {{site/property}} that will be used
-  to build the dictionary passed into execute
-  """
-  return (HIVE_SERVER_THRIFT_PORT_KEY, HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
-          HIVE_SERVER_TRANSPORT_MODE_KEY, HADOOPUSER_KEY)
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def execute(configurations={}, parameters={}, host_name=None):
@@ -161,13 +154,16 @@ def execute(configurations={}, parameters={}, host_name=None):
   if SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY in parameters:
     smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY]
 
-
   # check configurations last as they should always take precedence
   if SMOKEUSER_PRINCIPAL_KEY in configurations:
     smokeuser_principal = configurations[SMOKEUSER_PRINCIPAL_KEY]
 
   if SMOKEUSER_KEY in configurations:
     smokeuser = configurations[SMOKEUSER_KEY]
+
+  hive_user = HIVE_USER_DEFAULT
+  if HIVE_USER_KEY in configurations:
+    hive_user = configurations[HIVE_USER_KEY]
 
   ldap_username = ""
   ldap_password = ""
@@ -206,7 +202,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     try:
       hive_check.check_thrift_port_sasl(host_name, port, hive_server2_authentication, hive_server_principal,
-                                        kinitcmd, smokeuser, transport_mode=transport_mode, ssl=hive_ssl,
+                                        kinitcmd, smokeuser, hive_user = hive_user, transport_mode=transport_mode, ssl=hive_ssl,
                                         ssl_keystore=hive_ssl_keystore_path, ssl_password=hive_ssl_keystore_password,
                                         check_command_timeout=int(check_command_timeout),ldap_username=ldap_username,
                                         ldap_password=ldap_password)
@@ -217,68 +213,6 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = 'CRITICAL'
       label = CRITICAL_MESSAGE.format(host_name, port, traceback.format_exc())
 
-  except:
-    label = traceback.format_exc()
-    result_code = 'UNKNOWN'
-
-  return (result_code, [label])
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def execute(configurations={}, parameters={}, host_name=None):
-  """
-  Returns a tuple containing the result code and a pre-formatted result label
-
-  Keyword arguments:
-  configurations (dictionary): a mapping of configuration key to value
-  parameters (dictionary): a mapping of script parameter key to value
-  host_name (string): the name of this host where the alert is running
-  """
-
-  from resource_management.libraries.functions import reload_windows_env
-  from resource_management.core.resources import Execute
-  reload_windows_env()
-  hive_home = os.environ['HIVE_HOME']
-
-  if configurations is None:
-    return ('UNKNOWN', ['There were no configurations supplied to the script.'])
-
-  transport_mode = HIVE_SERVER_TRANSPORT_MODE_DEFAULT
-  if HIVE_SERVER_TRANSPORT_MODE_KEY in configurations:
-    transport_mode = configurations[HIVE_SERVER_TRANSPORT_MODE_KEY]
-
-  port = THRIFT_PORT_DEFAULT
-  if transport_mode.lower() == 'binary' and HIVE_SERVER_THRIFT_PORT_KEY in configurations:
-    port = int(configurations[HIVE_SERVER_THRIFT_PORT_KEY])
-  elif transport_mode.lower() == 'http' and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in configurations:
-    port = int(configurations[HIVE_SERVER_THRIFT_HTTP_PORT_KEY])
-
-  hiveuser = HADOOPUSER_DEFAULT
-  if HADOOPUSER_KEY in configurations:
-    hiveuser = configurations[HADOOPUSER_KEY]
-
-  result_code = None
-  try:
-    if host_name is None:
-      host_name = socket.getfqdn()
-
-    beeline_url = ['jdbc:hive2://{host_name}:{port}/', "transportMode={transport_mode}"]
-    # append url according to used transport
-    if transport_mode == "http":
-      beeline_url.append('httpPath=cliservice')
-    beeline_url_string = format(";".join(beeline_url))
-    beeline_cmd = os.path.join(hive_home, "bin", "beeline.cmd")
-    cmd = format("cmd /c {beeline_cmd} -u {beeline_url_string} -e '' 2>&1 | findstr Connected")
-
-    start_time = time.time()
-    try:
-      Execute(cmd, user=hiveuser, timeout=30, timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE)
-      total_time = time.time() - start_time
-      result_code = 'OK'
-      label = OK_MESSAGE.format(total_time, port)
-    except:
-      result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name, port, traceback.format_exc())
   except:
     label = traceback.format_exc()
     result_code = 'UNKNOWN'
