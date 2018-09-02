@@ -142,7 +142,8 @@ class TestMpackPackages(RMFTestCase):
                             }
                         })
       # Since installation fails, no resource is consumed
-      self.assertEqual(2, len(self.get_resources()))
+      # After merge, now env includes a None repository
+      self.assertEqual(3, len(self.get_resources()))
 
       TestMpackPackages._install_failed = False
 
@@ -192,9 +193,8 @@ class TestMpackPackages(RMFTestCase):
         })
 
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.21-repo-hdpcore',
-        append_to_file = False,
         base_url = u'http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.21',
-        action = ['create'],
+        action = ['prepare'],
         components = [u'HDP-UTILS', 'main'],
         repo_template = None,
         repo_file_name = u'ambari-hdpcore-2',
@@ -203,14 +203,13 @@ class TestMpackPackages(RMFTestCase):
 
 
       self.assertResourceCalled('Repository', 'HDPCORE-1.0.0-b251-repo-hdpcore',
-        append_to_file = True,
-        base_url = 'http://repos.ambari.apache.org/hdp/HDPCORE-1.0.0-b251',
-        action = ['create'],
+        base_url = u'http://repos.ambari.apache.org/hdp/HDPCORE-1.0.0-b251',
+        action = ['prepare'],
         components = [u'HDPCORE', 'main'],
         repo_template = None,
-        repo_file_name = 'ambari-hdpcore-2',
+        repo_file_name = u'ambari-hdpcore-2',
         mirror_list = None,
       )
 
-      self.assertNoMoreResources()
+      self.assertEqual(1, len(self.get_resources()))
 

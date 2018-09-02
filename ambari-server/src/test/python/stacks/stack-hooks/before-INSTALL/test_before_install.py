@@ -94,7 +94,7 @@ class TestHookBeforeInstall(RMFTestCase):
                        target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_file="repository_file.json"
     )
-    self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
+    self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
         action=['prepare'],
         base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
         components=['HDP', 'main'],
@@ -102,7 +102,7 @@ class TestHookBeforeInstall(RMFTestCase):
         repo_file_name=u'ambari-hdpcore-1',
         repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
     )
-    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
         action=['prepare'],
         base_url='http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
         components=['HDP-UTILS', 'main'],
@@ -111,7 +111,7 @@ class TestHookBeforeInstall(RMFTestCase):
         repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
     )
     self.assertResourceCalled('Repository', None,
-                              action=['prepare'],
+                              action=['create'],
     )
     self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)
