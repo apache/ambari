@@ -305,16 +305,22 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }, this);
     }
-
-    data.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
-      // to display repos panel, should map all available operating systems including empty ones
-      var stackInfo = {};
-      stackInfo.isStacksExistInDb = isStacksExistInDb;
-      stackInfo.stacks = stacks;
-      stackInfo.oses = oses;
-      stackInfo.repos = repos;
-      this.getSupportedOSList(versionDefinition, stackInfo, params.dfd);
-    }, this);
+    // if data.items is empty, we show error modal end return to back step
+    if (data.items && data.items.length) {
+      data.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
+        // to display repos panel, should map all available operating systems including empty ones
+        var stackInfo = {};
+        stackInfo.isStacksExistInDb = isStacksExistInDb;
+        stackInfo.stacks = stacks;
+        stackInfo.oses = oses;
+        stackInfo.repos = repos;
+        this.getSupportedOSList(versionDefinition, stackInfo, params.dfd);
+      }, this);
+    } else {
+      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('installer.step1.noVersionDefinitions'), function() {
+        App.router.send('back');
+      });
+    }
   },
 
   mergeChanges: function (repos, oses, stacks) {
