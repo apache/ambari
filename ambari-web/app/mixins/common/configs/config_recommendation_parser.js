@@ -137,6 +137,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
           if (configs.length) {
             var mergedConfigs = configs.concat(stepConfig.get('configs'));
             stepConfig.set('configs', mergedConfigs);
+            stepConfig.propertyDidChange('redrawConfigs');
           }
         }
       }

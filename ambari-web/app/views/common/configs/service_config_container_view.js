@@ -106,7 +106,7 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
     //terminate lazy loading when switch service
     if (this.get('lazyLoading')) lazyLoading.terminate(this.get('lazyLoading'));
     this.pushViewAfterRecommendation();
-  }.observes('controller.selectedService'),
+  }.observes('controller.selectedService', 'controller.selectedService.redrawConfigs'),
 
   pushViewAfterRecommendation: function() {
     if (this.get('controller.isRecommendedLoaded')) {
