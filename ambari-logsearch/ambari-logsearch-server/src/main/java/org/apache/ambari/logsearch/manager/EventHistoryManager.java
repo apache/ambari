@@ -30,7 +30,6 @@ import org.apache.ambari.logsearch.dao.EventHistorySolrDao;
 import org.apache.ambari.logsearch.model.request.impl.EventHistoryRequest;
 import org.apache.ambari.logsearch.model.response.EventHistoryData;
 import org.apache.ambari.logsearch.model.response.EventHistoryDataListResponse;
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -70,11 +69,11 @@ public class EventHistoryManager extends JsonManagerBase {
 
     SolrInputDocument solrInputDoc = new SolrInputDocument();
     if (!isValid(eventHistoryData)) {
-      throw RESTErrorUtil.createRESTException("No FilterName Specified", MessageEnums.INVALID_INPUT_DATA);
+      throw new MalformedInputException("No FilterName Specified");
     }
 
     if (isNotUnique(filterName)) {
-      throw RESTErrorUtil.createRESTException( "Name '" + eventHistoryData.getFiltername() + "' already exists", MessageEnums.INVALID_INPUT_DATA);
+      throw new AlreadyExistsException(String.format("Name '%s' already exists", eventHistoryData.getFiltername()));
     }
     solrInputDoc.addField(ID, eventHistoryData.getId());
     solrInputDoc.addField(USER_NAME, LogSearchContext.getCurrentUsername());
@@ -86,13 +85,8 @@ public class EventHistoryManager extends JsonManagerBase {
       solrInputDoc.addField(SHARE_NAME_LIST, shareNameList);
     }
 
-    try {
-      eventHistorySolrDao.addDocs(solrInputDoc);
-      return convertObjToString(solrInputDoc);
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Error saving user config. solrDoc=" + solrInputDoc, e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-    }
+    eventHistorySolrDao.addDocs(solrInputDoc);
+    return convertObjToString(solrInputDoc);
   }
 
   private boolean isNotUnique(String filterName) {
@@ -123,11 +117,7 @@ public class EventHistoryManager extends JsonManagerBase {
   }
 
   public void deleteEvent(String id) {
-    try {
-      eventHistorySolrDao.deleteEventHistoryData(id);
-    } catch (SolrException | SolrServerException | IOException e) {
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-    }
+    eventHistorySolrDao.deleteEventHistoryData(id);
   }
 
   @SuppressWarnings("unchecked")
@@ -135,7 +125,7 @@ public class EventHistoryManager extends JsonManagerBase {
     EventHistoryDataListResponse response = new EventHistoryDataListResponse();
     String rowType = request.getRowType();
     if (StringUtils.isBlank(rowType)) {
-      throw RESTErrorUtil.createRESTException("row type was not specified", MessageEnums.INVALID_INPUT_DATA);
+      throw new MalformedInputException("Row type was not specified");
     }
 
     SolrQuery evemtHistoryQuery = conversionService.convert(request, SolrQuery.class);
@@ -169,30 +159,25 @@ public class EventHistoryManager extends JsonManagerBase {
     response.setStartIndex(Integer.parseInt(request.getStartIndex()));
     response.setPageSize(Integer.parseInt(request.getPageSize()));
 
-    response.setTotalCount((long) solrList.getNumFound());
+    response.setTotalCount(solrList.getNumFound());
 
     return response;
 
   }
 
   public List<String> getAllUserName() {
-    List<String> userList = new ArrayList<String>();
-    try {
-      SolrQuery userListQuery = new SolrQuery();
-      userListQuery.setQuery("*:*");
-      SolrUtil.setFacetField(userListQuery, USER_NAME);
-      QueryResponse queryResponse = eventHistorySolrDao.process(userListQuery);
-      if (queryResponse == null) {
-        return userList;
-      }
-      List<Count> counList = queryResponse.getFacetField(USER_NAME).getValues();
-      for (Count cnt : counList) {
-        String userName = cnt.getName();
-        userList.add(userName);
-      }
-    } catch (SolrException e) {
-      logger.warn("Error getting all users.", e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+    List<String> userList = new ArrayList<>();
+    SolrQuery userListQuery = new SolrQuery();
+    userListQuery.setQuery("*:*");
+    SolrUtil.setFacetField(userListQuery, USER_NAME);
+    QueryResponse queryResponse = eventHistorySolrDao.process(userListQuery);
+    if (queryResponse == null) {
+      return userList;
+    }
+    List<Count> counList = queryResponse.getFacetField(USER_NAME).getValues();
+    for (Count cnt : counList) {
+      String userName = cnt.getName();
+      userList.add(userName);
     }
     return userList;
   }

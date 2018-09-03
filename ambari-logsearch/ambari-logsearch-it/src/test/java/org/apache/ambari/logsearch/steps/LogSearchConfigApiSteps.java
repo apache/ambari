@@ -23,6 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 
+import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
 import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
@@ -30,6 +31,8 @@ import org.apache.ambari.logsearch.domain.StoryDataRegistry;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
+
+import com.google.gson.Gson;
 
 public class LogSearchConfigApiSteps {
   private String response;
@@ -39,6 +42,22 @@ public class LogSearchConfigApiSteps {
   public String sendApiRequest(String url) {
     response = StoryDataRegistry.INSTANCE.logsearchClient().get(url);
     return response;
+  }
+
+  @When("Update input config of $inputConfigType path to $logFilePath at $url")
+  public void changeAndPut(String inputConfigType, String logFilePath, String url) {
+    String putRequest = response.replace(inputConfig.getInput().get(0).getPath(), logFilePath);
+    String putResponse = StoryDataRegistry.INSTANCE.logsearchClient().put(
+            url, putRequest);
+    assertThat(putResponse, is(""));
+
+    String getResponse = sendApiRequest(url);
+    checkInputConfig(getResponse, inputConfigType, logFilePath);
+  }
+
+  @When("Update input config with data $jsonString at $url")
+  public void updateWithInvalidJson(String jsonString, String url) {
+    response = StoryDataRegistry.INSTANCE.logsearchClient().put(url, jsonString);
   }
 
   @Then("Result is an input.config of $inputConfigType with log file path $logFilePath")
@@ -54,14 +73,10 @@ public class LogSearchConfigApiSteps {
     assertThat(inputConfig.getInput().get(0).getPath(), is(path));
   }
 
-  @When("Update input config of $inputConfigType path to $logFilePath at $url")
-  public void changeAndPut(String inputConfigType, String logFilePath, String url) {
-    String putRequest = response.replace(inputConfig.getInput().get(0).getPath(), logFilePath);
-    String putResponse = StoryDataRegistry.INSTANCE.logsearchClient().put(
-            url, putRequest);
-    assertThat(putResponse, is(""));
-
-    String getResponse = sendApiRequest(url);
-    checkInputConfig(getResponse, inputConfigType, logFilePath);
+  @Then("Result is status code $statusCode")
+  public void checkStatus(int statusCode) {
+    System.out.println("************" + response);
+    StatusMessage statusMessage = new Gson().fromJson(response, StatusMessage.class);
+    assertThat(statusMessage.getStatusCode(), is(statusCode));
   }
 }
