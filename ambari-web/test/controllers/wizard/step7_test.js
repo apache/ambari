@@ -2366,9 +2366,18 @@ describe('App.InstallerStep7Controller', function () {
 
   describe('#showConfigProperty', function () {
 
+    beforeEach(function () {
+      sinon.stub(Em.run, 'next', Em.K);
+    });
+
+    afterEach(function() {
+      Em.run.next.restore();
+    });
+
     it('set props "isActive" to true in entered showConfigProperty event and "false" in all another stepConfigs', function() {
       var event = {context: Ember.Object.create({
           serviceName: 'AMBARI_METRICS',
+          propertyName: "all-configurations",
           name: 'all-configurations',
           isActive: false,
       })};
@@ -2378,9 +2387,9 @@ describe('App.InstallerStep7Controller', function () {
         Em.Object.create({serviceName: 'MAPREDUCE2', isActive: true, configGroups: [{},{}]}),
       ]));
       installerStep7Controller.set('filterColumns', [
-        {selected: true},
-        {selected: false},
-        {selected: true}
+        Em.Object.create({attributeName:"isOverridden", attributeValue:true, name:"Overridden properties",selected:true}),
+        Em.Object.create({attributeName:"isFinal", attributeValue:true, name:"Final properties", selected:false}),
+        Em.Object.create({attributeName:"hasIssues", attributeValue:true, name:"Show property issues", selected:false}),
       ]);
       installerStep7Controller.showConfigProperty(event);
       expect(installerStep7Controller.get('filterColumns').everyProperty('selected', false)).to.be.equal(true);
