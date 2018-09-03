@@ -112,6 +112,7 @@ var files = [
   'test/controllers/main/host/host_alerts_controller_test',
   'test/controllers/main/host/configs_service_test',
   'test/controllers/main/host/details_test',
+  'test/controllers/main/host/combo_search_box_test',
   'test/controllers/main/host/addHost/step4_controller_test',
   'test/controllers/main/service/add_controller_test',
   'test/controllers/main/service/manage_config_groups_controller_test',
