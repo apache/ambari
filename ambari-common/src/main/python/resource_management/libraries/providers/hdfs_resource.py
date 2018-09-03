@@ -26,6 +26,7 @@ import os
 import pwd
 import re
 import time
+from urlparse import urlparse
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.base import Fail
@@ -90,12 +91,16 @@ class HdfsResourceJar:
     if not nameservices:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
+      default_fs_protocol = urlparse(main_resource.resource.default_fs).scheme
+
+      if not default_fs_protocol or default_fs_protocol == "viewfs":
+        protocol = dfs_type.lower()
+      else:
+        protocol = default_fs_protocol
+
       for nameservice in nameservices:
         try:
-          if not dfs_type:
-            raise Fail("<serviceType> for fileSystem service should be set in metainfo.xml")
-          nameservice = dfs_type.lower() + "://" + nameservice
-
+          nameservice = protocol + "://" + nameservice
           self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
         except namenode_ha_utils.NoActiveNamenodeException as ex:
           # one of ns can be down (during initial start forexample) no need to worry for federated cluster
