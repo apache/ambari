@@ -103,9 +103,9 @@ public class StageEntity {
   @Column(name = "host_params")
   private byte[] hostParamsStage;
 
-  @ManyToOne
+  @ManyToOne(cascade = {CascadeType.ALL})
   @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false)
-  private RequestEntity request;
+  private RequestEntity requestEntity;
 
 
   @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
@@ -233,11 +233,11 @@ public class StageEntity {
   }
 
   public RequestEntity getRequest() {
-    return request;
+    return requestEntity;
   }
 
   public void setRequest(RequestEntity request) {
-    this.request = request;
+    this.requestEntity = request;
   }
 
   /**

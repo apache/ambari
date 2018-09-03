@@ -105,7 +105,7 @@ public class RequestEntity {
   @Column(name = "exclusive_execution", insertable = true, updatable = true, nullable = false)
   private Integer exclusive = 0;
 
-  @OneToMany(mappedBy = "request")
+  @OneToMany(mappedBy = "requestEntity", cascade = CascadeType.ALL)
   private Collection<StageEntity> stages;
 
   @OneToMany(mappedBy = "requestEntity", cascade = CascadeType.ALL)

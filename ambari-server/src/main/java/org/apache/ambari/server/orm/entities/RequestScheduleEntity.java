@@ -119,7 +119,7 @@ public class RequestScheduleEntity {
   private Collection<RequestScheduleBatchRequestEntity>
     requestScheduleBatchRequestEntities;
 
-  @OneToMany(mappedBy = "requestScheduleEntity")
+  @OneToMany(mappedBy = "requestScheduleEntity", cascade = CascadeType.ALL)
   private List<RequestEntity> requestEntities;
 
   public long getScheduleId() {
