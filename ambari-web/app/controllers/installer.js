@@ -715,6 +715,15 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       existedOS.isSelected = true;
       existedMap[existedOS.OperatingSystems.os_type] = existedOS;
     });
+    if (response.Versions['stack-errors'] && response.Versions['stack-errors'].length) {
+      var stackName = response.Versions.stack_name;
+      var stackVersion = response.Versions.stack_version;
+      var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.stackError.title').format(stackName, stackVersion);
+      var body = response.Versions['stack-errors'].concat('<br/>');
+      this.decrementProperty('loadStacksRequestsCounter');
+      App.showAlertPopup(header, body);
+      return;
+    }
     response.operating_systems.forEach(function(supportedOS) {
       if(!existedMap[supportedOS.OperatingSystems.os_type]) {
         supportedOS.isSelected = false;
