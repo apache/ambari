@@ -1311,4 +1311,66 @@ describe('App.InstallerController', function () {
     });
   });
 
+  describe('#showStackErrorAndSkipStepIfNeeded', function () {
+    afterEach(function () {
+      App.Stack.find.restore();
+      App.showAlertPopup.restore();
+    });
+    it('Should show alert popup and decrement loadStacksRequestsCounter property', function() {
+      sinon.stub(App.Stack, 'find').returns([]);
+      sinon.stub(App, 'showAlertPopup');
+      installerController.set('loadStacksRequestsCounter', 2);
+      installerController.showStackErrorAndSkipStepIfNeeded({
+        Versions: {
+          stack_name: 'HDP',
+          stack_version: '3.0',
+          'stack-errors': ['Error text1', 'Error text2']
+        }
+      });
+      var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.stackError.title').format('HDP', '3.0');
+      var body = 'Error text1. Error text2';
+      expect(App.showAlertPopup.calledOnce);
+      expect(App.showAlertPopup.calledWith(header, body));
+      expect(installerController.get('loadStacksRequestsCounter')).to.equal(1);
+    });
+
+    it('Should not return back if we have stacks available and show one popup', function() {
+      var controller = Em.Object.create({hasNotStacksAvailable: false});
+      sinon.stub(App.Stack, 'find').returns([{}]);
+      sinon.stub(App, 'showAlertPopup');
+      sinon.stub(App.router, 'get').returns(controller);
+      installerController.set('loadStacksRequestsCounter', 1);
+      installerController.showStackErrorAndSkipStepIfNeeded({
+        Versions: {
+          stack_name: 'HDP',
+          stack_version: '3.0',
+          'stack-errors': ['Error text1', 'Error text2']
+        }
+      });
+      expect(App.showAlertPopup.calledOnce);
+      expect( controller.get('hasNotStacksAvailable') ).to.equal(false);
+      App.router.get.restore();
+    });
+
+    it('Should return back if we have stacks available and show two popups', function() {
+      var controller = Em.Object.create({hasNotStacksAvailable: false});
+      sinon.stub(App.Stack, 'find').returns([]);
+      sinon.stub(App, 'showAlertPopup');
+      sinon.stub(App.router, 'get').returns(controller);
+      sinon.stub(App.router, 'send');
+      installerController.set('loadStacksRequestsCounter', 1);
+      installerController.showStackErrorAndSkipStepIfNeeded({
+        Versions: {
+          stack_name: 'HDP',
+          stack_version: '3.0',
+          'stack-errors': ['Error text1', 'Error text2']
+        }
+      });
+      expect(App.showAlertPopup.calledTwice);
+      expect(App.router.send.calledWith('gotoStep0')).to.be.true;
+      expect( controller.get('hasNotStacksAvailable') ).to.equal(true);
+      App.router.send.restore();
+      App.router.get.restore();
+    });
+  });
 });
