@@ -570,7 +570,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             new HostLevelParamsCluster(
             getManagementController().retrieveHostRepositories(cl, addedHost),
             recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
-                addedHost.getHostName())
+                addedHost.getHostName()),
+            getManagementController().getBlueprintProvisioningStates(cl.getClusterId(), addedHost.getHostId())
         ));
         hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
       }

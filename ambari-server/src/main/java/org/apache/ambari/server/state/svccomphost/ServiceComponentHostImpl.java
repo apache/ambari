@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -61,6 +62,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -139,6 +141,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
+
+  @Inject
+  private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
 
   /**
    * Used for creating commands to send to the agents when alert definitions are
@@ -1043,6 +1048,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
               HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
         }
+        if (event.getType().equals(ServiceComponentHostEventType.HOST_SVCCOMP_START)) {
+          HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+          if (desiredStateEntity.getBlueprintProvisioningState() == BlueprintProvisioningState.IN_PROGRESS) {
+            desiredStateEntity.setBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
+            hostComponentDesiredStateDAO.merge(desiredStateEntity);
+            m_hostLevelParamsHolder.get().updateData(m_hostLevelParamsHolder.get().getCurrentData(getHost().getHostId()));
+          }
+        }
         // TODO Audit logs
       } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle ServiceComponentHostEvent event at"
@@ -1053,6 +1066,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             + ", eventType=" + event.getType()
             + ", event=" + event);
         throw e;
+      } catch (AmbariException e) {
+        LOG.error("Can't update topology on hosts on ServiceComponentHostEvent event: "
+            + "serviceComponentName=" + getServiceComponentName()
+            + ", hostName=" + getHostName()
+            + ", currentState=" + oldState
+            + ", eventType=" + event.getType()
+            + ", event=" + event);
       }
     } finally {
       writeLock.unlock();
