@@ -126,7 +126,7 @@ public class AmbariContext {
   private Provider<ConfigHelper> configHelper;
 
   @Inject
-  private HostLevelParamsHolder hostLevelParamsHolder;
+  HostLevelParamsHolder hostLevelParamsHolder;
 
   private static AmbariManagementController controller;
   private static ClusterController clusterController;
