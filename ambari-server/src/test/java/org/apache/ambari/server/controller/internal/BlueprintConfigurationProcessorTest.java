@@ -23,6 +23,11 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY;
+import static org.apache.ambari.server.state.ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -106,11 +111,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   private static final Configuration EMPTY_CONFIG = new Configuration(emptyMap(), emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<>();
-  private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
   private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
 
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
+
+  private final String CLUSTER_ENV_PROP = "cluster-env";
+
+  private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -6519,6 +6527,82 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("Standby Namenode hostname was not set correctly",
       expectedHostNameTwo, clusterEnv.get("dfs_ha_initial_namenode_standby"));
   }
+
+  private Map<String, String> defaultStackProps() {
+    return Maps.newHashMap(ImmutableMap.of(
+      CLUSTER_ENV_STACK_NAME_PROPERTY, STACK_NAME,
+      CLUSTER_ENV_STACK_ROOT_PROPERTY, "/usr/" + STACK_NAME,
+      CLUSTER_ENV_STACK_TOOLS_PROPERTY, "{ some tools... }",
+      CLUSTER_ENV_STACK_FEATURES_PROPERTY, "{ some features... }",
+      CLUSTER_ENV_STACK_PACKAGES_PROPERTY, "{ some packages... }"
+    ));
+  }
+
+  @Test
+  public void testSetStackToolsAndFeatures_ClusterEnvDidNotChange() throws Exception {
+    defaultClusterEnvProperties.putAll(defaultStackProps());
+    Map<String, Map<String, String>> blueprintProps = Maps.newHashMap(ImmutableMap.of(
+      "cluster-env", defaultStackProps()
+    ));
+    Configuration clusterConfig = new Configuration(blueprintProps, emptyMap());
+
+    TestHostGroup group = new TestHostGroup("groups1", Sets.newHashSet("NAMENODE"), ImmutableSet.of("host1"));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableSet.of(group));
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> configTypesUpdated = Sets.newHashSet();
+    updater.setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
+    assertEquals("cluster-env should NOT have been updated", ImmutableSet.of(), configTypesUpdated);
+  }
+
+
+  @Test
+  public void testSetStackToolsAndFeatures_ClusterEnvChanged() throws Exception {
+    defaultClusterEnvProperties.putAll(defaultStackProps());
+    Map<String, String> blueprintClusterEnv = defaultStackProps();
+    // change something to trigger cluter-env added to the changed configs
+    blueprintClusterEnv.put(CLUSTER_ENV_STACK_ROOT_PROPERTY, "/opt/" + STACK_NAME);
+
+    Map<String, Map<String, String>> blueprintProps = Maps.newHashMap(ImmutableMap.of(
+      "cluster-env", blueprintClusterEnv
+    ));
+    Configuration clusterConfig = new Configuration(blueprintProps, emptyMap());
+
+    TestHostGroup group = new TestHostGroup("groups1", Sets.newHashSet("NAMENODE"), ImmutableSet.of("host1"));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableSet.of(group));
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> configTypesUpdated = Sets.newHashSet();
+    updater.setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
+    assertEquals("cluster-env should have been updated", ImmutableSet.of("cluster-env"), configTypesUpdated);
+  }
+
+  @Test
+  public void testSetStackToolsAndFeatures_ClusterEnvChanged_TrimmedValuesEqual() throws Exception {
+    defaultClusterEnvProperties.putAll(defaultStackProps());
+    Map<String, String> blueprintClusterEnv = defaultStackProps();
+    // This change should not be considered as an update to cluster-env as trimmed values are still equal
+    blueprintClusterEnv.put(
+      CLUSTER_ENV_STACK_ROOT_PROPERTY,
+      blueprintClusterEnv.get(CLUSTER_ENV_STACK_ROOT_PROPERTY) + "       \n");
+
+    Map<String, Map<String, String>> blueprintProps = Maps.newHashMap(ImmutableMap.of(
+      "cluster-env", blueprintClusterEnv
+    ));
+    Configuration clusterConfig = new Configuration(blueprintProps, emptyMap());
+
+    TestHostGroup group = new TestHostGroup("groups1", Sets.newHashSet("NAMENODE"), ImmutableSet.of("host1"));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableSet.of(group));
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    Set<String> configTypesUpdated = Sets.newHashSet();
+    updater.setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
+    assertEquals("cluster-env should NOT have been updated", ImmutableSet.of(), configTypesUpdated);
+  }
+
 
   @Test
   public void testParseNameServices() throws Exception {
