@@ -24,6 +24,8 @@ import org.apache.ambari.logfeeder.docker.DockerContainerRegistry;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.input.InputManagerImpl;
+import org.apache.ambari.logfeeder.plugin.manager.CheckpointManager;
+import org.apache.ambari.logfeeder.input.file.checkpoint.FileCheckpointManager;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.common.ConfigHandler;
 import org.apache.ambari.logfeeder.metrics.MetricsManager;
@@ -148,7 +150,7 @@ public class ApplicationConfig {
 
 
   @Bean
-  @DependsOn("containerRegistry")
+  @DependsOn({"containerRegistry", "checkpointHandler"})
   public InputManager inputManager() {
     return new InputManagerImpl();
   }
@@ -156,6 +158,11 @@ public class ApplicationConfig {
   @Bean
   public OutputManager outputManager() {
     return new OutputManagerImpl();
+  }
+
+  @Bean
+  public CheckpointManager checkpointHandler() {
+    return new FileCheckpointManager();
   }
 
   @Bean

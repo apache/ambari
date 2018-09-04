@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,27 +18,18 @@
  */
 package org.apache.ambari.logfeeder.plugin.manager;
 
+import org.apache.ambari.logfeeder.plugin.common.LogFeederProperties;
 import org.apache.ambari.logfeeder.plugin.input.Input;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 
-import java.io.File;
-import java.util.List;
+public interface CheckpointManager<I extends Input, IFM extends InputMarker, P extends LogFeederProperties> {
 
+  void init(P properties);
 
-public abstract class InputManager implements BlockManager {
+  void checkIn(I inputFile, IFM inputMarker);
 
-  public abstract void addToNotReady(Input input);
+  int resumeLineNumber(I input);
 
-  public abstract void checkInAll();
+  void cleanupCheckpoints();
 
-  public abstract List<Input> getInputList(String serviceName);
-
-  public abstract void add(String serviceName, Input input);
-
-  public abstract void removeInput(Input input);
-
-  public abstract void removeInputsForService(String serviceName);
-
-  public abstract void startInputs(String serviceName);
-
-  public abstract CheckpointManager getCheckpointHandler();
 }
