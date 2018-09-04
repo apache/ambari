@@ -3448,6 +3448,20 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
+  private @Nullable String trimValue(@Nullable String value,
+                                     @NotNull Stack stack,
+                                     @NotNull String configType,
+                                     @NotNull String propertyName) {
+    if (null == value) {
+      return null;
+    }
+    else {
+      TrimmingStrategy trimmingStrategy =
+        PropertyValueTrimmingStrategyDefiner.defineTrimmingStrategy(stack, propertyName, configType);
+      return trimmingStrategy.trim(value);
+    }
+  }
+
   /**
    * Ensures that properties non-stack properties are present in {@code configuration}.
    */
