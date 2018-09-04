@@ -98,6 +98,15 @@ public class RequestDAOTest {
     Assert.assertEquals(0, list.size());
   }
 
+  @Test
+  public void testRemoveRequest()throws Exception {
+    createGraph();
+    RequestEntity requestEntity = requestDAO.findByPK(100L);
+    requestDAO.remove(requestEntity);
+    List<Long> list = requestDAO.findAllRequestIds(0, true);
+    Assert.assertEquals(0, list.size());
+  }
+
 
   @Test
   public void testCalculatedStatus() throws Exception {

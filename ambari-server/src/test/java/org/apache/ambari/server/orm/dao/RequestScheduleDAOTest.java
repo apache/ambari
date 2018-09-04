@@ -27,13 +27,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
-import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
-import org.apache.ambari.server.orm.entities.ResourceEntity;
-import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.scheduler.BatchRequest;
 import org.junit.After;
@@ -50,6 +44,7 @@ public class RequestScheduleDAOTest {
   private RequestScheduleDAO requestScheduleDAO;
   private RequestScheduleBatchRequestDAO batchRequestDAO;
   private ResourceTypeDAO resourceTypeDAO;
+  private RequestDAO requestDao;
   private String testUri = "http://localhost/blah";
   private String testBody = "ValidJson";
   private String testType = BatchRequest.Type.POST.name();
@@ -68,6 +63,7 @@ public class RequestScheduleDAOTest {
     requestScheduleDAO = injector.getInstance(RequestScheduleDAO.class);
     batchRequestDAO = injector.getInstance(RequestScheduleBatchRequestDAO.class);
     resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+    requestDao = injector.getInstance(RequestDAO.class);
   }
 
   @After
@@ -129,8 +125,16 @@ public class RequestScheduleDAOTest {
 
     batchRequestDAO.create(batchRequestEntity);
 
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setClusterId(clusterEntity.getClusterId());
+    requestEntity.setRequestScheduleId(scheduleEntity.getScheduleId());
+    requestEntity.setRequestId(11L);
+    requestEntity.setCommandName("testCommand");
+    requestDao.create(requestEntity);
+
     scheduleEntity.getRequestScheduleBatchRequestEntities().add
       (batchRequestEntity);
+    scheduleEntity.getRequestEntities().add(requestEntity);
     scheduleEntity = requestScheduleDAO.merge(scheduleEntity);
 
     return scheduleEntity;
@@ -149,6 +153,15 @@ public class RequestScheduleDAOTest {
     Assert.assertEquals(testUri, batchRequestEntity.getRequestUri());
     Assert.assertEquals(testType, batchRequestEntity.getRequestType());
     Assert.assertEquals(testBody, batchRequestEntity.getRequestBodyAsString());
+  }
+
+  @Test
+  public void testRemoveRequestSchedule()throws Exception {
+    RequestScheduleEntity scheduleEntity = createScheduleEntity();
+
+    requestScheduleDAO.remove(scheduleEntity);
+    List<RequestScheduleEntity> scheduleEntities =  requestScheduleDAO.findAll();
+    Assert.assertEquals(0, scheduleEntities.size());
   }
 
   @Test
