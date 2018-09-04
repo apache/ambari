@@ -703,6 +703,23 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     });
   },
 
+  showStackErrorAndSkipStepIfNeeded: function (response) {
+    var stackName = response.Versions.stack_name;
+    var stackVersion = response.Versions.stack_version;
+    var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.stackError.title').format(stackName, stackVersion);
+    var body = response.Versions['stack-errors'].join('. ');
+    this.decrementProperty('loadStacksRequestsCounter');
+    App.showAlertPopup(header, body);
+    if (this.get('loadStacksRequestsCounter') === 0 && !App.Stack.find().toArray().length) {
+      var wizardStep0Controller = App.router.get('wizardStep0Controller');
+      wizardStep0Controller.set('hasNotStacksAvailable', true);
+      App.router.send('gotoStep' + 0);
+      var installationErrorHeader = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.noStacksError.title');
+      var installationErrorBody = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.noStacksError.body');
+      App.showAlertPopup(installationErrorHeader, installationErrorBody);
+    }
+  },
+
   /**
    * onSuccess callback for getSupportedOSList.
    */
@@ -716,20 +733,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       existedMap[existedOS.OperatingSystems.os_type] = existedOS;
     });
     if (response.Versions['stack-errors'] && response.Versions['stack-errors'].length) {
-      var stackName = response.Versions.stack_name;
-      var stackVersion = response.Versions.stack_version;
-      var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.stackError.title').format(stackName, stackVersion);
-      var body = response.Versions['stack-errors'].join('. ');
-      this.decrementProperty('loadStacksRequestsCounter');
-      App.showAlertPopup(header, body);
-      if (this.get('loadStacksRequestsCounter') === 0 && !App.Stack.find().toArray().length) {
-        var wizardStep0Controller = App.router.get('wizardStep0Controller');
-        wizardStep0Controller.set('hasNotStacksAvailable', true);
-        App.router.send('gotoStep' + 0);
-        var installationErrorHeader = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.noStacksError.title');
-        var installationErrorBody = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.noStacksError.body');
-        App.showAlertPopup(installationErrorHeader, installationErrorBody);
-      }
+      this.showStackErrorAndSkipStepIfNeeded(response);
       return;
     }
     response.operating_systems.forEach(function(supportedOS) {
