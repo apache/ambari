@@ -103,7 +103,7 @@ public class StageEntity {
   @Column(name = "host_params")
   private byte[] hostParamsStage;
 
-  @ManyToOne(cascade = {CascadeType.ALL})
+  @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false)
   private RequestEntity requestEntity;
 
