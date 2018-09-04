@@ -370,6 +370,9 @@ hive_http_endpoint = default('/configurations/hive-site/hive.server2.thrift.http
 hive_server_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
 hive_server2_authentication = config['configurations']['hive-site']['hive.server2.authentication']
 
+zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+zk_principal_user = zk_principal_name.split('/')[0]
+
 # ssl options
 hive_ssl = default('/configurations/hive-site/hive.server2.use.SSL', False)
 hive_ssl_keystore_path = default('/configurations/hive-site/hive.server2.keystore.path', None)
