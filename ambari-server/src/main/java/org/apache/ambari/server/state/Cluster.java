@@ -245,9 +245,7 @@ public interface Cluster {
    */
   void setProvisioningState(State provisioningState);
 
-  BlueprintProvisioningState getBlueprintProvisioningState();
-
-  void setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState);
+  boolean setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState);
 
   /**
    * Gets the cluster's security type.

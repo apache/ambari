@@ -34,6 +34,7 @@ import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -76,13 +77,20 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
       }
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
           m_ambariManagementController.get().retrieveHostRepositories(cl, host),
-          recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()));
+          recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()),
+          m_ambariManagementController.get().getBlueprintProvisioningStates(cl.getClusterId(), host.getHostId()));
 
       hostLevelParamsClusters.put(Long.toString(cl.getClusterId()),
           hostLevelParamsCluster);
     }
     HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(hostId, hostLevelParamsClusters);
     return hostLevelParamsUpdateEvent;
+  }
+
+  public void updateAllHosts() throws AmbariException {
+    for (Host host : clusters.getHosts()) {
+      updateData(getCurrentData(host.getHostId()));
+    }
   }
 
   @Override
@@ -107,6 +115,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
           HostLevelParamsCluster currentCluster = current.getHostLevelParamsClusters().get(clusterId);
           RecoveryConfig mergedRecoveryConfig;
           SortedMap<Long, CommandRepository> mergedRepositories;
+          Map<String, BlueprintProvisioningState> mergedBlueprintProvisioningStates;
           SortedMap<String, Long> mergedComponentRepos;
           if (!currentCluster.getRecoveryConfig().equals(updatedCluster.getRecoveryConfig())) {
             mergedRecoveryConfig = updatedCluster.getRecoveryConfig();
@@ -121,6 +130,13 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
           } else {
             mergedRepositories = currentCluster.getHostRepositories().getRepositories();
           }
+          if (!currentCluster.getBlueprintProvisioningState()
+              .equals(updatedCluster.getBlueprintProvisioningState())) {
+            mergedBlueprintProvisioningStates = updatedCluster.getBlueprintProvisioningState();
+            clusterChanged = true;
+          } else {
+            mergedBlueprintProvisioningStates = currentCluster.getBlueprintProvisioningState();
+          }
           if (!currentCluster.getHostRepositories().getComponentRepos()
               .equals(updatedCluster.getHostRepositories().getComponentRepos())) {
             mergedComponentRepos = updatedCluster.getHostRepositories().getComponentRepos();
@@ -131,7 +147,8 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
           if (clusterChanged) {
             HostLevelParamsCluster mergedCluster = new HostLevelParamsCluster(
                 new HostRepositories(mergedRepositories, mergedComponentRepos),
-                mergedRecoveryConfig);
+                mergedRecoveryConfig,
+                mergedBlueprintProvisioningStates);
             mergedClusters.put(clusterId, mergedCluster);
             changed = true;
           } else {
@@ -176,7 +193,8 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
         Long.toString(clusterId),
             new HostLevelParamsCluster(
                     m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
-                    recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName())));
+                    recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName()),
+                    m_ambariManagementController.get().getBlueprintProvisioningStates(clusterId, host.getHostId())));
     updateData(hostLevelParamsUpdateEvent);
   }
 

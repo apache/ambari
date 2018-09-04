@@ -27,6 +27,8 @@ import java.sql.SQLException;
 import java.util.Collections;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,9 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
   static final String RENAME_COLLISION_BEHAVIOR_PROPERTY_SQL = String.format("UPDATE %s SET %s = '%s' WHERE %s = '%s' AND %s = '%s'", AMBARI_CONFIGURATION_TABLE,
       AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, LDAP_CONFIGURATION_CORRECT_COLLISION_BEHAVIOR_PROPERTY_NAME, AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN,
       LDAP_CONFIGURATION.getCategoryName(), AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, LDAP_CONFIGURATION_WRONG_COLLISION_BEHAVIOR_PROPERTY_NAME);
+  protected static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
+  protected static final String CLUSTERS_TABLE = "clusters";
+  protected static final String BLUEPRINT_PROVISIONING_STATE_COLUMN = "blueprint_provisioning_state";
 
   @Inject
   public UpgradeCatalog272(Injector injector) {
@@ -63,7 +68,7 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    // nothing to do
+    moveBlueprintProvisioningState();
   }
 
   @Override
@@ -92,5 +97,12 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
   protected void createRoleAuthorizations() throws SQLException {
     addRoleAuthorization(AMBARI_VIEW_STATUS_INFO.getId(), "View status information", Collections.singleton("AMBARI.ADMINISTRATOR:AMBARI"));
     LOG.info("Added new role authorization {}", AMBARI_VIEW_STATUS_INFO.getId());
+  }
+
+  protected void moveBlueprintProvisioningState() throws SQLException {
+    dbAccessor.dropColumn(CLUSTERS_TABLE, BLUEPRINT_PROVISIONING_STATE_COLUMN);
+    dbAccessor.addColumn(HOST_COMPONENT_DESIRED_STATE_TABLE,
+        new DBAccessor.DBColumnInfo(BLUEPRINT_PROVISIONING_STATE_COLUMN, String.class, 255,
+            BlueprintProvisioningState.NONE, true));
   }
 }
