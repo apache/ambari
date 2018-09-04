@@ -66,11 +66,15 @@ App.WizardStep0Controller = Em.Controller.extend({
     this.set('clusterNameError', '');
   },
 
+  /**
+   * @type {boolean}
+   */
+  hasNotStacksAvailable: false,
 
   /**
    * @type {boolean}
    */
-  isSubmitDisabled: Em.computed.or('invalidClusterName', 'App.router.btnClickInProgress'),
+  isSubmitDisabled: Em.computed.or('invalidClusterName', 'App.router.btnClickInProgress', 'hasNotStacksAvailable'),
 
   /**
    * Onclick handler for <code>next</code> button
