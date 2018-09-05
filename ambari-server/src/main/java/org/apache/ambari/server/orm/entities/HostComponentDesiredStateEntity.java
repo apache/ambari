@@ -36,6 +36,7 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
@@ -122,6 +123,11 @@ public class HostComponentDesiredStateEntity {
   @Column(name = "restart_required", insertable = true, updatable = true, nullable = false)
   private Integer restartRequired = 0;
 
+  @Basic
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "blueprint_provisioning_state", insertable = true, updatable = true)
+  private BlueprintProvisioningState blueprintProvisioningState = BlueprintProvisioningState.NONE;
+
   public Long getId() { return id; }
 
   public Long getClusterId() {
@@ -180,6 +186,14 @@ public class HostComponentDesiredStateEntity {
     this.hostId = hostId;
   }
 
+  public BlueprintProvisioningState getBlueprintProvisioningState() {
+    return blueprintProvisioningState;
+  }
+
+  public void setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
+    this.blueprintProvisioningState = blueprintProvisioningState;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -212,6 +226,10 @@ public class HostComponentDesiredStateEntity {
     }
 
     if (!Objects.equal(serviceName, that.serviceName)) {
+      return false;
+    }
+
+    if (!Objects.equal(blueprintProvisioningState, that.blueprintProvisioningState)) {
       return false;
     }
 
