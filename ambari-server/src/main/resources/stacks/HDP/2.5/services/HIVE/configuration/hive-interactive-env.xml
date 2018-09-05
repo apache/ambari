@@ -264,6 +264,10 @@
       export HADOOP_HEAPSIZE={{hive_interactive_heapsize}} # Setting for HiveServer2 and Client
       fi
 
+      {% if security_enabled %}
+      export HADOOP_OPTS="$HADOOP_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}}"
+      {% endif %}
+
       export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"
 
       # Larger heap size may be required when running queries over large number of files or partitions.

@@ -7070,7 +7070,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.user.search_base": "base",
         "ambari.ldap.advanced.referrals": "follow",
         "ambari.ldap.connectivity.anonymous_bind": "true",
-        "ambari.ldap.advance.collision_behavior": "skip",
+        "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
         "ambari.ldap.authentication.enabled": "true"
@@ -7088,7 +7088,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.user.name_attr": "user",
         "ambari.ldap.attributes.user.search_base": "uid",
         "ambari.ldap.connectivity.anonymous_bind": "true",
-        "ambari.ldap.advance.collision_behavior": "skip",
+        "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
         "ambari.ldap.advanced.referrals": "follow",
@@ -7113,7 +7113,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.user.search_base": "base",
         "ambari.ldap.advanced.referrals": "follow",
         "ambari.ldap.connectivity.anonymous_bind": "true",
-        "ambari.ldap.advance.collision_behavior": "skip",
+        "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
         "ambari.ldap.authentication.enabled": "true"
@@ -7244,7 +7244,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.user.name_attr": "test",
         "ambari.ldap.attributes.user.search_base": "test",
         "ambari.ldap.connectivity.anonymous_bind": "false",
-        "ambari.ldap.advance.collision_behavior": "skip",
+        "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
         "ambari.ldap.connectivity.bind_dn": "test",
@@ -7269,7 +7269,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.user.name_attr": "test",
         "ambari.ldap.attributes.user.search_base": "test",
         "ambari.ldap.connectivity.anonymous_bind": "false",
-        "ambari.ldap.advance.collision_behavior": "skip",
+        "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.advanced.force_lowercase_usernames": "false",
         "ambari.ldap.advanced.pagination_enabled": "false",
         "ambari.ldap.connectivity.bind_dn": "test",
@@ -7430,7 +7430,7 @@ class TestAmbariServer(TestCase):
         "ambari.ldap.attributes.user.search_base": "test",
         "ambari.ldap.attributes.dn_attr": "test",
         "ambari.ldap.connectivity.anonymous_bind": "false",
-        "ambari.ldap.advance.collision_behavior": "skip",
+        "ambari.ldap.advanced.collision_behavior": "skip",
         "ambari.ldap.connectivity.bind_dn": "test",
         "client.security": "ldap",
         "ssl.trustStore.type": "test",
@@ -8711,6 +8711,7 @@ class TestAmbariServer(TestCase):
     options.ambari_admin_password = None
     options.ldap_sync_admin_name = None
     options.ldap_sync_username_collisions_behavior = None
+    options.ldap_sync_disable_endpoint_identification = None
     options.ldap_force_lowercase_usernames = None
     options.ldap_pagination_enabled = None
     options.ldap_sync_admin_password = None

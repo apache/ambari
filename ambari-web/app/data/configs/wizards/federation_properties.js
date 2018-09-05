@@ -23,7 +23,8 @@ module.exports =
     displayName: 'MISC',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
-      App.ServiceConfigCategory.create({ name: 'RANGER', displayName: 'Ranger'})
+      App.ServiceConfigCategory.create({ name: 'RANGER', displayName: 'Ranger'}),
+      App.ServiceConfigCategory.create({ name: 'ACCUMULO', displayName: 'Accumulo'})
     ],
     sites: ['core-site'],
     configs: [

@@ -214,6 +214,9 @@ service_check_data = get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 
 if security_enabled:
+  zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  zk_principal_user = zk_principal_name.split('/')[0]
+  zk_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client')
   _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   master_jaas_princ = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
   master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']

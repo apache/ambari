@@ -121,7 +121,7 @@
 
       # any additional java opts you want to set. This will apply to both client and server operations
       {% if security_enabled %}
-      export ATLAS_OPTS="{{metadata_opts}} -Djava.security.auth.login.config={{atlas_jaas_file}}"
+      export ATLAS_OPTS="{{metadata_opts}} -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{atlas_jaas_file}}"
       {% else %}
       export ATLAS_OPTS="{{metadata_opts}}"
       {% endif %}

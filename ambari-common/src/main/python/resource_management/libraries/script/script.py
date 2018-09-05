@@ -964,7 +964,7 @@ class Script(object):
     else:
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      if True:
+      if "upgrade_type" in inspect.getargspec(self.stop).args:
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:

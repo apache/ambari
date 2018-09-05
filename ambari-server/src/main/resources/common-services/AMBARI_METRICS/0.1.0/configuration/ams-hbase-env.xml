@@ -272,10 +272,10 @@ export HBASE_PID_DIR={{hbase_pid_dir}}
 export HBASE_MANAGES_ZK=false
 
 {% if security_enabled %}
-export HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}}"
-export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
-export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
-export HBASE_ZOOKEEPER_OPTS="$HBASE_ZOOKEEPER_OPTS -Djava.security.auth.login.config={{ams_zookeeper_jaas_config_file}}"
+export HBASE_OPTS="$HBASE_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{client_jaas_config_file}}"
+export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{master_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{regionserver_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+export HBASE_ZOOKEEPER_OPTS="$HBASE_ZOOKEEPER_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{ams_zookeeper_jaas_config_file}}"
 {% endif %}
 
 # use embedded native libs
