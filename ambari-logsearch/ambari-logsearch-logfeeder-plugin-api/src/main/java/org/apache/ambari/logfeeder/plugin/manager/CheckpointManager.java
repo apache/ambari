@@ -22,6 +22,8 @@ import org.apache.ambari.logfeeder.plugin.common.LogFeederProperties;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 
+import java.io.IOException;
+
 public interface CheckpointManager<I extends Input, IFM extends InputMarker, P extends LogFeederProperties> {
 
   void init(P properties);
@@ -31,5 +33,11 @@ public interface CheckpointManager<I extends Input, IFM extends InputMarker, P e
   int resumeLineNumber(I input);
 
   void cleanupCheckpoints();
+
+  void printCheckpoints(String checkpointLocation, String logTypeFilter,
+                        String fileKeyFilter) throws IOException;
+
+  void cleanCheckpoint(String checkpointLocation, String logTypeFilter,
+                       String fileKeyFilter, boolean all) throws IOException;
 
 }

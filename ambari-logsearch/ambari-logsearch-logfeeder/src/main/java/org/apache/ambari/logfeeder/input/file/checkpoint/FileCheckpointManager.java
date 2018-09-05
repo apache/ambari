@@ -21,6 +21,7 @@ package org.apache.ambari.logfeeder.input.file.checkpoint;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.input.InputFileMarker;
+import org.apache.ambari.logfeeder.input.file.checkpoint.util.CheckpointFileReader;
 import org.apache.ambari.logfeeder.input.file.checkpoint.util.FileCheckInHelper;
 import org.apache.ambari.logfeeder.input.file.checkpoint.util.FileCheckpointCleanupHelper;
 import org.apache.ambari.logfeeder.input.file.checkpoint.util.ResumeLineNumberHelper;
@@ -33,7 +34,9 @@ import org.slf4j.LoggerFactory;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class FileCheckpointManager implements CheckpointManager<InputFile, InputFileMarker, LogFeederProps> {
 
@@ -42,7 +45,6 @@ public class FileCheckpointManager implements CheckpointManager<InputFile, Input
   private static final String CHECKPOINT_SUBFOLDER_NAME = "logfeeder_checkpoints";
 
   private String checkPointExtension;
-  private String checkPointFolder;
   private File checkPointFolderFile;
 
   @Override
@@ -51,7 +53,7 @@ public class FileCheckpointManager implements CheckpointManager<InputFile, Input
     LOG.info("Determining valid checkpoint folder");
     boolean isCheckPointFolderValid = false;
     // We need to keep track of the files we are reading.
-    checkPointFolder = logFeederProps.getCheckpointFolder();
+    String checkPointFolder = logFeederProps.getCheckpointFolder();
     if (!StringUtils.isEmpty(checkPointFolder)) {
       checkPointFolderFile = new File(checkPointFolder);
       isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
@@ -94,6 +96,67 @@ public class FileCheckpointManager implements CheckpointManager<InputFile, Input
     FileCheckpointCleanupHelper.cleanCheckPointFiles(checkPointFolderFile, checkPointExtension);
   }
 
+  @Override
+  public void printCheckpoints(String checkpointLocation, String logTypeFilter, String fileKeyFilter) throws IOException {
+    System.out.println(String.format("Searching checkpoint files in '%s' folder ... (list)", checkpointLocation));
+    File[] files = CheckpointFileReader.getFiles(new File(checkpointLocation), ".cp");
+    if (files != null) {
+      for (File file : files) {
+        String fileNameTitle = String.format("file name: %s", file.getName());
+        StringBuilder strBuilder = new StringBuilder(fileNameTitle.length());
+        String[] splitted = file.getName().split("-");
+        String logtType = "";
+        String fileKey = "";
+        if (splitted.length > 1) {
+          logtType = splitted[0];
+          fileKey = splitted[1].replace(getFileExtension(), "");
+        } else {
+          fileKey = file.getName().replace(getFileExtension(), "");
+        }
+        if (checkFilter(logtType, logTypeFilter) || checkFilter(fileKey, fileKeyFilter)) {
+          continue;
+        }
+        Stream.generate(() -> '-').limit(fileNameTitle.length()).forEach(strBuilder::append);
+        String border = strBuilder.toString();
+        System.out.println(border);
+        System.out.println(String.format("file name: %s", file.getName()));
+        System.out.println(border);
+        if (org.apache.commons.lang.StringUtils.isNotBlank(logtType)) {
+          System.out.println(String.format("log_type: %s", logtType));
+        }
+        Map<String, String> checkpointJson = CheckpointFileReader.getCheckpointObject(file);
+        for (Map.Entry<String, String> entry : checkpointJson.entrySet()) {
+          System.out.println(String.format("%s: %s", entry.getKey(), entry.getValue()));
+        }
+        System.out.print("\n");
+      }
+    }
+  }
+
+  @Override
+  public void cleanCheckpoint(String checkpointLocation, String logTypeFilter, String fileKeyFilter, boolean all) {
+    System.out.println(String.format("Searching checkpoint files in '%s' folder ... (clean)", checkpointLocation));
+    File[] files = CheckpointFileReader.getFiles(new File(checkpointLocation), ".cp");
+    if (files != null) {
+      for (File file : files) {
+        String logtType = getLogTypeFromFileName(file.getName());
+        String fileKey = getFileKeyFromFileName(file.getName());
+        if (checkFilter(logtType, logTypeFilter) || checkFilter(fileKey, fileKeyFilter)) {
+          continue;
+        }
+        if (!all && logTypeFilter == null && fileKeyFilter == null) {
+          throw new IllegalArgumentException("It is required to use a filter for clean: --all, --log-type <log_type> or --file-key <file_key>");
+        }
+
+        if (all || logTypeFilter != null && logTypeFilter.equals(logtType) ||
+          fileKeyFilter != null && fileKeyFilter.equals(fileKey)) {
+          System.out.println(String.format("Deleting checkpoint file - filename: %s, key: %s, log_type: %s", file.getAbsolutePath(), fileKey, logtType));
+          file.delete();
+        }
+      }
+    }
+  }
+
   private boolean verifyCheckPointFolder(File folderPathFile) {
     if (!folderPathFile.exists()) {
       try {
@@ -116,6 +179,30 @@ public class FileCheckpointManager implements CheckpointManager<InputFile, Input
       }
     }
     return false;
+  }
+
+  private boolean checkFilter(String actualValue, String filterValue) {
+    return (org.apache.commons.lang.StringUtils.isNotBlank(actualValue) && org.apache.commons.lang.StringUtils.isNotBlank(filterValue) &&
+      !actualValue.equals(filterValue));
+  }
+
+  private String getFileExtension() {
+    return this.checkPointExtension == null ? ".cp" : this.checkPointExtension;
+  }
+
+  private String getFileKeyFromFileName(String fileName) {
+    String[] splitted = fileName.split("-");
+    String fileKeyResult = splitted.length > 1 ? splitted[1] : splitted[0];
+    return fileKeyResult.replace(getFileExtension(), "");
+  }
+
+  private String getLogTypeFromFileName(String fileName) {
+    String[] splitted = fileName.split("-");
+    String logTypeResult = "";
+    if (splitted.length > 1) {
+      logTypeResult = splitted[0];
+    }
+    return logTypeResult;
   }
 
 }

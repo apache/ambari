@@ -20,14 +20,12 @@ package org.apache.ambari.logfeeder.input.file.checkpoint.util;
 
 import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.solr.common.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.RandomAccessFile;
 import java.util.Map;
 
@@ -40,15 +38,13 @@ public class FileCheckpointCleanupHelper {
 
   public static void cleanCheckPointFiles(File checkPointFolderFile, String checkPointExtension) {
     if (checkPointFolderFile == null) {
-      LOG.info("Will not clean checkPoint files. checkPointFolderFile=" + checkPointFolderFile);
+      LOG.info("Will not clean checkPoint files. checkPointFolderFile=null");
       return;
     }
     LOG.info("Cleaning checkPoint files. checkPointFolderFile=" + checkPointFolderFile.getAbsolutePath());
     try {
       // Loop over the check point files and if filePath is not present, then move to closed
-      String searchPath = "*" + checkPointExtension;
-      FileFilter fileFilter = new WildcardFileFilter(searchPath);
-      File[] checkPointFiles = checkPointFolderFile.listFiles(fileFilter);
+      File[] checkPointFiles = CheckpointFileReader.getFiles(checkPointFolderFile, checkPointExtension);
       int totalCheckFilesDeleted = 0;
       if (checkPointFiles != null) {
         for (File checkPointFile : checkPointFiles) {
