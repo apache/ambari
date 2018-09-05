@@ -68,8 +68,8 @@
             "http": "{{hbase-site/hbase.master.info.port}}",
             "default_port": 60010,
             "connection_timeout": 5.0,
-            "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}",
-            "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}"
           },
           "reporting": {
             "ok": {
