@@ -816,6 +816,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         BufferedOutputStream bOut = new BufferedOutputStream(fOut);
         GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(bOut);
         TarArchiveOutputStream tOut = new TarArchiveOutputStream(gzOut);
+        tOut.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+        tOut.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
 
         try {
           for (ServiceComponentHostResponse schResponse : serviceComponentHostResponses) {
