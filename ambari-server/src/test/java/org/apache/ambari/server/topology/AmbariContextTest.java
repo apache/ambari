@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -44,6 +45,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
@@ -217,10 +219,13 @@ public class AmbariContextTest {
 
     expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
         singletonList(repositoryVersion)).atLeastOnce();
-    replay(repositoryVersionDAO, repositoryVersion);
+
+    HostLevelParamsHolder hostLevelParamsHolder = createNiceMock(HostLevelParamsHolder.class);
+    replay(repositoryVersionDAO, repositoryVersion, hostLevelParamsHolder);
 
     context.configFactory = configFactory;
     context.repositoryVersionDAO = repositoryVersionDAO;
+    context.hostLevelParamsHolder = hostLevelParamsHolder;
 
     blueprintServices.add("service1");
     blueprintServices.add("service2");
@@ -386,7 +391,7 @@ public class AmbariContextTest {
     expect(cluster.getService("service2")).andReturn(mockService1).once();
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
-    controller.createHostComponents(capture(requestsCapture));
+    controller.createHostComponents(capture(requestsCapture), eq(true));
     expectLastCall().once();
 
     replayAll();
@@ -416,7 +421,7 @@ public class AmbariContextTest {
     expect(cluster.getService("service1")).andReturn(mockService1).times(2);
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
-    controller.createHostComponents(capture(requestsCapture));
+    controller.createHostComponents(capture(requestsCapture), eq(true));
     expectLastCall().once();
 
     replayAll();

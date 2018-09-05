@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -158,6 +159,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Capture<String> rackChangeAffectedClusterName = EasyMock.newCapture();
     managementController.registerRackChange(capture(rackChangeAffectedClusterName));
     EasyMock.expectLastCall().once();
+    expect(managementController.getBlueprintProvisioningStates(anyLong(), anyLong()))
+        .andReturn(Collections.EMPTY_MAP).anyTimes();
 
 
     Clusters clusters = injector.getInstance(Clusters.class);
