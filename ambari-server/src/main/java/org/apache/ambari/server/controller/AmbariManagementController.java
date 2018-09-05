@@ -48,6 +48,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -103,6 +104,18 @@ public interface AmbariManagementController {
    */
   void createHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
+
+  /**
+   * Create the host component defined by the attributes in the given request object.
+   *
+   * @param requests  the request object which defines the host component to be created
+   *
+   * @param isBlueprintProvisioned  means host components will be created during blueprint deploy
+   *
+   * @throws AmbariException thrown if the host component cannot be created
+   */
+  void createHostComponents(
+      Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned) throws AmbariException, AuthorizationException;
 
   /**
    * Creates a configuration.
@@ -937,5 +950,7 @@ public interface AmbariManagementController {
 
   TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
       throws AmbariException;
+
+  Map<String, BlueprintProvisioningState> getBlueprintProvisioningStates(Long clusterId, Long hostId) throws AmbariException;
 }
 
