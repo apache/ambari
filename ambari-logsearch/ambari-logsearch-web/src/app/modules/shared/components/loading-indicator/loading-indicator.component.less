@@ -1,0 +1,16 @@
+@import '../../main';
+
+.circular-loader {
+  animation: rotate 2s linear infinite;
+  height: 20px;
+  transform-origin: center center;
+  width: 20px;
+}
+.loading-path {
+  stroke: @form-success-color;
+  stroke-dasharray: 150,200;
+  stroke-dashoffset: -10;
+  -webkit-animation: dash-loading 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+          animation: dash-loading 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+  stroke-linecap: round;
+}

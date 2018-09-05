@@ -87,6 +87,10 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
   ngOnInit() {
     this.separateSelections();
     this.setDefaultSelection(this.items);
+    // trigger selection if any of the items has been checked
+    if (this.items.some((item: ListItem) => item.isChecked)) {
+      this.selectedItemChange.emit(this.items);
+    }
     this.subscriptions.push(
       this.selectedItemChange.subscribe(this.separateSelections)
     );
