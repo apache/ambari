@@ -17,17 +17,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import json
 import os
 from ambari_commons import subprocess32
 import select
 
-from unittest import SkipTest
 from stacks.utils.RMFTestCase import *
 from mock.mock import patch, MagicMock
 from resource_management.core.base import Resource
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.script import Script
 
 OLD_VERSION_STUB = '2.1.0.0-400'
 VERSION_STUB_WITHOUT_BUILD_NUMBER = '2.2.0.1'
@@ -38,7 +35,6 @@ subproc_mock.return_value = MagicMock()
 subproc_stdout = MagicMock()
 subproc_mock.return_value.stdout = subproc_stdout
 
-@SkipTest
 @patch.object(os, "read", new=MagicMock(return_value=None))
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch("pty.openpty", new = MagicMock(return_value=(1,5)))
@@ -115,6 +111,7 @@ class TestMpackPackages(RMFTestCase):
       patch.object(pkg_manager, "check_uncompleted_transactions") as check_uncompleted_transactions, \
       patch.object(pkg_manager, "upgrade_package") as upgrade_package:
       all_packages.side_effect = TestMpackPackages._add_packages_with_fail
+      all_packages.return_value = TestMpackPackages._add_packages_with_fail
       available_packages.side_effect = TestMpackPackages._add_packages_with_fail
       installed_packages.side_effect = TestMpackPackages._add_packages_with_fail
       upgrade_package.side_effect = TestMpackPackages.side_effect
@@ -134,11 +131,19 @@ class TestMpackPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
       )
       self.assertTrue(put_structured_out_mock.called)
+      # script.put_structured_out only display repo file info (mpack info), no installation info
       self.assertEquals(put_structured_out_mock.call_args[0][0],
-                        {'mpackId': 2,
-                        'package_installation_result': 'FAIL'})
-
-      self.assertNoMoreResources()
+                        {
+                          'mpack_installation':
+                            {
+                              'mpackId': 2,
+                              'mpackName': 'HDPCORE',
+                              'mpackVersion': '1.0.0-b251'
+                            }
+                        })
+      # Since installation fails, no resource is consumed
+      # After merge, now env includes a None repository
+      self.assertEqual(3, len(self.get_resources()))
 
       TestMpackPackages._install_failed = False
 
@@ -188,25 +193,23 @@ class TestMpackPackages(RMFTestCase):
         })
 
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.21-repo-hdpcore',
-        append_to_file = False,
-        base_url = 'http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.21',
-        action = ['create'],
+        base_url = u'http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.21',
+        action = ['prepare'],
         components = [u'HDP-UTILS', 'main'],
         repo_template = None,
-        repo_file_name = 'ambari-hdpcore-2',
+        repo_file_name = u'ambari-hdpcore-2',
         mirror_list = None,
       )
 
 
       self.assertResourceCalled('Repository', 'HDPCORE-1.0.0-b251-repo-hdpcore',
-        append_to_file = True,
-        base_url = 'http://repos.ambari.apache.org/hdp/HDPCORE-1.0.0-b251',
-        action = ['create'],
+        base_url = u'http://repos.ambari.apache.org/hdp/HDPCORE-1.0.0-b251',
+        action = ['prepare'],
         components = [u'HDPCORE', 'main'],
         repo_template = None,
-        repo_file_name = 'ambari-hdpcore-2',
+        repo_file_name = u'ambari-hdpcore-2',
         mirror_list = None,
       )
 
-      self.assertNoMoreResources()
+      self.assertEqual(1, len(self.get_resources()))
 

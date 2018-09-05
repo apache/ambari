@@ -17,13 +17,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
-from stacks.utils.RMFTestCase import *
 import json
 import os
 import socket
-from ambari_commons import subprocess32
-from ambari_commons import inet_utils, OSCheck
+from ambari_commons import OSCheck
 from resource_management import Script, ConfigDictionary
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger

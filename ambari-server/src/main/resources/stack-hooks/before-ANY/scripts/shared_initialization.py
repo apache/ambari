@@ -49,7 +49,7 @@ def setup_users():
            fetch_nonlocal_groups = params.fetch_nonlocal_groups,
            )
 
-    if params.override_uid == "true":
+    if params.override_uid == True:
       set_uid(params.smoke_user, params.smoke_user_dirs)
     else:
       Logger.info('Skipping setting uid for smoke user as host is sys prepped')
@@ -108,7 +108,7 @@ def get_uid(user, return_existing=False):
   """
   import params
   user_str = str(user) + "_uid"
-  service_env = [ serviceEnv for serviceEnv in params.module_configs if params.module_configs.get_property_value(params.module_name, serviceEnv, user_str)]
+  service_env = [ serviceEnv for serviceEnv in params.module_configs.get_raw_config_dict() if params.module_configs.get_property_value(params.module_name, serviceEnv, user_str)]
 
   if service_env and params.module_configs.get_property_value(params.module_name, service_env[0], user_str):
     service_env_str = str(service_env[0])
@@ -129,7 +129,6 @@ def get_uid(user, return_existing=False):
     else:
       # do not return UID for existing user, used in User resource call to let OS to choose UID for us
       return None
-
 
 def setup_java():
   """

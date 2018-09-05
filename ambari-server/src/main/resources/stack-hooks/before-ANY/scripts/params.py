@@ -161,7 +161,7 @@ mapred_log_dir_prefix = module_configs.get_property_value(module_name, 'mapred-e
 hadoop_env_sh_template = module_configs.get_property_value(module_name, 'hadoop-env', 'content')
 
 #users and groups
-smoke_user =  get_cluster_setting_value('smokeuser')
+smoke_user = cluster_settings.get_smokeuser()
 gmetad_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmetad_user')
 gmond_user = module_configs.get_property_value(module_name, 'ganglia-env', 'gmond_user')
 tez_user = module_configs.get_property_value(module_name, 'tez-env', 'tez_user')
@@ -239,9 +239,9 @@ proxyuser_group = module_configs.get_property_value(module_name, 'hadoop-env', '
 ranger_group = module_configs.get_property_value(module_name, 'ranger-env', 'ranger_group')
 dfs_cluster_administrators_group = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.cluster.administrators')
 
-sysprep_skip_create_users_and_groups = get_cluster_setting_value('sysprep_skip_create_users_and_groups')
-ignore_groupsusers_create = get_cluster_setting_value('ignore_groupsusers_create')
-fetch_nonlocal_groups = get_cluster_setting_value('fetch_nonlocal_groups')
+sysprep_skip_create_users_and_groups = cluster_settings.check_sysprep_skip_create_users_and_groups()
+ignore_groupsusers_create = cluster_settings.check_ignore_groupsusers_create()
+fetch_nonlocal_groups = cluster_settings.check_fetch_nonlocal_groups()
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 #repo params
@@ -265,4 +265,4 @@ group_list = json.loads(stack_settings.get_group_list())
 host_sys_prepped = execution_command.is_host_system_prepared()
 
 tez_am_view_acls = module_configs.get_property_value(module_name, 'tez-site', 'tez.am.view-acls')
-override_uid = get_cluster_setting_value('override_uid')
+override_uid = cluster_settings.check_override_uid()

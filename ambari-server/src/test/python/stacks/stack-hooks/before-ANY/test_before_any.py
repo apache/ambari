@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from unittest import SkipTest
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 from resource_management import Hook
@@ -26,7 +25,6 @@ import itertools
 import getpass
 import os
 
-@SkipTest
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
   TMP_PATH = '/tmp/hbase-hbase'
@@ -52,6 +50,9 @@ class TestHookBeforeInstall(RMFTestCase):
                        config_file="default.json",
                        call_mocks=itertools.cycle([(0, "1000")])
     )
+    """
+    Test setup_users()
+    """
     self.assertResourceCalled('Group', 'hadoop',)
     self.assertResourceCalled('Group', 'nobody',)
     self.assertResourceCalled('Group', 'users',)
@@ -153,12 +154,8 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh ambari-qa /tmp/hadoop-ambari-qa,/tmp/hsperfdata_ambari-qa,/home/ambari-qa,/tmp/ambari-qa,/tmp/sqoop-ambari-qa 0',
                               not_if = '(test $(id -u ambari-qa) -gt 1000) || (false)',
                               )
-    self.assertResourceCalled('Directory', '/tmp/hbase-hbase',
-                              owner = 'hbase',
-                              create_parents = True,
-                              mode = 0775,
-                              cd_access = 'a',
-                              )
+    """
+    Before isntall, no hadoop_conf_dir is known, the following UT cases are not valid
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
                               mode = 0555,
@@ -167,6 +164,7 @@ class TestHookBeforeInstall(RMFTestCase):
                               content = StaticFile('changeToSecureUid.sh'),
                               mode = 0555,
                               )
+    
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/tmp/hbase-hbase 1000',
                               not_if = '(test $(id -u hbase) -gt 1000) || (false)',
                               )
@@ -176,6 +174,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'test_user2',
                               fetch_nonlocal_groups = True,
                               )
+    
     self.assertResourceCalled('Group', 'hdfs',)
     self.assertResourceCalled('Group', 'test_group',)
     self.assertResourceCalled('User', 'hdfs',
@@ -190,11 +189,16 @@ class TestHookBeforeInstall(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop'
     )
+
     self.assertResourceCalled('Directory', '/tmp/hadoop_java_io_tmpdir',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 01777,
                               )
+    """
+    """
+    Test setup_java()
+    """
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
                               create_parents = True,
                               )

@@ -33,12 +33,13 @@ UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
 class RepositoryUtil:
   def __init__(self, config, tags_to_skip):
+    from resource_management.libraries.script import Script
     self.tags_to_skip = tags_to_skip
 
     # repo templates
     repo_file = config['repositoryFile']
-    repo_rhel_suse =  get_cluster_setting_value('repo_suse_rhel_template')
-    repo_ubuntu =  get_cluster_setting_value('repo_ubuntu_template')
+    repo_rhel_suse = Script.get_cluster_settings().get_repo_suse_rhel_template()
+    repo_ubuntu = Script.get_cluster_settings().get_repo_ubuntu_template()
 
     if is_empty(repo_file):
       return
