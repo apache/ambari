@@ -102,7 +102,7 @@ export CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*
 
 {% if security_enabled %}
 export SERVER_JVMFLAGS="$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}"
-export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}"
+export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}} -Dzookeeper.sasl.client.username={{zk_principal_user}}"
 {% endif %}
     </value>
     <value-attributes>
