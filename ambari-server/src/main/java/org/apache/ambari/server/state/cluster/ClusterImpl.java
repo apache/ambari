@@ -971,8 +971,7 @@ public class ClusterImpl implements Cluster {
     clusterEntity = clusterDAO.merge(clusterEntity);
   }
 
-  @Override
-  public boolean setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
+  private boolean setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
     boolean updated = false;
     for (Service s : getServices().values()) {
       for (ServiceComponent sc : s.getServiceComponents().values()) {
