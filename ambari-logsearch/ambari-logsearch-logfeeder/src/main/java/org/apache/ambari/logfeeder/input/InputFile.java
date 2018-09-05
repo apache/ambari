@@ -26,9 +26,7 @@ import org.apache.ambari.logfeeder.input.monitor.DockerLogFileUpdateMonitor;
 import org.apache.ambari.logfeeder.input.monitor.LogFileDetachMonitor;
 import org.apache.ambari.logfeeder.input.monitor.LogFilePathUpdateMonitor;
 import org.apache.ambari.logfeeder.input.reader.LogsearchReaderFactory;
-import org.apache.ambari.logfeeder.input.file.FileCheckInHelper;
 import org.apache.ambari.logfeeder.input.file.ProcessFileHelper;
-import org.apache.ambari.logfeeder.input.file.ResumeLineNumberHelper;
 import org.apache.ambari.logfeeder.plugin.filter.Filter;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.util.FileUtil;
@@ -144,7 +142,7 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
 
   @Override
   public synchronized void checkIn(InputFileMarker inputMarker) {
-    FileCheckInHelper.checkIn(this, inputMarker);
+    getInputManager().getCheckpointHandler().checkIn(this, inputMarker);
   }
 
   @Override
@@ -304,7 +302,7 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
   }
 
   public int getResumeFromLineNumber() {
-    return ResumeLineNumberHelper.getResumeFromLineNumber(this);
+    return this.getInputManager().getCheckpointHandler().resumeLineNumber(this);
   }
 
   public void processFile(File logPathFile, boolean follow) throws Exception {
@@ -485,7 +483,7 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     return fileKey;
   }
 
-  public String getBase64FileKey() throws Exception {
+  public String getBase64FileKey() {
     return base64FileKey;
   }
 
