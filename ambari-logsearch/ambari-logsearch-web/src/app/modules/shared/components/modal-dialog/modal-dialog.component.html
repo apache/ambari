@@ -1,0 +1,20 @@
+<div [class]="(extraCssClass || '') + ' modal'" [class.show]="visible">
+  <div *ngIf="showBackdrop" class="modal-backdrop" (click)="onBackdropClick($event)"></div>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 *ngIf="title" class="modal-title">{{title | translate}}</h5>
+        <ng-content select="header"></ng-content>
+        <button *ngIf="showCloseBtn" type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="onCloseBtnClick($event)">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ng-content select="main"></ng-content>
+      </div>
+      <div class="modal-footer">
+        <ng-content select="footer"></ng-content>
+      </div>
+    </div>
+  </div>
+</div>

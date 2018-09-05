@@ -50,7 +50,7 @@ import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {NotificationService} from '@modules/shared/services/notification.service';
 import {NotificationsService} from 'angular2-notifications/src/notifications.service';
-import { DataAvailabilityStatesStore } from '@modules/app-load/stores/data-avaibility-state.store';
+import { DataAvailabilityStatesStore, dataAvailabilityStates } from '@app/modules/app-load/stores/data-availability-state.store';
 
 describe('ClusterFilterComponent', () => {
   let component: ClusterFilterComponent;
@@ -83,7 +83,8 @@ describe('ClusterFilterComponent', () => {
           tabs,
           clusters,
           components,
-          hosts
+          hosts,
+          dataAvailabilityStates
         })
       ],
       providers: [

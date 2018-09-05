@@ -1,0 +1,40 @@
+:host {
+  .modal-backdrop {
+    opacity: .5;
+    z-index: 1040;
+  }
+  .modal-dialog {
+    margin: 2.5rem auto;
+    max-width: 90vw;
+    width: auto;
+    z-index: 1045;
+    .modal-content {
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+      overflow: hidden;
+      padding: 1.42rem;
+      .modal-header {
+        display: block;
+        flex-shrink: 1;
+        line-height: 1.42rem;
+        position: relative;
+        &> * {
+          display: inline-block;
+        }
+        .close {
+          position: absolute;
+          top: 0;
+          right: 1em;
+        }
+      }
+      .modal-body {
+        flex: 1;
+        overflow: auto;
+      }
+      .modal-footer {
+        flex-shrink: 1;
+      }
+    }
+  }
+}

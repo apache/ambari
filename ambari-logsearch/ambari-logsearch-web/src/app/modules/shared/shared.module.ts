@@ -38,6 +38,8 @@ import {DropdownListComponent} from './components/dropdown-list/dropdown-list.co
 import {FilterDropdownComponent} from './components/filter-dropdown/filter-dropdown.component';
 import {ModalComponent} from './components/modal/modal.component';
 import { DataLoadingIndicatorComponent } from '@app/modules/shared/components/data-loading-indicator/data-loading-indicator.component';
+import { ModalDialogComponent } from './components/modal-dialog/modal-dialog.component';
+import { LoadingIndicatorComponent } from './components/loading-indicator/loading-indicator.component';
 
 @NgModule({
   imports: [
@@ -60,7 +62,9 @@ import { DataLoadingIndicatorComponent } from '@app/modules/shared/components/da
     DropdownListComponent,
     FilterDropdownComponent,
     ModalComponent,
-    DataLoadingIndicatorComponent
+    DataLoadingIndicatorComponent,
+    ModalDialogComponent,
+    LoadingIndicatorComponent
   ],
   providers: [
     Title,
@@ -74,7 +78,9 @@ import { DataLoadingIndicatorComponent } from '@app/modules/shared/components/da
     DropdownListComponent,
     FilterDropdownComponent,
     ModalComponent,
-    DataLoadingIndicatorComponent
+    DataLoadingIndicatorComponent,
+    ModalDialogComponent,
+    LoadingIndicatorComponent
   ]
 })
 export class SharedModule { }
