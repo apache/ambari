@@ -40,8 +40,8 @@
           "uri": {
             "http": "{{storm-site/ui.port}}",
             "https" : "{{storm-site/ui.https.port}}",
-            "kerberos_keytab": "{{storm-env/storm_ui_keytab}}",
-            "kerberos_principal": "{{storm-env/storm_ui_principal_name}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0,
             "https_property": "{{storm-site/ui.https.keystore.type}}",
             "https_property_value": "jks"

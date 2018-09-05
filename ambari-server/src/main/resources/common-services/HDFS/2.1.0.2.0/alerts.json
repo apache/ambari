@@ -98,8 +98,8 @@
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
@@ -146,8 +146,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -194,8 +194,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -241,8 +241,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -287,8 +287,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -335,8 +335,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -382,8 +382,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -428,8 +428,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -1519,8 +1519,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
             "https": "{{hdfs-site/dfs.namenode.secondary.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY"
           },
@@ -1579,8 +1579,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.journalnode.http-address}}",
             "https": "{{hdfs-site/dfs.journalnode.https-address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0
@@ -1640,8 +1640,8 @@
             "https": "{{hdfs-site/dfs.datanode.https.address}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0
           },
           "reporting": {
@@ -1669,8 +1669,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.datanode.http.address}}",
             "https": "{{hdfs-site/dfs.datanode.https.address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0
@@ -1723,8 +1723,8 @@
           "uri": {
             "http": "{{hdfs-site/dfs.datanode.http.address}}",
             "https": "{{hdfs-site/dfs.datanode.https.address}}",
-            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0

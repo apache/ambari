@@ -15,8 +15,8 @@
             "https_property": "{{infra-solr-env/infra_solr_ssl_enabled}}",
             "https_property_value": "true",
             "connection_timeout": 5.0,
-            "kerberos_keytab": "{{infra-solr-env/infra_solr_web_kerberos_keytab}}",
-            "kerberos_principal": "{{infra-solr-env/infra_solr_web_kerberos_principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "default_port": 8886
           },
           "reporting": {

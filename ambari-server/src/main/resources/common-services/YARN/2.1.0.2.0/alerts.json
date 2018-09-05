@@ -15,8 +15,8 @@
             "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
             "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
-            "kerberos_keytab": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0
           },
           "reporting": {
@@ -43,8 +43,8 @@
           "type": "METRIC",
           "uri": {
             "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
-            "kerberos_keytab": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
             "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
@@ -86,8 +86,8 @@
           "uri": {
             "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
             "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
-            "kerberos_keytab": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0
@@ -162,8 +162,8 @@
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "default_port": 8042,
-            "kerberos_keytab": "{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0
           },
           "reporting": {
@@ -217,8 +217,8 @@
             "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
-            "kerberos_keytab": "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0,
             "high_availability": {
               "alias_key" : "{{yarn-site/yarn.resourcemanager.ha.rm-ids}}",
@@ -251,8 +251,8 @@
           "uri": {
             "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
             "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
-            "kerberos_keytab": "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -298,8 +298,8 @@
           "uri": {
             "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
             "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
-            "kerberos_keytab": "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -370,8 +370,8 @@
             "https": "{{yarn-site/yarn.timeline-service.webapp.https.address}}/ws/v1/timeline",
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
-            "kerberos_keytab": "{{yarn-site/yarn.timeline-service.http-authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{yarn-site/yarn.timeline-service.http-authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0
           },
           "reporting": {
