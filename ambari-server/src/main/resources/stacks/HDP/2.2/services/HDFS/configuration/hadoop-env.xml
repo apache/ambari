@@ -173,6 +173,9 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 # Mostly required for hadoop 2.0
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64
 
+{% if zk_principal_user is defined %}
+HADOOP_OPTS="-Dzookeeper.sasl.client.username={{zk_principal_user}} $HADOOP_OPTS"
+{% endif %}
 export HADOOP_OPTS="-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
 
 {% if is_datanode_max_locked_memory_set %}
