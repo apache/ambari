@@ -113,7 +113,8 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
       componentHostMap -> Sets.newHashSet(componentHostMap.getValue().keySet())
     ));
     Set<MpackInstance> mpacks = copyAndEnrichMpackInstances(clusterTopology, mpackComponentsMap);
-    Configuration configuration = copyServiceConfigurationsToServiceInstances(mpacks, clusterTopology);
+//    Configuration configuration = copyServiceConfigurationsToServiceInstances(mpacks, clusterTopology);
+    Configuration configuration = clusterTopology.getConfiguration();
     return MpackAdvisorRequest.MpackAdvisorRequestBuilder
       .forStack()
       .forMpackInstances(mpacks)
