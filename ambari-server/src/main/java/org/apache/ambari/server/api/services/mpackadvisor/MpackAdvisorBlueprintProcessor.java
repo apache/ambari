@@ -113,7 +113,6 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
       componentHostMap -> Sets.newHashSet(componentHostMap.getValue().keySet())
     ));
     Set<MpackInstance> mpacks = copyAndEnrichMpackInstances(clusterTopology, mpackComponentsMap);
-//    Configuration configuration = copyServiceConfigurationsToServiceInstances(mpacks, clusterTopology);
     Configuration configuration = clusterTopology.getConfiguration();
     return MpackAdvisorRequest.MpackAdvisorRequestBuilder
       .forStack()
@@ -126,37 +125,6 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
       .withUserContext(userContext)
       .ofType(requestType)
       .build();
-  }
-
-  private Configuration copyServiceConfigurationsToServiceInstances(Set<MpackInstance> mpacks, ClusterTopology clusterTopology) {
-    Configuration originalConfig = clusterTopology.getConfiguration();
-    Configuration copiedConfig = new Configuration(originalConfig.getFullProperties(), originalConfig.getFullAttributes());
-    Map<String, Map<String, String>> fullProperties = copiedConfig.getFullProperties();
-    Map<String, Map<String, Map<String, String>>> fullAttributes = copiedConfig.getFullAttributes();
-    for (String configType: copiedConfig.getAllConfigTypes()) {
-      boolean isServiceConfig = false;
-      Set<String> serviceTypes = clusterTopology.getStack().getServicesForConfigType(configType).collect(toSet());
-      for (MpackInstance mpack: mpacks) {
-        for (ServiceInstance service: mpack.getServiceInstances()) {
-          if (serviceTypes.contains(service.getType())) {
-            isServiceConfig = true;
-            if (null == service.getConfiguration()) {
-              service.setConfiguration(new Configuration());
-            }
-            if (fullProperties.containsKey(configType)) {
-              service.getConfiguration().getProperties().put(configType, fullProperties.get(configType));
-            }
-            if (fullAttributes.containsKey(configType)) {
-              service.getConfiguration().getAttributes().put(configType, fullAttributes.get(configType));
-            }
-          }
-        }
-      }
-      if (isServiceConfig) { // Only global configs such as cluster-env should remain in the central configuration
-        copiedConfig.removeConfigType(configType);
-      }
-    }
-    return copiedConfig;
   }
 
   private Set<MpackInstance> copyAndEnrichMpackInstances(ClusterTopology topology,
