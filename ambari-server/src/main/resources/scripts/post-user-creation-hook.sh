@@ -82,21 +82,32 @@ echo "Processing post user creation hook payload ..."
 JSON_INPUT="$CSV_FILE.json"
 echo "Generating json file $JSON_INPUT ..."
 
+REALM=${HDFS_PRINCIPAL##*@}
+
 echo "[" | cat > "$JSON_INPUT"
 while read -r LINE
 do
   USR_NAME=$(echo "$LINE" | awk -F, '{print $1}')
+
+  if [ "$SECURITY_TYPE" ==  "KERBEROS" ]
+  then
+    OWNER="${USR_NAME}@${REALM}"
+  else
+    OWNER="${USR_NAME}"
+  fi
+
   echo "Processing user name: $USR_NAME"
 
-  # encoding the username
+  # encoding the username and owner
   USR_NAME=$(printf "%q" "$USR_NAME")
+  OWNER=$(printf "%q" "$OWNER")
 
   cat <<EOF >> "$JSON_INPUT"
     {
     "target":"/user/$USR_NAME",
     "type":"directory",
     "action":"create",
-    "owner":"$USR_NAME",
+    "owner":"$OWNER",
     "group":"hdfs",
     "manageIfExists": "true"
   },
