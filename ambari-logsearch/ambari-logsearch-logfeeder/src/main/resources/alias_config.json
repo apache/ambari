@@ -1,5 +1,5 @@
 {
-"input": {
+  "input": {
     "file": {
       "klass": "org.apache.ambari.logfeeder.input.InputFile"
     },
@@ -8,6 +8,9 @@
     },
     "simulate": {
       "klass": "org.apache.ambari.logfeeder.input.InputSimulate"
+    },
+    "socket": {
+      "klass": "org.apache.ambari.logfeeder.input.InputSocket"
     }
   },
   "filter": {
