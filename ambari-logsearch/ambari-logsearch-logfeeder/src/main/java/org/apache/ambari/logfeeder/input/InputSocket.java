@@ -86,12 +86,13 @@ public class InputSocket extends Input<LogFeederProps, InputSocketMarker> {
           try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()))) {
             LoggingEvent loggingEvent = (LoggingEvent) ois.readObject();
             String jsonStr = loggerConverter.createOutput(loggingEvent);
+            LOG.trace("Incoming socket logging event: " + jsonStr);
             outputLine(jsonStr, inputSocketMarker);
           }
         } else {
           try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
             String line = in.readLine();
-            LOG.info("Incoming socket message: " + line);
+            LOG.trace("Incoming socket message: " + line);
             outputLine(line, inputSocketMarker);
           }
         }
