@@ -37,7 +37,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-public class InputSocket extends Input<LogFeederProps, InputSocketMarker> {
+public class InputSocket extends Input<LogFeederProps, InputSocketMarker, InputSocketDescriptor> {
 
   private static final Logger LOG = LoggerFactory.getLogger(InputSocket.class);
 
@@ -51,13 +51,14 @@ public class InputSocket extends Input<LogFeederProps, InputSocketMarker> {
   @Override
   public void init(LogFeederProps logFeederProperties) throws Exception {
     super.init(logFeederProperties);
-    port = (int) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).getPort(), 0);
+    port = (int) ObjectUtils.defaultIfNull(getInputDescriptor().getPort(), 0);
     if (port == 0) {
       throw new IllegalArgumentException(String.format("Port needs to be set for socket input (type: %s)", getInputDescriptor().getType()));
     }
-    protocol = (String) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).getProtocol(), "tcp");
-    secure = (boolean) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).isSecure(), false);
-    log4j = (boolean) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).isLog4j(), false);
+
+    protocol = (String) ObjectUtils.defaultIfNull(getInputDescriptor().getProtocol(), "tcp");
+    secure = (boolean) ObjectUtils.defaultIfNull(getInputDescriptor().isSecure(), false);
+    log4j = (boolean) ObjectUtils.defaultIfNull(getInputDescriptor().isLog4j(), false);
   }
 
   @Override
@@ -78,6 +79,7 @@ public class InputSocket extends Input<LogFeederProps, InputSocketMarker> {
     ServerSocketFactory socketFactory = secure ? SSLServerSocketFactory.getDefault() : ServerSocketFactory.getDefault();
     InputSocketMarker inputSocketMarker = new InputSocketMarker(this, port, protocol, secure, log4j);
     LogsearchConversion loggerConverter = new LogsearchConversion();
+
     try {
       serverSocket = socketFactory.createServerSocket(port);
       while (!isDrain()) {
@@ -112,13 +114,13 @@ public class InputSocket extends Input<LogFeederProps, InputSocketMarker> {
       serverSocket.close();
       setClosed(true);
     } catch (Exception e) {
-      LOG.error("Error during closing socket input: {}", e);
+      LOG.error("Error during closing socket input.", e);
     }
   }
 
   @Override
   public String getNameForThread() {
-    return "socket=" + String.format("%s-%s-%s", getLogType(), this.protocol, this.port);
+    return String.format("socket=%s-%s-%s", getLogType(), this.protocol, this.port);
   }
 
   @Override

@@ -43,7 +43,7 @@ public class InputSocketDescriptorImpl extends InputDescriptorImpl implements In
   @ShipperConfigElementDescription(
     path = "/input/[]/protocol",
     type = "int",
-    description = "Protocol type for socket serveer (tcp / udp - udp is not supported right now)",
+    description = "Protocol type for socket server (tcp / udp - udp is not supported right now)",
     examples = {"udp", "tcp"},
     defaultValue = "tcp"
   )
