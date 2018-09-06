@@ -52,6 +52,9 @@ public class InputSocket extends Input<LogFeederProps, InputSocketMarker> {
   public void init(LogFeederProps logFeederProperties) throws Exception {
     super.init(logFeederProperties);
     port = (int) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).getPort(), 0);
+    if (port == 0) {
+      throw new IllegalArgumentException(String.format("Port needs to be set for socket input (type: %s)", getInputDescriptor().getType()));
+    }
     protocol = (String) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).getProtocol(), "tcp");
     secure = (boolean) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).isSecure(), false);
     log4j = (boolean) ObjectUtils.defaultIfNull(((InputSocketDescriptor)getInputDescriptor()).isLog4j(), false);
