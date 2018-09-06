@@ -28,7 +28,7 @@ angular.module('ambariAdminConsole', [
 .constant('Settings', {
   siteRoot: '{proxy_root}/'.replace(/\{.+\}/g, ''),
 	baseUrl: '{proxy_root}/api/v1'.replace(/\{.+\}/g, ''),
-  testMode: (window.location.port == 8000),
+  testMode: false,
   mockDataPrefix: 'assets/data/',
   isLDAPConfigurationSupported: false,
   isLoginActivitiesSupported: false,
