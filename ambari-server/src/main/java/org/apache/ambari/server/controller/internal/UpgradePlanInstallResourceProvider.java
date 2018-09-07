@@ -407,10 +407,6 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
         Mpack mpack = getManagementController().getAmbariMetaInfo().getMpack(installDetail.mpackId);
         RepoOsEntity repoOsEntity = s_repoHelper.getOSEntityForHost(installDetail.mpackEntity, h);
 
-        Host h = cluster.getHost(host.getHostName());
-        Mpack mpack = getManagementController().getAmbariMetaInfo().getMpack(installDetail.mpackId);
-        RepoOsEntity repoOsEntity = s_repoHelper.getOSEntityForHost(installDetail.mpackEntity, h);
-
         // this isn't being placed correctly elsewhere
         actionContext.addVisitor(command -> {
           try {
