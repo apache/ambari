@@ -15,14 +15,23 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  Input,
+  Output,
+  EventEmitter,
+  ViewChild,
+  ChangeDetectorRef,
+  ElementRef
+} from '@angular/core';
 
 @Component({
   selector: 'modal-dialog',
   templateUrl: './modal-dialog.component.html',
   styleUrls: ['./modal-dialog.component.less']
 })
-export class ModalDialogComponent implements OnInit {
+export class ModalDialogComponent implements AfterViewInit {
 
   @Input()
   title: string;
@@ -45,9 +54,29 @@ export class ModalDialogComponent implements OnInit {
   @Output()
   onCloseRequest: EventEmitter<MouseEvent> =  new EventEmitter();
 
-  constructor() { }
+  @ViewChild('header')
+  headerElementRef: ElementRef;
 
-  ngOnInit() {
+  showHeader = true;
+
+  @ViewChild('footer')
+  footerElementRef: ElementRef;
+
+  showFooter = true;
+
+  constructor(private cdRef: ChangeDetectorRef) { }
+
+  ngAfterViewInit() {
+    let totalBuiltInHeaderElement = 0;
+    if (this.title) {
+      totalBuiltInHeaderElement += 1;
+    }
+    if (this.showCloseBtn) {
+      totalBuiltInHeaderElement += 1;
+    }
+    this.showHeader = this.headerElementRef && (this.headerElementRef.nativeElement.children.length - totalBuiltInHeaderElement > 0);
+    this.showFooter = this.footerElementRef && this.footerElementRef.nativeElement.children.length;
+    this.cdRef.detectChanges();
   }
 
   onCloseBtnClick(event: MouseEvent) {

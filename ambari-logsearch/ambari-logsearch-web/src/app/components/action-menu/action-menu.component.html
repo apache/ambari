@@ -35,17 +35,22 @@
              (buttonClick)="stopCapture()"></menu-button>
 <menu-button label="{{'topMenu.refresh' | translate}}" iconClass="fa fa-refresh"
              (buttonClick)="refresh()"></menu-button>
-<modal-dialog class="log-index-filter" [visible]="isLogIndexFilterDisplayed$ | async" (onCloseRequest)="closeLogIndexFilter()" title="{{'logIndexFilter.title' | translate}}">
+<modal-dialog
+  class="log-index-filter"
+  [visible]="isLogIndexFilterDisplayed$ | async"
+  [showCloseBtn]="false"
+  (onCloseRequest)="closeLogIndexFilter()"
+  title="{{'logIndexFilter.title' | translate}}">
   <header>
       <dropdown-button [options]="clustersListItems$ | async" (selectItem)="onSelectCluster($event)"
-      label="{{'logIndexFilter.selectCluster' | translate}}" buttonClass="btn-default"></dropdown-button>
+      label="{{'logIndexFilter.selectCluster' | translate}}" buttonClass="btn-link"></dropdown-button>
   </header>
-  <main>
-    {{'logIndexFilter.caption' | translate}}
+  <section>
+    <p>{{'logIndexFilter.caption' | translate}}</p>
     <form [formGroup]="settingsForm">
       <log-index-filter formControlName="logIndexFilter" (changeIsSubmitDisabled)="setModalSubmitDisabled($event)" [activeClusterName]="selectedClusterName$ | async"></log-index-filter>
     </form>
-  </main>
+  </section>
   <footer>
     <button class="btn btn-secondary" (click)="closeLogIndexFilter()">{{'modal.cancel' | translate}}</button>
     <button class="btn btn-primary" (click)="saveLogIndexFilter()" [disabled]="isModalSubmitDisabled">
