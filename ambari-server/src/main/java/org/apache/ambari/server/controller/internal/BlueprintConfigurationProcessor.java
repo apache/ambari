@@ -40,11 +40,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
 import org.apache.ambari.server.topology.Cardinality;
@@ -3349,7 +3353,7 @@ public class BlueprintConfigurationProcessor {
    *          the list of configuration types updated (cluster-env will be added
    *          to this).
    */
-  private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
+  protected void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
     throws ConfigurationTopologyException {
     ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
 
@@ -3363,26 +3367,44 @@ public class BlueprintConfigurationProcessor {
 
     try {
       for (StackId stackId : clusterTopology.getStackIds()) {
+        StackInfo stackInfo = clusterTopology.getAmbariContext().getController().getAmbariMetaInfo().getStack(stackId);
+        Stack stack = new Stack(stackInfo);
+        
         Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
         if (defaultStackProperties.containsKey(CLUSTER_ENV_CONFIG_TYPE_NAME)) {
           Map<String, String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
 
-          for (String property : properties) {
+          for( String property : properties ){
             if (clusterEnvDefaultProperties.containsKey(property)) {
-              configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
-                clusterEnvDefaultProperties.get(property)
-              );
-
-              // make sure to include the configuration type as being updated
-              configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+              String newValue = clusterEnvDefaultProperties.get(property);
+              String previous = configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property, newValue);
+              if (!Objects.equals(
+                trimValue(previous, stack, CLUSTER_ENV_CONFIG_TYPE_NAME, property),
+                trimValue(newValue, stack, CLUSTER_ENV_CONFIG_TYPE_NAME, property))) {
+                // in case a property is updated make sure to include cluster-env as being updated
+                configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+              }
             }
           }
-
           break;
         }
       }
     } catch (AmbariException e) {
       throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features", e);
+    }
+  }
+
+  private @Nullable String trimValue(@Nullable String value,
+                                     @NotNull Stack stack,
+                                     @NotNull String configType,
+                                     @NotNull String propertyName) {
+    if (null == value) {
+      return null;
+    }
+    else {
+      TrimmingStrategy trimmingStrategy =
+        PropertyValueTrimmingStrategyDefiner.defineTrimmingStrategy(stack, propertyName, configType);
+      return trimmingStrategy.trim(value);
     }
   }
 

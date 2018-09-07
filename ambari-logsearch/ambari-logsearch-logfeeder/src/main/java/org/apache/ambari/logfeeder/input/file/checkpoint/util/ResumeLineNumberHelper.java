@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.input.file;
+package org.apache.ambari.logfeeder.input.file.checkpoint.util;
 
 import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
@@ -36,15 +36,14 @@ public class ResumeLineNumberHelper {
   private ResumeLineNumberHelper() {
   }
 
-  public static int getResumeFromLineNumber(InputFile inputFile) {
+  public static int getResumeFromLineNumber(InputFile inputFile, File checkPointFolder) {
     int resumeFromLineNumber = 0;
 
     File checkPointFile = null;
     try {
       LOG.info("Checking existing checkpoint file. " + inputFile.getShortDescription());
 
-      String checkPointFileName = inputFile.getBase64FileKey() + inputFile.getCheckPointExtension();
-      File checkPointFolder = inputFile.getInputManager().getCheckPointFolderFile();
+      String checkPointFileName = getCheckpointFileName(inputFile);
       checkPointFile = new File(checkPointFolder, checkPointFileName);
       inputFile.getCheckPointFiles().put(inputFile.getBase64FileKey(), checkPointFile);
       Map<String, Object> jsonCheckPoint = null;
@@ -86,6 +85,11 @@ public class ResumeLineNumberHelper {
     }
 
     return resumeFromLineNumber;
+  }
+
+  private static String getCheckpointFileName(InputFile inputFile) {
+    return String.format("%s-%s%s", inputFile.getLogType(),
+      inputFile.getBase64FileKey(), inputFile.getCheckPointExtension());
   }
 
 }

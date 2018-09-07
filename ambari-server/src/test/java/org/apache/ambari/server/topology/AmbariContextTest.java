@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -49,6 +50,7 @@ import java.util.stream.Stream;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -226,7 +228,11 @@ public class AmbariContextTest {
     expect(mpackEntity.getMpackVersion()).andReturn("1.1.1.1").atLeastOnce();
     replay(mpackEntity);
 
+    HostLevelParamsHolder hostLevelParamsHolder = createNiceMock(HostLevelParamsHolder.class);
+    replay(hostLevelParamsHolder);
+
     context.configFactory = configFactory;
+    context.hostLevelParamsHolder = hostLevelParamsHolder;
 
     blueprintServices.add("service1");
     blueprintServices.add("service2");
@@ -433,7 +439,8 @@ public class AmbariContextTest {
     expectLastCall().once();
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
-    expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
+    expect(controller.createHostComponents(capture(requestsCapture), eq(true))).andReturn(
+        Sets.newHashSet()).anyTimes();
 
     replayAll();
 

@@ -421,7 +421,7 @@ public class ConfigHandler implements InputConfigMonitor {
   }
 
   public void cleanCheckPointFiles() {
-    inputManager.cleanCheckPointFiles();
+    inputManager.getCheckpointHandler().cleanupCheckpoints();
   }
 
   public void logStats() {

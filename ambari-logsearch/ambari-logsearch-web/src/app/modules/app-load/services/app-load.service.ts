@@ -33,7 +33,7 @@ import {NodeItem} from 'app/classes/models/node-item';
 import {ComponentsService} from 'app/services/storage/components.service';
 import {DataAvailabilityValues} from 'app/classes/string';
 import { DataAvaibilityStatesModel } from '@app/modules/app-load/models/data-availability-state.model';
-import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-avaibility-state.store';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 
 // @ToDo create a separate data state enrty in the store with keys of the model names
 export enum DataStateStoreKeys {

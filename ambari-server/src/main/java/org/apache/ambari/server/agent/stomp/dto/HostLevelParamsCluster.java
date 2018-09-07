@@ -18,7 +18,10 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 
+import java.util.Map;
+
 import org.apache.ambari.server.agent.RecoveryConfig;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,9 +35,14 @@ public class HostLevelParamsCluster {
   @JsonProperty("recoveryConfig")
   private RecoveryConfig recoveryConfig;
 
-  public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig) {
+  @JsonProperty("blueprint_provisioning_state")
+  private Map<String, BlueprintProvisioningState> blueprintProvisioningState;
+
+  public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig,
+                                Map<String, BlueprintProvisioningState> blueprintProvisioningState) {
     this.hostRepositories = hostRepositories;
     this.recoveryConfig = recoveryConfig;
+    this.blueprintProvisioningState = blueprintProvisioningState;
   }
 
   public HostRepositories getHostRepositories() {
@@ -43,5 +51,9 @@ public class HostLevelParamsCluster {
 
   public RecoveryConfig getRecoveryConfig() {
     return recoveryConfig;
+  }
+
+  public Map<String, BlueprintProvisioningState> getBlueprintProvisioningState() {
+    return blueprintProvisioningState;
   }
 }
