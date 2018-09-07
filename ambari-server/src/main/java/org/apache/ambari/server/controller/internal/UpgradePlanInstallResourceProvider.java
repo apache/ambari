@@ -74,7 +74,6 @@ import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -96,7 +95,6 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
   protected static final String UPGRADE_PLAN_INSTALL_ID             = UPGRADE_PLAN_INSTALL + "id";
   protected static final String UPGRADE_PLAN_INSTALL_CLUSTER_NAME   = UPGRADE_PLAN_INSTALL + "cluster_name";
   protected static final String UPGRADE_PLAN_INSTALL_SUCCESS_FACTOR = UPGRADE_PLAN_INSTALL + "success_factor";
-  protected static final String UPGRADE_PLAN_INSTALL_FORCE          = UPGRADE_PLAN_INSTALL + "force";
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.UpgradePlanInstall, UPGRADE_PLAN_INSTALL_ID)
@@ -229,12 +227,6 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
       throw new IllegalArgumentException(String.format("Upgrade plan %s was not found", upgradePlanId));
     }
 
-    boolean forceAll = false;
-    if (propertyMap.containsKey(UPGRADE_PLAN_INSTALL_FORCE)) {
-      String forceAllString = propertyMap.get(UPGRADE_PLAN_INSTALL_FORCE).toString();
-      forceAll = BooleanUtils.toBoolean(forceAllString);
-    }
-
     Float successFactor = DEFAULT_SUCCESS_FACTOR;
     if (propertyMap.containsKey(UPGRADE_PLAN_INSTALL_SUCCESS_FACTOR)) {
       String successFactorString = propertyMap.get(UPGRADE_PLAN_INSTALL_SUCCESS_FACTOR).toString();
@@ -243,7 +235,7 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
 
     RequestStageContainer installRequest = null;
     try {
-      installRequest = createOrchestration(cluster, upgradePlan, successFactor, forceAll);
+      installRequest = createOrchestration(cluster, upgradePlan, successFactor);
     } catch (AmbariException e) {
       throw new IllegalArgumentException(e);
     }
@@ -255,7 +247,7 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
 
   @Transactional(rollbackOn= {AmbariException.class, RuntimeException.class})
   RequestStageContainer createOrchestration(Cluster cluster, UpgradePlanEntity upgradePlan,
-      float successFactor, boolean forceInstall) throws AmbariException, SystemException {
+      float successFactor) throws AmbariException, SystemException {
 
     // TODO - API calls (elsewhere) that make checks for compatible mpacks and selected SGs
 
@@ -320,24 +312,39 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
     details.forEach((installDetail, hosts) -> {
       try {
         List<Stage> stages = buildStages(cluster, stageContainer, installDetail,
-            hosts, successFactor, forceInstall);
+            hosts, successFactor);
 
         stageContainer.addStages(stages);
       } catch (Exception e) {
         throw new IllegalArgumentException(e);
       }
-
     });
-
 
     stageContainer.persist();
 
     return stageContainer;
   }
 
+  /**
+   * Creates the stages for an mpack install across the cluster.
+   * @param cluster
+   *          the cluster
+   * @param stageContainer
+   *          the stage container for making stages
+   * @param installDetail
+   *          the installation detail instance
+   * @param hosts
+   *          the set of hosts for the install detail
+   * @param successFactor
+   *          for the stage
+   * @return
+   *          the list of stages
+   * @throws AmbariException
+   * @throws SystemException
+   */
   private List<Stage> buildStages(Cluster cluster,
       RequestStageContainer stageContainer, MpackInstallDetail installDetail,
-      Set<HostEntity> hosts, float successFactor, boolean forceInstall)
+      Set<HostEntity> hosts, float successFactor)
   throws AmbariException, SystemException {
 
     int maxTasks = s_configuration.getAgentPackageParallelCommandsLimit();
@@ -395,6 +402,10 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
 
         actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(true)));
         actionContext.setExpectedServiceGroupName(installDetail.serviceGroupName);
+
+        Host h = cluster.getHost(host.getHostName());
+        Mpack mpack = getManagementController().getAmbariMetaInfo().getMpack(installDetail.mpackId);
+        RepoOsEntity repoOsEntity = s_repoHelper.getOSEntityForHost(installDetail.mpackEntity, h);
 
         Host h = cluster.getHost(host.getHostName());
         Mpack mpack = getManagementController().getAmbariMetaInfo().getMpack(installDetail.mpackId);
