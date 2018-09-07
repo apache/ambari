@@ -260,7 +260,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
       filters, this.logsContainerService.activeLogsType
     );
     this.paramsSyncStart(); // turn on the 'sync in progress' flag
-    this.router.navigate([params], { relativeTo: this.activatedRoute})
+    this.router.navigate([params], { relativeTo: this.activatedRoute })
       .then(this.paramsSyncStop, this.paramsSyncStop) // turn off the 'sync in progress' flag
       .catch(this.paramsSyncStop); // turn off the 'sync in progress' flag
   }
