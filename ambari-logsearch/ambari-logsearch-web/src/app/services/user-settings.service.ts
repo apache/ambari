@@ -16,19 +16,21 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {FormGroup, FormControl} from '@angular/forms';
-import {Response} from '@angular/http';
-import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
-import {LevelOverridesConfig, LogIndexFilterComponentConfig} from '@app/classes/settings';
-import {LogLevel} from '@app/classes/string';
-import {Filter} from '@app/classes/models/filter';
-import {LogsContainerService} from '@app/services/logs-container.service';
-import {HttpClientService} from '@app/services/http-client.service';
-import {UtilsService} from '@app/services/utils.service';
-import {AppSettingsService} from '@app/services/storage/app-settings.service';
-import {TranslateService} from '@ngx-translate/core';
-import {NotificationService} from '@modules/shared/services/notification.service';
+import { Injectable } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
+import { Response } from '@angular/http';
+import { HomogeneousObject, LogLevelObject } from '@app/classes/object';
+import { LevelOverridesConfig, LogIndexFilterComponentConfig } from '@app/classes/settings';
+import { LogLevel } from '@app/classes/string';
+import { Filter } from '@app/classes/models/filter';
+import { LogsContainerService } from '@app/services/logs-container.service';
+import { HttpClientService } from '@app/services/http-client.service';
+import { UtilsService } from '@app/services/utils.service';
+import { AppSettingsService } from '@app/services/storage/app-settings.service';
+import { TranslateService } from '@ngx-translate/core';
+import { NotificationService } from '@modules/shared/services/notification.service';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
+import { DataAvailabilityValues } from '@app/classes/string';
 
 @Injectable()
 export class UserSettingsService {
@@ -49,7 +51,10 @@ export class UserSettingsService {
     private utils: UtilsService,
     private settingsStorage: AppSettingsService,
     private translateService: TranslateService,
-    private notificationService: NotificationService) {
+    private notificationService: NotificationService,
+    private dataAvailablilityStore: DataAvailabilityStatesStore
+  ) {
+    this.dataAvailablilityStore.setParameter('logIndexFilter', DataAvailabilityValues.NOT_AVAILABLE);
     settingsStorage.getParameter('logIndexFilters').subscribe((filters: HomogeneousObject<HomogeneousObject<Filter>>): void => {
       const configs = this.parseLogIndexFilterObjects(filters);
       this.settingsFormGroup.controls.logIndexFilter.setValue(configs);
@@ -57,9 +62,10 @@ export class UserSettingsService {
   }
 
   loadIndexFilterConfig(clusterNames: string[]): void {
-    let processedRequests: number = 0;
+    let processedRequests = 0;
     const allFilters: HomogeneousObject<Filter> = {};
     const totalCount = clusterNames.length;
+    this.dataAvailablilityStore.setParameter('logIndexFilter', DataAvailabilityValues.LOADING);
     clusterNames.forEach((clusterName: string): void => {
       this.httpClient.get('logIndexFilters', null, {
         clusterName
@@ -71,6 +77,7 @@ export class UserSettingsService {
           });
           if (++processedRequests === totalCount) {
             this.settingsStorage.setParameter('logIndexFilters', allFilters);
+            this.dataAvailablilityStore.setParameter('logIndexFilter', DataAvailabilityValues.AVAILABLE);
             this.currentValues.logIndexFilter = allFilters;
           }
         }
@@ -81,7 +88,7 @@ export class UserSettingsService {
   handleLogIndexFilterUpdate = (response: Response, cluster?: string): void => {
     const title: string = this.translateService.instant('logIndexFilter.update.title');
     const resultStr: string = response instanceof Response && response.ok ? 'success' : 'failed';
-    const data: {[key: string]: any} = response instanceof Response ? response.json() : {};
+    const data: {[key: string]: any} = response instanceof Response && response.text() ? response.json() : {};
     const message: string = this.translateService.instant(`logIndexFilter.update.${resultStr}`, {
       message: '',
       cluster: cluster || '',

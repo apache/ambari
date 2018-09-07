@@ -21,7 +21,7 @@ import { Subject } from 'rxjs/Subject';
 import { DataStateStoreKeys, baseDataKeys } from '@app/modules/app-load/services/app-load.service';
 import { Observable } from 'rxjs/Observable';
 import { DataAvailabilityValues } from '@app/classes/string';
-import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-avaibility-state.store';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 
 export interface DataAvaibilityObject {
   storeKey: DataStateStoreKeys;
