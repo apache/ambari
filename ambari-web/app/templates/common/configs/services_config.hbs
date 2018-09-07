@@ -95,14 +95,14 @@
 {{/if}}
 {{#if hasChangedDependencies}}
   {{#unless controller.isInstallWizard}}
-    <div class="alert alert-warning">
+    <div class="alert alert-warning service-config-alert">
       <span>{{dependenciesMessage}}</span> <a
         href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
     </div>
   {{/unless}}
 {{/if}}
 {{#if showSelectGroupsPopup}}
-  <div class="alert alert-warning">
+  <div class="alert alert-warning service-config-alert">
     <span>{{dependenciesGroupMessage}}</span> <a
       href="#" {{action "changedDependentGroup" target="controller"}}>{{t common.showDetails}}</a>
   </div>

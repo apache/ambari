@@ -20,7 +20,7 @@ import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppLoadService } from './services/app-load.service';
-import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-avaibility-state.store';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 
 export function check_if_authorized(appLoadService: AppLoadService) {
   return () => appLoadService.syncAuthorizedStateWithBackend();

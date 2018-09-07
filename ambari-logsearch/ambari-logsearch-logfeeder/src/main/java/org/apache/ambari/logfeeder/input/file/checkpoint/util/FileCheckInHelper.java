@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.input.file;
+package org.apache.ambari.logfeeder.input.file.checkpoint.util;
 
 import org.apache.ambari.logfeeder.input.InputFile;
 import org.apache.ambari.logfeeder.input.InputFileMarker;

@@ -1193,10 +1193,21 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.MasterComponent.find().toArray().concat(App.SlaveComponent.find().toArray()).filterProperty('service.serviceName', this.get('content.serviceName'));
   }.property('content.serviceName'),
 
-  isStartDisabled: Em.computed.or('isPending', 'content.isStarted'),
+  isStartDisabled: function () {
+    let allComponentsStarted = true;
+    if (this.get('isPending')) return true;
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('installedCount') > 0)
+        allComponentsStarted = false;
+    });
+    return allComponentsStarted && this.get('content.isStarted');
+  }.property('content.isStarted', 'isPending'),
+
 
   isStopDisabled: function () {
+    let allComponentsStopped = true;
     if(this.get('isPending')) return true;
+
     if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
@@ -1206,7 +1217,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (this.get('content.serviceName') == 'PXF' && App.HostComponent.find().filterProperty('componentName', 'PXF').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
-    return !this.get('content.isStarted');
+
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('startedCount') > 0)
+        allComponentsStopped = false;
+    });
+
+    return allComponentsStopped && !this.get('content.isStarted');
   }.property('content.isStarted','isPending', 'App.isHaEnabled'),
 
   isSmokeTestDisabled: function () {

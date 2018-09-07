@@ -22,22 +22,22 @@ package org.apache.ambari.logsearch.util;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.manager.MalformedInputException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -54,78 +54,37 @@ public class JSONUtil {
   @SuppressWarnings("unchecked")
   public static HashMap<String, Object> jsonToMapObject(String jsonStr) {
     if (StringUtils.isBlank(jsonStr)) {
-      logger.info("jsonString is empty, cannot conver to map");
+      logger.info("jsonString is empty, cannot convert to map");
       return null;
     }
     ObjectMapper mapper = new ObjectMapper();
     try {
       Object tempObject = mapper.readValue(jsonStr, new TypeReference<HashMap<String, Object>>() {});
       return (HashMap<String, Object>) tempObject;
-
-    } catch (JsonParseException e) {
-      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
-    } catch (JsonMappingException e) {
-      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+    } catch (JsonMappingException | JsonParseException e) {
+      throw new MalformedInputException("Invalid json input data", e);
     } catch (IOException e) {
-      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+      throw new UncheckedIOException(e);
     }
-
-  }
-
-  @SuppressWarnings("unchecked")
-  public static List<HashMap<String, Object>> jsonToMapObjectList(String jsonStr) {
-    if (StringUtils.isBlank(jsonStr)) {
-      return null;
-    }
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-      Object tempObject = mapper.readValue(jsonStr, new TypeReference<List<HashMap<String, Object>>>() {});
-      return (List<HashMap<String, Object>>) tempObject;
-
-    } catch (JsonParseException e) {
-      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
-    } catch (JsonMappingException e) {
-      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
-    } catch (IOException e) {
-      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
-    }
-
-  }
-
-  public static boolean isJSONValid(String jsonString) {
-    try {
-      new JSONObject(jsonString);
-    } catch (JSONException ex) {
-      try {
-        new JSONArray(jsonString);
-      } catch (JSONException ex1) {
-        return false;
-      }
-    }
-    return true;
   }
 
   public static HashMap<String, Object> readJsonFromFile(File jsonFile) {
     ObjectMapper mapper = new ObjectMapper();
     try {
-      HashMap<String, Object> jsonmap = mapper.readValue(jsonFile, new TypeReference<HashMap<String, Object>>() {});
-      return jsonmap;
+      return mapper.readValue(jsonFile, new TypeReference<HashMap<String, Object>>() {});
     } catch (IOException e) {
       logger.error(e, e.getCause());
     }
-    return new HashMap<String, Object>();
+    return new HashMap<>();
   }
 
-  public static String mapToJSON(Map<String, Object> map) {
+  public static String toJson(Object o) {
     ObjectMapper om = new ObjectMapper();
     try {
-      String json = om.writeValueAsString(map);
-
-      return json;
-    } catch (IOException e) {
-      logger.error(e, e.getCause());
+      return om.writeValueAsString(o);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Error while serializing object to json string", e);
     }
-    return "";
   }
 
   /**
@@ -167,14 +126,6 @@ public class JSONUtil {
     }
   }
 
-  public static String objToJson(Object obj) {
-    return gson.toJson(obj);
-  }
-
-  public static Object jsonToObj(String json, Class<?> klass) {
-    return gson.fromJson(json, klass);
-  }
-
   /**
    * GET VALUES FROM JSON BY GIVING KEY RECURSIVELY
    */
@@ -192,10 +143,8 @@ public class JSONUtil {
     if (jsonObj == null) {
       try {
         JSONArray jsonArray = new JSONArray(jsonStr);
-        String str = null;
         for (int i = 0; i < jsonArray.length(); i++) {
-
-          str = getValuesOfKey(jsonArray.getString(i), keyName, values);
+          String str = getValuesOfKey(jsonArray.getString(i), keyName, values);
           if (str != null) {
             return str;
           }

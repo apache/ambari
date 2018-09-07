@@ -895,7 +895,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @returns {object}
    */
   removeIdentityReferences: function(kerberosDescriptor) {
-    const notReference = (identity) => Em.isNone(identity.reference);
+    const notReference = (identity) => (Em.isNone(identity.reference) && !identity.name.startsWith('/'));
     kerberosDescriptor.services.forEach((service) => {
       if (service.identities) {
         service.identities = service.identities.filter(notReference);

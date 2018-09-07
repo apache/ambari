@@ -36,11 +36,9 @@ public abstract class InputManager implements BlockManager {
 
   public abstract void removeInput(Input input);
 
-  public abstract File getCheckPointFolderFile();
-
-  public abstract void cleanCheckPointFiles();
-
   public abstract void removeInputsForService(String serviceName);
 
   public abstract void startInputs(String serviceName);
+
+  public abstract CheckpointManager getCheckpointHandler();
 }

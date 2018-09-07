@@ -26,8 +26,6 @@ import java.util.TreeMap;
 
 import org.apache.ambari.logsearch.config.api.LogLevelFilterManager;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
-import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
-import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputAdapter;
 import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;

@@ -46,6 +46,7 @@ import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -130,6 +131,9 @@ public class AmbariContext {
 
   @Inject
   private ComponentResolver resolver;
+
+  @Inject
+  HostLevelParamsHolder hostLevelParamsHolder;
 
   @Inject
   private SecurityConfigurationFactory securityConfigurationFactory;
@@ -371,9 +375,10 @@ public class AmbariContext {
 
     try {
       RetryHelper.executeWithRetry(() -> {
-        getController().createHostComponents(requests);
+        getController().createHostComponents(requests, true);
         return null;
       });
+      hostLevelParamsHolder.updateData(hostLevelParamsHolder.getCurrentData(host.getHostId()));
     } catch (AmbariException e) {
       LOG.error("Unable to create host component resource for host {}", hostName, e);
       throw new RuntimeException(String.format("Unable to create host component resource for host '%s': %s",

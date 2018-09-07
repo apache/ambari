@@ -168,8 +168,14 @@ public class InputSimulate extends InputFile {
     return lineNumber;
   }
 
-  public String getBase64FileKey() throws Exception {
-    String fileKey = InetAddress.getLocalHost().getHostAddress() + "|" + getFilePath();
+  public String getBase64FileKey() {
+    String fileKey;
+    try {
+      fileKey = InetAddress.getLocalHost().getHostAddress() + "|" + getFilePath();
+    } catch (Exception e) {
+      // skip
+      fileKey = "localhost|" + getFilePath();
+    }
     return Base64.byteArrayToBase64(fileKey.getBytes());
   }
 

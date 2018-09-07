@@ -78,7 +78,6 @@ CREATE TABLE clusters (
   cluster_info VARCHAR2(255) NULL,
   cluster_name VARCHAR2(100) NOT NULL UNIQUE,
   provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
-  blueprint_provisioning_state VARCHAR2(255) DEFAULT 'NONE',
   security_type VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   desired_cluster_state VARCHAR2(255) NULL,
   desired_stack_id NUMBER(19) NOT NULL,
@@ -291,6 +290,7 @@ CREATE TABLE hostcomponentdesiredstate (
   service_id NUMBER(19) NOT NULL,
   admin_state VARCHAR2(32) NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
+  blueprint_provisioning_state VARCHAR2(255) DEFAULT 'NONE',
   restart_required NUMBER(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
@@ -1427,6 +1427,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'AMBARI.ASSIGN_ROLES', 'Assign roles' FROM dual UNION ALL
   SELECT 'AMBARI.MANAGE_STACK_VERSIONS', 'Manage stack versions' FROM dual UNION ALL
   SELECT 'AMBARI.EDIT_STACK_REPOS', 'Edit stack repository URLs' FROM dual UNION ALL
+  SELECT 'AMBARI.VIEW_STATUS_INFO', 'View status information' FROM dual UNION ALL
   SELECT 'AMBARI.RUN_CUSTOM_COMMAND', 'Perform custom administrative actions' FROM dual;
 
 -- Set authorizations for View User role
@@ -1633,6 +1634,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.ASSIGN_ROLES' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_STACK_VERSIONS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.EDIT_STACK_REPOS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.VIEW_STATUS_INFO' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR';
 
 insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)

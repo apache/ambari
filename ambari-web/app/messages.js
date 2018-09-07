@@ -748,6 +748,9 @@ Em.I18n.translations = {
   'installer.step1.useLocalRepo.uploadFile': 'Upload Version Definition File',
   'installer.step1.useLocalRepo.uploadFile.error.title': 'Upload Version Definition File Error',
   'installer.step1.useLocalRepo.getSurpottedOs.error.title': 'Cannot get supported OS types',
+  'installer.step1.useLocalRepo.getSurpottedOs.stackError.title': 'Stack {0} {1} errors ',
+  'installer.step1.useLocalRepo.getSurpottedOs.noStacksError.title': 'There is no available Stack to install',
+  'installer.step1.useLocalRepo.getSurpottedOs.noStacksError.body': 'All stacks contains errors. Installation can\'t be completed',
   'installer.step1.useLocalRepo.addRepo.button': 'Add Repository',
   'installer.step1.addVersion': 'Add Version',
   'installer.step1.addVersion.stackChanged.popup.body': 'Stack is changed from {0} to {1}.',
@@ -787,6 +790,7 @@ Em.I18n.translations = {
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',
   'installer.step1.retryRepoUrls': 'Click <b>here</b> to retry.',
+  'installer.step1.noVersionDefinitions': 'Unable to load versions data from server.',
 
   'installer.step2.header':'Add Hosts',
   'installer.step2.registration.body1' : 'Ambari Agents can be automatically installed using SSH, or they can be manually installed and registered with the Ambari Server.',
