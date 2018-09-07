@@ -428,8 +428,10 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> {
               Level.ERROR);
         }
       }
-      latestInputMarkers.put(outputData.inputMarker.getAllProperties().get("file_key").toString(),
-        outputData.inputMarker);
+      Object fileKey = outputData.inputMarker.getAllProperties().get("file_key");
+      if (fileKey != null) {
+        latestInputMarkers.put(fileKey.toString(), outputData.inputMarker);
+      }
       localBuffer.add(document);
     }
 

@@ -38,11 +38,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER extends InputMarker> extends ConfigItem<PROP_TYPE> implements Runnable {
+public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER extends InputMarker, INPUT_DESC_TYPE extends InputDescriptor> extends ConfigItem<PROP_TYPE> implements Runnable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Input.class);
 
-  private InputDescriptor inputDescriptor;
+  private INPUT_DESC_TYPE inputDescriptor;
   private PROP_TYPE logFeederProperties;
   private LogSearchConfigLogFeeder logSearchConfig;
   private InputManager inputManager;
@@ -60,7 +60,7 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
   private boolean initDefaultFields;
   protected MetricData readBytesMetric = new MetricData(getReadBytesMetricName(), false);
 
-  public void loadConfigs(InputDescriptor inputDescriptor, PROP_TYPE logFeederProperties,
+  public void loadConfigs(INPUT_DESC_TYPE inputDescriptor, PROP_TYPE logFeederProperties,
                           InputManager inputManager, OutputManager outputManager) {
     this.inputDescriptor = inputDescriptor;
     this.logFeederProperties = logFeederProperties;
@@ -94,7 +94,7 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
     return logFeederProperties;
   }
 
-  public InputDescriptor getInputDescriptor() {
+  public INPUT_DESC_TYPE getInputDescriptor() {
     return inputDescriptor;
   }
 
@@ -215,7 +215,7 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
     }
   }
 
-  public void loadConfig(InputDescriptor inputDescriptor) {
+  public void loadConfig(INPUT_DESC_TYPE inputDescriptor) {
     this.inputDescriptor = inputDescriptor;
   }
 

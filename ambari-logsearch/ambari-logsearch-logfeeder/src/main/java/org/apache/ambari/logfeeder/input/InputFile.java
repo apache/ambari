@@ -44,7 +44,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.util.*;
 
-public class InputFile extends Input<LogFeederProps, InputFileMarker> {
+public class InputFile extends Input<LogFeederProps, InputFileMarker, InputFileBaseDescriptor> {
 
   private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
 
@@ -223,18 +223,19 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
     super.init(logFeederProps);
     LOG.info("init() called");
 
+    InputFileDescriptor inputFileDescriptor = (InputFileDescriptor) getInputDescriptor(); // cast as InputS3 uses InputFileBaseDescriptor
     checkPointExtension = logFeederProps.getCheckPointExtension();
-    checkPointIntervalMS = (int) ObjectUtils.defaultIfNull(((InputFileBaseDescriptor)getInputDescriptor()).getCheckpointIntervalMs(), DEFAULT_CHECKPOINT_INTERVAL_MS);
-    detachIntervalMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDetachIntervalMin(), DEFAULT_DETACH_INTERVAL_MIN * 60);
-    detachTimeMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDetachTimeMin(), DEFAULT_DETACH_TIME_MIN * 60);
-    pathUpdateIntervalMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getPathUpdateIntervalMin(), DEFAULT_LOG_PATH_UPDATE_INTERVAL_MIN * 60);
-    maxAgeMin = (int) ObjectUtils.defaultIfNull(((InputFileDescriptor)getInputDescriptor()).getMaxAgeMin(), 0);
-    boolean initDefaultFields = BooleanUtils.toBooleanDefaultIfNull(getInputDescriptor().isInitDefaultFields(), false);
+    checkPointIntervalMS = (int) ObjectUtils.defaultIfNull(inputFileDescriptor.getCheckpointIntervalMs(), DEFAULT_CHECKPOINT_INTERVAL_MS);
+    detachIntervalMin = (int) ObjectUtils.defaultIfNull(inputFileDescriptor.getDetachIntervalMin(), DEFAULT_DETACH_INTERVAL_MIN * 60);
+    detachTimeMin = (int) ObjectUtils.defaultIfNull(inputFileDescriptor.getDetachTimeMin(), DEFAULT_DETACH_TIME_MIN * 60);
+    pathUpdateIntervalMin = (int) ObjectUtils.defaultIfNull(inputFileDescriptor.getPathUpdateIntervalMin(), DEFAULT_LOG_PATH_UPDATE_INTERVAL_MIN * 60);
+    maxAgeMin = (int) ObjectUtils.defaultIfNull(inputFileDescriptor.getMaxAgeMin(), 0);
+    boolean initDefaultFields = BooleanUtils.toBooleanDefaultIfNull(inputFileDescriptor.isInitDefaultFields(), false);
     setInitDefaultFields(initDefaultFields);
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);
-    dockerLog = BooleanUtils.toBooleanDefaultIfNull(((InputFileDescriptor)getInputDescriptor()).getDockerEnabled(), false);
+    dockerLog = BooleanUtils.toBooleanDefaultIfNull(inputFileDescriptor.getDockerEnabled(), false);
     if (dockerLog) {
       if (logFeederProps.isDockerContainerRegistryEnabled()) {
         boolean isFileReady = isReady();
@@ -279,7 +280,7 @@ public class InputFile extends Input<LogFeederProps, InputFileMarker> {
 
   @Override
   public void start() throws Exception {
-    boolean isProcessFile = BooleanUtils.toBooleanDefaultIfNull(((InputFileDescriptor)getInputDescriptor()).getProcessFile(), true);
+    boolean isProcessFile = BooleanUtils.toBooleanDefaultIfNull(getInputDescriptor().getProcessFile(), true);
     if (isProcessFile) {
       for (int i = logFiles.length - 1; i >= 0; i--) {
         File file = logFiles[i];
