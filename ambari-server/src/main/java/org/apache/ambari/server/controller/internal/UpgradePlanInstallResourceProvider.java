@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
@@ -263,9 +262,10 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
     // for each plan detail, the mpack and selected SG has has already been
     // predetermined via compatibility
 
-    // !!! a single host may get more than one mpack to install.  those are different
-    // !!! host name -> set of mpack package names
-    Map<HostEntity, Set<MpackInstallDetail>> details = new HashMap<>();
+    // !!! an mpack has to be installed across multiple hosts.  because of how
+    // repositories are used for the request, each mpack's hosts must be in their
+    // own stage
+    Map<MpackInstallDetail, Set<HostEntity>> details = new HashMap<>();
 
     for (UpgradePlanDetailEntity upgradePlanEntity : upgradePlan.getDetails()) {
       long serviceGroupId = upgradePlanEntity.getServiceGroupId();
@@ -288,13 +288,13 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
         throw new SystemException("Cannot install upgrade plan as the current mpack is not installed.");
       }
 
+      Set<OsSpecific.Package> packages = new HashSet<>();
+      Set<HostEntity> hosts = new HashSet<>();
       mpackHosts.forEach(mpackHostStateEntity ->
         {
           Host host = cluster.getHost(mpackHostStateEntity.getHostName());
           HostEntity hostEntity = mpackHostStateEntity.getHostEntity();
           String osFamily = host.getOsFamily();
-
-          List<OsSpecific.Package> packages = new ArrayList<>();
 
           OsSpecific anyPackages = targetStack.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
           OsSpecific familyPackages = targetStack.getOsSpecificsSafe().get(osFamily);
@@ -303,28 +303,48 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
           Arrays.stream(new OsSpecific[] {anyPackages, familyPackages})
             .filter(osSpecific -> null != osSpecific && CollectionUtils.isNotEmpty(osSpecific.getPackages()))
             .forEach(osSpecific -> {
-              packages.addAll(osSpecific.getPackages());
-            });
+              packages.addAll(osSpecific.getPackages()); });
 
-          if (!details.containsKey(hostEntity)) {
-            details.put(hostEntity, new HashSet<>());
-          }
+          hosts.add(hostEntity);
 
-          MpackInstallDetail installDetail = new MpackInstallDetail(targetMpackEntity, packages);
-          installDetail.serviceGroupName = serviceGroup.getServiceGroupName();
-          details.get(hostEntity).add(installDetail);
         });
+
+      MpackInstallDetail installDetail = new MpackInstallDetail(targetMpackEntity, packages);
+      installDetail.serviceGroupName = serviceGroup.getServiceGroupName();
+      details.put(installDetail, hosts);
     }
 
-    // !!! at this point we have a map of hosts and the installations that each one needs to run.
+    // !!! at this point we have a map of detail and the hosts they should run on
 
     RequestStageContainer stageContainer = createRequest();
+    details.forEach((installDetail, hosts) -> {
+      try {
+        List<Stage> stages = buildStages(cluster, stageContainer, installDetail,
+            hosts, successFactor, forceInstall);
 
-    Iterator<Entry<HostEntity, Set<MpackInstallDetail>>> hostMapIterator = details.entrySet().iterator();
+        stageContainer.addStages(stages);
+      } catch (Exception e) {
+        throw new IllegalArgumentException(e);
+      }
+
+    });
+
+
+    stageContainer.persist();
+
+    return stageContainer;
+  }
+
+  private List<Stage> buildStages(Cluster cluster,
+      RequestStageContainer stageContainer, MpackInstallDetail installDetail,
+      Set<HostEntity> hosts, float successFactor, boolean forceInstall)
+  throws AmbariException, SystemException {
 
     int maxTasks = s_configuration.getAgentPackageParallelCommandsLimit();
-    int hostCount = details.size();
+    int hostCount = hosts.size();
     int batchCount = (int) (Math.ceil((double) hostCount / maxTasks));
+    String mpackName = installDetail.mpackEntity.getMpackName();
+    String mpackVersion = installDetail.mpackEntity.getMpackVersion();
 
 
     long stageId = stageContainer.getLastStageId() + 1;
@@ -353,55 +373,60 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
       // add the stage that was just created
       stages.add(stage);
 
+      Iterator<HostEntity> hostIterator = hosts.iterator();
+
       // Populate with commands for host
-      for (int i = 0; i < maxTasks && hostMapIterator.hasNext(); i++) {
-        Entry<HostEntity, Set<MpackInstallDetail>> entry = hostMapIterator.next();
-        HostEntity host = entry.getKey();
+      for (int i = 0; i < maxTasks && hostIterator.hasNext(); i++) {
+
+        HostEntity host = hostIterator.next();
 
         // add host to this stage
         RequestResourceFilter filter = new RequestResourceFilter(null, null, null,
                 Collections.singletonList(host.getHostName()));
 
-        List<OsSpecific.Package> packages = new ArrayList<>();
-        entry.getValue().forEach(d -> { packages.addAll(d.mpackPackages); });
+        Set<OsSpecific.Package> packages = installDetail.mpackPackages;
 
         Map<String, String> roleParams = ImmutableMap.<String, String>builder()
             .put(KeyNames.PACKAGE_LIST, s_gson.toJson(packages))
             .build();
 
-        // !!! this loop PROBABLY won't work out, but leave for now to get things going
-        for (MpackInstallDetail mpackDetail : entry.getValue()) {
-          ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-              MPACK_PACKAGES_ACTION, Collections.singletonList(filter), roleParams);
+        ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
+            MPACK_PACKAGES_ACTION, Collections.singletonList(filter), roleParams);
 
-          actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(true)));
-          actionContext.setExpectedServiceGroupName(mpackDetail.serviceGroupName);
+        actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(true)));
+        actionContext.setExpectedServiceGroupName(installDetail.serviceGroupName);
 
-          Host h = cluster.getHost(host.getHostName());
-          Mpack mpack = getManagementController().getAmbariMetaInfo().getMpack(mpackDetail.mpackId);
-          RepoOsEntity repoOsEntity = s_repoHelper.getOSEntityForHost(mpackDetail.mpackEntity, h);
+        Host h = cluster.getHost(host.getHostName());
+        Mpack mpack = getManagementController().getAmbariMetaInfo().getMpack(installDetail.mpackId);
+        RepoOsEntity repoOsEntity = s_repoHelper.getOSEntityForHost(installDetail.mpackEntity, h);
 
-          // this isn't being placed correctly elsewhere
-          actionContext.addVisitor(command -> {
-            try {
-              command.setClusterSettings(cluster.getClusterSettingsNameValueMap());
-            } catch (AmbariException e) {
-              LOG.warn("Could not set cluster settings on the command", e);
-            }
+        // this isn't being placed correctly elsewhere
+        actionContext.addVisitor(command -> {
+          try {
+            command.setClusterSettings(cluster.getClusterSettingsNameValueMap());
+          } catch (AmbariException e) {
+            LOG.warn("Could not set cluster settings on the command", e);
+          }
+        });
+
+        s_repoHelper.addCommandRepositoryToContext(actionContext, mpack, repoOsEntity);
+
+        s_actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
+
+        // need to set meaningful text on the command
+        stage.getHostRoleCommands().values().forEach(map -> {
+          map.values().forEach(hrc -> {
+            hrc.setCommandDetail(String.format("Install %s %s", mpackName, mpackVersion));
           });
+        });
 
-          s_repoHelper.addCommandRepositoryToContext(actionContext, mpack, repoOsEntity);
-
-          s_actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
-        }
       }
     }
 
-    stageContainer.addStages(stages);
-    stageContainer.persist();
-
-    return stageContainer;
+    return stages;
   }
+
+
 
   @Override
   public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
@@ -425,13 +450,16 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
     return requestStages;
   }
 
+  /**
+   * Each mpack holds its own information regarding what needs to be installed
+   */
   private static class MpackInstallDetail {
     private MpackEntity mpackEntity;
     private long mpackId = -1L;
-    private List<OsSpecific.Package> mpackPackages = new ArrayList<>();
+    private Set<OsSpecific.Package> mpackPackages = new HashSet<>();
     private String serviceGroupName;
 
-    private MpackInstallDetail(MpackEntity entity, List<OsSpecific.Package> packages) {
+    private MpackInstallDetail(MpackEntity entity, Set<OsSpecific.Package> packages) {
       mpackEntity = entity;
       mpackId = entity.getId();
       mpackPackages = packages;
