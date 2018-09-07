@@ -52,6 +52,8 @@ import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.serv
 import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 import {NotificationService} from '@modules/shared/services/notification.service';
 
+import { dataAvailabilityStates, DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
+
 describe('TimeZonePickerComponent', () => {
   let component: TimeZonePickerComponent;
   let fixture: ComponentFixture<TimeZonePickerComponent>;
@@ -78,7 +80,8 @@ describe('TimeZonePickerComponent', () => {
           serviceLogsFields,
           serviceLogsHistogramData,
           serviceLogsTruncated,
-          tabs
+          tabs,
+          dataAvailabilityStates
         }),
         ...TranslationModules
       ],
@@ -106,7 +109,8 @@ describe('TimeZonePickerComponent', () => {
         LogsFilteringUtilsService,
         LogsStateService,
         NotificationsService,
-        NotificationService
+        NotificationService,
+        DataAvailabilityStatesStore
       ],
     })
     .compileComponents();

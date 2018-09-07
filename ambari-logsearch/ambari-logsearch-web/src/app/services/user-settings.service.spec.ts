@@ -46,6 +46,8 @@ import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 import {NotificationService} from '@modules/shared/services/notification.service';
 
+import { dataAvailabilityStates, DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
+
 describe('UserSettingsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -64,7 +66,8 @@ describe('UserSettingsService', () => {
           components,
           hosts,
           serviceLogsTruncated,
-          tabs
+          tabs,
+          dataAvailabilityStates
         }),
         ...TranslationModules
       ],
@@ -91,7 +94,8 @@ describe('UserSettingsService', () => {
         LogsFilteringUtilsService,
         LogsStateService,
         NotificationsService,
-        NotificationService
+        NotificationService,
+        DataAvailabilityStatesStore
       ]
     });
   });
