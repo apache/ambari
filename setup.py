@@ -48,11 +48,35 @@ def create_package_dir_map():
 
   return package_dirs
 
-__version__ = "3.0.0.dev0"
+__version__ = "2.0.0.0-SNAPSHOT"
+
 def get_version():
-  ambari_version = os.environ["AMBARI_VERSION"] if "AMBARI_VERSION" in os.environ else __version__
-  print ambari_version
-  return ambari_version
+  """
+  Obtain ambari version during the build from pom.xml, which will be stored in PKG-INFO file.
+  During installation from pip, pom.xml is not included in the distribution but PKG-INFO is, so it can be used
+  instead of pom.xml file. If for some reason both are not exists use the default __version__ variable.
+  All of these can be overridden by AMBARI_VERSION environment variable.
+  """
+  base_dir = dirname(__file__)
+  if "AMBARI_VERSION" in os.environ:
+    return os.environ["AMBARI_VERSION"]
+  elif os.path.exists(os.path.join(base_dir, 'pom.xml')):
+    from xml.etree import ElementTree as et
+    ns = "http://maven.apache.org/POM/4.0.0"
+    et.register_namespace('', ns)
+    tree = et.ElementTree()
+    tree.parse(os.path.join(base_dir, 'pom.xml'))
+    parent_version_tag = tree.getroot().find("{%s}version" % ns)
+    return parent_version_tag.text if parent_version_tag is not None else __version__
+  elif os.path.exists(os.path.join(base_dir, 'PKG-INFO')):
+    import re
+    version = None
+    version_re = re.compile('^Version: (.+)$', re.M)
+    with open(os.path.join(base_dir, 'PKG-INFO')) as f:
+      version = version_re.search(f.read()).group(1)
+    return version if version is not None else __version__
+  else:
+    return __version__
 
 """
 Example usage:
@@ -64,9 +88,7 @@ Example usage:
   python setup.py sdist -d "my/dist/location" upload -r "http://localhost:8080"
 
 Installing from pip:
-- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1  // 3.0.0.dev0 is the snapshot version
-
-Note: using 'export AMBARI_VERSION=2.7.1' before commands you can redefine the package version, but you will need this export during the pip install as well
+- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1.0  // 2.0.0.0-SNAPSHOT is the snapshot version
 """
 setup(
   name = "ambari-python",
