@@ -53,17 +53,17 @@ function get_version() {
 }
 
 function clean() {
-  if [ -d "$SCRIPT_DIR/dist" ]; then
+  if [[ -d "$SCRIPT_DIR/dist" ]]; then
     echo "Removing '$SCRIPT_DIR/dist' directoy ..."
     rm -r "$SCRIPT_DIR/dist"
     echo "Directory '$SCRIPT_DIR/dist' successfully deleted."
   fi
-  if [ -d "$SCRIPT_DIR/ambari_python.egg-info" ]; then
+  if [[ -d "$SCRIPT_DIR/ambari_python.egg-info" ]]; then
     echo "Removing '$SCRIPT_DIR/ambari_python.egg-info' directoy ..."
     rm -r "$SCRIPT_DIR/ambari_python.egg-info"
     echo "Directory '$SCRIPT_DIR/ambari_python.egg-info' successfully deleted."
   fi
-  if [ -d "$SCRIPT_DIR/target/ambari-python-dist" ]; then
+  if [[ -d "$SCRIPT_DIR/target/ambari-python-dist" ]]; then
     echo "Removing '$SCRIPT_DIR/target/ambari-python' directoy ..."
     rm -r "$SCRIPT_DIR/target/ambari-python-dist"
     echo "Directory '$SCRIPT_DIR/target/ambari-python' successfully deleted."
@@ -148,12 +148,6 @@ function main() {
 
   if [[ -z "$DEPLOY" ]] ; then
     DEPLOY="false"
-  fi
-
-  if [ "$(uname -s)" = 'Linux' ]; then
-    SCRIPT_DIR="`dirname "$(readlink -f "$0")"`"
-  else
-    SCRIPT_DIR="`dirname "$(readlinkf "$0")"`"
   fi
 
   clean
