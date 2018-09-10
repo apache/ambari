@@ -28,7 +28,7 @@ import re
 import socket
 
 cluster_prefix = "perf"
-ambari_repo_file_url = "http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos6/2.x/updates/2.5.0.0/ambaribn.repo"
+ambari_repo_file_url = "http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos7/2.x/updates/2.6.2.0/ambaribn.repo"
 
 public_hostname_script = "foo"
 hostname_script = "foo"
@@ -279,14 +279,14 @@ def create_vms(args, number_of_nodes):
   :param args: Command line args
   :param number_of_nodes: Number of VMs to request.
   """
-  print "Creating server VM {0}-server-{1} with xxlarge nodes on centos6...".format(cluster_prefix, args.cluster_suffix)
-  execute_command(args, args.controller, "/usr/sbin/gce up {0}-server-{1} 1 --centos6 --xxlarge --ex --disk-xxlarge --ssd".format(cluster_prefix, args.cluster_suffix),
+  print "Creating server VM {0}-server-{1} with xxlarge nodes on centos7...".format(cluster_prefix, args.cluster_suffix)
+  execute_command(args, args.controller, "/opt/gce-utils/gce up {0}-server-{1} 1 --centos7 --xlarge --ex --disk-xxlarge --ssd".format(cluster_prefix, args.cluster_suffix),
                   "Failed to create server, probably not enough resources!", "-tt")
   time.sleep(10)
 
   # trying to create cluster with needed params
-  print "Creating agent VMs {0}-agent-{1} with {2} xlarge nodes on centos6...".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes))
-  execute_command(args, args.controller, "/usr/sbin/gce up {0}-agent-{1} {2} --centos6 --xlarge --ex --disk-xlarge".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)),
+  print "Creating agent VMs {0}-agent-{1} with {2} xlarge nodes on centos7...".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes))
+  execute_command(args, args.controller, "/opt/gce-utils/gce up {0}-agent-{1} {2} --centos7 --xlarge --ex --disk-xlarge".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)),
                   "Failed to create cluster VMs, probably not enough resources!", "-tt")
 
   # VMs are not accessible immediately
@@ -329,6 +329,7 @@ def create_server_script(server_host_name):
   # echo "arg=value" >> .../ambari.properties
 
   contents = "#!/bin/bash\n" + \
+  "yum install wget -y\n" + \
   "wget -O /etc/yum.repos.d/ambari.repo {0}\n".format(ambari_repo_file_url) + \
   "yum clean all; yum install git ambari-server -y\n" + \
   "mkdir /home ; cd /home ; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
@@ -399,6 +400,7 @@ def create_agent_script(server_host_name):
 
   # TODO, instead of cloning Ambari repo on each VM, do it on the server once and distribute to all of the agents.
   contents = "#!/bin/bash\n" + \
+  "yum install wget -y\n" + \
   "wget -O /etc/yum.repos.d/ambari.repo {0}\n".format(ambari_repo_file_url) + \
   "yum clean all; yum install krb5-workstation git ambari-agent -y\n" + \
   "mkdir /home ; cd /home; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
@@ -476,7 +478,7 @@ def __get_vms_list_from_name(args, cluster_name):
   :param args: Command line args
   :return: Mapping of VM host name to ip.
   """
-  gce_fqdb_cmd = '/usr/sbin/gce fqdn {0}'.format(cluster_name)
+  gce_fqdb_cmd = '/opt/gce-utils/gce fqdn {0}'.format(cluster_name)
   out = execute_command(args, args.controller, gce_fqdb_cmd, "Failed to get VMs list!", "-tt")
   lines = out.split('\n')
   #print "LINES=" + str(lines)
@@ -485,7 +487,7 @@ def __get_vms_list_from_name(args, cluster_name):
     for s in lines[2:]:  # Ignore non-meaningful lines
       if not s:
         continue
-      match = re.match(r'^([\d\.]*)\s+([\w\.-]*)\s+([\w\.-]*)\s$', s, re.M)
+      match = re.match(r'^([\d\.]*)\s+([\w\.-]*)\s+([\w\.-]*)\s+$', s, re.M)
       if match:
         result[match.group(2)] = match.group(1)
       else:
