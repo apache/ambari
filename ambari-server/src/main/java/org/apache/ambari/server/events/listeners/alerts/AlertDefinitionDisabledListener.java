@@ -17,11 +17,18 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
+import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +53,9 @@ public class AlertDefinitionDisabledListener {
   @Inject
   private AlertsDAO m_alertsDao = null;
 
+  @Inject
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
+
   /**
    * Constructor.
    *
@@ -67,5 +77,15 @@ public class AlertDefinitionDisabledListener {
     LOG.debug("Received event {}", event);
 
     m_alertsDao.removeCurrentDisabledAlerts();
+
+    // send API STOMP alert update
+    Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = new HashMap<>();
+
+    AlertSummaryGroupedRenderer.updateSummary(summaries, event.getDefinitionId(),
+        event.getDefinitionName(), AlertState.UNKNOWN, null, null, "");
+
+    Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> alertUpdates = new HashMap<>();
+    alertUpdates.put(event.getClusterId(), summaries);
+    STOMPUpdatePublisher.publish(new AlertUpdateEvent(alertUpdates));
   }
 }
