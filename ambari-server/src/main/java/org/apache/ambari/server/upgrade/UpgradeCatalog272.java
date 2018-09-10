@@ -19,6 +19,7 @@ package org.apache.ambari.server.upgrade;
 
 import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.LDAP_CONFIGURATION;
 import static org.apache.ambari.server.security.authorization.RoleAuthorization.AMBARI_VIEW_STATUS_INFO;
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.CLUSTER_MANAGE_WIDGETS;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_TABLE;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -97,6 +99,8 @@ public class UpgradeCatalog272 extends AbstractUpgradeCatalog {
   protected void createRoleAuthorizations() throws SQLException {
     addRoleAuthorization(AMBARI_VIEW_STATUS_INFO.getId(), "View status information", Collections.singleton("AMBARI.ADMINISTRATOR:AMBARI"));
     LOG.info("Added new role authorization {}", AMBARI_VIEW_STATUS_INFO.getId());
+    addRoleAuthorization(CLUSTER_MANAGE_WIDGETS.getId(), "Manage widgets", Sets.newHashSet( "AMBARI.ADMINISTRATOR:AMBARI", "CLUSTER.ADMINISTRATOR:CLUSTER", "CLUSTER.OPERATOR:CLUSTER"));
+    LOG.info("Added new role authorization {}", CLUSTER_MANAGE_WIDGETS.getId());
   }
 
   protected void moveBlueprintProvisioningState() throws SQLException {
