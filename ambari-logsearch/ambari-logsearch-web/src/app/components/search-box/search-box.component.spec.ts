@@ -18,10 +18,14 @@
 
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {StoreModule} from '@ngrx/store';
+
 import {TranslationModules} from '@app/test-config.spec';
 import {UtilsService} from '@app/services/utils.service';
 
 import {SearchBoxComponent} from './search-box.component';
+import {ComponentsService, components} from '@app/services/storage/components.service';
+import {ComponentLabelPipe} from '@app/pipes/component-label';
 
 describe('SearchBoxComponent', () => {
   let component: SearchBoxComponent;
@@ -29,9 +33,18 @@ describe('SearchBoxComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [SearchBoxComponent],
-      imports: TranslationModules,
+      declarations: [
+        ComponentLabelPipe,
+        SearchBoxComponent
+      ],
+      imports: [
+        ...TranslationModules,
+        StoreModule.provideStore({
+          components
+        })
+      ],
       providers: [
+        ComponentsService,
         UtilsService
       ],
       schemas: [NO_ERRORS_SCHEMA]
