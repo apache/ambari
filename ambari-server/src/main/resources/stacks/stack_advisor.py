@@ -2987,6 +2987,10 @@ class DefaultStackAdvisor(StackAdvisor):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
+
+    if not dir:
+      return self.getErrorItem("Value has wrong format")
+
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
