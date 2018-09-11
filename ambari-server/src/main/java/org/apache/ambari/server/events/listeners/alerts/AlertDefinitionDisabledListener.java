@@ -28,7 +28,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
-import org.apache.ambari.server.state.AlertState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,13 +78,9 @@ public class AlertDefinitionDisabledListener {
     m_alertsDao.removeCurrentDisabledAlerts();
 
     // send API STOMP alert update
-    Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = new HashMap<>();
-
-    AlertSummaryGroupedRenderer.updateSummary(summaries, event.getDefinitionId(),
-        event.getDefinitionName(), AlertState.UNKNOWN, null, null, "");
-
     Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> alertUpdates = new HashMap<>();
-    alertUpdates.put(event.getClusterId(), summaries);
+    alertUpdates.put(event.getClusterId(), AlertSummaryGroupedRenderer.generateEmptySummary(event.getDefinitionId(),
+        event.getDefinitionName()));
     STOMPUpdatePublisher.publish(new AlertUpdateEvent(alertUpdates));
   }
 }
