@@ -228,6 +228,18 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
     }
   }
 
+  public static Map<String, AlertDefinitionSummary> generateEmptySummary(Long definitionId, String definitionName) {
+    Map<String, AlertDefinitionSummary> summaries = new HashMap<>();
+
+    AlertDefinitionSummary groupSummaryInfo = new AlertDefinitionSummary();
+    groupSummaryInfo.Id = definitionId;
+    groupSummaryInfo.Name = definitionName;
+
+    summaries.put(definitionName, groupSummaryInfo);
+
+    return summaries;
+  }
+
   /**
    * {@inheritDoc}
    * <p/>
