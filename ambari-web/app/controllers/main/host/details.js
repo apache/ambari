@@ -1574,6 +1574,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   getZookeeperConnectionString: function () {
+    var zookeeperHosts = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('hostName')
     return this.getRangerKMSServerHosts().map(function (host) {
       return host + ':2181';
     }).join(',');
