@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
@@ -56,24 +57,14 @@ public class StackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
 
   private static StackAdvisorHelper stackAdvisorHelper;
 
-  static final String RECOMMENDATION_FAILED = "Configuration recommendation failed.";
-  static final String INVALID_RESPONSE = "Configuration recommendation returned with invalid response.";
-
   public static void init(StackAdvisorHelper instance) {
     stackAdvisorHelper = instance;
   }
 
-  private static final Map<String, String> userContext;
-  static
-  {
-    userContext = new HashMap<>();
-    userContext.put("operation", "ClusterCreate");
-  }
+  private static final Map<String, String> userContext = ImmutableMap.of("operation", "ClusterCreate");
 
   /**
-   * Recommend configurations by the stack advisor, then store the results in cluster topology.
-   * @param clusterTopology cluster topology instance
-   * @param userProvidedConfigurations User configurations of cluster provided in Blueprint + Cluster template
+   * {@inheritDoc}
    */
   public void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> userProvidedConfigurations) throws ConfigurationTopologyException {
     for (StackId stackId : clusterTopology.getStackIds()) {

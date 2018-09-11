@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.mpackadvisor.recommendations.MpackRecommendationResponse;
@@ -68,8 +69,6 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
 
   private static MpackAdvisorHelper mpackAdvisorHelper;
 
-  static final String RECOMMENDATION_FAILED = "Configuration recommendation failed.";
-  static final String INVALID_RESPONSE = "Configuration recommendation returned with invalid response.";
   private static AmbariMetaInfo metaInfo;
 
   public static void init(MpackAdvisorHelper instance, AmbariMetaInfo ambariMetaInfo) {
@@ -77,17 +76,10 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
     metaInfo = ambariMetaInfo;
   }
 
-  private static final Map<String, String> userContext;
-  static
-  {
-    userContext = new HashMap<>();
-    userContext.put("operation", "ClusterCreate");
-  }
+  private static final Map<String, String> userContext = ImmutableMap.of("operation", "ClusterCreate");
 
   /**
-   * Recommend configurations by the mpack advisor, then store the results in cluster topology.
-   * @param clusterTopology cluster topology instance
-   * @param userProvidedConfigurations User configurations of cluster provided in Blueprint + Cluster template
+   * {@inheritDoc}
    */
   public void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> userProvidedConfigurations) throws ConfigurationTopologyException {
     MpackAdvisorRequest request = createMpackAdvisorRequest(clusterTopology, MpackAdvisorRequest.MpackAdvisorRequestType.CONFIGURATIONS);
@@ -173,11 +165,11 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
   }
 
   private Map<String, Set<String>> gatherHostGroupBindings(ClusterTopology clusterTopology) {
-    Map<String, Set<String>> hgBindngs = Maps.newHashMap();
+    Map<String, Set<String>> hgBindings = Maps.newHashMap();
     for (Map.Entry<String, HostGroupInfo> hgEnrty: clusterTopology.getHostGroupInfo().entrySet()) {
-      hgBindngs.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getHostNames()));
+      hgBindings.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getHostNames()));
     }
-    return hgBindngs;
+    return hgBindings;
   }
 
   private Map<String, Set<Component>> gatherHostGroupComponents(ClusterTopology clusterTopology) {

@@ -23,8 +23,24 @@ import java.util.Map;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.topology.ClusterTopology;
 
+/**
+ * Common interface for topology/configuration recommendation engines. Currently there is a legacy implementation for
+ * stack advisor and a new implementation for mpack advisor.
+ * <p>See:
+ * {@link org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor}
+ * {@link org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorBlueprintProcessor}
+ * </p>
+ */
 public interface AdvisorBlueprintProcessor {
 
+  static final String RECOMMENDATION_FAILED = "Configuration recommendation failed.";
+  static final String INVALID_RESPONSE = "Configuration recommendation returned with invalid response.";
+
+  /**
+   * Recommend configurations by the advisor, then store the results in cluster topology.
+   * @param clusterTopology cluster topology instance
+   * @param userProvidedConfigurations User configurations of cluster provided in Blueprint + Cluster template
+   */
   void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> userProvidedConfigurations) throws ConfigurationTopologyException;
 
 }
