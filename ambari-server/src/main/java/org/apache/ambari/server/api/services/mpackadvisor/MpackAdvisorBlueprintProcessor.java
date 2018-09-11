@@ -24,18 +24,15 @@ import static org.apache.ambari.server.utils.ExceptionUtils.unchecked;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.mpackadvisor.recommendations.MpackRecommendationResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
@@ -46,13 +43,14 @@ import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.MpackInstance;
+import org.apache.ambari.server.topology.ResolvedComponent;
 import org.apache.ambari.server.topology.ServiceInstance;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -95,15 +93,8 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
 
   private MpackAdvisorRequest createMpackAdvisorRequest(ClusterTopology clusterTopology,
                                                         MpackAdvisorRequest.MpackAdvisorRequestType requestType) {
-    Map<String, Set<Component>> hgComponentsMap = gatherHostGroupComponents(clusterTopology);
-    Map<String, Set<String>> hgHostsMap = gatherHostGroupBindings(clusterTopology);
-    Map<String, Map<String, Set<String>>> mpackComponentsHostsMap = gatherMackComponentsHostsMap(hgComponentsMap,
-      hgHostsMap, clusterTopology.getMpacks());
-    Map<String, Set<String>> mpackComponentsMap = mpackComponentsHostsMap.entrySet().stream().collect(toMap(
-      Map.Entry::getKey,
-      componentHostMap -> Sets.newHashSet(componentHostMap.getValue().keySet())
-    ));
-    Set<MpackInstance> mpacks = copyAndEnrichMpackInstances(clusterTopology, mpackComponentsMap);
+    Map<String, Map<String, Set<String>>> mpackComponentsHostsMap = gatherMackComponentsHostsMap(clusterTopology);
+    Set<MpackInstance> mpacks = copyAndEnrichMpackInstances(clusterTopology);
     Configuration configuration = clusterTopology.getConfiguration();
     return MpackAdvisorRequest.MpackAdvisorRequestBuilder
       .forStack()
@@ -118,20 +109,30 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
       .build();
   }
 
-  private Set<MpackInstance> copyAndEnrichMpackInstances(ClusterTopology topology,
-                                                         Map<String, Set<String>> mpackComponentsMap) {
+  private Set<MpackInstance> copyAndEnrichMpackInstances(ClusterTopology topology) {
     // Copy mpacks
     Set<MpackInstance> mpacks = topology.getMpacks().stream().map(MpackInstance::copy).collect(toSet());
+
     // Add missing service instances
+    Map<StackId, Set<String>> mpackServices = topology.getComponents().collect(toMap(
+      ResolvedComponent::stackId,
+      comp -> ImmutableSet.of(comp.serviceInfo().getName()),
+      (set1, set2) -> ImmutableSet.copyOf(Sets.union(set1, set2))
+    ));
     for (MpackInstance mpack: mpacks) {
-      Set<String> mpackComponents = mpackComponentsMap.get(mpack.getMpackType()); // TODO: this should be getMpackName() once mpack advisor fixed
-      for (ServiceInfo serviceInfo : unchecked(() -> metaInfo.getStack(mpack.getStackId())).getServices()) {
-        boolean serviceUsedInBlueprint =
-          serviceInfo.getComponents().stream().filter(comp -> mpackComponents.contains(comp.getName())).findAny().isPresent();
-        // TODO: we will will have to check for existing service instances once multi-service will be enabled and
-        // mpack instances in blueprints may contain service instances
-        if (serviceUsedInBlueprint) {
-          mpack.getServiceInstances().add(new ServiceInstance(serviceInfo.getName(), serviceInfo.getName(), null, mpack));
+      if (!mpackServices.containsKey(mpack.getStackId())) {
+        LOG.warn("No services declared for mpack {}.", mpack.getStackId());
+      }
+      else {
+        Set<String> existingMpackServices = mpack.getServiceInstances().stream().map(ServiceInstance::getType).collect(toSet());
+        for(String service: mpackServices.get(mpack.getStackId())) {
+          if (existingMpackServices.contains(service)) {
+            LOG.debug("Mpack instance {} already contains service {}", mpack.getStackId(), service);
+          }
+          else {
+            LOG.debug("Adding service {} to mpack instance {}", service, mpack.getStackId());
+            mpack.getServiceInstances().add(new ServiceInstance(service, service, null, mpack));
+          }
         }
       }
     }
@@ -191,46 +192,20 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
     return result;
   }
 
-  private Map<String, Map<String, Set<String>>> gatherMackComponentsHostsMap(Map<String, Set<Component>> hostGroupComponents,
-                                                                Map<String, Set<String>> hostGroupHosts,
-                                                                Set<MpackInstance> mpacks) {
-
-    // Calculate helper maps
-    Map<String, Set<String>> mpackComponents = mpacks.stream()
-      .collect(toMap(
-        MpackInstance::getMpackType, // TODO: this is supposed to be MpackInstance::getMpackName, fix mpack advisor
-        mpack -> getStackComponents(mpack.getStackId())
-      ));
-
-    Map<String, Set<String>> componentNameToMpacks = mpackComponents.entrySet().stream()
-      .flatMap( mpc -> mpc.getValue().stream().map(component -> Pair.of(component, ImmutableSet.of(mpc.getKey()))) )
-      .collect(toMap(
-        Pair::getLeft,
-        Pair::getRight,
-        (set1, set2) -> ImmutableSet.copyOf(Sets.union(set1, set2))
-      ));
-
-    Map<String, Set<Component>> hostComponents = hostGroupComponents.entrySet().stream()
-      .flatMap( hgc -> hostGroupHosts.get(hgc.getKey()).stream().map(host -> Pair.of(host, hgc.getValue())))
-      .collect(toMap(Pair::getLeft, Pair::getRight));
-
-    // Calculate map to return: mpack -> component -> host
-    Map<String, Map<String, Set<String>>> mpackComponentHostsMap = new HashMap<>();
-
-    hostComponents.entrySet().forEach( entry -> {
-      String hostName = entry.getKey();
-      Set<Component> components = entry.getValue();
-      components.forEach( component -> {
-        Set<String> mpacksForComponent = getMpacksForComponent(component, componentNameToMpacks);
-        mpacksForComponent.forEach(mpack -> {
-          mpackComponentHostsMap
-            .computeIfAbsent(mpack, __ -> new HashMap<>())
-            .computeIfAbsent(component.getName(), __ -> new HashSet<>())
-            .add(hostName);
-        });
-      });
-    });
-    return mpackComponentHostsMap;
+  private Map<String, Map<String, Set<String>>> gatherMackComponentsHostsMap(ClusterTopology topology) {
+    Map<String, Map<String, Set<String>>> mpackComponentsHostsMap = new HashMap<>();
+    for (Map.Entry<String, Set<ResolvedComponent>> hgToComps : topology.getComponentsByHostGroup().entrySet()) {
+      String hostGroup = hgToComps.getKey();
+      Set<ResolvedComponent> components = hgToComps.getValue();
+      Set<String> hosts = topology.getHostGroupInfo().get(hostGroup).getHostNames();
+      for (ResolvedComponent component: components) {
+        String mpackName = component.stackId().getStackName(); // TODO: support multiple mpacks under different names?
+        mpackComponentsHostsMap
+          .computeIfAbsent(mpackName, __ -> new HashMap<>())
+          .put(component.componentName(), hosts);
+      }
+    }
+    return mpackComponentsHostsMap;
   }
 
   private Set<String> getMpacksForComponent(Component component, Map<String, Set<String>> componentToMpacks) {

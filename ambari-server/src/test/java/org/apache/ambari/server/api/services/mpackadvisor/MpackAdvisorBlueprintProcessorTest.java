@@ -97,6 +97,12 @@ public class MpackAdvisorBlueprintProcessorTest {
   private static final String HBASE_MASTER = "HBASE_MASTER";
   private static final String HBASE_REGIONSERVER = "HBASE_REGIONSERVER";
 
+  private static final String ZOOKEEPER = "ZOOKEEPER";
+  private static final String ZOOKEEPER_CLIENTS = "ZOOKEEPER_CLIENTS";
+  private static final String HDFS = "HDFS";
+  private static final String HADOOP_CLIENTS = "HADOOP_CLIENTS";
+  private static final String HBASE = "HBASE";
+
   private static final StackId STACK_ID_HDP_CORE = new StackId("HDPCORE", "1.0.0");
   private static final StackId STACK_ID_ODS = new StackId("ODS", "1.0.1");
 
@@ -161,6 +167,8 @@ public class MpackAdvisorBlueprintProcessorTest {
     expect(topology.getMpacks()).andReturn(mpacks).anyTimes();
     expect(topology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(topology.getComponentsByHostGroup()).andReturn(componentsByHostgroup).anyTimes();
+    expect(topology.getComponents()).andAnswer(
+      () -> componentsByHostgroup.values().stream().flatMap(Set::stream)).anyTimes();
     expect(topology.isValidConfigType(anyString())).andReturn(true).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andAnswer(() -> recommendationStrategy).anyTimes();
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
@@ -189,13 +197,16 @@ public class MpackAdvisorBlueprintProcessorTest {
     // setup default host groups
     addHostGroup(HOSTGROUP_1,
       ImmutableList.of(HOST_1),
-      ImmutableList.of(HADOOP_CLIENT  + "@HDPCORE",
-        ZOOKEEPER_CLIENT + "@ODS",
-        NAMENODE,
-        DATANODE,
-        ZOOKEEPER_SERVER,
-        HBASE_MASTER,
-        HBASE_REGIONSERVER));
+      ImmutableSet.of(
+        resolvedComponent(HADOOP_CLIENT, HADOOP_CLIENTS, STACK_ID_HDP_CORE),
+        resolvedComponent(ZOOKEEPER_CLIENT, ZOOKEEPER_CLIENTS, STACK_ID_ODS),
+        resolvedComponent(NAMENODE, HDFS, STACK_ID_HDP_CORE),
+        resolvedComponent(DATANODE, HDFS, STACK_ID_HDP_CORE),
+        resolvedComponent(ZOOKEEPER_SERVER, ZOOKEEPER, STACK_ID_HDP_CORE),
+        resolvedComponent(HBASE_MASTER, HBASE, STACK_ID_ODS),
+        resolvedComponent(HBASE_REGIONSERVER, HBASE, STACK_ID_ODS)
+      )
+    );
 
     // setup services
     hdpCoreServices.addAll(ImmutableList.of(
@@ -381,13 +392,23 @@ public class MpackAdvisorBlueprintProcessorTest {
     return response;
   }
 
-  private void addHostGroup(String name, List<String> hosts, List<String> components) {
+  private void addHostGroup(String name, List<String> hosts, Set<ResolvedComponent> components) {
     hostGroupInfoMap.put(name, hostGroupInfo(name, hosts));
-    hostGroupMap.put(name, hostGroup(name, components));
+    List<String> componentNames = components.stream().map(ResolvedComponent::componentName).collect(toList());
+    hostGroupMap.put(name, hostGroup(name, componentNames));
+    componentsByHostgroup.put(name, components);
   }
 
 
   // ----- FACTORY METHODS FOR TEST DATA -----
+
+  private ResolvedComponent resolvedComponent(String name, String serviceName, StackId stackId) {
+    return ResolvedComponent.builder(name)
+      .serviceName(serviceName)
+      .serviceInfo(serviceInfo(serviceName))
+      .stackId(stackId)
+      .buildPartial();
+  }
 
   private MpackRecommendationResponse.MpackInstance responseMpack(StackId stackId,
                                                                   Set<MpackRecommendationResponse.ServiceInstance> services) {
