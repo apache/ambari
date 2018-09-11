@@ -435,7 +435,7 @@ public class ControllerModule extends AbstractModule {
     requestInjection(ambariAuthenticationInterceptor);
     bindInterceptor(any(), annotatedWith(RunWithInternalSecurityContext.class), ambariAuthenticationInterceptor);
 
-    if (configuration.isUseLegacyStackAdvisor()) {
+    if (configuration.shouldUseLegacyStackAdvisor()) {
       bind(AdvisorBlueprintProcessor.class).to(StackAdvisorBlueprintProcessor.class);
     }
     else {

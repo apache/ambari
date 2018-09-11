@@ -341,7 +341,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public Map<String, Set<ResolvedComponent>> getComponentsByHostgroup() {
+  public Map<String, Set<ResolvedComponent>> getComponentsByHostGroup() {
     return resolvedComponents;
   }
 

@@ -32,7 +32,6 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.mpackadvisor.recommendations.MpackRecommendationResponse;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -65,7 +64,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor {
 
-  private static final Logger LOG = LoggerFactory.getLogger(StackAdvisorBlueprintProcessor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MpackAdvisorBlueprintProcessor.class);
 
   private static MpackAdvisorHelper mpackAdvisorHelper;
 
@@ -156,7 +155,7 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
         MpackInstance::getMpackName
       ));
 
-    topology.getComponentsByHostgroup().entrySet().stream().collect(
+    topology.getComponentsByHostGroup().entrySet().stream().collect(
       toMap(
   //      Map.Entry::getKey,
         e -> e.getKey(),
@@ -268,8 +267,6 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
       "Blueprint field is missing from the recommendation response.");
 
     MpackRecommendationResponse.Blueprint blueprint = response.getRecommendations().getBlueprint();
-
-    Map<String, MpackRecommendationResponse.BlueprintConfigurations> recommendedConfigurations = blueprint.getConfigurations();
 
     addAdvisedConfigurationToTopology(blueprint.getConfigurations(), topology, userProvidedConfigurations);
 

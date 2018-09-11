@@ -3377,7 +3377,7 @@ public class Configuration {
     return getProperty(MPACK_ADVISOR_SCRIPT);
   }
 
-  public boolean isUseLegacyStackAdvisor() {
+  public boolean shouldUseLegacyStackAdvisor() {
     return Boolean.valueOf(getProperty(USE_LEGACY_STACK_ADVISOR));
   }
 

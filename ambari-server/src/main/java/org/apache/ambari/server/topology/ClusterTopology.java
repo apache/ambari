@@ -148,7 +148,7 @@ public interface ClusterTopology {
    */
   Stream<ResolvedComponent> getComponents();
 
-  Map<String, Set<ResolvedComponent>> getComponentsByHostgroup();
+  Map<String, Set<ResolvedComponent>> getComponentsByHostGroup();
 
   /**
    * Get the components that are included in the specified host group.
