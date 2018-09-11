@@ -50,15 +50,36 @@ App.WizardStep6View = App.TableView.extend({
   didInsertElement: function () {
     this.setLabel();
     this.get('controller').loadStep();
+    this.$('.pre-scrollable').on('scroll', event => {
+      this.$('.pre-scrollable .freeze').css('transform', `translate(${event.target.scrollLeft}px,0)`);
+    });
     Em.run.next(this, this.adjustColumnWidth);
   },
 
   adjustColumnWidth: function() {
-    const table = $('#component_assign_table');
-    const columnsCount = this.get('controller.headers.length');
-    if (table.width() > table.find('tbody').width()) {
-      const columnWidth = Math.floor(table.width() / columnsCount);
+    const table = $('#component_assign_table'),
+      tableWrapper = $('.pre-scrollable').first(),
+      tableCells = table.find('tbody > tr:first-of-type > td');
+    let cellsWidth = 0;
+    $.each(tableCells, (i, td) => cellsWidth += $(td).width());
+    if (tableWrapper.width() > cellsWidth) {
+      const columnsCount = this.get('controller.headers.length'),
+        hostColumnWidth = 210, // from ambari-web/app/styles/wizard.less
+        columnWidth = Math.floor((table.width() - hostColumnWidth)/ columnsCount);
       table.find("th:not('.freeze'), td:not('.freeze')").width(columnWidth);
+      // a trick to keep checkbox abd label on the single line
+      table.find('.host-component-checkbox').css({
+        display: 'inline-block',
+        width: '0'
+      });
+    } else {
+      const tds = $('#component_assign_table > tbody > tr:first-of-type > td');
+      $.each(tds, (i, td) => {
+        const element = $(td),
+          className = element.attr('class'),
+          width = element.width();
+        $(`#component_assign_table th.${className}`).width(width);
+      });
     }
   },
 
@@ -93,12 +114,7 @@ App.WizardStep6View = App.TableView.extend({
     Em.set(checkbox, 'checked', !checkbox.checked);
     this.get('controller').checkCallback(checkbox.component);
     this.get('controller').callValidation();
-  },
-
-  columnCount: function() {
-    var hosts = this.get('controller.hosts');
-    return hosts && hosts.length > 0 ? hosts[0].get('checkboxes').length + 1 : 1;
-  }.property('controller.hosts.@each.checkboxes')
+  }
 });
 
 App.WizardStep6HostView = Em.View.extend({
