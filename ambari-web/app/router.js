@@ -267,10 +267,12 @@ App.Router = Em.Router.extend({
    * @param wizardType one of <code>installer</code>, <code>addHost</code>, <code>addServices</code>
    */
   getWizardCurrentStep: function (wizardType) {
-    var currentStep = App.db.getWizardCurrentStep(wizardType);
+    const currentStep = App.db.getWizardCurrentStep(wizardType);
+    
     if (!currentStep) {
-      currentStep = wizardType === 'installer' ? '0' : '1';
+      return 0;
     }
+    
     return currentStep;
   },
 

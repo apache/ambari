@@ -303,6 +303,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.save('selectedServiceNames');
         controller.save('selectedServices');
         controller.save('selectedMpacks');
+        controller.save('mpacksToRegister');
         controller.save('serviceGroups');
         controller.save('addedServiceGroups');
         controller.save('serviceInstances');
@@ -372,7 +373,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
         const controller = router.get('installerController');
-        controller.save('selectedMpacks');
+        controller.save('mpacksToRegister');
         controller.setStepSaved('customMpackRepos');
         router.transitionTo('downloadMpacks');
         console.timeEnd('customMpackRepos next');

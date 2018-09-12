@@ -477,7 +477,8 @@ describe('App.WizardSelectMpacksController', function () {
       content: Em.Object.create({
         selectedServices: null,
         selectedServiceNames: null,
-        selectedMpacks: null
+        selectedMpacks: null,
+        registeredMpacks: []
       }),
       wizardController: wizardController      
     });
@@ -493,20 +494,26 @@ describe('App.WizardSelectMpacksController', function () {
 
   describe('#loadStep', function () {
     it('adds previously selected services to selection', function () {
-      // wizardSelectMpacksController.set('content.selectedServices', [
-      //   { id: "HDPCORE1.0.0-b85ZOOKEEPER" },
-      //   { id: "HDPCORE1.0.0-b85HDFS" }
-      // ]);
+      wizardSelectMpacksController.set('content.serviceGroups', [
+        {
+          name: "HDPCORE",
+          mpackVersionId: "HDPCORE-1.0.0-b85"
+        }
+      ]);
 
-      // wizardSelectMpacksController.loadStep();
+      wizardSelectMpacksController.set('content.serviceInstances', [
+        {
+          name: "ZOOKEEPER",
+          serviceGroupName: "HDPCORE",
+          serviceName: "ZOOKEEPER"
+        }
+      ]);
+
+      wizardSelectMpacksController.loadStep();
       
-      // var service = wizardSelectMpacksController.getServiceVersionById("HDPCORE1.0.0-b85ZOOKEEPER");
-      // expect(service.get('selected')).to.be.true;
-      // expect(service.get('mpackVersion.selected')).to.be.true;
-
-      // var service = wizardSelectMpacksController.getServiceVersionById("HDPCORE1.0.0-b85HDFS");
-      // expect(service.get('selected')).to.be.true;
-      // expect(service.get('mpackVersion.selected')).to.be.true;
+      var service = wizardSelectMpacksController.getServiceVersionById("HDPCORE-1.0.0-b85-ZOOKEEPER");
+      expect(service.get('selected')).to.be.true;
+      expect(service.get('mpackVersion.selected')).to.be.true;
     });
   });
 
@@ -807,7 +814,7 @@ describe('App.WizardSelectMpacksController', function () {
       var canRemove = true;
 
       var expected = Em.Object.create({
-        id: serviceGroup.get('name') + name,
+        id: serviceGroup.get('name') + '-' + name,
         name: name,
         service: service,
         serviceGroup: serviceGroup,
@@ -939,17 +946,43 @@ describe('App.WizardSelectMpacksController', function () {
   });
 
   describe('#addMpackHandler', function () {
-    it('should make all calls required to add an mpack', function () {
-      var stub1 = sinon.stub(wizardSelectMpacksController, 'addMpackVersion').returns(Em.Object.create({
+    var stub1, stub2, stub3, stub4, stub5;
+
+    beforeEach(function () {
+      stub1 = sinon.stub(wizardSelectMpacksController, 'addMpackVersion').returns(Em.Object.create({
         services: [
           Em.Object.create({}),
           Em.Object.create({}),
           Em.Object.create({})
         ]
       }));
-      var stub2 = sinon.stub(wizardSelectMpacksController, 'addServiceGroup').returns(true);
-      var stub3 = sinon.stub(wizardSelectMpacksController, 'addServiceInstance');
-      var stub4 = sinon.stub(wizardController, 'setStepUnsaved');
+      stub2 = sinon.stub(wizardSelectMpacksController, 'addServiceGroup').returns(true);
+      stub3 = sinon.stub(wizardSelectMpacksController, 'addServiceInstance');
+      stub4 = sinon.stub(wizardController, 'setStepUnsaved');
+    });
+
+    afterEach(function () {
+      wizardSelectMpacksController.addMpackVersion.restore();
+      wizardSelectMpacksController.addServiceGroup.restore();
+      wizardSelectMpacksController.addServiceInstance.restore();
+      wizardController.setStepUnsaved.restore();
+      wizardSelectMpacksController.getServiceGroup.restore();
+    })
+
+    it('should make all calls required to add an mpack (service group exists)', function () {
+      stub5 = sinon.stub(wizardSelectMpacksController, 'getServiceGroup').returns(true);
+
+      wizardSelectMpacksController.addMpackHandler();
+
+      expect(stub1.called).to.be.true;
+      expect(stub2.called).to.be.false;
+      expect(stub3.calledThrice).to.be.true;
+      expect(stub4.called).to.be.true;
+      expect(stub5.called).to.be.true;
+    });
+
+    it('should make all calls required to add an mpack (service group does not exist)', function () {
+      stub5 = sinon.stub(wizardSelectMpacksController, 'getServiceGroup').returns(false);
 
       wizardSelectMpacksController.addMpackHandler();
 
@@ -957,11 +990,7 @@ describe('App.WizardSelectMpacksController', function () {
       expect(stub2.called).to.be.true;
       expect(stub3.calledThrice).to.be.true;
       expect(stub4.called).to.be.true;
-
-      wizardSelectMpacksController.addMpackVersion.restore();
-      wizardSelectMpacksController.addServiceGroup.restore();
-      wizardSelectMpacksController.addServiceInstance.restore();
-      wizardController.setStepUnsaved.restore();
+      expect(stub5.called).to.be.true;
     });
   });
 
@@ -1209,7 +1238,7 @@ describe('App.WizardSelectMpacksController', function () {
   });
 
   describe('#submit', function () {
-    it('should populate content.addedServiceGroups, content.addedServiceInstances, and content.selectedMpacks', function () {
+    it('should populate content.addedServiceGroups, content.addedServiceInstances, and content.selectedMpacks, and content.mpacksToRegister', function () {
       wizardSelectMpacksController.set('addedServiceGroups', [
         Em.Object.create({
           name: 'name',
@@ -1241,6 +1270,23 @@ describe('App.WizardSelectMpacksController', function () {
         })
       ]);
       
+      wizardSelectMpacksController.set('content.registeredMpacks', [
+        {
+          MpackInfo: {
+            mpack_name: "mpackName1",
+            mpack_version: "1.0.0.0"
+          },
+          currentWizard: false
+        },
+        {
+          MpackInfo: {
+            mpack_name: "mpackName2",
+            mpack_version: "1.0.0.0"
+          },
+          currentWizard: true
+        }
+      ]);
+
       wizardSelectMpacksController.set('selectedMpackVersions', [
         Em.Object.create({
           mpack: {
@@ -1302,6 +1348,18 @@ describe('App.WizardSelectMpacksController', function () {
         }
       ];
 
+      var expectedMpacksToRegister = [
+        {
+          id: "mpackName2-1.0.0.0",
+          name: "mpackName2",
+          displayName: "displayName2",
+          publicUrl: "http://someurl.com/mpack2",
+          downloadUrl: "http://someurl.com/mpack2",
+          version: "1.0.0.0",
+          registryId: 1
+        }
+      ]
+
       sinon.stub(App.router, 'send');
       wizardSelectMpacksController.submit();
       App.router.send.restore();
@@ -1309,6 +1367,7 @@ describe('App.WizardSelectMpacksController', function () {
       expect(wizardSelectMpacksController.get('content.addedServiceGroups')).to.deep.equal(expectedAddedServiceGroups);
       expect(wizardSelectMpacksController.get('content.addedServiceInstances')).to.deep.equal(expectedAddedServiceInstances);
       expect(wizardSelectMpacksController.get('content.selectedMpacks')).to.deep.equal(expectedSelectedMpacks);
+      expect(wizardSelectMpacksController.get('content.mpacksToRegister')).to.deep.equal(expectedMpacksToRegister);
     });
   });
 

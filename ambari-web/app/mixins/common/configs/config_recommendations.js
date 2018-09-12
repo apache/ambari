@@ -58,16 +58,14 @@ App.ConfigRecommendations = Em.Mixin.create({
    * @returns {recommendation}
    */
   applyRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentProperties, isEditable) {
-    try {
-      var parentPropertyIds = this.formatParentProperties(parentProperties);
-      var recommendation = this.getRecommendation(name, fileName, configGroupName);
-      if (recommendation) {
-        return this.updateRecommendation(recommendation, recommendedValue, parentPropertyIds);
-      }
-      return this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds, isEditable);
-    } catch(e) {
-      console.error(e.message);
+    var parentPropertyIds = this.formatParentProperties(parentProperties);
+    var recommendation = this.getRecommendation(name, fileName, configGroupName);
+
+    if (recommendation) {
+      return this.updateRecommendation(recommendation, recommendedValue, parentPropertyIds);
     }
+
+    return this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds, isEditable);
   },
 
   /**
@@ -95,6 +93,7 @@ App.ConfigRecommendations = Em.Mixin.create({
    * @returns {recommendation}
    */
   addRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds, isEditable) {
+    console.log(name, fileName);
     Em.assert('name and fileName should be defined', name && fileName);
     const site = App.config.getConfigTagFromFileName(fileName);
     const service = App.config.get('serviceByConfigTypeMap')[site];

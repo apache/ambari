@@ -59,7 +59,8 @@ App.AddHostController = App.WizardController.extend({
     advancedServiceConfig: null,
     controllerName: 'addHostController',
     serviceConfigGroups: null,
-    configGroups: null
+    configGroups: null,
+    registeredMpacks: []
   }),
 
   /**
@@ -397,11 +398,6 @@ App.AddHostController = App.WizardController.extend({
     this.clearInstallOptions();
     // clear temporary information stored during the install
     this.set('content.cluster', this.getCluster());
-  },
-
-  clearStorageData: function () {
-    this._super();
-    this.resetDbNamespace();
   },
 
   /**

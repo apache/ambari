@@ -153,14 +153,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     return services;
   }.property(),
 
-  selectedMpacks: function() {
-    return this.get('content.selectedMpacks') || this.get('wizardController').getDBProperty('selectedMpacks');
-  }.property(),
-
-  downloadConfig: function() {
-    return this.get('content.downloadConfig') || this.get('wizardController').getDBProperty('downloadConfig');
-  }.property(),
-
   getSelectedStack: function() {
     //TODO Remove when cluster don't need stack version, until use version of any mpack
     return App.Stack.find().objectAt(0);
@@ -295,7 +287,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
 
     // cluster name
     var cluster = this.rawContent.findProperty('config_name', 'cluster');
-    cluster.config_value = this.get('content.cluster.name');
+    cluster.config_value = this.get('clusterName');
     this.get('clusterInfo').pushObject(Ember.Object.create(cluster));
 
     //hosts
@@ -311,56 +303,49 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     totalHostsObj.config_value = totalHostsCount + ' (' + newHostsCount + ' new)';
     this.get('clusterInfo').pushObject(Em.Object.create(totalHostsObj));
 
-    //repo
-    if (this.get('isAddService')) {
-      // For some stacks there is no info regarding stack versions to upgrade, e.g. HDP-2.1
-      if (App.StackVersion.find().get('content.length')) {
-        this.loadRepoInfo();
-      } else {
-        this.loadDefaultRepoInfo();
-      }
-    } else {
-      if (this.get('isInstaller')) {
-        // from install wizard
-        var downloadConfig = this.get('downloadConfig');
-        var allRepos = [];
-        var selectedMpacks = this.get('content.selectedMpacks');
-        var registeredMpacks = this.get('content.registeredMpacks');
-        if (selectedMpacks && registeredMpacks) {
-          selectedMpacks.forEach(mpack => {
-            if (mpack.operatingSystems) { //repos have been customized
-              mpack.operatingSystems.forEach(os => {
-                if (os.selected) {
-                  os.repos.forEach(function (repo) {
-                    allRepos.push(Em.Object.create({
-                      base_url: repo.downloadUrl,
-                      os_type: os.type,
-                      repo_id: repo.repoId
-                    }));
-                  });
-                }
-              })
-            } else { //repos have not been customized, so use default info
-              const rmp = registeredMpacks.find(rmp => rmp.MpackInfo.mpack_name === mpack.name && rmp.MpackInfo.mpack_version === mpack.version);
-              if (rmp) {
-                rmp.operating_systems.forEach(os => {
-                  os.OperatingSystems.repositories.forEach(function (repo) {
-                    allRepos.push(Em.Object.create({
-                      base_url: repo.base_url,
-                      os_type: repo.os_type,
-                      repo_id: repo.repo_id
-                    }));
-                  })
-                })
-              }
+    var allRepos = [];
+    var selectedMpacks = this.get('content.selectedMpacks');
+    var registeredMpacks = this.get('content.registeredMpacks');
+    if (selectedMpacks && registeredMpacks) {
+      selectedMpacks.forEach(mpack => {
+        if (mpack.operatingSystems) { //repos have been customized
+          mpack.operatingSystems.forEach(os => {
+            if (os.selected) {
+              os.repos.forEach(function (repo) {
+                allRepos.push(Em.Object.create({
+                  base_url: repo.downloadUrl,
+                  os_type: os.type,
+                  repo_id: repo.repoId
+                }));
+              });
             }
-          });
+          })
+        } else { //repos have not been customized, so use default info
+          const rmp = registeredMpacks.find(rmp => rmp.MpackInfo.mpack_name === mpack.name && rmp.MpackInfo.mpack_version === mpack.version);
+          if (rmp) {
+            rmp.operating_systems.forEach(os => {
+              os.OperatingSystems.repositories.forEach(function (repo) {
+                allRepos.push(Em.Object.create({
+                  base_url: repo.base_url,
+                  os_type: repo.os_type,
+                  repo_id: repo.repo_id
+                }));
+              })
+            })
+          }
         }
-        allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-        this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
-        this.get('clusterInfo').set('repoInfo', allRepos);
-      }
+      });
     }
+    
+    const downloadConfig = this.get('content.downloadConfig');
+    if (downloadConfig) {
+      this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
+    } else {
+      this.get('clusterInfo').set('useRedhatSatellite', false);
+    }
+
+    allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+    this.get('clusterInfo').set('repoInfo', allRepos);
   },
 
   /**
@@ -995,8 +980,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @method createServiceGroup
    */
   createServiceGroups: function () {
-    if (!this.get('isInstaller')) return;
-    
     var data = this.createServiceGroupsData();
     if (data) {
       this.addRequestToAjaxQueue({
@@ -1014,13 +997,13 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @method createServiceGroupsData
    */
   createServiceGroupsData: function () {
-    const mpacks = this.get('selectedMpacks');
+    const addedServiceGroups = this.get('content.addedServiceGroups');
     
-    if (mpacks) {
-      const serviceGroups = mpacks.map(mpack => ({
+    if (addedServiceGroups) {
+      const serviceGroups = addedServiceGroups.map(serviceGroup => ({
           "ServiceGroupInfo": {
-            "service_group_name": mpack.name,
-            "version": `${mpack.name}-${mpack.version}`
+            "service_group_name": serviceGroup.name,
+            "version": `${serviceGroup.mpackName}-${serviceGroup.mpackVersion}`
           }
         })
       );
@@ -1506,13 +1489,15 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       })
     });
 
-    this.addRequestToAjaxQueue({
-      name: 'common.cluster.settings.create',
-      data: {
-        clusterName: this.get('clusterName'),
-        data: data
-      }
-    });
+    if (clusterSettings.length > 0) {
+      this.addRequestToAjaxQueue({
+        name: 'common.cluster.settings.create',
+        data: {
+          clusterName: this.get('clusterName'),
+          data: data
+        }
+      });
+    }
   },
 
   /**

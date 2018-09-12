@@ -108,8 +108,6 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
       }
     }
 
-    requestData.data.recommendations.blueprint.mpack_instances = options.mpack_instances;
-
     return requestData;
   },
 

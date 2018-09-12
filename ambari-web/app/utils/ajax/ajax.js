@@ -1406,7 +1406,7 @@ var urls = {
     }
   },
   'cluster.load_cluster_name': {
-    'real': '/clusters?fields=Clusters/security_type,Clusters/version',
+    'real': '/clusters?fields=Clusters/security_type,Clusters/version,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
@@ -1679,7 +1679,7 @@ var urls = {
   },
 
   'admin.stack_upgrade.do_poll': {
-    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
   },
   'admin.upgrade.data': {
@@ -2003,11 +2003,11 @@ var urls = {
     'mock': '/data/stacks/HDP-2.1/service_components.json'
   },
   'wizard.step9.installer.get_host_status': {
-    'real': '/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
     'mock': '/data/wizard/deploy/5_hosts/get_host_state.json'
   },
   'wizard.step9.load_log': {
-    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/wizard/deploy/5_hosts/poll_{numPolls}.json',
     'format': function () {
       return {
@@ -2022,7 +2022,7 @@ var urls = {
   },
 
   'wizard.step8.create_cluster': {
-    'real': '/clusters/{cluster}',
+    'real': '/clusters/{clusterName}',
     'mock': '',
     'format': function (data) {
       return {
@@ -2034,7 +2034,7 @@ var urls = {
   },
 
   'wizard.step8.create_service_group': {
-    'real': '/clusters/{cluster}/servicegroups',
+    'real': '/clusters/{clusterName}/servicegroups',
     'mock': '',
     'format': function (data) {
       return {
@@ -2047,7 +2047,7 @@ var urls = {
 
   'wizard.step8.create_selected_services': {
     'type': 'POST',
-    'real': '/clusters/{cluster}/servicegroups/{serviceGroupName}/services',
+    'real': '/clusters/{clusterName}/servicegroups/{serviceGroupName}/services',
     'mock': '/data/stacks/HDP-2.1/recommendations.json',
     'format': function (data) {
       return {
@@ -2058,7 +2058,7 @@ var urls = {
   },
 
   'wizard.step8.create_components': {
-    'real': '/clusters/{cluster}/servicegroups/{serviceGroupName}/services/{serviceName}/components',
+    'real': '/clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components',
     'mock': '',
     'format': function (data) {
       return {
@@ -2070,7 +2070,7 @@ var urls = {
   },
 
   'wizard.step8.register_host_to_cluster': {
-    'real': '/clusters/{cluster}/hosts',
+    'real': '/clusters/{clusterName}/hosts',
     'mock': '',
     'format': function (data) {
       return {
@@ -2082,7 +2082,7 @@ var urls = {
   },
 
   'wizard.step8.register_host_to_component': {
-    'real': '/clusters/{cluster}/hosts',
+    'real': '/clusters/{clusterName}/hosts',
     'mock': '',
     'format': function (data) {
       return {
@@ -2094,7 +2094,7 @@ var urls = {
   },
 
   'wizard.step8.apply_configuration_groups': {
-    'real': '/clusters/{cluster}/config_groups',
+    'real': '/clusters/{clusterName}/config_groups',
     'mock': '',
     'format': function (data) {
       return {
@@ -2284,7 +2284,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version',
+    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {
