@@ -88,7 +88,7 @@ class HdfsResourceJar:
       nameservices = main_resource.resource.nameservices
 
     # non-federated cluster
-    if not nameservices:
+    if not nameservices or len(nameservices) < 2:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
       default_fs_protocol = urlparse(main_resource.resource.default_fs).scheme
