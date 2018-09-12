@@ -148,6 +148,17 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>sysprep_skip_lzo_package_operations</name>
+    <display-name>Whether LZO packages are also pre-installed on sysprepped cluster</display-name>
+    <value>false</value>
+    <description>In sysprepped environments true value indicates that LZO packages are pre-installed and should not be managed by Ambari</description>
+    <value-attributes>
+      <overridable>true</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>sysprep_skip_setup_jce</name>
     <display-name>Whether to skip setting up the unlimited key JCE policy on sysprepped cluster</display-name>
     <value>false</value>

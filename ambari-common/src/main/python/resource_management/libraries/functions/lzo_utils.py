@@ -82,11 +82,22 @@ def should_install_lzo():
 
   return True
 
+def skip_package_operations():
+  """
+  Return true if LZO packages are assumed to be pre-installed
+  Needs to be separate from should_install_lzo, as that one is used during tarball creation, too
+  """
+  return default("/hostLevelParams/host_sys_prepped", False) and default("/configurations/cluster-env/sysprep_skip_lzo_package_operations", False)
+
 def install_lzo_if_needed():
   """
   Install lzo package if {#should_install_lzo} is true
   """
   if not should_install_lzo():
+    return
+
+  if skip_package_operations():
+    Logger.info("Skipping LZO package installation as host is sys prepped")
     return
 
   # If user has just accepted GPL license. GPL repository can not yet be present.
