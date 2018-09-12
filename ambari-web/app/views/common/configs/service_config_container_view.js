@@ -28,6 +28,8 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
   
   pushViewTimeout: null,
 
+  pushViewTimeout: null,
+
   didInsertElement: function () {
     if (this.get('controller.isInstallWizard')) {
       this.selectedServiceObserver();
