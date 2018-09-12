@@ -31,6 +31,11 @@ public class AlertDefinitionDisabledEvent extends ClusterEvent {
   private final long m_definitionId;
 
   /**
+   * The alert definition name.
+   */
+  private final String definitionName;
+
+  /**
    * Constructor.
    *
    * @param clusterId
@@ -38,9 +43,10 @@ public class AlertDefinitionDisabledEvent extends ClusterEvent {
    * @param definitionId
    *          the alert definition being registered.
    */
-  public AlertDefinitionDisabledEvent(long clusterId, long definitionId) {
+  public AlertDefinitionDisabledEvent(long clusterId, long definitionId, String definitionName) {
     super(AmbariEventType.ALERT_DEFINITION_DISABLED, clusterId);
     m_definitionId = definitionId;
+    this.definitionName = definitionName;
   }
 
   /**
@@ -50,5 +56,14 @@ public class AlertDefinitionDisabledEvent extends ClusterEvent {
    */
   public long getDefinitionId() {
     return m_definitionId;
+  }
+
+  /**
+   * Gets the definition name.
+   *
+   * @return the definitionId name
+   */
+  public String getDefinitionName() {
+    return definitionName;
   }
 }
