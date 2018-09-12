@@ -52,6 +52,12 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
   @Field(GROUP)
   private String group;
 
+  @Field(LOGGER_NAME)
+  private String loggerName;
+
+  @Field(METHOD)
+  private String method;
+
   @Field(SDI_DYNAMIC_FIELDS)
   private Map<String, Object> sdiDynamicFields;
 
@@ -133,6 +139,26 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
   @Override
   public void setLevel(String level) {
     this.level = level;
+  }
+
+  @Override
+  public String getLoggerName() {
+    return loggerName;
+  }
+
+  @Override
+  public void setLoggerName(String loggerName) {
+    this.loggerName = loggerName;
+  }
+
+  @Override
+  public String getMethod() {
+    return method;
+  }
+
+  @Override
+  public void setMethod(String method) {
+    this.method = method;
   }
 
   public void setSdiDynamicFields(Map<String, Object> sdiDynamicFields) {
