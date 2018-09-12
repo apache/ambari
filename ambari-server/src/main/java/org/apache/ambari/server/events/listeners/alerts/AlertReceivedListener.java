@@ -254,6 +254,14 @@ public class AlertReceivedListener {
 
           // create the event to fire later
           alertEvents.add(new InitialAlertEvent(clusterId, alert, current));
+
+          if (!alertUpdates.containsKey(clusterId)) {
+            alertUpdates.put(clusterId, new HashMap<>());
+          }
+          Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = alertUpdates.get(clusterId);
+
+          AlertSummaryGroupedRenderer.updateSummary(summaries, definition.getDefinitionId(),
+              definition.getDefinitionName(), alertState, alert.getTimestamp(), maintenanceState, alert.getText());
         } finally {
           // release the lock for this alert
           lock.unlock();
