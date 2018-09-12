@@ -26,6 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.*;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.INT_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LONG_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.BOOLEAN_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.STRING_DYNAMIC_FIELDS;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.KEY_DYNAMIC_FIELDS;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.STORED_TOKEN_DYNAMIC_FIELDS;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.WS_DYNAMIC_FIELDS;
@@ -91,6 +95,18 @@ public class SolrCommonLogData implements CommonLogData {
 
   @Field(WS_DYNAMIC_FIELDS)
   private Map<String, Object> wsDynamicFields;
+
+  @Field(INT_DYNAMIC_FIELDS)
+  private Map<String, Object> intDynamicFields;
+
+  @Field(LONG_DYNAMIC_FIELDS)
+  private Map<String, Object> longDynamicFields;
+
+  @Field(STRING_DYNAMIC_FIELDS)
+  private Map<String, Object> stringDynamicFields;
+
+  @Field(BOOLEAN_DYNAMIC_FIELDS)
+  private Map<String, Object> booleanDynamicFields;
 
   @Override
   public String getId() {
@@ -265,6 +281,7 @@ public class SolrCommonLogData implements CommonLogData {
   @Override
   public Map<String, Object> getAllDynamicFields() {
     Map<String, Object> allDynamicFields = new HashMap<>();
+
     if (stdDynamicFields != null) {
       allDynamicFields.putAll(stdDynamicFields);
     }
@@ -273,6 +290,22 @@ public class SolrCommonLogData implements CommonLogData {
     }
     if (wsDynamicFields != null) {
       allDynamicFields.putAll(wsDynamicFields);
+    }
+
+    if (intDynamicFields != null) {
+      allDynamicFields.putAll(intDynamicFields);
+    }
+
+    if (longDynamicFields != null) {
+      allDynamicFields.putAll(longDynamicFields);
+    }
+
+    if (stringDynamicFields != null) {
+      allDynamicFields.putAll(stringDynamicFields);
+    }
+
+    if (booleanDynamicFields != null) {
+      allDynamicFields.putAll(booleanDynamicFields);
     }
     
     return allDynamicFields;
@@ -288,5 +321,21 @@ public class SolrCommonLogData implements CommonLogData {
 
   public void setWsDynamicFields(Map<String, Object> wsDynamicFields) {
     this.wsDynamicFields = wsDynamicFields;
+  }
+
+  public void setIntDynamicFields(Map<String, Object> intDynamicFields) {
+    this.intDynamicFields = intDynamicFields;
+  }
+
+  public void setLongDynamicFields(Map<String, Object> longDynamicFields) {
+    this.longDynamicFields = longDynamicFields;
+  }
+
+  public void setStringDynamicFields(Map<String, Object> stringDynamicFields) {
+    this.stringDynamicFields = stringDynamicFields;
+  }
+
+  public void setBooleanDynamicFields(Map<String, Object> booleanDynamicFields) {
+    this.booleanDynamicFields = booleanDynamicFields;
   }
 }
