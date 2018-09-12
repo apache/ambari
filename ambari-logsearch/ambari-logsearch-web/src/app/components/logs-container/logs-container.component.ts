@@ -176,6 +176,9 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
   get autoRefreshRemainingSeconds(): number {
     return this.logsContainerService.autoRefreshRemainingSeconds;
   }
+  get autoRefreshInterval(): number {
+    return this.logsContainerService.autoRefreshInterval;
+  }
 
   get autoRefreshMessageParams(): object {
     return {
@@ -360,5 +363,9 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     if (activateNewTab && newActiveTab) {
       this.router.navigate(['/logs', ...this.logsFilteringUtilsService.getNavigationForTab(newActiveTab)]);
     }
+  }
+
+  cancelCapture(): void {
+    this.logsContainerService.cancelCapture();
   }
 }

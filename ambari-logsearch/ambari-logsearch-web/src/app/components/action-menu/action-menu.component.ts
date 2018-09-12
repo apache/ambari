@@ -164,4 +164,8 @@ export class ActionMenuComponent  implements OnInit, OnDestroy {
     this.logsContainer.stopCaptureTimer();
   }
 
+  cancelCapture(): void {
+    this.logsContainer.cancelCapture();
+  }
+
 }
