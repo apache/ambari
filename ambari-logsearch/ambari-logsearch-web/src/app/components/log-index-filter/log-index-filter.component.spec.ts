@@ -51,6 +51,9 @@ import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.serv
 import {RouterTestingModule} from '@angular/router/testing';
 import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 import {NotificationService} from '@modules/shared/services/notification.service';
+import {ComponentLabelPipe} from '@app/pipes/component-label';
+
+import { dataAvailabilityStates, DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 
 describe('LogIndexFilterComponent', () => {
   let component: LogIndexFilterComponent;
@@ -75,13 +78,15 @@ describe('LogIndexFilterComponent', () => {
           components,
           hosts,
           serviceLogsTruncated,
-          tabs
+          tabs,
+          dataAvailabilityStates
         })
       ],
       declarations: [
         LogIndexFilterComponent,
         DropdownButtonComponent,
-        DropdownListComponent
+        DropdownListComponent,
+        ComponentLabelPipe
       ],
       providers: [
         ...MockHttpRequestModules,
@@ -107,7 +112,8 @@ describe('LogIndexFilterComponent', () => {
         LogsFilteringUtilsService,
         LogsStateService,
         NotificationsService,
-        NotificationService
+        NotificationService,
+        DataAvailabilityStatesStore
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

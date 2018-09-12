@@ -19,28 +19,27 @@
 
 package org.apache.ambari.logsearch.manager;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_COMPONENT;
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import org.apache.ambari.logsearch.common.LogType;
-import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.common.LabelFallbackHandler;
+import org.apache.ambari.logsearch.common.LogType;
+import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.conf.UIMappingConfig;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
@@ -61,10 +60,8 @@ import org.apache.ambari.logsearch.solr.SolrConstants;
 import org.apache.ambari.logsearch.solr.model.SolrAuditLogData;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.util.DownloadUtil;
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.ambari.logsearch.common.VResponse;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.FacetField.Count;
@@ -74,8 +71,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.solr.core.query.SimpleFacetQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 
-import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_COMPONENT;
-import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 @Named
 public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse> {
@@ -221,17 +219,11 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
 
     String dataFormat = request.getFormat();
 
-    FileOutputStream fis = null;
     try {
       QueryResponse queryResponse = auditSolrDao.process(facetQuery);
-      if (queryResponse == null) {
-        VResponse response = new VResponse();
-        response.setMsgDesc("Query was not able to execute " + facetQuery);
-        throw RESTErrorUtil.createRESTException(response);
-      }
       BarGraphDataListResponse vBarUserDataList = responseDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 0);
       BarGraphDataListResponse vBarResourceDataList = responseDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 1);
-      String data = "";
+      String data;
       if ("text".equals(dataFormat)) {
         StringWriter stringWriter = new StringWriter();
         Template template = freemarkerConfiguration.getTemplate(AUDIT_LOG_TEMPLATE);
@@ -244,34 +236,23 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
         data = "{" + convertObjToString(vBarUserDataList) + "," + convertObjToString(vBarResourceDataList) + "}";
         dataFormat = "json";
       }
-      String fileName = "Users_Resource" + startTime + endTime + ".";
+      String fileName = String.format("Users_Resource%s%s.", startTime, endTime);
       File file = File.createTempFile(fileName, dataFormat);
-      fis = new FileOutputStream(file);
-      fis.write(data.getBytes());
-      return Response
-        .ok(file, MediaType.APPLICATION_OCTET_STREAM)
-        .header("Content-Disposition", "attachment;filename=" + fileName + dataFormat)
-        .build();
-
-    } catch (IOException e) {
-      logger.error("Error during download file (audit log) " + e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-    } finally {
-      if (fis != null) {
-        try {
-          fis.close();
-        } catch (IOException e) {
-        }
+      try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+        fileOutputStream.write(data.getBytes());
       }
+      return Response
+              .ok(file, MediaType.APPLICATION_OCTET_STREAM)
+              .header("Content-Disposition", String.format("attachment;filename=%s%s", fileName, dataFormat))
+              .build();
+    } catch (IOException e) {
+      throw new UncheckedIOException("Error during download file (audit log) ", e);
     }
   }
 
   @Override
   protected List<AuditLogData> convertToSolrBeans(QueryResponse response) {
-    List<SolrAuditLogData> solrAuditLogData = response.getBeans(SolrAuditLogData.class);
-    List<AuditLogData> auditLogData = new ArrayList<>();
-    auditLogData.addAll( solrAuditLogData );
-    return auditLogData;
+    return new ArrayList<>(response.getBeans(SolrAuditLogData.class));
   }
 
   @Override
@@ -282,7 +263,7 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
   public StatusMessage deleteLogs(AuditLogRequest request) {
     SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
     UpdateResponse updateResponse = auditSolrDao.deleteByQuery(solrQuery, "/audit/logs");
-    return new StatusMessage(updateResponse.getStatus());
+    return StatusMessage.with(updateResponse.getStatus());
   }
 
   public List<String> getClusters() {

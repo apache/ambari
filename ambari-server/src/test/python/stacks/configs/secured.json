@@ -5,6 +5,25 @@
     "roleParams": {},
     "serviceName": "HIVE",
     "role": "HIVE_SERVER",
+    "stackSettings": {
+        "stack_name": "HDP",
+        "stack_version": "2.1",
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+    },
+    "clusterSettings": {
+        "security_enabled": "true",
+        "user_group": "hadoop",
+        "fetch_nonlocal_groups": "true",
+        "ignore_groupsusers_create": "false",
+        "sysprep_skip_create_users_and_groups": "false",
+        "override_uid" : "true",
+        "fetch_nonlocal_groups": "true",
+        "smokeuser": "ambari-qa",
+        "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
+        "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}"
+    },
     "commandParams": {
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/service_check.py", 

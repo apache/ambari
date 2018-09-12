@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputSocketDescriptor;
 
 @ApiModel
 public class LSServerInputConfig {
@@ -63,6 +64,9 @@ public class LSServerInputConfig {
         input.add(inputItem);
       } else if (inputDescriptor instanceof InputS3FileDescriptor) {
         LSServerInput inputItem = new LSServerInputS3File(inputDescriptor);
+        input.add(inputItem);
+      } else if (inputDescriptor instanceof InputSocketDescriptor) {
+        LSServerInput inputItem = new LSServerInputSocket(inputDescriptor);
         input.add(inputItem);
       }
     }

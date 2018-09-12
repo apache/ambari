@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.BLUEPRINT_PROVISIONING_STATE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLUSTER_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
@@ -104,6 +103,7 @@ import org.apache.ambari.server.actionmanager.StageHelper;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.rest.AgentResource;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
@@ -143,6 +143,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
@@ -152,6 +153,7 @@ import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
@@ -182,6 +184,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException
 import org.apache.ambari.server.stack.ExtensionHelper;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
@@ -389,6 +392,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private final ClusterMetadataGenerator metadataGenerator;
 
+  @Inject
+  private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
+
+
+
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
    */
@@ -406,6 +414,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private AmbariActionExecutionHelper actionExecutionHelper;
+
+  @Inject
+  private AgentConfigsHolder agentConfigsHolder;
 
   private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
 
@@ -593,6 +604,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public synchronized Set<ServiceComponentHostResponse> createHostComponents(Set<ServiceComponentHostRequest> requests)
       throws AmbariException, AuthorizationException {
 
+    return createHostComponents(requests, false);
+  }
+
+  @Override
+  public synchronized Set<ServiceComponentHostResponse> createHostComponents(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
+      throws AmbariException, AuthorizationException {
+
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
       return null;
@@ -769,12 +787,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // set restartRequired flag for  monitoring services
     setMonitoringServicesRestartRequired(requests);
     // now doing actual work
-    Set<ServiceComponentHostResponse> responses = persistServiceComponentHosts(requests);
+    Set<ServiceComponentHostResponse> responses = persistServiceComponentHosts(requests, isBlueprintProvisioned);
     m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
     return responses;
   }
 
-  Set<ServiceComponentHostResponse> persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
+  Set<ServiceComponentHostResponse> persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
     throws AmbariException {
     Multimap<Cluster, ServiceComponentHost> schMap = ArrayListMultimap.create();
     Map<Long, Map<Long, List<String>>> serviceComponentNames = new HashMap<>();
@@ -810,6 +828,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           && !request.getDesiredState().isEmpty()) {
         State state = State.valueOf(request.getDesiredState());
         sch.setDesiredState(state);
+      }
+      if (isBlueprintProvisioned && !sch.isClientComponent()) {
+        HostComponentDesiredStateEntity desiredStateEntity = sch.getDesiredStateEntity();
+        desiredStateEntity.setBlueprintProvisioningState(BlueprintProvisioningState.IN_PROGRESS);
+        hostComponentDesiredStateDAO.merge(desiredStateEntity);
       }
 
       schMap.put(cluster, sch);
@@ -5532,6 +5555,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException {
 
     Set<ServiceConfigVersionResponse> serviceConfigVersionResponses = new HashSet<>();
+    Set<Long> updatedClusterIds = new HashSet<>();
     for (ServiceConfigVersionRequest request : requests) {
       request.setIsCurrent(true);
       Cluster cluster = getClusters().getCluster(request.getClusterName());
@@ -5556,6 +5580,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         if (!desiredConfigs.isEmpty()) {
           Set<Config> configs = new HashSet<>();
           String note = null;
+          updatedClusterIds.add(cluster.getClusterId());
 
           for (ConfigurationRequest cr : desiredConfigs) {
             String configType = cr.getType();
@@ -5588,6 +5613,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           if (!configs.isEmpty()) {
+            updatedClusterIds.add(cluster.getClusterId());
             Map<String, Config> existingConfigTypeToConfig = new HashMap<>();
             for (Config config : configs) {
               Config existingConfig = cluster.getDesiredConfigByType(config.getType());
@@ -5620,6 +5646,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (request.getVersion() != null) {
+        updatedClusterIds.add(cluster.getClusterId());
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
           throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
         }
@@ -5641,6 +5668,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
       serviceConfigVersionResponses.add(serviceConfigVersionResponse);
+    }
+
+    if (!updatedClusterIds.isEmpty()) {
+      for (Long clusterId : updatedClusterIds) {
+        agentConfigsHolder.updateData(clusterId, null);
+      }
     }
     return serviceConfigVersionResponses;
   }
@@ -5695,6 +5728,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return statusCommandParams;
   }
 
+  @Override
+  public Map<String, BlueprintProvisioningState> getBlueprintProvisioningStates(Long clusterId, Long hostId)
+      throws AmbariException {
+    Map<String, BlueprintProvisioningState> blueprintProvisioningStates = new HashMap<>();
+    Host host = clusters.getHostById(hostId);
+    Cluster cl = clusters.getCluster(clusterId);
+    for (ServiceComponentHost sch : cl.getServiceComponentHosts(host.getHostName())) {
+      if (!sch.isClientComponent()) {
+        blueprintProvisioningStates.put(sch.getServiceComponentName(),
+            sch.getDesiredStateEntity().getBlueprintProvisioningState());
+      }
+    }
+    return blueprintProvisioningStates;
+  }
+
   //TODO will be a need to change to multi-instance usage
   public TreeMap<String, String> getTopologyCommandParams(ServiceComponentHost sch) throws AmbariException {
     TreeMap<String, String> commandParams = new TreeMap<>();
@@ -5740,8 +5788,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.putAll(getMetadataClusterLevelConfigsParams(cluster, stackId));
     clusterLevelParams.put(CLUSTER_NAME, cluster.getClusterName());
     clusterLevelParams.put(HOOKS_FOLDER, configs.getProperty(Configuration.HOOKS_FOLDER));
-    clusterLevelParams.put(BLUEPRINT_PROVISIONING_STATE,
-        cluster.getBlueprintProvisioningState().toString());
 
     return clusterLevelParams;
   }

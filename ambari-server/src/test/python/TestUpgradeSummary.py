@@ -107,7 +107,8 @@ class TestUpgradeSummary(TestCase):
           }
         },
         "direction":"UPGRADE",
-        "isRevert":False
+        "isRevert":False,
+        "orchestration": "STANDARD"
       }
     }
 
@@ -145,6 +146,7 @@ class TestUpgradeSummary(TestCase):
           }
         },
         "direction": "DOWNGRADE",
-        "isRevert": False
+        "isRevert": False,
+        "orchestration": "STANDARD"
       }
     }

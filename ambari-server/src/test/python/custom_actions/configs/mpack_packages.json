@@ -55,7 +55,14 @@
         "mpackVersion": "1.0.0-b251", 
         "repoFileName": "ambari-hdpcore-2", 
         "mpackName": "HDPCORE"
-    }, 
+    },
+    "stackSettings": {
+        "stack_name": "HDP",
+        "stack_version": "2.1",
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+    },
     "clusterLevelParams": {
         "not_managed_hdfs_path_list": "[]", 
         "hooks_folder": "stack-hooks", 
@@ -109,8 +116,7 @@
         "service_check_type": "full", 
         "agent_mounts_ignore_list": "", 
         "sysprep_skip_create_users_and_groups": "false", 
-        "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0\n", 
-        "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
+        "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
         "managed_hdfs_resource_property_names": "", 
         "recovery_enabled": "true", 
         "sysprep_skip_copy_fast_jar_hdfs": "false"

@@ -20,8 +20,9 @@ import {NO_ERRORS_SCHEMA} from '@angular/core';
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { DataLoadingIndicatorComponent } from '@app/modules/shared/components/data-loading-indicator/data-loading-indicator.component';
 import { TranslationModules } from '@app/test-config.spec';
-import { DataAvailabilityStatesStore, dataAvailabilityStates } from '@app/modules/app-load/stores/data-avaibility-state.store';
+import { DataAvailabilityStatesStore, dataAvailabilityStates } from '@app/modules/app-load/stores/data-availability-state.store';
 import { StoreModule } from '@ngrx/store';
+import { LoadingIndicatorComponent } from '@app/modules/shared/components/loading-indicator/loading-indicator.component';
 
 describe('DataLoadingIndicatorComponent', () => {
   let component: DataLoadingIndicatorComponent;
@@ -35,7 +36,10 @@ describe('DataLoadingIndicatorComponent', () => {
           dataAvailabilityStates
         })
       ],
-      declarations: [ DataLoadingIndicatorComponent ],
+      declarations: [
+        LoadingIndicatorComponent,
+        DataLoadingIndicatorComponent
+      ],
       providers: [
         DataAvailabilityStatesStore
       ]

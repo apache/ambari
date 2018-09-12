@@ -49,8 +49,10 @@ def check_stack_feature(stack_feature, stack_version):
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
-  # TODO: If stack_features is needed, this should be added in execution_command lib
-  stack_features_setting = stack_settings.get_stack_features()
+  # TODO call stack_settings.get_stack_features() will fail in TestStackFeature, need more investigation
+  stack_features_setting = None
+  if Script.config and "stackSettings" in Script.config and "stack_features" in Script.config["stackSettings"]:
+    stack_features_setting = Script.config["stackSettings"]["stack_features"]
 
   if not stack_version:
     Logger.debug("Cannot determine if feature %s is supported since did not provide a stack version." % stack_feature)
@@ -145,8 +147,8 @@ def get_stack_feature_version(config):
   is_downgrade = upgrade_direction.lower() == Direction.DOWNGRADE.lower()
   # guaranteed to have a STOP command now during an UPGRADE/DOWNGRADE, check direction
   if is_downgrade:
-    from resource_management.libraries.functions import upgrade_summary
-    version_for_stack_feature_checks = upgrade_summary.get_source_version(default_version = version_for_stack_feature_checks)
+    from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
+    version_for_stack_feature_checks = UpgradeSummary().get_service_source_version(service_group_name=None, service_name=None, default_version=version_for_stack_feature_checks)
   else:
     # UPGRADE
       version_for_stack_feature_checks = command_version if command_version is not None else stack_version

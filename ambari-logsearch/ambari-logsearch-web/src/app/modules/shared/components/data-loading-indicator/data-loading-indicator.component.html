@@ -26,9 +26,7 @@
       <div class="label">{{ ('dataAvaibilityState.' + dataAvaibilityState.storeKey + '.label') | translate }}</div>
       <div class="state-indicator">
         <div *ngIf="dataAvaibilityState.avaibility === 'LOADING'" class="state state-loading">
-            <svg class="circular-loader"viewBox="25 25 50 50" >
-              <circle class="loading-path" cx="50" cy="50" r="20" fill="none" stroke-width="6" />
-            </svg>
+            <loading-indicator></loading-indicator>
         </div>
         <div *ngIf="dataAvaibilityState.avaibility === 'AVAILABLE'" class="state state-available">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">

@@ -21,13 +21,12 @@ limitations under the License.
 
 import json
 
-from unittest import SkipTest
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
-@SkipTest
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("os.path.isfile", new = MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):
@@ -37,9 +36,16 @@ class TestHookAfterInstall(RMFTestCase):
 
     Script.config = dict()
     Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
-    Script.config["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
-    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    Script.config["clusterSettings"] = {"stack_packages": RMFTestCase.get_stack_packages(), "user_group": "hadoop"}
+    Script.config["clusterLevelParams"] = { "stack_name": "HDP" }
+    Script.config["stackSettings"] = {"stack_name": "HDP", "stack_version": "2.2", "user_groups": "hadoop"}
+    Script.config["commandParams"] = {"service_package_folder": "common-services/YARN/2.1.0.2.0/package"}
+    Script.config["agentLevelParams"] = {"agentCacheDir": "/var/lib/ambari-agent/cache"}
+    Script.config["serviceType"] = "hive"
+    Script.config["serviceName"] = "HIVE"
+    Script.config["role"] = "HIVE_SERVER"
 
+    Script.execution_command = ExecutionCommand(Script.get_config())
 
   def test_hook_default(self):
 
@@ -51,8 +57,8 @@ class TestHookAfterInstall(RMFTestCase):
                        config_overrides = self.CONFIG_OVERRIDES
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
+                              owner = "hdfs",
+                              group = "hadoop",
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
@@ -67,26 +73,26 @@ class TestHookAfterInstall(RMFTestCase):
 
 
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  @patch("resource_management.libraries.functions.conf_select.create")
-  @patch("resource_management.libraries.functions.conf_select.select")
+  @patch("resource_management.libraries.functions.mpack_manager_helper.create_component_instance")
+  @patch("resource_management.libraries.functions.mpack_manager_helper.get_component_conf_path")
   @patch("os.symlink")
   @patch("shutil.rmtree")
-  def test_hook_default_stack_select_specific_version(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock):
+  def test_hook_default_stack_select_specific_version(self, rmtree_mock, symlink_mock, get_component_conf_path_mock, create_component_instance_mock):
     """
     Tests that <stack-selector-tool> set all on a specific version, not a 2.3* wildcard is used when
     installing a component when the cluster version is already set.
 
     :param rmtree_mock:
     :param symlink_mock:
-    :param conf_select_select_mock:
-    :param conf_select_create_mock:
+    :param get_component_conf_path_mock:
+    :param create_component_instance_mock:
     :return:
     """
 
     def mocked_conf_select(arg1, arg2, arg3, dry_run = False):
       return "/etc/{0}/{1}/0".format(arg2, arg3)
 
-    conf_select_create_mock.side_effect = mocked_conf_select
+    create_component_instance_mock.side_effect = mocked_conf_select
 
     config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
     with open(config_file, "r") as f:
@@ -109,11 +115,11 @@ class TestHookAfterInstall(RMFTestCase):
 
   @patch("resource_management.core.Logger.warning")
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  @patch("resource_management.libraries.functions.conf_select.create")
-  @patch("resource_management.libraries.functions.conf_select.select")
+  @patch("resource_management.libraries.functions.mpack_manager_helper.create_component_instance")
+  @patch("resource_management.libraries.functions.mpack_manager_helper.get_component_conf_path")
   @patch("os.symlink")
   @patch("shutil.rmtree")
-  def test_hook_setup_stack_symlinks_skipped(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock, logger_warning_mock):
+  def test_hook_setup_stack_symlinks_skipped(self, rmtree_mock, symlink_mock, get_component_conf_path_mock, create_component_instance_mock, logger_warning_mock):
     """
     Tests that <stack-selector-tool> set all is not called on sys_prepped hosts
     :return:
@@ -122,7 +128,7 @@ class TestHookAfterInstall(RMFTestCase):
     def mocked_conf_select(arg1, arg2, arg3, dry_run = False):
       return "/etc/{0}/{1}/0".format(arg2, arg3)
 
-    conf_select_create_mock.side_effect = mocked_conf_select
+    get_component_conf_path_mock.side_effect = mocked_conf_select
 
     config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
     with open(config_file, "r") as f:

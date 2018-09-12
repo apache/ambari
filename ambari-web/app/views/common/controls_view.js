@@ -170,6 +170,7 @@ App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
     if (this.get('selected') || this.get('serviceConfig.changedViaUndoValue')) {
       var self = this, config = this.get('serviceConfig'),
         controller = this.get('controller');
+      Em.set(config, 'didUserOverrideValue', true);
       delay(function(){
         self.sendRequestRorDependentConfigs(config, controller);
       }, 500);
@@ -186,6 +187,7 @@ App.WidgetValueObserver = Em.Mixin.create(App.ValueObserver, {
     if (this.get('selected')) {
       var self = this, config = this.get('config'),
         controller = this.get('controller');
+      Em.set(config, 'didUserOverrideValue', true);
       delay(function(){
         self.sendRequestRorDependentConfigs(config, controller);
       }, 500);

@@ -4,7 +4,11 @@
     "kerberosCommandParams": [], 
     "clusterName": "c1", 
     "componentName": "", 
-    "hostname": "u1202.ambari.apache.org", 
+    "hostname": "u1202.ambari.apache.org",
+    "stackSettings": {
+        "stack_name": "HDP",
+        "stack_version": "2.2"
+    },
     "clusterLevelParams": {
         "stack_version": "2.2", 
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",

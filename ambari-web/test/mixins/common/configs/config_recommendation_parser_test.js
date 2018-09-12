@@ -229,6 +229,7 @@ describe('App.ConfigRecommendationParser', function() {
       describe('update recommendation', function() {
         beforeEach(function() {
           sinon.spy(instanceObject, 'applyRecommendation');
+          sinon.stub(instanceObject, 'getRecommendation').returns(false);
           sinon.stub(instanceObject, 'allowUpdateProperty').returns(c.allowUpdateProperty);
           sinon.stub(instanceObject, 'updateInitialOnRecommendations').returns(c.updateInitialOnRecommendations);
         });
@@ -236,6 +237,7 @@ describe('App.ConfigRecommendationParser', function() {
           instanceObject.allowUpdateProperty.restore();
           instanceObject.updateInitialOnRecommendations.restore();
           instanceObject.applyRecommendation.restore();
+          instanceObject.getRecommendation.restore();
         });
 
         it(c.m, function() {

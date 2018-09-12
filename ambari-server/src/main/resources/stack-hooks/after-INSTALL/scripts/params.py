@@ -32,6 +32,7 @@ config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
 stack_settings = Script.get_stack_settings()
+cluster_settings = Script.get_cluster_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 
@@ -95,7 +96,7 @@ mapred_log_dir_prefix = module_configs.get_property_value(module_name, 'mapred-e
 
 #users and groups
 hdfs_user = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user')
-user_group = get_cluster_setting_value('user_group')
+user_group = cluster_settings.get_user_group()
 
 namenode_host = execution_command.get_component_hosts('namenode')
 has_namenode = not len(namenode_host) == 0

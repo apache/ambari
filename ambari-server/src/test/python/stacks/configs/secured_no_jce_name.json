@@ -1,13 +1,49 @@
 {
     "roleCommand": "INSTALL", 
     "clusterName": "c1", 
-    "hostname": "c6401.ambari.apache.org", 
+    "hostname": "c6401.ambari.apache.org",
+    "stackSettings": {
+        "stack_name": "HDP",
+        "stack_version": "2.1",
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+    },
+    "clusterSettings": {
+        "security_enabled": "true",
+        "user_group": "hadoop",
+        "fetch_nonlocal_groups": "true",
+        "ignore_groupsusers_create": "false",
+        "sysprep_skip_create_users_and_groups": "false",
+        "override_uid" : "true",
+        "fetch_nonlocal_groups": "true",
+        "smokeuser": "ambari-qa",
+        "sysprep_skip_setup_jce": "false",
+        "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
+        "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}"
+    },
+    "ambariLevelParams": {
+        "jdk_location": "http://c7301.ambari.apache.org:8080/resources/",
+        "agent_stack_retry_count": "5",
+        "db_driver_filename": "mysql-connector-java.jar",
+        "agent_stack_retry_on_unavailability": "false",
+        "java_version": "8",
+        "ambari_server_host": "c7301.ambari.apache.org",
+        "ambari_server_port": "8080",
+        "host_sys_prepped": "true",
+        "db_name": "ambari",
+        "oracle_jdbc_url": "http://c7301.ambari.apache.org:8080/resources/ojdbc6.jar",
+        "ambari_server_use_ssl": "false",
+        "gpl_license_accepted": "false",
+        "jdk_name": "jdk-8u112-linux-x64.tar.gz",
+        "java_home": "/usr/jdk64/jdk1.7.0_45",
+        "mysql_jdbc_url": "http://c7301.ambari.apache.org:8080/resources/mysql-connector-java.jar"
+    },
     "hostLevelParams": {
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "ambari_db_rca_password": "mapred", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
-        "unlimited_key_jce_required" : "true",
         "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources/ojdbc6.jar",
         "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0.8\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]", 
         "package_list": "[{\"type\":\"rpm\",\"name\":\"hadoop-yarn\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-nodemanager\"},{\"type\":\"rpm\",\"name\":\"hadoop-mapreduce\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-proxyserver\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-resourcemanager\"}]", 
@@ -20,7 +56,11 @@
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "java_version": "8",
         "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar"
-    }, 
+    },
+    "componentLevelParams": {
+        "unlimited_key_jce_required": "true",
+        "clientsToUpdateConfigs": "[\"*\"]"
+    },
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
     "serviceName": "YARN", 

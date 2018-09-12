@@ -41,8 +41,12 @@ def get_stack_tool(name):
   :return: tool_name, tool_path, tool_package
   """
   from resource_management.libraries.functions.default import default
+  from resource_management.libraries.script import Script
+  from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 
-  stack_name = default("/stackSettings/stack_name", None)
+  execution_command = Script.execution_command = ExecutionCommand(Script.get_config())
+
+  stack_name = execution_command.get_mpack_name() #default("/stackSettings/stack_name", None)
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack tools cannot be loaded")
     return None, None, None

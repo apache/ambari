@@ -17,9 +17,10 @@
  */
 
 import {
-  Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
-  QueryList, ChangeDetectorRef, ElementRef, ViewChild, OnInit
+  Component, OnChanges, AfterViewChecked, OnDestroy, SimpleChanges, Input, Output, EventEmitter,
+  ViewChildren, ViewContainerRef, QueryList, ChangeDetectorRef, ElementRef, ViewChild, OnInit
 } from '@angular/core';
+import {Subscription} from 'rxjs/Subscription';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 
@@ -28,7 +29,7 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
   templateUrl: './dropdown-list.component.html',
   styleUrls: ['./dropdown-list.component.less']
 })
-export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecked {
+export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecked, OnDestroy {
 
   private shouldRenderAdditionalComponents = false;
 
@@ -76,6 +77,8 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
 
   private filterRegExp: RegExp;
 
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private componentGenerator: ComponentGeneratorService,
     private changeDetector: ChangeDetectorRef
@@ -84,7 +87,17 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
   ngOnInit() {
     this.separateSelections();
     this.setDefaultSelection(this.items);
-    this.selectedItemChange.subscribe(this.separateSelections);
+    // trigger selection if any of the items has been checked
+    if (this.items.some((item: ListItem) => item.isChecked)) {
+      this.selectedItemChange.emit(this.items);
+    }
+    this.subscriptions.push(
+      this.selectedItemChange.subscribe(this.separateSelections)
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
   }
 
   ngOnChanges(changes: SimpleChanges): void {

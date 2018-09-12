@@ -300,7 +300,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
     beforeEach(function() {
       sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
         stackService: App.StackService.createRecord({
-          requiredServices: ['S1', 'S2']
+          requiredServices: ['S2']
         })
       }));
       sinon.stub(App.Service, 'find').returns([

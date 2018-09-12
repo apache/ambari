@@ -23,6 +23,24 @@
     "roleCommand": "SERVICE_CHECK",
     "clusterName": "c1",
     "hostname": "c6401.ambari.apache.org",
+    "stackSettings": {
+        "stack_name": "HDP",
+        "stack_version": "2.1",
+        "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+    },
+    "clusterSettings": {
+        "user_group": "hadoop",
+        "fetch_nonlocal_groups": "true",
+        "ignore_groupsusers_create": "false",
+        "sysprep_skip_create_users_and_groups": "false",
+        "override_uid" : "true",
+        "fetch_nonlocal_groups": "true",
+        "smokeuser": "ambari-qa",
+        "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
+        "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}"
+    },
     "clusterLevelParams": {
         "stack_version": "2.1", 
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
@@ -60,27 +78,17 @@
             {
                 "mirrorsList": null, 
                 "ambariManaged": true, 
-                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60", 
+                "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
                 "repoName": "HDP", 
                 "components": null, 
                 "osType": "redhat6", 
                 "distribution": null, 
                 "repoId": "HDP-2.6-repo-1"
-            }, 
+            },
             {
                 "mirrorsList": null, 
                 "ambariManaged": true, 
-                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60", 
-                "repoName": "HDP-GPL", 
-                "components": null, 
-                "osType": "redhat6", 
-                "distribution": null, 
-                "repoId": "HDP-2.6-GPL-repo-1"
-            }, 
-            {
-                "mirrorsList": null, 
-                "ambariManaged": true, 
-                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "baseUrl": "http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0",
                 "repoName": "HDP-UTILS", 
                 "components": null, 
                 "osType": "redhat6", 
@@ -92,8 +100,10 @@
             "m_isScoped": true, 
             "m_isPreInstalled": false
         }, 
-        "stackName": "HDP", 
-        "repoVersionId": 1
+        "mpackId": 1,
+        "mpackVersion": "1.0.0-b645",
+        "repoFileName": "ambari-hdpcore-1",
+        "mpackName": "HDPCORE"
     },
     "agentLevelParams": {
         "public_hostname": "c6401.ambari.apache.org", 
@@ -178,24 +188,6 @@
     "roleParams": {},
     "serviceName": "HIVE",
     "role": "HIVE_SERVER",
-    "repositoryFile": {
-        "stackName": "HDP",
-        "repoVersionId": 4,
-        "repoVersion": "2.2.0.1-885",
-        "repoFileName": "ambari-hdp-4",
-        "repositories": [
-          {
-            "repoName": "HDP",
-            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
-            "repoId": "HDP-2.2-repo-4"
-          },
-          {
-            "repoName": "HDP-UTILS",
-            "baseUrl": "http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0",
-            "repoId": "HDP-UTILS-1.1.0.20-repo-4"
-          }
-        ]
-    },
     "commandParams": {
         "command_timeout": "300",
         "service_package_folder": "OOZIE",

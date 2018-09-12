@@ -45,6 +45,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -74,6 +76,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -114,6 +117,9 @@ public class ClusterConfigurationRequestTest {
   private Stack stack;
 
   @Mock(type = MockType.NICE)
+  private StackInfo stackInfo;
+
+  @Mock(type = MockType.NICE)
   private AmbariManagementController controller;
 
   @Mock(type = MockType.NICE)
@@ -121,6 +127,9 @@ public class ClusterConfigurationRequestTest {
 
   @Mock(type = MockType.NICE)
   private ConfigHelper configHelper;
+
+  @Mock
+  private AmbariMetaInfo metaInfo;
 
   private static final String STACK_NAME = "testStack";
   private static final String STACK_VERSION = "1";
@@ -258,6 +267,12 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getServiceTypes()).andReturn(SERVICE_NAMES).anyTimes();
     expect(stack.getConfiguration(SERVICE_NAMES)).andReturn(stackDefaultConfig).once();
 
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+    expect(metaInfo.getStack(STACK_ID)).andReturn(stackInfo).anyTimes();
+    expect(stackInfo.getProperties()).andReturn(Lists.newArrayList()).anyTimes();
+    expect(stackInfo.getServices()).andReturn(Lists.newArrayList()).anyTimes();
+
+
     expect(topology.getComponents()).andAnswer(() -> Stream.of(
       builderFor("HDFS", "NAMENODE").buildPartial(),
       builderFor("KERBEROS_CLIENT", "KERBEROS").buildPartial(),
@@ -303,7 +318,7 @@ public class ClusterConfigurationRequestTest {
       (captureUpdatedConfigTypes));
     expectLastCall();
 
-    PowerMock.replay(stack, blueprint, topology, controller, clusters, kerberosHelper,
+    PowerMock.replay(stack, stackInfo, metaInfo, blueprint, topology, controller, clusters, kerberosHelper,
         ambariContext, AmbariContext.class, configHelper);
 
     ClusterConfigurationRequest clusterConfigurationRequest = new ClusterConfigurationRequest(
@@ -328,6 +343,7 @@ public class ClusterConfigurationRequestTest {
     ambariContext.getController();
     expectLastCall().andReturn(controller).anyTimes();
 
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
 
@@ -338,6 +354,11 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getAllConfigurationTypes(anyString())).andReturn(ImmutableSet.of("testConfigType")).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
+
+    expect(metaInfo.getStack(STACK_ID)).andReturn(stackInfo).anyTimes();
+    expect(stackInfo.getProperties()).andReturn(Lists.newArrayList()).anyTimes();
+    expect(stackInfo.getServices()).andReturn(Lists.newArrayList()).anyTimes();
+
     Set<String> serviceNames = ImmutableSet.of("HDFS", "KERBEROS", "ZOOKEEPER");
     expect(topology.getServiceTypes()).andReturn(serviceNames).anyTimes();
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
@@ -363,7 +384,7 @@ public class ClusterConfigurationRequestTest {
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(STACK_ID))).andReturn(stackProperties).anyTimes();
 
-    PowerMock.replay(stack, blueprint, topology, controller, clusters, ambariContext,
+    PowerMock.replay(stack, stackInfo, metaInfo, blueprint, topology, controller, clusters, ambariContext,
         AmbariContext.class, configHelper);
 
     ClusterConfigurationRequest clusterConfigurationRequest = new ClusterConfigurationRequest(
@@ -553,16 +574,24 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getAllConfigurationTypes("ZOOKEEPER")).andReturn(ImmutableSet.of("zoo.cfg", "zookeeper-env"));
     expect(stack.getAllConfigurationTypes("HDFS")).andReturn(ImmutableSet.of("hdfs-site", "hadoop-env"));
 
+    expect(metaInfo.getStack(stackId)).andReturn(stackInfo).anyTimes();
+    expect(stackInfo.getProperties()).andReturn(Lists.newArrayList()).anyTimes();
+    expect(stackInfo.getServices()).andReturn(Lists.newArrayList()).anyTimes();
+
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(ambariContext.getServices(anyString())).andReturn(serviceResponses).anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
     Capture<ClusterRequest> clusterRequestCapture = Capture.newInstance(CaptureType.ALL);
     ambariContext.setConfigurationOnCluster(capture(clusterRequestCapture));
     expectLastCall().anyTimes();
 
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+
     expect(configHelper.getDefaultStackProperties(anyObject())).andReturn(stackProperties).anyTimes();
 
-    EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
+    EasyMock.replay(stack, stackInfo, metaInfo, controller, blueprint, topology, ambariContext,
+        configHelper);
 
     // WHEN
     ClusterConfigurationRequest request =

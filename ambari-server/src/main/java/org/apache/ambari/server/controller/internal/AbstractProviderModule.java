@@ -915,9 +915,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
           }
         }
       }
-      if (!hasMetricCollector) {
-        checkAndAddExternalCollectorHosts(clusterName);
-      }
+      // TODO : Uncomment it. Issue tracked in AMBARI-24568
+      //if (!hasMetricCollector) {
+      //  checkAndAddExternalCollectorHosts(clusterName);
+      //}
     }
   }
 

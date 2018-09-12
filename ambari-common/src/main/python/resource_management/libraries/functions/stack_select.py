@@ -41,7 +41,7 @@ from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_features
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import upgrade_summary
+from resource_management.libraries.functions.upgrade_summary import UpgradeSummary
 
 STACK_SELECT_PREFIX = 'ambari-python-wrap'
 
@@ -286,7 +286,7 @@ def select_packages(version):
   """
   package_scope = PACKAGE_SCOPE_STANDARD
   orchestration = package_scope
-  summary = upgrade_summary.get_upgrade_summary()
+  summary = None
 
   if summary is not None:
     orchestration = summary.orchestration

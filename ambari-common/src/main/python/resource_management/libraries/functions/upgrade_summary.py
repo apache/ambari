@@ -28,7 +28,6 @@ UpgradeServiceGroupSummary = namedtuple("UpgradeServiceGroupSummary",
   ["type", "service_group_id", "service_group_name", "source_mpack_id", "target_mpack_id",
     "source_mpack_name", "target_mpack_name", "source_mpack_version", "target_mpack_version",
     "source_stack", "target_stack", "services"])
-
 UpgradeServiceSummary = namedtuple("UpgradeServiceSummary", ["service_name", "source_version", "target_version", "components"])
 UpgradeComponentSummary = namedtuple("UpgradeComponentSummary", ["component_name", "source_version", "target_version"])
 
@@ -89,6 +88,7 @@ class UpgradeSummary(object):
 
     self.direction = upgrade_summary["direction"]
     self.is_revert = upgrade_summary["isRevert"]
+    self.orchestration = upgrade_summary["orchestration"]
     self.service_groups = service_group_summary_dict
 
 

@@ -19,7 +19,7 @@ limitations under the License.
 
 from resource_management.libraries.script.hook import Hook
 from shared_initialization import setup_stack_symlinks
-
+from shared_initialization import setup_config
 
 class AfterInstallHook(Hook):
 
@@ -28,7 +28,7 @@ class AfterInstallHook(Hook):
 
     env.set_params(params)
     setup_stack_symlinks(self.stroutfile)
-
+    setup_config()
 
 
 if __name__ == "__main__":

@@ -22,3 +22,10 @@ body {
 .initial-color {
   color: initial;
 }
+
+/** Override Bootstrap rules **/
+.btn-link {
+  &:hover, &:focus {
+    text-decoration: none;
+  }
+}

@@ -18,19 +18,18 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import javax.ws.rs.ApplicationPath;
+
 import org.apache.ambari.logsearch.rest.ServiceLogsResource;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletProperties;
-
-import javax.ws.rs.ApplicationPath;
 
 @ApplicationPath("/api/v1")
 public class LogSearchJerseyResourceConfig extends ResourceConfig {
 
   public LogSearchJerseyResourceConfig() {
     packages(ServiceLogsResource.class.getPackage().getName());
-    register(JacksonFeature.class);
+    register(com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider.class);
     property(ServletProperties.FILTER_FORWARD_ON_404, true);
   }
 
