@@ -20,8 +20,11 @@ package org.apache.ambari.server.api.services;
 
 import java.util.Map;
 
+import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.topology.ClusterTopology;
+
+import com.google.inject.ImplementedBy;
 
 /**
  * Common interface for topology/configuration recommendation engines. Currently there is a legacy implementation for
@@ -31,10 +34,11 @@ import org.apache.ambari.server.topology.ClusterTopology;
  * {@link org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorBlueprintProcessor}
  * </p>
  */
+@ImplementedBy(MpackAdvisorBlueprintProcessor.class)
 public interface AdvisorBlueprintProcessor {
 
-  static final String RECOMMENDATION_FAILED = "Configuration recommendation failed.";
-  static final String INVALID_RESPONSE = "Configuration recommendation returned with invalid response.";
+  String RECOMMENDATION_FAILED = "Configuration recommendation failed.";
+  String INVALID_RESPONSE = "Configuration recommendation returned with invalid response.";
 
   /**
    * Recommend configurations by the advisor, then store the results in cluster topology.

@@ -58,7 +58,6 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
-import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.checks.PreUpgradeCheck;
@@ -437,9 +436,6 @@ public class ControllerModule extends AbstractModule {
 
     if (configuration.shouldUseLegacyStackAdvisor()) {
       bind(AdvisorBlueprintProcessor.class).to(StackAdvisorBlueprintProcessor.class);
-    }
-    else {
-      bind(AdvisorBlueprintProcessor.class).to(MpackAdvisorBlueprintProcessor.class);
     }
   }
 
