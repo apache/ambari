@@ -1213,7 +1213,7 @@
      -->
   <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
 
-    <str name="queryAnalyzerFieldType">key_lower_case</str>
+    <str name="queryAnalyzerFieldType">lowercase</str>
 
     <!-- Multiple "Spell Checkers" can be declared and used by this
          component
@@ -1688,7 +1688,7 @@
       </arr>
     </processor>
     <processor class="solr.AddSchemaFieldsUpdateProcessorFactory">
-      <str name="defaultFieldType">key_lower_case</str>
+      <str name="defaultFieldType">lowercase</str>
       <lst name="typeMapping">
         <str name="valueClass">java.lang.Boolean</str>
         <str name="fieldType">booleans</str>
