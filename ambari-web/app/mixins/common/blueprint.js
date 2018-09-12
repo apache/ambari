@@ -45,8 +45,9 @@ App.BlueprintMixin = Em.Mixin.create({
         name: group_name,
         components: mappedComponents[host] ? mappedComponents[host].map(function (c) {
           return {
-            mpack_instance: Em.get(c, 'mpackInstance'),
-            service_instance: Em.get(c, 'serviceInstance'),
+            mpack_instance: Em.get(c, 'serviceGroupName'),
+            //service_instance: Em.get(c, 'serviceInstance'), // TODO: this should work in the future;
+            service_instance: Em.get(c, 'serviceName'),       // for now, we use the service name as the service instance name.
             name: Em.get(c, 'componentName')
           };
         }) : []

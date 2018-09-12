@@ -132,10 +132,11 @@ describe('App.HostComponentRecommendationMixin', function() {
             componentName: 'c1',
             hostName: 'h1',
             mpackInstance: 'm1',
-            serviceInstance: 'si1'
+            serviceInstance: 'si1',
+            serviceGroupName: 'sg1',
+            serviceName: 's1'
           })],
-          blueprint: null,
-          mpack_instances: []
+          blueprint: null
         },
         e: {
           data: {
@@ -149,13 +150,12 @@ describe('App.HostComponentRecommendationMixin', function() {
                     components: [
                       {
                         name: 'c1',
-                        mpack_instance: 'm1',
-                        service_instance: 'si1'
+                        mpack_instance: 'sg1',
+                        service_instance: 's1'
                       }
                     ]
                   }
-                ],
-                mpack_instances: []
+                ]
               },
               blueprint_cluster_binding: {
                 host_groups: [
@@ -171,17 +171,14 @@ describe('App.HostComponentRecommendationMixin', function() {
         options: {
           hosts: ['h1'],
           components: [Em.Object.create({componentName: 'c1', hostName: 'h1'})],
-          blueprint: { blueprint: {} },
-          mpack_instances: []
+          blueprint: { blueprint: {} }
         },
         e: {
           data: {
             recommend: 'host_groups',
             hosts: ['h1'],
             recommendations: {
-              blueprint: {
-                mpack_instances: []
-              }
+              blueprint: {}
             }
           }
         },

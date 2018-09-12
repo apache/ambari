@@ -133,7 +133,9 @@ describe('App.HostComponentValidationMixin', function() {
               componentName: 'c1',
               hostName: 'h1',
               mpackInstance: 'm1',
-              serviceInstance: 'si1'
+              serviceInstance: 'si1',
+              serviceGroupName: 'sg1',
+              serviceName: 's1'
             })
           ],
           blueprint: null,
@@ -149,8 +151,8 @@ describe('App.HostComponentValidationMixin', function() {
                   {
                     name: 'host-group-1', components: [{
                       name: 'c1',
-                      mpack_instance: 'm1',
-                      service_instance: 'si1' 
+                      mpack_instance: 'sg1',
+                      service_instance: 's1' 
                     }]
                   }
                 ],

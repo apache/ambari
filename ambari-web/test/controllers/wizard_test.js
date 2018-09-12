@@ -437,6 +437,87 @@ describe('App.WizardController', function () {
     });
   });
 
+  describe('#getStepName', function() {
+    var index = 1;
+
+    it('Should return the step name at the given index', function () {
+      var wizardController = App.WizardController.create({
+        steps: [
+          "dog",
+          "cat",
+          "fish"
+        ]
+      });
+
+      var stepName = wizardController.getStepName(index);
+
+      expect(stepName).to.eq("cat");
+    });
+
+    it('Should return "step" + index if there is no steps array for legacy support', function () {
+      var wizardController = App.WizardController.create();
+
+      var stepName = wizardController.getStepName(1);
+
+      expect(stepName).to.eq("step" + index);
+    });
+  });
+
+  describe('#firstStepName', function() {
+    it('Should return the step name at index 0', function () {
+      var wizardController = App.WizardController.create({
+        steps: [
+          "dog",
+          "cat",
+          "fish"
+        ]
+      });
+
+      var stepName = wizardController.get('firstStepName');
+
+      expect(stepName).to.eq("dog");
+    });
+
+    it('Should return "step0" if there is no steps array for legacy support', function () {
+      var wizardController = App.WizardController.create();
+
+      var stepName = wizardController.get('firstStepName');
+
+      expect(stepName).to.eq("step0");
+    });
+  });
+
+  describe('#lastStepName', function() {
+    it('Should return the step name at the last index', function () {
+      var wizardController = App.WizardController.create({
+        steps: [
+          "dog",
+          "cat",
+          "fish"
+        ]
+      });
+
+      var stepName = wizardController.get('lastStepName');
+
+      expect(stepName).to.eq("fish");
+    });
+
+    it('Should return "step" + totalSteps if there is no steps array for legacy support', function () {
+      var totalSteps = 10;
+      var wizardController = App.WizardController.create({ totalSteps: totalSteps });
+      var stepName = wizardController.get('lastStepName');
+
+      expect(stepName).to.eq("step" + totalSteps);
+    });
+
+    it('Should return null if there is no steps array and no totalSteps value', function () {
+      var wizardController = App.WizardController.create();
+      var stepName = wizardController.get('lastStepName');
+
+      expect(stepName).to.be.null;
+    });
+  });
+
   describe('#getStepIndex when steps is not defined', function() {
     it('Should return name when name does not contain an integer', function() {
       var index = c.getStepIndex("cat");
@@ -1572,7 +1653,7 @@ describe('App.WizardController', function () {
     });
   });
 
-  describe('#loadConfigThemes', function () {
+  describe('#loadServiceConfigs', function () {
     beforeEach(function () {
       sinon.stub(wizardController, 'loadConfigThemeForServices').returns({
         always: Em.clb
@@ -1597,15 +1678,15 @@ describe('App.WizardController', function () {
       App.themesMapper.generateAdvancedTabs.restore();
       wizardController.loadConfigThemeForServices.restore();
     });
-    it('Should load config themes', function(done) {
+    it('Should load service configs', function(done) {
       this.stub.returns(true);
-      wizardController.loadConfigThemes().then(function() {
+      wizardController.loadServiceConfigs().then(function() {
         done();
       });
     });
     it('Should load config themes (2)', function(done) {
       this.stub.returns(false);
-      wizardController.loadConfigThemes().then(function() {
+      wizardController.loadServiceConfigs().then(function() {
         done();
       });
     });
@@ -2050,9 +2131,11 @@ describe('App.WizardController', function () {
   describe("#loadServiceGroupsCallback", function() {
     it("should call setDBProperty and populate content.serviceGroups and content.serviceInstances", function () {
       var data = [{
-        service_group_name: 'name',
-        mpack_name: 'mpackName',
-        mpack_version: 'version',
+        ServiceGroupInfo: {
+          service_group_name: 'name',
+          mpack_name: 'mpackName',
+          mpack_version: 'version'
+        },
         services: [{
           ServiceInfo: {
             service_name: 'serviceName',
@@ -2066,11 +2149,12 @@ describe('App.WizardController', function () {
       expect(stub.calledTwice).to.be.true;
       expect(wizardController.get('content.serviceGroups')).to.deep.equal([{
         name: 'name',
-        mpackVersionId: 'mpackNameversion'
+        mpackVersionId: 'mpackName-version'
       }]);
       expect(wizardController.get('content.serviceInstances')).to.deep.equal([{
         name: 'serviceName',
-        serviceGroupName: 'name'
+        serviceGroupName: 'name',
+        serviceName: 'serviceName'
       }]);
 
       wizardController.setDBProperty.restore();

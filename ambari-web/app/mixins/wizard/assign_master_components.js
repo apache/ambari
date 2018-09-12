@@ -472,9 +472,13 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    */
   getRecommendationRequestData: function(options) {
     var res = this._super(options);
+    
     if (!this.get('isInstaller')) {
       res.data.recommendations = this.getCurrentMasterSlaveBlueprint();
     }
+
+    res.data.recommendations.blueprint.mpack_instances = options.mpack_instances;
+
     return res;
   },
 
@@ -683,7 +687,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   createComponentInstallationObjects: function() {
     var stackMasterComponentsMap = {},
         masterHosts = this.get('content.masterComponentHosts'),
-        servicesToAdd = (this.get('content.services')|| []).filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'),
+        servicesToAdd = this.get('content.selectedServiceNames'),
         recommendations = this.get('recommendations'),
         resultComponents = [],
         multipleComponentHasBeenAdded = {},
@@ -718,7 +722,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
             // If service is already installed and not being added as a new service then render on UI only those master components
             // that have already installed hostComponents.
             // NOTE: On upgrade there might be a prior installed service with non-installed newly introduced serviceComponent
-            if (!servicesToAdd.contains(stackMasterComponent.get('serviceName')) && !isMasterCreateOnConfig) {
+            if (servicesToAdd && !servicesToAdd.contains(stackMasterComponent.get('serviceName')) && !isMasterCreateOnConfig) {
               willBeDisplayed = masterHosts.someProperty('component', component.name);
             }
 

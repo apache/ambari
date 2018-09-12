@@ -16,389 +16,528 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
+require('models/cluster');
 require('controllers/wizard');
 require('controllers/main/service/add_controller');
-var addServiceController = null;
-var testHelpers = require('test/helpers');
 
-describe('App.AddServiceController', function() {
+describe('App.AddServiceController', function () {
 
-  beforeEach(function () {
-    addServiceController = App.AddServiceController.create({});
+  var addServiceController = App.AddServiceController.create();
+
+  after(function () {
+    addServiceController.destroy();
   });
 
-  describe('#generateDataForInstallServices', function() {
-    var tests = [{
-      selected: ["YARN","HBASE"],
-      res: {
-        "context": Em.I18n.t('requestInfo.installServices'),
-        "ServiceInfo": {"state": "INSTALLED"},
-        "urlParams": "ServiceInfo/service_name.in(YARN,HBASE)"
+  describe('#init', function () {
+    var c;
+    beforeEach(function () {
+      c = App.AddServiceController.create({});
+    });
+    it('all steps are disabled by default', function () {
+      expect(c.get('isStepDisabled.length')).to.eq(c.get('totalSteps'));
+      for (var i = 0, length = c.get('isStepDisabled.length'); i < length; i++) {
+        expect(c.get('isStepDisabled').findProperty('step', i).get('value')).to.eq(true);
       }
-    },
-    {
-      selected: ['OOZIE'],
-      res: {
-        "context": Em.I18n.t('requestInfo.installServices'),
-        "ServiceInfo": {"state": "INSTALLED"},
-        "urlParams": "ServiceInfo/service_name.in(OOZIE,HDFS,YARN,MAPREDUCE2)"
-      }
-    }];
-    tests.forEach(function(t){
-      it('should generate data with ' + t.selected.join(","), function () {
-        expect(addServiceController.generateDataForInstallServices(t.selected)).to.be.eql(t.res);
-      });
     });
   });
 
-  describe('#saveServices', function() {
-    beforeEach(function() {
-      sinon.stub(addServiceController, 'setDBProperty', Em.K);
-    });
+  describe('#setLowerStepsDisable', function() {
 
-    afterEach(function() {
-      addServiceController.setDBProperty.restore();
-    });
-
-    var tests = [
-      {
-        appService: [
-          Em.Object.create({ serviceName: 'HDFS' }),
-          Em.Object.create({ serviceName: 'KERBEROS' })
-        ],
-        stepCtrlContent: Em.Object.create({
-          content: Em.A([
-            Em.Object.create({ serviceName: 'HDFS', isInstalled: true, isSelected: true }),
-            Em.Object.create({ serviceName: 'YARN', isInstalled: false, isSelected: true })
-          ])
+    beforeEach(function () {
+      var steps = Em.A([
+        Em.Object.create({
+          step: 0,
+          value: false
         }),
-        e: {
-          selected: ['YARN'],
-          installed: ['HDFS', 'KERBEROS']
-        }
-      },
-      {
-        appService: [
-          Em.Object.create({ serviceName: 'HDFS' }),
-          Em.Object.create({ serviceName: 'STORM' })
-        ],
-        stepCtrlContent: Em.Object.create({
-          content: Em.A([
-            Em.Object.create({ serviceName: 'HDFS', isInstalled: true, isSelected: true }),
-            Em.Object.create({ serviceName: 'YARN', isInstalled: false, isSelected: true }),
-            Em.Object.create({ serviceName: 'MAPREDUCE2', isInstalled: false, isSelected: true })
-          ])
+        Em.Object.create({
+          step: 1,
+          value: false
         }),
-        e: {
-          selected: ['YARN', 'MAPREDUCE2'],
-          installed: ['HDFS', 'STORM']
-        }
-      }
-    ];
-
-    var message = '{0} installed, {1} selected. Installed list should be {2} and selected - {3}';
-    tests.forEach(function(test) {
-
-      var installed = test.appService.mapProperty('serviceName');
-      var selected = test.stepCtrlContent.get('content').filterProperty('isSelected', true)
-        .filterProperty('isInstalled', false).mapProperty('serviceName');
-
-      describe(message.format(installed, selected, test.e.installed, test.e.selected), function() {
-
-        beforeEach(function () {
-          sinon.stub(App.Service, 'find').returns(test.appService);
-          addServiceController.saveServices(test.stepCtrlContent);
-          this.savedServices = addServiceController.setDBProperty.withArgs('services').args[0][1];
-        });
-
-        afterEach(function () {
-          App.Service.find.restore();
-        });
-
-        it(JSON.stringify(test.e.selected) + ' are in the selectedServices', function () {
-          expect(this.savedServices.selectedServices).to.have.members(test.e.selected);
-        });
-
-        it(JSON.stringify(test.e.installed) + ' are in the installedServices', function () {
-          expect(this.savedServices.installedServices).to.have.members(test.e.installed);
-        });
-
-      });
-    });
-  });
-
-  describe('#loadHosts', function () {
-
-    var cases = [
-      {
-        hosts: {},
-        isAjaxRequestSent: false,
-        title: 'hosts are already loaded'
-      },
-      {
-        areHostsLoaded: false,
-        isAjaxRequestSent: true,
-        title: 'hosts aren\'t yet loaded'
-      }
-    ];
-
-    afterEach(function () {
-      addServiceController.getDBProperty.restore();
+        Em.Object.create({
+          step: 2,
+          value: false
+        }),
+        Em.Object.create({
+          step: 3,
+          value: false
+        }),
+        Em.Object.create({
+          step: 4,
+          value: false
+        })
+      ]);
+      addServiceController.set('isStepDisabled', steps);
+      addServiceController.setLowerStepsDisable(3);
     });
 
-    cases.forEach(function (item) {
-      describe(item.title, function () {
-
-        beforeEach(function () {
-          sinon.stub(addServiceController, 'getDBProperty').withArgs('hosts').returns(item.hosts);
-          addServiceController.loadHosts();
-          this.args = testHelpers.findAjaxRequest('name', 'hosts.confirmed');
-        });
-
-        it('request is ' + (item.isAjaxRequestSent ? '' : 'not') + ' sent', function () {
-          expect(Em.isNone(this.args)).to.be.equal(!item.isAjaxRequestSent);
-        });
-      });
-    });
-
-  });
-
-  describe('#loadHostsSuccessCallback', function () {
-
-    it('should load hosts to local db and model', function () {
-      var hostComponents = [
-          [
-            {
-              HostRoles: {
-                component_name: 'c0',
-                state: 'STARTED'
-              }
-            },
-            {
-              HostRoles: {
-                component_name: 'c1',
-                state: 'INSTALLED'
-              }
-            }
-          ],
-          [
-            {
-              HostRoles: {
-                component_name: 'c2',
-                state: 'STARTED'
-              }
-            },
-            {
-              HostRoles: {
-                component_name: 'c3',
-                state: 'INSTALLED'
-              }
-            }
-          ]
-        ],
-        response = {
-          items: [
-            {
-              Hosts: {
-                host_name: 'h0',
-              },
-              host_components: hostComponents[0]
-            },
-            {
-              Hosts: {
-                host_name: 'h1'
-              },
-              host_components: hostComponents[1]
-            }
-          ]
-        },
-        expected = {
-          h0: {
-            name: 'h0',
-            bootStatus: 'REGISTERED',
-            isInstalled: true,
-            hostComponents: hostComponents[0],
-            id: 0
-          },
-          h1: {
-            name: 'h1',
-            bootStatus: 'REGISTERED',
-            isInstalled: true,
-            hostComponents: hostComponents[1],
-            id: 1
-          }
-        };
-      addServiceController.loadHostsSuccessCallback(response);
-      var hostsInDb = addServiceController.getDBProperty('hosts');
-      var hostsInModel = addServiceController.get('content.hosts');
-      expect(hostsInDb).to.eql(expected);
-      expect(hostsInModel).to.eql(expected);
-    });
-
-  });
-
-  describe('#loadServices', function() {
-    var mock = {
-      db: {}
-    };
-    beforeEach(function() {
-      this.controller = App.AddServiceController.create({});
-      this.mockGetDBProperty = sinon.stub(this.controller, 'getDBProperty');
-      sinon.stub(this.controller, 'setDBProperty', function(key, value) {
-        mock.db = value;
-      });
-      sinon.stub(this.controller, 'hasDependentSlaveComponent');
-      sinon.stub(App.store, 'fastCommit', Em.K);
-      this.mockStackService = sinon.stub(App.StackService, 'find');
-      this.mockService = sinon.stub(App.Service, 'find');
-    });
-
-    afterEach(function() {
-      this.mockGetDBProperty.restore();
-      this.controller.setDBProperty.restore();
-      this.controller.hasDependentSlaveComponent.restore();
-      this.mockStackService.restore();
-      this.mockService.restore();
-      App.store.fastCommit.restore();
-    });
-
-    var tests = [
-      {
-        appStackService: [
-          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS', coSelectedServices: []}),
-          Em.Object.create({ id: 'YARN', serviceName: 'YARN', coSelectedServices: ['MAPREDUCE2']}),
-          Em.Object.create({ id: 'MAPREDUCE2', serviceName: 'MAPREDUCE2', coSelectedServices: []}),
-          Em.Object.create({ id: 'FALCON', serviceName: 'FALCON', coSelectedServices: []}),
-          Em.Object.create({ id: 'STORM', serviceName: 'STORM', coSelectedServices: []})
-        ],
-        appService: [
-          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS'}),
-          Em.Object.create({ id: 'STORM', serviceName: 'STORM'})
-        ],
-        servicesFromDB: false,
-        serviceToInstall: 'MAPREDUCE2',
-        e: {
-          selectedServices: ['HDFS', 'YARN', 'MAPREDUCE2', 'STORM'],
-          installedServices: ['HDFS', 'STORM']
-        },
-        m: 'MapReduce selected on Admin -> Stack Versions Page, Yarn service should be selected because it coselected'
-      },
-      {
-        appStackService: [
-          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS', coSelectedServices: []}),
-          Em.Object.create({ id: 'YARN', serviceName: 'YARN', coSelectedServices: ['MAPREDUCE2']}),
-          Em.Object.create({ id: 'HBASE', serviceName: 'HBASE', coSelectedServices: []}),
-          Em.Object.create({ id: 'STORM', serviceName: 'STORM', coSelectedServices: []})
-        ],
-        appService: [
-          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS'}),
-          Em.Object.create({ id: 'STORM', serviceName: 'STORM'})
-        ],
-        servicesFromDB: {
-          selectedServices: ['HBASE'],
-          installedServices: ['HDFS', 'STORM']
-        },
-        serviceToInstall: null,
-        e: {
-          selectedServices: ['HDFS', 'HBASE', 'STORM'],
-          installedServices: ['HDFS', 'STORM']
-        },
-        m: 'HDFS and STORM are installed. Select HBASE'
-      }
-    ];
-
-    tests.forEach(function(test) {
-      describe(test.m, function() {
-
-        beforeEach(function () {
-          this.mockStackService.returns(test.appStackService);
-          this.mockService.returns(test.appService);
-          this.mockGetDBProperty.withArgs('services').returns(test.servicesFromDB);
-          this.controller.set('serviceToInstall', test.serviceToInstall);
-          this.controller.loadServices();
-        });
-
-        if (test.servicesFromDB) {
-          // verify values for App.StackService
-          it(JSON.stringify(test.e.selectedServices) + ' are selected', function () {
-            expect(test.appStackService.filterProperty('isSelected', true).mapProperty('serviceName')).to.be.eql(test.e.selectedServices);
-          });
-          it(JSON.stringify(test.e.installedServices) + ' are installed', function () {
-            expect(test.appStackService.filterProperty('isInstalled', true).mapProperty('serviceName')).to.be.eql(test.e.installedServices);
-          });
-        }
-        else {
-          // verify saving to local db on first enter to the wizard
-          it('selectedServices are saced', function () {
-            expect(mock.db.selectedServices).to.be.eql(test.e.selectedServices);
-          });
-          it('installedServices are saved', function () {
-            expect(mock.db.installedServices).to.be.eql(test.e.installedServices);
-          });
-
-        }
-
-        it('serviceToInstall is null', function () {
-          expect(this.controller.get('serviceToInstall')).to.be.null;
-        });
-
-      });
-    }, this);
-  });
-
-  describe('#loadServiceConfigGroups', function () {
-
-    var dbMock,
-      dbMock2,
-      cases = [
+    it('Should disable lower steps', function() {
+      var expected = [
         {
-          serviceConfigGroups: null,
-          areInstalledConfigGroupsLoaded: false,
-          title: 'config groups not yet loaded'
+          "step": 0,
+          "value": true
         },
         {
-          serviceConfigGroups: [],
-          areInstalledConfigGroupsLoaded: true,
-          title: 'config groups already loaded'
+          "step": 1,
+          "value": true
+        },
+        {
+          "step": 2,
+          "value": true
+        },
+        {
+          "step": 3,
+          "value": false
+        },
+        {
+          "step": 4,
+          "value": false
+        }
+      ];
+      var res = JSON.parse(JSON.stringify(addServiceController.get('isStepDisabled')));
+      expect(res).to.eql(expected);
+    });
+  });
+
+  describe('#totalSteps', function() {
+    beforeEach(function() {
+      addServiceController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+    });
+
+    it('Should return the number of steps', function() {
+      var totalSteps = addServiceController.get('totalSteps');
+      expect(totalSteps).to.eq(addServiceController.get("steps").length);
+    });
+  })
+
+  describe('#setStepsEnable', function() {
+    beforeEach(function () {
+      var steps = Em.A([
+        Em.Object.create({
+          step: 0,
+          value: true
+        }),
+        Em.Object.create({
+          step: 1,
+          value: true
+        }),
+        Em.Object.create({
+          step: 2,
+          value: true
+        }),
+        Em.Object.create({
+          step: 3,
+          value: true
+        }),
+        Em.Object.create({
+          step: 4,
+          value: true
+        })
+      ]);
+      
+      addServiceController.set('isStepDisabled', steps);
+      
+      addServiceController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+      
+      addServiceController.set('currentStep', 2);
+    });
+
+    it('Should enable next steps', function() {
+      var stepController = Em.Object.create({
+        isStepDisabled: function () {
+          return false;
+        }
+      });
+
+      sinon.stub(addServiceController, 'getStepController').returns(stepController);
+
+      var expected = [
+        {
+          "step": 0,
+          "value": false
+        },
+        {
+          "step": 1,
+          "value": false
+        },
+        {
+          "step": 2,
+          "value": false
+        },
+        {
+          "step": 3,
+          "value": false
+        },
+        {
+          "step": 4,
+          "value": false
         }
       ];
 
-    beforeEach(function () {
-      dbMock = sinon.stub(addServiceController, 'getDBProperties');
-      dbMock2 = sinon.stub(addServiceController, 'getDBProperty');
-    });
+      addServiceController.setStepsEnable();
 
-    afterEach(function () {
-      dbMock.restore();
-      dbMock2.restore();
-    });
+      var res = JSON.parse(JSON.stringify(addServiceController.get('isStepDisabled')));
+      expect(res).to.eql(expected);
 
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        dbMock.withArgs(['serviceConfigGroups', 'hosts']).returns({
-          hosts: {},
-          serviceConfigGroups: item.serviceConfigGroups
-        });
-        dbMock2.withArgs('hosts').returns({}).
-          withArgs('serviceConfigGroups').returns(item.serviceConfigGroups);
-        addServiceController.loadServiceConfigGroups();
-        expect(addServiceController.get('areInstalledConfigGroupsLoaded')).to.equal(item.areInstalledConfigGroupsLoaded);
-      });
+      addServiceController.getStepController.restore();
     });
-
   });
 
-  describe('#clearStorageData', function () {
-    it('areInstalledConfigGroupsLoaded should be false', function () {
-      addServiceController.set('areInstalledConfigGroupsLoaded', true);
-      addServiceController.clearStorageData();
-      expect(addServiceController.get('areInstalledConfigGroupsLoaded')).to.be.false;
+  describe('#saveMasterComponentHosts', function() {
+    beforeEach(function () {
+      sinon.stub(addServiceController, 'getDBProperty').returns({
+        'h1': {
+          id: 11
+        },
+        'h3': {
+          id: 13
+        },
+        'h2': {
+          id: 12
+        }
+      });
+    });
+    afterEach(function () {
+      addServiceController.getDBProperty.restore();
+    });
+    it ('Should return hosts', function() {
+      var stepController = Em.Object.create({
+        selectedServicesMasters: Em.A([
+          Em.Object.create({
+            display_name: 'n1',
+            component_name: 'c1',
+            serviceId: 1,
+            selectedHost: 'h1',
+            mpackInstance: 'm1'
+          })
+        ])
+      });
+      addServiceController.saveMasterComponentHosts(stepController);
+      expect(addServiceController.get('content.masterComponentHosts')).to.eql([
+        {
+          "display_name": "n1",
+          "component": "c1",
+          "serviceId": 1,
+          "isInstalled": false,
+          "host_id": 11,
+          "serviceGroupName": "m1"
+        }
+      ]);
+    });
+  });
+
+  describe('#loadConfirmedHosts', function() {
+    beforeEach(function () {
+      sinon.stub(addServiceController, 'getDBProperty').returns({
+        'h1': {
+          id: 11
+        },
+        'h3': {
+          id: 13
+        },
+        'h2': {
+          id: 12
+        }
+      });
+    });
+    afterEach(function () {
+      addServiceController.getDBProperty.restore();
+    });
+    it ('Should load hosts from db', function() {
+      addServiceController.loadConfirmedHosts();
+      expect(addServiceController.get('content.hosts')).to.eql({
+        'h1': {
+          id: 11
+        },
+        'h3': {
+          id: 13
+        },
+        'h2': {
+          id: 12
+        }
+      });
+    });
+  });
+
+  describe('#loadMasterComponentHosts', function() {
+    beforeEach(function () {
+      addServiceController.set('content.masterComponentHosts', null);
+      sinon.stub(addServiceController, 'getDBProperties', function() {
+        return {
+          masterComponentHosts: Em.A([
+            {
+              hostName: '',
+              host_id: 11
+            }
+          ]),
+          hosts: {
+            'h1': {
+              id: 11
+            },
+            'h3': {
+              id: 13
+            },
+            'h2': {
+              id: 12
+            }
+          }
+        }
+      });
+    });
+    afterEach(function () {
+      addServiceController.getDBProperties.restore();
+    });
+    it('Should load hosts', function() {
+      addServiceController.loadMasterComponentHosts();
+      expect(addServiceController.get('content.masterComponentHosts')).to.eql([
+        {
+          "hostName": "h1",
+          "host_id": 11
+        }
+      ]);
+    });
+  });
+
+  describe('#loadSlaveComponentHosts', function() {
+    beforeEach(function () {
+      sinon.stub(addServiceController, 'getDBProperties', function() {
+        return {
+          hosts: {
+            'h1': {
+              id: 11
+            },
+            'h3': {
+              id: 13
+            },
+            'h2': {
+              id: 12
+            }
+          },
+          slaveComponentHosts: Em.A([
+            {
+              hosts: Em.A([
+                {
+                  hostName: '',
+                  host_id: 11
+                }
+              ])
+            }
+          ])
+        };
+      });
+    });
+    afterEach(function () {
+      addServiceController.getDBProperties.restore();
+    });
+    it ('Should load slave hosts', function() {
+      addServiceController.loadSlaveComponentHosts();
+      expect(addServiceController.get('content.slaveComponentHosts')).to.eql([
+        {
+          "hosts": [
+            {
+              "hostName": "h1",
+              "host_id": 11
+            }
+          ]
+        }
+      ]);
+    });
+  });
+
+  describe('#setStepSaved', function() {
+    beforeEach(function() {
+      addServiceController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+
+      addServiceController.set('content.stepsSavedState', null);
+    });
+
+    it('Should save step and unsave all subsequent steps when step is not saved yet', function() {
+      var expected = Em.Object.create({
+        "1": true,
+        "2": false,
+        "3": false,
+        "4": false
+      });
+
+      addServiceController.setStepSaved('step1');
+      var actual = addServiceController.get('content.stepsSavedState');
+      expect(actual).to.deep.equal(expected);
+      expect(addServiceController.getStepSavedState('step1')).to.be.true;
+    });
+
+    it('Should do nothing when step is already saved', function() {
+      var expected = Em.Object.create({
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+      addServiceController.set('content.stepsSavedState', expected);
+
+      addServiceController.setStepSaved('step1');
+      var actual = addServiceController.get('content.stepsSavedState');
+      expect(actual).to.deep.equal(expected);
+      expect(addServiceController.getStepSavedState('step1')).to.be.true;
+    });
+  });
+
+  describe('#setStepUnsaved', function() {
+    beforeEach(function() {
+      addServiceController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+
+      var initial = Em.Object.create({
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+      addServiceController.set('content.stepsSavedState', initial);
+    });
+
+    it('Should set step to unsaved', function() {
+      var expected = Em.Object.create({
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+
+      addServiceController.setStepUnsaved('step1');
+      var actual = addServiceController.get('content.stepsSavedState');
+      expect(actual).to.deep.equal(expected);
+      expect(addServiceController.getStepSavedState('step1')).to.be.false;
+    });
+  });
+
+  describe('#getStepSavedState', function() {
+    beforeEach(function() {
+      addServiceController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+
+      var initial = Em.Object.create({
+        "1": true,
+        "2": false
+      })
+      addServiceController.set('content.stepsSavedState', initial);
+    });
+
+    it('Should return false for bad step name', function() {
+      expect(addServiceController.getStepSavedState('step5')).to.be.false;
+    });
+
+    it('Should return false for step that was never saved', function() {
+      expect(addServiceController.getStepSavedState('step0')).to.be.false;
+    });
+  });
+
+  describe('#hasErrors', function () {
+    before(function () {
+      addServiceController.addError("There is an error.");
+    });
+
+    it('Should return true if there are errors.', function () {
+      var hasErrors = addServiceController.get('hasErrors');
+
+      expect(hasErrors).to.be.true;
+    });
+
+    it('Should return false if there are no errors.', function () {
+      addServiceController.clearErrors();
+      var hasErrors = addServiceController.get('hasErrors');
+
+      expect(hasErrors).to.be.false;
+    });
+  });
+
+  describe('#getStepController', function () {
+    var wizardStep0Controller = {};
+    var wizardStep2Controller = {};
+
+    before(function () {
+      addServiceController.set('steps', [
+        "step0",
+        "step1",
+        "step2"
+      ]);
+
+      App.router.set('wizardStep0Controller', wizardStep0Controller);
+      App.router.set('wizardStep2Controller', wizardStep2Controller);
+    });
+
+    it('Should return controller for the step number provided.', function () {
+      var stepController = addServiceController.getStepController(2);
+      expect(stepController).to.equal(wizardStep2Controller);
+    });
+
+    it('Should return controller for the step name provided.', function () {
+      var stepController = addServiceController.getStepController("step0");
+      expect(stepController).to.equal(wizardStep0Controller);
+    });
+  });
+
+  describe('#finish', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'setCurrentStep');
+      sinon.stub(addServiceController, 'clearStorageData');
+      sinon.stub(addServiceController, 'clearServiceConfigProperties');
+      sinon.stub(App.themesMapper, 'resetModels');
+      addServiceController.finish();
+    });
+    afterEach(function() {
+      addServiceController.setCurrentStep.restore();
+      addServiceController.clearStorageData.restore();
+      addServiceController.clearServiceConfigProperties.restore();
+      App.themesMapper.resetModels.restore();
+    });
+
+    it('setCurrentStep should be called', function() {
+      expect(addServiceController.setCurrentStep.calledWith('0')).to.be.true;
+    });
+
+    it('clearStorageData should be called', function() {
+      expect(addServiceController.clearStorageData.calledOnce).to.be.true;
+    });
+
+    it('clearServiceConfigProperties should be called', function() {
+      expect(addServiceController.clearServiceConfigProperties.calledOnce).to.be.true;
+    });
+
+    it('App.themesMapper.resetModels should be called', function() {
+      expect(App.themesMapper.resetModels.calledOnce).to.be.true;
     });
   });
 
   describe('#loadClients', function () {
-
     var cases = [
       {
         clients: null,
@@ -415,129 +554,21 @@ describe('App.AddServiceController', function() {
     ];
 
     cases.forEach(function (item) {
-
       describe(item.title, function () {
-
         beforeEach(function () {
           sinon.stub(addServiceController, 'getDBProperty').withArgs('clients').returns(item.clients);
-          sinon.stub(addServiceController, 'saveClients', Em.K);
           addServiceController.set('content.clients', []);
           addServiceController.loadClients();
         });
 
         afterEach(function () {
           addServiceController.getDBProperty.restore();
-          addServiceController.saveClients.restore();
         });
 
         it('content.clients', function () {
           expect(addServiceController.get('content.clients', [])).to.eql(item.contentClients);
         });
-
-        it('saveClients call', function () {
-          expect(addServiceController.saveClients.callCount).to.equal(item.saveClientsCallCount);
-        });
-
       });
-
     });
-
   });
-
-  describe('#getServicesBySelectedSlaves', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.StackServiceComponent, 'find').returns([
-        Em.Object.create({
-          componentName: 'c1',
-          serviceName: 's1'
-        }),
-        Em.Object.create({
-          componentName: 'c2',
-          serviceName: 's2'
-        }),
-        Em.Object.create({
-          componentName: 'c3',
-          serviceName: 's3'
-        }),
-        Em.Object.create({
-          componentName: 'c4',
-          serviceName: 's1'
-        })
-      ]);
-    });
-
-    [
-      {
-        title: 'should return empty array',
-        sch: [],
-        expect: []
-      },
-      {
-        title: 'should return empty array if component is absent in StackServiceComponent model',
-        sch: [
-          {
-            componentName: 'c5',
-            hosts: [
-              {
-                isInstalled: false
-              },
-              {
-                isInstalled: true
-              }
-            ]
-          },
-        ],
-        expect: []
-      },
-      {
-        title: 'should return services for not installed slaves',
-        sch: [
-          {
-            componentName: 'c1',
-            hosts: [
-              {
-                isInstalled: false
-              },
-              {
-                isInstalled: true
-              }
-            ]
-          },
-          {
-            componentName: 'c2',
-            hosts: [
-              {
-                isInstalled: false
-              },
-              {
-                isInstalled: true
-              }
-            ]
-          },
-          {
-            componentName: 'c4',
-            hosts: [
-              {
-                isInstalled: false
-              },
-              {
-                isInstalled: true
-              }
-            ]
-          }
-        ],
-        expect: ['s1', 's2']
-      }
-    ].forEach(function (test) {
-          describe(test.title, function () {
-            it(function () {
-              addServiceController.set('content.slaveComponentHosts', test.sch);
-              expect(addServiceController.getServicesBySelectedSlaves()).to.eql(test.expect);
-            });
-          })
-        });
-
-  });
-
 });

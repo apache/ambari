@@ -18,8 +18,6 @@
 
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
-var validator = require('utils/validator');
 
 App.InstallerController = App.WizardController.extend(App.Persist, {
 
@@ -68,17 +66,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   clearErrors: function () {
     this.set('errors', []);
-  },
-
-  getStepController: function (stepName) {
-    if (typeof (stepName) === "number") {
-      stepName = this.get('steps')[stepName];
-    }
-
-    stepName = stepName.charAt(0).toUpperCase() + stepName.slice(1);
-    const stepController = App.router.get('wizard' + stepName + 'Controller');
-
-    return stepController;
   },
 
   isInstallerWizard: true,
@@ -153,6 +140,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'operatingSystems',
     'repositories',
     'selectedMpacks',
+    'mpacksToRegister',
+    'allMpacks',
     'selectedServices',
     'selectedStack',
     'downloadConfig',
@@ -1299,22 +1288,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     });
   },
 
-  setStepsEnable: function () {
-    const steps = this.get('steps');
-    for (let i = 0, length = steps.length; i < length; i++) {
-      let stepDisabled = true;
-      
-      const stepController = this.getStepController(steps[i]);
-      if (stepController) {
-        stepController.set('wizardController', this);
-        stepDisabled = stepController.isStepDisabled();
-      }
-
-      const stepIndex = this.getStepIndex(steps[i]);
-      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepDisabled);
-    }
-  },
-
   clearStackServices: function (deleteAll) {
     var dfd = $.Deferred();
 
@@ -1412,6 +1385,28 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       dfd.resolve();
     });
     
-    return dfd;
+    return dfd.promise();
+  },
+  
+  /**
+   * Load config themes for enhanced config layout.
+   *
+   * @method loadConfigThemes
+   * @return {$.Deferred}
+   */
+  loadConfigThemes: function () {
+    const self = this;
+    const dfd = $.Deferred();
+    
+    if (!this.get('stackConfigsLoaded')) {
+      // Load stack configs before loading themes
+      App.config.loadClusterConfigsFromStack().always(self.loadServiceConfigs).always(() => {
+        dfd.resolve();
+      });
+    } else {
+      dfd.resolve();
+    }
+
+    return dfd.promise();
   }
 });

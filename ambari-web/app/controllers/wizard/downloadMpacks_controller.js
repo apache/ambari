@@ -26,8 +26,15 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
 
   mpacks: [],
 
+  isStepDisabled: function (stepIndex, currentIndex) {
+    const normallyDisabled = this._super(stepIndex, currentIndex);
+    const mpacksToRegister = this.get('wizardController.content.mpacksToRegister') || [];
+
+    return normallyDisabled || !mpacksToRegister.length;
+  },
+
   addMpacks: function () {
-    const selectedMpacks = this.get('content.selectedMpacks');
+    const selectedMpacks = this.get('content.mpacksToRegister');
 
     selectedMpacks.forEach(mpack => {
       this.get('mpacks').pushObject(Em.Object.create({
@@ -106,7 +113,10 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
         data: {
           id: id
         }
-      }).then(mpackInfo => registeredMpacks.push(mpackInfo));
+      }).then(mpackInfo => {
+        mpackInfo.currentWizard = true;
+        registeredMpacks.push(mpackInfo);
+      });
     }  
   },
 

@@ -18,13 +18,39 @@
 
 
 var App = require('app');
-App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
+
+App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, App.Persist, {
 
   name: 'addServiceController',
 
-  totalSteps: 7,
+  isCheckInProgress: false,
 
-  /**
+  totalSteps: function () {
+    const steps = this.get("steps");
+
+    if (steps) {
+      return steps.length;
+    }
+
+    return 0;
+  }.property('steps.[]'),
+
+  steps: [
+    "configureDownload",
+    "selectMpacks",
+    "customMpackRepos",
+    "downloadMpacks",
+    "customProductRepos",
+    "verifyProducts",
+    "step5",
+    "step6",
+    "step7",
+    "step8",
+    "step9",
+    "step10"
+  ],
+
+    /**
    * @type {string}
    */
   displayName: Em.I18n.t('services.add.header'),
@@ -34,307 +60,212 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   hideBackButton: true,
 
-  /**
-   * @type {string}
-   * @default null
-   */
-  serviceToInstall: null,
+  errors: [],
 
-  /**
-   *
-   */
-  installClientQueueLength: 0,
+  hasErrors: function () {
+    return this.get('errors').length > 0;
+  }.property('errors'),
 
-  areInstalledConfigGroupsLoaded: false,
+  addError: function (newError) {
+    const errors = this.get('errors');
+    this.set('errors', errors.concat(newError));
+  },
 
-  /**
-   * All wizards data will be stored in this variable
-   *
-   * cluster - cluster name
-   * installOptions - ssh key, repo info, etc.
-   * services - services list
-   * hosts - list of selected hosts
-   * slaveComponentHosts, - info about slave hosts
-   * masterComponentHosts - info about master hosts
-   * config??? - to be described later
-   */
+  clearErrors: function () {
+    this.set('errors', []);
+  },
+
   content: Em.Object.create({
     cluster: null,
-    hosts: null,
     installOptions: null,
+    hosts: null,
     services: null,
     slaveComponentHosts: null,
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addServiceController',
     configGroups: [],
+    slaveGroupProperties: null,
+    stacks: null,
     clients: [],
-    additionalClients: [],
-    installedHosts: {}
+    // list of components, that was added from configs page via AssignMasterOnStep7Controller
+    componentsFromConfigs: [],
+    /**
+     * recommendations for host groups loaded from server
+     */
+    recommendations: null,
+    /**
+     * recommendationsHostGroups - current component assignment after 5 and 6 steps,
+     * or adding hiveserver2 interactive on "configure services" page
+     * (uses for host groups validation and to load recommended configs)
+     */
+    recommendationsHostGroups: null,
+    controllerName: 'addServiceController',
+    mpacks: [],
+    registeredMpacks: [],
+    mpackVersions: [],
+    mpackServiceVersions: [],
+    mpackServices: [],
+    serviceGroups: [],
+    serviceInstances: [],
+    // Tracks which steps have been saved before.
+    // If you revisit a step, we will know if the step has been saved previously and we can warn about making changes.
+    // If a previously saved step is changed, setStepSaved() will "unsave" all subsequent steps so we don't warn on every screen.
+    // Furthermore, we only need to track this state for steps that have an affect on subsequent steps.
+    stepsSavedState: null
   }),
 
-  loadMap: {
-    '1': [
-      {
-        type: 'sync',
-        callback: function () {
-          this.loadServices();
-        }
-      }
-    ],
-    '2': [
-      {
-        type: 'async',
-        callback: function () {
-          var dfd = $.Deferred();
-          var self = this;
-          this.loadHosts().done(function () {
-            self.loadMasterComponentHosts().done(function () {
-              self.load('hosts');
-              self.loadRecommendations();
-              dfd.resolve();
-            });
-          });
-          return dfd.promise();
-        }
-      }
-    ],
-    '3': [
-      {
-        type: 'async',
-        callback: function () {
-          var dfd = $.Deferred();
-          var self = this;
-          this.loadHosts().done(function () {
-            self.loadServices();
-            self.loadClients();
-            self.loadSlaveComponentHosts();//depends on loadServices
-            dfd.resolve();
-          });
-          return dfd.promise();
-        }
-      }
-    ],
-    '4': [
-      {
-        type: 'async',
-        callback: function () {
-          var self = this;
-          var dfd = $.Deferred();
-          this.load('cluster');
-          this.set('content.additionalClients', []);
-          this.set('installClientQueueLength', 0);
-          this.set('installClietsQueue', App.ajaxQueue.create({abortOnError: false}));
-          this.loadKerberosDescriptorConfigs().done(function() {
-            self.loadServiceConfigGroups();
-            self.loadConfigThemes().then(function() {
-              self.loadServiceConfigProperties();
-              self.loadCurrentHostGroups();
-              dfd.resolve();
-            });
-          });
-          return dfd.promise();
-        }
-      }
-    ]
-  },
-
-  setCurrentStep: function (currentStep, completed) {
-    this._super(currentStep, completed);
-    App.clusterStatus.setClusterStatus({
-      wizardControllerName: this.get('name'),
-      localdb: App.db.data
-    });
-  },
-
-  loadCurrentHostGroups: function () {
-    this.set("content.recommendationsHostGroups", this.getDBProperty('recommendationsHostGroups'));
-  },
-
   /**
-   * Load services data. Will be used at <code>Select services(step4)</code> step
+   * Wizard properties in local storage, which should be cleaned right after wizard has been finished
    */
-  loadServices: function () {
-    var services = this.getDBProperty('services');
-    var stackServices = App.StackService.find();
-    if (services) {
-      stackServices.forEach(function (item) {
-        var isSelected = services.selectedServices.contains(item.get('serviceName')) || item.get('serviceName') == this.get('serviceToInstall');
-        var isInstalled = services.installedServices.contains(item.get('serviceName'));
-        item.set('isSelected', isSelected || (this.get("currentStep") == "1" ? isInstalled : isSelected));
-        item.set('isInstalled', isInstalled);
-      }, this);
-      this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected').filterProperty('isInstalled', false), 3);
-    } else {
-      services = {
-        selectedServices: [],
-        installedServices: []
-      };
-      stackServices.forEach(function (item) {
-        var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
-        var isSelected = item.get('serviceName') === this.get('serviceToInstall') || item.get('coSelectedServices').contains(this.get('serviceToInstall'));
-        item.set('isSelected', isInstalled || isSelected);
-        item.set('isInstalled', isInstalled);
-        var serviceName = item.get('serviceName');
-        if (isInstalled) {
-          services.selectedServices.push(serviceName);
-          services.installedServices.push(serviceName);
-        }
-        else {
-          if (isSelected) {
-            services.selectedServices.push(serviceName);
-          }
-        }
-      }, this);
-      this.setDBProperty('services', services);
+  dbPropertiesToClean: [
+    'service',
+    'hosts',
+    'masterComponentHosts',
+    'slaveComponentHosts',
+    'cluster',
+    'allHostNames',
+    'installOptions',
+    'allHostNamesPattern',
+    'serviceComponents',
+    'clients',
+    'selectedServiceNames',
+    'serviceConfigGroups',
+    'serviceConfigProperties',
+    'fileNamesToUpdate',
+    'bootStatus',
+    'stacksVersions',
+    'currentStep',
+    'serviceInfo',
+    'hostInfo',
+    'recommendations',
+    'recommendationsHostGroups',
+    'recommendationsConfigs',
+    'componentsFromConfigs',
+    'operatingSystems',
+    'repositories',
+    'selectedMpacks',
+    'mpacksToRegister',
+    'selectedServices',
+    'selectedStack',
+    'downloadConfig',
+    'stepsSavedState',
+    'serviceGroups',
+    'addedServiceGroups',
+    'serviceInstances',
+    'addedServiceInstances',
+    'registeredMpacks'
+  ],
+
+  init: function () {
+    this._super();
+
+    //enable first step, which is at index 0 in this wizard
+    const stepAtIndex0 = this.get('isStepDisabled').findProperty('step', 0)
+    if (stepAtIndex0) {
+      stepAtIndex0.set('value', false);
     }
-    App.store.fastCommit();
-    this.set('serviceToInstall', null);
-    this.set('content.services', stackServices);
-    var self = this;
-    this.loadServiceVersionFromVersionDefinitions().complete(function () {
-      var serviceVersionsMap = self.get('serviceVersionsMap');
-      stackServices.forEach(function (stackService) {
-        var serviceName = stackService.get('serviceName');
-        Em.set(stackService, 'serviceVersionDisplay', serviceVersionsMap[serviceName]);
-      });
-      self.set('content.services', stackServices);
-    });
   },
 
   /**
-   * Save data to model
-   * @param stepController App.WizardStep4Controller
+   * Load data for services selected from mpacks. Will be used at <code>Download Mpacks</code> step submit action.
+   *
+   * @param  {string} stackName
+   * @param  {string} stackVersion
+   * @param  {string} serviceName
    */
-  saveServices: function (stepController) {
-    var services = {
-      selectedServices: [],
-      installedServices: []
-    };
-    var selectedServices = stepController.get('content').filterProperty('isSelected', true).filterProperty('isInstalled', false);
-    var selectedServiceNames = selectedServices.mapProperty('serviceName');
-    services.selectedServices.pushObjects(selectedServiceNames);
-    services.installedServices.pushObjects(stepController.get('content').filterProperty('isInstalled', true).mapProperty('serviceName'));
-    // save services that already installed but ignored on choose services page
-    // these services marked by `isInstallable` flag with value `false`, for example `Kerberos` service
-    services.installedServices.pushObjects(App.Service.find().mapProperty('serviceName').filter(function(serviceName) {
-      return !services.installedServices.contains(serviceName);
-    }));
-    this.setDBProperty('services', services);
-
-    this.set('content.selectedServiceNames', selectedServiceNames);
-    this.setDBProperty('selectedServiceNames', selectedServiceNames);
-    this.setSkipSlavesStep(selectedServices, 3);
+  loadMpackServiceInfo: function (stackName, stackVersion, serviceName) {
+    return App.ajax.send({
+      name: 'wizard.mpack_service_components',
+      sender: this,
+      data: {
+        stackName: stackName,
+        stackVersion: stackVersion,
+        serviceName: serviceName
+      }
+    });
   },
+
+  loadMpackServiceInfoSuccess: function (serviceInfo) {
+    serviceInfo.StackServices.is_selected = true;
+    App.MpackServiceMapper.map(serviceInfo);
+  },
+
+  loadMpackServiceInfoError: function (request, status, error) {
+    console.log(`${message} ${status} - ${error}`);
+    
+    const message = Em.I18n.t('installer.error.mpackServiceInfo');
+    this.addError(message);
+    return message;   
+  },
+
+  allServiceGroups: function () {
+    return [].concat(this.get('content.serviceGroups')).concat(this.get('content.addedServiceGroups'));
+  }.property('content.serviceGroups', 'content.addedServiceGroups'),
 
   /**
    * Save Master Component Hosts data to Main Controller
    * @param stepController App.WizardStep5Controller
+   * @param  skip  {Boolean}
    */
-  saveMasterComponentHosts: function (stepController) {
-    var obj = stepController.get('selectedServicesMasters');
-    var masterComponentHosts = [];
-    var installedComponents = App.HostComponent.find();
+  saveMasterComponentHosts: function (stepController, skip) {
+    var obj = stepController.get('selectedServicesMasters'),
+      hosts = this.getDBProperty('hosts');
 
+    var masterComponentHosts = [];
     obj.forEach(function (_component) {
-      var installedComponent = installedComponents.findProperty('componentName', _component.component_name);
       masterComponentHosts.push({
-        display_name: _component.display_name,
-        component: _component.component_name,
-        hostName: _component.selectedHost,
-        serviceId: _component.serviceId,
-        isInstalled: !!installedComponent,
-        workStatus: installedComponent && installedComponent.get('workStatus')
+        display_name: _component.get('display_name'),
+        component: _component.get('component_name'),
+        serviceId: _component.get('serviceId'),
+        serviceGroupName: _component.get('mpackInstance'),
+        isInstalled: false,
+        host_id: hosts[_component.get('selectedHost')].id
       });
     });
 
-    this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
-
-    this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
-    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
+    if (!skip) {
+      this.setDBProperty('masterComponentHosts', masterComponentHosts);
+    }
   },
 
   /**
    * Load master component hosts data for using in required step controllers
+   * @param inMemory {Boolean}: Load master component hosts from memory
    */
-  loadMasterComponentHosts: function () {
-    var self = this,
-        dfd = $.Deferred(),
-        ASSIGN_MASTER_STEP = 2,
-        DEPLOYMENT_STEPS = ['6', '7', '8'];
-    this._super().done(function () {
-      self.set('content.skipMasterStep', App.StackService.find().filterProperty('isSelected').filterProperty('hasMaster').everyProperty('isInstalled', true));
-      self.get('isStepDisabled').findProperty('step', ASSIGN_MASTER_STEP).set('value', self.get('content.skipMasterStep') || DEPLOYMENT_STEPS.contains(self.get('currentStep')));
-      dfd.resolve();
-    });
-    return dfd.promise();
-  },
+  loadMasterComponentHosts: function (lookInMemoryOnly) {
+    var props = this.getDBProperties(['masterComponentHosts', 'hosts']),
+      masterComponentHosts = this.get("content.masterComponentHosts"),
+      hosts = props.hosts || {},
+      hostNames = Em.keys(hosts);
 
-  /**
-   * Does service have any configs
-   * @param {string} serviceName
-   * @returns {boolean}
-   */
-  isServiceNotConfigurable: function (serviceName) {
-    return App.get('services.noConfigTypes').contains(serviceName);
-  },
-
-  /**
-   * Should Config Step be skipped (based on selected services list)
-   * @returns {boolean}
-   */
-  skipConfigStep: function () {
-    var skipConfigStep = true;
-    var selectedServices = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
-    selectedServices.map(function (serviceName) {
-      skipConfigStep = skipConfigStep && this.isServiceNotConfigurable(serviceName);
-    }, this);
-    return skipConfigStep;
-  },
-
-  loadServiceConfigProperties: function () {
-    this._super();
-    if (!this.get('content.services')) {
-      this.loadServices();
+    if (!lookInMemoryOnly && !masterComponentHosts) {
+      masterComponentHosts = props.masterComponentHosts;
     }
-    if (this.get('currentStep') > 1 && this.get('currentStep') < 6) {
-      this.set('content.skipConfigStep', this.skipConfigStep());
-      this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
-    }
-  },
 
-  /**
-   * Load kerberos descriptor configuration
-   * @returns {$.Deferred}
-   */
-  loadKerberosDescriptorConfigs: function() {
-    var self = this,
-        dfd = $.Deferred(),
-        mergedDescriptorConfigs;
-    if (App.get('isKerberosEnabled')) {
-      this.loadClusterDescriptorStackConfigs().then(function (stackProperties) {
-        self.loadClusterDescriptorConfigs().then(function(properties) {
-          self.set('kerberosDescriptorData', properties);
-          mergedDescriptorConfigs = self.mergeDescriptorStackWithConfigs(stackProperties, properties);
-          self.set('kerberosDescriptorConfigs', mergedDescriptorConfigs);
-        }).always(function(){
-          dfd.resolve();
-        });
-      });
+    if (Em.isNone(masterComponentHosts)) {
+      masterComponentHosts = [];
     } else {
-      dfd.resolve();
+      masterComponentHosts.forEach(function (component) {
+        for (var i = 0; i < hostNames.length; i++) {
+          if (hosts[hostNames[i]].id === component.host_id) {
+            component.hostName = hostNames[i];
+            break;
+          }
+        }
+      });
     }
-    return dfd.promise();
+    this.set("content.masterComponentHosts", masterComponentHosts);
   },
 
-  saveServiceConfigProperties: function (stepController) {
-    this._super(stepController);
-    if (this.get('currentStep') > 1 && this.get('currentStep') < 6) {
-      this.set('content.skipConfigStep', this.skipConfigStep());
-      this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
-    }
+  loadCurrentHostGroups: function () {
+    this.set("content.recommendations", this.getDBProperty('recommendations'));
+    this.set("content.recommendationsHostGroups", this.getDBProperty('recommendationsHostGroups'));
+  },
+
+  loadRecommendationsConfigs: function () {
+    App.router.set("wizardStep7Controller.recommendationsConfigs", this.getDBProperty('recommendationsConfigs'));
   },
 
   /**
@@ -348,7 +279,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     if (!Em.isNone(slaveComponentHosts)) {
       slaveComponentHosts.forEach(function (component) {
         component.hosts.forEach(function (host) {
-          //Em.set(host, 'hostName', hosts[host.host_id].name);
           for (var i = 0; i < hostNames.length; i++) {
             if (hosts[hostNames[i]].id === host.host_id) {
               host.hostName = hostNames[i];
@@ -358,212 +288,337 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
         });
       });
     }
-
-    this.set('content.installedHosts', this.getDBProperty('hosts') || this.get('content.hosts'));
     this.set("content.slaveComponentHosts", slaveComponentHosts);
   },
 
-  /**
-   * Generate clients list for selected services and save it to model
-   */
-  saveClients: function () {
-    var clients = [];
-    var serviceComponents = App.StackServiceComponent.find();
-    this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled',false).forEach(function (_service) {
-      var serviceClients = serviceComponents.filterProperty('serviceName', _service.get('serviceName')).filterProperty('isClient');
-      serviceClients.forEach(function (client) {
-        clients.push({
-          component_name: client.get('componentName'),
-          display_name: client.get('displayName'),
-          isInstalled: false
-        });
-      }, this);
-    }, this);
-
-    this.setDBProperty('clients', clients);
-    this.set('content.clients', clients);
+  loadMap: {
+    'selectMpacks': [
+      {
+        type: 'async',
+        callback: function () {
+          const self = this;
+          return this.loadRegisteredMpacks()
+          .done(this.loadServiceGroups.bind(this))
+          .done(() => {
+            self.load('stepsSavedState');
+            self.load('cluster');
+            self.load('selectedServices');
+            self.load('selectedMpacks');
+            self.load('addedServiceGroups');
+            self.load('addedServiceInstances');
+            self.load('advancedMode');
+            
+            const dfd = $.Deferred();
+            dfd.resolve();
+            return dfd.promise();
+          });
+        }
+      }
+    ],
+    'customProductRepos': [
+      {
+        type: 'async',
+        callback: function () {
+          return this.loadSelectedServiceInfo(this.getStepSavedState('customProductRepos'));
+        }
+      },
+    ],
+    'step3': [
+      {
+        type: 'async',
+        callback: function () {
+          return this.loadHosts();
+        }
+      }
+    ],
+    'step5': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected'), this.getStepIndex('step7'));
+          this.loadMasterComponentHosts();
+          this.loadConfirmedHosts();
+          this.loadComponentsFromConfigs();
+          this.loadRecommendations();
+        }
+      }
+    ],
+    'step6': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadSlaveComponentHosts();
+          this.loadClients();
+          this.loadComponentsFromConfigs();
+          this.loadRecommendations();
+        }
+      }
+    ],
+    'step7': [
+      {
+        type: 'async',
+        callback: function () {
+          var dfd = $.Deferred();
+          var self = this;
+          this.loadServiceConfigGroups();
+          this.loadCurrentHostGroups();
+          this.loadRecommendationsConfigs();
+          this.loadComponentsFromConfigs();
+          this.loadConfigThemes().then(function() {
+            self.loadServiceConfigProperties();
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    'step8': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('selectedStack');
+        }
+      }
+    ]
   },
 
-  /**
-   * Load information about hosts with clients components
-   */
-  loadClients: function () {
-    var clients = this.getDBProperty('clients');
-    if (clients) {
-      this.set('content.clients', clients);
-    } else {
-      this.saveClients();
+  gotoStep5: function () {
+    this.gotoStep('step5');
+  },
+
+  gotoStep6: function () {
+    this.gotoStep('step6');
+  },
+
+  gotoStep7: function () {
+    this.gotoStep('step7');
+  },
+
+  gotoStep8: function () {
+    this.gotoStep('step8');
+  },
+
+  gotoStep9: function () {
+    this.gotoStep('step9');
+  },
+
+  gotoStep10: function () {
+    this.gotoStep('step10');
+  },
+
+  gotoConfigureDownload: function () {
+    this.gotoStep('configureDownload');
+  },
+  
+  gotoSelectMpacks: function () {
+    this.gotoStep('selectMpacks');
+  },
+
+  gotoCustomMpackRepos: function () {
+    this.gotoStep('customMpackRepos');
+  },
+
+  gotoDownloadMpacks: function () {
+    this.gotoStep('downloadMpacks');
+  },
+
+  gotoCustomProductRepos: function () {
+    this.gotoStep('customProductRepos');
+  },
+
+  gotoVerifyProducts: function () {
+    this.gotoStep('verifyProducts');
+  },
+
+  isStep5: function () {
+    return this.get('currentStep') == this.getStepIndex('step5');
+  }.property('currentStep'),
+
+  isStep6: function () {
+    return this.get('currentStep') == this.getStepIndex('step6');
+  }.property('currentStep'),
+
+  isStep7: function () {
+    return this.get('currentStep') == this.getStepIndex('step7');
+  }.property('currentStep'),
+
+  isStep8: function () {
+    return this.get('currentStep') == this.getStepIndex('step8');
+  }.property('currentStep'),
+
+  isStep9: function () {
+    return this.get('currentStep') == this.getStepIndex('step9');
+  }.property('currentStep'),
+
+  isStep10: function () {
+    return this.get('currentStep') == this.getStepIndex('step10');
+  }.property('currentStep'),
+
+  isConfigureDownload: function () {
+    return this.get('currentStep') == this.getStepIndex('configureDownload');
+  }.property('currentStep'),
+
+  isSelectMpacks: function () {
+    return this.get('currentStep') == this.getStepIndex('selectMpacks');
+  }.property('currentStep'),
+
+  isCustomMpackRepos: function () {
+    return this.get('currentStep') == this.getStepIndex('customMpackRepos');
+  }.property('currentStep'),
+
+  isDownloadMpacks: function () {
+    return this.get('currentStep') == this.getStepIndex('downloadMpacks');
+  }.property('currentStep'),
+
+  isCustomProductRepos: function () {
+    return this.get('currentStep') == this.getStepIndex('customProductRepos');
+  }.property('currentStep'),
+
+  isVerifyProducts: function () {
+    return this.get('currentStep') == this.getStepIndex('verifyProducts');
+  }.property('currentStep'),
+
+  clearConfigActionComponents: function() {
+    var masterComponentHosts = this.get('content.masterComponentHosts');
+    var componentsAddedFromConfigAction = this.get('content.componentsFromConfigs');
+
+    if (componentsAddedFromConfigAction && componentsAddedFromConfigAction.length) {
+      componentsAddedFromConfigAction.forEach(function(_masterComponent){
+        masterComponentHosts = masterComponentHosts.rejectProperty('component', _masterComponent);
+      });
     }
-  },
-
-  /**
-   * Remove all loaded data.
-   * Created as copy for App.router.clearAllSteps
-   */
-  clearAllSteps: function () {
-    this.clearInstallOptions();
-    // clear temporary information stored during the install
-    this.set('content.cluster', this.getCluster());
+    this.set('content.masterComponentHosts', masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
   },
 
   /**
    * Clear all temporary data
    */
   finish: function () {
-    this.clearAllSteps();
+    this.setCurrentStep('0');
     this.clearStorageData();
     this.clearServiceConfigProperties();
-    this.resetDbNamespace();
-    App.router.get('updateController').updateAll();
+    App.router.get('userSettingsController').postUserPref('show_bg', true);
+    App.themesMapper.resetModels();
   },
 
-  /**
-   * genarates data for ajax request to launch install services
-   * @method generateDataForInstallServices
-   * @param {Array} selectedServices
-   * @returns {{context: *, ServiceInfo: {state: string}, urlParams: string}}
-   */
-  generateDataForInstallServices: function(selectedServices) {
-    if (selectedServices.contains('OOZIE')) {
-      selectedServices = selectedServices.concat(['HDFS', 'YARN', 'MAPREDUCE2']);
-    }
-    return {
-      "context": Em.I18n.t('requestInfo.installServices'),
-      "ServiceInfo": {"state": "INSTALLED"},
-      "urlParams": "ServiceInfo/service_name.in(" + selectedServices.join(',') + ")"
-    };
-  },
-
-  /**
-   * main method for installing additional clients and services
-   * @param {function} callback
-   * @method installServices
-   */
-  installServices: function (callback) {
-    var self = this;
-    this.set('content.cluster.oldRequestsId', []);
-    this.installAdditionalClients().done(function () {
-      self.installSelectedServices(callback);
-    });
-  },
-
-  /**
-   * method to install added services
-   * @param {function} callback
-   * @method installSelectedServices
-   */
-  installSelectedServices: function (callback) {
-    var name = 'common.services.update';
-    var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
-    var dependentServices = this.getServicesBySelectedSlaves();
-    var data = this.generateDataForInstallServices(selectedServices.concat(dependentServices));
-    this.installServicesRequest(name, data, callback.bind(this));
-  },
-
-  installServicesRequest: function (name, data, callback) {
-    callback = callback || Em.K;
-    App.ajax.send({
-      name: name,
-      sender: this,
-      data: data,
-      success: 'installServicesSuccessCallback',
-      error: 'installServicesErrorCallback'
-    }).then(callback, callback);
-  },
-
-  /**
-   * return list of services by selected and not installed slave components
-   * @returns {Array}
-   */
-  getServicesBySelectedSlaves: function () {
-    var result = [];
-    this.get('content.slaveComponentHosts').forEach(function (slaveComponent) {
-      if (slaveComponent.hosts.someProperty('isInstalled', false)) {
-        var stackComponent = App.StackServiceComponent.find().findProperty('componentName', slaveComponent.componentName);
-        if (stackComponent) {
-          result.push(stackComponent.get('serviceName'));
-        }
-      }
-    });
-    return result.uniq();
-  },
-
-  /**
-   * installs clients before install new services
-   * on host where some components require this
-   * @method installAdditionalClients
-   */
-  installAdditionalClients: function () {
+  clearStackServices: function (deleteAll) {
     var dfd = $.Deferred();
-    var count = 0;
-    if (this.get('content.additionalClients.length') > 0) {
-      this.get('content.additionalClients').forEach(function (c) {
-        if (c.hostNames.length > 0) {
-          var queryStr = 'HostRoles/component_name='+ c.componentName + '&HostRoles/host_name.in(' + c.hostNames.join() + ')';
-          this.get('installClietsQueue').addRequest({
-            name: 'common.host_component.update',
-            sender: this,
-            data: {
-              query: queryStr,
-              context: 'Install ' + App.format.role(c.componentName, false),
-              HostRoles: {
-                state: 'INSTALLED'
-              },
-              counter: count++,
-              deferred: dfd
-            },
-            success: 'installClientSuccess',
-            error: 'installClientError'
+
+    if (deleteAll) {
+      const stackServices = App.StackService.find();
+      let stackServicesCount = stackServices.content.length;
+
+      if (stackServicesCount > 0) {
+        stackServices.forEach(service => {
+          Em.run.once(this, () => {
+            App.MpackServiceMapper.deleteRecord(service);
+            stackServicesCount--;
+
+            if (stackServicesCount === 0) {
+              dfd.resolve();
+            }
           });
-        }
-      }, this);
-      if (!this.get('installClietsQueue.queue.length')) {
-        return dfd.resolve();
-      }
-      this.set('installClientQueueLength', this.get('installClietsQueue.queue.length'));
-      App.get('router.wizardStep8Controller').set('servicesInstalled', true);
-      this.get('installClietsQueue').start();
+        });
+      } else {
+        dfd.resolve();
+      }  
     } else {
       dfd.resolve();
-    }
+    }  
+
     return dfd.promise();
   },
 
   /**
-   * callback for when install clients success
-   * @param data
-   * @param opt
-   * @param params
-   * @method installClientComplete
+   * Updates the stepsSaved array based on the stepName provided.
+   * If the passed step is already saved, then nothing is changed.
+   * Otherwise, the passed step is set to saved and all subsequent steps are set to unsaved.
+   *
+   * @param  {type} stepName Name of the step being saved.
    */
-  installClientSuccess: function(data, opt, params) {
-    if (this.get('installClientQueueLength') - 1 === params.counter) {
-      params.deferred.resolve();
+  setStepSaved: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const oldState = this.get('content.stepsSavedState') || {};
+    const newState = Em.Object.create(oldState);
+
+    if (!newState[stepIndex]) {
+      for (let i = stepIndex + 1, length = this.get('steps').length; i < length; i++) {
+        newState[i] = false;
+      };
+
+      newState[stepIndex] = true;
+
+      this.set('content.stepsSavedState', newState);
+      this.save('stepsSavedState');
     }
   },
 
   /**
-   * callback for when install clients fail
-   * @param request
-   * @param ajaxOptions
-   * @param error
-   * @param opt
-   * @param params
+   * Populates the StackService model from the "stack" info that was created when mpacks were registered in the Download Mpack step.
+   * Then, it locally persists info about the selected services.
+   *
+   * @param {Boolean} keepStackServices If true, previously loaded stack services are retained.
+   *                                    This is to support back/forward navigation in the wizard
+   *                                    and should correspond to the saved state of the step after Download Mpacks.
+   * @return {object} a promise
    */
-  installClientError: function(request, ajaxOptions, error, opt, params) {
-    if (this.get('installClientQueueLength') - 1 === params.counter) {
-      params.deferred.resolve();
+  loadSelectedServiceInfo: function (keepStackServices) {
+    var dfd = $.Deferred();
+
+    this.clearStackServices(!keepStackServices).then(() => {
+      //get info about services from specific stack versions and save to StackService model
+      this.set('content.selectedServiceNames', this.getDBProperty('selectedServiceNames'));
+      const selectedServices = this.get('content.selectedServices');
+      const servicePromises = selectedServices.map(service =>
+        this.loadMpackServiceInfo(service.mpackName, service.mpackVersion, service.name)
+          .then(this.loadMpackServiceInfoSuccess.bind(this), this.loadMpackServiceInfoError.bind(this))
+      );
+
+      return $.when(...servicePromises);
+    }).then(() => {
+      const services = App.StackService.find();
+      this.set('content.services', services);
+
+      const clients = [];
+      services.forEach(service => {
+        const client = service.get('serviceComponents').filterProperty('isClient', true);
+        client.forEach(clientComponent => {
+          clients.pushObject({
+            component_name: clientComponent.get('componentName'),
+            service_name: service.get('serviceName'),
+            serviceGroupName: service.get('stackName'),
+            display_name: clientComponent.get('displayName'),
+            isInstalled: false
+          });
+        });
+      });
+      this.set('content.clients', clients);
+      this.save('clients');
+
+      dfd.resolve();
+    });
+    
+    return dfd.promise();
+  },
+
+  /**
+   * Load config themes for enhanced config layout.
+   *
+   * @method loadConfigThemes
+   * @return {$.Deferred}
+   */
+  loadConfigThemes: function () {
+    const dfd = $.Deferred();
+    
+    if (!this.get('stackConfigsLoaded')) {
+      this.loadServiceConfigs().always(() => {
+        dfd.resolve();
+      });
+    } else {
+      dfd.resolve();
     }
-  },
 
-  loadServiceConfigGroups: function () {
-    this._super();
-    this.set('areInstalledConfigGroupsLoaded', !Em.isNone(this.getDBProperty('serviceConfigGroups')));
-  },
-
-  clearStorageData: function () {
-    this._super();
-    this.set('areInstalledConfigGroupsLoaded', false);
+    return dfd.promise();
   }
-
 });
