@@ -53,6 +53,7 @@ import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.junit.After;
@@ -63,6 +64,7 @@ import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -98,6 +100,7 @@ public class ProvisionClusterRequestTest {
     expect(blueprint.getConfiguration()).andReturn(blueprintConfig).anyTimes();
     expect(hostResourceProvider.checkPropertyIds(Collections.singleton("Hosts/host_name"))).
         andReturn(Collections.emptySet()).once();
+    expect(blueprint.getMpacks()).andReturn(ImmutableSet.of(createMock(MpackInstance.class))).anyTimes();
 
     replay(blueprintFactory, blueprint, hostResourceProvider);
   }
@@ -280,6 +283,15 @@ public class ProvisionClusterRequestTest {
     Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("attribute1");
     assertEquals(1, clusterScopedTypePropertyAttributes.size());
     assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("property1"));
+  }
+
+  @Test(expected= IllegalArgumentException.class)
+  public void test_NoMpacksDefined() throws Exception {
+    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    reset(blueprint);
+    expect(blueprint.getMpacks()).andReturn(ImmutableSet.of());
+    replay(blueprint);
+    new ProvisionClusterRequest(properties, null, true);
   }
 
   @Test(expected= InvalidTopologyTemplateException.class)
