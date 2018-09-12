@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services.mpackadvisor;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.utils.ExceptionUtils.unchecked;
@@ -114,11 +116,9 @@ public class MpackAdvisorBlueprintProcessor implements AdvisorBlueprintProcessor
     Set<MpackInstance> mpacks = topology.getMpacks().stream().map(MpackInstance::copy).collect(toSet());
 
     // Add missing service instances
-    Map<StackId, Set<String>> mpackServices = topology.getComponents().collect(toMap(
-      ResolvedComponent::stackId,
-      comp -> ImmutableSet.of(comp.serviceInfo().getName()),
-      (set1, set2) -> ImmutableSet.copyOf(Sets.union(set1, set2))
-    ));
+    Map<StackId, Set<String>> mpackServices = topology.getComponents().collect(
+      groupingBy(ResolvedComponent::stackId,
+        mapping(comp -> comp.serviceInfo().getName(), toSet())));
     for (MpackInstance mpack: mpacks) {
       if (!mpackServices.containsKey(mpack.getStackId())) {
         LOG.warn("No services declared for mpack {}.", mpack.getStackId());
