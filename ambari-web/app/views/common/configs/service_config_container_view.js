@@ -25,6 +25,8 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
   view: null,
 
   lazyLoading: null,
+  
+  pushViewTimeout: null,
 
   didInsertElement: function () {
     if (this.get('controller.isInstallWizard')) {
@@ -112,7 +114,8 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
     if (this.get('controller.isRecommendedLoaded')) {
       this.pushView();
     } else {
-      Em.run.later(this.pushViewAfterRecommendation.bind(this), 300);
+      clearTimeout(this.get('pushViewTimeout'));
+      this.set('pushViewTimeout', setTimeout(() => this.pushViewAfterRecommendation(), 300));
     }
   }
 
