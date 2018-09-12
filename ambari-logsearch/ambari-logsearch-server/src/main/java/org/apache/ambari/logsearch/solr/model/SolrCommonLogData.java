@@ -26,6 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.*;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.INT_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LONG_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.BOOLEAN_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.STRING_DYNAMIC_FIELDS;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.KEY_DYNAMIC_FIELDS;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.STORED_TOKEN_DYNAMIC_FIELDS;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.WS_DYNAMIC_FIELDS;
@@ -92,16 +96,16 @@ public class SolrCommonLogData implements CommonLogData {
   @Field(WS_DYNAMIC_FIELDS)
   private Map<String, Object> wsDynamicFields;
 
-  @Field()
+  @Field(INT_DYNAMIC_FIELDS)
   private Map<String, Object> intDynamicFields;
 
-  @Field()
+  @Field(LONG_DYNAMIC_FIELDS)
   private Map<String, Object> longDynamicFields;
 
-  @Field()
+  @Field(STRING_DYNAMIC_FIELDS)
   private Map<String, Object> stringDynamicFields;
 
-  @Field()
+  @Field(BOOLEAN_DYNAMIC_FIELDS)
   private Map<String, Object> booleanDynamicFields;
 
   @Override
