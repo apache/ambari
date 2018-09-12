@@ -40,6 +40,7 @@ import {ModalComponent} from './components/modal/modal.component';
 import { DataLoadingIndicatorComponent } from '@app/modules/shared/components/data-loading-indicator/data-loading-indicator.component';
 import { ModalDialogComponent } from './components/modal-dialog/modal-dialog.component';
 import { LoadingIndicatorComponent } from './components/loading-indicator/loading-indicator.component';
+import { CircleProgressBarComponent } from './components/circle-progress-bar/circle-progress-bar.component';
 
 @NgModule({
   imports: [
@@ -64,7 +65,8 @@ import { LoadingIndicatorComponent } from './components/loading-indicator/loadin
     ModalComponent,
     DataLoadingIndicatorComponent,
     ModalDialogComponent,
-    LoadingIndicatorComponent
+    LoadingIndicatorComponent,
+    CircleProgressBarComponent
   ],
   providers: [
     Title,
@@ -80,7 +82,8 @@ import { LoadingIndicatorComponent } from './components/loading-indicator/loadin
     ModalComponent,
     DataLoadingIndicatorComponent,
     ModalDialogComponent,
-    LoadingIndicatorComponent
+    LoadingIndicatorComponent,
+    CircleProgressBarComponent
   ]
 })
 export class SharedModule { }

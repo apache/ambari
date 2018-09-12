@@ -17,6 +17,14 @@
  */
 
 // Variables
+@blue: #1491C1;
+@grey: #DDD;
+
+@fluid-gray-1: #ccc;
+@fluid-gray-2: #999;
+@fluid-gray-3: #666;
+@fluid-gray-4: #333;
+
 @base-font-color: #666;
 @navbar-background-color: #323544;
 @navbar-logo-background-color: #303d54;
@@ -26,8 +34,8 @@
 @input-border: @input-border-width solid #CFD3D7;
 @input-group-addon-padding: 6px 12px 6px 0;
 @block-margin-top: 20px;
-@link-color: #1491C1;
-@link-hover-color: #23527C;
+@link-color: @blue;
+@link-hover-color: darken(@blue, 10%);
 @grey-color: #DDD;
 @default-line-height: 1.42857143;
 @main-background-color: #ECECEC;
@@ -87,6 +95,10 @@
 
 // Modals
 @large-modal-width: 1200px;
+@modal-dialog-content-padding: 2rem;
+@modal-dialog-header-padding: 0 0 1rem 0;
+@modal-dialog-body-padding: 0;
+@modal-dialog-footer-padding: 1rem 0 0 0;
 
 // Notifications
 @notification-color: @base-font-color;

@@ -16,43 +16,29 @@
  */
  @import '../../variables';
 :host {
-  .modal-backdrop {
-    opacity: .5;
-    z-index: 1040;
+  display: inline-block;
+  position: relative;
+  label {
+    align-items: center;
+    align-content: center;
+    background-color: transparent;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
   }
-  .modal-dialog {
-    margin: 2.5rem auto;
-    max-width: 90vw;
-    width: auto;
-    z-index: 1045;
-    .modal-content {
-      display: flex;
-      flex-direction: column;
-      max-height: 90vh;
-      overflow: hidden;
-      padding: @modal-dialog-content-padding;
-      .modal-header {
-        display: flex;
-        flex-shrink: 1;
-        line-height: 1.42rem;
-        padding: @modal-dialog-header-padding;
-        position: relative;
-        &> * {
-          display: inline-block;
-        }
-        .close {
-          order: 1;
-          margin-left: auto;
-        }
-      }
-      .modal-body {
-        flex: 1;
-        overflow: auto;
-        padding: @modal-dialog-body-padding;
-      }
-      .modal-footer {
-        flex-shrink: 1;
-        padding: @modal-dialog-footer-padding;
+  svg {
+    circle {
+      fill: transparent;
+      stroke: @blue;
+      transition: stroke-dashoffset 0.35s;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      &.full-circle {
+        stroke: @grey;
       }
     }
   }

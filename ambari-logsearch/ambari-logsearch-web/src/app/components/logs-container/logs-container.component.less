@@ -55,4 +55,27 @@
     margin-top: @block-margin-top;
   }
 
+  /deep/ modal-dialog.capture-dialog {
+    .modal-dialog {
+      max-width: 350px;
+    }
+    .modal-body {
+      align-content: center;
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /deep/ circle-progress-bar {
+        label {
+          font-size: 3rem;
+          font-weight: normal;
+          .unit {
+            color: @fluid-gray-2;
+            font-size: 1.2rem;
+          }
+        }
+      }
+    }
+  }
+
 }
