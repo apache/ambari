@@ -576,7 +576,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           sender: this,
           data: {
             context,
-            serviceName: serviceName.toUpperCase(),
+            serviceName: serviceName,
             state: serviceHealth,
             query: requestQuery
           },
