@@ -34,9 +34,9 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
   },
 
   addMpacks: function () {
-    const selectedMpacks = this.get('content.mpacksToRegister');
+    const mpacksToRegister = this.get('content.mpacksToRegister');
 
-    selectedMpacks.forEach(mpack => {
+    mpacksToRegister.forEach(mpack => {
       this.get('mpacks').pushObject(Em.Object.create({
         name: mpack.name,
         version: mpack.version,

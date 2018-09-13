@@ -1442,7 +1442,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * If not, it is loaded from the server and stored in both localStorage and the controller's content.
    */
   loadRegisteredMpacks: function () {
-    const dfd = $.Deferred();;
+    const dfd = $.Deferred();
     const registeredMpacks = this.getDBProperty('registeredMpacks');
     
     if (registeredMpacks) {
