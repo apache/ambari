@@ -54,7 +54,7 @@
               <td>
                 {{#if view.activeMaster}}
                   <a {{bindAttr href="view.hbaseMasterWebUrl"}}
-                          target="_blank">{{t dashboard.services.hbase.masterWebUI}}</a>
+                          target="_blank" rel="noopener noreferrer">{{t dashboard.services.hbase.masterWebUI}}</a>
                 {{else}}
                   {{t services.service.summary.notAvailable}}
                 {{/if}}
@@ -81,7 +81,7 @@
                             <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
                             <ul class="dropdown-menu">
                               {{#each quickLinks}}
-                                <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+                                <li><a {{bindAttr href="url"}} target="_blank" rel="noopener noreferrer">{{label}}</a></li>
                               {{/each}}
                             </ul>
                           </li>
@@ -89,7 +89,7 @@
                       {{/each}}
                     {{else}}
                       {{#each view.quickLinks}}
-                        <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+                        <li><a {{bindAttr href="url"}} target="_blank" rel="noopener noreferrer">{{label}}</a></li>
                       {{/each}}
                     {{/if}}
                   {{else}}
