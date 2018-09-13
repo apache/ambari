@@ -216,7 +216,7 @@ App.Host = DS.Model.extend({
       'ALERT': 'health-status-DEAD-ORANGE'
     };
     return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
-  }.property('healthStatus'),
+  }.property('healthStatus', 'passiveState'),
 
   healthIconClass: Em.computed.getByKey('healthIconClassMap', 'healthClass', ''),
 
