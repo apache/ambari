@@ -101,9 +101,9 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     }
 
     if (Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS, "false"))) {
-      this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager, true);
-    } else {
       this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager);
+    } else {
+      this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager, true);
     }
   }
 
