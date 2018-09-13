@@ -98,7 +98,7 @@
                     {{#each quickLinks in group.links}}
                       <h6>{{quickLinks.publicHostNameLabel}}</h6>
                       {{#each quickLinks}}
-                        <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                        <a {{bindAttr href="url"}} target="_blank" rel="noopener noreferrer">{{label}}</a>
                       {{/each}}
                     {{/each}}
                   </div>
@@ -106,7 +106,7 @@
               {{else}}
                 {{#if view.quickLinks}}
                   {{#each view.quickLinks}}
-                    <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                    <a {{bindAttr href="url"}} target="_blank" rel="noopener noreferrer">{{label}}</a>
                   {{/each}}
                 {{else}}
                   <div class="alert alert-danger">
