@@ -51,7 +51,10 @@ App.serviceMapper = App.QuickDataMapper.create({
       var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
       if (cachedService) {
         // restore service workStatus
-        App.Service.find(cachedService.ServiceInfo.service_name).set('workStatus', service.ServiceInfo.state);
+        const serviceRec = App.Service.find(cachedService.ServiceInfo.service_name);
+        if (serviceRec.get('isLoaded')) {
+          serviceRec.set('workStatus', service.ServiceInfo.state);
+        }
         cachedService.ServiceInfo.state = service.ServiceInfo.state;
       } else {
         var serviceData = {

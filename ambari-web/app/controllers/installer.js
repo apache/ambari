@@ -190,7 +190,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.setDBProperty('hosts', dbHosts);
   },
 
-  cancelInstall: function() {
+  cancelInstall: function () {
     return App.showConfirmationPopup(() => {
       App.router.get('applicationController').goToAdminView();
     });
@@ -391,7 +391,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         this.getSupportedOSList(versionDefinition, stackInfo, params.dfd);
       }, this);
     } else {
-      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('installer.step1.noVersionDefinitions'), function() {
+      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('installer.step1.noVersionDefinitions'), function () {
         App.router.send('back');
       });
     }
@@ -749,8 +749,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       this.showStackErrorAndSkipStepIfNeeded(response);
       return;
     }
-    response.operating_systems.forEach(function(supportedOS) {
-      if(!existedMap[supportedOS.OperatingSystems.os_type]) {
+    response.operating_systems.forEach(function (supportedOS) {
+      if (!existedMap[supportedOS.OperatingSystems.os_type]) {
         supportedOS.isSelected = false;
         existedOS.push(supportedOS);
       } else {
@@ -767,7 +767,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
             });
           });
         }
-        else{
+        else {
           existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
             supportedOS.repositories.forEach(function (supportedRepo) {
               if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
@@ -810,11 +810,11 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   getSupportedOSListErrorCallback: function (request, ajaxOptions, error, data, params) {
     var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.error.title');
     var body = "";
-    if(request && request.responseText){
+    if (request && request.responseText) {
       try {
         var json = $.parseJSON(request.responseText);
         body = json.message;
-      } catch (err) {}
+      } catch (err) { }
     }
     App.showAlertPopup(header, body);
   },
@@ -831,9 +831,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         repoVersionId: repoToUpdate.id,
         repoVersion: repoVersion
       }
-    }).success(function() {
+    }).success(function () {
       deferred.resolve([]);
-    }).error(function() {
+    }).error(function () {
       deferred.resolve([]);
     });
     return deferred.promise();
@@ -845,7 +845,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    * @param {Em.Object} repo
    * @returns {{operating_systems: Array}}
    */
-  prepareRepoForSaving: function(repo) {
+  prepareRepoForSaving: function (repo) {
     var repoVersion = { "operating_systems": [] };
     var ambariManagedRepositories = !repo.get('useRedhatSatellite');
     var k = 0;
@@ -868,7 +868,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
                 "components": repository.get('components'),
                 "tags": repository.get('tags'),
                 "distribution": repository.get('distribution'),
-                "applicable_services" : repository.get('applicable_services')
+                "applicable_services": repository.get('applicable_services')
               }
             });
           }
@@ -974,6 +974,18 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     }
     this.set('content.isCheckInProgress', false);
     params.dfd.reject();
+  },
+
+  /**
+   * In addition to the default behavior, we want to always treat mpacks
+   * as being added in the current wizard when are in the Install wizard.
+   */
+  loadRegisteredMpacksCallback: function (response) {
+    this._super(response);
+
+    const registeredMpacks = this.get('content.registeredMpacks');
+    registeredMpacks.forEach(mpack => mpack.currentWizard = true);
+    this.setDBProperty('registeredMpacks', registeredMpacks);
   },
 
   loadMap: {
@@ -1400,7 +1412,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     
     if (!this.get('stackConfigsLoaded')) {
       // Load stack configs before loading themes
-      App.config.loadClusterConfigsFromStack().always(self.loadServiceConfigs).always(() => {
+      App.config.loadClusterConfigsFromStack().always(self.loadServiceConfigs.bind(self)).always(() => {
         dfd.resolve();
       });
     } else {
