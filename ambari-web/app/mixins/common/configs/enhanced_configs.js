@@ -649,22 +649,25 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
 
   updateAttributesFromTheme: function (serviceName) {
     this.prepareSectionsConfigProperties(serviceName);
-    const serviceConfigs = this.get('stepConfigs').findProperty('serviceName', serviceName).get('configs'),
-      configConditions = App.ThemeCondition.find().filter(condition => {
-        const dependentConfigName = condition.get('configName'),
-          dependentConfigFileName = condition.get('fileName'),
-          configsToDependOn = condition.getWithDefault('configs', []);
-        return serviceConfigs.some(serviceConfig => {
-          const serviceConfigName = Em.get(serviceConfig, 'name'),
-            serviceConfigFileName = Em.get(serviceConfig, 'filename');
-          return (serviceConfigName === dependentConfigName && serviceConfigFileName === dependentConfigFileName)
-            || configsToDependOn.some(config => {
-              const {configName, fileName} = config;
-              return serviceConfigName === configName && serviceConfigFileName === fileName;
-            });
+    const service = this.get('stepConfigs').findProperty('serviceName', serviceName);
+    if (service) {
+      const serviceConfigs = service.get('configs'),
+        configConditions = App.ThemeCondition.find().filter(condition => {
+          const dependentConfigName = condition.get('configName'),
+            dependentConfigFileName = condition.get('fileName'),
+            configsToDependOn = condition.getWithDefault('configs', []);
+          return serviceConfigs.some(serviceConfig => {
+            const serviceConfigName = Em.get(serviceConfig, 'name'),
+              serviceConfigFileName = Em.get(serviceConfig, 'filename');
+            return (serviceConfigName === dependentConfigName && serviceConfigFileName === dependentConfigFileName)
+              || configsToDependOn.some(config => {
+                const {configName, fileName} = config;
+                return serviceConfigName === configName && serviceConfigFileName === fileName;
+              });
+          });
         });
-      });
-    this.updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
+      this.updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
+    }
   },
 
   prepareSectionsConfigProperties: function (serviceName) {
