@@ -29,7 +29,7 @@ Em.I18n.translations = {
   'app.redirectIssuePopup.header': 'Login Redirect Issue',
   'app.redirectIssuePopup.body': 'For single sign-on, make sure that Knox Gateway and Ambari Server are located on the same host or subdomain.' +
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
-    '<a href="{0}" target="_blank">{0}</a>',
+    '<a rel="noopener noreferrer" href="{0}" target="_blank">{0}</a>',
 
   'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
@@ -2349,7 +2349,7 @@ Em.I18n.translations = {
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing Changes in',
   'services.service.config.setRecommendedValue': 'Set Recommended',
-  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a href="{3}" target="_blank">' +
+  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a rel="noopener noreferrer" href="{3}" target="_blank">' +
     'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
     '<b>ambari-server setup --jdbc-db={1} --jdbc-driver=/path/to/{1}/{2}</b>',
 
