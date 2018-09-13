@@ -146,18 +146,38 @@ describe('App.HostComponent', function() {
     });
   });
 
-  App.TestAliases.testAsComputedEqual(hc, 'isActive', 'passiveState', 'OFF');
-
   App.TestAliases.testAsComputedIfThenElse(hc, 'passiveTooltip', 'isActive', '', Em.I18n.t('hosts.component.passive.mode'));
 
   describe('#isActive', function() {
-    it('passiveState is ON', function() {
-      hc.set('passiveState', "ON");
-      hc.propertyDidChange('isActive');
-      expect(hc.get('isActive')).to.be.false;
-    });
     it('passiveState is OFF', function() {
       hc.set('passiveState', "OFF");
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.true;
+    });
+    it('passiveState is IMPLIED_FROM_HOST', function() {
+      hc.set('passiveState', "IMPLIED_FROM_HOST");
+      hc.set('host', {
+        passiveState: 'OFF'
+      });
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.true;
+    });
+    it('passiveState is IMPLIED_FROM_SERVICE', function() {
+      hc.set('passiveState', "IMPLIED_FROM_SERVICE");
+      hc.set('service', {
+        passiveState: 'OFF'
+      });
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.true;
+    });
+    it('passiveState is IMPLIED_FROM_SERVICE_AND_HOST', function() {
+      hc.set('passiveState', "IMPLIED_FROM_SERVICE_AND_HOST");
+      hc.set('host', {
+        passiveState: 'OFF'
+      });
+      hc.set('service', {
+        passiveState: 'OFF'
+      });
       hc.propertyDidChange('isActive');
       expect(hc.get('isActive')).to.be.true;
     });
