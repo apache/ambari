@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -202,6 +203,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     setProvisionAction(parseProvisionAction(properties));
 
     mpackInstances = BlueprintFactory.createMpackInstances(properties);
+    Preconditions.checkArgument(!getAllMpacks().isEmpty(), "No mpacks (stacks) have been defined. Cluster provisioning cannot continue.");
     stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet()); // FIXME persist these
 
     try {

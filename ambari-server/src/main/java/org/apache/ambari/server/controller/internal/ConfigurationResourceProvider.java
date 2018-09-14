@@ -254,6 +254,9 @@ public class ConfigurationResourceProvider extends
 
     Set<Resource> resources = new HashSet<>();
     for (ConfigurationResponse response : responses) {
+      if (null == response) {
+        throw new NoSuchResourceException("Could not find configuration resource: " + predicate);
+      }
       // don't use the StackId object here; we just want the stack ID string
       String stackId = response.getStackId().getStackId();
 

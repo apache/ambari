@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -126,7 +127,7 @@ public class MpackAdvisorCommandTest {
     MpackAdvisorCommand.MpackAdvisorData data = new MpackAdvisorCommand.MpackAdvisorData(hostsJSON, servicesJSON);
     doReturn(hostsJSON).when(command).getHostsInformation(request);
     doReturn(data).when(command).getServicesInformation(request, hostsJSON);
-    doReturn(objectNode).when(command).adjust(servicesJSON, request);
+    doReturn(objectNode).when(command).adjust(eq(servicesJSON), eq(request), any());
 
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -218,7 +219,7 @@ public class MpackAdvisorCommandTest {
     ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree(objectNodeStr);
 
     doReturn(hostsJSON).when(command).getHostsInformation(request);
-    doReturn(objectNode).when(command).adjust(servicesJSON, request);
+    doReturn(objectNode).when(command).adjust(eq(servicesJSON), eq(request), any());
     request.getRecommendation().getBlueprint().setMpackInstances(MpackAdvisorHelperTest.createOdsMpackInstance());
 
     response = createNiceMock(Response.class);

@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.api.services.mpackadvisor.recommendations;
 
+import static org.apache.ambari.server.controller.internal.MpackAdvisorResourceProvider.BLUEPRINT_HOST_GROUPS_COMPONENTS_MPACK_INSTANCE_PROPERTY;
+import static org.apache.ambari.server.controller.internal.MpackAdvisorResourceProvider.BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY;
+import static org.apache.ambari.server.controller.internal.MpackAdvisorResourceProvider.BLUEPRINT_HOST_GROUPS_COMPONENTS_SERVICE_INSTANCE_PROPERTY;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,6 +33,8 @@ import org.apache.ambari.server.api.services.mpackadvisor.MpackAdvisorResponse;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Recommendation response POJO.
@@ -299,6 +305,13 @@ public class MpackRecommendationResponse extends MpackAdvisorResponse {
 
     public void setComponents(Set<Map<String, String>> components) {
       this.components = components;
+    }
+
+    public static Map<String, String> createComponent(String componentName, String mpackInstance, String serviceInstance) {
+      return ImmutableMap.of(
+        BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY, componentName,
+        BLUEPRINT_HOST_GROUPS_COMPONENTS_MPACK_INSTANCE_PROPERTY, mpackInstance,
+        BLUEPRINT_HOST_GROUPS_COMPONENTS_SERVICE_INSTANCE_PROPERTY, serviceInstance);
     }
   }
 

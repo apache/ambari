@@ -40,7 +40,7 @@ import javax.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -135,7 +135,7 @@ public class TopologyManager {
   private Configuration configuration;
 
   @Inject
-  private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
+  private AdvisorBlueprintProcessor advisorBlueprintProcessor;
 
   @Inject
   private LogicalRequestFactory logicalRequestFactory;
@@ -326,7 +326,7 @@ public class TopologyManager {
     clusterTopologyMap.put(clusterId, topology);
 
     ClusterConfigurationRequest configurationRequest = new ClusterConfigurationRequest(ambariContext, topology,
-      stackAdvisorBlueprintProcessor, securityConfiguration.getType() == SecurityType.KERBEROS
+      advisorBlueprintProcessor, securityConfiguration.getType() == SecurityType.KERBEROS
     );
     configurationRequest.setInitialConfigurations();
     addClusterConfigRequest(logicalRequest, topology, configurationRequest);
@@ -1042,7 +1042,7 @@ public class TopologyManager {
             LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, but provision request is finished, skipping cluster config request");
           } else {
             LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
-            ClusterConfigurationRequest configRequest = new ClusterConfigurationRequest(ambariContext, topology, stackAdvisorBlueprintProcessor);
+            ClusterConfigurationRequest configRequest = new ClusterConfigurationRequest(ambariContext, topology, advisorBlueprintProcessor);
             addClusterConfigRequest(provisionRequest, topology, configRequest);
           }
         } else {

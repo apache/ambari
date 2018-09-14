@@ -35,7 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.api.services.AdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
@@ -71,26 +71,26 @@ public class ClusterConfigurationRequest {
   private AmbariContext ambariContext;
   private ClusterTopology clusterTopology;
   private BlueprintConfigurationProcessor configurationProcessor;
-  private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
+  private AdvisorBlueprintProcessor advisorBlueprintProcessor;
   private StackDefinition stack;
   private boolean configureSecurity = false;
 
   public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology,
-    StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity
+                                     AdvisorBlueprintProcessor advisorBlueprintProcessor, boolean configureSecurity
   ) {
-    this(ambariContext, topology, stackAdvisorBlueprintProcessor);
+    this(ambariContext, topology, advisorBlueprintProcessor);
     this.configureSecurity = configureSecurity;
   }
 
   public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology,
-    StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor
+    AdvisorBlueprintProcessor advisorBlueprintProcessor
   ) {
     this.ambariContext = ambariContext;
     this.clusterTopology = clusterTopology;
     this.stack = clusterTopology.getStack();
     // set initial configuration (not topology resolved)
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology);
-    this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
+    this.advisorBlueprintProcessor = advisorBlueprintProcessor;
     removeOrphanConfigTypes();
   }
 
@@ -156,7 +156,7 @@ public class ClusterConfigurationRequest {
       // obtain recommended configurations before config updates
       if (clusterTopology.getConfigRecommendationStrategy().shouldUseAdvisor()) {
         // get merged properties form Blueprint & cluster template (this doesn't contains stack default values)
-        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
+        advisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
       }
 
       updatedConfigTypes.addAll(configurationProcessor.doUpdateForClusterCreate());
