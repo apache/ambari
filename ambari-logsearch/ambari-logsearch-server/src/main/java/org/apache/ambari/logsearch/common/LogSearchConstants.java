@@ -72,7 +72,8 @@ public class LogSearchConstants {
   public static final String SERVICE_FIELD_VISIBLE_DEFAULTS = "log_message,level,logtime,type";
   public static final String SERVICE_FIELD_EXCLUDES_DEFAULTS = "id,tags,text,message,seq_num,case_id,bundle_id,rowtype,event_count";
   public static final String SERVICE_FIELD_FILTERABLE_EXLUDE_DEFAULTS = "";
-  public static final String SERVICE_FIELD_FALLBACK_PREFIX_DEFAULTS = "ws_,sdi_";
+  public static final String SERVICE_FIELD_FALLBACK_PREFIX_DEFAULTS = "ws_,sdi_,std_";
+  public static final String SERVICE_FIELD_FALLBACK_SUFFIX_DEFAULTS = "_i,_l,_s,_b";
 
   // audit  field / component label defaults
   public static final String AUDIT_COMPONENT_LABELS_DEFAULTS = "ambari:Ambari,hdfs:Hdfs,RangerAudit:Ranger";
@@ -86,6 +87,7 @@ public class LogSearchConstants {
   public static final String AUDIT_FIELD_FILTERABLE_EXCLUDES_DEFAULTS = "";
   public static final String AUDIT_FIELD_FILTERABLE_EXCLUDES_COMMON_DEFAULTS = "";
   public static final String AUDIT_FIELD_FALLBACK_PREFIX_DEFAULTS = "ws_,std_";
+  public static final String AUDIT_FIELD_FALLBACK_SUFFIX_DEFAULTS = "_i,_l,_s,_b";
 
   //Facet Constant
   public static final String FACET_FIELD = "facet.field";

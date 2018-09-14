@@ -46,9 +46,9 @@ public class LabelFallbackHandler {
   }
 
   public String fallbackIfRequired(String field, String label, boolean replaceUnderscore,
-                                   boolean replaceUppercaseInWord, boolean capitalizeAll, List<String> prefixesToRemove) {
+                                   boolean replaceUppercaseInWord, boolean capitalizeAll, List<String> prefixesToRemove, List<String> suffixesToRemove) {
     if (isEnabled() && StringUtils.isBlank(label)) {
-      return fallback(field,replaceUnderscore, replaceUppercaseInWord, capitalizeAll, prefixesToRemove);
+      return fallback(field,replaceUnderscore, replaceUppercaseInWord, capitalizeAll, prefixesToRemove, suffixesToRemove);
     }
     return label;
   }
@@ -66,16 +66,24 @@ public class LabelFallbackHandler {
     return result;
   }
 
-  public String fallback(String field, boolean replaceUnderscore, boolean replaceUppercaseInWord, boolean capitalizeAll, List<String> prefixesToRemove) {
-    String fieldWithoutPrefix =  null;
+  public String fallback(String field, boolean replaceUnderscore, boolean replaceUppercaseInWord, boolean capitalizeAll,
+                         List<String> prefixesToRemove,  List<String> suffixesToRemove) {
+    String fieldWithoutPrefixAndSuffix =  null;
     if (!CollectionUtils.isEmpty(prefixesToRemove)) {
       for (String prefix : prefixesToRemove) {
         if (StringUtils.isNotBlank(field) && field.startsWith(prefix)) {
-          fieldWithoutPrefix = field.substring(prefix.length());
+          fieldWithoutPrefixAndSuffix = field.substring(prefix.length());
         }
       }
     }
-    return fallback(fieldWithoutPrefix != null ? fieldWithoutPrefix : field, replaceUnderscore, replaceUppercaseInWord, capitalizeAll);
+    if (!CollectionUtils.isEmpty(suffixesToRemove)) {
+      for (String suffix : suffixesToRemove) {
+        if (StringUtils.isNotBlank(field) && field.endsWith(suffix)) {
+          fieldWithoutPrefixAndSuffix = field.substring(0, field.length() - suffix.length());
+        }
+      }
+    }
+    return fallback(fieldWithoutPrefixAndSuffix != null ? fieldWithoutPrefixAndSuffix : field, replaceUnderscore, replaceUppercaseInWord, capitalizeAll);
   }
 
   private String deUnderScore(String input) {
