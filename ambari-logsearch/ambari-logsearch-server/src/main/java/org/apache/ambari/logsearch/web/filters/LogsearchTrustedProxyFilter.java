@@ -48,6 +48,15 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+/**
+ * Filter servlet to handle trusted proxy authentication.
+ * It is disabled by default (see: {@link AuthPropsConfig#isTrustedProxy()}) <br/>
+ * There are 4 main configuration properties of this filter (allow authentication only if these are matches with the request details): <br/>
+ * - {@link AuthPropsConfig#getProxyUsers()} - Proxy users <br/>
+ * - {@link AuthPropsConfig#getProxyUserGroups()} - Proxy groups <br/>
+ * - {@link AuthPropsConfig#getProxyUserHosts()} - Proxy hosts <br/>
+ * - {@link AuthPropsConfig#getProxyIp()} - Proxy server IPs<br/>
+ */
 public class LogsearchTrustedProxyFilter extends AbstractAuthenticationProcessingFilter {
 
   private static final Logger LOG = LoggerFactory.getLogger(LogsearchTrustedProxyFilter.class);
@@ -164,7 +173,7 @@ public class LogsearchTrustedProxyFilter extends AbstractAuthenticationProcessin
   }
 
   private List<GrantedAuthority> getDefaultGrantedAuthorities() {
-    // TODO: add proper roles if ACLs should be handled in the rihght way (cluster based roles)
+    // TODO: add proper roles if ACLs should be handled in the right way (cluster based roles)
     List<GrantedAuthority> authorities = new ArrayList<>();
     Role role = new Role();
     role.setName("admin");
