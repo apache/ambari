@@ -43,7 +43,7 @@ public class LabelFallbackHandlerTest {
     // GIVEN
     String testInput = "my_field";
     // WHEN
-    String result = underTest.fallbackIfRequired(testInput, "spec label", true, false, true, null);
+    String result = underTest.fallbackIfRequired(testInput, "spec label", true, false, true, null, null);
     // THEN
     assertEquals("spec label", result);
   }
@@ -109,11 +109,27 @@ public class LabelFallbackHandlerTest {
   @Test
   public void testFallbackWithRemovingPrefixes() {
     // GIVEN
-    String testInput = "ws_request_id";
+    String testInput1 = "ws_request_id";
+    String testInput2 = "std_request_username";
     // WHEN
-    String result = underTest.fallback(testInput, true, true, true, Arrays.asList("ws_", "std_"));
+    String result1 = underTest.fallback(testInput1, true, true, true, Arrays.asList("ws_", "std_"), null);
+    String result2 = underTest.fallback(testInput2, true, true, true, Arrays.asList("ws_", "std_"), null);
     // THEN
-    assertEquals("Request Id", result);
+    assertEquals("Request Id", result1);
+    assertEquals("Request Username", result2);
+  }
+
+  @Test
+  public void testFallbackWithRemovingSuffixes() {
+    // GIVEN
+    String testInput1 = "request_id_i";
+    String testInput2 = "request_username_s";
+    // WHEN
+    String result1 = underTest.fallback(testInput1, true, true, true, null, Arrays.asList("_i", "_s"));
+    String result2 = underTest.fallback(testInput2, true, true, true, null, Arrays.asList("_i", "_s"));
+    // THEN
+    assertEquals("Request Id", result1);
+    assertEquals("Request Username", result2);
   }
 
   @Test
@@ -121,7 +137,7 @@ public class LabelFallbackHandlerTest {
     // GIVEN
     String testInput = "request_id";
     // WHEN
-    String result = underTest.fallback(testInput, true, true, true, Arrays.asList("ws_", "std_"));
+    String result = underTest.fallback(testInput, true, true, true, Arrays.asList("ws_", "std_"), null);
     // THEN
     assertEquals("Request Id", result);
   }
