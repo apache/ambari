@@ -2284,7 +2284,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var message = Em.I18n.t('hosts.host.details.for.postfix').format(context.label);
     var popupInfo = Em.I18n.t('hosts.passiveMode.popup').format(context.active ? 'On' : 'Off', this.get('content.hostName'));
     if (state === 'OFF') {
-      var hostVersion = this.get('content.stackVersions') && this.get('content.stackVersions').findProperty('isCurrent').get('repoVersion'),
+      var currentHostVersion = this.get('content.stackVersions') && this.get('content.stackVersions').findProperty('isCurrent'),
+        hostVersion = currentHostVersion && currentHostVersion.get('repoVersion'),
         currentVersion = App.StackVersion.find().findProperty('isCurrent'),
         clusterVersion = currentVersion && currentVersion.get('repositoryVersion.repositoryVersion');
       if (hostVersion !== clusterVersion) {
