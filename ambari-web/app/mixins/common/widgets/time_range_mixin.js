@@ -79,7 +79,9 @@ App.TimeRangeMixin = Em.Mixin.create({
 
   didInsertElement: function () {
     App.tooltip(this.$(), {
-      selector: '.dropdown-toggle[rel="tooltip"]'
+      selector: '.dropdown-toggle[rel="tooltip"]',
+      html: true,
+      placement: 'left'
     });
   },
 
