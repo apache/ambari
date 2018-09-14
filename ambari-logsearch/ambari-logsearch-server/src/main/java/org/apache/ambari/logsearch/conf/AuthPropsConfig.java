@@ -21,7 +21,6 @@ package org.apache.ambari.logsearch.conf;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
 import java.util.List;
 
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
@@ -187,6 +186,55 @@ public class AuthPropsConfig {
   )
   private boolean redirectForward;
 
+  @Value("${logsearch.auth.trusted.proxy:false}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.trusted.proxy",
+    description = "A boolean property to enable/disable trusted-proxy 'knox' authentication",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private boolean trustedProxy;
+
+  @Value("#{propertiesSplitter.parseList('${logsearch.auth.proxyuser.users:knox}')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.proxyuser.users",
+    description = "List of users which the trusted-proxy user ‘knox’ can proxy for",
+    examples = {"knox,hdfs"},
+    defaultValue = "knox",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private List<String> proxyUsers;
+
+  @Value("#{propertiesSplitter.parseList('${logsearch.auth.proxyuser.groups:*}')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.proxyuser.groups",
+    description = "List of user-groups which trusted-proxy user ‘knox’ can proxy for",
+    examples = {"admin,user"},
+    defaultValue = "*",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private List<String> proxyUserGroups;
+
+  @Value("#{propertiesSplitter.parseList('${logsearch.auth.proxyuser.hosts:*}')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.proxyuser.hosts",
+    description = "List of hosts from which trusted-proxy user ‘knox’ can connect from",
+    examples = {"host1,host2"},
+    defaultValue = "*",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private List<String> proxyUserHosts;
+
+  @Value("#{propertiesSplitter.parseList('${logsearch.auth.proxyserver.ip:}')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.proxyserver.ip",
+    description = "IP of trusted Knox Proxy server(s) that Log Search will trust on",
+    examples = {"192.168.0.1,192.168.0.2"},
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private List<String> proxyIp;
+
   public boolean isAuthFileEnabled() {
     return authFileEnabled;
   }
@@ -313,5 +361,45 @@ public class AuthPropsConfig {
 
   public void setUserAgentList(List<String> userAgentList) {
     this.userAgentList = userAgentList;
+  }
+
+  public boolean isTrustedProxy() {
+    return trustedProxy;
+  }
+
+  public void setTrustedProxy(boolean trustedProxy) {
+    this.trustedProxy = trustedProxy;
+  }
+
+  public List<String> getProxyUsers() {
+    return proxyUsers;
+  }
+
+  public void setProxyUsers(List<String> proxyUsers) {
+    this.proxyUsers = proxyUsers;
+  }
+
+  public List<String> getProxyUserGroups() {
+    return proxyUserGroups;
+  }
+
+  public void setProxyUserGroups(List<String> proxyUserGroups) {
+    this.proxyUserGroups = proxyUserGroups;
+  }
+
+  public List<String> getProxyUserHosts() {
+    return proxyUserHosts;
+  }
+
+  public void setProxyUserHosts(List<String> proxyUserHosts) {
+    this.proxyUserHosts = proxyUserHosts;
+  }
+
+  public List<String> getProxyIp() {
+    return proxyIp;
+  }
+
+  public void setProxyIP(List<String> proxyIp) {
+    this.proxyIp = proxyIp;
   }
 }
