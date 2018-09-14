@@ -358,6 +358,7 @@ hive_server_interactive_ha = True if len(hive_server_interactive_hosts) > 1 else
 # End, Common Hosts and Ports
 
 hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
+hive_interactive_transport_mode = config['configurations']['hive-interactive-site']['hive.server2.transport.mode']
 
 if hive_transport_mode.lower() == "http":
   hive_server_port = config['configurations']['hive-site']['hive.server2.thrift.http.port']
@@ -672,10 +673,11 @@ if has_hive_interactive:
     hive_interactive_heapsize = config['configurations']['hive-interactive-env']['hive_heapsize']
 
   # Service check related
-  if hive_transport_mode.lower() == "http":
+  if hive_interactive_transport_mode.lower() == "http":
     hive_server_interactive_port = config['configurations']['hive-interactive-site']['hive.server2.thrift.http.port']
   else:
     hive_server_interactive_port = default('/configurations/hive-interactive-site/hive.server2.thrift.port',"10500")
+   
   # Tez for Hive interactive related
   tez_interactive_config_dir = "/etc/tez_hive2/conf"
   tez_interactive_user = config['configurations']['tez-env']['tez_user']

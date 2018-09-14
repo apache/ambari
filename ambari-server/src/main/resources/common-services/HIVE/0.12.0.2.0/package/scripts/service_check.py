@@ -72,7 +72,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     Logger.info("Running Hive Server checks")
     Logger.info("--------------------------\n")
     self.check_hive_server(env, 'Hive Server', kinit_cmd, params.hive_server_hosts,
-                           int(format("{hive_server_port}")), params.hive_ssl_keystore_path, params.hive_ssl_keystore_password)
+                           int(format("{hive_server_port}")), params.hive_transport_mode, params.hive_ssl_keystore_path, params.hive_ssl_keystore_password)
 
 
     if params.has_hive_interactive  and params.hive_interactive_enabled:
@@ -80,13 +80,13 @@ class HiveServiceCheckDefault(HiveServiceCheck):
       Logger.info("--------------------------\n")
 
       self.check_hive_server(env, 'Hive Server2', kinit_cmd, params.hive_interactive_hosts,
-                             int(format("{hive_server_interactive_port}")), params.hive_interactive_ssl_keystore_path,
+                            int(format("{hive_server_interactive_port}")), params.hive_interactive_transport_mode, params.hive_interactive_ssl_keystore_path,
                              params.hive_interactive_ssl_keystore_password)
 
       Logger.info("Running LLAP checks")
       Logger.info("-------------------\n")
       self.check_llap(env, kinit_cmd, params.hive_interactive_hosts, int(format("{hive_server_interactive_port}")),
-                      params.hive_llap_principal, params.hive_server2_authentication, params.hive_transport_mode,
+                      params.hive_llap_principal, params.hive_server2_authentication, params.hive_interactive_transport_mode,
                       params.hive_http_endpoint)
 
 
@@ -98,7 +98,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     Logger.info("---------------------\n")
     webhcat_service_check()
 
-  def check_hive_server(self, env, server_component_name, kinit_cmd, address_list, server_port, ssl_keystore, ssl_password):
+  def check_hive_server(self, env, server_component_name, kinit_cmd, address_list, server_port, transport_mode, ssl_keystore, ssl_password):
     import params
     env.set_params(params)
     Logger.info("Server Address List : {0}, Port : {1}, SSL KeyStore : {2}".format(address_list, server_port, ssl_keystore))
@@ -120,7 +120,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
       try:
         check_thrift_port_sasl(address, server_port, params.hive_server2_authentication,
                                params.hive_server_principal, kinit_cmd, params.smokeuser,
-                               transport_mode=params.hive_transport_mode, http_endpoint=params.hive_http_endpoint,
+                               transport_mode=transport_mode, http_endpoint=params.hive_http_endpoint,
                                ssl=params.hive_ssl, ssl_keystore=ssl_keystore,
                                ssl_password=ssl_password, ldap_username=params.hive_ldap_user,
                                ldap_password=params.hive_ldap_passwd)
