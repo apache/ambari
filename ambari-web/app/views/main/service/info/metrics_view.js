@@ -100,6 +100,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
     this.makeSortable('#widget_layout');
     this.makeSortable('#ns_widget_layout', true);
     this.addWidgetTooltip();
+    this._super();
   },
 
   loadActiveWidgetLayout: function () {
