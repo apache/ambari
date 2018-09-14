@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logsearch.conf;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +34,7 @@ import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_
 import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_EXCLUDES_COMMON_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_EXCLUDES_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_FALLBACK_PREFIX_DEFAULTS;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_FALLBACK_SUFFIX_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_FILTERABLE_EXCLUDES_COMMON_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_FILTERABLE_EXCLUDES_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_LABELS_DEFAULTS;
@@ -42,6 +42,7 @@ import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_
 import static org.apache.ambari.logsearch.common.LogSearchConstants.AUDIT_FIELD_VISIBLE_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.SERVICE_FIELD_FALLBACK_PREFIX_DEFAULTS;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.SERVICE_FIELD_FALLBACK_SUFFIX_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.SERVICE_FIELD_FILTERABLE_EXLUDE_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.SERVICE_GROUP_LABELS_DEFAULTS;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.SERVICE_COMPONENT_LABELS_DEFAULTS;
@@ -222,7 +223,7 @@ public class UIMappingConfig {
   )
   private List<String> serviceFieldFallbackPrefixes;
 
-  @Value("#{propertiesSplitter.parseList('${logsearch.web.labels.service_logs.field.fallback.prefixes:" + AUDIT_FIELD_FALLBACK_PREFIX_DEFAULTS + "}')}")
+  @Value("#{propertiesSplitter.parseList('${logsearch.web.labels.audit_logs.field.fallback.prefixes:" + AUDIT_FIELD_FALLBACK_PREFIX_DEFAULTS + "}')}")
   @LogSearchPropertyDescription(
     name = "logsearch.web.labels.service_logs.field.fallback.prefixes",
     description = "List of prefixes that should be removed during fallback of audit field labels.",
@@ -231,6 +232,26 @@ public class UIMappingConfig {
     sources = {LOGSEARCH_PROPERTIES_FILE}
   )
   private List<String> auditFieldFallbackPrefixes;
+
+  @Value("#{propertiesSplitter.parseList('${logsearch.web.labels.service_logs.field.fallback.suffixes:" + SERVICE_FIELD_FALLBACK_PREFIX_DEFAULTS +"}')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.web.labels.service_logs.field.fallback.suffixes",
+    description = "List of suffixes that should be removed during fallback of service field labels.",
+    examples = {"_i,_l,_s,_b"},
+    defaultValue = SERVICE_FIELD_FALLBACK_SUFFIX_DEFAULTS,
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private List<String> serviceFieldFallbackSuffixes;
+
+  @Value("#{propertiesSplitter.parseList('${logsearch.web.labels.audit_logs.field.fallback.suffixes:" + AUDIT_FIELD_FALLBACK_PREFIX_DEFAULTS + "}')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.web.labels.service_logs.field.fallback.suffixes",
+    description = "List of suffixes that should be removed during fallback of audit field labels.",
+    examples = {"_i,_l,_s,_b"},
+    defaultValue = AUDIT_FIELD_FALLBACK_SUFFIX_DEFAULTS,
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private List<String> auditFieldFallbackSuffixes;
 
   private final Map<String, Map<String, String>> mergedAuditFieldLabelMap = new HashMap<>();
 
@@ -366,6 +387,22 @@ public class UIMappingConfig {
 
   public void setServiceFieldFilterableExcludesList(List<String> serviceFieldFilterableExcludesList) {
     this.serviceFieldFilterableExcludesList = serviceFieldFilterableExcludesList;
+  }
+
+  public List<String> getServiceFieldFallbackSuffixes() {
+    return serviceFieldFallbackSuffixes;
+  }
+
+  public void setServiceFieldFallbackSuffixes(List<String> serviceFieldFallbackSuffixes) {
+    this.serviceFieldFallbackSuffixes = serviceFieldFallbackSuffixes;
+  }
+
+  public List<String> getAuditFieldFallbackSuffixes() {
+    return auditFieldFallbackSuffixes;
+  }
+
+  public void setAuditFieldFallbackSuffixes(List<String> auditFieldFallbackSuffixes) {
+    this.auditFieldFallbackSuffixes = auditFieldFallbackSuffixes;
   }
 
   public Map<String, List<String>> getMergedAuditFieldVisibleMap() {
