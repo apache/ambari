@@ -28,9 +28,9 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -152,7 +152,7 @@ public class KerberosKeytabDAO {
    */
   public boolean removeIfNotReferenced(KerberosKeytabEntity kerberosKeytabEntity) {
     if (kerberosKeytabEntity != null) {
-      if (!CollectionUtils.isEmpty(kerberosKeytabEntity.getKerberosKeytabPrincipalEntities())) {
+      if (CollectionUtils.isNotEmpty(kerberosKeytabEntity.getKerberosKeytabPrincipalEntities())) {
         ArrayList<String> ids = new ArrayList<>();
         for (KerberosKeytabPrincipalEntity entity : kerberosKeytabEntity.getKerberosKeytabPrincipalEntities()) {
           Long id = entity.getKkpId();

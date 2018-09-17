@@ -180,7 +180,7 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
               // services and components rely on it.  So remove only the relevant service mapping records
               List<KerberosKeytabServiceMappingEntity> serviceMapping = kerberosKeytabPrincipalEntity.getServiceMapping();
 
-              if (!CollectionUtils.isEmpty(serviceMapping)) {
+              if (CollectionUtils.isNotEmpty(serviceMapping)) {
                 // Prune off the relevant service mappings...
                 Iterator<KerberosKeytabServiceMappingEntity> iterator = serviceMapping.iterator();
                 while (iterator.hasNext()) {

@@ -36,7 +36,7 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabServiceMappingEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -197,15 +197,15 @@ public class KerberosKeytabPrincipalDAO {
     Root<KerberosKeytabPrincipalEntity> root = cq.from(KerberosKeytabPrincipalEntity.class);
     ArrayList<Predicate> predicates = new ArrayList<>();
 
-    if (!CollectionUtils.isEmpty(filter.getServiceNames())) {
+    if (CollectionUtils.isNotEmpty(filter.getServiceNames())) {
       Join<KerberosKeytabPrincipalEntity, KerberosKeytabServiceMappingEntity> mappingJoin = root.join("serviceMapping");
       predicates.add(mappingJoin.get("serviceName").in(filter.getServiceNames()));
-      if (!CollectionUtils.isEmpty(filter.getComponentNames())) {
+      if (CollectionUtils.isNotEmpty(filter.getComponentNames())) {
         predicates.add(mappingJoin.get("componentName").in(filter.getComponentNames()));
       }
     }
 
-    if (!CollectionUtils.isEmpty(filter.getHostNames())) {
+    if (CollectionUtils.isNotEmpty(filter.getHostNames())) {
       List<Long> hostIds = new ArrayList<>();
       boolean hasNull = false;
 
@@ -234,7 +234,7 @@ public class KerberosKeytabPrincipalDAO {
       }
     }
 
-    if (!CollectionUtils.isEmpty(filter.getPrincipals())) {
+    if (CollectionUtils.isNotEmpty(filter.getPrincipals())) {
       predicates.add(root.get("principalName").in(filter.getPrincipals()));
     }
     cq.where(cb.and(predicates.toArray(new Predicate[0])));
