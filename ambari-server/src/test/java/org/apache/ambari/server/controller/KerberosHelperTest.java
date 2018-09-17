@@ -3392,7 +3392,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
-    // Clean-up/Finalize Stage
+    // Clean-up
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(EasyMock.anyObject());
+    expectLastCall().once();
+    // Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());
@@ -3745,7 +3750,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
-    // Clean-up/Finalize Stage
+    // Clean-up
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(EasyMock.anyObject());
+    expectLastCall().once();
+    // Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());

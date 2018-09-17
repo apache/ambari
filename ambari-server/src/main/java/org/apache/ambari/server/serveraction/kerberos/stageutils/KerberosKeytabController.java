@@ -102,7 +102,7 @@ public class KerberosKeytabController {
    * @param identityFilter identity(principal) filter
    * @return set of keytabs found
    */
-  public Set<ResolvedKerberosKeytab> getFilteredKeytabs(Map<String, Collection<String>> serviceComponentFilter,
+  public Set<ResolvedKerberosKeytab> getFilteredKeytabs(Map<String, ? extends Collection<String>> serviceComponentFilter,
                                                         Set<String> hostFilter, Collection<String> identityFilter) {
     if (serviceComponentFilter == null && hostFilter == null && identityFilter == null) {
       return getAllKeytabs();
@@ -133,14 +133,14 @@ public class KerberosKeytabController {
    * @param serviceComponentFilter
    * @return
    */
-  private List<KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter> splitServiceFilter(Map<String, Collection<String>> serviceComponentFilter) {
+  private List<KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter> splitServiceFilter(Map<String, ? extends Collection<String>> serviceComponentFilter) {
     if (serviceComponentFilter != null && serviceComponentFilter.size() > 0) {
       Set<String> serviceSet = new HashSet<>();
       Set<String> componentSet = new HashSet<>();
       Set<String> serviceOnlySet = new HashSet<>();
 
       // Split the filter into a service/component filter or a service-only filter.
-      for(Map.Entry<String, Collection<String>> entry: serviceComponentFilter.entrySet()) {
+      for (Map.Entry<String, ? extends Collection<String>> entry : serviceComponentFilter.entrySet()) {
         String serviceName = entry.getKey();
         Collection<String> serviceComponents = entry.getValue();
 
@@ -209,16 +209,18 @@ public class KerberosKeytabController {
   private Set<ResolvedKerberosPrincipal> fromPrincipalEntities(Collection<KerberosKeytabPrincipalEntity> principalEntities) {
     ImmutableSet.Builder<ResolvedKerberosPrincipal> builder = ImmutableSet.builder();
     for (KerberosKeytabPrincipalEntity kkpe : principalEntities) {
-      KerberosPrincipalEntity kpe = kkpe.getPrincipalEntity();
-      ResolvedKerberosPrincipal rkp = new ResolvedKerberosPrincipal(
-        kkpe.getHostId(),
-        kkpe.getHostName(),
-        kkpe.getPrincipalName(),
-        kpe.isService(),
-        kpe.getCachedKeytabPath(),
-        kkpe.getKeytabPath(),
-        kkpe.getServiceMappingAsMultimap());
-      builder.add(rkp);
+      KerberosPrincipalEntity kpe = kkpe.getKerberosPrincipalEntity();
+      if(kpe != null) {
+        ResolvedKerberosPrincipal rkp = new ResolvedKerberosPrincipal(
+            kkpe.getHostId(),
+            kkpe.getHostName(),
+            kkpe.getPrincipalName(),
+            kpe.isService(),
+            kpe.getCachedKeytabPath(),
+            kkpe.getKeytabPath(),
+            kkpe.getServiceMappingAsMultimap());
+        builder.add(rkp);
+      }
     }
     return builder.build();
   }
@@ -227,14 +229,19 @@ public class KerberosKeytabController {
    * Adjust service component filter according to installed services
    *
    * @param cluster                cluster
+   * @param includeAmbariAsService
    * @param serviceComponentFilter
    * @return
    * @throws AmbariException
    */
-  public Map<String, Collection<String>> adjustServiceComponentFilter(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter) throws AmbariException {
+  public Map<String, Collection<String>> adjustServiceComponentFilter(Cluster cluster, boolean includeAmbariAsService, Map<String, ? extends Collection<String>> serviceComponentFilter) throws AmbariException {
     Map<String, Collection<String>> adjustedFilter = new HashMap<>();
 
     Map<String, Service> installedServices = (cluster == null) ? null : cluster.getServices();
+    if(includeAmbariAsService) {
+      installedServices = (installedServices == null) ? new HashMap<>() : new HashMap<>(installedServices);
+      installedServices.put("AMBARI", null);
+    }
 
     if (!MapUtils.isEmpty(installedServices)) {
       if (serviceComponentFilter != null) {
