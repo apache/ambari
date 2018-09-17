@@ -399,7 +399,7 @@ public class AuthPropsConfig {
     return proxyIp;
   }
 
-  public void setProxyIP(List<String> proxyIp) {
+  public void setProxyIp(List<String> proxyIp) {
     this.proxyIp = proxyIp;
   }
 }
