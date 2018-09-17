@@ -28,7 +28,7 @@ import re
 import socket
 
 cluster_prefix = "perf"
-ambari_repo_file_url = "http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos7/2.x/updates/2.6.2.0/ambaribn.repo"
+ambari_repo_file_url = "http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos7/2.x/updates/2.7.1.0/ambaribn.repo"
 
 public_hostname_script = "foo"
 hostname_script = "foo"
@@ -280,7 +280,7 @@ def create_vms(args, number_of_nodes):
   :param number_of_nodes: Number of VMs to request.
   """
   print "Creating server VM {0}-server-{1} with xxlarge nodes on centos7...".format(cluster_prefix, args.cluster_suffix)
-  execute_command(args, args.controller, "/opt/gce-utils/gce up {0}-server-{1} 1 --centos7 --xlarge --ex --disk-xxlarge --ssd".format(cluster_prefix, args.cluster_suffix),
+  execute_command(args, args.controller, "/opt/gce-utils/gce up {0}-server-{1} 1 --centos7 --xxlarge --ex --disk-xxlarge --ssd".format(cluster_prefix, args.cluster_suffix),
                   "Failed to create server, probably not enough resources!", "-tt")
   time.sleep(10)
 
@@ -405,7 +405,8 @@ def create_agent_script(server_host_name):
   "yum clean all; yum install krb5-workstation git ambari-agent -y\n" + \
   "mkdir /home ; cd /home; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
-  "sed -i -f /var/lib/ambari-agent/cache/stacks/PERF/PythonExecutor.sed /usr/lib/python2.6/site-packages/ambari_agent/PythonExecutor.py\n" + \
+  "sed -i -f /var/lib/ambari-agent/cache/stacks/PERF/PythonExecutor.sed /usr/lib/ambari-agent/lib/ambari_agent/PythonExecutor.py\n" + \
+  "sed -i -f /var/lib/ambari-agent/cache/stacks/PERF/check_host.sed /var/lib/ambari-agent/cache/custom_actions/scripts/check_host.py\n" + \
   "sed -i -e 's/hostname=localhost/hostname={0}/g' /etc/ambari-agent/conf/ambari-agent.ini\n".format(server_host_name) + \
   "sed -i -e 's/agent]/agent]\\nhostname_script={0}\\npublic_hostname_script={1}\\n/1' /etc/ambari-agent/conf/ambari-agent.ini\n".format(hostname_script, public_hostname_script) + \
   "python /home/ambari/ambari-agent/conf/unix/agent-multiplier.py start\n" + \
