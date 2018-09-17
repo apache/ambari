@@ -103,11 +103,11 @@ class Hardware:
   def _check_remote_mounts(self):
     """Verify if remote mount allowed to be processed or not"""
     if self.config and self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
-      self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
+      self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "true":
 
-      return False
+      return True
 
-    return True
+    return False
 
   def _is_mount_blacklisted(self, blacklist, mount_point):
     """
