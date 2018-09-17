@@ -1024,7 +1024,8 @@ def get_original_master_key(properties, options = None):
       if masterKey is None:
         masterKey = get_validated_string_input('Enter current Master Key: ',
                                                "", ".*", "", True, False)
-        options.master_key = masterKey
+        if options is not None:
+          options.master_key = masterKey
     except KeyboardInterrupt:
       print_warning_msg('Exiting...')
       sys.exit(1)
@@ -1050,7 +1051,8 @@ def get_original_master_key(properties, options = None):
       password = read_passwd_for_alias(alias, masterKey, options)
       if not password:
         masterKey = None
-        options.master_key = None
+        if options is not None:
+          options.master_key = None
         print_error_msg ("ERROR: Master key does not match.")
         continue
 
