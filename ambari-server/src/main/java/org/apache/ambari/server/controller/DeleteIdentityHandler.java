@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.BASE_LOG_DIR;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
 
 import java.io.File;
 import java.lang.reflect.Type;
@@ -55,7 +56,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -149,7 +150,7 @@ class DeleteIdentityHandler {
         .filter(hostname -> ambariManagementController.getClusters().hostExists(hostname))
         .collect(toSet());
 
-    if(!CollectionUtils.isEmpty(hostNames)) {
+    if(CollectionUtils.isNotEmpty(hostNames)) {
       Stage stage = createNewStage(stageContainer.getLastStageId(),
           cluster,
           stageContainer.getId(),
@@ -164,7 +165,7 @@ class DeleteIdentityHandler {
 
       ActionExecutionContext actionExecContext = new ActionExecutionContext(
           cluster.getClusterName(),
-          "REMOVE_KEYTAB",
+          REMOVE_KEYTAB,
           requestResourceFilters,
           requestParams);
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);

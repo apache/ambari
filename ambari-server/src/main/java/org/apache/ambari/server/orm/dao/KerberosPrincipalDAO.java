@@ -169,7 +169,7 @@ public class KerberosPrincipalDAO {
    */
   public boolean removeIfNotReferenced(KerberosPrincipalEntity kerberosPrincipalEntity) {
     if (kerberosPrincipalEntity != null) {
-      if (!CollectionUtils.isEmpty(kerberosPrincipalEntity.getKerberosKeytabPrincipalEntities())) {
+      if (CollectionUtils.isNotEmpty(kerberosPrincipalEntity.getKerberosKeytabPrincipalEntities())) {
         ArrayList<String> ids = new ArrayList<>();
         for (KerberosKeytabPrincipalEntity entity : kerberosPrincipalEntity.getKerberosKeytabPrincipalEntities()) {
           Long id = entity.getKkpId();
