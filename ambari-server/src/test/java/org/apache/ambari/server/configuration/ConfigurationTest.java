@@ -69,7 +69,7 @@ import junit.framework.Assert;
 @PrepareForTest({ Configuration.class, PasswordUtils.class })
 @PowerMockIgnore( {"javax.management.*", "javax.crypto.*"})
 public class ConfigurationTest {
-  public TemporaryFolder temp = new TemporaryFolder();
+   public TemporaryFolder temp = new TemporaryFolder();
 
   @Before
   public void setup() throws Exception {
