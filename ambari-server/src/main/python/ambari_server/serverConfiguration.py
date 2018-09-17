@@ -908,7 +908,7 @@ def read_passwd_for_alias(alias, masterKey="", options=None):
     with open(tempFilePath, 'w+'):
       os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
 
-    if options is not None and options.master_key is not None and options.master_key:
+    if options is not None and hasattr(options, 'master_key') and options.master_key is not None and options.master_key:
       masterKey = options.master_key
     if masterKey is None or masterKey == "":
       masterKey = "None"
@@ -1019,11 +1019,13 @@ def get_original_master_key(properties, options = None):
   masterKey = None
   while(input):
     try:
-      if options is not None and options.master_key is not None and options.master_key:
+      if options is not None and hasattr(options, 'master_key') and options.master_key is not None and options.master_key:
         masterKey = options.master_key
       if masterKey is None:
         masterKey = get_validated_string_input('Enter current Master Key: ',
                                                "", ".*", "", True, False)
+        if options is not None:
+          options.master_key = masterKey
     except KeyboardInterrupt:
       print_warning_msg('Exiting...')
       sys.exit(1)
@@ -1048,6 +1050,9 @@ def get_original_master_key(properties, options = None):
     if alias and masterKey:
       password = read_passwd_for_alias(alias, masterKey, options)
       if not password:
+        masterKey = None
+        if options is not None:
+          options.master_key = None
         print_error_msg ("ERROR: Master key does not match.")
         continue
 
