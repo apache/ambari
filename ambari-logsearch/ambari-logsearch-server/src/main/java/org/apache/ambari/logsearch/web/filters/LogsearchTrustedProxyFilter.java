@@ -160,6 +160,9 @@ public class LogsearchTrustedProxyFilter extends AbstractAuthenticationProcessin
       if (values != null) {
         while (values.hasMoreElements()) {
           value = values.nextElement();
+          if (StringUtils.isNotBlank(value)) {
+            break;
+          }
         }
       }
       if (StringUtils.trimToNull(name) != null
