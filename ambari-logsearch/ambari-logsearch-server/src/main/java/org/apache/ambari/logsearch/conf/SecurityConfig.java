@@ -31,6 +31,7 @@ import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.dao.RoleDao;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
@@ -99,14 +100,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Inject
   private LogSearchConfigApiConfig logSearchConfigApiConfig;
 
+  @Inject
+  private RoleDao roleDao;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-
     http
       .csrf().disable()
       .authorizeRequests()
-        .requestMatchers(requestMatcher()).permitAll()
-        .antMatchers("/**").authenticated()
+        .requestMatchers(requestMatcher())
+          .permitAll()
+        .antMatchers("/**")
+          .hasRole("USER")
       .and()
       .authenticationProvider(logsearchAuthenticationProvider())
       .httpBasic()
@@ -161,7 +166,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogsearchJWTFilter logsearchJwtFilter() throws Exception {
-    LogsearchJWTFilter filter = new LogsearchJWTFilter(requestMatcher(), authPropsConfig);
+    LogsearchJWTFilter filter = new LogsearchJWTFilter(requestMatcher(), authPropsConfig, roleDao);
     filter.setAuthenticationManager(authenticationManagerBean());
     filter.setAuthenticationSuccessHandler(new LogsearchAuthSuccessHandler());
     filter.setAuthenticationFailureHandler(new LogsearchAuthFailureHandler());

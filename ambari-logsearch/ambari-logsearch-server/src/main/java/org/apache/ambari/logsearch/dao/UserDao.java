@@ -23,6 +23,7 @@ import static java.util.Collections.singletonList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -36,6 +37,7 @@ import org.apache.ambari.logsearch.web.model.Role;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -49,6 +51,9 @@ public class UserDao {
 
   @Inject
   private AuthPropsConfig authPropsConfig;
+
+  @Inject
+  private RoleDao roleDao;
 
   private ArrayList<HashMap<String, String>> userList = null;
 
@@ -98,13 +103,7 @@ public class UserDao {
     user.setLastName(StringUtils.defaultString(userInfo.get(NAME), "Unknown"));
     user.setUsername(StringUtils.defaultString(userInfo.get(USER_NAME), ""));
     user.setPassword(StringUtils.defaultString(userInfo.get(ENC_PASSWORD), ""));
-
-    Role r = new Role();
-    r.setName("ROLE_USER");
-    Privilege priv = new Privilege();
-    priv.setName("READ_PRIVILEGE");
-    r.setPrivileges(singletonList(priv));
-    user.setAuthorities(singletonList(r));
+    user.setAuthorities(roleDao.getRolesForUser(user.getUsername()));
     
     return user;
   }
