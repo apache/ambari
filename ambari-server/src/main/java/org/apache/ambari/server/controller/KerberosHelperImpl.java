@@ -4003,7 +4003,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
         // *****************************************************************
         // Create stage to remove principals
-        // - this should be the last opterion that deals with principals and keytab files since the
+        // - this should be the last operation that deals with principals and keytab files since the
         //   relevant database records are expected to be removed.
         addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
           roleCommandOrder, requestStageContainer);
@@ -4344,7 +4344,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
         // *****************************************************************
         // Create stage to delete principals
-        // - this should be the last opterion that deals with principals and keytab files since the
+        // - this should be the last operation that deals with principals and keytab files since the
         //   relevant database records are expected to be removed.
         addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event,
           commandParameters, roleCommandOrder, requestStageContainer);

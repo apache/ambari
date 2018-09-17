@@ -26,6 +26,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -184,7 +185,7 @@ public class AgentCommandsPublisher {
   }
 
   /**
-   * KerberosCommandParameterProcessor is an abstract class providing common implementions for processing
+   * KerberosCommandParameterProcessor is an abstract class providing common implementations for processing
    * the Kerberos command parameters.
    *
    * The Kerberos command parameters are processed differently depending on the operation
@@ -325,7 +326,7 @@ public class AgentCommandsPublisher {
 
         if (keytabFilePath != null) {
           String sha1Keytab = DigestUtils.sha256Hex(keytabFilePath);
-          File keytabFile = new File(dataDir + File.separator + hostName + File.separator + sha1Keytab);
+          File keytabFile = Paths.get(dataDir, hostName, sha1Keytab).toFile();
 
           if (keytabFile.canRead()) {
             Map<String, String> keytabMap = new HashMap<>();
