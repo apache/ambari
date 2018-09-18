@@ -86,14 +86,13 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
         .setSigningKey(parseRSAPublicKey(getPublicKey()))
         .parseClaimsJws(getJWTFromCookie(request))
         .getBody();
-
       String userName  = claims.getSubject();
       LOG.info("USERNAME: " + userName);
       LOG.info("URL = " + request.getRequestURL());
       if (StringUtils.isNotEmpty(claims.getAudience()) && !getAudiences().contains(claims.getAudience())) {
         throw new IllegalArgumentException(String.format("Audience validation failed. (Not found: %s)", claims.getAudience()));
       }
-      Authentication authentication = new JWTAuthenticationToken(userName, getPublicKey(), getAuthorities());
+      Authentication authentication = new JWTAuthenticationToken(userName, getPublicKey(), getAuthorities(userName));
       authentication.setAuthenticated(true);
       SecurityContextHolder.getContext().setAuthentication(authentication);
       return authentication;
@@ -248,7 +247,7 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
 
   protected abstract List<String> getAudiences();
 
-  protected abstract Collection<? extends GrantedAuthority> getAuthorities();
+  protected abstract Collection<? extends GrantedAuthority> getAuthorities(String username);
 
   protected abstract List<String> getUserAgentList();
 

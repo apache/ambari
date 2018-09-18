@@ -19,8 +19,7 @@
 package org.apache.ambari.logsearch.web.filters;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
-import org.apache.ambari.logsearch.web.model.Privilege;
-import org.apache.ambari.logsearch.web.model.Role;
+import org.apache.ambari.logsearch.dao.RoleDao;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -73,7 +71,7 @@ public class LogsearchTrustedProxyFilter extends AbstractAuthenticationProcessin
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
     String doAsUserName = request.getParameter("doAs");
-    final List<GrantedAuthority> authorities = getDefaultGrantedAuthorities();
+    final List<GrantedAuthority> authorities = RoleDao.createDefaultAuthorities();
     final UserDetails principal = new User(doAsUserName, "", authorities);
     final Authentication finalAuthentication = new UsernamePasswordAuthenticationToken(principal, "", authorities);
     WebAuthenticationDetails webDetails = new WebAuthenticationDetails(request);
@@ -92,7 +90,7 @@ public class LogsearchTrustedProxyFilter extends AbstractAuthenticationProcessin
       String remoteAddr = req.getRemoteAddr();
       if (StringUtils.isNotEmpty(doAsUserName) && isTrustedProxySever(remoteAddr)
         && isTrustedHost(getXForwardHeader((HttpServletRequest) req))) {
-        List<GrantedAuthority> grantedAuths = getDefaultGrantedAuthorities();
+        List<GrantedAuthority> grantedAuths = RoleDao.createDefaultAuthorities();
         if (!(isTrustedProxyUser(doAsUserName) || isTrustedProxyUserGroup(grantedAuths))) {
           skip = false;
         }
@@ -173,19 +171,5 @@ public class LogsearchTrustedProxyFilter extends AbstractAuthenticationProcessin
       }
     }
     return "";
-  }
-
-  private List<GrantedAuthority> getDefaultGrantedAuthorities() {
-    // TODO: add proper roles if ACLs should be handled in the right way (cluster based roles)
-    List<GrantedAuthority> authorities = new ArrayList<>();
-    Role role = new Role();
-    role.setName("admin");
-    Privilege priv = new Privilege();
-    priv.setName("READ_PRIVILEGE");
-    List<Privilege> privileges = new ArrayList<>();
-    privileges.add(priv);
-    role.setPrivileges(privileges);
-    authorities.add(role);
-    return authorities;
   }
 }
