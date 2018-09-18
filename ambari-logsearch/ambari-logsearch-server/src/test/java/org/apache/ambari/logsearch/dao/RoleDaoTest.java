@@ -51,15 +51,13 @@ public class RoleDaoTest {
   @Test
   public void testGetRolesForUser() {
     // GIVEN
-    List<String> users = Arrays.asList("admin1", "admin2");
-    underTest.getSimpleRolesMap().put("user", users);
+    List<String> roles = Arrays.asList("admin", "user");
+    underTest.getSimpleRolesMap().put("user1", roles);
     // WHEN
-    List<GrantedAuthority> result1 = underTest.getRolesForUser("admin1");
-    List<GrantedAuthority> result2 = underTest.getRolesForUser("admin2");
-    List<GrantedAuthority> result3 = underTest.getRolesForUser("admin3");
+    List<GrantedAuthority> result1 = underTest.getRolesForUser("user1");
+    List<GrantedAuthority> result2 = underTest.getRolesForUser("user2");
     // THEN
-    Assert.assertEquals("ROLE_USER", result1.get(0).getAuthority());
-    Assert.assertEquals("ROLE_USER", result2.get(0).getAuthority());
-    Assert.assertTrue(result3.isEmpty());
+    Assert.assertEquals(result1.size(), 2);
+    Assert.assertEquals(result2.size(), 0);
   }
 }

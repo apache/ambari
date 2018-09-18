@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.dao;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.jsonwebtoken.lang.Collections;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.util.FileUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
@@ -65,8 +66,8 @@ public class RoleDao {
           LOG.error("Role json file not found on the classpath :" + userRoleFileName);
           System.exit(1);
         }
-        Map<String, Object> roleInfo = JSONUtil.readJsonFromFile(jsonFile);
-        Map<String, Object> roles = (Map<String, Object>) roleInfo.get("roles");
+        Map<String, Object> userRoleInfo = JSONUtil.readJsonFromFile(jsonFile);
+        Map<String, Object> roles = (Map<String, Object>) userRoleInfo.get("roles");
         for (Map.Entry<String, Object> roleEntry : roles.entrySet()) {
           simpleRolesMap.put(roleEntry.getKey(), (List<String>) roleEntry.getValue());
         }
@@ -79,18 +80,19 @@ public class RoleDao {
   }
 
   public List<GrantedAuthority> getRolesForUser(String user) {
-    List<GrantedAuthority> roles = new ArrayList<>();
+    List<GrantedAuthority> authorities = new ArrayList<>();
     if (authPropsConfig.isFileAuthorization()) {
-      for (Map.Entry<String, List<String>> roleEntry : simpleRolesMap.entrySet()) {
-        String role = "ROLE_" + roleEntry.getKey().toUpperCase();
-        for (String userForRole : roleEntry.getValue()) {
-          if (user.equals(userForRole)) {
-            LOG.debug("Found role '{}' for user '{}'", role, user);
-            roles.add(createRoleWithReadPrivilage(role));
+        List<String > roles = simpleRolesMap.get(user);
+        if (!Collections.isEmpty(roles)) {
+          for (String role : roles) {
+            String roleName = "ROLE_" + role;
+            LOG.debug("Found role '{}' for user '{}'", roleName, user);
+            authorities.add(createRoleWithReadPrivilage(roleName));
           }
+        } else {
+          LOG.warn("Not found roles for user '{}'", user);
         }
-      }
-      return roles;
+      return authorities;
     } else {
       return createDefaultAuthorities();
     }

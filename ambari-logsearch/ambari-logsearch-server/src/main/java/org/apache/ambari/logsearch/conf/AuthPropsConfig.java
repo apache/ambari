@@ -248,7 +248,7 @@ public class AuthPropsConfig {
   @Value("${logsearch.authr.role.file:roles.json}")
   @LogSearchPropertyDescription(
     name = "logsearch.authr.role.file",
-    description = "Simple file that contains.",
+    description = "Simple file that contains user/role mappings.",
     examples = {"logsearch-roles.json"},
     defaultValue = "roles.json",
     sources = {LOGSEARCH_PROPERTIES_FILE}

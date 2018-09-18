@@ -1,7 +1,5 @@
 {
   "roles": {
-    "user": [
-      "admin"
-    ]
+    "admin" : ["user", "admin"]
   }
 }
