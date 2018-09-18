@@ -52,6 +52,8 @@
   "filter.capture.min": "Min",
   "filter.capture.sec": "Sec",
   "filter.capture.triggeringRefresh": "Triggering auto-refresh in {{remainingSeconds}} sec",
+  "filter.youAreInSpanshotView": "You are in spanshot view",
+  "filter.closeSnapshotView": "Close snapshot view",
 
   "filters.clear": "Clear",
 

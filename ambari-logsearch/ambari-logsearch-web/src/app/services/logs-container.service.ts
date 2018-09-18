@@ -59,8 +59,7 @@ import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {RoutingUtilsService} from '@app/services/routing-utils.service';
-import {LogsFilteringUtilsService, timeRangeFilterOptions} from '@app/services/logs-filtering-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {LogLevelComponent} from '@app/components/log-level/log-level.component';
@@ -345,6 +344,8 @@ export class LogsContainerService {
   private startCaptureTime: number;
 
   private stopCaptureTime: number;
+
+  captureTimeRangeCache: ListItem;
 
   topUsersGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
 
@@ -757,11 +758,11 @@ export class LogsContainerService {
     this.stopCaptureTime = new Date().valueOf();
     this.captureSeconds = 0;
     this.stopTimer.next();
-    this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
     Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe((seconds: number): void => {
       this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
       if (!this.autoRefreshRemainingSeconds) {
         this.stopAutoRefreshCountdown.next();
+        this.captureTimeRangeCache = this.filtersForm.controls.timeRange.value;
         this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
       }
     });

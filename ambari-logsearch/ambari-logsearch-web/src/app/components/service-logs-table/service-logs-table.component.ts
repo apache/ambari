@@ -16,7 +16,22 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewChecked, ViewChild, ElementRef, Input, ChangeDetectorRef} from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewChecked,
+  ViewChild,
+  ElementRef,
+  Input,
+  ChangeDetectorRef,
+  SimpleChanges
+} from '@angular/core';
+
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
+import { Observable } from 'rxjs/Observable';
+import { auditTime } from 'rxjs/operator/auditTime';
 
 import {ListItem} from '@app/classes/list-item';
 import {LogsTableComponent} from '@app/classes/components/logs-table/logs-table-component';
@@ -35,21 +50,7 @@ export enum ListLayout {
   templateUrl: './service-logs-table.component.html',
   styleUrls: ['./service-logs-table.component.less']
 })
-export class ServiceLogsTableComponent extends LogsTableComponent implements AfterViewChecked {
-
-  constructor(
-    private logsContainer: LogsContainerService,
-    private utils: UtilsService,
-    private cdRef: ChangeDetectorRef,
-    private notificationService: NotificationService
-  ) {
-    super();
-  }
-
-  ngAfterViewChecked() {
-    this.checkListLayout();
-    this.cdRef.detectChanges();
-  }
+export class ServiceLogsTableComponent extends LogsTableComponent implements AfterViewChecked, OnInit, OnDestroy {
 
   /**
    * The element reference is used to check if the table is broken or not.
@@ -72,21 +73,21 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
    * @type {boolean}
    */
   @Input()
-  showLabels: boolean = false;
+  showLabels = false;
 
   /**
    * The minimum width for the log message column. It is used when we check if the layout is broken or not.
    * @type {number}
    */
   @Input()
-  logMessageColumnMinWidth: number = 175;
+  logMessageColumnMinWidth = 175;
 
   /**
    * We use this property in the broken table layout check process when the log message is displayed.
    * @type {string}
    */
   @Input()
-  logMessageColumnCssSelector: string = 'tbody tr td.log-message';
+  logMessageColumnCssSelector = 'tbody tr td.log-message';
 
   /**
    * Set the layout for the list.
@@ -99,9 +100,91 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
   @Input()
   layout: ListLayout = ListLayout.Table;
 
-  readonly dateFormat: string = 'dddd, MMMM Do';
+  readonly dateFormat = 'dddd, MMMM Do';
 
-  readonly timeFormat: string = 'h:mm:ss A';
+  readonly timeFormat = 'h:mm:ss A';
+
+  readonly customStyledColumns: string[] = ['level', 'type', 'logtime', 'log_message', 'path'];
+
+  private readonly messageFilterParameterName = 'log_message';
+
+  private readonly logsType = 'serviceLogs';
+
+  private selectedText = '';
+
+  /**
+   * This is a private flag to store the table layout check result. It is used to show user notifications about
+   * non-visible information.
+   * @type {boolean}
+   */
+  tooManyColumnsSelected = false;
+
+  get contextMenuItems(): ListItem[] {
+    return this.logsContainer.queryContextMenuItems;
+  }
+
+  get timeZone(): string {
+    return this.logsContainer.timeZone;
+  }
+
+  get filters(): any {
+    return this.logsContainer.filters;
+  }
+
+  get logsTypeMapObject(): object {
+    return this.logsContainer.logsTypeMap.serviceLogs;
+  }
+
+  get isContextMenuDisplayed(): boolean {
+    return Boolean(this.selectedText);
+  };
+
+  /**
+   * 'left' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuLeft = 0;
+
+  /**
+   * 'top' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuTop = 0;
+
+  tableRefresh$ = new Subject();
+
+  subscriptions: Subscription[] = [];
+
+  constructor(
+    private logsContainer: LogsContainerService,
+    private utils: UtilsService,
+    private cdRef: ChangeDetectorRef,
+    private notificationService: NotificationService
+  ) {
+    super();
+  }
+
+  ngOnInit() {
+    this.subscriptions.push(
+      Observable.fromEvent(window, 'resize').auditTime(300).subscribe(this.onWindowResize)
+    );
+  }
+
+  ngAfterViewChecked() {
+    this.checkListLayout();
+    this.cdRef.detectChanges();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.hasOwnProperty('columns')) {
+      this.displayedColumns = this.columns.filter((column: ListItem): boolean => column.isChecked);
+      this.tableRefresh$.next(Date.now());
+    }
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
 
   private copyLog = (log: ServiceLog): void => {
     if (document.queryCommandSupported('copy')) {
@@ -144,15 +227,19 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
         message: 'logs.copy.notSupported'
       });
     }
-  };
+  }
+
+  private onWindowResize = () => {
+    this.tableRefresh$.next(Date.now());
+  }
 
   private openLog = (log: ServiceLog): void => {
     this.logsContainer.openServiceLog(log);
-  };
+  }
 
   private openContext = (log: ServiceLog): void => {
     this.logsContainer.loadLogContext(log.id, log.host, log.type);
-  };
+  }
 
   readonly logActions = [
     {
@@ -171,53 +258,6 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
       onSelect: this.openContext
     }
   ];
-
-  readonly customStyledColumns: string[] = ['level', 'type', 'logtime', 'log_message', 'path'];
-
-  private readonly messageFilterParameterName: string = 'log_message';
-
-  private readonly logsType: string = 'serviceLogs';
-
-  private selectedText: string = '';
-
-  /**
-   * This is a private flag to store the table layout check result. It is used to show user notifications about
-   * non-visible information.
-   * @type {boolean}
-   */
-  private tooManyColumnsSelected: boolean = false;
-
-  get contextMenuItems(): ListItem[] {
-    return this.logsContainer.queryContextMenuItems;
-  }
-
-  get timeZone(): string {
-    return this.logsContainer.timeZone;
-  }
-
-  get filters(): any {
-    return this.logsContainer.filters;
-  }
-
-  get logsTypeMapObject(): object {
-    return this.logsContainer.logsTypeMap.serviceLogs;
-  }
-
-  get isContextMenuDisplayed(): boolean {
-    return Boolean(this.selectedText);
-  };
-
-  /**
-   * 'left' CSS property value for context menu dropdown
-   * @type {number}
-   */
-  contextMenuLeft: number = 0;
-
-  /**
-   * 'top' CSS property value for context menu dropdown
-   * @type {number}
-   */
-  contextMenuTop: number = 0;
 
   isDifferentDates(dateA, dateB): boolean {
     return this.utils.isDifferentDates(dateA, dateB, this.timeZone);
@@ -317,6 +357,16 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
 
   updateSelectedColumns(columns: string[]): void {
     this.logsContainer.updateSelectedColumns(columns, this.logsType);
+  }
+
+  /**
+   * The goal is to provide the single source for the parameters of 'xyz events found' message.
+   * @returns {Object}
+   */
+  get totalEventsFoundMessageParams(): {totalCount: number} {
+    return {
+      totalCount: this.logsContainer.totalCount
+    };
   }
 
 }
