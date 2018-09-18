@@ -32,27 +32,23 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-
 /**
  * Used to perform Kerberos Cleanup Operations as part of the Unkerberization process
  */
 public class CleanupServerAction extends KerberosServerAction {
-  @Inject
-  KerberosKeytabDAO kerberosKeytabDAO;
-
-  @Inject
-  KerberosPrincipalDAO kerberosPrincipalDAO;
 
   private final static Logger LOG = LoggerFactory.getLogger(CleanupServerAction.class);
+
+  @Override
+  protected boolean pruneServiceFilter() {
+    return false;
+  }
 
   /**
    * Processes an identity as necessary.
@@ -97,7 +93,6 @@ public class CleanupServerAction extends KerberosServerAction {
     }
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-
   }
 
   /**
@@ -118,8 +113,6 @@ public class CleanupServerAction extends KerberosServerAction {
 
     try {
       artifactProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
-      kerberosPrincipalDAO.remove(kerberosPrincipalDAO.findAll());
-      kerberosKeytabDAO.remove(kerberosKeytabDAO.findAll());
       LOG.info("Kerberos descriptor removed successfully.");
       actionLog.writeStdOut("Kerberos descriptor removed successfully.");
     } catch (NoSuchResourceException e) {
