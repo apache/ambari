@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.security.authorization.RoleAuthorization.CLUSTER_MANAGE_WIDGETS;
+
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,17 +43,13 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -157,7 +156,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
           String clusterName = properties.get(WIDGET_CLUSTER_NAME_PROPERTY_ID).toString();
           String scope = properties.get(WIDGET_SCOPE_PROPERTY_ID).toString();
 
-          if (!isScopeAllowedForUser(scope)) {
+          if (!isScopeAllowedForUser(scope, clusterName)) {
             throw new AccessDeniedException("Only cluster operator can create widgets with cluster scope");
           }
 
@@ -310,7 +309,8 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_SCOPE_PROPERTY_ID)))) {
             String scope = propertyMap.get(WIDGET_SCOPE_PROPERTY_ID).toString();
-            if (!isScopeAllowedForUser(scope)) {
+            String clusterName = propertyMap.get(WIDGET_CLUSTER_NAME_PROPERTY_ID).toString();
+            if (!isScopeAllowedForUser(scope, clusterName)) {
               throw new AmbariException("Only cluster operator can create widgets with cluster scope");
             }
             entity.setScope(scope);
@@ -383,28 +383,11 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
     return pkPropertyIds;
   }
 
-  private boolean isScopeAllowedForUser(String scope) {
-    if (scope.equals(WidgetEntity.USER_SCOPE)) {
+  private boolean isScopeAllowedForUser(String scope, String clusterName) throws AmbariException {
+    if (WidgetEntity.USER_SCOPE.equals(scope)) {
       return true;
     }
-
-    // Only cluster operators are allowed to create widgets with cluster scope
-    SecurityContext securityContext = SecurityContextHolder.getContext();
-    securityContext.getAuthentication().getAuthorities();
-    boolean hasPermissionForClusterScope = false;
-    for (GrantedAuthority grantedAuthority : securityContext.getAuthentication().getAuthorities()) {
-      if (((AmbariGrantedAuthority) grantedAuthority).getPrivilegeEntity().getPermission().getId()
-              == PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION ||
-              ((AmbariGrantedAuthority) grantedAuthority).getPrivilegeEntity().getPermission().getId()
-                      == PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION) {
-        hasPermissionForClusterScope = true;
-      }
-    }
-    if (hasPermissionForClusterScope) {
-      return true;
-    } else {
-      return false;
-    }
+    return AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), EnumSet.of(CLUSTER_MANAGE_WIDGETS));
   }
 
   private String getAuthorName(Map<String, Object> properties) {

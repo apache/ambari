@@ -27,7 +27,12 @@ function getView() {
   var controller = App.WizardStep6Controller.create();
   controller.set('wizardController', App.InstallerController.create());
   return App.WizardStep6View.create({
-    controller: controller
+    controller: controller,
+    $: function () {
+      return {
+        on: Em.K
+      };
+    }
   });
 }
 
@@ -138,20 +143,6 @@ describe('App.WizardStep6View', function() {
     });
   });
 
-  describe("#columnCount", function() {
-    it("hosts present", function() {
-      view.set('controller.hosts', [
-        Em.Object.create({checkboxes: [{}, {}, {}]})
-      ]);
-      view.propertyDidChange('columnCount');
-      expect(view.get('columnCount')).to.equal(4);
-    });
-    it("hosts absent", function() {
-      view.set('controller.hosts', []);
-      view.propertyDidChange('columnCount');
-      expect(view.get('columnCount')).to.equal(1);
-    });
-  });
 });
 
 describe('App.WizardStep6HostView', function() {

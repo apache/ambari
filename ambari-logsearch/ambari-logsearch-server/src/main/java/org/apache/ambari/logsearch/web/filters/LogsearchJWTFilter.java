@@ -20,6 +20,7 @@ package org.apache.ambari.logsearch.web.filters;
 
 import org.apache.ambari.logsearch.auth.filter.AbstractJWTFilter;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
+import org.apache.ambari.logsearch.dao.RoleDao;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -30,10 +31,12 @@ import java.util.List;
 public class LogsearchJWTFilter extends AbstractJWTFilter {
 
   private AuthPropsConfig authPropsConfig;
+  private RoleDao roleDao;
 
-  public LogsearchJWTFilter(RequestMatcher requestMatcher, AuthPropsConfig authPropsConfig) {
+  public LogsearchJWTFilter(RequestMatcher requestMatcher, AuthPropsConfig authPropsConfig, RoleDao roleDao) {
     super(new NegatedRequestMatcher(requestMatcher));
     this.authPropsConfig = authPropsConfig;
+    this.roleDao = roleDao;
   }
 
   @Override
@@ -72,9 +75,11 @@ public class LogsearchJWTFilter extends AbstractJWTFilter {
   }
 
   @Override
-  protected Collection<? extends GrantedAuthority> getAuthorities() {
-    return null; // TODO
+  protected Collection<? extends GrantedAuthority> getAuthorities(String username) {
+    if (authPropsConfig.isFileAuthorization()) {
+      return roleDao.getRolesForUser(username);
+    }
+    return RoleDao.createDefaultAuthorities();
   }
-
 
 }

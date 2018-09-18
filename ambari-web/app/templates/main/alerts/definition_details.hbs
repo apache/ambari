@@ -193,7 +193,7 @@
           {{#if controller.content.hasHelpUrl}}
             <div class="row">
               <div class="col-md-5 property-name">{{t alerts.table.header.helpUrl}}:</div>
-              <div class="col-md-7"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank">{{t common.link}}</a></label></div>
+              <div class="col-md-7"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank" rel="noopener noreferrer">{{t common.link}}</a></label></div>
             </div>
           {{/if}}
         </div>

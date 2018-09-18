@@ -756,7 +756,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       existedOS.isSelected = true;
       existedMap[existedOS.OperatingSystems.os_type] = existedOS;
     });
-    if (response.Versions['stack-errors'] && response.Versions['stack-errors'].length) {
+    if (response.Versions && response.Versions['stack-errors'] && response.Versions['stack-errors'].length) {
       this.showStackErrorAndSkipStepIfNeeded(response);
       return;
     }
