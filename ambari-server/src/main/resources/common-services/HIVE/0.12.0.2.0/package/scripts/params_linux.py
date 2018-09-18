@@ -358,7 +358,10 @@ hive_server_interactive_ha = True if len(hive_server_interactive_hosts) > 1 else
 # End, Common Hosts and Ports
 
 hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
-hive_interactive_transport_mode = config['configurations']['hive-interactive-site']['hive.server2.transport.mode']
+if 'hive.server2.transport.mode' in config['configurations']['hive-interactive-site']:
+  hive_interactive_transport_mode = config['configurations']['hive-interactive-site']['hive.server2.transport.mode']
+else:
+  hive_interactive_transport_mode = hive_transport_mode
 
 if hive_transport_mode.lower() == "http":
   hive_server_port = config['configurations']['hive-site']['hive.server2.thrift.http.port']
