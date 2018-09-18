@@ -14,11 +14,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<div [ngClass]="{
+<div #wrapper [ngClass]="{
   'log-message-container': true,
   'log-message-container-collapsible': addCaret,
   'log-message-container-open': isOpen
   }">
   <button *ngIf="addCaret" (click)="onCaretClick($event)"><i class="caret"></i></button>
-  <div #content class="log-message-content">{{isOpen ? message : (message | replace: multiLineTestRegexp : ' ')}}</div>
+  <div #content class="log-message-content">{{ message }}</div>
 </div>

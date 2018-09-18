@@ -18,6 +18,11 @@
 <div class="panel panel-default">
   <div [ngClass]="{'panel-body': true, 'layout-flex': layout==='FLEX', 'layout-table': layout==='TABLE'}">
     <div class="service-logs-table-controls">
+      <div class="total-event-info">
+        <ng-container *ngIf="!totalEventsFoundMessageParams.totalCount">{{'logs.noEventFound' | translate}}</ng-container>
+        <ng-container *ngIf="totalEventsFoundMessageParams.totalCount === 1">{{'logs.oneEventFound' | translate}}</ng-container>
+        <ng-container *ngIf="totalEventsFoundMessageParams.totalCount > 1">{{'logs.totalEventFound' | translate: totalEventsFoundMessageParams}}</ng-container>
+      </div>
       <div *ngIf="tooManyColumnsSelected" class="list-layout-warning">
         <i class="fa fa-warning"></i>
         {{'logs.brokenListLayoutMessage' | translate}}
@@ -103,9 +108,9 @@
               <td *ngIf="isColumnDisplayed('path')" [ngClass]="'log-path'">
                 {{log.path}}
               </td>
-              <td *ngIf="isColumnDisplayed('log_message')" [ngClass]="'log-message'" width="*"
+              <td *ngIf="isColumnDisplayed('log_message')" class="log-message" width="*"
                   (contextmenu)="openMessageContextMenu($event)">
-                <log-message [listenChangesOn]="displayedColumns" [message]="log.log_message"></log-message>
+                <log-message [refreshOn$]="tableRefresh$" [message]="log.log_message"></log-message>
               </td>
             </tr>
           </ng-container>
@@ -113,9 +118,9 @@
         <tfoot>
           <tr>
             <td attr.colspan="{{displayedColumns.length + 1}}">
-              <pagination class="col-md-12" *ngIf="logs && logs.length" [totalCount]="totalCount"
-                          [filtersForm]="filtersForm" [filterInstance]="filters.pageSize"
-                          [currentCount]="logs.length"></pagination>
+              <pagination *ngIf="logs && logs.length" [totalCount]="totalCount"
+                [filtersForm]="filtersForm" [filterInstance]="filters.pageSize"
+                [currentCount]="logs.length"></pagination>
             </td>
           </tr>
         </tfoot>
@@ -158,7 +163,7 @@
               </div>
             </div>
             <div *ngIf="isColumnDisplayed('log_message')" class="log-message" (contextmenu)="openMessageContextMenu($event)">
-              <log-message [listenChangesOn]="displayedColumns" [message]="log.log_message"></log-message>
+              <log-message [refreshOn$]="tableRefresh$" [message]="log.log_message"></log-message>
             </div>
           </div>
         </ng-container>

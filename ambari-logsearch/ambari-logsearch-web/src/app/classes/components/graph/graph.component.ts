@@ -63,6 +63,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnInit, OnDestr
   @Input()
   labels: HomogeneousObject<string> = {};
 
+  @Input()
+  chartLabel: string;
+
   /**
    * Indicates whether the graph represents dependency on time
    * @type {boolean}

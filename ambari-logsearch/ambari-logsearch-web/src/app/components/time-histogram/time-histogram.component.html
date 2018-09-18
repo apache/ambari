@@ -24,6 +24,9 @@
       <graph-legend [ngClass]="{'col-md-5 text-right': true, 'md-offset-7': !chartTimeGap}"
                     [items]="legendItems"></graph-legend>
     </div>
+    <div *ngIf="chartLabel" class="row chart-label">
+      <div class="col-md-2 col-md-offset-5">{{ chartLabel }}</div>
+    </div>
   </div>
 </header>
 <div #graphContainer></div>
