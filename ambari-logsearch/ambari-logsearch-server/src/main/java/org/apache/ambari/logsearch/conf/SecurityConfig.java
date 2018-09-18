@@ -31,6 +31,7 @@ import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.dao.RoleDao;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
@@ -42,6 +43,7 @@ import org.apache.ambari.logsearch.web.filters.LogsearchFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchTrustedProxyFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter;
 import org.apache.ambari.logsearch.web.security.LogsearchAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
@@ -98,20 +100,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Inject
   private LogSearchConfigApiConfig logSearchConfigApiConfig;
 
+  @Inject
+  private RoleDao roleDao;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-
     http
       .csrf().disable()
       .authorizeRequests()
-        .requestMatchers(requestMatcher()).permitAll()
-        .antMatchers("/**").authenticated()
+        .requestMatchers(requestMatcher())
+          .permitAll()
+        .antMatchers("/**")
+          .hasRole("USER")
       .and()
       .authenticationProvider(logsearchAuthenticationProvider())
       .httpBasic()
         .authenticationEntryPoint(logsearchAuthenticationEntryPoint())
       .and()
-      .addFilterBefore(logsearchKRBAuthenticationFilter(), BasicAuthenticationFilter.class)
+      .addFilterBefore(logsearchTrustedProxyFilter(), BasicAuthenticationFilter.class)
+      .addFilterAfter(logsearchKRBAuthenticationFilter(), LogsearchTrustedProxyFilter.class)
       .addFilterBefore(logsearchUsernamePasswordAuthenticationFilter(), LogsearchKRBAuthenticationFilter.class)
       .addFilterAfter(securityContextFormationFilter(), FilterSecurityInterceptor.class)
       .addFilterAfter(logsearchEventHistoryFilter(), LogsearchSecurityContextFormationFilter.class)
@@ -151,8 +158,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
+  public LogsearchTrustedProxyFilter logsearchTrustedProxyFilter() throws Exception {
+    LogsearchTrustedProxyFilter filter = new LogsearchTrustedProxyFilter(requestMatcher(), authPropsConfig);
+    filter.setAuthenticationManager(authenticationManagerBean());
+    return filter;
+  }
+
+  @Bean
   public LogsearchJWTFilter logsearchJwtFilter() throws Exception {
-    LogsearchJWTFilter filter = new LogsearchJWTFilter(requestMatcher(), authPropsConfig);
+    LogsearchJWTFilter filter = new LogsearchJWTFilter(requestMatcher(), authPropsConfig, roleDao);
     filter.setAuthenticationManager(authenticationManagerBean());
     filter.setAuthenticationSuccessHandler(new LogsearchAuthSuccessHandler());
     filter.setAuthenticationFailureHandler(new LogsearchAuthFailureHandler());

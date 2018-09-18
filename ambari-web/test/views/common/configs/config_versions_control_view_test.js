@@ -101,12 +101,12 @@ describe('App.ConfigVersionsControlView', function () {
       view.sendRevertCall.restore();
     });
     it('context passed', function () {
-      view.makeCurrent({contexts: [
-        Em.Object.create({
-          version: 1,
-          serviceName: 'S1'
-        })
-      ]});
+      view.set('displayedServiceVersion', Em.Object.create({
+        version: 1,
+        serviceName: 'S1'
+      }));
+
+      view.makeCurrent();
 
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       expect(view.sendRevertCall.calledWith(Em.Object.create({

@@ -101,7 +101,7 @@
                           <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
                           <ul class="dropdown-menu">
                             {{#each quickLinks}}
-                              <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+                              <li><a {{bindAttr href="url"}} target="_blank" rel="noopener noreferrer">{{label}}</a></li>
                             {{/each}}
                           </ul>
                         </li>
@@ -109,7 +109,7 @@
                     {{/each}}
                   {{else}}
                     {{#each view.quickLinks}}
-                      <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+                      <li><a {{bindAttr href="url"}} target="_blank" rel="noopener noreferrer">{{label}}</a></li>
                     {{/each}}
                   {{/if}}
                 {{else}}

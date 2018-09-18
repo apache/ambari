@@ -65,4 +65,14 @@ public interface ServiceLogData extends CommonLogData, ComponentTypeLogData, Hos
   String getGroup();
 
   void setGroup(String group);
+
+  @JsonProperty("logger_name")
+  String getLoggerName();
+
+  void setLoggerName(String loggerName);
+
+  @JsonProperty("method")
+  String getMethod();
+
+  void setMethod(String method);
 }

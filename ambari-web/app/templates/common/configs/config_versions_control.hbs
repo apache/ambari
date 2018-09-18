@@ -34,7 +34,7 @@
   {{else}}
     {{view App.ConfigVersionsDropdownView serviceVersionsBinding="view.serviceVersions"}}
     {{#unless view.displayedServiceVersion.isCurrent}}
-      <button class="btn btn-secondary make-current" {{action makeCurrent view.displayedServiceVersion target="view"}}>
+      <button class="btn btn-secondary make-current" {{action makeCurrent target="view"}}>
         {{t dashboard.configHistory.info-bar.revert.button}}
       </button>
     {{/unless}}

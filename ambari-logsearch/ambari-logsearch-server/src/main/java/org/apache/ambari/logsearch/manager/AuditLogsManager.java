@@ -178,7 +178,8 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
           String fieldLabel = fieldLabelMap.get(componentName) != null ? fieldLabelMap.get(componentName).get(field): null;
           String fallbackedFieldLabel = labelFallbackHandler.fallbackIfRequired(field, fieldLabel,
             true, true, true,
-            uiMappingConfig.getAuditFieldFallbackPrefixes());
+            uiMappingConfig.getAuditFieldFallbackPrefixes(),
+            uiMappingConfig.getAuditFieldFallbackSuffixes());
 
           Boolean excludeFromFilter = fieldFilterableExcludeMap.get(componentName) != null && fieldFilterableExcludeMap.get(componentName).contains(field);
           Boolean visible = fieldVisibleeMap.get(componentName) != null && fieldVisibleeMap.get(componentName).contains(field);
@@ -196,7 +197,7 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
         Boolean excludeFromFilter = commonFieldFilterableExcludeList.contains(field);
         String fallbackedFieldLabel = labelFallbackHandler.fallbackIfRequired(field, fieldLabel,
           true, true, true,
-          uiMappingConfig.getAuditFieldFallbackPrefixes());
+          uiMappingConfig.getAuditFieldFallbackPrefixes(), uiMappingConfig.getAuditFieldFallbackSuffixes());
         defaults.add(new FieldMetadata(field, fallbackedFieldLabel, !excludeFromFilter, visible));
       }
     }
