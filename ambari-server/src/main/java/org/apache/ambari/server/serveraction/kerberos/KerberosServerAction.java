@@ -94,8 +94,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   public static final String IDENTITY_FILTER = "identity_filter";
 
-  public static final String COMPONENT_FILTER = "component_filter";
-
   /**
    * A (command parameter) property name used to hold the relevant KDC type value.  See
    * {@link org.apache.ambari.server.serveraction.kerberos.KDCType} for valid values
@@ -186,10 +184,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   private KerberosHelper kerberosHelper;
 
   @Inject
-  HostDAO hostDAO;
+  private HostDAO hostDAO;
 
   @Inject
-  KerberosKeytabController kerberosKeytabController;
+  private KerberosKeytabController kerberosKeytabController;
 
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
@@ -451,7 +449,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       try {
-        final Map<String, Collection<String>> serviceComponentFilter = (Map<String, Collection<String>>) getServiceComponentFilter();
+        final Map<String, ? extends Collection<String>> serviceComponentFilter = (pruneServiceFilter())
+            ? kerberosKeytabController.adjustServiceComponentFilter(clusters.getCluster(getClusterName()), true, getServiceComponentFilter())
+            : getServiceComponentFilter();
         final Collection<KerberosIdentityDescriptor> serviceIdentities = serviceComponentFilter == null ? null : calculateServiceIdentities(getClusterName(), serviceComponentFilter);
         for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs(serviceComponentFilter, getHostFilter(), getIdentityFilter())) {
           for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
@@ -485,6 +485,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         : commandReport;
   }
 
+  protected boolean pruneServiceFilter() {
+    return true;
+  }
+
   private boolean isRelevantIdentity(Collection<KerberosIdentityDescriptor> serviceIdentities, ResolvedKerberosPrincipal principal) {
     if (serviceIdentities != null) {
       boolean hasValidIdentity = false;
@@ -500,7 +504,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     return true;
   }
 
-  private Collection<KerberosIdentityDescriptor> calculateServiceIdentities(String clusterName, Map<String, Collection<String>> serviceComponentFilter)
+  private Collection<KerberosIdentityDescriptor> calculateServiceIdentities(String clusterName, Map<String, ? extends Collection<String>> serviceComponentFilter)
       throws AmbariException {
     final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
     for (String service : serviceComponentFilter.keySet()) {
@@ -611,7 +615,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         ? null
         : ambariServerHostEntity.getHostId();
   }
-
 
   public static class KerberosCommandParameters {
     private Map<String, String> params;

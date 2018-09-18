@@ -32,7 +32,9 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -117,6 +119,8 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -1496,7 +1500,7 @@ public class TestHeartbeatHandler {
     Method injectKeytabMethod = agentCommandsPublisher.getClass().getDeclaredMethod("injectKeytab",
         ExecutionCommand.class, String.class, String.class);
     injectKeytabMethod.setAccessible(true);
-    commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData(agentCommandsPublisher).getAbsolutePath());
+    commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData(agentCommandsPublisher, false).getAbsolutePath());
     injectKeytabMethod.invoke(agentCommandsPublisher, executionCommand, "SET_KEYTAB", targetHost);
 
     return executionCommand.getKerberosCommandParams();
@@ -1529,17 +1533,40 @@ public class TestHeartbeatHandler {
     Method injectKeytabMethod = agentCommandsPublisher.getClass().getDeclaredMethod("injectKeytab",
         ExecutionCommand.class, String.class, String.class);
     injectKeytabMethod.setAccessible(true);
-    commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData(agentCommandsPublisher).getAbsolutePath());
+    commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData(agentCommandsPublisher, true).getAbsolutePath());
     injectKeytabMethod.invoke(agentCommandsPublisher, executionCommand, "REMOVE_KEYTAB", targetHost);
 
     return executionCommand.getKerberosCommandParams();
   }
 
 
-  private File createTestKeytabData(AgentCommandsPublisher agentCommandsPublisher) throws Exception {
+  private File createTestKeytabData(AgentCommandsPublisher agentCommandsPublisher, boolean removeKeytabs) throws Exception {
     KerberosKeytabController kerberosKeytabControllerMock = createMock(KerberosKeytabController.class);
-    Map<String, Collection<String>> filter = new HashMap<>();
-    filter.put("HDFS", Collections.singletonList("*"));
+    Map<String, Collection<String>> filter;
+
+    if(removeKeytabs) {
+      filter = null;
+
+      Multimap<String, String> serviceMapping = ArrayListMultimap.create();
+      serviceMapping.put("HDFS", "DATANODE");
+
+      ResolvedKerberosPrincipal resolvedKerberosPrincipal = createMock(ResolvedKerberosPrincipal.class);
+      expect(resolvedKerberosPrincipal.getHostName()).andReturn("c6403.ambari.apache.org");
+      expect(resolvedKerberosPrincipal.getPrincipal()).andReturn("dn/_HOST@_REALM");
+      expect(resolvedKerberosPrincipal.getServiceMapping()).andReturn(serviceMapping);
+      replay(resolvedKerberosPrincipal);
+
+      ResolvedKerberosKeytab resolvedKerberosKeytab = createMock(ResolvedKerberosKeytab.class);
+      expect(resolvedKerberosKeytab.getPrincipals()).andReturn(Collections.singleton(resolvedKerberosPrincipal));
+      replay(resolvedKerberosKeytab);
+
+      expect(kerberosKeytabControllerMock.getKeytabByFile("/etc/security/keytabs/dn.service.keytab")).andReturn(resolvedKerberosKeytab).once();
+    }
+    else {
+      filter = Collections.singletonMap("HDFS", Collections.singletonList("*"));
+    }
+
+    expect(kerberosKeytabControllerMock.adjustServiceComponentFilter(anyObject(), eq(false), anyObject())).andReturn(filter).once();
     expect(kerberosKeytabControllerMock.getFilteredKeytabs(filter,null,null)).andReturn(
       Sets.newHashSet(
         new ResolvedKerberosKeytab(
