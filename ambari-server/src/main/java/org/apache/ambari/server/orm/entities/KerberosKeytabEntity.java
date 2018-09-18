@@ -62,7 +62,7 @@ public class KerberosKeytabEntity {
   @Column(name = "write_ambari_jaas")
   private Integer writeAmbariJaasFile = 0;
 
-  @OneToMany(mappedBy = "kerberosKeytabEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "kerberosKeytabEntity", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
   private Collection<KerberosKeytabPrincipalEntity> kerberosKeytabPrincipalEntities = new ArrayList<>();
 
   public KerberosKeytabEntity() {

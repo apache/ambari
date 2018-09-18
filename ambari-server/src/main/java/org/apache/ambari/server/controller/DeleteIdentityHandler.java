@@ -18,12 +18,16 @@
 package org.apache.ambari.server.controller;
 
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.BASE_LOG_DIR;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
 
 import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +56,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -60,6 +65,8 @@ import com.google.gson.reflect.TypeToken;
  * I delete kerberos identities (principals and keytabs) of a given component.
  */
 class DeleteIdentityHandler {
+  public static final String COMPONENT_FILTER = "component_filter";
+
   private final AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
   private final Integer taskTimeout;
   private final StageFactory stageFactory;
@@ -83,8 +90,8 @@ class DeleteIdentityHandler {
     String hostParamsJson = StageUtils.getGson().toJson(customCommandExecutionHelper.createDefaultHostParams(cluster, cluster.getDesiredStackVersion()));
     if (manageIdentities) {
       addPrepareDeleteIdentity(cluster, hostParamsJson, event, commandParameters, stageContainer);
-      addDestroyPrincipals(cluster, hostParamsJson, event, commandParameters, stageContainer);
       addDeleteKeytab(cluster, commandParameters.getAffectedHostNames(), hostParamsJson, commandParameters, stageContainer);
+      addDestroyPrincipals(cluster, hostParamsJson, event, commandParameters, stageContainer);
     }
     addFinalize(cluster, hostParamsJson, event, stageContainer, commandParameters);
   }
@@ -134,27 +141,36 @@ class DeleteIdentityHandler {
                                String hostParamsJson,
                                CommandParams commandParameters,
                                OrderedRequestStageContainer stageContainer)
-    throws AmbariException
-  {
-    Stage stage = createNewStage(stageContainer.getLastStageId(),
-      cluster,
-      stageContainer.getId(),
-      "Delete Keytabs",
-      commandParameters.asJson(),
-      hostParamsJson);
+      throws AmbariException {
 
-    Map<String, String> requestParams = new HashMap<>();
-    List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
-    RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", new ArrayList<>(hostFilter));
-    requestResourceFilters.add(reqResFilter);
+    // Filter out any hosts that have been removed
+    Set<String> hostNames = (CollectionUtils.isEmpty(hostFilter))
+        ? null
+        : hostFilter.stream()
+        .filter(hostname -> ambariManagementController.getClusters().hostExists(hostname))
+        .collect(toSet());
 
-    ActionExecutionContext actionExecContext = new ActionExecutionContext(
-      cluster.getClusterName(),
-      "REMOVE_KEYTAB",
-      requestResourceFilters,
-      requestParams);
-    customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
-    stageContainer.addStage(stage);
+    if(CollectionUtils.isNotEmpty(hostNames)) {
+      Stage stage = createNewStage(stageContainer.getLastStageId(),
+          cluster,
+          stageContainer.getId(),
+          "Delete Keytabs",
+          commandParameters.asJson(),
+          hostParamsJson);
+
+      Map<String, String> requestParams = new HashMap<>();
+      List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
+      RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", new ArrayList<>(hostNames));
+      requestResourceFilters.add(reqResFilter);
+
+      ActionExecutionContext actionExecContext = new ActionExecutionContext(
+          cluster.getClusterName(),
+          REMOVE_KEYTAB,
+          requestResourceFilters,
+          requestParams);
+      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
+      stageContainer.addStage(stage);
+    }
   }
 
   private void addFinalize(Cluster cluster,
@@ -200,7 +216,9 @@ class DeleteIdentityHandler {
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, defaultRealm);
       commandParameters.put(KerberosServerAction.KDC_TYPE, kdcType.name());
       commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identities));
-      commandParameters.put(KerberosServerAction.COMPONENT_FILTER, StageUtils.getGson().toJson(components));
+      commandParameters.put(COMPONENT_FILTER, StageUtils.getGson().toJson(components));
+      commandParameters.put(KerberosServerAction.SERVICE_COMPONENT_FILTER, StageUtils.getGson().toJson(toServiceComponentFilter(components)));
+      commandParameters.put(KerberosServerAction.HOST_FILTER, StageUtils.getGson().toJson(toHostFilter(components)));
       commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
       return commandParameters;
     }
@@ -212,9 +230,37 @@ class DeleteIdentityHandler {
     public String asJson() {
       return StageUtils.getGson().toJson(asMap());
     }
+
+    /**
+     * Convert a collection of {@link Component}s to a service/component filter.
+     *
+     * @param components the collection of relevant {@link Component}s
+     * @return a map of service names to component names to include in an operation
+     */
+    private Map<String, ? extends Collection<String>> toServiceComponentFilter(List<Component> components) {
+      if (components == null) {
+        return null;
+      }
+
+      return components.stream().collect(groupingBy(Component::getServiceName, mapping(Component::getServiceComponentName, toSet())));
+    }
+
+    /**
+     * Convert a collection of {@link Component}s to a host filter.
+     *
+     * @param components the collection of relevant {@link Component}s
+     * @return a set of hostnames of hosts to include in an operation
+     */
+    private Set<String> toHostFilter(List<Component> components) {
+      if (components == null) {
+        return null;
+      }
+
+      return components.stream().map(Component::getHostName).collect(toSet());
+    }
   }
 
-  private static class PrepareDeleteIdentityServerAction extends AbstractPrepareKerberosServerAction {
+  public static class PrepareDeleteIdentityServerAction extends AbstractPrepareKerberosServerAction {
     @Override
     public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
       KerberosDescriptor kerberosDescriptor = getKerberosDescriptor();
@@ -232,12 +278,12 @@ class DeleteIdentityHandler {
     }
 
     private Set<String> serviceNames() {
-      return componentFilter().stream().map(component -> component.getServiceName()).collect(toSet());
+      return componentFilter().stream().map(Component::getServiceName).collect(toSet());
     }
 
     private List<Component> componentFilter() {
       Type jsonType = new TypeToken<List<Component>>() {}.getType();
-      return StageUtils.getGson().fromJson(getCommandParameterValue(KerberosServerAction.COMPONENT_FILTER), jsonType);
+      return StageUtils.getGson().fromJson(getCommandParameterValue(COMPONENT_FILTER), jsonType);
     }
 
     /**
@@ -281,6 +327,12 @@ class DeleteIdentityHandler {
     private KerberosDescriptor getKerberosDescriptor() throws AmbariException {
       return getKerberosHelper().getKerberosDescriptor(getCluster(), false);
     }
+
+    @Override
+    protected boolean pruneServiceFilter() {
+      // Do not prune off services that have been previously removed.
+      return false;
+    }
   }
 
   private Stage createNewStage(long id, Cluster cluster, long requestId, String requestContext, String commandParams, String hostParams) {
@@ -318,6 +370,12 @@ class DeleteIdentityHandler {
     public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
       deleteDataDirectory(getCommandParameterValue(DATA_DIRECTORY));
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+    }
+
+    @Override
+    protected boolean pruneServiceFilter() {
+      // Do not prune off services that have been previously removed.
+      return false;
     }
 
     @Override
