@@ -171,7 +171,8 @@ class ImmutableDictionary(dict):
     """
     Recursively turn dict to ImmutableDictionary
     """
-    for k, v in dictionary.iteritems():
+    if not isinstance(dictionary, ImmutableDictionary):
+      for k, v in dictionary.iteritems():
         dictionary[k] = Utils.make_immutable(v)
 
     super(ImmutableDictionary, self).__init__(dictionary)
@@ -220,6 +221,17 @@ def lazy_property(undecorated):
       return v
 
   return decorated
+
+def synchronized(lock):
+    def wrap(f):
+        def newFunction(*args, **kw):
+            lock.acquire()
+            try:
+                return f(*args, **kw)
+            finally:
+                lock.release()
+        return newFunction
+    return wrap
 
 def execute_with_retries(tries, try_sleep, retry_exception_class, func, *args, **kwargs):
   for i in range(tries):
