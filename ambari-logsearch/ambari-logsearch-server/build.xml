@@ -48,7 +48,7 @@
       <fileset file="target/classes/logsearch.properties"/>
       <fileset file="target/classes/info.properties"/>
       <fileset file="target/classes/user_pass.json"/>
-      <fileset file="target/classes/HadoopServiceConfig.json"/>
+      <fileset file="target/classes/roles.json"/>
     </copy>
     <copy todir="target/package/conf/solr_configsets" includeEmptyDirs="yes">
       <fileset dir="src/main/configsets"/>

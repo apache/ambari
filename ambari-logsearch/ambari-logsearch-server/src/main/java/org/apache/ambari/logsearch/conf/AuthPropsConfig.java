@@ -235,6 +235,26 @@ public class AuthPropsConfig {
   )
   private List<String> proxyIp;
 
+  @Value("${logsearch.authr.file.enable:false}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.authr.file",
+    description = "A boolean property to enable/disable file based authorization",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private boolean fileAuthorization;
+
+  @Value("${logsearch.authr.role.file:roles.json}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.authr.role.file",
+    description = "Simple file that contains user/role mappings.",
+    examples = {"logsearch-roles.json"},
+    defaultValue = "roles.json",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private String roleFile;
+
   public boolean isAuthFileEnabled() {
     return authFileEnabled;
   }
@@ -401,5 +421,21 @@ public class AuthPropsConfig {
 
   public void setProxyIp(List<String> proxyIp) {
     this.proxyIp = proxyIp;
+  }
+
+  public boolean isFileAuthorization() {
+    return fileAuthorization;
+  }
+
+  public void setFileAuthorization(boolean fileAuthorization) {
+    this.fileAuthorization = fileAuthorization;
+  }
+
+  public String getRoleFile() {
+    return roleFile;
+  }
+
+  public void setRoleFile(String roleFile) {
+    this.roleFile = roleFile;
   }
 }
