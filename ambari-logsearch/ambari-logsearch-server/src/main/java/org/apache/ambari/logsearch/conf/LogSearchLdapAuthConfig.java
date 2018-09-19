@@ -158,6 +158,16 @@ public class LogSearchLdapAuthConfig {
   )
   private Map<String, String> ldapGroupRoleMap;
 
+  @Value("${logsearch.auth.ldap.referral.method:ignore}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.ldap.referral.method",
+    description = "Set the method to handle referrals for LDAP",
+    examples = {"follow"},
+    defaultValue = "ignore",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private String referralMethod;
+
   public String getLdapUrl() {
     return ldapUrl;
   }
@@ -260,5 +270,13 @@ public class LogSearchLdapAuthConfig {
 
   public void setLdapGroupRoleMap(Map<String, String> ldapGroupRoleMap) {
     this.ldapGroupRoleMap = ldapGroupRoleMap;
+  }
+
+  public String getReferralMethod() {
+    return referralMethod;
+  }
+
+  public void setReferralMethod(String referralMethod) {
+    this.referralMethod = referralMethod;
   }
 }

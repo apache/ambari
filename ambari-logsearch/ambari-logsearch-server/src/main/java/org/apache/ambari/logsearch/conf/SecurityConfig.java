@@ -158,6 +158,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       if (StringUtils.isNotBlank(authPropsConfig.getLdapAuthConfig().getLdapManagerPassword())) {
         ldapContextSource.setPassword(authPropsConfig.getLdapAuthConfig().getLdapManagerPassword());
       }
+      ldapContextSource.setReferral(authPropsConfig.getLdapAuthConfig().getReferralMethod());
       ldapContextSource.setAnonymousReadOnly(true);
       ldapContextSource.afterPropertiesSet();
       return ldapContextSource;
