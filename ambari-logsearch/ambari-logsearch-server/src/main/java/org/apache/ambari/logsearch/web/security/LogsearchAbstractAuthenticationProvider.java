@@ -29,7 +29,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 abstract class LogsearchAbstractAuthenticationProvider implements AuthenticationProvider {
 
   protected enum AuthMethod {
-    FILE, EXTERNAL_AUTH, SIMPLE
+    FILE, EXTERNAL_AUTH, SIMPLE, LDAP
   };
 
   @Override
