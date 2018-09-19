@@ -15,162 +15,98 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div class="tight-form">
-    <ul class="tight-form-list pull-right">
-        <li class="tight-form-item small" ng-show="target.datasource">
-            <em>{{target.datasource}}</em>
-        </li>
-        <li class="tight-form-item">
-            <div class="dropdown">
-                <a class="pointer dropdown-toggle" data-toggle="dropdown" tabindex="1">
-                    <i class="fa fa-bars"></i>
-                </a>
-                <ul class="dropdown-menu pull-right" role="menu">
-                    <li role="menuitem"><a tabindex="1" ng-click="toggleQueryMode()">Switch editor mode</a></li>
-                    <li role="menuitem"><a tabindex="1" ng-click="duplicateDataQuery(target)">Duplicate</a></li>
-                    <li role="menuitem"><a tabindex="1" ng-click="moveDataQuery($index, $index-1)">Move up</a></li>
-                    <li role="menuitem"><a tabindex="1" ng-click="moveDataQuery($index, $index+1)">Move down</a></li>
-                </ul>
-            </div>
-        </li>
-        <li class="tight-form-item last">
-            <a class="pointer" tabindex="1" ng-click="removeDataQuery(target)">
-                <i class="fa fa-remove"></i>
-            </a>
-        </li>
-    </ul>
+<query-editor-row query-ctrl="ctrl" can-collapse="true">
+	<div class="gf-form-inline">
+		<div class="gf-form max-width-25">
+    		<label class="gf-form-label query-keyword width-8">
+        		Component
+    		</label>
+        	<input type="text" class="gf-form-input" ng-model="ctrl.target.app"
+               spellcheck='false' bs-typeahead="ctrl.suggestApps" placeholder="Component Name" data-min-length=0 data-items=100
+               ng-blur="ctrl.targetBlur()">
+        	</input>
+    </div>
 
-    <ul class="tight-form-list">
-        <li class="tight-form-item" style="min-width: 15px; text-align: center">
-            {{target.refId}}
-        </li>
-        <li>
-            <a  class="tight-form-item"
-                ng-click="target.hide = !target.hide; get_data();"
-                role="menuitem">
-                <i class="fa fa-eye"></i>
-            </a>
-        </li>
-    </ul>
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+        	Metric
+    	</label>
+        <input type="text" class="input-large gf-form-input" ng-model="ctrl.target.metric"
+               spellcheck='false' bs-typeahead="ctrl.suggestMetrics" placeholder="metric name" data-min-length=0 data-items=100
+               ng-blur="ctrl.targetBlur()">
+        </input>
+        <a bs-tooltip="ctrl.target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.metric">
+            <i class="fa fa-warning"></i>
+        </a>
+    </div>
 
-    <ul class="tight-form-list" role="menu">
 
-        <li class="tight-form-item" style="width: 86px">
-        Component
-    </li>
-        <li>
-            <input type="text" class="input-large tight-form-input" ng-model="target.app"
-                   spellcheck='false' bs-typeahead="suggestApps" placeholder="Component Name" data-min-length=0 data-items=100
-                   ng-blur="targetBlur()">
-            </input>
-            <a bs-tooltip="target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="target.errors.metric">
-                <i class="fa fa-warning"></i>
-            </a>
-        </li>
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+        Hosts
+    	</label>
+    
+        <input type="text" class="input-large gf-form-input" ng-model="ctrl.target.hosts"
+               spellcheck='false' bs-typeahead="ctrl.suggestHosts" placeholder="host name" data-min-length=0 data-items=100
+               ng-blur="ctrl.targetBlur()">
+        </input>
+        <a bs-tooltip="ctrl.target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.metric">
+            <i class="fa fa-warning"></i>
+        </a>
+    </div>
 
-        <li class="tight-form-item" style="width: 86px">
-            Metric
-        </li>
-        <li>
-            <input type="text" class="input-large tight-form-input" ng-model="target.metric"
-                   spellcheck='false' bs-typeahead="suggestMetrics" placeholder="metric name" data-min-length=0 data-items=100
-                   ng-blur="targetBlur()">
-            </input>
-            <a bs-tooltip="target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="target.errors.metric">
-                <i class="fa fa-warning"></i>
-            </a>
-        </li>
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+        Aggregator
+    	</label>
+        <select ng-model="ctrl.target.aggregator" class="gf-form-input input-small"
+                ng-options="agg for agg in ctrl.aggregators"
+                ng-change="ctrl.targetBlur()">
+        </select>
+        <a bs-tooltip="ctrl.target.errors.aggregator" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.aggregator">
+            <i class="fa fa-warning"></i>
+        </a>
+    </div>
 
-        <li class="tight-form-item" style="width: 86px" ng-hide="dashboard.templating.list.length > 0">
-            Cluster
-        </li>
-        <li ng-hide="dashboard.templating.list.length > 0">
-            <input type="text" class="input-large tight-form-input" ng-model="target.cluster"
-                   spellcheck='false' bs-typeahead="suggestClusters" placeholder="cluster name" data-min-length=0 data-items=100
-                   ng-blur="targetBlur()">
-            </input>
-            <a bs-tooltip="target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="target.errors.metric">
-                <i class="fa fa-warning"></i>
-            </a>
-        </li>
+	</div>
+	<div class="gf-form-inline">
 
-        <li class="tight-form-item" style="width: 86px" ng-hide="dashboard.templating.list.length > 0">
-            Hosts
-        </li>
-        <li ng-hide="dashboard.templating.list.length > 0">
-            <input type="text" class="input-large tight-form-input" ng-model="target.hosts"
-                   spellcheck='false' bs-typeahead="suggestHosts" placeholder="host name" data-min-length=0 data-items=100
-                   ng-blur="targetBlur()">
-            </input>
-            <a bs-tooltip="target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="target.errors.metric">
-                <i class="fa fa-warning"></i>
-            </a>
-        </li>
-
-        <li class="tight-form-item">
-            Aggregator
-        </li>
-        <li>
-            <select ng-model="target.aggregator" class="tight-form-input input-small"
-                    ng-options="agg for agg in aggregators"
-                    ng-change="targetBlur()">
-            </select>
-            <a bs-tooltip="target.errors.aggregator" style="color: rgb(229, 189, 28)" ng-show="target.errors.aggregator">
-                <i class="fa fa-warning"></i>
-            </a>
-        </li>
-
-    </ul>
-
-    <div class="clearfix"></div>
-</div>
-
-<div class="tight-form">
-    <ul class="tight-form-list" role="menu">
-        <li class="tight-form-item tight-form-align" style="width: 86px">
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
             Alias
-        </li>
-        <li>
-            <input type="text" class="tight-form-input input-large"
-                   ng-model="target.alias"
+        </label>
+            <input type="text" class="gf-form-input input-large"
+                   ng-model="ctrl.target.alias"
                    spellcheck='false'
                    placeholder="series alias"
                    data-min-length=0 data-items=100
-                   ng-blur="targetBlur()"></input>
-            <a bs-tooltip="target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="target.errors.metric">
+                   ng-blur="ctrl.targetBlur()"></input>
+            <a bs-tooltip="ctrl.target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.metric">
                 <i class="fa fa-warning"></i>
             </a>
-        </li>
-        <li class="tight-form-item tight-form-align">
-           Transform
-        </li>
-        <li>
-            <select ng-model="target.transform" class="tight-form-input input-small"
-                    ng-options="transform for transform in transforms"
-                    ng-init="transform()"
-                    ng-change="targetBlur()"></select>
-        </li>
+    </div>
+    
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+            Transform
+        </label>
+            <select ng-model="ctrl.target.transform" class="gf-form-input input-small"
+                    ng-options="transform for transform in ctrl.transforms"
+                    ng-init="ctrl.transform()"
+                    ng-change="ctrl.targetBlur()"></select>
+    </div>
 
-        <li class="tight-form-item tight-form-align">
+
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
             Precision
-        </li>
-        <li>
-            <select ng-model="target.precision" class="tight-form-input input-small"
-                    ng-options="precision for precision in precisions"
-                    ng-init="precisionInit()"
-                    ng-change="targetBlur()">
+        </label>
+            <select ng-model="ctrl.target.precision" class="gf-form-input input-small"
+                    ng-options="precision for precision in ctrl.precisions"
+                    ng-init="ctrl.precisionInit()"
+                    ng-change="ctrl.targetBlur()">
             </select>
-        </li>
-
-        <li class="tight-form-item">
-            Series Aggregator
-        </li>
-        <li>
-            <select ng-model="target.seriesAggregator" class="tight-form-input input-small"
-                    ng-options="seriesAggregator for seriesAggregator in seriesAggregators"
-                    ng-init="seriesAggregator()"
-                    ng-change="targetBlur()">
-            </select>
-        </li>
-    <div class="clearfix"></div>
+    </div>
+        <div class="clearfix"></div>
 </div>
+</query-editor-row>
