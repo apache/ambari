@@ -908,7 +908,7 @@ def read_passwd_for_alias(alias, masterKey="", options=None):
     with open(tempFilePath, 'w+'):
       os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
 
-    if options is not None and options.master_key is not None and options.master_key:
+    if options is not None and hasattr(options, 'master_key') and options.master_key is not None and options.master_key:
       masterKey = options.master_key
     if masterKey is None or masterKey == "":
       masterKey = "None"
@@ -1017,17 +1017,8 @@ def get_web_server_startup_timeout(properties):
 def get_original_master_key(properties, options = None):
   input = True
   masterKey = None
+  env_master_key = os.environ.get(SECURITY_KEY_ENV_VAR_NAME)
   while(input):
-    try:
-      if options is not None and options.master_key is not None and options.master_key:
-        masterKey = options.master_key
-      if masterKey is None:
-        masterKey = get_validated_string_input('Enter current Master Key: ',
-                                               "", ".*", "", True, False)
-    except KeyboardInterrupt:
-      print_warning_msg('Exiting...')
-      sys.exit(1)
-
     # Find an alias that exists
     alias = None
     property = properties.get_property(JDBC_PASSWORD_PROPERTY)
@@ -1045,11 +1036,30 @@ def get_original_master_key(properties, options = None):
         alias = SSL_TRUSTSTORE_PASSWORD_ALIAS
 
     # Decrypt alias with master to validate it, if no master return
-    if alias and masterKey:
-      password = read_passwd_for_alias(alias, masterKey, options)
-      if not password:
-        print_error_msg ("ERROR: Master key does not match.")
-        continue
+    password = None
+    if alias and env_master_key and env_master_key is not "" and env_master_key != "None":
+      password = read_passwd_for_alias(alias, env_master_key, options)
+    if not password:
+      try:
+        if options is not None and hasattr(options, 'master_key') and options.master_key is not None and options.master_key:
+          masterKey = options.master_key
+        if masterKey is None or masterKey == "":
+          masterKey = get_validated_string_input('Enter current Master Key: ',
+                                                 "", ".*", "", True, False)
+          if options is not None:
+            options.master_key = masterKey
+      except KeyboardInterrupt:
+        print_warning_msg('Exiting...')
+        sys.exit(1)
+      if alias and masterKey:
+        password = read_passwd_for_alias(alias, masterKey, options)
+        if not password:
+          masterKey = None
+          if options is not None:
+            options.master_key = None
+          print_error_msg ("ERROR: Master key does not match")
+
+          continue
 
     input = False
 
