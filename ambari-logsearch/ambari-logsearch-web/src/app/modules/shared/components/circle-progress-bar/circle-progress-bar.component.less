@@ -14,31 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-@import '../../modules/shared/mixins';
-
-.panel-collapsible {
+ @import '../../variables';
+:host {
+  display: inline-block;
   position: relative;
-  .panel-heading {
-    .clickable-item;
-    background-color: @panel-heading;
-    border: 0 none;
-    color: @base-font-color;
+  label {
+    align-items: center;
+    align-content: center;
+    background-color: transparent;
     display: flex;
-    flex-direction: row;
-    font-size: 1.25rem;
-    a, a:hover, a:visited {
-      color: @base-font-color;
-      text-decoration: none;
-    }
+    height: 100%;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
   }
-  .panel-body {
-    padding: 5px;
-  }
-  &.panel-collapsed {
-    .panel-body {
-      height: 0;
-      overflow: hidden;
+  svg {
+    circle {
+      fill: transparent;
+      stroke: @blue;
+      transition: stroke-dashoffset 0.35s;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      &.full-circle {
+        stroke: @grey;
+      }
     }
   }
 }

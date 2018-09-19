@@ -58,7 +58,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     });
   });
 
-  private logsType: LogsType;
+  logsType: LogsType;
 
   serviceLogsHistogramData: HomogeneousObject<HomogeneousObject<number>>;
 
@@ -87,7 +87,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private paramsSyncInProgress: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-  private isServiceLogsFileView$: Observable<boolean> = this.appState.getParameter('isServiceLogsFileView');
+  isServiceLogsFileView$: Observable<boolean> = this.appState.getParameter('isServiceLogsFileView');
 
   constructor(
     private appState: AppStateService,
@@ -175,6 +175,12 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
 
   get autoRefreshRemainingSeconds(): number {
     return this.logsContainerService.autoRefreshRemainingSeconds;
+  }
+  get autoRefreshInterval(): number {
+    return this.logsContainerService.autoRefreshInterval;
+  }
+  get captureTimeRangeCache(): ListItem {
+    return this.logsContainerService.captureTimeRangeCache;
   }
 
   get autoRefreshMessageParams(): object {
@@ -361,4 +367,18 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
       this.router.navigate(['/logs', ...this.logsFilteringUtilsService.getNavigationForTab(newActiveTab)]);
     }
   }
+  //
+  // CAPTURE FEATURES
+  //
+  cancelCapture(): void {
+    this.logsContainerService.cancelCapture();
+  }
+
+  clearCaptureTimeRangeCache(): void {
+    if (this.captureTimeRangeCache) {
+      this.filtersForm.controls.timeRange.setValue(this.captureTimeRangeCache);
+      this.logsContainerService.captureTimeRangeCache = null;
+    }
+  }
+
 }

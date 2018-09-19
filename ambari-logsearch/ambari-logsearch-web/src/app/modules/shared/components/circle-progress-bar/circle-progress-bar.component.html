@@ -14,11 +14,19 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<div #wrapper [ngClass]="{
-  'log-message-container': true,
-  'log-message-container-collapsible': addCaret,
-  'log-message-container-open': isOpen
-  }">
-  <button *ngIf="addCaret" (click)="onCaretClick($event)"><i class="caret"></i></button>
-  <div #content class="log-message-content">{{ message }}</div>
-</div>
+<svg [attr.height]="radius * 2" [attr.width]="radius * 2">
+    <circle class="full-circle"
+    [attr.stroke-width]="strokeWidth"
+    [attr.r]="normalizedRadius"
+    [attr.cx]="radius"
+    [attr.cy]="radius"/>
+  <circle #circle
+    [attr.stroke-dasharray]="circumference + ' ' + circumference"
+    [attr.stroke-width]="strokeWidth"
+    [attr.r]="normalizedRadius"
+    [attr.cx]="radius"
+    [attr.cy]="radius"/>
+</svg>
+<label>
+  <ng-content></ng-content>
+</label>

@@ -59,8 +59,7 @@ import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {RoutingUtilsService} from '@app/services/routing-utils.service';
-import {LogsFilteringUtilsService, timeRangeFilterOptions} from '@app/services/logs-filtering-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
 import {LogLevelComponent} from '@app/components/log-level/log-level.component';
@@ -244,11 +243,11 @@ export class LogsContainerService {
     users: ['userList']
   };
 
-  readonly customTimeRangeKey: string = 'filter.timeRange.custom';
+  readonly customTimeRangeKey = 'filter.timeRange.custom';
 
-  readonly topResourcesCount: string = '10';
+  readonly topResourcesCount = '10';
 
-  readonly topUsersCount: string = '6';
+  readonly topUsersCount = '6';
 
   readonly logsTypeMap = {
     auditLogs: {
@@ -289,16 +288,16 @@ export class LogsContainerService {
 
   timeZone: string = this.defaultTimeZone;
 
-  totalCount: number = 0;
+  totalCount = 0;
 
   /**
    * A configurable property to indicate the maximum capture time in milliseconds.
    * @type {number}
    * @default 600000 (10 minutes)
    */
-  private readonly maximumCaptureTimeLimit: number = 600000;
+  readonly maximumCaptureTimeLimit = 600000;
 
-  isServiceLogsFileView: boolean = false;
+  isServiceLogsFileView = false;
 
   filtersForm: FormGroup;
 
@@ -336,15 +335,17 @@ export class LogsContainerService {
 
   private stopAutoRefreshCountdown: Subject<void> = new Subject();
 
-  captureSeconds: number = 0;
+  captureSeconds = 0;
 
-  private readonly autoRefreshInterval: number = 30000;
+  readonly autoRefreshInterval = 30000;
 
-  autoRefreshRemainingSeconds: number = 0;
+  autoRefreshRemainingSeconds = 0;
 
   private startCaptureTime: number;
 
   private stopCaptureTime: number;
+
+  captureTimeRangeCache: ListItem;
 
   topUsersGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
 
@@ -757,14 +758,21 @@ export class LogsContainerService {
     this.stopCaptureTime = new Date().valueOf();
     this.captureSeconds = 0;
     this.stopTimer.next();
-    this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
     Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe((seconds: number): void => {
       this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
       if (!this.autoRefreshRemainingSeconds) {
         this.stopAutoRefreshCountdown.next();
+        this.captureTimeRangeCache = this.filtersForm.controls.timeRange.value;
         this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
       }
     });
+  }
+
+  cancelCapture(): void {
+    this.stopTimer.next();
+    this.stopAutoRefreshCountdown.next();
+    this.autoRefreshRemainingSeconds = 0;
+    this.captureSeconds = 0;
   }
 
   loadClusters(): void {

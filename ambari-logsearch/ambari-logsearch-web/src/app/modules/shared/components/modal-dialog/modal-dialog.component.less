@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ @import '../../variables';
 :host {
   .modal-backdrop {
     opacity: .5;
@@ -29,27 +30,29 @@
       flex-direction: column;
       max-height: 90vh;
       overflow: hidden;
-      padding: 1.42rem;
+      padding: @modal-dialog-content-padding;
       .modal-header {
-        display: block;
+        display: flex;
         flex-shrink: 1;
         line-height: 1.42rem;
+        padding: @modal-dialog-header-padding;
         position: relative;
         &> * {
           display: inline-block;
         }
         .close {
-          position: absolute;
-          top: 0;
-          right: 1em;
+          order: 1;
+          margin-left: auto;
         }
       }
       .modal-body {
         flex: 1;
         overflow: auto;
+        padding: @modal-dialog-body-padding;
       }
       .modal-footer {
         flex-shrink: 1;
+        padding: @modal-dialog-footer-padding;
       }
     }
   }

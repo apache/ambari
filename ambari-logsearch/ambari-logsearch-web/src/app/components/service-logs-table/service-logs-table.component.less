@@ -20,9 +20,16 @@
 :host {
 
   .service-logs-table-controls {
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    .total-event-info {
+      margin-right: auto;
+    }
+    pagination {
+      margin-right: auto;
+    }
     .layout-btn-group {
       display: flex;
       align-items: center;
@@ -145,6 +152,12 @@
       }
       &.log-message {
         width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        &.log-message-open {
+          white-space: pre-wrap;
+        }
       }
       &.log-event_count {
         width: 3em;

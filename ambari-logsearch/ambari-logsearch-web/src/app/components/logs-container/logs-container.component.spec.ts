@@ -19,6 +19,7 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {StoreModule} from '@ngrx/store';
+import {TooltipModule} from 'ngx-bootstrap';
 import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
@@ -75,7 +76,8 @@ describe('LogsContainerComponent', () => {
           hosts,
           serviceLogsTruncated
         }),
-        ...TranslationModules
+        ...TranslationModules,
+        TooltipModule.forRoot(),
       ],
       providers: [
         ...MockHttpRequestModules,
