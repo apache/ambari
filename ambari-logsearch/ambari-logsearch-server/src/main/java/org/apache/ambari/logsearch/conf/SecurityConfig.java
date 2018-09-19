@@ -27,6 +27,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.ambari.logsearch.common.LogSearchLdapAuthorityMapper;
 import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
@@ -46,11 +47,19 @@ import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormation
 import org.apache.ambari.logsearch.web.filters.LogsearchTrustedProxyFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter;
 import org.apache.ambari.logsearch.web.security.LogsearchAuthenticationProvider;
+import org.apache.ambari.logsearch.web.security.LogsearchLdapAuthenticationProvider;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.security.ldap.authentication.NullLdapAuthoritiesPopulator;
+import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
+import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -135,6 +144,69 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     if ((logSearchConfigApiConfig.isSolrFilterStorage() || logSearchConfigApiConfig.isZkFilterStorage())
             && !logSearchConfigApiConfig.isConfigApiEnabled())
       http.addFilterAfter(logSearchLogLevelFilterManagerFilter(), LogsearchSecurityContextFormationFilter.class);
+  }
+
+  @Bean
+  public LdapContextSource ldapContextSource() {
+    if (authPropsConfig.isAuthLdapEnabled()) {
+      final LdapContextSource ldapContextSource = new LdapContextSource();
+      ldapContextSource.setUrl(authPropsConfig.getLdapAuthConfig().getLdapUrl());
+      ldapContextSource.setBase(authPropsConfig.getLdapAuthConfig().getLdapBaseDn());
+      if (StringUtils.isNotBlank(authPropsConfig.getLdapAuthConfig().getLdapManagerDn())) {
+        ldapContextSource.setUserDn(authPropsConfig.getLdapAuthConfig().getLdapManagerDn());
+      }
+      if (StringUtils.isNotBlank(authPropsConfig.getLdapAuthConfig().getLdapManagerPassword())) {
+        ldapContextSource.setPassword(authPropsConfig.getLdapAuthConfig().getLdapManagerPassword());
+      }
+      ldapContextSource.setReferral(authPropsConfig.getLdapAuthConfig().getReferralMethod());
+      ldapContextSource.setAnonymousReadOnly(true);
+      ldapContextSource.afterPropertiesSet();
+      return ldapContextSource;
+    }
+    return null;
+  }
+
+  @Bean
+  public BindAuthenticator bindAuthenticator() {
+    if (authPropsConfig.isAuthLdapEnabled()) {
+      final BindAuthenticator bindAuthenticator = new BindAuthenticator(ldapContextSource());
+      if (StringUtils.isNotBlank(authPropsConfig.getLdapAuthConfig().getLdapUserDnPattern())) {
+        bindAuthenticator.setUserDnPatterns(new String[]{authPropsConfig.getLdapAuthConfig().getLdapUserDnPattern()});
+      }
+      if (StringUtils.isNotBlank(authPropsConfig.getLdapAuthConfig().getLdapUserSearchFilter())) {
+        bindAuthenticator.setUserSearch(new FilterBasedLdapUserSearch(
+          authPropsConfig.getLdapAuthConfig().getLdapUserSearchBase(),
+          authPropsConfig.getLdapAuthConfig().getLdapUserSearchFilter(),
+          ldapContextSource()));
+      }
+
+      return bindAuthenticator;
+    }
+    return null;
+  }
+
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    if (StringUtils.isNotBlank(authPropsConfig.getLdapAuthConfig().getLdapGroupSearchBase())) {
+      final DefaultLdapAuthoritiesPopulator ldapAuthoritiesPopulator =
+        new DefaultLdapAuthoritiesPopulator(ldapContextSource(), authPropsConfig.getLdapAuthConfig().getLdapGroupSearchBase());
+      ldapAuthoritiesPopulator.setGroupSearchFilter(authPropsConfig.getLdapAuthConfig().getLdapGroupSearchFilter());
+      ldapAuthoritiesPopulator.setGroupRoleAttribute(authPropsConfig.getLdapAuthConfig().getLdapGroupRoleAttribute());
+      ldapAuthoritiesPopulator.setSearchSubtree(true);
+      ldapAuthoritiesPopulator.setConvertToUpperCase(true);
+      return ldapAuthoritiesPopulator;
+    }
+    return new NullLdapAuthoritiesPopulator();
+  }
+
+  @Bean
+  public LogsearchLdapAuthenticationProvider ldapAuthenticationProvider() {
+    if (authPropsConfig.isAuthLdapEnabled()) {
+      LogsearchLdapAuthenticationProvider provider = new LogsearchLdapAuthenticationProvider(bindAuthenticator(), ldapAuthoritiesPopulator());
+      provider.setAuthoritiesMapper(new LogSearchLdapAuthorityMapper(authPropsConfig.getLdapAuthConfig().getLdapGroupRoleMap()));
+      return provider;
+    }
+    return null;
   }
 
   @Bean

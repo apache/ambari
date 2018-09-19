@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 @Named
@@ -44,6 +45,9 @@ public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthentica
 
   @Inject
   private LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
+
+  @Inject
+  private LogsearchLdapAuthenticationProvider ldapAuthenticationProvider;
 
   @Override
   public Authentication authenticate(Authentication inAuthentication) throws AuthenticationException {
@@ -109,6 +113,7 @@ public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthentica
   private Authentication doAuth(Authentication authentication, AuthMethod authMethod) {
     switch (authMethod) {
       case FILE: return fileAuthenticationProvider.authenticate(authentication);
+      case LDAP: return ldapAuthenticationProvider.authenticate(authentication);
       case EXTERNAL_AUTH: return externalServerAuthenticationProvider.authenticate(authentication);
       case SIMPLE: return simpleAuthenticationProvider.authenticate(authentication);
       default: logger.error("Invalid authentication method :" + authMethod.name());
