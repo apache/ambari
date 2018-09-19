@@ -74,7 +74,9 @@ export class ModalDialogComponent implements AfterViewInit {
     if (this.showCloseBtn) {
       totalBuiltInHeaderElement += 1;
     }
-    this.showHeader = this.headerElementRef && (this.headerElementRef.nativeElement.children.length - totalBuiltInHeaderElement > 0);
+    this.showHeader = this.showCloseBtn || !!this.title || (
+      this.headerElementRef && (this.headerElementRef.nativeElement.children.length - totalBuiltInHeaderElement > 0)
+    );
     this.showFooter = this.footerElementRef && this.footerElementRef.nativeElement.children.length;
     this.cdRef.detectChanges();
   }

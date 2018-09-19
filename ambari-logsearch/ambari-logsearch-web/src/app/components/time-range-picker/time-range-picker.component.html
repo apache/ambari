@@ -26,7 +26,7 @@
     <date-picker class="col-md-12 row" [time]="startTime" (timeChange)="setStartTime($event)"></date-picker>
     <div class="col-md-12 row text-uppercase">{{'filter.timeRange.to' | translate}}</div>
     <date-picker class="col-md-12 row" [time]="endTime" (timeChange)="setEndTime($event)"></date-picker>
-    <button class="btn btn-success pull-right" type="button" (click)="setCustomTimeRange()"
+    <button class="btn btn-success" type="button" (click)="setCustomTimeRange()"
             [disabled]="!startTime || !endTime || startTime >= endTime">
       {{'modal.apply' | translate}}
     </button>

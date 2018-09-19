@@ -48,7 +48,7 @@ describe('LogMessageComponent', () => {
   });
 
   it('event handler should call the toggleOpen method', () => {
-    let mockEvent: MouseEvent = document.createEvent('MouseEvent');
+    const mockEvent: MouseEvent = document.createEvent('MouseEvent');
     mockEvent.initEvent('click', true, true);
     spyOn(component,'toggleOpen');
     component.onCaretClick(mockEvent);
@@ -56,7 +56,7 @@ describe('LogMessageComponent', () => {
   });
 
   it('event handler should prevent the default behaviour of the action', () => {
-    let mockEvent: MouseEvent = document.createEvent('MouseEvent');
+    const mockEvent: MouseEvent = document.createEvent('MouseEvent');
     mockEvent.initEvent('click', true, true);
     spyOn(mockEvent,'preventDefault');
     component.onCaretClick(mockEvent);
@@ -64,13 +64,14 @@ describe('LogMessageComponent', () => {
   });
 
   it('calling the toggleOpen method should negate the isOpen property', () => {
-    let currentState = component.isOpen;
+    const currentState = component.isOpen;
     component.toggleOpen();
     expect(component.isOpen).toEqual(!currentState);
   });
 
   it('should set the addCaret prop to TRUE if the message prop has new line character.', () => {
     component.message = messages.withNewLine;
+    component.reCalculateOnChange();
     component.checkAddCaret();
     expect(component['addCaret']).toEqual(true);
   });

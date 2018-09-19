@@ -20,6 +20,7 @@
         <i [ngClass]="{'fa': true, 'fa-caret-down': !isCollapsed, 'fa-caret-right': isCollapsed}"></i>
         {{((isCollapsed ? collapsedTitle : openTitle) || commonTitle) | translate}}
       </a>
+      <ng-content select="header"></ng-content>
     </div>
     <div class="panel-body" [attr.aria-collapsed]="isCollapsed">
       <ng-content></ng-content>

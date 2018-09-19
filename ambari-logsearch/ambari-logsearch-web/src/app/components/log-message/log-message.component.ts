@@ -24,12 +24,11 @@ import {
   OnInit,
   OnDestroy,
   SimpleChanges,
-  HostListener,
   ChangeDetectorRef
 } from '@angular/core';
-import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 import {Subscription} from 'rxjs/Subscription';
-import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/auditTime';
 
 /**
  * This is a simple UI component to display the log message. The goal is to be able to show one line and be collapsile
@@ -63,7 +62,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges, OnInit, On
    * LogMessageComponent should check if the caret should be visible or not.
    */
   @Input()
-  listenChangesOn: any;
+  refreshOn$: Subject<any>;
 
   /**
    * This will be shown as log message in the component
@@ -76,7 +75,9 @@ export class LogMessageComponent implements AfterViewInit, OnChanges, OnInit, On
    * the content container element. Handled by the @checkAddCaret method
    * @type {boolean}
    */
-  private addCaret = false;
+  addCaret = false;
+
+  private scrollWidth: number;
 
   /**
    * This is a regexp tester to check if the log message is multiline text or single line. Doing by checking the new
@@ -90,9 +91,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges, OnInit, On
    * caret to give a possibility to the user to see the message as it is (pre-wrapped).
    * @type {boolean}
    */
-  private get isMultiLineMessage(): boolean {
-    return this.multiLineTestRegexp.test(this.message);
-  }
+  isMultiLineMessage = false;
 
   /**
    * The array to collect all the subscriptions created by the instance in order to unsubscribe when the component
@@ -109,15 +108,17 @@ export class LogMessageComponent implements AfterViewInit, OnChanges, OnInit, On
    * @param {SimpleChanges} changes
    */
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.listenChangesOn !== undefined) {
+    if (changes.message !== undefined) {
+      this.message = this.message.trim();
+      this.reCalculateOnChange();
       this.checkAddCaret();
     }
   }
 
   ngOnInit() {
-    this.subscriptions.push(
-      Observable.fromEvent(window, 'resize').debounceTime(100).subscribe(this.onWindowResize)
-    );
+    if (this.refreshOn$) {
+      this.subscriptions.push(this.refreshOn$.subscribe(this.checkAddCaret));
+    }
   }
 
   ngOnDestroy() {
@@ -128,16 +129,13 @@ export class LogMessageComponent implements AfterViewInit, OnChanges, OnInit, On
    * The goal is to perform a initial caret display check when the component has been initialized.
    */
   ngAfterViewInit(): void {
+    this.reCalculateOnChange();
     this.checkAddCaret();
   }
 
-  /**
-   * Since the size of the column is depends on the window size we have to listen the resize event and show/hide the
-   * caret corresponding the new size of the content container element.
-   * Using the arrow function will keep the instance scope.
-   */
-  onWindowResize = (): void => {
-    this.checkAddCaret();
+  reCalculateOnChange() {
+    this.isMultiLineMessage = this.multiLineTestRegexp.test(this.message);
+    this.scrollWidth = this.content.nativeElement.scrollWidth;
   }
 
   /**
@@ -145,10 +143,9 @@ export class LogMessageComponent implements AfterViewInit, OnChanges, OnInit, On
    * scrollHeight and the clientHeight.
    */
   checkAddCaret = (): void =>  {
-    const el = this.content.nativeElement;
-    this.addCaret = this.isMultiLineMessage || (el.scrollHeight > el.clientHeight) || (el.scrollWidth > el.clientWidth);
+    this.addCaret = this.isMultiLineMessage || (this.scrollWidth > this.content.nativeElement.clientWidth);
     this.cdRef.detectChanges();
-  };
+  }
 
   /**
    * This is the click event handler of the caret button element. It will only toggle the isOpen property so that the

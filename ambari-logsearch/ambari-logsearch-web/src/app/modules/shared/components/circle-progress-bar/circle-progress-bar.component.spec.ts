@@ -14,31 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-@import '../../modules/shared/mixins';
+import { CircleProgressBarComponent } from './circle-progress-bar.component';
 
-.panel-collapsible {
-  position: relative;
-  .panel-heading {
-    .clickable-item;
-    background-color: @panel-heading;
-    border: 0 none;
-    color: @base-font-color;
-    display: flex;
-    flex-direction: row;
-    font-size: 1.25rem;
-    a, a:hover, a:visited {
-      color: @base-font-color;
-      text-decoration: none;
-    }
-  }
-  .panel-body {
-    padding: 5px;
-  }
-  &.panel-collapsed {
-    .panel-body {
-      height: 0;
-      overflow: hidden;
-    }
-  }
-}
+describe('CircleProgressBarComponent', () => {
+  let component: CircleProgressBarComponent;
+  let fixture: ComponentFixture<CircleProgressBarComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ CircleProgressBarComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(CircleProgressBarComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

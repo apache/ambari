@@ -47,7 +47,13 @@
   "filter.users": "Users",
 
   "filter.capture": "Capture",
+  "filter.captureSnapshot": "Snapshot",
+  "filter.refreshingLogListIn": "Refreshing log list in...",
+  "filter.capture.min": "Min",
+  "filter.capture.sec": "Sec",
   "filter.capture.triggeringRefresh": "Triggering auto-refresh in {{remainingSeconds}} sec",
+  "filter.youAreInSnapshotView": "You are in snapshot view",
+  "filter.closeSnapshotView": "Close snapshot view",
 
   "filters.clear": "Clear",
 

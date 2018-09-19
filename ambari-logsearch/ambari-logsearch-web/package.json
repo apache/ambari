@@ -39,7 +39,7 @@
     "jquery": "^1.12.4",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.13",
-    "ngx-bootstrap": "^1.9.3",
+    "ngx-bootstrap": "^2.0.5",
     "rxjs": "^5.4.3",
     "zone.js": "^0.8.4"
   },

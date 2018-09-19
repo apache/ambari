@@ -29,22 +29,20 @@
   [ngClass]="{'container-fluid': true, 'logs-container': true, 'fixed-filterbar': isFilterPanelFixedPostioned}">
   <filters-panel class="row" [filtersForm]="filtersForm" #filtersPanel></filters-panel>
   <div class="row events-count">
-    <div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
-      <div class="auto-refresh-message pull-right">
-        {{'filter.capture.triggeringRefresh' | translate: autoRefreshMessageParams}}
-      </div>
+    <div *ngIf="captureTimeRangeCache" class="panel panel-default panel-capture-view col-md-2 col-md-offset-5">
+      <i class="fa fa-play"></i>
+      {{'filter.youAreInSnapshotView' | translate}}
+      <button type="button" class="close" [attr.aria-label]="'modal.close' | translate" (click)="clearCaptureTimeRangeCache()"
+        tooltip="{{'filter.closeSnapshotView' | translate}}" placement="right">
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
-
-    <!-- TODO use plugin for singular/plural -->
-    <div *ngIf="logsType === 'serviceLogs'" class="logs-header col-md-12">{{
-      (!totalEventsFoundMessageParams.totalCount ? 'logs.noEventFound' :
-        (totalEventsFoundMessageParams.totalCount === 1 ? 'logs.oneEventFound' : 'logs.totalEventFound'))
-            | translate: totalEventsFoundMessageParams
-    }}</div>
   </div>
   <ng-container [ngSwitch]="logsType">
     <ng-container *ngSwitchCase="'serviceLogs'">
-      <collapsible-panel [class.hide]="isServiceLogsFileView$ | async" openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
+      <collapsible-panel [class.hide]="isServiceLogsFileView$ | async" openTitle="logs.hideGraph" collapsedTitle="logs.showGraph" class="service-logs-histogram">
+        <header>{{(!totalEventsFoundMessageParams.totalCount ? 'logs.noEventFound' :
+            (totalEventsFoundMessageParams.totalCount === 1 ? 'logs.oneEventFound' : 'logs.totalEventFound')) | translate: totalEventsFoundMessageParams}}</header>
         <time-histogram (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="serviceLogsHistogramData"
                         [colors]="serviceLogsHistogramColors" [allowFractionalYTicks]="false"
                         svgId="service-logs-histogram"></time-histogram>
@@ -65,3 +63,22 @@
   <log-context *ngIf="isServiceLogContextView" [id]="activeLog.id" [hostName]="activeLog.host_name"
                [componentName]="activeLog.component_name"></log-context>
 </div>
+<modal-dialog
+  title="{{'filter.capture' | translate}}"
+  class="capture-dialog"
+  [visible]="autoRefreshRemainingSeconds"
+  (onCloseRequest)="cancelCapture()">
+  <span class="info">{{'filter.refreshingLogListIn' | translate}}</span>
+  <circle-progress-bar radius="50" strokeWidth="5" strokeColor="black"
+  [percent]="(autoRefreshRemainingSeconds / (autoRefreshInterval / 1000)) * 100">
+    <span>
+      <span class="remaining-seconds">
+        {{autoRefreshRemainingSeconds}}
+        <span class="unit">{{'filter.capture.sec' | translate}}</span>
+      </span>
+    </span>
+  </circle-progress-bar>
+  <footer>
+      <button class="btn btn-secondary" (click)="cancelCapture()">{{'modal.cancel' | translate}}</button>
+  </footer>
+</modal-dialog>
