@@ -73,6 +73,7 @@
   </logger>
 
   <logger name="org.apache.ambari.logsearch" additivity="false">
+    <appender-ref ref="console"/>
     <appender-ref ref="rolling_file_json"/>
   </logger>
 

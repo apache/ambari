@@ -21,6 +21,8 @@ package org.apache.ambari.logsearch.conf;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import javax.inject.Inject;
 import java.util.List;
 
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
@@ -235,9 +237,9 @@ public class AuthPropsConfig {
   )
   private List<String> proxyIp;
 
-  @Value("${logsearch.authr.file.enable:false}")
+  @Value("${logsearch.authr.file.enabled:false}")
   @LogSearchPropertyDescription(
-    name = "logsearch.authr.file",
+    name = "logsearch.authr.file.enabled",
     description = "A boolean property to enable/disable file based authorization",
     examples = {"true"},
     defaultValue = "false",
@@ -254,6 +256,9 @@ public class AuthPropsConfig {
     sources = {LOGSEARCH_PROPERTIES_FILE}
   )
   private String roleFile;
+
+  @Inject
+  private LogSearchLdapAuthConfig ldapAuthConfig;
 
   public boolean isAuthFileEnabled() {
     return authFileEnabled;
@@ -437,5 +442,13 @@ public class AuthPropsConfig {
 
   public void setRoleFile(String roleFile) {
     this.roleFile = roleFile;
+  }
+
+  public LogSearchLdapAuthConfig getLdapAuthConfig() {
+    return ldapAuthConfig;
+  }
+
+  public void setLdapAuthConfig(LogSearchLdapAuthConfig ldapAuthConfig) {
+    this.ldapAuthConfig = ldapAuthConfig;
   }
 }
