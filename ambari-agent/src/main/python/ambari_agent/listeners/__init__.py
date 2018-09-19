@@ -34,6 +34,7 @@ class EventListener(ambari_stomp.ConnectionListener):
   """
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
+    self.enabled = True
 
   def on_message(self, headers, message):
     """
@@ -55,6 +56,11 @@ class EventListener(ambari_stomp.ConnectionListener):
         return
 
       logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, copy.deepcopy(message_json))))
+
+      if not self.enabled:
+        logger.info("Ignoring event to {0} since event listener is disabled".format(destination))
+        return
+
       try:
         self.on_event(headers, message_json)
       except Exception as ex:
