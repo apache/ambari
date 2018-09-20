@@ -28,7 +28,7 @@ import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PR
 
 @Configuration
 public class LogSearchLdapAuthConfig {
-  @Value("${logsearch.auth.ldap.url:ldap://localhost:389}")
+  @Value("${logsearch.auth.ldap.url:}")
   @LogSearchPropertyDescription(
     name = "logsearch.auth.ldap.url",
     description = "URL of LDAP database.",
@@ -38,7 +38,7 @@ public class LogSearchLdapAuthConfig {
   )
   private String ldapUrl;
 
-  @Value("${logsearch.auth.ldap.manager.dn:cn=admin,dc=planetexpress,dc=com}")
+  @Value("${logsearch.auth.ldap.manager.dn:}")
   @LogSearchPropertyDescription(
     name = "logsearch.auth.ldap.manager.dn",
     description = "DN of the LDAP manger user (it is a must if LDAP groups are used).",
@@ -98,7 +98,7 @@ public class LogSearchLdapAuthConfig {
   )
   private String ldapUserSearchFilter;
 
-  @Value("${logsearch.auth.ldap.group.search.base:ou=people}")
+  @Value("${logsearch.auth.ldap.group.search.base:}")
   @LogSearchPropertyDescription(
     name = "logsearch.auth.ldap.group.search.base",
     description = "Group search base - defines where to find LDAP groups. Won't do any authority/role mapping if this field is empty.",
@@ -108,7 +108,7 @@ public class LogSearchLdapAuthConfig {
   )
   private String ldapGroupSearchBase;
 
-  @Value("${logsearch.auth.ldap.group.search.filter:(member={0})}")
+  @Value("${logsearch.auth.ldap.group.search.filter:}")
   @LogSearchPropertyDescription(
     name = "logsearch.auth.ldap.group.search.filter",
     description = "Group search filter which is used to get membership data for a specific user",
@@ -118,7 +118,7 @@ public class LogSearchLdapAuthConfig {
   )
   private String ldapGroupSearchFilter;
 
-  @Value("${logsearch.auth.ldap.group.role.attribute:cn}")
+  @Value("${logsearch.auth.ldap.group.role.attribute:}")
   @LogSearchPropertyDescription(
     name = "logsearch.auth.ldap.group.role.attribute",
     description = "Attribute for identifying LDAP groups (group name)",
