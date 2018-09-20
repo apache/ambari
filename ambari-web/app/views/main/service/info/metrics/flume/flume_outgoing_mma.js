@@ -38,17 +38,5 @@ App.ChartServiceMetricsFlume_OutgoingMMA = App.ChartLinearTimeView.extend({
     displayName: function (name) {
       return Em.I18n.t('services.service.info.metrics.flume.outgoing_mma').format(name);
     }
-  },
-
-  colorForSeries: function (series) {
-    var name = Em.I18n.t('services.service.info.metrics.flume.outgoing_mma');
-    if (name.format("avg") == series.name){
-      return '#0066b3';
-    }else if (name.format("min") == series.name){
-      return '#00CC00';
-    }else if (name.format("max") == series.name){
-      return '#FF8000';
-    }
-    return null;
   }
 });

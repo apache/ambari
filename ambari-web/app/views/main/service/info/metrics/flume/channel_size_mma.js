@@ -38,16 +38,5 @@ App.ChartServiceMetricsFlume_ChannelSizeMMA = App.ChartLinearTimeView.extend({
     displayName: function (name) {
       return Em.I18n.t('services.service.info.metrics.flume.channelType').format(name);
     }
-  },
-
-  colorForSeries: function (series) {
-    if (Em.I18n.t('services.service.info.metrics.flume.channelType').format("avg") == series.name){
-      return '#0066b3';
-    }else if (Em.I18n.t('services.service.info.metrics.flume.channelType').format("min") == series.name){
-      return '#00CC00';
-    }else if (Em.I18n.t('services.service.info.metrics.flume.channelType').format("max") == series.name){
-      return '#FF8000';
-    }
-    return null;
   }
 });
