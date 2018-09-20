@@ -908,9 +908,9 @@ def read_passwd_for_alias(alias, masterKey="", options=None):
     with open(tempFilePath, 'w+'):
       os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
 
-    if options is not None and hasattr(options, 'master_key') and options.master_key is not None and options.master_key:
+    if options is not None and hasattr(options, 'master_key') and options.master_key:
       masterKey = options.master_key
-    if masterKey is None or masterKey == "":
+    if not masterKey:
       masterKey = "None"
 
     serverClassPath = ambari_server.serverClassPath.ServerClassPath(get_ambari_properties(), None)
@@ -1041,9 +1041,9 @@ def get_original_master_key(properties, options = None):
       password = read_passwd_for_alias(alias, env_master_key, options)
     if not password:
       try:
-        if options is not None and hasattr(options, 'master_key') and options.master_key is not None and options.master_key:
+        if options is not None and hasattr(options, 'master_key') and options.master_key:
           masterKey = options.master_key
-        if masterKey is None or masterKey == "":
+        if not masterKey:
           masterKey = get_validated_string_input('Enter current Master Key: ',
                                                  "", ".*", "", True, False)
           if options is not None:
