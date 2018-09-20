@@ -18,6 +18,7 @@
 var App = require('app');
 var date = require('utils/date/date');
 var numberUtils = require('utils/number_utils');
+var chartUtils = require('utils/chart_utils');
 
 function diskPart(i18nKey, totalKey, usedKey) {
   return Em.computed(totalKey, usedKey, function () {
@@ -53,7 +54,7 @@ App.MainDashboardServiceOnefsView = App.MainDashboardServiceView.extend({
     color: '#0066B3',
     stroke: '#0066B3',
     palette: new Rickshaw.Color.Palette({
-      scheme: ['rgba(0,102,179,1)', 'rgba(0,102,179,0)']
+      scheme: chartUtils.getColorSchemeForGaugeWidget()
     }),
     data: function () {
       var remaining = Number(this.get('service.capacityRemaining'));
