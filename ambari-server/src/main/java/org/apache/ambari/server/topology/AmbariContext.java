@@ -726,7 +726,7 @@ public class AmbariContext {
     for (Map.Entry<Pair<StackId, String>, Map<String, Config>> entry : groupConfigs.entrySet()) {
       Pair<StackId, String> stackService = entry.getKey();
       StackId stackId = entry.getKey().getLeft();
-      String service =entry.getKey().getRight();
+      String service = entry.getKey().getRight();
       Map<String, Config> serviceConfigs = entry.getValue();
       String absoluteGroupName = getConfigurationGroupName(bpName, groupName);
       Collection<String> groupHosts;

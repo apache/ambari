@@ -438,7 +438,7 @@ public class ConfigGroupImpl implements ConfigGroup {
 
           //TODO check the serviceid = null for the right use case
           config = configFactory.createNew(service.getStackId(), cluster, config.getType(),
-              config.getTag(), config.getProperties(), config.getPropertiesAttributes(), null);
+              config.getTag(), config.getProperties(), config.getPropertiesAttributes(), serviceId);
 
           entry.setValue(config);
 
