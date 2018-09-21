@@ -312,10 +312,40 @@ with Environment() as env:
     with closing(tarfile.open(params.slider_tarball, "w:gz")) as tar:
       for filepath in glob.glob(format("{slider_lib_dir}/*.jar")):
         tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
-      
+
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
-   
+
+  Directory('/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir',
+            owner=params.hdfs_user,
+            group=params.user_group,
+            mode=01777
+  )
+  Directory('/var/log/hadoop',
+            create_parents = True,
+            owner='root',
+            group=params.user_group,
+            mode=0775,
+            cd_access='a',
+  )
+  Directory('/var/run/hadoop',
+            create_parents = True,
+            owner='root',
+            group='root',
+            cd_access='a',
+  )
+  Directory('/tmp/hadoop-hdfs',
+            create_parents = True,
+            owner=params.hdfs_user,
+            cd_access='a',
+  )
+  Directory('/tmp/hbase-hbase',
+            owner='hbase',
+            mode=0775,
+            create_parents = True,
+            cd_access="a",
+  )
+
   oozie_libext_dir = params.oozie_libext_dir
   sql_driver_filename = os.path.basename(SQL_DRIVER_PATH)
   oozie_home=params.oozie_home
