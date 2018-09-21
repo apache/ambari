@@ -28,7 +28,6 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.stack.RepositoryXml;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

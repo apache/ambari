@@ -43,7 +43,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
-
 import org.apache.http.HttpStatus;
 
 import io.swagger.annotations.Api;
