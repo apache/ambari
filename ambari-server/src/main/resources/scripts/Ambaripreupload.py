@@ -36,6 +36,7 @@ from resource_management.core import File
 from resource_management.core import shell
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
 from resource_management.core.source import StaticFile
 from resource_management.libraries import ConfigDictionary
@@ -324,6 +325,40 @@ with Environment() as env:
 
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
+
+  Directory('/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir',
+            owner=params.hdfs_user,
+            group=params.user_group,
+            mode=01777
+  )
+  Directory('/var/log/hadoop',
+            create_parents = True,
+            owner='root',
+            group=params.user_group,
+            mode=0775,
+            cd_access='a',
+  )
+  Directory('/var/run/hadoop',
+            create_parents = True,
+            owner='root',
+            group='root',
+            cd_access='a',
+  )
+  Directory('/var/run/hadoop/hdfs',
+            owner=params.hdfs_user,
+            cd_access='a',
+  )
+  Directory('/tmp/hadoop-hdfs',
+            create_parents = True,
+            owner=params.hdfs_user,
+            cd_access='a',
+  )
+  Directory('/tmp/hbase-hbase',
+            owner='hbase',
+            mode=0775,
+            create_parents = True,
+            cd_access="a",
+  )
 
   oozie_libext_dir = params.oozie_libext_dir
   sql_driver_filename = os.path.basename(SQL_DRIVER_PATH)
