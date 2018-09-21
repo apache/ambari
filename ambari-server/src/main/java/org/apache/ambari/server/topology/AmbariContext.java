@@ -714,7 +714,7 @@ public class AmbariContext {
       String type = entry.getKey();
       List<Pair<StackId, String>> stackServices = stack.getStackServicesForConfigType(type).
         filter(each -> topology.getServiceTypes().contains(each.getValue())).collect(Collectors.toList());
-      Preconditions.checkArgument(!stackServices.isEmpty(), new IllegalArgumentException("Specified configuration type is not associated with any service in the blueprint: " + type));
+      Preconditions.checkArgument(!stackServices.isEmpty(), "Specified configuration type is not associated with any service in the blueprint: " + type);
       stackServices.forEach( stackService -> {
         Config config = configFactory.createReadOnly(type, groupName, entry.getValue(), null);
         //todo: attributes
