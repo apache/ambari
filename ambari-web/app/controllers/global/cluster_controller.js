@@ -102,7 +102,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   loadClusterName: function (reload, deferred) {
     var dfd = deferred || $.Deferred();
 
-    if (App.get('clusterName') && !reload) {
+    if (App.get('clusterName') && App.get('clusterId') && !reload) {
       App.set('clusterName', this.get('clusterName'));
       this.set('isClusterNameLoaded', true);
       dfd.resolve();
