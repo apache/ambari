@@ -48,7 +48,6 @@ import org.apache.ambari.server.controller.HostComponentSwagger;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-
 import org.apache.http.HttpStatus;
 
 import io.swagger.annotations.Api;

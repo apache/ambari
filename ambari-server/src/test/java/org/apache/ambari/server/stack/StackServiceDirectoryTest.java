@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 
 import org.apache.ambari.server.AmbariException;
-
 import org.junit.Test;
 
 /**

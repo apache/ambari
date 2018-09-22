@@ -19,25 +19,21 @@ package org.apache.ambari.checkstyle;
 
 import static org.apache.ambari.checkstyle.UndocumentedRestApiOperationCheck.MESSAGE;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.junit.Test;
 
-import com.puppycrawl.tools.checkstyle.BaseCheckTestSupport;
+import com.puppycrawl.tools.checkstyle.AbstractModuleTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
 
-public class UndocumentedRestApiOperationCheckTest extends BaseCheckTestSupport {
+public class UndocumentedRestApiOperationCheckTest extends AbstractModuleTestSupport {
 
   @Override
-  protected String getPath(String filename) throws IOException {
-    return new File("src/test/resources/org/apache/ambari/checkstyle/" + filename)
-      .getCanonicalPath();
+  protected String getPackageLocation() {
+    return "org/apache/ambari/checkstyle";
   }
 
   @Test
   public void test() throws Exception {
-    final DefaultConfiguration config = createCheckConfig(UndocumentedRestApiOperationCheck.class);
+    final DefaultConfiguration config = createModuleConfig(UndocumentedRestApiOperationCheck.class);
     final String[] expected = {
       "36: " + MESSAGE,
       "53: " + MESSAGE,
