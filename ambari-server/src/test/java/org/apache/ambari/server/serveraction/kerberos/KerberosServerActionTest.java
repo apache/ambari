@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +47,7 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerbero
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -79,7 +81,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
     HostRoleCommand mockHostRoleCommand = createMock(HostRoleCommand.class);
     kerberosKeytabController = createMock(KerberosKeytabController.class);
     expect(kerberosKeytabController.adjustServiceComponentFilter(anyObject(), eq(true), anyObject())).andReturn(null).anyTimes();
-    expect(kerberosKeytabController.getFilteredKeytabs(null, null, null))
+    expect(kerberosKeytabController.getFilteredKeytabs((Collection<KerberosIdentityDescriptor>)null, null, null))
       .andReturn(
         Sets.newHashSet(new ResolvedKerberosKeytab(
           null,

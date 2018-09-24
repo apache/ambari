@@ -291,7 +291,11 @@ public class KerberosKeytabPrincipalDAO {
     private Collection<String> componentNames;
     private Collection<String> principals;
 
-    public KerberosKeytabPrincipalFilter(Collection<String> hostNames, Collection<String> serviceNames, Collection<String> componentNames, Collection<String> principals) {
+    private KerberosKeytabPrincipalFilter() {
+      this(null, null, null, null);
+    }
+
+    private KerberosKeytabPrincipalFilter(Collection<String> hostNames, Collection<String> serviceNames, Collection<String> componentNames, Collection<String> principals) {
       this.hostNames = hostNames;
       this.serviceNames = serviceNames;
       this.componentNames = componentNames;
@@ -328,6 +332,10 @@ public class KerberosKeytabPrincipalDAO {
 
     public void setPrincipals(Collection<String> principals) {
       this.principals = principals;
+    }
+
+    public static KerberosKeytabPrincipalFilter createEmptyFilter() {
+      return new KerberosKeytabPrincipalFilter();
     }
 
     public static KerberosKeytabPrincipalFilter createFilter(String serviceName, Collection<String> componentNames, Collection<String> hostNames, Collection<String> principalNames) {
