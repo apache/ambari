@@ -211,7 +211,7 @@ public interface Cluster {
    *
    * @return
    */
-  Map<String, ServiceGroup> getServiceGroups() throws AmbariException;
+  Map<String, ServiceGroup> getServiceGroups();
 
   /**
    * Get a cluster setting
@@ -234,7 +234,7 @@ public interface Cluster {
    *
    * @return
    */
-  Map<String, ClusterSetting> getClusterSettings() throws AmbariException;
+  Map<String, ClusterSetting> getClusterSettings();
 
   /**
    * Get all cluster settings name and value as Map.
@@ -242,7 +242,7 @@ public interface Cluster {
    *
    * @return
    */
-  Map<String, String> getClusterSettingsNameValueMap() throws AmbariException;
+  Map<String, String> getClusterSettingsNameValueMap();
 
   /**
    * Get all ServiceComponentHosts on a given host

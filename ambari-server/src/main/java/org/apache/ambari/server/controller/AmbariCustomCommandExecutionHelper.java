@@ -429,12 +429,6 @@ public class AmbariCustomCommandExecutionHelper {
       String userGroups = gson.toJson(userGroupsMap);
       hostLevelParams.put(USER_GROUPS, userGroups);
 
-      // Set exec command with 'ClusterSettings' map
-      execCmd.setClusterSettings(cluster.getClusterSettingsNameValueMap());
-
-      // Set exec command with 'StackSettings' map
-      execCmd.setStackSettings(ambariMetaInfo.getStackSettingsNameValueMap(stackId));
-
       Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredConfigs);
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);

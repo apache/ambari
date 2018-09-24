@@ -25,9 +25,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_SE
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLUSTER_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DFS_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
@@ -36,18 +34,12 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 
 import java.net.UnknownHostException;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import javax.inject.Inject;
 
@@ -63,78 +55,30 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
 
-import com.google.gson.Gson;
-
 public class ClusterMetadataGenerator {
 
   private final Configuration configs;
   private final ConfigHelper configHelper;
   private final AmbariMetaInfo ambariMetaInfo;
-  private final Gson gson;
   private final AmbariConfig ambariConfig;
 
   @Inject
-  public ClusterMetadataGenerator(AmbariMetaInfo metaInfo, Configuration configs, ConfigHelper configHelper, Gson gson) throws UnknownHostException {
+  public ClusterMetadataGenerator(AmbariMetaInfo metaInfo, Configuration configs, ConfigHelper configHelper) throws UnknownHostException {
     this.ambariMetaInfo = metaInfo;
     this.configs = configs;
     this.configHelper = configHelper;
-    this.gson = gson;
 
     ambariConfig = new AmbariConfig(configs);
   }
 
   public AmbariConfig getAmbariConfig() {
     return ambariConfig;
-  }
-
-  public SortedMap<String, String> getMetadataStackLevelParams(Cluster cluster, StackId stackId) throws AmbariException {
-    SortedMap<String, String> stackLevelParams = new TreeMap<>(ambariMetaInfo.getStackSettingsNameValueMap(stackId));
-
-    // STACK_NAME is part of stack settings, but STACK_VERSION is not
-    stackLevelParams.put(STACK_VERSION, stackId.getStackVersion());
-
-    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs(false);
-    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stackId.getStackName(), stackId.getStackVersion());
-    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-    Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
-
-    Map<PropertyInfo, String> users = configHelper.getPropertiesWithPropertyType(PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
-    Set<String> userSet = new TreeSet<>(users.values());
-    String userList = gson.toJson(userSet);
-    stackLevelParams.put(USER_LIST, userList);
-
-    Map<PropertyInfo, String> groups = configHelper.getPropertiesWithPropertyType(PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
-    Set<String> groupSet = new TreeSet<>(groups.values());
-    String groupList = gson.toJson(groupSet);
-    stackLevelParams.put(GROUP_LIST, groupList);
-
-    Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(users, groups);
-    String userGroups = gson.toJson(userGroupsMap);
-    stackLevelParams.put(USER_GROUPS, userGroups);
-
-    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
-    Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
-    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-    stackLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
-    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-      if (serviceInfoInstance.getServiceType() != null) {
-        stackLevelParams.put(DFS_TYPE, serviceInfoInstance.getServiceType());
-        break;
-      }
-    }
-
-    return stackLevelParams;
   }
 
   /**
@@ -150,7 +94,8 @@ public class ClusterMetadataGenerator {
         getMetadataServiceLevelParams(cl),
         true,
         getMetadataClusterLevelParams(cl),
-        null);
+        null,
+        getClusterSettings(cl));
       metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
     }
 
@@ -159,7 +104,8 @@ public class ClusterMetadataGenerator {
 
   public MetadataUpdateEvent getClusterMetadata(Cluster cl) throws AmbariException {
     SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-    MetadataCluster metadataCluster = new MetadataCluster(cl.getSecurityType(), getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl), null);
+    MetadataCluster metadataCluster = new MetadataCluster(cl.getSecurityType(), getMetadataServiceLevelParams(cl),
+        true, getMetadataClusterLevelParams(cl), null, getClusterSettings(cl));
     metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
     return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
@@ -178,6 +124,12 @@ public class ClusterMetadataGenerator {
 
   public MetadataUpdateEvent getClusterMetadataOnServiceInstall(Cluster cl, String serviceGroupName, String serviceName) throws AmbariException {
     return getClusterMetadataOnServiceCredentialStoreUpdate(cl, serviceGroupName, serviceName);
+  }
+
+  public MetadataUpdateEvent getClusterMetadataOnClusterSettingsUpdate(Cluster cl) {
+    SortedMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+    metadataClusters.put(Long.toString(cl.getClusterId()), MetadataCluster.clusterSettingsMetadataCluster(null, getClusterSettings(cl)));
+    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceGroupName, String serviceName) throws AmbariException {
@@ -291,4 +243,7 @@ public class ClusterMetadataGenerator {
     return agentConfigs;
   }
 
+  private SortedMap<String, String> getClusterSettings(Cluster cluster) {
+    return new TreeMap<>(cluster.getClusterSettingsNameValueMap());
+  }
 }

@@ -205,7 +205,7 @@ public class TestHeartbeatMonitor {
 
     hm.getAgentRequests().setExecutionDetailsRequest(hostname1, "DATANODE", Boolean.TRUE.toString());
 
-    List<StatusCommand> cmds = hm.generateStatusCommands(hostname1);
+    List<StatusCommand> cmds = null;//hm.generateStatusCommands(hostname1);
     assertTrue("HeartbeatMonitor should generate StatusCommands for host1", cmds.size() == 3);
     assertEquals("HDFS", cmds.get(0).getServiceName());
     boolean  containsDATANODEStatus = false;
@@ -231,7 +231,7 @@ public class TestHeartbeatMonitor {
     assertEquals(true, containsNAMENODEStatus);
     assertEquals(true, containsSECONDARY_NAMENODEStatus);
 
-    cmds = hm.generateStatusCommands(hostname2);
+    cmds = null;//hm.generateStatusCommands(hostname2);
     assertTrue("HeartbeatMonitor should not generate StatusCommands for host2 because it has no services", cmds.isEmpty());
   }
 
@@ -326,7 +326,7 @@ public class TestHeartbeatMonitor {
 
     // HeartbeatMonitor should generate StatusCommands for
     // MASTER, SLAVE or CLIENT components
-    List<StatusCommand> cmds = hm.generateStatusCommands(hostname1);
+    List<StatusCommand> cmds = null;//hm.generateStatusCommands(hostname1);
     assertTrue("HeartbeatMonitor should generate StatusCommands for host1",
       cmds.size() == 4);
     assertEquals("HDFS", cmds.get(0).getServiceName());
@@ -350,7 +350,7 @@ public class TestHeartbeatMonitor {
     assertTrue(containsSECONDARY_NAMENODEStatus);
     assertTrue(containsHDFS_CLIENTStatus);
 
-    cmds = hm.generateStatusCommands(hostname2);
+    cmds = null;//hm.generateStatusCommands(hostname2);
     assertTrue("HeartbeatMonitor should generate StatusCommands for host2, " +
       "even if it has only client components", cmds.size() == 1);
     assertTrue(cmds.get(0).getComponentName().equals(Role.HDFS_CLIENT.name()));
@@ -608,12 +608,12 @@ public class TestHeartbeatMonitor {
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
 
-    List<StatusCommand> cmds = hm.generateStatusCommands(hostname1);
+    List<StatusCommand> cmds = null;//hm.generateStatusCommands(hostname1);
     assertEquals("HeartbeatMonitor should generate StatusCommands for host1",
         3, cmds.size());
     assertEquals("HDFS", cmds.get(0).getServiceName());
 
-    cmds = hm.generateStatusCommands(hostname2);
+    cmds = null;//hm.generateStatusCommands(hostname2);
     assertTrue("HeartbeatMonitor should not generate StatusCommands for host2 because it has no services", cmds.isEmpty());
   }
 }

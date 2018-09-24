@@ -92,6 +92,9 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
             if (cluster.updateServiceLevelParams(updatedCluster.getServiceLevelParams(), updatedCluster.isFullServiceLevelMetadata())) {
               changed = true;
             }
+            if (cluster.updateClusterSettings(updatedCluster.getClusterSettings())) {
+              changed = true;
+            }
             if (CollectionUtils.isNotEmpty(updatedCluster.getStatusCommandsToRun())
                 && !cluster.getStatusCommandsToRun().containsAll(updatedCluster.getStatusCommandsToRun())) {
               cluster.getStatusCommandsToRun().addAll(updatedCluster.getStatusCommandsToRun());

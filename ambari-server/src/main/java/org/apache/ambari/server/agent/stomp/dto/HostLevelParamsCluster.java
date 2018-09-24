@@ -19,6 +19,7 @@ package org.apache.ambari.server.agent.stomp.dto;
 
 
 import java.util.Map;
+import java.util.SortedMap;
 
 import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
@@ -38,11 +39,16 @@ public class HostLevelParamsCluster {
   @JsonProperty("blueprint_provisioning_state")
   private Map<String, BlueprintProvisioningState> blueprintProvisioningState;
 
+  @JsonProperty("stacksSettings")
+  private SortedMap<Long, SortedMap<String, String>> stacksSettings;
+
   public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig,
-                                Map<String, BlueprintProvisioningState> blueprintProvisioningState) {
+        Map<String, BlueprintProvisioningState> blueprintProvisioningState,
+                                SortedMap<Long, SortedMap<String, String>> stacksSettings) {
     this.hostRepositories = hostRepositories;
     this.recoveryConfig = recoveryConfig;
     this.blueprintProvisioningState = blueprintProvisioningState;
+    this.stacksSettings = stacksSettings;
   }
 
   public HostRepositories getHostRepositories() {
@@ -51,6 +57,10 @@ public class HostLevelParamsCluster {
 
   public RecoveryConfig getRecoveryConfig() {
     return recoveryConfig;
+  }
+
+  public SortedMap<Long, SortedMap<String, String>> getStacksSettings() {
+    return stacksSettings;
   }
 
   public Map<String, BlueprintProvisioningState> getBlueprintProvisioningState() {

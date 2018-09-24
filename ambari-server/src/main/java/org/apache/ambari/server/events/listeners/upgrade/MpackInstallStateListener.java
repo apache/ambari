@@ -24,11 +24,13 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.StructuredOutputType;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.controller.internal.UpgradePlanInstallResourceProvider;
 import org.apache.ambari.server.events.CommandReportReceivedEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
@@ -89,6 +91,9 @@ public class MpackInstallStateListener {
   @Inject
   private Gson m_gson;
 
+  @Inject
+  private Provider<HostLevelParamsHolder> hostLevelParamsHolderProvider;
+
   /**
    * Used for ensuring that the concurrent nature of the event handler methods
    * don't collide when attempting to register hosts and mpacks at the same
@@ -127,6 +132,7 @@ public class MpackInstallStateListener {
     MpackHostStateDAO mpackHostStateDAO = m_mpackHostStateDAOProvider.get();
     List<MpackEntity> mpackEntities = m_mpackDAOProvider.get().findAll();
 
+    HostLevelParamsHolder hostLevelParamsHolder = hostLevelParamsHolderProvider.get();
     for (String hostName : event.getHostNames()) {
       Lock lock = m_locksByHost.get(hostName);
       lock.lock();
@@ -145,6 +151,12 @@ public class MpackInstallStateListener {
           hostEntity.getMpackInstallStates().add(mpackHostStateEntity);
           hostEntity = hostDAO.merge(hostEntity);
         }
+        try {
+          hostLevelParamsHolder.updateData(hostLevelParamsHolder.getCurrentData(hostEntity.getHostId()));
+        } catch (AmbariException e) {
+          LOG.warn("Exception during host level params update on mpack assigning during host adding for host with id = " +
+              hostEntity.getHostId(), e);
+        }
       } catch (Throwable throwable) {
         LOG.error(throwable.getMessage(), throwable);
       } finally {
@@ -158,16 +170,32 @@ public class MpackInstallStateListener {
    * every host.
    */
   @Subscribe
-  @Transactional
   public void onMpackEvent(MpackRegisteredEvent event) {
+    HostDAO hostDAO = m_hostDAOProvider.get();
+    List<HostEntity> hosts = hostDAO.findAll();
+    processMpackRegister(event, hosts);
+
+    //update all host level params
+    HostLevelParamsHolder hostLevelParamsHolder = hostLevelParamsHolderProvider.get();
+    for (HostEntity host : hosts) {
+      try {
+        hostLevelParamsHolder.updateData(hostLevelParamsHolder.getCurrentData(host.getHostId()));
+      } catch (AmbariException e) {
+        LOG.warn("Exception during host level params update on mpack registering for host with id = " + host.getHostId(), e);
+      }
+    }
+  }
+
+  @Transactional
+  protected void processMpackRegister(MpackRegisteredEvent event, List<HostEntity> hosts) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
 
-    HostDAO hostDAO = m_hostDAOProvider.get();
     MpackHostStateDAO mpackHostStateDAO = m_mpackHostStateDAOProvider.get();
 
-    List<HostEntity> hosts = hostDAO.findAll();
+    HostDAO hostDAO = m_hostDAOProvider.get();
+
     MpackEntity mpackEntity = m_mpackDAOProvider.get().findById(event.getMpackIdId());
 
     for (HostEntity hostEntity : hosts) {

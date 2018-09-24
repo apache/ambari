@@ -407,15 +407,6 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
         Mpack mpack = getManagementController().getAmbariMetaInfo().getMpack(installDetail.mpackId);
         RepoOsEntity repoOsEntity = s_repoHelper.getOSEntityForHost(installDetail.mpackEntity, h);
 
-        // this isn't being placed correctly elsewhere
-        actionContext.addVisitor(command -> {
-          try {
-            command.setClusterSettings(cluster.getClusterSettingsNameValueMap());
-          } catch (AmbariException e) {
-            LOG.warn("Could not set cluster settings on the command", e);
-          }
-        });
-
         s_repoHelper.addCommandRepositoryToContext(actionContext, mpack, repoOsEntity);
 
         s_actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
