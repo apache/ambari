@@ -316,7 +316,8 @@ App.HostPopup = Em.Object.create({
       serviceName: serviceName,
       dataSourceController: controller,
       isBackgroundOperations: isBackgroundOperations,
-      inputData: controller.get("services")
+      inputData: controller.get("services"),
+      servicesInfo: []
     });
 
     if (isBackgroundOperations) {
