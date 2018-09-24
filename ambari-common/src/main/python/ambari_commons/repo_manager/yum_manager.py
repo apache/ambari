@@ -208,7 +208,7 @@ class YumManager(GenericManager):
 
     if not name:
       raise ValueError("Installation command was executed with no package name")
-    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
+    elif not self._check_existence(name) or context.action_force:
       cmd = self.properties.install_cmd[context.log_output]
       if context.use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(sorted(context.use_repos.keys()))
@@ -273,6 +273,8 @@ class YumManager(GenericManager):
     yum in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
+    if not name:
+      raise ValueError("Package name can't be empty")
 
     if os.geteuid() == 0:
       return self.yum_check_package_available(name)

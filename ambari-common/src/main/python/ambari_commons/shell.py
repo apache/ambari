@@ -104,10 +104,11 @@ class RepoCallContext(object):
   use_repos = None
   skip_repos = None
   is_upgrade = False
+  action_force = False  # currently only for install action
 
   def __init__(self, ignore_errors=True, retry_count=2, retry_sleep=30, retry_on_repo_unavailability=False,
                retry_on_locked=True, log_output=True, use_repos=None, skip_repos=None,
-               is_upgrade=False):
+               is_upgrade=False, action_force=False):
     """
     :type ignore_errors bool
     :type retry_count int
@@ -128,6 +129,7 @@ class RepoCallContext(object):
     self.use_repos = use_repos
     self.skip_repos = skip_repos
     self.is_upgrade = is_upgrade
+    self.action_force = action_force
 
   @property
   def retry_count(self):
@@ -450,7 +452,8 @@ def subprocess_executor(command, timeout=__TIMEOUT_SECONDS, strategy=ReaderStrat
 
 
 @contextmanager
-def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, strategy=ReaderStrategy.BufferedQueue, env=None):
+def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, strategy=ReaderStrategy.BufferedQueue,
+                     env=None, silent=False):
   """
   Context manager for command execution
 
@@ -458,12 +461,14 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
   :param timeout execution time limit in seconds. If None will default to TIMEOUT_SECONDS, -1 disable feature
   :param strategy the way how to process output. Available methods listed in ReaderStrategy
   :param env Environment variable for new spawned process
+  :param silent no error logging if command execution failed, do not affect `error_callback` param
 
   :type command list|str
   :type timeout None|int
   :type error_callback func
   :type strategy int
   :type env dict
+  :type silent bool
 
   :rtype stdout collections.Iterable
 
@@ -515,7 +520,8 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
     if error_callback and cmd.returncode and cmd.returncode > 0:
       error_callback(command, cmd.stderr.readlines(), cmd.returncode)
   except Exception as e:
-    _logger.error("Exception during command '{0}' execution: {1}".format(command, str(e)))
+    if not silent:
+      _logger.error("Exception during command '{0}' execution: {1}".format(command, str(e)))
     if error_callback:
       error_callback(command, [str(e)], -1)
 
