@@ -145,7 +145,11 @@ class HeartbeatThread(threading.Thread):
           logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
           raise
       finally:
-        listener.enabled = True
+        with listener.event_queue_lock:
+          logger.info("Enabling events for listener {0}".format(listener))
+          listener.enabled = True
+          # Process queued messages if any
+          listener.dequeue_unprocessed_events()
 
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
 
