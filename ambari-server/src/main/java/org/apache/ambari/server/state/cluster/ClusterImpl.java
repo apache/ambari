@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.cluster;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.ambari.server.utils.CollectionUtils.emptyConcurrentMap;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -42,6 +44,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
@@ -163,6 +166,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -1498,37 +1502,19 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Config getConfig(String configType, String versionTag) {
-    clusterGlobalLock.readLock().lock();
-    try {
-      if (!allConfigs.containsKey(configType)
-        || !allConfigs.get(configType).containsKey(versionTag)) {
-        return null;
-      }
-      return allConfigs.get(configType).get(versionTag);
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+  public Config getConfig(String configType, @Nonnull String versionTag) {
+    return getConfig(configType, versionTag, Optional.empty());
   }
 
   @Override
-  public Config getConfigByServiceId(String configType, String versionTag, Long serviceId) {
+  public Config getConfig(@Nonnull String configType, @Nonnull String versionTag, @Nonnull Optional<Long> serviceId) {
     clusterGlobalLock.readLock().lock();
     try {
-      if (!serviceConfigs.containsKey(serviceId)) {
-        return null;
-      }
-      else {
-        ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(serviceId);
-        if (!allServiceConfigs.containsKey(configType)
-                || !allServiceConfigs.get(configType).containsKey(versionTag)) {
-          return null;
-        }
-        return allServiceConfigs.get(configType).get(versionTag);
-      }
-    }
-    finally {
-        clusterGlobalLock.readLock().unlock();
+      ConcurrentMap<String, ConcurrentMap<String, Config>> configs =
+        serviceId.isPresent() ? serviceConfigs.getOrDefault(serviceId.get(), emptyConcurrentMap()) : allConfigs;
+      return configs.getOrDefault(configType, emptyConcurrentMap()).get(versionTag);
+    } finally {
+      clusterGlobalLock.readLock().unlock();
     }
   }
 
@@ -1610,10 +1596,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void addConfig(Config config) {
-    if (config.getType() == null || config.getType().isEmpty()) {
-      throw new IllegalArgumentException("Config type cannot be empty");
-    }
-
+    Preconditions.checkArgument(config.getType() != null && !config.getType().isEmpty(), "Config type cannot be empty");
     clusterGlobalLock.writeLock().lock();
     try {
       if (!allConfigs.containsKey(config.getType())) {
