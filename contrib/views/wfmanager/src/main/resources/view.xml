@@ -24,7 +24,7 @@
     <name>proxy</name>
     <service-class>org.apache.oozie.ambari.view.OozieProxyImpersonator</service-class>
   </resource>
-	
+
   <parameter>
     <name>oozie.service.uri</name>
     <description>Oozie service URI for the Oozie API.</description>
@@ -34,131 +34,124 @@
   </parameter>
 
 
-      <parameter>
-        <name>webhdfs.url</name>
-        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address
-            property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
-        <label>WebHDFS FileSystem URI</label>
-        <required>true</required>
-        <cluster-config>core-site/fs.defaultFS</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.nameservices</name>
-        <description>Comma-separated list of nameservices. Value of hdfs-site/dfs.nameservices property</description>
-        <label>Logical name of the NameNode cluster</label>
-        <required>false</required>
-        <cluster-config>hdfs-site/dfs.nameservices</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenodes.list</name>
-        <description>Comma-separated list of namenodes for a given nameservice.
-            Value of hdfs-site/dfs.ha.namenodes.[nameservice] property</description>
-        <label>List of NameNodes</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenode.rpc-address.nn1</name>
-        <description>RPC address for first name node.
-            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode1] property</description>
-        <label>First NameNode RPC Address</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenode.rpc-address.nn2</name>
-        <description>RPC address for second name node.
-            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode2] property</description>
-        <label>Second NameNode RPC Address</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenode.http-address.nn1</name>
-        <description>WebHDFS address for first name node.
-            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode1] property</description>
-        <label>First NameNode HTTP (WebHDFS) Address</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.ha.namenode.http-address.nn2</name>
-        <description>WebHDFS address for second name node.
-            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode2] property</description>
-        <label>Second NameNode HTTP (WebHDFS) Address</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.client.failover.proxy.provider</name>
-        <description>The Java class that HDFS clients use to contact the Active NameNode
-            Value of hdfs-site/dfs.client.failover.proxy.provider.[nameservice] property</description>
-        <label>Failover Proxy Provider</label>
-        <required>false</required>
-        <cluster-config>fake</cluster-config>
-    </parameter>
-    <parameter>
-        <name>hdfs.auth_to_local</name>
-        <description>Auth to Local Configuration</description>
-        <label>Auth To Local</label>
-        <required>false</required>
-        <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
-    </parameter>
-    <parameter>
-        <name>webhdfs.username</name>
-        <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
-        <label>WebHDFS Username</label>
-        <default-value>${username}</default-value>
-        <required>false</required>
-    </parameter>
-    <parameter>
-        <name>webhdfs.auth</name>
-        <description>Semicolon-separated authentication configs.</description>
-        <placeholder>auth=SIMPLE</placeholder>
-        <label>WebHDFS Authorization</label>
-        <required>false</required>
-    </parameter>
-	<parameter>
-        <name>hadoop.security.authentication</name>
-        <description>Security Authentication (simple/kerberos).</description>
-        <label>Security Authentication Type</label>
-        <placeholder>simple</placeholder>
-        <cluster-config>core-site/hadoop.security.authentication</cluster-config>
-		<default-value>simple</default-value>
-        <required>true</required>
-    </parameter>
-    <parameter>
-        <name>yarn.resourcemanager.address</name>
-        <description>yarn.resourcemanager.address</description>
-        <label>yarn.resourcemanager.address</label>
-        <placeholder>http://sandbox.hortonworks.com:8050</placeholder>
-        <cluster-config>yarn-site/yarn.resourcemanager.address</cluster-config>
-        <required>true</required>
-    </parameter>
+  <parameter>
+    <name>webhdfs.url</name>
+    <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address
+      property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.
+    </description>
+    <label>WebHDFS FileSystem URI</label>
+    <required>true</required>
+    <cluster-config>core-site/fs.defaultFS</cluster-config>
+  </parameter>
+  <parameter>
+    <name>webhdfs.nameservices</name>
+    <description>Comma-separated list of nameservices. Value of hdfs-site/dfs.nameservices property</description>
+    <label>Logical name of the NameNode cluster</label>
+    <required>false</required>
+    <cluster-config>hdfs-site/dfs.nameservices</cluster-config>
+  </parameter>
+  <parameter>
+    <name>webhdfs.ha.namenodes.list</name>
+    <description>Comma-separated list of namenodes for a given nameservice.
+      Value of hdfs-site/dfs.ha.namenodes.[nameservice] property
+    </description>
+    <label>List of NameNodes</label>
+    <required>false</required>
+    <cluster-config>fake</cluster-config>
+  </parameter>
+  <parameter>
+    <name>webhdfs.ha.namenode.rpc-address.list</name>
+    <description>Comma separated RPC address for name nodes.</description>
+    <label>Comma separated NameNode RPC Addresses</label>
+    <required>false</required>
+    <cluster-config>fake</cluster-config>
+  </parameter>
+  <parameter>
+    <name>webhdfs.ha.namenode.http-address.list</name>
+    <description>Comma separated WebHDFS address for name nodes.</description>
+    <label>Comma separated NameNode HTTP (WebHDFS) Addresses</label>
+    <required>false</required>
+    <cluster-config>fake</cluster-config>
+  </parameter>
+  <parameter>
+    <name>webhdfs.ha.namenode.https-address.list</name>
+    <description>Comma separated WebHDFS Https addresses for name nodes.</description>
+    <label>Comma separated NameNode HTTPS (WebHDFS) Addresses</label>
+    <required>false</required>
+    <cluster-config>fake</cluster-config>
+  </parameter>
+  <parameter>
+    <name>webhdfs.client.failover.proxy.provider</name>
+    <description>The Java class that HDFS clients use to contact the Active NameNode
+      Value of hdfs-site/dfs.client.failover.proxy.provider.[nameservice] property
+    </description>
+    <label>Failover Proxy Provider</label>
+    <required>false</required>
+    <cluster-config>fake</cluster-config>
+  </parameter>
+  <parameter>
+    <name>hdfs.auth_to_local</name>
+    <description>Auth to Local Configuration</description>
+    <label>Auth To Local</label>
+    <required>false</required>
+    <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
+  </parameter>
+  <parameter>
+    <name>webhdfs.username</name>
+    <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
+    <label>WebHDFS Username</label>
+    <default-value>${username}</default-value>
+    <required>false</required>
+  </parameter>
+  <parameter>
+    <name>webhdfs.auth</name>
+    <description>Semicolon-separated authentication configs.</description>
+    <placeholder>auth=SIMPLE</placeholder>
+    <label>WebHDFS Authorization</label>
+    <required>false</required>
+  </parameter>
+  <parameter>
+    <name>hadoop.security.authentication</name>
+    <description>Security Authentication (simple/kerberos).</description>
+    <label>Security Authentication Type</label>
+    <placeholder>simple</placeholder>
+    <cluster-config>core-site/hadoop.security.authentication</cluster-config>
+    <default-value>simple</default-value>
+    <required>true</required>
+  </parameter>
+  <parameter>
+    <name>yarn.resourcemanager.address</name>
+    <description>yarn.resourcemanager.address</description>
+    <label>yarn.resourcemanager.address</label>
+    <placeholder>http://sandbox.hortonworks.com:8050</placeholder>
+    <cluster-config>yarn-site/yarn.resourcemanager.address</cluster-config>
+    <required>true</required>
+  </parameter>
 
   <parameter>
     <name>view.conf.keyvalues</name>
     <description>The key values that will be copied to hdfs connection configuration verbatim. Format : key1=value1;
-      key2=value2</description>
+      key2=value2
+    </description>
     <label>View Configs</label>
     <required>false</required>
   </parameter>
 
-    <persistence>
-        <entity>
-             <class>org.apache.oozie.ambari.view.workflowmanager.model.Workflow</class>
-            <id-property>id</id-property>
-        </entity>
-        <entity>
-            <class>org.apache.oozie.ambari.view.assets.model.ActionAssetDefinition</class>
-            <id-property>id</id-property>
-        </entity>
-        <entity>
-            <class>org.apache.oozie.ambari.view.assets.model.ActionAsset</class>
-            <id-property>id</id-property>
-        </entity>
+  <persistence>
+    <entity>
+      <class>org.apache.oozie.ambari.view.workflowmanager.model.Workflow</class>
+      <id-property>id</id-property>
+    </entity>
+    <entity>
+      <class>org.apache.oozie.ambari.view.assets.model.ActionAssetDefinition</class>
+      <id-property>id</id-property>
+    </entity>
+    <entity>
+      <class>org.apache.oozie.ambari.view.assets.model.ActionAsset</class>
+      <id-property>id</id-property>
+    </entity>
 
-    </persistence>
+  </persistence>
 
   <!--<auto-instance>
     <name>AUTO_OOZIE_VIEW</name>

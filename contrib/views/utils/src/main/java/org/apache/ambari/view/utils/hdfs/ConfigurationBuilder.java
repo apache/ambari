@@ -274,32 +274,9 @@ public class ConfigurationBuilder {
       }
     }
 
-    if(rpcAddresses.isEmpty()){
-      //      get property from view instance configs
-      String viewRpcAddresses = getViewProperty(NAMENODE_RPC_NN_INSTANCE_PROPERTY);
-      LOG.debug("value of {} in view is : {}", NAMENODE_RPC_NN_INSTANCE_PROPERTY, viewRpcAddresses);
-      if(!Strings.isNullOrEmpty(viewRpcAddresses)){
-        rpcAddresses.addAll(Arrays.asList(viewRpcAddresses.split(",")));
-      }
-    }
-
-    if(httpAddresses.isEmpty()){
-      //      get property from view instance configs
-      String viewHttpAddresses = getViewProperty(NAMENODE_HTTP_NN_INSTANCE_PROPERTY);
-      LOG.debug("value of {} in view is : {}", NAMENODE_HTTP_NN_INSTANCE_PROPERTY, viewHttpAddresses);
-      if(!Strings.isNullOrEmpty(viewHttpAddresses)){
-        httpAddresses.addAll(Arrays.asList(viewHttpAddresses.split(",")));
-      }
-    }
-
-    if(httpsAddresses.isEmpty()){
-    //      get property from view instance configs
-      String viewHttpsAddresses = getViewProperty(NAMENODE_HTTPS_NN_INSTANCE_PROPERTY);
-      LOG.debug("value of {} in view is : {}", NAMENODE_HTTPS_NN_INSTANCE_PROPERTY, viewHttpsAddresses);
-      if(!Strings.isNullOrEmpty(viewHttpsAddresses)){
-        httpsAddresses.addAll(Arrays.asList(viewHttpsAddresses.split(",")));
-      }
-    }
+    addAddresses(rpcAddresses, NAMENODE_RPC_NN_INSTANCE_PROPERTY);
+    addAddresses(httpAddresses, NAMENODE_HTTP_NN_INSTANCE_PROPERTY);
+    addAddresses(httpsAddresses, NAMENODE_HTTPS_NN_INSTANCE_PROPERTY);
 
     for (int i = 0 ; i < namenodes.length ; i++) {
       conf.set( String.format(NAMENODE_RPC_NN_CLUSTER_PROPERTY, nameservice, namenodes[i]), rpcAddresses.get(i));
@@ -309,6 +286,17 @@ public class ConfigurationBuilder {
 
     copyClusterProperty(String.format(FAILOVER_PROXY_PROVIDER_CLUSTER_PROPERTY, nameservice),
       FAILOVER_PROXY_PROVIDER_INSTANCE_PROPERTY);
+  }
+
+  private void addAddresses(List<String> addressList, String propertyName) {
+    if(addressList.isEmpty()){
+      //      get property from view instance configs
+      String addressString = getViewProperty(propertyName);
+      LOG.debug("value of {} in view is : {}", propertyName, addressString);
+      if(!Strings.isNullOrEmpty(addressString)){
+        addressList.addAll(Arrays.asList(addressString.split(",")));
+      }
+    }
   }
 
   private String copyClusterProperty(String propertyName, String instancePropertyName) {

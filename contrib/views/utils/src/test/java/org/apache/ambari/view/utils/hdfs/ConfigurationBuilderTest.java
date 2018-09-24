@@ -118,11 +118,7 @@ public class ConfigurationBuilderTest extends EasyMockSupport {
 
     for(int i = 0 ; i < nnhttp.length; i++) {
       Assert.assertEquals("name node rpc address not correct.", nnrpc[i], configurationBuilder.conf.get(String.format(NAMENODE_RPC_NN_CLUSTER_PROPERTY, nameservice, namenodes[i])));
-    }
-    for(int i = 0 ; i < nnhttp.length; i++) {
       Assert.assertEquals("name node http address not correct.", nnhttp[i], configurationBuilder.conf.get(String.format(NAMENODE_HTTP_NN_CLUSTER_PROPERTY, nameservice, namenodes[i])));
-    }
-    for(int i = 0 ; i < nnhttp.length; i++) {
       Assert.assertEquals("name node https address not correct.", nnhttps[i], configurationBuilder.conf.get(String.format(NAMENODE_HTTPS_NN_CLUSTER_PROPERTY, nameservice, namenodes[i])));
     }
   }
