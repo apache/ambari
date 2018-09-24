@@ -229,6 +229,12 @@ public interface StackDefinition {
   Stream<String> getServicesForConfigType(String config);
 
   /**
+   * @return stream of service names along with the id of their defining stack which correspond
+   * to the specified configuration type name
+   */
+  Stream<Pair<StackId, String>> getStackServicesForConfigType(String config);
+
+  /**
    * Return the dependencies specified for the given component.
    *
    * @param component  component to get dependency information for

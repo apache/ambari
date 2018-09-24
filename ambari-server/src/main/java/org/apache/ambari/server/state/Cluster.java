@@ -23,7 +23,10 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterSettingNotFoundException;
@@ -415,6 +418,8 @@ public interface Cluster {
   Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType);
 
   /**
+   * @deprecated {@link #getConfig(String, String, Optional)} should be preferred
+   *
    * Gets the specific config that matches the specified type and tag.  This not
    * necessarily a DESIRED configuration that applies to a cluster.
    *
@@ -423,19 +428,23 @@ public interface Cluster {
    * @return a {@link Config} object, or <code>null</code> if the specific type
    * and version have not been set.
    */
-  Config getConfig(String configType, String versionTag);
+  @Deprecated
+  Config getConfig(@Nonnull String configType, @Nonnull String versionTag);
 
   /**
-   * Gets the specific config that matches the specified type and tag.  This not
+   * Gets the specific config that matches the specified type and tag. This not
    * necessarily a DESIRED configuration that applies to a cluster.
+   *
+   * If {@code serviceId} is present, the config will be first looked up in service instance level configs, when absent,
+   * cluster level configs will be searched.
    *
    * @param configType the config type to find
    * @param versionTag the config version tag to find
-   * @param serviceId the service for the config
+   * @param serviceId The optional serviceid. When present, the config will be looked up from service leve configs
    * @return a {@link Config} object, or <code>null</code> if the specific type
    * and version have not been set.
    */
-  Config getConfigByServiceId(String configType, String versionTag, Long serviceId);
+  Config getConfig(@Nonnull String configType, @Nonnull String versionTag, @Nonnull Optional<Long> serviceId);
 
   /**
    * Get latest (including inactive ones) configurations with any of the given types.

@@ -69,6 +69,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -1160,7 +1161,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Config config = configFactory.createNew(stackId, cluster, type, versionTag, properties,
         propertiesAttributes, serviceId);
-
+    // TODO: the constructor of ConfigImpl adds itself to the cluster so calling this method
+    // should not be necessary. It causes some confusion with service instance level configs
+    // (where a serviceId is present). The result of the extra addConfig() call adds these configs
+    // to the cluster level configs too adding confusion.
     cluster.addConfig(config);
     return config;
   }
@@ -1626,7 +1630,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Config config = null;
       //TODO : Remove after getting rid of cluster configurations
       if (request.getServiceId() != null) {
-        config = cluster.getConfigByServiceId(request.getType(), request.getVersionTag(), request.getServiceId());
+        config = cluster.getConfig(request.getType(), request.getVersionTag(), Optional.of(request.getServiceId()));
         if (null != config) {
           response = new ConfigurationResponse(
                   cluster.getClusterName(), config, request.getServiceId(), request.getServiceGroupId());
@@ -1911,7 +1915,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           note = cr.getServiceConfigVersionNote();
-          Config config = cluster.getConfig(configType, cr.getVersionTag());
+          Config config = cluster.getConfig(configType, cr.getVersionTag(), Optional.ofNullable(cr.getServiceId()));
           if (null != config) {
             configs.add(config);
           }

@@ -269,7 +269,9 @@ public class AmbariContextTest {
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
 
     for (Map.Entry<String, String> entry : configTypeServiceMapping.entrySet()) {
-      expect(stack.getServicesForConfigType(entry.getKey())).andReturn(Stream.of(entry.getValue())).anyTimes();
+      expect(stack.getStackServicesForConfigType(entry.getKey()))
+        .andReturn( Stream.of(Pair.of(STACK_ID, entry.getValue())) )
+        .anyTimes();
     }
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
