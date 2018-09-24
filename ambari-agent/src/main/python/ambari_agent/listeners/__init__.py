@@ -25,16 +25,40 @@ import copy
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 from ambari_agent.Utils import Utils
+from Queue import Queue
+import threading
 
 logger = logging.getLogger(__name__)
 
 class EventListener(ambari_stomp.ConnectionListener):
+
+  unprocessed_messages_queue = Queue(100)
+
   """
   Base abstract class for event listeners on specific topics.
   """
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
     self.enabled = True
+    self.event_queue_lock = threading.RLock()
+
+  def dequeue_unprocessed_events(self):
+    while not self.unprocessed_messages_queue.empty():
+      payload = self.unprocessed_messages_queue.get_nowait()
+      if payload:
+        logger.info("Processing event from unprocessed queue {0} {1}".format(payload[0], payload[1]))
+        destination = payload[0]
+        headers = payload[1]
+        message_json = payload[2]
+        message = payload[3]
+        try:
+          self.on_event(headers, message_json)
+        except Exception as ex:
+          logger.exception("Exception while handing event from {0} {1} {2}".format(destination, headers, message))
+          self.report_status_to_sender(headers, message, ex)
+        else:
+          self.report_status_to_sender(headers, message)
+
 
   def on_message(self, headers, message):
     """
@@ -58,13 +82,21 @@ class EventListener(ambari_stomp.ConnectionListener):
       logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, copy.deepcopy(message_json))))
 
       if not self.enabled:
-        logger.info("Ignoring event to {0} since event listener is disabled".format(destination))
-        return
+        with self.event_queue_lock:
+          if not self.enabled:
+            logger.info("Queuing event as unprocessed {0} since event "
+                        "listener is disabled".format(destination))
+            try:
+              self.unprocessed_messages_queue.put_nowait((destination, headers, message_json, message))
+            except Exception as ex:
+              logger.warning("Cannot queue any more unprocessed events since "
+                           "queue is full! {0} {1}".format(destination, message))
+            return
 
       try:
         self.on_event(headers, message_json)
       except Exception as ex:
-        logger.exception("Exception while handing event from {0} {1}".format(destination, headers, message))
+        logger.exception("Exception while handing event from {0} {1} {2}".format(destination, headers, message))
         self.report_status_to_sender(headers, message, ex)
       else:
         self.report_status_to_sender(headers, message)
