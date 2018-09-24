@@ -176,8 +176,12 @@ class DirectoryProvider(Provider):
           if path in followed_links:
             raise Fail("Applying %s failed, looped symbolic links found while resolving %s" % (self.resource, path))
           followed_links.add(path)
+          prev_path = path
           path = sudo.readlink(path)
           
+          if not os.path.isabs(path):
+            path = os.path.join(os.path.dirname(prev_path), path)
+
         if path != self.resource.path:
           Logger.info("Following the link {0} to {1} to create the directory".format(self.resource.path, path))
 
