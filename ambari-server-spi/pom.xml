@@ -22,7 +22,6 @@
     <relativePath>../ambari-project</relativePath>
   </parent>
   <artifactId>ambari-server-spi</artifactId>
-  <name>ambari-server-spi</name>
   <url>http://ambari.apache.org</url>
   <name>Ambari Server SPI</name>
   <description>A client library which is used for providing plugins for the Ambari Server framework.</description>  
