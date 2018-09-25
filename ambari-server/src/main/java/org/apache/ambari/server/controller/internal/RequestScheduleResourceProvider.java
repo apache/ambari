@@ -78,6 +78,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
   public static final String BATCH_SEPARATION_IN_SECONDS_PROPERTY_ID = "batch_separation_in_seconds";
   public static final String TASK_FAILURE_TOLERANCE_PROPERTY_ID = "task_failure_tolerance";
+  public static final String TASK_FAILURE_TOLERANCE_PER_BATCH_PROPERTY_ID = "task_failure_tolerance_per_batch";
   public static final String TASK_FAILURE_TOLERANCE_LIMIT_PROPERTY_ID = "task_failure_tolerance_limit";
   public static final String REQUESTS_PROPERTY_ID = "requests";
 
@@ -122,6 +123,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
           BATCH_SEPARATION_IN_SECONDS_PROPERTY_ID);
   public static final String TASK_FAILURE_TOLERANCE = PropertyHelper.getPropertyId(BATCH_SETTINGS,
           TASK_FAILURE_TOLERANCE_PROPERTY_ID);
+  public static final String TASK_FAILURE_TOLERANCE_PER_BATCH = PropertyHelper.getPropertyId(BATCH_SETTINGS, TASK_FAILURE_TOLERANCE_PER_BATCH_PROPERTY_ID);
   public static final String REQUESTS = PropertyHelper.getPropertyId(null, REQUESTS_PROPERTY_ID);
 
   public static final String TYPE = PropertyHelper.getPropertyId(null, TYPE_PROPERTY_ID);
@@ -164,6 +166,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     UPDATE_TIME,
     BATCH_SEPARATION_IN_SECONDS,
     TASK_FAILURE_TOLERANCE,
+    TASK_FAILURE_TOLERANCE_PER_BATCH,
     REQUESTS,
     TYPE,
     URI,
@@ -633,6 +636,10 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
                   (TASK_FAILURE_TOLERANCE)) {
                 batchSettings.setTaskFailureToleranceLimit(Integer.valueOf
                   ((String) batchMapEntry.getValue()));
+              }  else if (batchMapEntry.getKey().equals
+                  (TASK_FAILURE_TOLERANCE_PER_BATCH)) {
+                batchSettings.setTaskFailureToleranceLimitPerBatch(Integer.valueOf
+                    ((String) batchMapEntry.getValue()));
               } else if (batchMapEntry.getKey().equals
                   (BATCH_SEPARATION_IN_SECONDS)) {
                 batchSettings.setBatchSeparationInSeconds(Integer.valueOf

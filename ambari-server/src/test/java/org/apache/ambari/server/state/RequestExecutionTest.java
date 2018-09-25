@@ -88,6 +88,7 @@ public class RequestExecutionTest {
 
     BatchSettings batchSettings = new BatchSettings();
     batchSettings.setTaskFailureToleranceLimit(10);
+    batchSettings.setTaskFailureToleranceLimitPerBatch(2);
     batches.setBatchSettings(batchSettings);
 
     List<BatchRequest> batchRequests = new ArrayList<>();
@@ -132,6 +133,8 @@ public class RequestExecutionTest {
     Assert.assertNotNull(scheduleEntity);
     Assert.assertEquals(requestExecution.getBatch().getBatchSettings()
       .getTaskFailureToleranceLimit(), scheduleEntity.getBatchTolerationLimit());
+    Assert.assertEquals(requestExecution.getBatch().getBatchSettings()
+      .getTaskFailureToleranceLimitPerBatch(), scheduleEntity.getBatchTolerationLimitPerBatch());
     Assert.assertEquals(scheduleEntity.getRequestScheduleBatchRequestEntities().size(), 2);
     Collection<RequestScheduleBatchRequestEntity> batchRequestEntities =
       scheduleEntity.getRequestScheduleBatchRequestEntities();
@@ -236,6 +239,8 @@ public class RequestExecutionTest {
     Assert.assertNotNull(scheduleEntity);
     Assert.assertEquals(requestExecution.getBatch().getBatchSettings()
       .getTaskFailureToleranceLimit(), scheduleEntity.getBatchTolerationLimit());
+    Assert.assertEquals(requestExecution.getBatch().getBatchSettings()
+      .getTaskFailureToleranceLimitPerBatch(), scheduleEntity.getBatchTolerationLimitPerBatch());
     Assert.assertEquals(scheduleEntity.getRequestScheduleBatchRequestEntities().size(), 2);
     Collection<RequestScheduleBatchRequestEntity> batchRequestEntities =
       scheduleEntity.getRequestScheduleBatchRequestEntities();
