@@ -1,7 +1,7 @@
 {
   "type": "datasource",
   "name": "Ambari Metrics",
-  "id": "praj-ams-datasource",
+  "id": "ambari-metrics",
   "metrics": true,
   "staticRoot": ".",
   "defaultMatchFormat": "glob",
@@ -16,6 +16,6 @@
       "small": "img/apache-ambari-logo-sm.png",
       "large": "img/apache-ambari-logo.png"
     },
-    "version": "1.0.1",
-  },
+    "version": "1.0.1"
+  }
 }

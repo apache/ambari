@@ -515,7 +515,19 @@
                       <directory>/var/lib/ambari-metrics-grafana</directory>
                     </mapping>
                     <mapping>
+                      <directory>/var/lib/ambari-metrics-grafana/plugins</directory>
+                    </mapping>
+                    <mapping>
                       <directory>/var/log/ambari-metrics-grafana</directory>
+                    </mapping>
+                    <mapping>
+                      <directory>/var/lib/ambari-metrics-grafana/plugins/ambari-metrics</directory>
+                      <filemode>755</filemode>
+                      <sources>
+                        <source>
+                          <location>${grafana.dir}/ambari-metrics</location>
+                        </source>
+                      </sources>
                     </mapping>
                   </mappings>
                 </configuration>
@@ -1075,17 +1087,17 @@
                 </goals>
                 <configuration>
                   <target name="Downloading Hadoop">
-                    <mkdir dir="${project.build.directory}/embedded" />
+                    <mkdir dir="${project.build.directory}/embedded"/>
                     <get
                       src="${hadoop.tar}"
                       dest="${project.build.directory}/embedded/hadoop.tar.gz"
                       usetimestamp="true"
-                      />
+                    />
                     <untar
                       src="${project.build.directory}/embedded/hadoop.tar.gz"
                       dest="${project.build.directory}/embedded"
                       compression="gzip"
-                      />
+                    />
                     <!-- Resolving symlinks-->
                     <move todir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/">
                       <fileset dir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/"/>
@@ -1094,11 +1106,11 @@
                     <move
                       file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so.0.0.0"
                       tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so"
-                      />
+                    />
                     <move
                       file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so.1.0.0"
                       tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so"
-                      />
+                    />
                     <delete file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libsnappy.so"/>
                   </target>
                 </configuration>
