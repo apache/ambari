@@ -42,6 +42,9 @@ import javax.persistence.TableGenerator;
     "WHERE configs.configGroupId=:groupId")
 })
 public class ConfigGroupConfigMappingEntity {
+  /**
+   * the primary key
+   */
   @Id
   @Column(name = "id", nullable = false, insertable = true, updatable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "confgroupclusterconfigmapping_id_generator")
@@ -56,6 +59,9 @@ public class ConfigGroupConfigMappingEntity {
   @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
   private String configType;
 
+  /**
+   * the optional service id
+   */
   @Column(name = "service_id", nullable = true, insertable = true, updatable = false)
   private Long serviceId;
 
@@ -78,10 +84,16 @@ public class ConfigGroupConfigMappingEntity {
     @JoinColumn(name = "config_group_id", referencedColumnName = "group_id", nullable = false, insertable = false, updatable = false)})
   private ConfigGroupEntity configGroupEntity;
 
+  /**
+   * @return the primary key
+   */
   public Long getId() {
     return id;
   }
 
+  /**
+   * @param id the primary key
+   */
   public void setId(Long id) {
     this.id = id;
   }
@@ -110,10 +122,16 @@ public class ConfigGroupConfigMappingEntity {
     this.configType = configType;
   }
 
+  /**
+   * @return the service id if the mapping is associated with a service instance or {@code null} if not.
+   */
   public Long getServiceId() {
     return serviceId;
   }
 
+  /**
+   * @param serviceId the id of the service instance associated with this mapping
+   */
   public void setServiceId(Long serviceId) {
     this.serviceId = serviceId;
   }

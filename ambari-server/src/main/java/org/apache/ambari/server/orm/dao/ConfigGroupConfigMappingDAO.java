@@ -37,6 +37,10 @@ public class ConfigGroupConfigMappingDAO {
   @Inject
   DaoUtils daoUtils;
 
+  /**
+   * @param pk the primary key
+   * @return the config group for the given pk
+   */
   @RequiresSession
   public ConfigGroupConfigMappingEntity findByPK(Long pk) {
     return entityManagerProvider.get().find(ConfigGroupConfigMappingEntity.class, pk);
@@ -80,6 +84,10 @@ public class ConfigGroupConfigMappingDAO {
     entityManagerProvider.get().remove(merge(configGroupConfigMappingEntity));
   }
 
+  /**
+   * Removes an entity by its primary key
+   * @param pk the primary key
+   */
   @Transactional
   public void removeByPK(Long pk) {
     entityManagerProvider.get().remove(findByPK(pk));
