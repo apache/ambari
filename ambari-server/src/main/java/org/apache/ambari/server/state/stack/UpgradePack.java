@@ -68,6 +68,13 @@ public class UpgradePack {
    */
   private String name;
 
+  @XmlElement(name="source")
+  private String source;
+
+  @XmlElement(name="source-stack")
+  private String sourceStack;
+
+
   @XmlElement(name="target")
   private String target;
 
@@ -140,11 +147,33 @@ public class UpgradePack {
   public void setName(String name) {
     this.name = name;
   }
+
+  /**
+   * @return the source version for the upgrade pack
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * @return the source stack
+   */
+  public String getSourceStack() {
+    return sourceStack;
+  }
+
   /**
    * @return the target version for the upgrade pack
    */
   public String getTarget() {
     return target;
+  }
+
+  /**
+   * @return the target stack
+   */
+  public String getTargetStack() {
+    return targetStack;
   }
 
   /**
@@ -262,12 +291,6 @@ public class UpgradePack {
     return intermediateStacks;
   }
 
-  /**
-   * @return the target stack, or {@code null} if the upgrade is within the same stack
-   */
-  public String getTargetStack() {
-    return targetStack;
-  }
 
   /**
    * Gets whether skippable components that failed are automatically skipped.
