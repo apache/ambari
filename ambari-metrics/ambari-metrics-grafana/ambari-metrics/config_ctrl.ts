@@ -1,3 +1,4 @@
+///<reference path="../../../headers/common.d.ts" />
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,24 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/// <reference path="../../../../../public/app/headers/common.d.ts" />
-import { QueryCtrl } from 'app/plugins/sdk';
-export declare class AmbariMetricsQueryCtrl extends QueryCtrl {
-    static templateUrl: string;
-    aggregators: any;
-    aggregator: any;
-    errors: any;
-    precisions: any;
-    transforms: any;
-    transform: any;
-    precisionInit: any;
-    suggestMetrics: any;
-    suggestApps: any;
-    suggestHosts: any;
-    /** @ngInject **/
-    constructor($scope: any, $injector: any);
-    targetBlur(): void;
-    getTextValues(metricFindResult: any): any;
-    getCollapsedText(): string;
-    validateTarget(): any;
+
+import angular from 'angular';
+import _ from 'lodash';
+
+export class AmbariMetricsConfigCtrl {
+    static templateUrl = 'partials/config.html';
+    current: any;
 }

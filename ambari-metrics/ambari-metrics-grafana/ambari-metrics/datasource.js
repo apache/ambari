@@ -52,7 +52,7 @@ define([
         }
 
         options.url = this.url + options.url;
-        options.inspect = {type: 'ambarimetrics'};
+        options.inspect = {type: 'ambari-metrics'};
 
         return backendSrv.datasourceRequest(options);
       };
