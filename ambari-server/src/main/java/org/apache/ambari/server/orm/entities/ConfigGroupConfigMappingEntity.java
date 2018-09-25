@@ -19,18 +19,23 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
 @Entity
 @Table(name = "confgroupclusterconfigmapping")
-@IdClass(ConfigGroupConfigMappingEntityPK.class)
+@TableGenerator(name = "confgroupclusterconfigmapping_id_generator",
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
+  pkColumnValue = "cnfgrpclstrcnfigmpg_id_seq", initialValue = 1
+)
 @NamedQueries({
   @NamedQuery(name = "configsByGroup", query =
   "SELECT configs FROM ConfigGroupConfigMappingEntity configs " +
@@ -38,16 +43,21 @@ import javax.persistence.Table;
 })
 public class ConfigGroupConfigMappingEntity {
   @Id
+  @Column(name = "id", nullable = false, insertable = true, updatable = false)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "confgroupclusterconfigmapping_id_generator")
+  private Long id;
+
   @Column(name = "config_group_id", nullable = false, insertable = true, updatable = true)
   private Long configGroupId;
 
-  @Id
   @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false)
   private Long clusterId;
 
-  @Id
   @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
   private String configType;
+
+  @Column(name = "service_id", nullable = true, insertable = true, updatable = false)
+  private Long serviceId;
 
   @Column(name = "version_tag", nullable = false, insertable = true, updatable = false)
   private String versionTag;
@@ -67,6 +77,14 @@ public class ConfigGroupConfigMappingEntity {
   @JoinColumns({
     @JoinColumn(name = "config_group_id", referencedColumnName = "group_id", nullable = false, insertable = false, updatable = false)})
   private ConfigGroupEntity configGroupEntity;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
 
   public Long getConfigGroupId() {
     return configGroupId;
@@ -90,6 +108,14 @@ public class ConfigGroupConfigMappingEntity {
 
   public void setConfigType(String configType) {
     this.configType = configType;
+  }
+
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   public String getVersionTag() {

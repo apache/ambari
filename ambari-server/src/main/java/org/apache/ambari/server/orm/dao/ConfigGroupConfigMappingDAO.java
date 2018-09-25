@@ -24,7 +24,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntityPK;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -39,10 +38,8 @@ public class ConfigGroupConfigMappingDAO {
   DaoUtils daoUtils;
 
   @RequiresSession
-  public ConfigGroupConfigMappingEntity findByPK
-    (ConfigGroupConfigMappingEntityPK configGroupConfigMappingEntityPK) {
-    return entityManagerProvider.get().find(ConfigGroupConfigMappingEntity.class,
-      configGroupConfigMappingEntityPK);
+  public ConfigGroupConfigMappingEntity findByPK(Long pk) {
+    return entityManagerProvider.get().find(ConfigGroupConfigMappingEntity.class, pk);
   }
 
   @RequiresSession
@@ -84,10 +81,8 @@ public class ConfigGroupConfigMappingDAO {
   }
 
   @Transactional
-  public void removeByPK(ConfigGroupConfigMappingEntityPK
-                           configGroupConfigMappingEntityPK) {
-    entityManagerProvider.get().remove(findByPK
-      (configGroupConfigMappingEntityPK));
+  public void removeByPK(Long pk) {
+    entityManagerProvider.get().remove(findByPK(pk));
   }
 
   @Transactional
