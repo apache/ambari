@@ -29,7 +29,7 @@ class BeforeAnyHook(Hook):
     env.set_params(params)
 
     setup_users()
-    if params.has_hdfs_clients or params.dfs_type == 'HCFS':
+    if params.has_hdfs or params.dfs_type == 'HCFS':
       setup_hadoop_env()
     setup_java()
 

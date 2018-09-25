@@ -96,7 +96,7 @@ def setup_hadoop():
 
     create_microsoft_r_dir()
 
-  if params.has_hdfs_clients or params.dfs_type == 'HCFS':
+  if params.has_hdfs or params.dfs_type == 'HCFS':
     # if WebHDFS is not enabled we need this jar to create hadoop folders and copy tarballs to HDFS.
     if params.sysprep_skip_copy_fast_jar_hdfs:
       print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
