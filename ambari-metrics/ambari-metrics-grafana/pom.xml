@@ -28,7 +28,7 @@
   <artifactId>ambari-metrics-grafana</artifactId>
   <name>Ambari Metrics Grafana</name>
   <packaging>pom</packaging>
-  <version>2.1.0.0.0</version>
+  <version>2.0.0.0-SNAPSHOT</version>
   <description>Ambari Metrics Grafana</description>
 
   <build>
@@ -124,12 +124,6 @@
                   dest="${project.build.directory}/grafana"
                   compression="gzip"
                   />
-                <copy
-                  todir="${project.build.directory}/grafana/${grafana.folder}/public/app/plugins/datasource">
-                  <fileset dir="${project.build.directory}/../">
-                    <include name="ambari-metrics/"/>
-                  </fileset>
-                </copy>
               </target>
             </configuration>
           </execution>
