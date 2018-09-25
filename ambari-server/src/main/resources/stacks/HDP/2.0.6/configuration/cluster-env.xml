@@ -137,6 +137,17 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>sysprep_skip_hive_schema_create</name>
+    <display-name>Whether to skip creating the Hive Metastore DB schema on sysprepped cluster</display-name>
+    <value>false</value>
+    <description>Whether to skip creating the Hive Metastore DB schema on sysprepped cluster, during fresh install</description>
+    <value-attributes>
+      <overridable>true</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>sysprep_skip_setup_jce</name>
     <display-name>Whether to skip setting up the unlimited key JCE policy on sysprepped cluster</display-name>
     <value>false</value>
