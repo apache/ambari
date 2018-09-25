@@ -574,6 +574,7 @@ CREATE TABLE configgroup (
   CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE confgroupclusterconfigmapping (
+  id BIGINT NOT NULL,
   config_group_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   config_type VARCHAR(255) NOT NULL,
