@@ -712,13 +712,19 @@ public class ExecutionScheduleManager {
     }
 
     BatchSettings batchSettings = requestExecution.getBatch().getBatchSettings();
-    if (batchSettings != null
-        && batchSettings.getTaskFailureToleranceLimit() != null) {
-      return taskCounts.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY) >
-        batchSettings.getTaskFailureToleranceLimit();
+
+    boolean result = false;
+    if (batchSettings != null) {
+      if (batchSettings.getTaskFailureToleranceLimit() != null) {
+        result = taskCounts.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY) > batchSettings.getTaskFailureToleranceLimit();
+      }
+      if (batchSettings.getTaskFailureToleranceLimitPerBatch() != null) {
+        result = result || taskCounts.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY) >
+            batchSettings.getTaskFailureToleranceLimitPerBatch();
+      }
     }
 
-    return false;
+    return result;
   }
 
   /**
