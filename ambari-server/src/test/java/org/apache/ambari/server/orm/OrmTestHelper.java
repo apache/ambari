@@ -394,6 +394,7 @@ public class OrmTestHelper {
     Mpack mpack = EasyMock.createNiceMock(Mpack.class);
     EasyMock.expect(mpack.getMpackId()).andReturn(stackId.toString()).anyTimes();
     EasyMock.expect(mpack.getName()).andReturn(stackId.getStackName()).anyTimes();
+    EasyMock.expect(mpack.getStackId()).andReturn(stackId).anyTimes();
     EasyMock.expect(mpack.getResourceId()).andReturn(mpackEntity.getId()).anyTimes();
     EasyMock.expect(mpack.getModules()).andReturn(packletArrayList).anyTimes();
     EasyMock.expect(mpack.getModule(EasyMock.anyString())).andReturn(samplePacklet).anyTimes();

@@ -17,19 +17,12 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DFS_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandRepository;
@@ -49,18 +42,13 @@ import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Mpack;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.collections.MapUtils;
 
 import com.google.common.eventbus.Subscribe;
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -76,12 +64,6 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   @Inject
   private Provider<AmbariManagementController> m_ambariManagementController;
-
-  @Inject
-  private Gson gson;
-
-  @Inject
-  private Provider<ConfigHelper> configHelperProvider;
 
   @Inject
   private Provider<AmbariMetaInfo> ambariMetaInfoProvider;
@@ -107,7 +89,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
           m_ambariManagementController.get().retrieveHostRepositories(cl, host),
           recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()),
           m_ambariManagementController.get().getBlueprintProvisioningStates(cl.getClusterId(), host.getHostId()),
-          getHostStacksSettings(cl, host));
+          getHostStacksSettings(host));
 
       hostLevelParamsClusters.put(Long.toString(cl.getClusterId()),
           hostLevelParamsCluster);
@@ -235,7 +217,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
                     m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
                     recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName()),
                     m_ambariManagementController.get().getBlueprintProvisioningStates(clusterId, host.getHostId()),
-                    getHostStacksSettings(cluster, host)));
+                    getHostStacksSettings(host)));
     updateData(hostLevelParamsUpdateEvent);
   }
 
@@ -254,7 +236,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     }
   }
 
-  public SortedMap<Long, SortedMap<String, String>> getHostStacksSettings(Cluster cl, Host host) throws AmbariException {
+  public SortedMap<Long, SortedMap<String, String>> getHostStacksSettings(Host host) throws AmbariException {
     SortedMap<Long, SortedMap<String, String>> stacksSettings = new TreeMap<>();
     MpackManager mpackManager = ambariMetaInfoProvider.get().getMpackManager();
     for (MpackHostStateEntity mpackHostStateEntity : host.getMPackInstallStates()) {
@@ -263,51 +245,18 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
       if (mpack == null) {
         throw new AmbariException(String.format("No mpack with id %s found", mpackId));
       }
-      stacksSettings.put(mpackId, new TreeMap<>(getStackSettings(cl, mpack.getStackId())));
+      stacksSettings.put(mpackId, new TreeMap<>(getStackSettings(mpack.getStackId())));
     }
     return stacksSettings;
   }
 
 
-  private SortedMap<String, String> getStackSettings(Cluster cluster, StackId stackId) throws AmbariException {
+  private SortedMap<String, String> getStackSettings(StackId stackId) throws AmbariException {
     AmbariMetaInfo ambariMetaInfo = ambariMetaInfoProvider.get();
     SortedMap<String, String> stackLevelParams = new TreeMap<>(ambariMetaInfo.getStackSettingsNameValueMap(stackId));
 
     // STACK_NAME is part of stack settings, but STACK_VERSION is not
     stackLevelParams.put(STACK_VERSION, stackId.getStackVersion());
-
-    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs(false);
-    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stackId.getStackName(), stackId.getStackVersion());
-    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-    Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
-
-    ConfigHelper configHelper = configHelperProvider.get();
-    Map<PropertyInfo, String> users = configHelper.getPropertiesWithPropertyType(PropertyInfo.PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
-    Set<String> userSet = new TreeSet<>(users.values());
-    String userList = gson.toJson(userSet);
-    stackLevelParams.put(USER_LIST, userList);
-
-    Map<PropertyInfo, String> groups = configHelper.getPropertiesWithPropertyType(PropertyInfo.PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
-    Set<String> groupSet = new TreeSet<>(groups.values());
-    String groupList = gson.toJson(groupSet);
-    stackLevelParams.put(GROUP_LIST, groupList);
-
-    Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(users, groups);
-    String userGroups = gson.toJson(userGroupsMap);
-    stackLevelParams.put(USER_GROUPS, userGroups);
-
-    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
-    Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
-    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-    stackLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
-    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-      if (serviceInfoInstance.getServiceType() != null) {
-        stackLevelParams.put(DFS_TYPE, serviceInfoInstance.getServiceType());
-        break;
-      }
-    }
 
     return stackLevelParams;
   }
