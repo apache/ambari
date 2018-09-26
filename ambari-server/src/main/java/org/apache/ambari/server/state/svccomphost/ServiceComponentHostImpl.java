@@ -913,39 +913,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setCurrentState(state);
-      if (state != State.UNKNOWN) {
-        stateEntity.setLastLiveState(state);
-      }
       stateEntity = hostComponentStateDAO.merge(stateEntity);
       if (!oldState.equals(state)) {
         STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
             HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
       }
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-          + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
-          + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-  }
-
-  @Override
-  public State getLastValidState() {
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      return stateEntity.getLastLiveState();
-    }
-    return State.UNKNOWN;
-  }
-
-  @Override
-  public void setLastValidState(State state) {
-    if (state == State.UNKNOWN) {
-      return;
-    }
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      stateEntity.setLastLiveState(state);
-      hostComponentStateDAO.merge(stateEntity);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
