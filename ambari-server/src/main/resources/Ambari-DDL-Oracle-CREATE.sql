@@ -179,8 +179,8 @@ CREATE TABLE clusterconfig (
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusterconfig_service_id FOREIGN KEY (service_id) REFERENCES clusterservices(id),
-  CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
-  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
+  CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, service_id, type_name, version_tag),
+  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, service_id, type_name, version));
 
 CREATE TABLE servicedependencies (
   id NUMBER(19) NOT NULL,
@@ -572,15 +572,19 @@ CREATE TABLE configgroup (
   CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE confgroupclusterconfigmapping (
+  id NUMBER(19) NOT NULL,
   config_group_id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   config_type VARCHAR2(255) NOT NULL,
+  service_id NUMBER(19),
   version_tag VARCHAR2(255) NOT NULL,
   user_name VARCHAR2(255) DEFAULT '_db',
   create_timestamp NUMBER(19) NOT NULL,
-  CONSTRAINT PK_confgroupclustercfgmapping PRIMARY KEY (config_group_id, cluster_id, config_type),
+  CONSTRAINT PK_confgroupclustercfgmapping PRIMARY KEY (id),
+  CONSTRAINT UQ_cgccm_cgid_cid_ctype_sid UNIQUE (config_group_id, cluster_id, service_id, config_type),
+  CONSTRAINT FK_cgccm_service FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id),
-  CONSTRAINT FK_confg FOREIGN KEY (version_tag, config_type, cluster_id) REFERENCES clusterconfig (version_tag, type_name, cluster_id));
+  CONSTRAINT FK_confg FOREIGN KEY (cluster_id, service_id, config_type, version_tag) REFERENCES clusterconfig (cluster_id, service_id, type_name, version_tag));
 
 CREATE TABLE configgrouphostmapping (
   config_group_id NUMBER(19) NOT NULL,
@@ -1312,6 +1316,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcompone
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('mpack_inst_svc_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('mpack_instance_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostgroup_component_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cnfgrpclstrcnfigmpg_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariSchemaVersion}');
 

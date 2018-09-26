@@ -19,35 +19,58 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "confgroupclusterconfigmapping")
-@IdClass(ConfigGroupConfigMappingEntityPK.class)
+@Table(
+  name = "confgroupclusterconfigmapping",
+  uniqueConstraints = {
+    @UniqueConstraint(name = "UQ_cgccm_cgid_cid_ctype_sid",
+      columnNames = {"config_group_id", "cluster_id", "service_id", "config_type"})
+  }
+)
+@TableGenerator(name = "confgroupclusterconfigmapping_id_generator",
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
+  pkColumnValue = "cnfgrpclstrcnfigmpg_id_seq", initialValue = 1
+)
 @NamedQueries({
   @NamedQuery(name = "configsByGroup", query =
   "SELECT configs FROM ConfigGroupConfigMappingEntity configs " +
     "WHERE configs.configGroupId=:groupId")
 })
 public class ConfigGroupConfigMappingEntity {
+  /**
+   * the primary key
+   */
   @Id
+  @Column(name = "id", nullable = false, insertable = true, updatable = false)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "confgroupclusterconfigmapping_id_generator")
+  private Long id;
+
   @Column(name = "config_group_id", nullable = false, insertable = true, updatable = true)
   private Long configGroupId;
 
-  @Id
   @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false)
   private Long clusterId;
 
-  @Id
   @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
   private String configType;
+
+  /**
+   * the optional service id
+   */
+  @Column(name = "service_id", nullable = true, insertable = true, updatable = false)
+  private Long serviceId;
 
   @Column(name = "version_tag", nullable = false, insertable = true, updatable = false)
   private String versionTag;
@@ -67,6 +90,20 @@ public class ConfigGroupConfigMappingEntity {
   @JoinColumns({
     @JoinColumn(name = "config_group_id", referencedColumnName = "group_id", nullable = false, insertable = false, updatable = false)})
   private ConfigGroupEntity configGroupEntity;
+
+  /**
+   * @return the primary key
+   */
+  public Long getId() {
+    return id;
+  }
+
+  /**
+   * @param id the primary key
+   */
+  public void setId(Long id) {
+    this.id = id;
+  }
 
   public Long getConfigGroupId() {
     return configGroupId;
@@ -90,6 +127,20 @@ public class ConfigGroupConfigMappingEntity {
 
   public void setConfigType(String configType) {
     this.configType = configType;
+  }
+
+  /**
+   * @return the service id if the mapping is associated with a service instance or {@code null} if not.
+   */
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  /**
+   * @param serviceId the id of the service instance associated with this mapping
+   */
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   public String getVersionTag() {

@@ -466,6 +466,7 @@ public class ConfigGroupImpl implements ConfigGroup {
         configMappingEntity.setConfigGroupId(configGroupEntity.getGroupId());
         configMappingEntity.setConfigType(clusterConfigEntity.getType());
         configMappingEntity.setVersionTag(clusterConfigEntity.getTag());
+        configMappingEntity.setServiceId(clusterConfigEntity.getServiceId());
         configGroupConfigMappingDAO.create(configMappingEntity);
         configGroupEntity.getConfigGroupConfigMappingEntities().add
           (configMappingEntity);
