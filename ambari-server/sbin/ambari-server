@@ -99,110 +99,110 @@ ret=0
 case "${1:-}" in
   start)
         echo -e "Starting ambari-server"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   stop)
         echo -e "Stopping ambari-server"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   reset)
         echo -e "Resetting ambari-server"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   restart)
         echo -e "Restarting ambari-server"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   upgrade)
         echo -e "Upgrading ambari-server"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   status)
         echo -e "Ambari-server status"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   upgradestack)
         echo -e "Upgrading stack of ambari-server"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup)
         echo -e "Setup ambari-server"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup-jce)
         echo -e "Updating jce policy"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup-pam)
         echo -e "Setting up PAM properties..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   migrate-ldap-pam)
         echo -e "Migration LDAP to PAM"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup-ldap)
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   sync-ldap)
         echo -e "Syncing with LDAP..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   set-current)
         echo -e "Setting current version..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup-security)
         echo -e "Security setup options..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   refresh-stack-hash)
         echo -e "Refreshing stack hashes..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   backup)
         echo -e "Backing up Ambari File System state... *this will not backup the server database*"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   restore)
         echo -e "Restoring Ambari File System state"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   update-host-names)
         echo -e "Updating host names"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   check-database)
         echo -e "Checking database"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   enable-stack)
         echo -e "Enabling stack(s)..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup-sso)
         echo -e "Setting up SSO authentication properties..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   db-purge-history)
         echo -e "Purge database history..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   install-mpack)
         echo -e "Installing management pack"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   uninstall-mpack)
         echo -e "Uninstalling management pack"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   upgrade-mpack)
         echo -e "Upgrading management pack"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   setup-kerberos)
         echo -e "Setting up Kerberos authentication"
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" "$@"
         ;;
   *)
         echo "Usage: $AMBARI_EXECUTABLE
