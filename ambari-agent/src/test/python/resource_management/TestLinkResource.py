@@ -34,7 +34,7 @@ class TestLinkResource(TestCase):
 
   @patch.object(os.path, "realpath")
   @patch("resource_management.core.sudo.path_lexists")
-  @patch("resource_management.core.sudo.path_lexists")
+  @patch("resource_management.core.sudo.path_islink")
   @patch("resource_management.core.sudo.unlink")
   @patch("resource_management.core.sudo.symlink")
   def test_action_create_relink(self, symlink_mock, unlink_mock, 
