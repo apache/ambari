@@ -172,6 +172,7 @@ public class ExecutionScheduleManagerTest {
 
     BatchSettings batchSettings = new BatchSettings();
     batchSettings.setTaskFailureToleranceLimit(10);
+    batchSettings.setTaskFailureToleranceLimitPerBatch(1);
     batches.setBatchSettings(batchSettings);
 
     List<BatchRequest> batchRequests = new ArrayList<>();
@@ -512,6 +513,7 @@ public class ExecutionScheduleManagerTest {
 
     BatchSettings batchSettings = new BatchSettings();
     batchSettings.setTaskFailureToleranceLimit(1);
+    batchSettings.setTaskFailureToleranceLimitPerBatch(1);
 
     Map<Long, RequestExecution> executionMap = new HashMap<>();
     executionMap.put(executionId, requestExecutionMock);
@@ -530,6 +532,53 @@ public class ExecutionScheduleManagerTest {
 
     HashMap<String, Integer> taskCounts = new HashMap<String, Integer>() {{
       put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, 2);
+      put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 10);
+    }};
+
+    boolean exceeded = scheduleManager.hasToleranceThresholdExceeded
+      (executionId, clusterName, taskCounts);
+
+    Assert.assertTrue(exceeded);
+
+    verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+      executionSchedulerMock, batchMock);
+  }
+
+  @Test
+  public void testHasToleranceThresholdPerBatchExceeded() throws Exception {
+    Clusters clustersMock = createMock(Clusters.class);
+    Cluster clusterMock = createMock(Cluster.class);
+    Configuration configurationMock = createNiceMock(Configuration.class);
+    ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
+    InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
+    Gson gson = new Gson();
+    RequestExecution requestExecutionMock = createMock(RequestExecution.class);
+    Batch batchMock = createMock(Batch.class);
+
+    long executionId = 11L;
+    String clusterName = "c1";
+
+    BatchSettings batchSettings = new BatchSettings();
+    batchSettings.setTaskFailureToleranceLimitPerBatch(1);
+
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
+    executionMap.put(executionId, requestExecutionMock);
+
+    expect(clustersMock.getCluster(clusterName)).andReturn(clusterMock).anyTimes();
+    expect(clusterMock.getAllRequestExecutions()).andReturn(executionMap).anyTimes();
+    expect(requestExecutionMock.getBatch()).andReturn(batchMock).anyTimes();
+    expect(batchMock.getBatchSettings()).andReturn(batchSettings).anyTimes();
+
+    replay(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+        executionSchedulerMock, batchMock);
+
+    ExecutionScheduleManager scheduleManager =
+        new ExecutionScheduleManager(configurationMock, executionSchedulerMock,
+            tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
+
+    HashMap<String, Integer> taskCounts = new HashMap<String, Integer>() {{
+      put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY, 2);
       put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 10);
     }};
 

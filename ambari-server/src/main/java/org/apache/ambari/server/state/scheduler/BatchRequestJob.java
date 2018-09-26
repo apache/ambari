@@ -45,6 +45,8 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
     "BatchRequestJob.ClusterName";
   public static final String BATCH_REQUEST_FAILED_TASKS_KEY =
     "BatchRequestJob.FailedTaskCount";
+  public static final String BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY =
+    "BatchRequestJob.FailedTaskInCurrentBatchCount";
   public static final String BATCH_REQUEST_TOTAL_TASKS_KEY =
     "BatchRequestJob.TotalTaskCount";
 
@@ -110,7 +112,8 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
         throw new AmbariException("Task failure tolerance limit exceeded"
             + ", execution_id = " + executionId
             + ", processed batch_id = " + batchId
-            + ", failed tasks = " + aggregateCounts.get(BATCH_REQUEST_FAILED_TASKS_KEY)
+            + ", failed tasks in current batch = " + aggregateCounts.get(BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY)
+            + ", failed tasks total = " + aggregateCounts.get(BATCH_REQUEST_FAILED_TASKS_KEY)
             + ", total tasks completed = " + aggregateCounts.get(BATCH_REQUEST_TOTAL_TASKS_KEY));
       }
     }
@@ -153,9 +156,11 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
         batchRequestResponse.getTotalTaskCount();
 
       taskCounts.put(BATCH_REQUEST_FAILED_TASKS_KEY, failedCount);
+      taskCounts.put(BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY, batchRequestResponse.getFailedTaskCount());
       taskCounts.put(BATCH_REQUEST_TOTAL_TASKS_KEY, totalCount);
 
       properties.put(BATCH_REQUEST_FAILED_TASKS_KEY, failedCount);
+      properties.put(BATCH_REQUEST_FAILED_TASKS_IN_CURRENT_BATCH_KEY, batchRequestResponse.getFailedTaskCount());
       properties.put(BATCH_REQUEST_TOTAL_TASKS_KEY, totalCount);
     }
 
