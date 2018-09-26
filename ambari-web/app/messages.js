@@ -3282,7 +3282,7 @@ Em.I18n.translations = {
 
   'service.restart.choose.text': 'Please choose which type of restart should be performed.',
   'service.rolling.restart.choose.info': 'Critical services remain running while the upgrade is performed. </br>Minimized disruption, but is a slower upgrade.',
-  'service.express.restart.choose.info': 'Services are stopped when this upgrade is performed. </br>Incurs downtime but is a faster upgrade.',
+  'service.express.restart.choose.info': 'Services are stopped when this upgrade is performed. </br>Incurs downtime, but is a faster upgrade.',
   'service.restart.show.advanced.info': 'Show advanced configurations options <p style="font-size: 12px; color: #999999; display: inline;">(Restart by batches/hosts, interval between restarts, etc.)</p>',
 
 
