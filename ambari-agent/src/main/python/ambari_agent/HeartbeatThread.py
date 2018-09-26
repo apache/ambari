@@ -67,6 +67,7 @@ class HeartbeatThread(threading.Thread):
     self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module)
     self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module)
     self.agent_actions_events_listener = AgentActionsListener(initializer_module)
+    self.component_status_executor = initializer_module.component_status_executor
     self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener]
 
     self.post_registration_requests = [
@@ -146,7 +147,6 @@ class HeartbeatThread(threading.Thread):
           raise
       finally:
         with listener.event_queue_lock:
-          logger.info("Enabling events for listener {0}".format(listener))
           listener.enabled = True
           # Process queued messages if any
           listener.dequeue_unprocessed_events()
@@ -160,6 +160,7 @@ class HeartbeatThread(threading.Thread):
     self.initializer_module._connection = self.connection
 
     self.report_components_initial_versions()
+    self.force_component_status_update()
 
   def run_post_registration_actions(self):
     for post_registration_action in self.post_registration_actions:
@@ -167,6 +168,9 @@ class HeartbeatThread(threading.Thread):
 
   def report_components_initial_versions(self):
     ComponentVersionReporter(self.initializer_module).start()
+
+  def force_component_status_update(self):
+    self.component_status_executor.force_send_component_statuses()
 
   def unregister(self):
     """
