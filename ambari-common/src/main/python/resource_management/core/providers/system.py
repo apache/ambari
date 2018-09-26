@@ -172,7 +172,7 @@ class DirectoryProvider(Provider):
       if self.resource.follow:
         # Follow symlink until the tail.
         followed_links = set()
-        while sudo.path_lexists(path):
+        while sudo.path_islink(path):
           if path in followed_links:
             raise Fail("Applying %s failed, looped symbolic links found while resolving %s" % (self.resource, path))
           followed_links.add(path)
@@ -188,8 +188,15 @@ class DirectoryProvider(Provider):
         if not sudo.path_isdir(dirname):
           raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
         
-        sudo.makedir(path, self.resource.mode or 0755)
-      
+        try:
+          sudo.makedir(path, self.resource.mode or 0755)
+        except Exception as ex:
+          # race condition (somebody created the file before us)
+          if "File exists" in str(ex):
+            sudo.makedirs(path, self.resource.mode or 0755)
+          else:
+            raise
+
     if not sudo.path_isdir(path):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
     
@@ -216,7 +223,7 @@ class LinkProvider(Provider):
       oldpath = os.path.realpath(path)
       if oldpath == self.resource.to:
         return
-      if not sudo.path_lexists(path):
+      if not sudo.path_islink(path):
         raise Fail(
           "%s trying to create a symlink with the same name as an existing file or directory" % self.resource)
       Logger.info("%s replacing old symlink to %s" % (self.resource, oldpath))
