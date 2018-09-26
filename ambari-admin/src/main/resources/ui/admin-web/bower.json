@@ -19,5 +19,8 @@
     "chai": "1.8.0",
     "mocha": "1.14.0",
     "sinon": "1.10.3"
+  },
+  "resolutions": {
+    "angular": "1.5.11"
   }
 }
