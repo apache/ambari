@@ -29,9 +29,16 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "confgroupclusterconfigmapping")
+@Table(
+  name = "confgroupclusterconfigmapping",
+  uniqueConstraints = {
+    @UniqueConstraint(name = "UQ_cgccm_cgid_cid_ctype_sid",
+      columnNames = {"config_group_id", "cluster_id", "service_id", "config_type"})
+  }
+)
 @TableGenerator(name = "confgroupclusterconfigmapping_id_generator",
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
   pkColumnValue = "cnfgrpclstrcnfigmpg_id_seq", initialValue = 1

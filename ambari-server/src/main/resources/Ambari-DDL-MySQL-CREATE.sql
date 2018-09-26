@@ -199,7 +199,7 @@ CREATE TABLE clusterconfig (
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusterconfig_service_id FOREIGN KEY (service_id) REFERENCES clusterservices(id),
-  CONSTRAINT UQ_svc_id_config_type_tag UNIQUE (cluster_id, service_id, type_name, version_tag),
+  CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, service_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, service_id, type_name, version));
 
 CREATE TABLE servicedependencies (
@@ -605,7 +605,6 @@ CREATE TABLE confgroupclusterconfigmapping (
   CONSTRAINT FK_cgccm_service FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id),
   CONSTRAINT FK_confg FOREIGN KEY (cluster_id, service_id, config_type, version_tag) REFERENCES clusterconfig (cluster_id, service_id, type_name, version_tag));
-
 
 CREATE TABLE configgrouphostmapping (
   config_group_id BIGINT NOT NULL,
