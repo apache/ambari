@@ -25,12 +25,12 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.stack.upgrade.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;

@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import static org.apache.ambari.server.state.stack.upgrade.Task.Type.REGENERATE_KEYTABS;
+import static org.apache.ambari.server.stack.upgrade.Task.Type.REGENERATE_KEYTABS;
 
 import java.util.Collections;
 import java.util.Set;
@@ -27,14 +27,14 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.UpgradePack;
+import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

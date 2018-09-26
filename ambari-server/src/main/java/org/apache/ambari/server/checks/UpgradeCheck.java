@@ -23,8 +23,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.ScopeAnnotation;
 import com.google.inject.Singleton;

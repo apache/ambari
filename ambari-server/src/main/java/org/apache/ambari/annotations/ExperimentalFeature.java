@@ -48,5 +48,10 @@ public enum ExperimentalFeature {
    * Automatically removing Kerberos identities when a service or component is
    * removed.
    */
-  ORPHAN_KERBEROS_IDENTITY_REMOVAL;
+  ORPHAN_KERBEROS_IDENTITY_REMOVAL,
+
+  /**
+   * Member should be refactored to SPI project
+   */
+  REFACTOR_TO_SPI;
 }
