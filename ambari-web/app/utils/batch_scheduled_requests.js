@@ -499,6 +499,20 @@ module.exports = {
     });
   },
 
+
+  showServicRestartPopup: function (serviceName) {
+
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.configure.restart'),
+      bodyClass: App.ServiceRestartView.extend({
+        serviceName: serviceName
+      }),
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg']
+    })
+
+  },
+
   /**
    * Show warning popup about not supported host components
    * @param {String} hostComponentName
