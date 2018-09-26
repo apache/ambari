@@ -27,8 +27,8 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.JsonArray;

@@ -22,10 +22,10 @@ import java.util.Map;
 
 import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.stack.upgrade.UpgradePack.PrerequisiteCheckConfig;
+import org.apache.ambari.server.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
  * Represents a prerequisite check request.
