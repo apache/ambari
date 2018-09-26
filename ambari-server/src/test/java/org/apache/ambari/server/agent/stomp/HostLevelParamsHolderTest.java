@@ -29,7 +29,6 @@ import java.util.Map;
 import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.junit.Test;
@@ -47,7 +46,7 @@ public class HostLevelParamsHolderTest {
     clusters.put("1", cluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, clusters);
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class), createNiceMock(AmbariMetaInfo.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);
@@ -65,7 +64,7 @@ public class HostLevelParamsHolderTest {
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, clusters);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, Collections.emptyMap());
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class), createNiceMock(AmbariMetaInfo.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);
@@ -89,7 +88,7 @@ public class HostLevelParamsHolderTest {
     updateClusters.put("1", updateCluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, updateClusters);
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class), createNiceMock(AmbariMetaInfo.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);
@@ -113,7 +112,7 @@ public class HostLevelParamsHolderTest {
     updateClusters.put("2", updateCluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, updateClusters);
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class), createNiceMock(AmbariMetaInfo.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);

@@ -81,17 +81,14 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   private Gson gson;
 
   @Inject
-  private ConfigHelper configHelper;
-
-  private final AmbariMetaInfo ambariMetaInfo;
-
-  private final MpackManager mpackManager;
+  private Provider<ConfigHelper> configHelperProvider;
 
   @Inject
-  public HostLevelParamsHolder(AmbariEventPublisher ambariEventPublisher, AmbariMetaInfo ambariMetaInfo) {
+  private Provider<AmbariMetaInfo> ambariMetaInfoProvider;
+
+  @Inject
+  public HostLevelParamsHolder(AmbariEventPublisher ambariEventPublisher) {
     ambariEventPublisher.register(this);
-    this.ambariMetaInfo = ambariMetaInfo;
-    this.mpackManager = ambariMetaInfo.getMpackManager();
   }
 
   @Override
@@ -259,6 +256,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   public SortedMap<Long, SortedMap<String, String>> getHostStacksSettings(Cluster cl, Host host) throws AmbariException {
     SortedMap<Long, SortedMap<String, String>> stacksSettings = new TreeMap<>();
+    MpackManager mpackManager = ambariMetaInfoProvider.get().getMpackManager();
     for (MpackHostStateEntity mpackHostStateEntity : host.getMPackInstallStates()) {
       Long mpackId = mpackHostStateEntity.getMpack().getId();
       Mpack mpack = mpackManager.getMpackMap().get(mpackId);
@@ -272,6 +270,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
 
   private SortedMap<String, String> getStackSettings(Cluster cluster, StackId stackId) throws AmbariException {
+    AmbariMetaInfo ambariMetaInfo = ambariMetaInfoProvider.get();
     SortedMap<String, String> stackLevelParams = new TreeMap<>(ambariMetaInfo.getStackSettingsNameValueMap(stackId));
 
     // STACK_NAME is part of stack settings, but STACK_VERSION is not
@@ -282,6 +281,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
     Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
 
+    ConfigHelper configHelper = configHelperProvider.get();
     Map<PropertyInfo, String> users = configHelper.getPropertiesWithPropertyType(PropertyInfo.PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
     Set<String> userSet = new TreeSet<>(users.values());
     String userList = gson.toJson(userSet);
