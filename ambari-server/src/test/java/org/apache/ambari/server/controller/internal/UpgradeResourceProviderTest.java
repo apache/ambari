@@ -96,6 +96,12 @@ import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
+import org.apache.ambari.server.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.stack.upgrade.Direction;
+import org.apache.ambari.server.stack.upgrade.RegenerateKeytabsTask;
+import org.apache.ambari.server.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
+import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -109,13 +115,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
-import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.RegenerateKeytabsTask;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -2120,7 +2120,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   }
 
   /**
-   * Tests that commands created for {@link org.apache.ambari.server.state.stack.upgrade.StageWrapper.Type#UPGRADE_TASKS} set the
+   * Tests that commands created for {@link org.apache.ambari.server.stack.upgrade.orchestrate.StageWrapper.Type#UPGRADE_TASKS} set the
    * service and component on the {@link ExecutionCommand}.
    * <p/>
    * Without this, commands of this type would not be able to determine which
