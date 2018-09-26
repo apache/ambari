@@ -720,29 +720,14 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         supportedOS.isSelected = false;
         existedOS.push(supportedOS);
       } else {
-        if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
-          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
-            supportedOS.repositories.forEach(function (supportedRepo) {
-              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
-                repo.Repositories.base_url = supportedRepo.Repositories.base_url;
-                repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
-                repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
-                repo.Repositories.components = supportedRepo.Repositories.components;
-                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
-              }
-            });
+        existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+          supportedOS.repositories.forEach(function (supportedRepo) {
+            if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+              repo.Repositories.components = supportedRepo.Repositories.components;
+              repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+            }
           });
-        }
-        else{
-          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
-            supportedOS.repositories.forEach(function (supportedRepo) {
-              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
-                repo.Repositories.components = supportedRepo.Repositories.components;
-                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
-              }
-            });
-          });
-        }
+        });
       }
     });
 
