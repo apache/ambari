@@ -463,8 +463,14 @@
     
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="target" type="xs:string" />
-        <xs:element name="target-stack" type="xs:string" />
+        <xs:choice>
+          <xs:element name="source" type="xs:string" />
+          <xs:element name="target" type="xs:string" />
+        </xs:choice>
+        <xs:choice>
+          <xs:element name="source-stack" type="xs:string" />
+          <xs:element name="target-stack" type="xs:string" />
+        </xs:choice>
         <xs:element name="skip-failures" minOccurs="0" type="xs:boolean" />
         <xs:element name="skip-service-check-failures" minOccurs="0" type="xs:boolean" />
         <xs:element name="downgrade-allowed" minOccurs="0" type="xs:boolean" />
