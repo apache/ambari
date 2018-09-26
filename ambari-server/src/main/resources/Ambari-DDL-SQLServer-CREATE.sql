@@ -194,7 +194,7 @@ CREATE TABLE clusterconfig (
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusterconfig_service_id FOREIGN KEY (service_id) REFERENCES clusterservices(id),
   CONSTRAINT UQ_svc_id_config_type_tag UNIQUE (cluster_id, service_id, type_name, version_tag),
-  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
+  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, service_id, type_name, version));
 
 CREATE TABLE servicedependencies (
   id BIGINT NOT NULL,
@@ -598,10 +598,10 @@ CREATE TABLE confgroupclusterconfigmapping (
   user_name VARCHAR(255) DEFAULT '_db',
   create_timestamp BIGINT NOT NULL,
   CONSTRAINT PK_confgroupclustercfgmapping PRIMARY KEY (id),
-  CONSTRAINT UQ_cgccm_cgid_cid_ctype_sid UNIQUE (config_group_id, cluster_id, config_type, service_id),
+  CONSTRAINT UQ_cgccm_cgid_cid_ctype_sid UNIQUE (config_group_id, cluster_id, service_id, config_type),
   CONSTRAINT FK_cgccm_service FOREIGN KEY (service_id) REFERENCES clusterservices (id),
   CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id),
-  CONSTRAINT FK_confg FOREIGN KEY (version_tag, config_type, service_id, cluster_id) REFERENCES clusterconfig (version_tag, type_name, service_id, cluster_id));
+  CONSTRAINT FK_confg FOREIGN KEY (cluster_id, service_id, config_type, version_tag) REFERENCES clusterconfig (cluster_id, service_id, type_name, version_tag));
 
 CREATE TABLE configgrouphostmapping (
   config_group_id BIGINT NOT NULL,
@@ -1344,7 +1344,8 @@ BEGIN TRANSACTION
     ('hostcomponentdesiredstate_id_seq', 0),
     ('mpack_inst_svc_id_seq', 0),
     ('mpack_instance_id_seq', 0),
-    ('hostgroup_component_id_seq', 0);
+    ('hostgroup_component_id_seq', 0),
+    ('cnfgrpclstrcnfigmpg_id_seq', 0);
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
   values
