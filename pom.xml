@@ -356,19 +356,6 @@
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
-            <!-- Metrics module -->
-            <!-- grafana -->
-            <exclude>ambari-metrics/ambari-metrics-grafana/conf/unix/ams-grafana.ini</exclude>
-            <!-- psutil : external lib, Apache 2.0 license included as a source file -->
-            <exclude>ambari-metrics/target/**</exclude>
-            <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>
-            <exclude>ambari-metrics/target/rpm/ambari-metrics/SPECS/ambari-metrics.spec</exclude>
-            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/4.2.0/phoenix-core-tests-4.2.0.pom</exclude>
-            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/maven-metadata-local.xml</exclude>
-            <exclude>ambari-metrics/ambari-metrics-alertservice/*.iml</exclude>
-            <exclude>ambari-metrics/*/target/**</exclude>
-            <!-- ignore .settings and .project  -->
-            <exclude>ambari-metrics/**/.*/**</exclude>
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
@@ -438,7 +425,6 @@
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>contrib/views</module>
-        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
@@ -459,7 +445,6 @@
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>ambari-views/examples</module>
-        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
@@ -472,7 +457,6 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
-        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
@@ -492,19 +476,12 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
-        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>ambari-serviceadvisor</module>
         </modules>
-    </profile>
-    <profile>
-      <id>ambari-metrics</id>
-      <modules>
-        <module>ambari-metrics</module>
-      </modules>
     </profile>
     <profile>
       <id>ambari-serviceadvisor</id>
@@ -525,7 +502,6 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
-        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
