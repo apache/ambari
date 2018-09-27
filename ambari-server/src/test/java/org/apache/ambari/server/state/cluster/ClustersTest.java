@@ -466,7 +466,8 @@ public class ClustersTest {
     topologyRequest.setClusterId(cluster.getClusterId());
     topologyRequest.setClusterName("Test Cluster");
 
-    replay(bp);
+    //HostLevelParamsHolder hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
+    replay(bp/*, hostLevelParamsHolder*/);
 
     persistedState.persistTopologyRequest(topologyRequest);
 
@@ -627,6 +628,7 @@ public class ClustersTest {
     @Override
     public void configure(Binder binder) {
       binder.bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
+      //binder.bind(HostLevelParamsHolder.class).toInstance(createNiceMock(HostLevelParamsHolder.class));
     }
   }
 }

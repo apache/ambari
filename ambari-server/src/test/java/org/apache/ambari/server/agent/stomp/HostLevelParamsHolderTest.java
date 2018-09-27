@@ -42,11 +42,11 @@ public class HostLevelParamsHolderTest {
     Map<String, HostLevelParamsCluster> clusters = new HashMap<>();
     HostRepositories hostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
     HostLevelParamsCluster cluster = new HostLevelParamsCluster(hostRepositories,
-        new RecoveryConfig(null), Collections.emptyMap());
+        new RecoveryConfig(null), Collections.emptyMap(), Collections.emptySortedMap());
     clusters.put("1", cluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, clusters);
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);
@@ -59,12 +59,12 @@ public class HostLevelParamsHolderTest {
     Map<String, HostLevelParamsCluster> clusters = new HashMap<>();
     HostRepositories hostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
     HostLevelParamsCluster cluster = new HostLevelParamsCluster(hostRepositories,
-        new RecoveryConfig(null), Collections.emptyMap());
+        new RecoveryConfig(null), Collections.emptyMap(), Collections.emptySortedMap());
     clusters.put("1", cluster);
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, clusters);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, Collections.emptyMap());
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);
@@ -77,18 +77,18 @@ public class HostLevelParamsHolderTest {
     Map<String, HostLevelParamsCluster> currentClusters = new HashMap<>();
     HostRepositories currentHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
     HostLevelParamsCluster currentCluster = new HostLevelParamsCluster(currentHostRepositories,
-        new RecoveryConfig(null), Collections.emptyMap());
+        new RecoveryConfig(null), Collections.emptyMap(), Collections.emptySortedMap());
     currentClusters.put("1", currentCluster);
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, currentClusters);
 
     Map<String, HostLevelParamsCluster> updateClusters = new HashMap<>();
     HostRepositories updateHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
     HostLevelParamsCluster updateCluster = new HostLevelParamsCluster(updateHostRepositories,
-        new RecoveryConfig(null), Collections.emptyMap());
+        new RecoveryConfig(null), Collections.emptyMap(), Collections.emptySortedMap());
     updateClusters.put("1", updateCluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, updateClusters);
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);
@@ -101,18 +101,18 @@ public class HostLevelParamsHolderTest {
     Map<String, HostLevelParamsCluster> currentClusters = new HashMap<>();
     HostRepositories currentHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
     HostLevelParamsCluster currentCluster = new HostLevelParamsCluster(currentHostRepositories,
-        new RecoveryConfig(null), Collections.emptyMap());
+        new RecoveryConfig(null), Collections.emptyMap(), Collections.emptySortedMap());
     currentClusters.put("1", currentCluster);
     HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID, currentClusters);
 
     Map<String, HostLevelParamsCluster> updateClusters = new HashMap<>();
     HostRepositories updateHostRepositories = new HostRepositories(Collections.emptySortedMap(), Collections.emptySortedMap());
     HostLevelParamsCluster updateCluster = new HostLevelParamsCluster(updateHostRepositories,
-        new RecoveryConfig(null), Collections.emptyMap());
+        new RecoveryConfig(null), Collections.emptyMap(), Collections.emptySortedMap());
     updateClusters.put("2", updateCluster);
     HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID, updateClusters);
 
-    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class));
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class)/*, createNiceMock(Provider.class)*/);
     HostLevelParamsUpdateEvent result = levelParamsHolder.handleUpdate(current, update);
 
     assertFalse(result == update);

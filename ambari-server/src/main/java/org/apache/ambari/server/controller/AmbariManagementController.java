@@ -25,9 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
@@ -924,14 +922,6 @@ public interface AmbariManagementController {
    * @param service @Service object
    */
   void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException;
-
-  /**
-   * Gets an execution command for host component life cycle command
-   * @return
-   */
-  ExecutionCommand getExecutionCommand(Cluster cluster,
-                                              ServiceComponentHost scHost,
-                                              RoleCommand roleCommand) throws AmbariException;
 
   /**
    * Get configuration dependencies which are specific for a specific service configuration property

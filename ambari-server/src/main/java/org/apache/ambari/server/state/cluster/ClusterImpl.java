@@ -63,6 +63,7 @@ import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ServiceGroupKey;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -86,6 +87,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.logging.LockFactory;
+import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.RequiresSession;
@@ -369,6 +371,12 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
+
+  @Inject
+  private MetadataHolder metadataHolder;
+
+  @Inject
+  private ClusterMetadataGenerator clusterMetadataGenerator;
 
   /**
    * A simple cache for looking up {@code cluster-env} properties for a cluster.
@@ -1088,6 +1096,11 @@ public class ClusterImpl implements Cluster {
 
     clusterSettings.put(clusterSetting.getClusterSettingName(), clusterSetting);
     clusterSettingsById.put(clusterSetting.getClusterSettingId(), clusterSetting);
+    try {
+      metadataHolder.updateData(clusterMetadataGenerator.getClusterMetadataOnClusterSettingsUpdate(this));
+    } catch (AmbariException e) {
+      LOG.warn("Exception on cluster settings metadata update", e);
+    }
   }
 
   @Override
@@ -1111,6 +1124,11 @@ public class ClusterImpl implements Cluster {
     // Update the changed 'clusterSetting' in the below maps, to reflect object with newest changes.
     clusterSettings.put(clusterSetting.getClusterSettingName(), clusterSetting);
     clusterSettingsById.put(clusterSetting.getClusterSettingId(), clusterSetting);
+    try {
+      metadataHolder.updateData(clusterMetadataGenerator.getClusterMetadataOnClusterSettingsUpdate(this));
+    } catch (AmbariException e) {
+      LOG.warn("Exception on cluster settings metadata update", e);
+    }
   }
 
   @Override
@@ -1316,7 +1334,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, ServiceGroup> getServiceGroups() throws AmbariException {
+  public Map<String, ServiceGroup> getServiceGroups() {
     return new HashMap<>(serviceGroups);
   }
 
@@ -1340,12 +1358,12 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, ClusterSetting> getClusterSettings() throws AmbariException {
+  public Map<String, ClusterSetting> getClusterSettings() {
     return new HashMap<>(clusterSettings);
   }
 
   @Override
-  public Map<String, String> getClusterSettingsNameValueMap() throws AmbariException {
+  public Map<String, String> getClusterSettingsNameValueMap() {
     Map<String, ClusterSetting> clusterSettings = getClusterSettings();
     if (clusterSettings != null) {
       return clusterSettings.values().stream().collect(
@@ -1817,6 +1835,11 @@ public class ClusterImpl implements Cluster {
       deleteClusterSetting(clusterSetting);
       clusterSettings.remove(clusterSettingName);
       clusterSettingsById.remove(clusterSettingId);
+      try {
+        metadataHolder.updateData(clusterMetadataGenerator.getClusterMetadataOnClusterSettingsUpdate(this));
+      } catch (AmbariException e) {
+        LOG.warn("Exception on cluster settings metadata update", e);
+      }
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }

@@ -40,10 +40,12 @@ public class MetadataCluster {
   private final boolean fullServiceLevelMetadata; //this is true in case serviceLevelParams has all parameters for all services
   private SortedMap<String, MetadataServiceInfo> serviceLevelParams;
   private SortedMap<String, String> clusterLevelParams;
+  private SortedMap<String, String> clusterSettings;
   private SortedMap<String, SortedMap<String,String>> agentConfigs;
 
   public MetadataCluster(SecurityType securityType, SortedMap<String,MetadataServiceInfo> serviceLevelParams, boolean fullServiceLevelMetadata,
-                         SortedMap<String, String> clusterLevelParams, SortedMap<String, SortedMap<String,String>> agentConfigs) {
+                         SortedMap<String, String> clusterLevelParams, SortedMap<String, SortedMap<String,String>> agentConfigs,
+                         SortedMap<String, String> clusterSettings) {
     this.statusCommandsToRun  = new HashSet<>();
     if (securityType != null) {
       this.statusCommandsToRun.add("STATUS");
@@ -52,19 +54,28 @@ public class MetadataCluster {
     this.serviceLevelParams = serviceLevelParams;
     this.clusterLevelParams = clusterLevelParams;
     this.agentConfigs = agentConfigs;
+    this.clusterSettings = clusterSettings;
   }
 
   public static MetadataCluster emptyMetadataCluster() {
-    return new MetadataCluster(null, null, false, null, null);
+    return new MetadataCluster(null, null,
+        false, null, null, null);
   }
 
   public static MetadataCluster serviceLevelParamsMetadataCluster(SecurityType securityType, SortedMap<String, MetadataServiceInfo> serviceLevelParams,
       boolean fullServiceLevelMetadata) {
-    return new MetadataCluster(securityType, serviceLevelParams, fullServiceLevelMetadata, null, null);
+    return new MetadataCluster(securityType, serviceLevelParams, fullServiceLevelMetadata, null,
+        null, null);
   }
 
   public static MetadataCluster clusterLevelParamsMetadataCluster(SecurityType securityType, SortedMap<String, String> clusterLevelParams) {
-    return new MetadataCluster(securityType, null, false, clusterLevelParams, null);
+    return new MetadataCluster(securityType, null, false, clusterLevelParams,
+        null, null);
+  }
+
+  public static MetadataCluster clusterSettingsMetadataCluster(SecurityType securityType, SortedMap<String, String> clusterSettings) {
+    return new MetadataCluster(securityType, null, false, null,
+        null, clusterSettings);
   }
 
   public Set<String> getStatusCommandsToRun() {
@@ -81,6 +92,10 @@ public class MetadataCluster {
 
   public SortedMap<String, SortedMap<String, String>> getAgentConfigs() {
     return agentConfigs;
+  }
+
+  public SortedMap<String, String> getClusterSettings() {
+    return clusterSettings;
   }
 
   public boolean isFullServiceLevelMetadata() {
@@ -119,6 +134,22 @@ public class MetadataCluster {
     return false;
   }
 
+  public boolean updateClusterSettings(SortedMap<String, String> update) {
+    if (update != null) {
+      try {
+        lock.lock();
+        if (this.clusterSettings == null) {
+          this.clusterSettings = new TreeMap<>();
+        }
+        return updateMapIfNeeded(this.clusterSettings, update, true);
+      } finally {
+        lock.unlock();
+      }
+    }
+
+    return false;
+  }
+
   private <T> boolean updateMapIfNeeded(Map<String, T> currentMap, Map<String, T> updatedMap, boolean fullMetadataInUpdatedMap) {
     boolean changed = false;
     if (fullMetadataInUpdatedMap) { // we have full metadata in updatedMap (i.e. in case of service removal we have full metadata in updatedMap)
@@ -148,11 +179,12 @@ public class MetadataCluster {
 
     return Objects.equals(statusCommandsToRun, that.statusCommandsToRun) &&
       Objects.equals(serviceLevelParams, that.serviceLevelParams) &&
-      Objects.equals(clusterLevelParams, that.clusterLevelParams);
+      Objects.equals(clusterLevelParams, that.clusterLevelParams) &&
+      Objects.equals(clusterSettings, that.clusterSettings);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(statusCommandsToRun, serviceLevelParams, clusterLevelParams);
+    return Objects.hash(statusCommandsToRun, serviceLevelParams, clusterLevelParams, clusterSettings);
   }
 }

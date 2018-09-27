@@ -370,6 +370,7 @@ public class ServiceGroupImpl implements ServiceGroup {
     serviceGroupEntity.setStack(stackEntity);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
     stackId = new StackId(stackEntity.getStackName(), stackEntity.getStackVersion());
+    // TODO should mpack id be also changed?
   }
 
   @Override

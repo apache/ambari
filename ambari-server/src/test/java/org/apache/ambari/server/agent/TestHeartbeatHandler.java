@@ -43,9 +43,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -754,7 +752,7 @@ public class TestHeartbeatHandler {
     statusCmd1.setServiceName(HDFS);
     dummyCmds.add(statusCmd1);
     HeartbeatMonitor hm = mock(HeartbeatMonitor.class);
-    when(hm.generateStatusCommands(anyString())).thenReturn(dummyCmds);
+    //when(hm.generateStatusCommands(anyString())).thenReturn(dummyCmds);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);

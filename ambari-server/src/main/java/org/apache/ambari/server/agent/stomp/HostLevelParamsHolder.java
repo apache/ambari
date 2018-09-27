@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
@@ -28,17 +30,22 @@ import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.ServiceGroupMpackChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.mpack.MpackManager;
+import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.collections.MapUtils;
 
 import com.google.common.eventbus.Subscribe;
@@ -57,6 +64,9 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   @Inject
   private Provider<AmbariManagementController> m_ambariManagementController;
+
+  @Inject
+  private Provider<AmbariMetaInfo> ambariMetaInfoProvider;
 
   @Inject
   public HostLevelParamsHolder(AmbariEventPublisher ambariEventPublisher) {
@@ -78,7 +88,8 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
           m_ambariManagementController.get().retrieveHostRepositories(cl, host),
           recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()),
-          m_ambariManagementController.get().getBlueprintProvisioningStates(cl.getClusterId(), host.getHostId()));
+          m_ambariManagementController.get().getBlueprintProvisioningStates(cl.getClusterId(), host.getHostId()),
+          getHostStacksSettings(host));
 
       hostLevelParamsClusters.put(Long.toString(cl.getClusterId()),
           hostLevelParamsCluster);
@@ -117,6 +128,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
           SortedMap<Long, CommandRepository> mergedRepositories;
           Map<String, BlueprintProvisioningState> mergedBlueprintProvisioningStates;
           SortedMap<String, Long> mergedComponentRepos;
+          SortedMap<Long, SortedMap<String, String>> mergedStacksSettings;
           if (!currentCluster.getRecoveryConfig().equals(updatedCluster.getRecoveryConfig())) {
             mergedRecoveryConfig = updatedCluster.getRecoveryConfig();
             clusterChanged = true;
@@ -144,11 +156,19 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
           } else {
             mergedComponentRepos = currentCluster.getHostRepositories().getComponentRepos();
           }
+          if (!currentCluster.getStacksSettings()
+              .equals(updatedCluster.getStacksSettings())) {
+            mergedStacksSettings = updatedCluster.getStacksSettings();
+            clusterChanged = true;
+          } else {
+            mergedStacksSettings = currentCluster.getStacksSettings();
+          }
           if (clusterChanged) {
             HostLevelParamsCluster mergedCluster = new HostLevelParamsCluster(
                 new HostRepositories(mergedRepositories, mergedComponentRepos),
                 mergedRecoveryConfig,
-                mergedBlueprintProvisioningStates);
+                mergedBlueprintProvisioningStates,
+                mergedStacksSettings);
             mergedClusters.put(clusterId, mergedCluster);
             changed = true;
           } else {
@@ -196,7 +216,8 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
             new HostLevelParamsCluster(
                     m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
                     recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName()),
-                    m_ambariManagementController.get().getBlueprintProvisioningStates(clusterId, host.getHostId())));
+                    m_ambariManagementController.get().getBlueprintProvisioningStates(clusterId, host.getHostId()),
+                    getHostStacksSettings(host)));
     updateData(hostLevelParamsUpdateEvent);
   }
 
@@ -213,5 +234,30 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
         updateDataOfHost(clusterId, cluster, cluster.getHost(hostName));
       }
     }
+  }
+
+  public SortedMap<Long, SortedMap<String, String>> getHostStacksSettings(Host host) throws AmbariException {
+    SortedMap<Long, SortedMap<String, String>> stacksSettings = new TreeMap<>();
+    MpackManager mpackManager = ambariMetaInfoProvider.get().getMpackManager();
+    for (MpackHostStateEntity mpackHostStateEntity : host.getMPackInstallStates()) {
+      Long mpackId = mpackHostStateEntity.getMpack().getId();
+      Mpack mpack = mpackManager.getMpackMap().get(mpackId);
+      if (mpack == null) {
+        throw new AmbariException(String.format("No mpack with id %s found", mpackId));
+      }
+      stacksSettings.put(mpackId, new TreeMap<>(getStackSettings(mpack.getStackId())));
+    }
+    return stacksSettings;
+  }
+
+
+  private SortedMap<String, String> getStackSettings(StackId stackId) throws AmbariException {
+    AmbariMetaInfo ambariMetaInfo = ambariMetaInfoProvider.get();
+    SortedMap<String, String> stackLevelParams = new TreeMap<>(ambariMetaInfo.getStackSettingsNameValueMap(stackId));
+
+    // STACK_NAME is part of stack settings, but STACK_VERSION is not
+    stackLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+
+    return stackLevelParams;
   }
 }

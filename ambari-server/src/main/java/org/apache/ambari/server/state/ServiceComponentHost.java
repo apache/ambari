@@ -148,6 +148,13 @@ public interface ServiceComponentHost {
   String getMpackVersion();
 
   /**
+   * Gets the mpack id associated with parent dservice.
+   *
+   * @return mpack id for parent service.
+   */
+  Long getDesiredMpackId() throws AmbariException;
+
+  /**
    * Sets the versions reported for a component which include the mpack it
    * belongs to and the specific version of that component within the mpack.
    *

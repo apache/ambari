@@ -577,7 +577,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             getManagementController().retrieveHostRepositories(cl, addedHost),
             recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
                 addedHost.getHostName()),
-            getManagementController().getBlueprintProvisioningStates(cl.getClusterId(), addedHost.getHostId())
+            getManagementController().getBlueprintProvisioningStates(cl.getClusterId(), addedHost.getHostId()),
+            hostLevelParamsHolder.getHostStacksSettings(addedHost)
         ));
         hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
       }

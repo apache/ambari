@@ -884,6 +884,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           .setPublicHostNames(publicHostNames)
           .setComponentLevelParams(getTopologyComponentLevelParams(sch))
           .setCommandParams(getTopologyCommandParams(sch))
+          .setDesiredMpackId(sch.getDesiredMpackId())
           .build();
 
       String clusterId = Long.toString(cluster.getClusterId());
@@ -2720,13 +2721,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       commandParams.put(PACKAGE_LIST, packageList);
     }
 
-    // Set exec command with 'ClusterSettings' map
-    execCmd.setClusterSettings(cluster.getClusterSettingsNameValueMap());
-
-    // Set exec command with 'StackSettings' map
-    // TODO avoid sending in each command, send in "async" metadata
-    execCmd.setStackSettings(metadataGenerator.getMetadataStackLevelParams(cluster, stackId));
-
     if (databaseType == DatabaseType.ORACLE) {
       hostParams.put(DB_DRIVER_FILENAME, configs.getOjdbcJarName());
     } else if (databaseType == DatabaseType.MYSQL) {
@@ -3399,67 +3393,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     return false;
 
-  }
-
-  @Override
-  public ExecutionCommand getExecutionCommand(Cluster cluster,
-                                              ServiceComponentHost scHost,
-                                              RoleCommand roleCommand) throws AmbariException {
-    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
-    String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-
-
-    Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
-        cluster, scHost.getServiceComponent().getStackId());
-
-    Stage stage = createNewStage(0, cluster, 1, "", "{}", "");
-
-    Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
-    Map<String, Map<String, String>> configurations = configHelper.getEffectiveConfigProperties(cluster, configTags);
-
-    Map<String, Map<String, Map<String, String>>>
-        configurationAttributes =
-        new TreeMap<>();
-
-    boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
-    DatabaseType databaseType = configs.getDatabaseType();
-    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
-    createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null, false, isUpgradeSuspended, databaseType,
-                     clusterDesiredConfigs, false);
-    ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
-
-    // createHostAction does not take a hostLevelParams but creates one
-    hostParamsCmd.putAll(ec.getHostLevelParams());
-    ec.getHostLevelParams().putAll(hostParamsCmd);
-
-    if (null != cluster) {
-      // Generate localComponents
-      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(scHost.getHostName())) {
-        ec.getLocalComponents().add(sch.getServiceComponentName());
-      }
-    }
-
-    ConfigHelper.processHiddenAttribute(ec.getConfigurations(), ec.getConfigurationAttributes(), ec.getRole(), false);
-
-    // Add attributes
-    Map<String, Map<String, Map<String, String>>> configAttributes =
-        configHelper.getEffectiveConfigAttributes(cluster,
-          ec.getConfigurationTags());
-
-    for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurrence : configAttributes.entrySet()) {
-      String type = attributesOccurrence.getKey();
-      Map<String, Map<String, String>> attributes = attributesOccurrence.getValue();
-
-      if (ec.getConfigurationAttributes() != null) {
-        if (!ec.getConfigurationAttributes().containsKey(type)) {
-          ec.getConfigurationAttributes().put(type, new TreeMap<>());
-        }
-        configHelper.cloneAttributesMap(attributes, ec.getConfigurationAttributes().get(type));
-      }
-    }
-
-    return ec;
   }
 
   @Override
@@ -5500,35 +5433,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     SettingEntity entity = settingDAO.findByName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE);
     String quickLinkProfileJson = null != entity ? entity.getContent() : null;
     return QuickLinkVisibilityControllerFactory.get(quickLinkProfileJson);
-  }
-
-  /**
-   * Collects full metadata info about clusters for agent.
-   * @return metadata info about clusters
-   * @throws AmbariException
-   */
-  public MetadataUpdateEvent getClustersMetadata() throws AmbariException {
-    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-
-    for (Cluster cl : clusters.getClusters().values()) {
-      StackId stackId = cl.getDesiredStackVersion();
-
-      SecurityType securityType = cl.getSecurityType();
-
-      MetadataCluster metadataCluster = new MetadataCluster(securityType, getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl, stackId), null);
-      metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-    }
-
-    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
-        getMetadataAmbariLevelParams(), getMetadataAgentConfigs(), UpdateEventType.CREATE);
-    return metadataUpdateEvent;
-  }
-
-  public MetadataUpdateEvent getClusterMetadata(Cluster cl) throws AmbariException {
-    final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
-    MetadataCluster metadataCluster = new MetadataCluster(cl.getSecurityType(), getMetadataServiceLevelParams(cl), true, getMetadataClusterLevelParams(cl, cl.getDesiredStackVersion()), null);
-    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
-    return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
   @Override

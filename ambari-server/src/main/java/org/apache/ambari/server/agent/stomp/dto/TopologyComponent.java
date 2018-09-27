@@ -39,6 +39,7 @@ public class TopologyComponent {
   private String serviceType;
   private String version;
   private String mpackVersion;
+  private Long desiredMpackId;
   private Set<Long> hostIds = new HashSet<>();
   private Set<String> hostNames = new HashSet<>();
   private Set<String> publicHostNames = new HashSet<>();
@@ -85,6 +86,11 @@ public class TopologyComponent {
 
     public Builder setMpackVersion(String mpackVersion) {
       TopologyComponent.this.setMpackVersion(mpackVersion);
+      return this;
+    }
+
+    public Builder setDesiredMpackId(Long desiredMpackId) {
+      TopologyComponent.this.setDesiredMpackId(desiredMpackId);
       return this;
     }
 
@@ -200,6 +206,7 @@ public class TopologyComponent {
     return TopologyComponent.newBuilder().setComponentName(getComponentName())
         .setServiceType(getServiceType())
         .setServiceName(getServiceName())
+        .setDesiredMpackId(getDesiredMpackId())
         .setServiceGroupName(getServiceGroupName())
         .setComponentLevelParams(getComponentLevelParams() == null ? null : new TreeMap<>(getComponentLevelParams()))
         .setHostIds(getHostIds() == null ? null : new HashSet<>(getHostIds()))
@@ -247,6 +254,14 @@ public class TopologyComponent {
 
   public void setMpackVersion(String mpackVersion) {
     this.mpackVersion = mpackVersion;
+  }
+
+  public Long getDesiredMpackId() {
+    return desiredMpackId;
+  }
+
+  public void setDesiredMpackId(Long desiredMpackId) {
+    this.desiredMpackId = desiredMpackId;
   }
 
   public Set<Long> getHostIds() {

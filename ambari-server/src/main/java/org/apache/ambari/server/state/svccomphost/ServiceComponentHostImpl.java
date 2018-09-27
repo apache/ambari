@@ -977,6 +977,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public Long getDesiredMpackId() throws AmbariException {
+    return clusters.getClusterById(getClusterId()).getServiceGroup(getServiceGroupId()).getMpackId();
+  }
+
+  @Override
   @Transactional
   public void setVersions(String mpackVersion, String version) throws AmbariException {
     HostComponentStateEntity stateEntity = getStateEntity();
