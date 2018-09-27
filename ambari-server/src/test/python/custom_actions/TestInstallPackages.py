@@ -106,10 +106,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       available_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       installed_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
@@ -226,10 +229,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
@@ -294,10 +300,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       available_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       installed_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value=["HDP-UTILS-2.2.0.1-885"]
@@ -453,10 +462,12 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       is_suse_family_mock.return_value = True
@@ -523,10 +534,12 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       is_suse_family_mock.return_value = True
@@ -603,10 +616,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value = []
@@ -688,6 +704,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
+
     command_json['roleParams']['repository_version'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
 
     from ambari_commons.os_check import OSConst
@@ -697,10 +714,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value = []
@@ -766,10 +786,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages
       available_packages.side_effect = TestInstallPackages._add_packages
       installed_packages.side_effect = TestInstallPackages._add_packages
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
 
@@ -867,10 +890,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value = []
@@ -957,10 +983,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value = []
@@ -1051,10 +1080,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value = []
@@ -1151,10 +1183,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value = []
@@ -1237,10 +1272,13 @@ class TestInstallPackages(RMFTestCase):
 
     with patch.object(pkg_manager, "all_packages") as all_packages, \
       patch.object(pkg_manager, "available_packages") as available_packages, \
-      patch.object(pkg_manager, "installed_packages") as installed_packages:
+      patch.object(pkg_manager, "installed_packages") as installed_packages, \
+      patch.object(pkg_manager, "_check_existence") as check_existence:
+
       all_packages.side_effect = TestInstallPackages._add_packages_available
       available_packages.side_effect = TestInstallPackages._add_packages_available
       installed_packages.side_effect = TestInstallPackages._add_packages_available
+      check_existence.return_value = False
 
       get_provider.return_value = pkg_manager
       list_ambari_managed_repos_mock.return_value=[]
