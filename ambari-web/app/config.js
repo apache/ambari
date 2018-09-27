@@ -92,7 +92,8 @@ App.supports = {
   manageJournalNode: true,
   enableToggleKerberos: true,
   enableAddDeleteServices: true,
-  regenerateKeytabsOnSingleHost: false
+  regenerateKeytabsOnSingleHost: false,
+  enableNewServiceRestartOptions: false
 };
 
 if (App.enableExperimental) {

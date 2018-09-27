@@ -1,0 +1,39 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="service-rolling-restart">
+
+    <h5 class="restart-header-info">{{t service.restart.choose.text}}</h5>
+    <div class="restart-options">
+        <div class="rolling-block col-sm-6 radio big-radio">
+            <i class="fa fa-tachometer"></i>
+            {{view view.rollingRestartCheckBox labelIdentifier="use-rolling-restart"}}
+            <p class="faintText">{{t service.rolling.restart.choose.info}}</p>
+        </div>
+
+        <div class="express-block col-sm-6 radio big-radio">
+            <i class="fa fa-bolt"></i>
+            {{view view.expressRestartCheckBox labelIdentifier="use-express-restart"}}
+            <p class="faintText">{{t service.express.restart.choose.info}}</p>
+        </div>
+    </div>
+    <div class="restart-advanced-configs">
+        <i class="fa fa-caret-right"></i>
+        <span>{{t service.restart.show.advanced.info}}</span>
+    </div>
+</div>
