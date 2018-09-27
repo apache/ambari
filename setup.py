@@ -23,6 +23,7 @@ from setuptools import find_packages, setup
 
 AMBARI_COMMON_PYTHON_FOLDER = "ambari-common/src/main/python"
 AMBARI_SERVER_TEST_PYTHON_FOLDER = "ambari-server/src/test/python"
+AMBARI_COMMON_TEST_PYTHON_FOLDER = "ambari-common/src/test/python"
 
 def get_ambari_common_packages():
   return find_packages(AMBARI_COMMON_PYTHON_FOLDER, exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
@@ -31,7 +32,7 @@ def get_ambari_server_stack_package():
   return ["stacks.utils"]
 
 def get_extra_common_packages():
-  return ["urlinfo_processor", "ambari_jinja2", "ambari_jinja2._markupsafe"]
+  return ["urlinfo_processor", "ambari_jinja2", "ambari_jinja2._markupsafe", "mock", "mock.test"]
 
 def create_package_dir_map():
   package_dirs = {}
@@ -45,6 +46,8 @@ def create_package_dir_map():
   package_dirs["ambari_jinja2"] = AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2"
   package_dirs["ambari_jinja2._markupsafe"] = AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2/_markupsafe"
   package_dirs["urlinfo_processor"] = AMBARI_COMMON_PYTHON_FOLDER + "/urlinfo_processor"
+  package_dirs["mock"] = AMBARI_COMMON_TEST_PYTHON_FOLDER + "/mock"
+  package_dirs["mock.test"] = AMBARI_COMMON_TEST_PYTHON_FOLDER + "/mock/tests"
 
   return package_dirs
 
@@ -102,7 +105,6 @@ setup(
   packages = get_ambari_common_packages() + get_ambari_server_stack_package() + get_extra_common_packages(),
   package_dir = create_package_dir_map(),
   install_requires=[
-   'mock==1.0.1',
    'coilmq==1.0.1'
   ],
   include_package_data = True,

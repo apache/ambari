@@ -97,7 +97,7 @@ function deploy() {
   local version="$2"
   local repo_id="$3"
   local repo_url="$4"
-  mvn deploy:deploy-file -Dfile=$artifact_file -Dpackaging=tar.gz -DgeneratePom=true -Dversion=$version -DartifactId=ambari-python -DgroupId=org.apache.ambari -Durl="$repo_url" -DrepositoryId="$repo_url"
+  mvn gpg:sign-and-deploy-file -Dfile=$artifact_file -Dpackaging=tar.gz -DgeneratePom=true -Dversion=$version -DartifactId=ambari-python -DgroupId=org.apache.ambari -Durl="$repo_url" -DrepositoryId="$repo_url"
 }
 
 function run_setup_py() {
