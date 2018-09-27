@@ -18,6 +18,8 @@
 package org.apache.ambari.server.upgrade;
 
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog280.HOST_COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog280.LAST_LIVE_STATE_COLUMN;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
@@ -53,6 +55,9 @@ public class UpgradeCatalog280Test {
 
     Capture<DBAccessor.DBColumnInfo> perBatchLimitColumn = newCapture(CaptureType.ALL);
     dbAccessor.addColumn(eq("requestschedule"), capture(perBatchLimitColumn));
+    expectLastCall().once();
+
+    dbAccessor.dropColumn(eq(HOST_COMPONENT_STATE_TABLE), eq(LAST_LIVE_STATE_COLUMN));
     expectLastCall().once();
 
 

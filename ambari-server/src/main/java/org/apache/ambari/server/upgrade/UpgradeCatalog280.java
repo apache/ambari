@@ -36,7 +36,9 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog280.class);
 
   private static final String REQUEST_SCHEDULE_TABLE_NAME = "requestschedule";
+  protected static final String HOST_COMPONENT_STATE_TABLE = "hostcomponentstate";
   private static final String REQUEST_SCHEDULE_BATCH_TOLERATION_LIMIT_PER_BATCH_COLUMN_NAME = "batch_toleration_limit_per_batch";
+  protected static final String LAST_LIVE_STATE_COLUMN = "last_live_state";
   @Inject
   public UpgradeCatalog280(Injector injector) {
     super(injector);
@@ -55,6 +57,7 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     addComulnsToRequestscheduleTable();
+    removeLastValidState();
   }
 
   @Override
@@ -70,4 +73,9 @@ public class UpgradeCatalog280 extends AbstractUpgradeCatalog {
         new DBAccessor.DBColumnInfo(REQUEST_SCHEDULE_BATCH_TOLERATION_LIMIT_PER_BATCH_COLUMN_NAME, Short.class, null,
             null, true));
   }
+
+  protected void removeLastValidState() throws SQLException {
+    dbAccessor.dropColumn(HOST_COMPONENT_STATE_TABLE, LAST_LIVE_STATE_COLUMN);
+  }
+
 }

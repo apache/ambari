@@ -96,10 +96,6 @@ public interface ServiceComponentHost {
 
   void setState(State state);
 
-  State getLastValidState();
-
-  void setLastValidState(State state);
-
   /**
    * Gets the version of the component.
    *
