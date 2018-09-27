@@ -184,6 +184,10 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
           options.push(actionMap.REFRESHQUEUES);
         }
         options.push(actionMap.RESTART_ALL);
+        //currently adding it as experimental property as it is ongoing development
+        if (App.get('supports.enableNewServiceRestartOptions')) {
+          options.push(actionMap.RESTART_SERVICE);
+        }
         if (hasMultipleMasterComponentGroups && this.get('serviceName') === 'HDFS') {
           options.push(actionMap.RESTART_NAMENODES);
         }

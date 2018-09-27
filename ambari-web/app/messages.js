@@ -370,6 +370,7 @@ Em.I18n.translations = {
   'common.critical.error': 'Critical',
   'common.with': 'with',
   'common.propertyName': 'Property Name',
+  'common.configure.restart': 'Configure Restart',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -3278,6 +3279,12 @@ Em.I18n.translations = {
   'rollingrestart.context.allOnSelectedHost':'Restart all components on {0}',
   'rollingrestart.context.selectedComponentOnSelectedHost':'Restart {0}',
   'rollingrestart.context.default':'Restart components',
+
+  'service.restart.choose.text': 'Please choose which type of restart should be performed.',
+  'service.rolling.restart.choose.info': 'Critical services remain running while the upgrade is performed. </br>Minimized disruption, but is a slower upgrade.',
+  'service.express.restart.choose.info': 'Services are stopped when this upgrade is performed. </br>Incurs downtime, but is a faster upgrade.',
+  'service.restart.show.advanced.info': 'Show advanced configurations options <p style="font-size: 12px; color: #999999; display: inline;">(Restart by batches/hosts, interval between restarts, etc.)</p>',
+
 
   'rolling.command.context': 'Rolling set {0} to state "{1}" - batch {2} of {3}',
   'rolling.nothingToDo.header': 'Nothing to do',

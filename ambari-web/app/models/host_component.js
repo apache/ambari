@@ -356,6 +356,14 @@ App.HostComponentActionMap = {
         hasSubmenu: hasMultipleMasterComponentGroups,
         submenuOptions: hasMultipleMasterComponentGroups ? this.getMastersSubmenu(ctx, 'restartCertainHostComponents') : []
       },
+      //Ongoing feature. Will later replace RESTART_ALL
+      RESTART_SERVICE: {
+        action: 'chooseAndRestartHostComponents',
+        context: ctx.get('serviceName'),
+        label: Em.I18n.t('restart.service.rest.context').format(ctx.get('displayName')),
+        cssClass: 'glyphicon glyphicon-time',
+        disabled: false
+      },
       RESTART_NAMENODES: {
         action: '',
         label: Em.I18n.t('rollingrestart.dialog.title').format(pluralize(App.format.role('NAMENODE', false))),
