@@ -18,16 +18,11 @@
 
 package org.apache.ambari.msi;
 
+
 import org.apache.ambari.scom.TestClusterDefinitionProvider;
 import org.apache.ambari.scom.TestHostInfoProvider;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * AbstractResourceProvider tests.

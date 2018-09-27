@@ -140,7 +140,7 @@ public class StackManager {
    *           if an exception occurs while processing the stacks
    */
   @AssistedInject
-  public StackManager(@Assisted("stackRoot") File stackRootDir,
+  public StackManager(@Assisted("stackRoot") File stackRoot,
       @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
       @Assisted("extensionRoot") @Nullable File extensionRoot,
       @Assisted OsFamily osFamily, @Assisted boolean validate,
@@ -150,7 +150,6 @@ public class StackManager {
 
     LOG.info("Initializing the stack manager...");
 
-    stackRoot = stackRootDir;
     if (validate) {
       validateStackDirectory(stackRoot);
       validateCommonServicesDirectory(commonServicesRoot);

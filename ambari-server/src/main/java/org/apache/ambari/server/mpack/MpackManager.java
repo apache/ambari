@@ -18,10 +18,6 @@
 package org.apache.ambari.server.mpack;
 
 
-import com.google.gson.Gson;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,21 +47,18 @@ import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-
-
+import com.google.gson.Gson;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * Manages all mpack related behavior including parsing of stacks and providing access to

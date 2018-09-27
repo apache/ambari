@@ -25,9 +25,6 @@ import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.Assert;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Unit tests for MpackResponse

@@ -17,36 +17,35 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.io.IOException;
 
-import java.util.HashSet;
-import java.util.Set;
+
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.ArrayList;
 import java.util.List;
-import com.google.inject.Inject;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
-import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MpackRequest;
+import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.MpackResponse;
-import org.apache.ambari.server.controller.MpackRequest;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.MpackDAO;
@@ -59,6 +58,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.Validate;
 
 import com.google.inject.Inject;
+
 
 /**
  * ResourceProvider for Mpack instances

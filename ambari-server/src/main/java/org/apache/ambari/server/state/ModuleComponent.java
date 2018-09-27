@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
 
 public class ModuleComponent {
@@ -31,6 +32,12 @@ public class ModuleComponent {
   private Boolean isExternal;
   @SerializedName("version")
   private String version;
+
+  /**
+   * The owning module for this module component.
+   */
+  @JsonIgnore
+  private transient Module module;
 
   public String getId() {
     return id;
@@ -105,5 +112,9 @@ public class ModuleComponent {
             ", isExternal=" + isExternal +
             ", version='" + version + '\'' +
             '}';
+  }
+
+  public void setModule(Module module) {
+    this.module = module;
   }
 }

@@ -33,13 +33,13 @@ public class MpackTest {
     mpack.setResourceId((long)100);
     mpack.setDescription("desc");
     mpack.setVersion("3.0");
-    mpack.setMpacksUri("abc.tar.gz");
+    mpack.setMpackUri("abc.tar.gz");
     mpack.setRegistryId(new Long(100));
 
     Assert.assertEquals("name", mpack.getName());
     Assert.assertEquals(new Long(100), mpack.getResourceId());
     Assert.assertEquals("desc", mpack.getDescription());
-    Assert.assertEquals("abc.tar.gz", mpack.getMpacksUri());
+    Assert.assertEquals("abc.tar.gz", mpack.getMpackUri());
     Assert.assertEquals(new Long(100), mpack.getRegistryId());
 
   }

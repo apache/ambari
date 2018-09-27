@@ -17,10 +17,7 @@
  */
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
-
-
-import org.apache.ambari.server.controller.spi.Resource;
+import java.util.Collections;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -33,8 +30,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.Collections;
-
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.MpackResponse.MpackResponseWrapper;

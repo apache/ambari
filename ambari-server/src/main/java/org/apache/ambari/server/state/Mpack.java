@@ -17,13 +17,15 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.gson.annotations.SerializedName;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents the state of an mpack.

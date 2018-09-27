@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -50,6 +51,8 @@ public class Module {
   private List<ModuleDependency> dependencies;
   @SerializedName("components")
   private List<ModuleComponent> components;
+
+  private HashMap<String, ModuleComponent> componentHashMap;
 
   public Category getCategory() {
     return category;
@@ -127,6 +130,15 @@ public class Module {
     this.components = components;
   }
 
+  /**
+   * Fetch a particular module component by the component name.
+   * @param moduleComponentName
+   * @return
+   */
+  public ModuleComponent getModuleComponent(String moduleComponentName) {
+    return componentHashMap.get(moduleComponentName);
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -159,5 +171,18 @@ public class Module {
             ", dependencies=" + dependencies +
             ", components=" + components +
             '}';
+  }
+
+  /**
+   * Loads the components into a map (component name, component) for ease of access.
+   */
+  public void populateComponentMap() {
+    componentHashMap = new HashMap<>();
+    for (ModuleComponent moduleComponent : getComponents()){
+      // set reverse lookup
+      moduleComponent.setModule(this);
+
+      componentHashMap.put(moduleComponent.getName(), moduleComponent);
+    }
   }
 }

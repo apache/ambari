@@ -18,8 +18,9 @@
 package org.apache.ambari.server.controller;
 
 
-import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
+import org.apache.ambari.server.state.Mpack;
+
 
 import io.swagger.annotations.ApiModelProperty;
 

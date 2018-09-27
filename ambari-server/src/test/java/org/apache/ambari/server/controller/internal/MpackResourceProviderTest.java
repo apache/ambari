@@ -17,8 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.util.Modules;
-import org.apache.ambari.server.state.Module;
+
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -31,44 +30,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
-import com.google.inject.Injector;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MpackRequest;
 import org.apache.ambari.server.controller.MpackResponse;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.MpackRequest;
-import org.apache.ambari.server.controller.utilities.*;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
 
 import org.easymock.EasyMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.verify;
-import org.junit.Test;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-
-import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
+import com.google.inject.util.Modules;
 
 public class MpackResourceProviderTest {
 
@@ -271,7 +258,7 @@ public class MpackResourceProviderTest {
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(new Long(100));
     mpack.setVersion("3.0");
-    mpack.setMpacksUri("../../../../../../../resources/mpacks-v2/abc.tar.gz");
+    mpack.setMpackUri("../../../../../../../resources/mpacks-v2/abc.tar.gz");
     mpack.setDescription("Test mpack");
     mpack.setName("testMpack");
 
