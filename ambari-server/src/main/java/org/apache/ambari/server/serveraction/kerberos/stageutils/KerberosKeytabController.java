@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
@@ -35,6 +36,7 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.commons.collections.MapUtils;
 
 import com.google.common.collect.ImmutableSet;
@@ -53,6 +55,13 @@ public class KerberosKeytabController {
 
   @Inject
   private KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
+
+  //TODO: due to circular dependencies in Guice this field cannot be injected with Guice's @Inject annotation; for now we should statically inject in AmbariServer
+  private static KerberosHelper kerberosHelper;
+
+  public static void setKerberosHelper(KerberosHelper kerberosHelper) {
+    KerberosKeytabController.kerberosHelper = kerberosHelper;
+  }
 
   /**
    * Tries to find keytab by keytab path in destination filesystem.
@@ -102,7 +111,7 @@ public class KerberosKeytabController {
    * @param identityFilter identity(principal) filter
    * @return set of keytabs found
    */
-  public Set<ResolvedKerberosKeytab> getFilteredKeytabs(Map<String, ? extends Collection<String>> serviceComponentFilter,
+  private Set<ResolvedKerberosKeytab> getFilteredKeytabs(Map<String, ? extends Collection<String>> serviceComponentFilter,
                                                         Set<String> hostFilter, Collection<String> identityFilter) {
     if (serviceComponentFilter == null && hostFilter == null && identityFilter == null) {
       return getAllKeytabs();
@@ -123,6 +132,11 @@ public class KerberosKeytabController {
       keytab.addPrincipal(principal);
     }
     return Sets.newHashSet(resultMap.values());
+  }
+
+  public Set<ResolvedKerberosKeytab> getFilteredKeytabs(Collection<KerberosIdentityDescriptor> serviceIdentities, Set<String> hostFilter, Collection<String> identityFilters) {
+    final Collection<String> enhancedIdentityFilters = populateIdentityFilter(identityFilters, serviceIdentities);
+    return getFilteredKeytabs((Map<String, ? extends Collection<String>>) null, hostFilter, enhancedIdentityFilters);
   }
 
   /**
@@ -156,7 +170,7 @@ public class KerberosKeytabController {
       List<KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter> result = new ArrayList<>();
       // Handle the service/component filter
       if (serviceSet.size() > 0) {
-        result.add(new KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter(
+        result.add(KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter.createFilter(
           null,
           serviceSet,
           componentSet,
@@ -165,7 +179,7 @@ public class KerberosKeytabController {
       }
       // Handler the service/* filter
       if (serviceOnlySet.size() > 0) {
-        result.add(new KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter(
+        result.add(KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter.createFilter(
           null,
           serviceOnlySet,
           null,
@@ -177,7 +191,7 @@ public class KerberosKeytabController {
       }
     }
 
-    return Lists.newArrayList(new KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter(null,null,null,null));
+    return Lists.newArrayList(KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter.createEmptyFilter());
   }
 
   private ResolvedKerberosKeytab fromKeytabEntity(KerberosKeytabEntity kke, boolean resolvePrincipals) {
@@ -263,5 +277,27 @@ public class KerberosKeytabController {
     }
 
     return adjustedFilter;
+  }
+
+  public Collection<KerberosIdentityDescriptor> getServiceIdentities(String clusterName, Collection<String> services) throws AmbariException {
+    final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
+    for (String service : services) {
+      for (Collection<KerberosIdentityDescriptor> activeIdentities : kerberosHelper.getActiveIdentities(clusterName, null, service, null, true).values()) {
+        serviceIdentities.addAll(activeIdentities);
+      }
+    }
+    return serviceIdentities;
+  }
+
+  private Collection<String> populateIdentityFilter(Collection<String> identityFilters, Collection<KerberosIdentityDescriptor> serviceIdentities) {
+    if (serviceIdentities != null) {
+      identityFilters = identityFilters == null ? new HashSet<>() : identityFilters;
+      for (KerberosIdentityDescriptor serviceIdentity : serviceIdentities) {
+        if (!KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME.equals(serviceIdentity.getName())) {
+          identityFilters.add(serviceIdentity.getPrincipalDescriptor().getName());
+        }
+      }
+    }
+    return identityFilters;
   }
 }

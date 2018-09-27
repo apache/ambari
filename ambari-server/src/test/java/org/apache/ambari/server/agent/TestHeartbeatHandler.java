@@ -104,6 +104,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.binary.Base64;
@@ -1567,7 +1568,7 @@ public class TestHeartbeatHandler {
     }
 
     expect(kerberosKeytabControllerMock.adjustServiceComponentFilter(anyObject(), eq(false), anyObject())).andReturn(filter).once();
-    expect(kerberosKeytabControllerMock.getFilteredKeytabs(filter,null,null)).andReturn(
+    expect(kerberosKeytabControllerMock.getFilteredKeytabs((Collection<KerberosIdentityDescriptor>) EasyMock.anyObject(), EasyMock.eq(null), EasyMock.eq(null))).andReturn(
       Sets.newHashSet(
         new ResolvedKerberosKeytab(
           "/etc/security/keytabs/dn.service.keytab",
@@ -1591,6 +1592,8 @@ public class TestHeartbeatHandler {
         )
       )
     ).once();
+
+    expect(kerberosKeytabControllerMock.getServiceIdentities(EasyMock.anyString(), EasyMock.anyObject())).andReturn(Collections.emptySet()).anyTimes();
 
     replay(kerberosKeytabControllerMock);
 
