@@ -499,6 +499,22 @@ module.exports = {
     });
   },
 
+
+  showServicRestartPopup: function (serviceName) {
+
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.configure.restart'),
+      bodyClass: App.ServiceRestartView.extend({
+        serviceName: serviceName
+      }),
+      primary: Em.I18n.t('common.restart'),
+      primaryClass: 'btn-warning',
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg']
+    })
+
+  },
+
   /**
    * Service rolling restart popup
    * @param {String} serviceName: name of the service that should be restarted
