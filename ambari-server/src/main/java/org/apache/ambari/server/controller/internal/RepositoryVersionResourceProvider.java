@@ -69,6 +69,7 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -103,10 +104,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_HAS_CHILDREN                   = "RepositoryVersions/has_children";
 
   @SuppressWarnings("serial")
-  private static final Set<String> pkPropertyIds = Sets.newHashSet(REPOSITORY_VERSION_ID_PROPERTY_ID);
+  private static final Set<String> pkPropertyIds = ImmutableSet.of(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
   @SuppressWarnings("serial")
-  public static final Set<String> propertyIds = Sets.newHashSet(
+  public static final Set<String> propertyIds = ImmutableSet.of(
       REPOSITORY_VERSION_ID_PROPERTY_ID,
       REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
       REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,

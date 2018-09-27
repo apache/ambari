@@ -85,7 +85,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -171,7 +171,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The property ids for a Host resource.
    */
-  public static final Set<String> propertyIds = Sets.newHashSet(
+  public static final Set<String> propertyIds = ImmutableSet.of(
       HOST_CLUSTER_NAME_PROPERTY_ID,
       HOST_CPU_COUNT_PROPERTY_ID,
       HOST_DESIRED_CONFIGS_PROPERTY_ID,

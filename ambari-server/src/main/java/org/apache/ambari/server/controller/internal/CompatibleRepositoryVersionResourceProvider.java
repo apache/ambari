@@ -55,7 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -83,7 +83,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
 
   private static final Set<String> pkPropertyIds = Collections.singleton(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
-  static final Set<String> propertyIds = Sets.newHashSet(
+  static final Set<String> propertyIds = ImmutableSet.of(
     REPOSITORY_STACK_VALUE,
     REPOSITORY_VERSION_ID_PROPERTY_ID,
     REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,

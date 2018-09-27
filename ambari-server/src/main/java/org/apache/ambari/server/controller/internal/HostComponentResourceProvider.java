@@ -69,7 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
@@ -147,7 +147,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   /**
    * The property ids for a HostComponent resource.
    */
-  protected static final Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = ImmutableSet.of(
       ROLE_ID,
       CLUSTER_NAME,
       SERVICE_NAME,

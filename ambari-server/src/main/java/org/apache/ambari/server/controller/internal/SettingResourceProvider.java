@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +46,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
@@ -74,12 +74,22 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
   /**
    * The property ids for setting resource.
    */
-  private static final Set<String> propertyIds = new HashSet<>();
+  private static final Set<String> propertyIds = ImmutableSet.<String>builder()
+    .add(SETTING_NAME_PROPERTY_ID)
+    .add(SETTING_SETTING_TYPE_PROPERTY_ID)
+    .add(SETTING_CONTENT_PROPERTY_ID)
+    .add(SETTING_UPDATED_BY_PROPERTY_ID)
+    .add(SETTING_UPDATE_TIMESTAMP_PROPERTY_ID)
+    .add(SETTING_SETTING_TYPE_PROPERTY_ID)
+    .add(SETTING)
+    .build();
 
   /**
    * The key property ids for setting resource.
    */
-  private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+    .put(Resource.Type.Setting, SETTING_NAME_PROPERTY_ID)
+    .build();
 
   private static final Set<String> REQUIRED_PROPERTIES = ImmutableSet.of(
     SETTING_NAME_PROPERTY_ID,
@@ -89,18 +99,6 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
 
   @Inject
   private static SettingDAO dao;
-
-  static {
-    propertyIds.add(SETTING_NAME_PROPERTY_ID);
-    propertyIds.add(SETTING_SETTING_TYPE_PROPERTY_ID);
-    propertyIds.add(SETTING_CONTENT_PROPERTY_ID);
-    propertyIds.add(SETTING_UPDATED_BY_PROPERTY_ID);
-    propertyIds.add(SETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
-    propertyIds.add(SETTING_SETTING_TYPE_PROPERTY_ID);
-    propertyIds.add(SETTING);
-
-    keyPropertyIds.put(Resource.Type.Setting, SETTING_NAME_PROPERTY_ID);
-  }
 
   protected SettingResourceProvider() {
     super(Resource.Type.Setting, propertyIds, keyPropertyIds);

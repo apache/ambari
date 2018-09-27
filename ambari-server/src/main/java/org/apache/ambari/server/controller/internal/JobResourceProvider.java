@@ -45,7 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Resource provider for job resources.
@@ -97,7 +97,7 @@ public class JobResourceProvider extends
   /**
    * The property ids for a Job resource.
    */
-  protected static final Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = ImmutableSet.of(
       JOB_CLUSTER_NAME_PROPERTY_ID,
       JOB_WORKFLOW_ID_PROPERTY_ID,
       JOB_ID_PROPERTY_ID,

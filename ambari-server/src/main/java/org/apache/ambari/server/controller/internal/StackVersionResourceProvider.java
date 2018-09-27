@@ -40,7 +40,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 @StaticallyInject
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
@@ -68,7 +68,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a StackVersion resource.
    */
-  protected static final Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = ImmutableSet.of(
       STACK_VERSION_PROPERTY_ID,
       STACK_NAME_PROPERTY_ID,
       STACK_MIN_VERSION_PROPERTY_ID,

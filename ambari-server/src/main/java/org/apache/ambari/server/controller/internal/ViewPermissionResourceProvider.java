@@ -50,7 +50,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   /**
    * Data access object used to obtain permission entities.
    */
-  protected static PermissionDAO permissionDAO;
+  private static PermissionDAO permissionDAO;
 
   public static final String PERMISSION_INFO = "PermissionInfo";
 

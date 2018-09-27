@@ -40,7 +40,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 public class StackResourceProvider extends ReadOnlyResourceProvider {
 
@@ -57,7 +57,7 @@ public class StackResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a Stack resource.
    */
-  protected static final Set<String> propertyIds = Sets.newHashSet(
+  protected static final Set<String> propertyIds = ImmutableSet.of(
       STACK_NAME_PROPERTY_ID);
 
   protected StackResourceProvider(AmbariManagementController managementController) {

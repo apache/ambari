@@ -45,7 +45,7 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
   /**
    * Data access object used to obtain permission entities.
    */
-  protected static PermissionDAO permissionDAO;
+  private static PermissionDAO permissionDAO;
 
   /**
    * Permission property id constants.

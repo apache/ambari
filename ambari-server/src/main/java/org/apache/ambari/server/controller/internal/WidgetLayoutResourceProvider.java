@@ -52,6 +52,8 @@ import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 /**
@@ -76,37 +78,31 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   }
 
   @SuppressWarnings("serial")
-  private static final Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(WIDGETLAYOUT_ID_PROPERTY_ID);
-    }
-  };
+  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
+    .add(WIDGETLAYOUT_ID_PROPERTY_ID)
+    .build();
 
   @SuppressWarnings("serial")
   private static final ReadWriteLock lock = new ReentrantReadWriteLock();
 
   @SuppressWarnings("serial")
-  public static final Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(WIDGETLAYOUT_ID_PROPERTY_ID);
-      add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID);
-      add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID);
-      add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
-      add(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
-      add(WIDGETLAYOUT_SCOPE_PROPERTY_ID);
-      add(WIDGETLAYOUT_USERNAME_PROPERTY_ID);
-      add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID);
-    }
-  };
+  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
+    .add(WIDGETLAYOUT_ID_PROPERTY_ID)
+    .add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID)
+    .add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID)
+    .add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID)
+    .add(WIDGETLAYOUT_WIDGETS_PROPERTY_ID)
+    .add(WIDGETLAYOUT_SCOPE_PROPERTY_ID)
+    .add(WIDGETLAYOUT_USERNAME_PROPERTY_ID)
+    .add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID)
+    .build();
 
   @SuppressWarnings("serial")
-  public static final Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Type.WidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID);
-      put(Type.Cluster, WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
-      put(Type.User, WIDGETLAYOUT_USERNAME_PROPERTY_ID);
-    }
-  };
+  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
+    .put(Type.WidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID)
+    .put(Type.Cluster, WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID)
+    .put(Type.User, WIDGETLAYOUT_USERNAME_PROPERTY_ID)
+    .build();
 
   @Inject
   private static WidgetDAO widgetDAO;

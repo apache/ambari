@@ -242,15 +242,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String WIDGET_TABLE = "widget";
   protected static final String WIDGET_TAG_COLUMN = "tag";
 
-  protected static final String CLUSTER_ID_COLUMN = "cluster_id";
-  public static final String[] COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {COMPONENT_NAME_COLUMN, SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
-  public static final String[] SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
   protected static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
-  protected static final String CLUSTER_SERVICES_TABLE = "clusterservices";
-  protected static final String SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK = "srvccmponentdesiredstatesrvcnm";
-  protected static final String SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK = "servicedesiredstateservicename";
-  protected static final String COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcmpnntdesiredstatecmpnntnme";
-  protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
   protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
   protected static final String CONFIGURATION_CORE_SITE = "core-site";
   protected static final String CONFIGURATION_WEBHCAT_SITE = "webhcat-site";
