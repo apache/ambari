@@ -23,6 +23,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 public enum HostRoleStatus {
   /**
@@ -93,31 +94,31 @@ public enum HostRoleStatus {
    * The {@link HostRoleStatus}s that represent any commands which are
    * considered to be "Failed".
    */
-  public static final Set<HostRoleStatus> FAILED_STATUSES = ImmutableSet.copyOf(EnumSet.of(
-    FAILED, TIMEDOUT, ABORTED, SKIPPED_FAILED));
+  public static final Set<HostRoleStatus> FAILED_STATUSES = Sets.immutableEnumSet(
+    FAILED, TIMEDOUT, ABORTED, SKIPPED_FAILED);
 
   /**
    * The {@link HostRoleStatus}s that represent any commands which are
    * considered to be "Failed" and next commands can not be executed.
    */
-  public static final Set<HostRoleStatus> NOT_SKIPPABLE_FAILED_STATUSES = ImmutableSet.copyOf(EnumSet.of(
-    FAILED, TIMEDOUT, ABORTED));
+  public static final Set<HostRoleStatus> NOT_SKIPPABLE_FAILED_STATUSES = Sets.immutableEnumSet(
+    FAILED, TIMEDOUT, ABORTED);
 
   /**
    * The {@link HostRoleStatus}s that represent the current commands that failed during stack upgrade.
    * This is not used to indicate commands that failed and then skipped.
    */
-  public static final Set<HostRoleStatus> STACK_UPGRADE_FAILED_STATUSES = ImmutableSet.copyOf(EnumSet.of(
-    FAILED, HOLDING_FAILED, HOLDING_TIMEDOUT));
+  public static final Set<HostRoleStatus> STACK_UPGRADE_FAILED_STATUSES = Sets.immutableEnumSet(
+    FAILED, HOLDING_FAILED, HOLDING_TIMEDOUT);
 
   /**
    * The {@link HostRoleStatus}s that represent any commands which are
    * considered to be "In Progress".
    */
-  public static final Set<HostRoleStatus> IN_PROGRESS_STATUSES = ImmutableSet.copyOf(EnumSet.of(
+  public static final Set<HostRoleStatus> IN_PROGRESS_STATUSES = Sets.immutableEnumSet(
       QUEUED, IN_PROGRESS,
       PENDING, HOLDING,
-      HOLDING_FAILED, HOLDING_TIMEDOUT));
+      HOLDING_FAILED, HOLDING_TIMEDOUT);
 
   /**
    * The {@link HostRoleStatus}s that represent all non-completed states.
