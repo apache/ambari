@@ -15,9 +15,9 @@
  * the License.
  */
 
-var date = require('utils/date/date');
-
-var App = require('app');
+const date = require('utils/date/date');
+const numberUtils = require('utils/number_utils');
+const App = require('app');
 
 App.MainChartsHeatmapHostView = Em.View.extend({
   templateName: require('templates/main/charts/heatmap/heatmap_host'),
@@ -67,6 +67,25 @@ App.MainChartsHeatmapHostView = Em.View.extend({
     }, this);
     this.setMetric(view, host);
     this.openDetailsBlock(event);
+  },
+
+  /**
+   *
+   * @param {string} number
+   * @param {string} units
+   * @returns {string}
+   */
+  convertValue: function(number, units) {
+    if (Number.isFinite(Number(number)) && Number(number) > 0) {
+      if (units === 'MB') {
+        return (Number(number) / numberUtils.BYTES_IN_MB).toFixed(2) + units;
+      } else if (units === 'ms') {
+        return date.timingFormat(number);
+      } else {
+        return number + units;
+      }
+    }
+    return number;
   },
 
   /**
@@ -134,24 +153,18 @@ App.MainChartsHeatmapHostView = Em.View.extend({
    */
   setMetric: function (view, host) {
     var selectedMetric = this.get('controller.selectedMetric');
+    const hostToSlotMap = this.get('controller.hostToSlotMap');
 
     if (selectedMetric) {
-      var metricName = selectedMetric.get('name');
-      var h2vMap = selectedMetric.get('hostToValueMap');
+      const slotDefinitions = selectedMetric.get('slotDefinitions');
+      const metricName = selectedMetric.get('name');
+      const h2vMap = selectedMetric.get('hostToValueMap');
       if (h2vMap && metricName) {
-        var value = h2vMap[host.hostName];
-        if (Em.isNone(value)) {
-          value = this.t('charts.heatmap.unknown');
+        let value = h2vMap[host.hostName];
+        if (Em.isNone(value) || isNaN(Number(value))) {
+          value = slotDefinitions[hostToSlotMap[host.hostName]].get('label');
         } else {
-          if (metricName === 'Garbage Collection Time') {
-            value = date.timingFormat(parseInt(value));
-          } else {
-            if (isNaN(value)) {
-              value = this.t('charts.heatmap.unknown');
-            } else {
-              value = value + selectedMetric.get('units');
-            }
-          }
+          value = this.convertValue(value, selectedMetric.get('units'));
         }
         view.set('details.metricName', metricName);
         view.set('details.metricValue', value);

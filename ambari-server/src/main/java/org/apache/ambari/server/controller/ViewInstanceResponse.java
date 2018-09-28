@@ -24,6 +24,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewInstanceService;
+import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.validation.ValidationResult;
 
@@ -39,7 +40,7 @@ public class ViewInstanceResponse implements ApiModel{
     this.viewInstanceResponseInfo = viewInstanceResponseInfo;
   }
 
-  @ApiModelProperty(name = "ViewInstanceInfo")
+  @ApiModelProperty(name = ViewInstanceResourceProvider.VIEW_INSTANCE_INFO)
   public ViewInstanceResponseInfo getViewInstanceInfo() {
     return viewInstanceResponseInfo;
   }
@@ -83,7 +84,7 @@ public class ViewInstanceResponse implements ApiModel{
      * @return view name
      */
     @Override
-    @ApiModelProperty(name = "view_name", hidden = false)
+    @ApiModelProperty(name = ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID)
     public String getViewName() {
       return viewName;
     }
@@ -93,7 +94,7 @@ public class ViewInstanceResponse implements ApiModel{
      * @return view version
      */
     @Override
-    @ApiModelProperty(hidden = false)
+    @ApiModelProperty(name = ViewInstanceResourceProvider.VERSION_PROPERTY_ID)
     public String getVersion() {
       return version;
     }
@@ -103,7 +104,7 @@ public class ViewInstanceResponse implements ApiModel{
      * @return view instance name
      */
     @Override
-    @ApiModelProperty(name = "instance_name", hidden = false)
+    @ApiModelProperty(name = ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID)
     public String getInstanceName() {
       return instanceName;
     }
@@ -112,7 +113,7 @@ public class ViewInstanceResponse implements ApiModel{
      * Return view context path
      * @return context path
      */
-    @ApiModelProperty(name = "context_path")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.CONTEXT_PATH_PROPERTY_ID)
     public String getContextPath() {
       return contextPath;
     }
@@ -121,7 +122,7 @@ public class ViewInstanceResponse implements ApiModel{
      * Return if the view is static driven
      * @return  {{@link #staticDriven}
      */
-    @ApiModelProperty(name = "static")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.STATIC_PROPERTY_ID)
     public boolean isStaticDriven() {
       return staticDriven;
     }
@@ -130,7 +131,7 @@ public class ViewInstanceResponse implements ApiModel{
      * Return short url for the view
      * @return short url for the view
      */
-    @ApiModelProperty(name = "short_url")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.SHORT_URL_PROPERTY_ID)
     public String getShortUrl() {
       return shortUrl;
     }
@@ -147,7 +148,7 @@ public class ViewInstanceResponse implements ApiModel{
      * Returns short url name
      * @return short url name
      */
-    @ApiModelProperty(name = "short_url_name")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.SHORT_URL_NAME_PROPERTY_ID)
     public String getShortUrlName() {
       return shortUrlName;
     }
@@ -164,7 +165,7 @@ public class ViewInstanceResponse implements ApiModel{
      * Returns validation result
      * @return {@link ValidationResult}
      */
-    @ApiModelProperty(name = "validation_result")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.VALIDATION_RESULT_PROPERTY_ID)
     public ValidationResult getValidationResult() {
       return validationResult;
     }
@@ -181,7 +182,7 @@ public class ViewInstanceResponse implements ApiModel{
      * Returns map of property->ValidationResult
      * @return Map
      */
-    @ApiModelProperty(name = "property_validation_results")
+    @ApiModelProperty(name = ViewInstanceResourceProvider.PROPERTY_VALIDATION_RESULTS_PROPERTY_ID)
     public Map<String, ValidationResult> getPropertyValidationResults() {
       return propertyValidationResults;
     }

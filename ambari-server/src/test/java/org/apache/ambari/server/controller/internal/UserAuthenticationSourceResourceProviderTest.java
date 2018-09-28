@@ -23,7 +23,6 @@ import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -46,10 +45,10 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
-import org.apache.ambari.server.security.authorization.UserIdAuthentication;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Clusters;
@@ -74,8 +73,8 @@ import com.google.inject.Injector;
  */
 public class UserAuthenticationSourceResourceProviderTest extends EasyMockSupport {
 
-  private static final Date CREATE_TIME = Calendar.getInstance().getTime();
-  private static final Date UPDATE_TIME = Calendar.getInstance().getTime();
+  private static final long CREATE_TIME = Calendar.getInstance().getTime().getTime();
+  private static final long UPDATE_TIME = Calendar.getInstance().getTime().getTime();
 
   @Before
   public void resetMocks() {
@@ -262,7 +261,7 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
 
       expect(users.getUserAuthenticationEntities((String)null, null)).andReturn(entities.values()).once();
     } else {
-      expect(users.getUserAuthenticationEntities("User1", null)).andReturn(entities.values()).once();
+      expect(users.getUserAuthenticationEntities("user1", null)).andReturn(entities.values()).once();
     }
 
     replayAll();
@@ -348,7 +347,7 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
     UserEntity userEntity = createMock(UserEntity.class);
     expect(userEntity.getAuthenticationEntities()).andReturn(userAuthenticationEntities).once();
     if (isSelf) {
-      expect(userEntity.getUserId()).andReturn(((UserIdAuthentication) authentication).getUserId()).once();
+      expect(userEntity.getUserId()).andReturn(((AmbariUserDetails) authentication.getPrincipal()).getUserId()).once();
     } else {
       expect(userEntity.getUserId()).andReturn(AuthorizationHelper.getAuthenticatedId() + 100).once();
     }
@@ -372,7 +371,7 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
     properties.put(UserAuthenticationSourceResourceProvider.AUTHENTICATION_OLD_KEY_PROPERTY_ID, "old_password");
     properties.put(UserAuthenticationSourceResourceProvider.AUTHENTICATION_KEY_PROPERTY_ID, "new_password");
 
-    if(authenticationType != null) {
+    if (authenticationType != null) {
       properties.put(UserAuthenticationSourceResourceProvider.AUTHENTICATION_AUTHENTICATION_TYPE_PROPERTY_ID, authenticationType);
     }
 

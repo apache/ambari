@@ -23,7 +23,8 @@ module.exports.config = {
       ignore: [
         /^(vendor|app\/data|app\/assets|test)/
       ],
-      pattern: /\.(js)$/
+      pattern: /\.(js)$/,
+      plugins: ['transform-object-assign']
     },
     assetsmanager: {
       copyTo: {
@@ -85,7 +86,8 @@ module.exports.config = {
           'vendor/scripts/pluralize.js',
           'vendor/scripts/sockjs.min.js',
           'vendor/scripts/stomp.min.js',
-          'vendor/scripts/theme/bootstrap-ambari.js'
+          'vendor/scripts/theme/bootstrap-ambari.js',
+          'vendor/scripts/theme/jszip.min.js'
         ]
       }
     },

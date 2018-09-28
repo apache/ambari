@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -63,7 +64,6 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
@@ -146,6 +146,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Capture<String> rackChangeAffectedClusterName = EasyMock.newCapture();
     managementController.registerRackChange(capture(rackChangeAffectedClusterName));
     EasyMock.expectLastCall().once();
+    expect(managementController.getBlueprintProvisioningStates(anyLong(), anyLong()))
+        .andReturn(Collections.EMPTY_MAP).anyTimes();
 
 
     Clusters clusters = injector.getInstance(Clusters.class);
@@ -1082,8 +1084,9 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(cluster.getClusterId()).andReturn(100L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<>()).anyTimes();
     clusters.deleteHost("Host100");
-    clusters.publishHostsDeletion(Collections.EMPTY_SET, Collections.singleton("Host100"));
+    clusters.publishHostsDeletion(Collections.singleton(1L), Collections.singleton("Host100"));
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
+    expect(host1.getHostId()).andReturn(1L).anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
     expect(topologyManager.getRequests(Collections.emptyList())).andReturn(Collections.emptyList()).anyTimes();
@@ -1413,7 +1416,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(Gson.class).toInstance(new Gson());
         bind(MaintenanceStateHelper.class).toInstance(createNiceMock(MaintenanceStateHelper.class));
-        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HookService.class).to(UserHookService.class);

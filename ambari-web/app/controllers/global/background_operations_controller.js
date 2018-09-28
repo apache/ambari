@@ -21,11 +21,6 @@ var App = require('app');
 App.BackgroundOperationsController = Em.Controller.extend({
   name: 'backgroundOperationsController',
 
-  /**
-   * Whether we need to refresh background operations or not
-   */
-  isWorking : false,
-
   runningOperationsCount : function() {
     return this.get('services').filterProperty('isRunning').length;
   }.property('services.@each.isRunning'),
@@ -54,15 +49,11 @@ App.BackgroundOperationsController = Em.Controller.extend({
     taskId: null
   }),
 
-  handleRequestsUpdates: function () {
-    if (this.get('isWorking')) {
-      this.requestMostRecent(() => {
-        App.StompClient.subscribe('/events/requests', this.updateRequests.bind(this));
-      });
-    } else {
-      App.StompClient.unsubscribe('/events/requests');
-    }
-  }.observes('isWorking'),
+  subscribeToUpdates: function () {
+    this.requestMostRecent(() => {
+      App.StompClient.subscribe('/events/requests', this.updateRequests.bind(this));
+    });
+  },
 
   updateRequests: function(event) {
     if (this.isUpgradeRequest({Requests: {request_context: event.requestContext}})) {

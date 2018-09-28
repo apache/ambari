@@ -139,6 +139,7 @@ describe('App.componentsStateMapper', function () {
     var model;
     beforeEach(function() {
       model = Em.Object.create({
+        isLoaded: true,
         initCount: 1,
         installFailedCount: 0,
         totalCount: 2,
@@ -230,6 +231,7 @@ describe('App.componentsStateMapper', function () {
     var model;
     beforeEach(function() {
       model = Em.Object.create({
+        isLoaded: true,
         initCount: 0,
         totalCount: 0
       });

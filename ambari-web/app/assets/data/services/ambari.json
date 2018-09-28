@@ -37,7 +37,7 @@
           "jdk.name" : "jdk-7u67-linux-x64.tar.gz",
           "jdk1.6.url" : "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-6u31-linux-x64.bin",
           "jdk1.7.url" : "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-7u67-linux-x64.tar.gz",
-          "jdk_location" : "http://c6402.ambari.apache.org:8080/resources/",
+          "jdk_location" : "http://c6402.ambari.apache.org:8080/resources",
           "metadata.path" : "/var/lib/ambari-server/resources/stacks",
           "recommendations.dir" : "/var/run/ambari-server/stack-recommendations",
           "resources.dir" : "/var/lib/ambari-server/resources",

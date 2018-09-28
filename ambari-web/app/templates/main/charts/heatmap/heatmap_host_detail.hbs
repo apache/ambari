@@ -23,6 +23,12 @@
   </tr>
   </thead>
   <tbody>
+  {{#if view.details.metricName}}
+    <tr>
+      <td>{{view.details.metricName}}</td>
+      <td>{{view.details.metricValue}}</td>
+    </tr>
+  {{/if}}
   <tr>
     <td>{{t common.os}}</td>
     <td>{{view.details.osType}}</td>
@@ -35,12 +41,6 @@
     <td>{{t common.rack}}</td>
     <td>{{view.details.rack}}</td>
   </tr>
-  {{#if view.details.metricName}}
-    <tr>
-      <td>{{view.details.metricName}}</td>
-      <td>{{view.details.metricValue}}</td>
-    </tr>
-  {{/if}}
   {{#if view.details.diskUsage}}
     <tr>
       <td>{{t common.disk}}</td>

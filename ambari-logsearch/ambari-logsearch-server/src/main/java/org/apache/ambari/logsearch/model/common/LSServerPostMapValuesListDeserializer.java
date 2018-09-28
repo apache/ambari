@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class LSServerPostMapValuesListDeserializer extends JsonDeserializer<LSServerPostMapValuesList> {
   @Override
   public LSServerPostMapValuesList deserialize(JsonParser jp, DeserializationContext ctxt)
-      throws IOException, JsonProcessingException {
+      throws IOException {
     ObjectCodec oc = jp.getCodec();
     JsonNode node = oc.readTree(jp);
     
@@ -49,24 +49,24 @@ public class LSServerPostMapValuesListDeserializer extends JsonDeserializer<LSSe
         JsonNode mapperProperties = mapperData.getValue();
         switch (mapperType) {
           case "map_date" :
-            LSServerMapDate mapDate = oc.treeToValue((TreeNode)mapperProperties, LSServerMapDate.class);
+            LSServerMapDate mapDate = oc.treeToValue(mapperProperties, LSServerMapDate.class);
             mappers.add(mapDate);
             break;
-          case "map_fieldname" :
-            LSServerMapFieldName mapFieldName = oc.treeToValue((TreeNode)mapperProperties, LSServerMapFieldName.class);
+          case "map_field_name" :
+            LSServerMapFieldName mapFieldName = oc.treeToValue(mapperProperties, LSServerMapFieldName.class);
             mappers.add(mapFieldName);
             break;
-          case "map_fieldvalue" :
-            LSServerMapFieldValue mapFieldValue = oc.treeToValue((TreeNode)mapperProperties, LSServerMapFieldValue.class);
+          case "map_field_value" :
+            LSServerMapFieldValue mapFieldValue = oc.treeToValue(mapperProperties, LSServerMapFieldValue.class);
             mappers.add(mapFieldValue);
             break;
-          case "map_fieldcopy" :
-            LSServerMapFieldCopy mapFieldCopy = oc.treeToValue((TreeNode)mapperProperties, LSServerMapFieldCopy.class);
+          case "map_field_copy" :
+            LSServerMapFieldCopy mapFieldCopy = oc.treeToValue(mapperProperties, LSServerMapFieldCopy.class);
             mappers.add(mapFieldCopy);
             break;
           case "map_anonymize" :
-            LSServerMapFieldAnonymize mapAnonyimize = oc.treeToValue((TreeNode)mapperProperties, LSServerMapFieldAnonymize.class);
-            mappers.add(mapAnonyimize);
+            LSServerMapFieldAnonymize mapAnonymize = oc.treeToValue(mapperProperties, LSServerMapFieldAnonymize.class);
+            mappers.add(mapAnonymize);
             break;
         }
       }

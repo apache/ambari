@@ -62,12 +62,14 @@ angular.module('ambariAdminConsole')
         if (customValueFilter) {
           return filter.values.every(function(value) {
             var itemValue = customValueFilter.customValueConverter(item);
-            return String(Array.isArray(itemValue) ? itemValue.join() : itemValue).indexOf(value) === -1;
+            var preparedValue = Array.isArray(itemValue) ? itemValue.join().toLowerCase() : itemValue.toLowerCase();
+            return String(preparedValue).indexOf(value.toLowerCase()) === -1;
           });
         }
         return filter.values.every(function(value) {
           var itemValue = item[filter.key];
-          return String(Array.isArray(itemValue) ? itemValue.join() : itemValue).indexOf(value) === -1;
+          var preparedValue = Array.isArray(itemValue) ? itemValue.join().toLowerCase() : itemValue.toLowerCase();
+          return String(preparedValue).indexOf(value.toLowerCase()) === -1;
 
         });
       }));

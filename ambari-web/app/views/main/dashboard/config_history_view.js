@@ -59,7 +59,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
     this.set('isInitialRendering', true);
-    this.refresh();
+    this.refresh(true);
     this.get('controller').subscribeToUpdates();
   },
 
@@ -116,11 +116,12 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
 
   /**
    * refresh table content
+   * @param {boolean} shouldUpdateCounter
    */
-  refresh: function () {
+  refresh: function (shouldUpdateCounter) {
     var self = this;
     this.set('filteringComplete', false);
-    this.get('controller').load().done(function () {
+    this.get('controller').load(shouldUpdateCounter).done(function () {
       self.refreshDone.apply(self);
     });
   },

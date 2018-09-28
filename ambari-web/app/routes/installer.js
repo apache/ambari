@@ -95,6 +95,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router) {
       console.time('step0 connectOutlets');
       var self = this;
+      var wizardStep0Controller = router.get('wizardStep0Controller');
       var controller = router.get('installerController');
       var wizardStep0Controller = router.get('wizardStep0Controller');
       wizardStep0Controller.set('wizardController', controller);
@@ -302,6 +303,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.save('selectedServiceNames');
         controller.save('selectedServices');
         controller.save('selectedMpacks');
+        controller.save('serviceGroups');
+        controller.save('addedServiceGroups');
+        controller.save('serviceInstances');
+        controller.save('addedServiceInstances');
         controller.save('advancedMode');
         var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
         // Clear subsequent settings if user changed service selections
@@ -414,7 +419,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       App.set('router.nextBtnClickInProgress', true);
       const controller = router.get('installerController');
       controller.save('registeredMpacks');
-      controller.save('serviceGroups');
       controller.save('selectedStack');
       const downloadConfig = controller.get('content.downloadConfig');
       if (downloadConfig && downloadConfig.useCustomRepo) {
@@ -659,14 +663,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var step = router.get('installerController.content.skipSlavesStep') ? 'step5' : 'step6';
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
-      var goToNextStep = function() {
+      var goToPreviousStep = function() {
         router.transitionTo(step);
       };
 
       if (wizardStep7Controller.hasChanges()) {
-        wizardStep7Controller.showChangesWarningPopup(goToNextStep);
+        wizardStep7Controller.showChangesWarningPopup(goToPreviousStep);
       } else {
-        goToNextStep();
+        goToPreviousStep();
       }
       console.timeEnd('step7 back');
     },
@@ -683,9 +687,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.saveComponentsFromConfigs(controller.get('content.componentsFromConfigs'));
         controller.setDBProperty('recommendationsHostGroup', wizardStep7Controller.get('content.recommendationsHostGroup'));
         controller.setDBProperty('masterComponentHosts', wizardStep7Controller.get('content.masterComponentHosts'));
-        App.clusterStatus.setClusterStatus({
-          localdb: App.db.data
-        });
         router.transitionTo('step8');
         console.timeEnd('step7 next');
       }

@@ -108,7 +108,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -143,7 +143,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream).anyTimes();
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -184,7 +184,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -210,7 +210,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -245,7 +245,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -267,8 +267,8 @@ public class JobTest extends BasePigTest {
     ByteArrayOutputStream baScriptStream = new ByteArrayOutputStream();
     ByteArrayOutputStream baTempletonArgsStream = new ByteArrayOutputStream();
 
-    FSDataOutputStream scriptStream = new FSDataOutputStream(baScriptStream);
-    FSDataOutputStream templetonArgsStream = new FSDataOutputStream(baTempletonArgsStream);
+    FSDataOutputStream scriptStream = new FSDataOutputStream(baScriptStream, null);
+    FSDataOutputStream templetonArgsStream = new FSDataOutputStream(baTempletonArgsStream, null);
     expect(hdfsApi.create(endsWith("script.pig"), eq(true))).andReturn(scriptStream);
     expect(hdfsApi.create(endsWith("params"), eq(true))).andReturn(templetonArgsStream);
     replay(hdfsApi);
@@ -294,7 +294,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -317,7 +317,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -339,7 +339,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -362,7 +362,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -397,7 +397,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);
@@ -432,7 +432,7 @@ public class JobTest extends BasePigTest {
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
-    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream, null);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
     UserLocalObjects.setHdfsApi(hdfsApi, context);

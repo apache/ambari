@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.collections.CollectionUtils;
@@ -76,7 +77,7 @@ public abstract class StageWrapperBuilder {
    * @param params
    *          additional parameters
    */
-  public abstract void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
+  public abstract void add(UpgradeContext upgradeContext, Mpack mpack, HostsType hostsType, String service,
       boolean clientOnly, ProcessingComponent pc, Map<String, String> params);
 
   /**
@@ -87,9 +88,9 @@ public abstract class StageWrapperBuilder {
    *          the upgrade context (not {@code null}).
    * @return a list of stages, never {@code null}
    */
-  public final List<StageWrapper> build(UpgradeContext upgradeContext) throws AmbariException {
+  public final List<StageWrapper> build(UpgradeContext upgradeContext, Mpack mpack) throws AmbariException {
     List<StageWrapper> stageWrappers = beforeBuild(upgradeContext);
-    stageWrappers = build(upgradeContext, stageWrappers);
+    stageWrappers = build(upgradeContext, mpack, stageWrappers);
     stageWrappers = afterBuild(upgradeContext, stageWrappers);
     return stageWrappers;
   }
@@ -119,7 +120,7 @@ public abstract class StageWrapperBuilder {
    * @return the stage wrapper list, (never {@code null})
    */
   public abstract List<StageWrapper> build(UpgradeContext upgradeContext,
-      List<StageWrapper> stageWrappers) throws AmbariException;
+      Mpack mpack, List<StageWrapper> stageWrappers) throws AmbariException;
 
   /**
    * Performs any post-processing that needs to be performed on the list of

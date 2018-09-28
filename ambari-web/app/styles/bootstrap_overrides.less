@@ -30,12 +30,6 @@ select.form-control {
   }
 }
 
-.popover {
-  small {
-    font-size: 1.3rem;
-  }
-}
-
 .alert {
   & > ul, ol {
     padding-left: inherit;
@@ -146,10 +140,17 @@ select.form-control {
 }
 
 .popover {
+  word-wrap: break-word;
   z-index: 10000;
   width: 350px;
   .popover-inner {
     word-wrap: break-word;
+  }
+  .popover-content {
+    white-space: pre-line;
+  }
+  small {
+    font-size: 1.3rem;
   }
 }
 
@@ -572,7 +573,15 @@ select.form-control {
 
 .btn-group.open .dropdown-menu input[type="checkbox"] + label,
 .dropdown.open .dropdown-menu input[type="checkbox"] + label {
-  line-height: 1.3em;
+  line-height: @default-line-height;
+}
+
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.sub-menu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.sub-menu {
+  padding: 5px 0;
+  background-color: #323544;
+  max-height: ~"calc(100% - 100px)";
+  overflow-y: scroll;
 }
 
 input[type="checkbox"]:checked + label:after {
@@ -583,14 +592,14 @@ input[type="checkbox"]:checked + label:after {
   border-color: #999;
 }
 
-.form-horizontal .radio,
-.form-horizontal .checkbox,
-.form-horizontal .radio-inline,
-.form-horizontal .checkbox-inline {
-  padding-top: 0;
-}
-
 .radio, .checkbox {
   margin-bottom: 0;
   margin-top: 0;
+  label {
+    vertical-align: middle;
+  }
+}
+
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a {
+  padding: 10px 5px 10px 46px;
 }

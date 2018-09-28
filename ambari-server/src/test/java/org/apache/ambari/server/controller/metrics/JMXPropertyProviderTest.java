@@ -697,5 +697,10 @@ public class JMXPropertyProviderTest {
     public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
       return false;
     }
+
+    @Override
+    public boolean isCollectorHostExternal(String clusterName) {
+      return false;
+    }
   }
 }

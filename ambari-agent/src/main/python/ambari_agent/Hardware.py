@@ -40,7 +40,7 @@ class Hardware:
   CHECK_REMOTE_MOUNTS_KEY = 'agent.check.remote.mounts'
   CHECK_REMOTE_MOUNTS_TIMEOUT_KEY = 'agent.check.mounts.timeout'
   CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT = '10'
-  IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys", "boot"]
+  IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys", "boot", "home"]
   IGNORE_DEVICES = ["proc", "tmpfs", "cgroup", "mqueue", "shm"]
   LINUX_PATH_SEP = "/"
 
@@ -103,11 +103,11 @@ class Hardware:
   def _check_remote_mounts(self):
     """Verify if remote mount allowed to be processed or not"""
     if self.config and self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
-      self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
+      self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "true":
 
-      return False
+      return True
 
-    return True
+    return False
 
   def _is_mount_blacklisted(self, blacklist, mount_point):
     """
@@ -174,7 +174,7 @@ class Hardware:
        - mount path or a part of mount path is not in the blacklist
       """
       if mount["device"] not in self.IGNORE_DEVICES and\
-         mount["mountpoint"].split("/")[0] not in self.IGNORE_ROOT_MOUNTS and\
+         mount["mountpoint"].strip()[1:].split("/")[0] not in self.IGNORE_ROOT_MOUNTS and\
          self._chk_writable_mount(mount['mountpoint']) and\
          not path_isfile(mount["mountpoint"]) and\
          not self._is_mount_blacklisted(blacklisted_mount_points, mount["mountpoint"]):

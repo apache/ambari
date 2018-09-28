@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -88,14 +89,21 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
    */
   protected static ResourceDAO resourceDAO;
 
-  /**
-   * Privilege property id constants.
-   */
-  public static final String PRIVILEGE_ID_PROPERTY_ID    = "PrivilegeInfo/privilege_id";
-  public static final String PERMISSION_NAME_PROPERTY_ID = "PrivilegeInfo/permission_name";
-  public static final String PERMISSION_LABEL_PROPERTY_ID = "PrivilegeInfo/permission_label";
-  public static final String PRINCIPAL_NAME_PROPERTY_ID  = "PrivilegeInfo/principal_name";
-  public static final String PRINCIPAL_TYPE_PROPERTY_ID  = "PrivilegeInfo/principal_type";
+  public static final String PRIVILEGE_INFO = "PrivilegeInfo";
+
+  public static final String PRIVILEGE_ID_PROPERTY_ID    = "privilege_id";
+  public static final String PERMISSION_NAME_PROPERTY_ID = "permission_name";
+  public static final String PERMISSION_LABEL_PROPERTY_ID = "permission_label";
+  public static final String PRINCIPAL_NAME_PROPERTY_ID  = "principal_name";
+  public static final String PRINCIPAL_TYPE_PROPERTY_ID  = "principal_type";
+  public static final String VERSION_PROPERTY_ID  = "version";
+  public static final String TYPE_PROPERTY_ID  = "type";
+
+  public static final String PRIVILEGE_ID = PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PRIVILEGE_ID_PROPERTY_ID;
+  public static final String PERMISSION_NAME = PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PERMISSION_NAME_PROPERTY_ID;
+  public static final String PERMISSION_LABEL = PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PERMISSION_LABEL_PROPERTY_ID;
+  public static final String PRINCIPAL_NAME = PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PRINCIPAL_NAME_PROPERTY_ID;
+  public static final String PRINCIPAL_TYPE = PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PRINCIPAL_TYPE_PROPERTY_ID;
 
   /**
    * The privilege resource type.
@@ -349,11 +357,11 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
       }
     }
 
-    setResourceProperty(resource, PRIVILEGE_ID_PROPERTY_ID, privilegeEntity.getId(), requestedIds);
-    setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID, privilegeEntity.getPermission().getPermissionName(), requestedIds);
-    setResourceProperty(resource, PERMISSION_LABEL_PROPERTY_ID, privilegeEntity.getPermission().getPermissionLabel(), requestedIds);
-    setResourceProperty(resource, PRINCIPAL_NAME_PROPERTY_ID, resourcePropertyName, requestedIds);
-    setResourceProperty(resource, PRINCIPAL_TYPE_PROPERTY_ID, principalTypeName, requestedIds);
+    setResourceProperty(resource, PRIVILEGE_ID, privilegeEntity.getId(), requestedIds);
+    setResourceProperty(resource, PERMISSION_NAME, privilegeEntity.getPermission().getPermissionName(), requestedIds);
+    setResourceProperty(resource, PERMISSION_LABEL, privilegeEntity.getPermission().getPermissionLabel(), requestedIds);
+    setResourceProperty(resource, PRINCIPAL_NAME, resourcePropertyName, requestedIds);
+    setResourceProperty(resource, PRINCIPAL_TYPE, principalTypeName, requestedIds);
 
     return resource;
   }
@@ -370,7 +378,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   protected PrivilegeEntity toEntity(Map<String, Object> properties, Long resourceId)
       throws AmbariException {
     PrivilegeEntity entity         = new PrivilegeEntity();
-    String          permissionName = (String) properties.get(PERMISSION_NAME_PROPERTY_ID);
+    String          permissionName = (String) properties.get(PERMISSION_NAME);
     ResourceEntity  resourceEntity = resourceDAO.findById(resourceId);
     PermissionEntity permission = getPermission(permissionName, resourceEntity);
     if (permission == null) {
@@ -380,8 +388,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
     entity.setPermission(permission);
     entity.setResource(resourceEntity);
 
-    String principalName = (String) properties.get(PRINCIPAL_NAME_PROPERTY_ID);
-    String principalType = (String) properties.get(PRINCIPAL_TYPE_PROPERTY_ID);
+    String principalName = (String) properties.get(PRINCIPAL_NAME);
+    String principalType = (String) properties.get(PRINCIPAL_TYPE);
     if (StringUtils.equalsIgnoreCase(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME, principalType)) {
       GroupEntity groupEntity = groupDAO.findGroupByName(principalName);
       if (groupEntity != null) {
@@ -426,8 +434,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
         PrivilegeEntity entity = toEntity(properties, resourceId);
 
         if (entity.getPrincipal() == null) {
-          throw new AmbariException("Can't find principal " + properties.get(PRINCIPAL_TYPE_PROPERTY_ID) +
-              " " + properties.get(PRINCIPAL_NAME_PROPERTY_ID) + " for privilege.");
+          throw new AmbariException("Can't find principal " + properties.get(PRINCIPAL_TYPE) +
+              " " + properties.get(PRINCIPAL_NAME) + " for privilege.");
         }
         if (privilegeDAO.exists(entity)) {
             throw new DuplicateResourceException("The privilege already exists.");
@@ -451,10 +459,10 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
       public Void invoke() throws AmbariException {
         try {
           for (Map<String, Object> resource : getPropertyMaps(predicate)) {
-            if (resource.get(PRIVILEGE_ID_PROPERTY_ID) == null) {
+            if (resource.get(PRIVILEGE_ID) == null) {
               throw new AmbariException("Privilege ID should be provided for this request");
             }
-            PrivilegeEntity entity = privilegeDAO.findById(Integer.valueOf(resource.get(PRIVILEGE_ID_PROPERTY_ID).toString()));
+            PrivilegeEntity entity = privilegeDAO.findById(Integer.valueOf(resource.get(PRIVILEGE_ID).toString()));
             if (entity != null) {
               if (!checkResourceTypes(entity)) {
                 throw new AmbariException("Can't remove " + entity.getPermission().getResourceType().getName() +

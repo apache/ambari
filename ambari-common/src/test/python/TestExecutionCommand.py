@@ -34,7 +34,9 @@ class TestExecutionCommand(TestCase):
         self.__execution_command = execution_command.ExecutionCommand(json.load(f))
         from resource_management.libraries.script import Script
         Script.execution_command = self.__execution_command
-        Script.module_configs = Script.execution_command.get_module_configs()
+        Script.module_configs = Script.get_module_configs()
+        Script.stack_settings = Script.get_stack_settings()
+        Script.cluster_settings = Script.get_cluster_settings()
     except IOError:
       Logger.error("Can not read json file with command parameters: ")
       sys.exit(1)
@@ -76,10 +78,6 @@ class TestExecutionCommand(TestCase):
     sqoop = bool(module_configs.get_all_properties("zookeeper", 'sqoop-env'))
     self.assertFalse(sqoop)
 
-  def test_get_stack_name(self):
-    stack_name = self.__execution_command.get_mpack_name()
-    self.assertEquals(stack_name, "HDPCORE")
-
   def test_access_to_module_configs(self):
     module_configs = self.__execution_command.get_module_configs()
     is_zoo_cfg_there = bool(module_configs.get_all_properties("zookeeper", "zoo.cfg"))
@@ -97,3 +95,50 @@ class TestExecutionCommand(TestCase):
     self.assertEqual(version, None)
     version = module_configs.get_property_value("zookeeper", "zoo.cfg", "version", "3.0.b")
     self.assertEqual(version, "3.0.b")
+
+  def test_access_to_stack_settings(self):
+    stack_settings = self.__execution_command.get_stack_settings()
+    stack_name = stack_settings.get_mpack_name()
+    self.assertEquals(stack_name, "HDPCORE")
+    stack_version = stack_settings.get_mpack_version()
+    self.assertEqual(stack_version, "1.0.0-b645")
+    user_groups = stack_settings.get_user_groups()
+    self.assertTrue("ambari-qa" in user_groups)
+    group_list = stack_settings.get_group_list()
+    self.assertTrue("users" in group_list)
+    self.assertFalse("zookeeper" in group_list)
+    stack_features = stack_settings.get_stack_features()
+    self.assertTrue("snappy" in stack_features)
+    stack_package = stack_settings.get_stack_packages()
+    self.assertTrue("ACCUMULO" in stack_package)
+    stack_tools = stack_settings.get_stack_tools()
+    self.assertTrue("conf_selector" in stack_tools)
+
+  def test_access_to_cluster_settings(self):
+    cluster_settings = self.__execution_command.get_cluster_settings()
+    security_enabled = cluster_settings.is_cluster_security_enabled()
+    self.assertFalse(security_enabled)
+    recovery_count = cluster_settings.get_recovery_max_count()
+    self.assertEqual(recovery_count, 6)
+    recovery_enabled = cluster_settings.check_recovery_enabled()
+    self.assertTrue(recovery_enabled)
+    recovery_type = cluster_settings.get_recovery_type()
+    self.assertEqual(recovery_type, "AUTO_START")
+    kerberos_domain = cluster_settings.get_kerberos_domain()
+    self.assertEqual(kerberos_domain, "EXAMPLE.COM")
+    smoke_user = cluster_settings.get_smokeuser()
+    self.assertEqual(smoke_user, "ambari-qa")
+    user_group = cluster_settings.get_user_group()
+    self.assertEqual(user_group, "hadoop")
+    suse_rhel_template = cluster_settings.get_repo_suse_rhel_template()
+    self.assertTrue("if mirror_list" in suse_rhel_template)
+    ubuntu_template = cluster_settings.get_repo_ubuntu_template()
+    self.assertTrue("package_type" in ubuntu_template)
+    override_uid = cluster_settings.check_override_uid()
+    self.assertTrue(override_uid)
+    skip_copy = cluster_settings.check_sysprep_skip_copy_fast_jar_hdfs()
+    self.assertFalse(skip_copy)
+    skip_setup_jce = cluster_settings.check_sysprep_skip_setup_jce()
+    self.assertFalse(skip_setup_jce)
+    ignored = cluster_settings.check_ignore_groupsusers_create()
+    self.assertFalse(ignored)

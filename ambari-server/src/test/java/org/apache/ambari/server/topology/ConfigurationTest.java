@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -26,8 +27,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Configuration unit tests.
@@ -496,5 +502,46 @@ public class ConfigurationTest {
     typeAttributes2.put("attribute100", attributeProperties100);
     return new Configuration(EMPTY_PROPERTIES,
       new HashMap<>(attributes), parentConfiguration);
+  }
+
+  @Test
+  public void moveProperties() {
+    // GIVEN
+    String sourceType = "source";
+    String targetType = "target";
+    String sourceValue = "source value";
+    String targetValue = "target value";
+    Map<String, String> keepers = ImmutableMap.of("keep1", "v1", "keep2", "v3");
+    Map<String, String> movers = ImmutableMap.of("move1", "v2", "move2", "v4");
+    Set<String> common = ImmutableSet.of("common1", "common2");
+    Configuration config = new Configuration(new HashMap<>(), new HashMap<>());
+    for (Map.Entry<String, String> e : keepers.entrySet()) {
+      config.setProperty(sourceType, e.getKey(), e.getValue());
+    }
+    for (Map.Entry<String, String> e : movers.entrySet()) {
+      config.setProperty(sourceType, e.getKey(), e.getValue());
+    }
+    for (String key : common) {
+      config.setProperty(sourceType, key, sourceValue);
+      config.setProperty(targetType, key, targetValue);
+    }
+
+    // WHEN
+    Sets.SetView<String> propertiesToMove = Sets.union(movers.keySet(), common);
+    Set<String> moved = config.moveProperties(sourceType, targetType, propertiesToMove);
+
+    // THEN
+    for (Map.Entry<String, String> e : keepers.entrySet()) {
+      assertEquals(e.getValue(), config.getPropertyValue(sourceType, e.getKey()));
+    }
+    for (Map.Entry<String, String> e : movers.entrySet()) {
+      assertEquals(e.getValue(), config.getPropertyValue(targetType, e.getKey()));
+      assertFalse(config.isPropertySet(sourceType, e.getKey()));
+    }
+    for (String key : common) {
+      assertEquals(targetValue, config.getPropertyValue(targetType, key));
+      assertFalse(config.isPropertySet(sourceType, key));
+    }
+    assertEquals(propertiesToMove, moved);
   }
 }

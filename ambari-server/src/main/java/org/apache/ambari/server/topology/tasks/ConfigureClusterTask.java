@@ -46,6 +46,7 @@ public class ConfigureClusterTask implements Callable<Boolean> {
 
   private static final long DEFAULT_TIMEOUT = TimeUnit.MINUTES.toMillis(30);
   private static final long REPEAT_DELAY = TimeUnit.SECONDS.toMillis(1);
+  // TODO: use cluster settings instead
   private static final String TIMEOUT_PROPERTY_NAME = "cluster_configure_task_timeout";
   private static final Logger LOG = LoggerFactory.getLogger(ConfigureClusterTask.class);
 

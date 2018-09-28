@@ -42,6 +42,11 @@ App.ThemeCondition = DS.Model.extend({
   name: DS.attr('string'),
 
   /**
+   * theme from which this is coming from , eg: default, database, credentials, etc.
+   */
+  themeName: DS.attr('string'),
+
+  /**
    * Name of the config that is being affected with the condition
    */
   configName: DS.attr('string'),

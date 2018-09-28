@@ -19,7 +19,12 @@
 {{#if controller.isInstallWizard}}
   {{#if view.allConfigsWithErrors.length}}
     <h5>
-      {{t installer.step7.requirements.popover.header}} <span class="badge badge-important">{{view.allConfigsWithErrors.length}}</span>
+      {{t installer.step7.requirements.popover.header}}
+      <span class="alert-badge" {{QAAttr "error-badge"}}>
+        <span class="counter label alerts-crit-count">
+          {{view.allConfigsWithErrors.length}}
+        </span>
+      </span>
     </h5>
     <div class="recommendations-message">
       {{t installer.step7.requirements.popover.message}}
@@ -54,7 +59,12 @@
   {{view App.ValidationsView configErrorsBinding="controller.configErrorList"}}
   {{#if controller.hasChangedDependencies}}
     <h5>
-      {{t installer.step7.recommendations.popover.header}} <span class="badge badge-warning">{{view.recommendations.length}}</span>
+      {{t installer.step7.recommendations.popover.header}}
+      <span class="alert-badge" {{QAAttr "error-badge"}}>
+        <span class="counter label alerts-none-count">
+          {{view.recommendations.length}}
+        </span>
+      </span>
     </h5>
     <div class="recommendations-message">
       {{t installer.step7.recommendations.popover.message}}
@@ -63,9 +73,11 @@
 {{/if}}
 <span id="config-dependencies" class="limited-height-2">
   {{#if view.recommendations.length}}
-    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations" checkboxesFirstBinding="controller.isInstallWizard" isClickable=true}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations"
+      isClickableBinding="view.isRecommendationsClickable" showPopoversBinding="view.showRecommendationsPopovers"}}
   {{/if}}
   {{#if view.requiredChanges.length}}
-    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false checkboxesFirstBinding="controller.isInstallWizard" isClickable=true}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false
+      isClickableBinding="view.isRecommendationsClickable" showPopoversBinding="view.showRecommendationsPopovers"}}
   {{/if}}
 </span>

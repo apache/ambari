@@ -123,6 +123,7 @@ public class EventsTest {
 
     m_cluster.setDesiredStackVersion(stackId);
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
+    m_clusters.updateHostMappings(host);
   }
 
   @After

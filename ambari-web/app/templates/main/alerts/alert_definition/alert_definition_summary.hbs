@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-{{#if view.hasMultipleCount}}
+{{#if view.isActiveDefinitionState}}
   {{#each st in view.definitionState}}
     {{#if st.count}}
       <span {{bindAttr class=":alert-state-single-host :label st.state"}}>{{st.count}}</span>

@@ -117,8 +117,6 @@ class ExecuteUpgradeTasks(Script):
         if task.script and task.function:
           file_cache = FileCache(agent_config)
 
-          server_url_prefix = default('/ambariLevelParams/jdk_location', "")
-
           if service_package_folder and hooks_folder:
             command_paths = {
               "commandParams": {
@@ -126,12 +124,19 @@ class ExecuteUpgradeTasks(Script):
               },
               "clusterLevelParams": {
                    "hooks_folder": hooks_folder
+              },
+              "ambariLevelParams": {
+                "jdk_location": default('/ambariLevelParams/jdk_location', "")
               }
             } 
 
-            base_dir = file_cache.get_service_base_dir(command_paths, server_url_prefix)
+            base_dir = file_cache.get_service_base_dir(command_paths)
           else:
-            base_dir = file_cache.get_custom_actions_base_dir(server_url_prefix)
+            base_dir = file_cache.get_custom_actions_base_dir({
+              "ambariLevelParams": {
+                "jdk_location": default('/ambariLevelParams/jdk_location', "")
+              }
+            })
 
           script_path = os.path.join(base_dir, task.script)
           if not os.path.exists(script_path):

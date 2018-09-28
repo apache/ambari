@@ -18,37 +18,10 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.LastPageParamDefinition;
 import org.apache.ambari.logsearch.model.request.UserParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class AuditLogRequest extends BaseLogRequest implements LastPageParamDefinition, UserParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_LAST_PAGE)
-  private boolean isLastPage;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_USERS)
-  private String userList;
-
-  @Override
-  public boolean isLastPage() {
-    return isLastPage;
-  }
-
-  @Override
-  public void setLastPage(boolean lastPage) {
-    isLastPage = lastPage;
-  }
-
-  @Override
-  public String getUserList() {
-    return userList;
-  }
-
-  @Override
-  public void setUserList(String userList) {
-    this.userList = userList;
-  }
+@Marker
+public interface AuditLogRequest extends BaseLogRequest, LastPageParamDefinition, UserParamDefinition {
 }

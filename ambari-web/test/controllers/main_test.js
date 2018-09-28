@@ -31,9 +31,16 @@ describe('App.MainController', function () {
       sinon.stub(App.router, 'get').returns({
         loadClusterData: function() {
           initialize = true;
+        },
+        startSubscriptions: Em.K
+      });
+      sinon.stub(App.StompClient, 'connect').returns({
+        done: function() {
+          return {
+            fail: Em.K
+          }
         }
       });
-      sinon.stub(App.StompClient, 'connect');
     });
     afterEach(function () {
       App.router.get.restore();
@@ -51,27 +58,25 @@ describe('App.MainController', function () {
 
   describe('#dataLoading', function() {
 
-    beforeEach(function () {
-      this.stub = sinon.stub(App.router, 'get');
-    });
-
-    afterEach(function () {
-      this.stub.restore();
-    });
-
     it ('Should resolve promise', function() {
-      this.stub.returns(true);
+      mainController.reopen({
+        isClusterDataLoaded: true
+      });
       var deffer = mainController.dataLoading();
       deffer.then(function(val){
         expect(val).to.be.undefined;
       });
     });
     it ('Should resolve promise (2)', function(done) {
-      this.stub.returns(false);
+      mainController.reopen({
+        isClusterDataLoaded: false
+      });
       
       setTimeout(function() {
-        mainController.set('isClusterDataLoaded', true);
-      },150);
+        mainController.reopen({
+          isClusterDataLoaded: true
+        });
+      }, 150);
 
       var deffer = mainController.dataLoading();
       deffer.then(function(val){
@@ -105,17 +110,12 @@ describe('App.MainController', function () {
   describe('#startPolling', function() {
     var mock,
         updateController = Em.Object.create({
-          startSubscriptions: sinon.spy(),
-          isWorking: false
-        }),
-        backgroundOperationsController = Em.Object.create({
           isWorking: false
         });
     beforeEach(function() {
       mock = sinon.stub(App.router, 'get');
       mock.withArgs('applicationController.isExistingClusterDataLoaded').returns(true);
       mock.withArgs('updateController').returns(updateController);
-      mock.withArgs('backgroundOperationsController').returns(backgroundOperationsController);
       mainController.startPolling();
     });
     afterEach(function() {
@@ -126,13 +126,6 @@ describe('App.MainController', function () {
       expect(updateController.get('isWorking')).to.be.true;
     });
 
-    it('backgroundOperationsController should be working', function() {
-      expect(backgroundOperationsController.get('isWorking')).to.be.true;
-    });
-
-    it('startSubscriptions should be called', function() {
-      expect(updateController.startSubscriptions.called).to.be.true;
-    });
   });
 
 });

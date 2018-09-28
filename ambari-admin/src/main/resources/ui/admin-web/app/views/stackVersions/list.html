@@ -81,7 +81,7 @@
           {{'common.none' | translate}}
         </span>
       </td>
-      <td class="verison-label-row">
+      <td class="verison-label-row" ng-class="{'button-padding': !repo.cluster}">
         <div ng-show="repo.status == 'CURRENT'">
           <span class="label {{'status-' + repo.status}}">{{'versions.current' | translate}}:&nbsp;{{repo.currentHosts}}/{{repo.totalHosts}}</span>
         </div>

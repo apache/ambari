@@ -22,9 +22,9 @@ jvm.RegionServer.JvmMetrics.ThreadsRunnable
 jvm.RegionServer.JvmMetrics.ThreadsTerminated
 jvm.RegionServer.JvmMetrics.ThreadsTimedWaiting
 jvm.RegionServer.JvmMetrics.ThreadsWaiting
-master.AssignmentManger.ritCount
-master.AssignmentManger.ritCountOverThreshold
-master.AssignmentManger.ritOldestAge
+master.AssignmentManager.ritCount
+master.AssignmentManager.ritCountOverThreshold
+master.AssignmentManager.ritOldestAge
 master.Master.TotalCallTime_num_ops
 master.Master.exceptions
 master.Server.averageLoad

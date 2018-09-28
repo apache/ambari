@@ -21,6 +21,8 @@ package org.apache.ambari.logfeeder;
 
 import com.google.gson.GsonBuilder;
 import org.apache.ambari.logfeeder.common.LogEntryParseTester;
+import org.apache.ambari.logfeeder.input.file.checkpoint.FileCheckpointManager;
+import org.apache.ambari.logfeeder.plugin.manager.CheckpointManager;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -36,16 +38,24 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class LogFeederCommandLine {
   
   private static final String TEST_COMMAND = "test";
+  private static final String CHECKPOINTS_COMMAND = "checkpoints";
+  private static final String CHECKPOINTS_FOLDER_OPTION = "checkpoints-folder";
+  private static final String CHECKPOINTS_LIST_OPTION = "list";
+  private static final String CHECKPOINTS_CLEAN_OPTION = "clean";
+  private static final String CHECKPOINTS_ALL_OPTION = "all";
+  private static final String CHECKPOINTS_FILE_KEY = "file-key";
+  private static final String CHECKPOINTS_LOG_TYPE = "log-type";
   private static final String TEST_LOG_ENTRY_OPTION = "test-log-entry";
   private static final String TEST_SHIPPER_CONFIG_OPTION = "test-shipper-config";
   private static final String TEST_GLOBAL_CONFIG_OPTION = "test-global-config";
   private static final String TEST_LOG_ID_OPTION = "test-log-id";
   
-  private static final String COMMAND_LINE_SYNTAX = "java org.apache.ambari.logfeeder.LogFeederCommandLine --test [args]";
+  private static final String COMMAND_LINE_SYNTAX = "java org.apache.ambari.logfeeder.LogFeederCommandLine [args]";
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -61,6 +71,44 @@ public class LogFeederCommandLine {
     Option testOption = Option.builder("t")
       .longOpt(TEST_COMMAND)
       .desc("Test if log entry is parseable")
+      .build();
+
+    Option checkpointsOption = Option.builder("cp")
+      .longOpt(CHECKPOINTS_COMMAND)
+      .desc("Use checkpoint operations")
+      .build();
+
+    Option checkpointsListOption = Option.builder("l")
+      .longOpt(CHECKPOINTS_LIST_OPTION)
+      .desc("Print checkpoints")
+      .build();
+
+    Option checkpointsCleanOption = Option.builder("c")
+      .longOpt(CHECKPOINTS_CLEAN_OPTION)
+      .desc("Remove a checkpoint file (by key/log type or use on all)")
+      .build();
+
+    Option checkpointsFolderOption = Option.builder("cf")
+      .longOpt(CHECKPOINTS_FOLDER_OPTION)
+      .hasArg()
+      .desc("Checkpoints folder location")
+      .build();
+
+    Option checkpointsFileKeyOption = Option.builder("k")
+      .longOpt(CHECKPOINTS_FILE_KEY)
+      .hasArg()
+      .desc("Filter on file key (for list and clean)")
+      .build();
+
+    Option checkpointsLogTypeOption = Option.builder("lt")
+      .longOpt(CHECKPOINTS_LOG_TYPE)
+      .hasArg()
+      .desc("Filter on log type (for list and clean)")
+      .build();
+
+    Option checkpointAllOption = Option.builder("a")
+      .longOpt(CHECKPOINTS_ALL_OPTION)
+      .desc("")
       .build();
 
     Option testLogEntryOption = Option.builder("tle")
@@ -93,6 +141,13 @@ public class LogFeederCommandLine {
     options.addOption(testShipperConfOption);
     options.addOption(testGlobalConfOption);
     options.addOption(testLogIdOption);
+    options.addOption(checkpointsOption);
+    options.addOption(checkpointsListOption);
+    options.addOption(checkpointsCleanOption);
+    options.addOption(checkpointsFolderOption);
+    options.addOption(checkpointAllOption);
+    options.addOption(checkpointsFileKeyOption);
+    options.addOption(checkpointsLogTypeOption);
 
     try {
       CommandLineParser cmdLineParser = new DefaultParser();
@@ -103,6 +158,31 @@ public class LogFeederCommandLine {
         System.exit(0);
       }
       String command = "";
+      if (cli.hasOption("cp")) {
+        String checkpointLocation = "";
+        if (cli.hasOption("cf")) {
+          checkpointLocation = cli.getOptionValue("cf");
+        } else {
+          Properties prop = new Properties();
+          prop.load(LogFeederCommandLine.class.getClassLoader().getResourceAsStream("logfeeder.properties"));
+          checkpointLocation = prop.getProperty("logfeeder.checkpoint.folder");
+        }
+        boolean cleanCommand = cli.hasOption("c");
+        boolean listCommand = cli.hasOption("l") || !cleanCommand; // Use list if clean is not used
+        boolean allOption = cli.hasOption("a");
+        String logTypeFilter = cli.hasOption("lt") ? cli.getOptionValue("lt") : null;
+        String fileKeyFilter = cli.hasOption("k") ? cli.getOptionValue("k") : null;
+
+        final CheckpointManager checkpointManager = new FileCheckpointManager();
+        if (listCommand) {
+          checkpointManager.printCheckpoints(checkpointLocation, logTypeFilter, fileKeyFilter);
+        } else {
+          checkpointManager.cleanCheckpoint(checkpointLocation, logTypeFilter, fileKeyFilter, allOption);
+        }
+
+        System.out.println("Checkpoint operation has finished successfully.");
+        return;
+      }
       if (cli.hasOption("t")) {
         command = TEST_COMMAND;
         validateRequiredOptions(cli, command, testLogEntryOption, testShipperConfOption);

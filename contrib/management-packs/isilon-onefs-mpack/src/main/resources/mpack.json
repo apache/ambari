@@ -16,9 +16,8 @@
              "service_name" : "ONEFS",
              "service_version" : "1.0.0",
              "applicable_stacks" : [
-                 {
-                      "stack_name" : "HDP", "stack_version" : "2.6"
-                  }
+                 { "stack_name" : "HDP", "stack_version" : "2.6" },
+                 { "stack_name" : "HDP", "stack_version" : "3.0" }
               ]
           }
       ]

@@ -72,6 +72,7 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_GROUPS_ALL_PATTERN = API_VERSION_PREFIX + "/groups.*";
   private static final String API_CLUSTERS_PATTERN = API_VERSION_PREFIX + "/clusters/(\\w+/?)?";
   private static final String API_WIDGET_LAYOUTS_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/widget_layouts.*?";
+  private static final String API_WIDGET_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/widgets.*";
   private static final String API_CLUSTERS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters.*";
   private static final String API_VIEWS_ALL_PATTERN = API_VERSION_PREFIX + "/views.*";
   private static final String API_PERSIST_ALL_PATTERN = API_VERSION_PREFIX + "/persist.*";
@@ -342,6 +343,7 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(API_VIEWS_ALL_PATTERN) ||
         requestURI.matches(VIEWS_CONTEXT_PATH_PATTERN) ||
         requestURI.matches(API_WIDGET_LAYOUTS_PATTERN) ||
+        requestURI.matches(API_WIDGET_PATTERN) ||
         requestURI.matches(API_CLUSTER_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTER_CONFIGURATIONS_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTER_COMPONENTS_ALL_PATTERN) ||

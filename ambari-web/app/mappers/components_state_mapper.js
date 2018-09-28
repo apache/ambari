@@ -31,7 +31,6 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     display_name: 'ServiceComponentInfo.display_name',
     service_name: 'ServiceComponentInfo.service_name',
     installed_count: 'ServiceComponentInfo.installed_count',
-    installed_and_maintenance_off_count: 'ServiceComponentInfo.installed_and_maintenance_off_count',
     install_failed_count: 'ServiceComponentInfo.install_failed_count',
     init_count: 'ServiceComponentInfo.init_count',
     unknown_count: 'ServiceComponentInfo.unknown_count',
@@ -281,7 +280,7 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     const model = App.ClientComponent.getModelByComponentName(componentState.componentName);
     const acceptedStates = ['STARTED', 'INSTALLED', 'INIT', 'UNKNOWN', 'INSTALL_FAILED'];
 
-    if (model && componentState.currentState) {
+    if (model && model.get('isLoaded') && componentState.currentState) {
       if (acceptedStates.contains(componentState.previousState)) {
         const previousStateProp = this.statusToProperty(componentState.previousState);
         model.set(previousStateProp, model.get(previousStateProp) - 1);
@@ -318,7 +317,7 @@ App.componentsStateMapper = App.QuickDataMapper.create({
   updateComponentCountOnCreate: function(componentState) {
     const model = App.ClientComponent.getModelByComponentName(componentState.componentName);
 
-    if (model) {
+    if (model && model.get('isLoaded')) {
       model.set('initCount', model.get('initCount') + 1);
       model.set('totalCount', model.get('totalCount') + 1);
       this.mapExtendedModelComponents(this.componentStateToJSON(model));

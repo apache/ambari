@@ -91,7 +91,7 @@ public class BlueprintImpl implements Blueprint {
       hostGroups.put(hostGroup.getName(), hostGroup);
     }
     this.configuration = configuration;
-    this.setting = setting != null ? setting : new Setting(ImmutableMap.of());
+    this.setting = setting != null ? setting : new Setting(new HashMap<>());
     repoSettings = processRepoSettings();
   }
 

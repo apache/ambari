@@ -78,7 +78,7 @@ import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
+import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -767,7 +767,7 @@ public class ServiceResourceProviderTest {
 
     expect(managementController.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
-        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
+        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean(), anyBoolean()
     )).andReturn(requestStages);
     requestStages.persist();
     expect(requestStages.getRequestStatusResponse()).andReturn(requestStatusResponse);
@@ -888,12 +888,12 @@ public class ServiceResourceProviderTest {
 
     expect(managementController1.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
-        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
+        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean(), anyBoolean()
     )).andReturn(requestStages1);
 
     expect(managementController2.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
-        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
+        capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean(), anyBoolean()
     )).andReturn(requestStages2);
 
     requestStages1.persist();
@@ -919,9 +919,9 @@ public class ServiceResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    ServiceResourceProvider provider1 = getServiceProvider(managementController1, maintenanceStateHelper, null);
+    ServiceResourceProvider provider1 = getServiceProvider(managementController1);
 
-    ServiceResourceProvider provider2 = getServiceProvider(managementController2, maintenanceStateHelper, null);
+    ServiceResourceProvider provider2 = getServiceProvider(managementController2);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -970,7 +970,6 @@ public class ServiceResourceProviderTest {
 
   private void testDeleteResources(Authentication authentication) throws Exception{
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
@@ -995,7 +994,7 @@ public class ServiceResourceProviderTest {
     cluster.deleteService(eq(serviceName), anyObject(DeleteHostComponentStatusMetaData.class));
 
     // replay
-    replay(managementController, clusters, cluster, serviceGroup, topologyDeleteFormer, service);
+    replay(managementController, clusters, cluster, serviceGroup, service);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -1019,7 +1018,7 @@ public class ServiceResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
-    verify(managementController, clusters, cluster, serviceGroup, topologyDeleteFormer, service);
+    verify(managementController, clusters, cluster, serviceGroup, service);
   }
 
   @Test
@@ -1408,11 +1407,10 @@ public class ServiceResourceProviderTest {
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(ServiceComponentHost.class))).andReturn(true).anyTimes();
 
-    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
 
-    replay(maintenanceStateHelperMock, topologyDeleteFormer);
+    replay(maintenanceStateHelperMock);
 
-    return getServiceProvider(managementController, maintenanceStateHelperMock, topologyDeleteFormer);
+    return getServiceProvider(managementController, maintenanceStateHelperMock);
   }
 
   /**
@@ -1420,16 +1418,24 @@ public class ServiceResourceProviderTest {
    */
   public static ServiceResourceProvider getServiceProvider(
       AmbariManagementController managementController,
-      MaintenanceStateHelper maintenanceStateHelper, TopologyDeleteFormer topologyDeleteFormer) {
-    return new ServiceResourceProvider(managementController, maintenanceStateHelper, topologyDeleteFormer);
+      MaintenanceStateHelper maintenanceStateHelper)
+      throws NoSuchFieldException, IllegalAccessException {
+    Resource.Type type = Resource.Type.Service;
+    ServiceResourceProvider serviceResourceProvider =
+        new ServiceResourceProvider(managementController, maintenanceStateHelper);
 
+    Field STOMPComponentsDeleteHandlerField = ServiceResourceProvider.class.getDeclaredField("STOMPComponentsDeleteHandler");
+    STOMPComponentsDeleteHandlerField.setAccessible(true);
+    STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler = createNiceMock(STOMPComponentsDeleteHandler.class);
+    STOMPComponentsDeleteHandlerField.set(serviceResourceProvider, STOMPComponentsDeleteHandler);
+    replay(STOMPComponentsDeleteHandler);
+    return serviceResourceProvider;
   }
 
   public static void createServices(AmbariManagementController controller,Set<ServiceRequest> requests)
       throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
-    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
-    ServiceResourceProvider provider = getServiceProvider(controller, maintenanceStateHelperMock, topologyDeleteFormer);
+    ServiceResourceProvider provider = getServiceProvider(controller, maintenanceStateHelperMock);
     provider.createServices(requests);
   }
 
@@ -1460,7 +1466,7 @@ public class ServiceResourceProviderTest {
       throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     ServiceResourceProvider provider;
     if (maintenanceStateHelper != null) {
-      provider = getServiceProvider(controller, maintenanceStateHelper, null);
+      provider = getServiceProvider(controller, maintenanceStateHelper);
     } else {
       provider = getServiceProvider(controller);
     }

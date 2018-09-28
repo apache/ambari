@@ -38,12 +38,12 @@ public interface LogSearchConfig extends Closeable {
   void createInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception;
 
   /**
-   * Uploads the log level filter of a log.
-   * 
-   * @param clusterName The name of the cluster where the log is.
-   * @param logId The id of the log.
-   * @param filter The log level filter for the log.
-   * @throws Exception 
+   * Get log level filter handler / manager
    */
-  void createLogLevelFilter(String clusterName, String logId, LogLevelFilter filter) throws Exception;
+  LogLevelFilterManager getLogLevelFilterManager();
+
+  /**
+   * Set log level filter handler / manager
+   */
+  void setLogLevelFilterManager(LogLevelFilterManager logLevelFilterManager);
 }

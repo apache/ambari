@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.metric.system.impl;
 
+import static java.util.Collections.singletonList;
+import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -35,6 +37,7 @@ import org.apache.ambari.server.metrics.system.impl.AmbariMetricSinkImpl;
 import org.apache.ambari.server.metrics.system.impl.DatabaseMetricsSource;
 import org.apache.ambari.server.metrics.system.impl.JvmMetricsSource;
 import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
+import org.apache.ambari.server.state.alert.MetricSource;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
@@ -43,6 +46,9 @@ import org.hamcrest.Description;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 import junit.framework.Assert;
 
@@ -168,4 +174,15 @@ public class MetricsSourceTest {
     Assert.assertTrue(source.acceptMetric("Counter.ReadObjectQuery.MetainfoEntity.readMetainfoEntity.CacheMisses"));
   }
 
+  @Test
+  public void testJmxInfoSerialization() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
+    MetricSource.JmxInfo jmxInfo = new MetricSource.JmxInfo();
+    jmxInfo.setValue("custom");
+    jmxInfo.setPropertyList(singletonList("prop1"));
+    MetricSource.JmxInfo deserialized = mapper.readValue(mapper.writeValueAsString(jmxInfo), MetricSource.JmxInfo.class);
+    assertEquals("custom", deserialized.getValue().toString());
+    assertEquals(singletonList("prop1"), deserialized.getPropertyList());
+  }
 }

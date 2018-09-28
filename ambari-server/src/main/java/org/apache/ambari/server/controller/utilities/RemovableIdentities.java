@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.utilities.UsedIdentities.ComponentExclude;
@@ -45,6 +47,7 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
  * I represent a group of kerberos identities which are to be deleted after a service or a component was removed.
  * My instances provide methods for removing the candidates, excluding those that are still used by other components or services.
  */
+@Experimental(feature = ExperimentalFeature.ORPHAN_KERBEROS_IDENTITY_REMOVAL)
 public class RemovableIdentities {
   private final List<KerberosIdentityDescriptor> candidateIdentities;
   private final UsedIdentities usedIdentities;

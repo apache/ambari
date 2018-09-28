@@ -102,6 +102,7 @@ public class ConcurrentServiceConfigVersionTest {
    */
   private Cluster cluster;
   private ServiceGroup serviceGroup;
+  private Service service;
 
   /**
    * Creates a cluster and installs HDFS with NN and DN.
@@ -125,7 +126,7 @@ public class ConcurrentServiceConfigVersionTest {
     setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
     clusters.mapHostToCluster(hostName, "c1");
 
-    Service service = installService("HDFS");
+    service = installService("HDFS");
     addServiceComponent(service, "NAMENODE");
     addServiceComponent(service, "DATANODE");
 
@@ -147,13 +148,13 @@ public class ConcurrentServiceConfigVersionTest {
   @Test
   public void testConcurrentServiceConfigVersions() throws Exception {
     long nextVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        cluster.getClusterId(), 1L);
+        cluster.getClusterId(), service.getServiceId());
 
     Assert.assertEquals(nextVersion, 1);
 
     List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-      Thread thread = new ConcurrentServiceConfigThread(cluster);
+      Thread thread = new ConcurrentServiceConfigThread(cluster, service);
       threads.add(thread);
 
       thread.start();
@@ -165,7 +166,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     long maxVersion = NUMBER_OF_THREADS * NUMBER_OF_SERVICE_CONFIG_VERSIONS;
     nextVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        cluster.getClusterId(), 1L);
+        cluster.getClusterId(), service.getServiceId());
 
     Assert.assertEquals(maxVersion + 1, nextVersion);
   }
@@ -173,9 +174,11 @@ public class ConcurrentServiceConfigVersionTest {
   private final static class ConcurrentServiceConfigThread extends Thread {
 
     private Cluster cluster = null;
+    private Service service = null;
 
-    private ConcurrentServiceConfigThread(Cluster cluster) {
+    private ConcurrentServiceConfigThread(Cluster cluster, Service service) {
       this.cluster = cluster;
+      this.service = service;
     }
 
     /**
@@ -186,7 +189,7 @@ public class ConcurrentServiceConfigVersionTest {
       try {
         for (int i = 0; i < NUMBER_OF_SERVICE_CONFIG_VERSIONS; i++) {
           ServiceConfigVersionResponse response = cluster.createServiceConfigVersion(
-              1L, null, getName() + "-serviceConfig" + i, null);
+              service.getServiceId(), null, getName() + "-serviceConfig" + i, null);
 
           Thread.sleep(100);
         }

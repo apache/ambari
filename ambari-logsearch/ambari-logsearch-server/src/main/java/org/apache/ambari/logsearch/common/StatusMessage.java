@@ -18,23 +18,38 @@
  */
 package org.apache.ambari.logsearch.common;
 
+import javax.ws.rs.core.Response;
+
 public class StatusMessage {
+  public static StatusMessage with(int status) {
+    return new StatusMessage(status, null);
+  }
 
-  private String status;
+  public static StatusMessage with(Response.Status status, String message) {
+    return new StatusMessage(status.getStatusCode(), message);
+  }
 
-  public StatusMessage(String status) {
+  private int status;
+  private String message;
+
+  private StatusMessage(int status, String message) {
     this.status = status;
+    this.message = message;
   }
 
-  public StatusMessage(int status) {
-    this.status = String.valueOf(status);
-  }
-
-  public String getStatus() {
+  public int getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(int status) {
     this.status = status;
+  }
+
+  public int getStatusCode() {
+    return status;
+  }
+
+  public String getMessage() {
+    return message;
   }
 }

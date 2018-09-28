@@ -79,17 +79,6 @@ class AmbariConfiguration(object):
     """
     return _get_from_dictionary(self.services, "ambari-server-configuration")
 
-  def get_ambari_server_properties(self):
-    """
-    Safely returns the "ambari-server-properties" dictionary from the services dictionary.
-
-    if the services dictionary is None or does not contain "ambari-server-configuration",
-    None is returned
-
-    :return: a dictionary
-    """
-    return _get_from_dictionary(self.services, "ambari-server-properties")
-
   def get_ambari_server_configuration_category(self, category):
     """
     Safely returns a dictionary of the properties for the requested category from the
@@ -103,16 +92,6 @@ class AmbariConfiguration(object):
     """
     return _get_from_dictionary(self.get_ambari_server_configuration(), category)
 
-  def get_category_property_value(self, properties, property_name):
-    """
-    Safely gets the value of a property from a supplied dictionary of properties.
-
-    :param properties: a dictionary of properties
-    :param property_name: the name of a property to retrieve the value for
-    :return: a value or None, if the property does not exist
-    """
-    return _get_from_dictionary(properties, property_name)
-
   def get_ambari_sso_configuration(self):
     """
     Safely gets a dictionary of properties for the "sso-configuration" category.
@@ -121,14 +100,32 @@ class AmbariConfiguration(object):
     """
     return self.get_ambari_server_configuration_category("sso-configuration")
 
-  def get_ambari_sso_configuration_value(self, property_name):
+  def get_ambari_sso_details(self):
     """
-    Safely gets a value for a "sso-configuration" property
+    Gets a dictionary of properties that may be used to configure a service for SSO integration.
+    :return: a dictionary
+    """
+    return AmbariSSODetails(self.get_ambari_sso_configuration())
 
-    :param property_name: the name of a property to retrieve the value for
-    :return: a value or None, if the property does not exist
+
+class AmbariSSODetails(object):
+  """
+  AmbariSSODetails encapsulates the SSO configuration data specified in the ambari-server-configuration data
+  """
+
+  def __init__(self, sso_properties):
+    self.sso_properties = sso_properties
+
+  def is_managing_services(self):
     """
-    return self.get_category_property_value(self.get_ambari_sso_configuration(), property_name)
+    Tests the configuration data to determine if Ambari should be configuring servcies to enable SSO integration.
+
+    The relevant property is "sso-configuration/ambari.sso.manage_services", which is expected
+    to be a "true" or "false".
+
+    :return: True, if Ambari should manage services' SSO configurations
+    """
+    return "true" == _get_from_dictionary(self.sso_properties, "ambari.sso.manage_services")
 
   def get_services_to_enable(self):
     """
@@ -138,7 +135,7 @@ class AmbariConfiguration(object):
 
     :return: a list of service names converted to lowercase
     """
-    sso_enabled_services = self.get_ambari_sso_configuration_value("ambari.sso.enabled_services")
+    sso_enabled_services = _get_from_dictionary(self.sso_properties, "ambari.sso.enabled_services")
 
     return [x.strip().lower() for x in sso_enabled_services.strip().split(",")] \
       if sso_enabled_services \
@@ -155,7 +152,7 @@ class AmbariConfiguration(object):
     :param service_name: the name of the service to test
     :return: True, if SSO should be enabled; False, otherwise
     """
-    if "true" == self.get_ambari_sso_configuration_value("ambari.sso.manage_services"):
+    if self.is_managing_services():
       services_to_enable = self.get_services_to_enable()
       return "*" in services_to_enable or service_name.lower() in services_to_enable
     else:
@@ -172,92 +169,73 @@ class AmbariConfiguration(object):
     :param service_name: the name of the service to test
     :return: true, if SSO should be disabled; false, otherwise
     """
-    if "true" == self.get_ambari_sso_configuration_value("ambari.sso.manage_services"):
+    if self.is_managing_services():
       services_to_enable = self.get_services_to_enable()
       return "*" not in services_to_enable and service_name.lower() not in services_to_enable
     else:
       return False
 
-  def get_ambari_sso_details(self):
-    """
-    Gets a dictionary of properties that may be used to configure a service for SSO integration.
-    :return: a dictionary
-    """
-    return AmbariSSODetails(self.get_ambari_server_properties())
-
-
-class AmbariSSODetails(object):
-  """
-  AmbariSSODetails encapsulates the SSO configiuration data specified in the ambari-server-properties
-  """
-
-  def __init__(self, ambari_server_properties):
-    self.jwt_enabled = _get_from_dictionary(ambari_server_properties,
-                                            'authentication.jwt.enabled')
-    self.jwt_audiences = _get_from_dictionary(ambari_server_properties,
-                                              'authentication.jwt.audiences')
-    self.jwt_cookie_name = _get_from_dictionary(ambari_server_properties,
-                                                'authentication.jwt.cookieName')
-    self.jwt_provider_url = _get_from_dictionary(ambari_server_properties,
-                                                 'authentication.jwt.providerUrl')
-    self.jwt_public_key_file = _get_from_dictionary(ambari_server_properties,
-                                                    'authentication.jwt.publicKey')
-
-  def is_jwt_enabled(self):
-    """
-    Test is SSO/JWT authentication is enabled for Ambari
-    :return: True if JWT authentication is enabled for Ambari; False, otherwise
-    """
-    return "true" == self.jwt_enabled
-
   def get_jwt_audiences(self):
     """
     Gets the configured JWT audiences list
+
+    The relevant property is "sso-configuration/ambari.sso.jwt.audiences", which is expected
+    to be a comma-delimited list of audience names.
+
     :return the configured JWT audiences list:
     """
-    return self.jwt_audiences
+    return _get_from_dictionary(self.sso_properties, 'ambari.sso.jwt.audiences')
 
   def get_jwt_cookie_name(self):
     """
     Gets the configured JWT cookie name
+
+    The relevant property is "sso-configuration/ambari.sso.jwt.cookieName", which is expected
+    to be a string.
+
     :return: the configured JWT cookie name
     """
-    return self.jwt_cookie_name
+    return _get_from_dictionary(self.sso_properties, 'ambari.sso.jwt.cookieName')
 
-  def get_jwt_provider_url(self):
+  def get_sso_provider_url(self):
     """
     Gets the configured SSO provider URL
+
+    The relevant property is "sso-configuration/ambari.sso.provider.url", which is expected
+    to be a string.
+
     :return: the configured SSO provider URL
     """
-    return self.jwt_provider_url
+    return _get_from_dictionary(self.sso_properties, 'ambari.sso.provider.url')
 
-  def get_jwt_public_key_file(self):
+  def get_sso_provider_original_parameter_name(self):
     """
-    Gets the configured path to the public key file
-    :return: the configured path to the public key file
-    """
-    return self.jwt_public_key_file
+    Gets the configured SSO provider's original URL parameter name
 
-  def get_jwt_public_key(self, include_header_and_footer=False, remove_line_breaks=True):
-    """
-    Retrieves, formats, and returns the PEM data from the configured 509 certificate file.
+    The relevant property is "sso-configuration/ambari.sso.provider.originalUrlParamName", which is
+    expected to be a string.
 
-    Attempts to read in the file specified by the value in ambari-server-properties/authentication.jwt.publicKey.
-    If the file exists and is readable, the content is read.  If the header and foooter need to exists, and
-    do not, the will be added. If they need to be removed, they will be removed if they exist.  Any line
-    break characters will be leave alone unles the caller specifies them to be removed. Line break
-    characters will not be added if missing.
+    :return: the configured SSO provider's original URL parameter name
+    """
+    return _get_from_dictionary(self.sso_properties, 'ambari.sso.provider.originalUrlParamName')
+
+  def get_sso_provider_certificate(self, include_header_and_footer=False, remove_line_breaks=True):
+    """
+    Retrieves, formats, and returns the PEM data from the stored 509 certificate.
+
+    The relevant property is "sso-configuration/ambari.sso.provider.certificate", which is expected
+    to be a PEM-encoded x509 certificate, including the header and footer.
+
+    If the header and footer need to exist, and do not, the will be added. If they need to be removed,
+    they will be removed if they exist.  Any line break characters will be left alone unless the
+    caller specifies them to be removed. Line break characters will not be added if missing.
 
     :param include_header_and_footer: True, to include the standard header and footer; False to remove
     the standard header and footer
     :param remove_line_breaks: True, remove and line breaks from PEM data; False to leave any existing line break as-is
-    :return:  formats, and returns the PEM data from an x509 certificate file
+    :return:  formats, and returns the PEM data from an x509 certificate
     """
-    public_cert = None
-
-    if (self.jwt_public_key_file) and os.path.isfile(self.jwt_public_key_file):
-      with open(self.jwt_public_key_file, "r") as f:
-        public_cert = f.read()
+    public_cert = _get_from_dictionary(self.sso_properties, 'ambari.sso.provider.certificate')
 
     if public_cert:
       public_cert = public_cert.lstrip().rstrip()

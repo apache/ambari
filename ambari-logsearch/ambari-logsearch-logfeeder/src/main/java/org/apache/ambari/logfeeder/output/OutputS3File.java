@@ -33,10 +33,10 @@ import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.S3Util;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputS3FileDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputS3FileDescriptorImpl;
 import org.apache.log4j.Logger;
 
 import java.io.File;

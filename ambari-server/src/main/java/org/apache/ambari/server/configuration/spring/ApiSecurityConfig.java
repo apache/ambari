@@ -89,6 +89,7 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
     http.csrf().disable()
         .authorizeRequests().anyRequest().authenticated()
         .and()
+        .headers().frameOptions().disable().and()
         .exceptionHandling().authenticationEntryPoint(ambariEntryPoint)
         .and()
         .addFilterBefore(guiceBeansConfig.ambariUserAuthorizationFilter(), BasicAuthenticationFilter.class)

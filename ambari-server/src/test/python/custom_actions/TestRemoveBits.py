@@ -21,7 +21,6 @@ import json
 import os
 from ambari_commons import subprocess32
 import select
-import install_packages
 
 from mock.mock import patch
 from mock.mock import MagicMock

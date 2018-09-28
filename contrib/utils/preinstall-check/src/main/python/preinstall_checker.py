@@ -636,7 +636,7 @@ def run_host_checks(options, agents, server_url):
   label_check = 'Host name resolution'
   step(label_check)
   url = '{0}/api/v1/requests'.format(server_url)
-  data = '{{"RequestInfo":{{"action":"check_host","context":"Check host","parameters":{{"check_execute_list":"host_resolution_check","jdk_location":"{0}/resources/","threshold":"20","hosts":"{1}"}}}},"Requests/resource_filters":[{{"hosts":"{1}"}}]}}'.format(server_url, ','.join(agents))
+  data = '{{"RequestInfo":{{"action":"check_host","context":"Check host","parameters":{{"check_execute_list":"host_resolution_check","jdk_location":"{0}/resources","threshold":"20","hosts":"{1}"}}}},"Requests/resource_filters":[{{"hosts":"{1}"}}]}}'.format(server_url, ','.join(agents))
   logger.debug('Host resolution check data {0}'.format(data))
   task_results_by_hosts, results_to_print = run_check(options, url, label_check, data)
   host_check_parser(task_results_by_hosts, results_to_print)
@@ -665,7 +665,7 @@ def run_java_home_checks(options, agents, server_url):
   url = '{0}/api/v1/requests'.format(server_url)
   java_home = get_ambari_server_property('java.home')
   logger.info('Ambari server java home: {0}'.format(java_home))
-  data = '{{"RequestInfo":{{"context":"Check hosts","action":"check_host","parameters":{{"threshold":"60","java_home":"{0}","jdk_location":"{1}/resources/","check_execute_list":"java_home_check"}}}},"Requests/resource_filters":[{{"hosts":"{2}"}}]}}'.format(java_home, server_url, ','.join(agents))
+  data = '{{"RequestInfo":{{"context":"Check hosts","action":"check_host","parameters":{{"threshold":"60","java_home":"{0}","jdk_location":"{1}/resources","check_execute_list":"java_home_check"}}}},"Requests/resource_filters":[{{"hosts":"{2}"}}]}}'.format(java_home, server_url, ','.join(agents))
   logger.debug('Java home check data {0}'.format(data))
   task_results_by_hosts, results_to_print = run_check(options, url, label_check, data)
   java_home_check_parser(task_results_by_hosts, results_to_print)
@@ -855,7 +855,7 @@ def run_agent_checks(options, agents, server_url):
   logger.info('Prepare for Ambari Agent host check')
   label_check = 'Ambari Agent host check'
   url = '{0}/api/v1/requests'.format(server_url)
-  data = '{{"RequestInfo":{{"action":"check_host","context":"Check host","parameters":{{"check_execute_list":"last_agent_env_check,installed_packages,existing_repos,transparentHugePage","jdk_location":"{0}/resources/","threshold":"20"}}}},"Requests/resource_filters":[{{"hosts":"{1}"}}]}}'.format(server_url, ','.join(agents))
+  data = '{{"RequestInfo":{{"action":"check_host","context":"Check host","parameters":{{"check_execute_list":"last_agent_env_check,installed_packages,existing_repos,transparentHugePage","jdk_location":"{0}/resources","threshold":"20"}}}},"Requests/resource_filters":[{{"hosts":"{1}"}}]}}'.format(server_url, ','.join(agents))
   logger.debug('Agent enviornment check data to submit {0}'.format(data))
   task_results_by_host, results_to_print = run_check(options, url, label_check, data)
 

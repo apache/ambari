@@ -103,6 +103,9 @@ export class ModalComponent implements OnInit, AfterViewInit {
   @Output()
   close: EventEmitter<any> = new EventEmitter();
 
+  @Input()
+  isFlexLayout: boolean = false;
+
   show(): void {
     this.modalElements.show();
   }

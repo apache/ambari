@@ -66,7 +66,6 @@ import org.apache.ambari.server.state.State;
   , initialValue = 1
 )
 public class ClusterEntity {
-
   @Id
   @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "cluster_id_generator")

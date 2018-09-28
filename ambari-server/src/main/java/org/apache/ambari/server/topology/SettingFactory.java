@@ -73,13 +73,16 @@ public class SettingFactory {
         for (Map.Entry<String, Object> entry : settingMap.entrySet()) {
           final String[] propertyNames = entry.getKey().split("/");
           Set<Map<String, String>> settingValue;
+          String settingCategory;
           if (entry.getValue() instanceof Set) {
+            settingCategory = propertyNames[propertyNames.length - 1];
             settingValue = (Set<Map<String, String>>) entry.getValue();
           }
           else if (propertyNames.length > 1){
+            settingCategory = propertyNames[0];
             Map<String, String> property = new HashMap<>();
             property.put(propertyNames[1], String.valueOf(entry.getValue()));
-            settingValue = properties.get(propertyNames[0]);
+            settingValue = properties.get(settingCategory);
             if (settingValue == null) {
               settingValue = new HashSet<>();
             }
@@ -88,7 +91,7 @@ public class SettingFactory {
           else {
             throw new IllegalArgumentException("Invalid setting schema: " + String.valueOf(entry.getValue()));
           }
-          properties.put(propertyNames[0], settingValue);
+          properties.put(settingCategory, settingValue);
         }
       }
     }

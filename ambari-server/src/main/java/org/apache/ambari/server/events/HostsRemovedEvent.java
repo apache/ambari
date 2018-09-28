@@ -20,69 +20,37 @@ package org.apache.ambari.server.events;
 import java.util.Collections;
 import java.util.Set;
 
-import org.apache.ambari.server.state.Cluster;
-
 /**
  * The {@link HostsRemovedEvent} class is fired when the hosts are removed from the
  * cluster.
  */
 public class HostsRemovedEvent extends AmbariEvent {
 
-  /**
-   * The clusters that the removed hosts belonged to.
-   */
-  private final Set<Cluster> m_clusters;
+  private final Set<Long> hostIds;
+  private final Set<String> hosts;
 
-  /**
-   * Removed hosts.
-   */
-  private final Set<String> m_hosts;
-
-  /**
-   * Constructor.
-   * @param hosts
-   * @param clusters
-   */
-  public HostsRemovedEvent(Set<String> hosts, Set<Cluster> clusters) {
+  public HostsRemovedEvent(Set<String> hosts, Set<Long> hostIds) {
     super(AmbariEventType.HOST_REMOVED);
-    m_clusters = clusters;
-    m_hosts = hosts;
+    this.hostIds = hostIds != null ? hostIds : Collections.emptySet();
+    this.hosts = hosts != null ? hosts : Collections.emptySet();
   }
 
   /**
-   * The clusters that the hosts belonged to.
-   *
-   * @return the clusters, or an empty set.
-   */
-  public Set<Cluster> getClusters() {
-    if (null == m_clusters) {
-      return Collections.emptySet();
-    }
-
-    return m_clusters;
-  }
-
-  /**
-   * Removed hosts.
-   * @return
+   * @return names of removed hosts
    */
   public Set<String> getHostNames() {
-    if (null == m_hosts) {
-      return Collections.emptySet();
-    }
-
-    return m_hosts;
+    return hosts;
   }
 
   /**
-   * {@inheritDoc}
+   * @return ids of removed hosts
    */
+  public Set<Long> getHostIds() {
+    return hostIds;
+  }
+
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("HostsRemovedEvent{");
-    sb.append("m_clusters=").append(m_clusters);
-    sb.append(", m_hosts=").append(m_hosts);
-    sb.append('}');
-    return sb.toString();
+    return "HostsRemovedEvent{" + hosts + "}";
   }
 }

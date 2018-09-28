@@ -32,7 +32,7 @@
   <div>
   {{#each service in view.services}}
     {{#if service.selected}}
-    <button class="capsule capsule-selected">
+    <button class="capsule capsule-selected disabled">
       {{service.name}}&nbsp;{{service.version}}&nbsp;<i class="icon icon-ok"></i>
     </button>
     {{else}}
@@ -42,5 +42,9 @@
     {{/if}}
   {{/each}}
   </div>
-  <button class="btn btn-default option-add-button" {{action addMpack target="view"}}></button>
+  {{#if mpack.selected}}
+    <button class="btn btn-default option-add-button checked disabled"></button>
+  {{else}}
+    <button class="btn btn-default option-add-button" {{action addMpack target="view"}}></button>
+  {{/if}}
 </div>

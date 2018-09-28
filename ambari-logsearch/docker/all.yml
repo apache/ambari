@@ -30,7 +30,7 @@ services:
           - 4444:4444
           - 9983:9983
         environment:
-          DISPLAY: $DOCKERIP:0
+          DISPLAY: $DISPLAY_MAC
         volumes:
           - $MAVEN_REPOSITORY_LOCATION:/root/.m2
           - $AMBARI_LOCATION:/root/ambari

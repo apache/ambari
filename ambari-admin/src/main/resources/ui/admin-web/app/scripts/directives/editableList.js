@@ -98,8 +98,9 @@ angular.module('ambariAdminConsole')
             break;
           case 13: // Enter
             $scope.$apply(function() {
-              $scope.addItem();
-              $scope.focusOnInput();
+              if ($scope.addItem()) {
+                $scope.focusOnInput();
+              }
             });
             return false;
             break;
@@ -129,6 +130,10 @@ angular.module('ambariAdminConsole')
       $scope.input = '';
       $scope.typeahead = [];
       $scope.selectedTypeahed = 0;
+      $scope.resources = [];
+      $scope.invalidInput = false;
+
+      preloadResources();
 
       // Watch source of items
       $scope.$watch(function() {
@@ -141,37 +146,33 @@ angular.module('ambariAdminConsole')
       $scope.$watch(function() {
         return $scope.input;
       }, function(newValue) {
+        $scope.invalidInput = false;
         if(newValue){
           var newValue = newValue.split(',').filter(function(i){ 
             i = i.replace('&nbsp;', ''); // Sanitize from spaces
             return !!i.trim();
           }).map(function(i) { return i.trim(); });
           if( newValue.length > 1){
+            var validInput = true;
             // If someone paste coma separated string, then just add all items to list
             angular.forEach(newValue, function(item) {
-              $scope.addItem(item);
+              if (validInput) {
+                validInput = $scope.addItem(item);
+              }
             });
-            $scope.clearInput();
-            $scope.focusOnInput();
-            
+            if (validInput) {
+              $scope.clearInput();
+              $scope.focusOnInput();
+            }
           } else {
-            // Load typeahed items based on current input
-            $resource.listByName(encodeURIComponent(newValue)).then(function(data) {
-              var items = [];
-              angular.forEach(data.data.items, function(item) {
-                var name;
-                if($scope.resourceType === 'User'){
-                  name = item.Users.user_name;
-                } else if($scope.resourceType === 'Group'){
-                  name = item.Groups.group_name;
-                }
-                if($scope.items.indexOf(name) < 0){ // Only if item not in list
-                  items.push(name);
-                }
-              });
-              $scope.typeahead = items.slice(0, 5);
-              $scope.selectedTypeahed = 0;
+            var items = [];
+            angular.forEach($scope.resources, function (name) {
+              if (name.indexOf(newValue) !== -1 && $scope.items.indexOf(name) === -1) {
+                items.push(name);
+              }
             });
+            $scope.typeahead = items.slice(0, 5);
+            $scope.selectedTypeahed = 0;
           }
         } else {
           $scope.typeahead = [];
@@ -179,6 +180,20 @@ angular.module('ambariAdminConsole')
           $scope.focusOnInput();
         }
       });
+
+      function preloadResources() {
+        $resource.listByName('').then(function(data) {
+          if (data && data.data.items) {
+            $scope.resources = data.data.items.map(function(item) {
+              if ($scope.resourceType === 'User') {
+                return item.Users.user_name;
+              } else if ($scope.resourceType === 'Group') {
+                return item.Groups.group_name;
+              }
+            });
+          }
+        });
+      }
 
       $scope.enableEditMode = function(event) {
         if( $scope.editable && !$scope.editMode){
@@ -197,12 +212,15 @@ angular.module('ambariAdminConsole')
         event.stopPropagation();
       };
       $scope.save = function(event) {
+        var validInput = true;
         if( $scope.input ){
-          $scope.addItem($scope.input);
+          validInput = $scope.addItem($scope.input);
         }
-        $scope.itemsSource = $scope.items;
-        $scope.editMode = false;
-        $scope.input = '';
+        if (validInput) {
+          $scope.itemsSource = $scope.items;
+          $scope.editMode = false;
+          $scope.input = '';
+        }
         if(event){
           event.stopPropagation();
         }
@@ -224,10 +242,16 @@ angular.module('ambariAdminConsole')
       $scope.addItem = function(item) {
         item = item ? item : $scope.typeahead.length ? $scope.typeahead[$scope.selectedTypeahed] : $scope.input;
         
-        if(item && $scope.items.indexOf(item) < 0){
-          $scope.items.push(item);
-          $scope.input = '';
+        if (item && $scope.items.indexOf(item) === -1){
+          if ($scope.resources.indexOf(item) !== -1) {
+            $scope.items.push(item);
+            $scope.input = '';
+          } else {
+            $scope.invalidInput = true;
+            return false;
+          }
         }
+        return true;
       };
 
       $scope.removeFromItems = function(item) {

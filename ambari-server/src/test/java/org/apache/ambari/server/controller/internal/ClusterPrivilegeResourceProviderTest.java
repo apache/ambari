@@ -205,10 +205,10 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
-    properties.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "CLUSTER.OPERATOR");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, "User1");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
-    properties.put(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, "c1");
+    properties.put(PrivilegeResourceProvider.PERMISSION_NAME, "CLUSTER.OPERATOR");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME, "User1");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
+    properties.put(ClusterPrivilegeResourceProvider.CLUSTER_NAME, "c1");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
@@ -263,10 +263,10 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Resource resource = resources.iterator().next();
 
-    Assert.assertEquals("CLUSTER.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Cluster Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
-    Assert.assertEquals("joe", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
-    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
+    Assert.assertEquals("CLUSTER.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME));
+    Assert.assertEquals("Cluster Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL));
+    Assert.assertEquals("joe", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME));
+    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE));
 
     verifyAll();
   }
@@ -315,10 +315,10 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Resource resource = resources.iterator().next();
 
-    Assert.assertEquals("CLUSTER.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Cluster Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
-    Assert.assertEquals(requestedUsername, resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
-    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
+    Assert.assertEquals("CLUSTER.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME));
+    Assert.assertEquals("Cluster Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL));
+    Assert.assertEquals(requestedUsername, resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME));
+    Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE));
 
     verifyAll();
   }
@@ -366,9 +366,9 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Map<String, Object> properties = new LinkedHashMap<>();
-    properties.put(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID, "CLUSTER.OPERATOR");
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID, requestedUsername);
-    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID, "USER");
+    properties.put(PrivilegeResourceProvider.PERMISSION_NAME, "CLUSTER.OPERATOR");
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_NAME, requestedUsername);
+    properties.put(PrivilegeResourceProvider.PRINCIPAL_TYPE, "USER");
 
     Request request = PropertyHelper.getUpdateRequest(properties, null);
 
@@ -474,7 +474,7 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
 
   private Predicate createPredicate(Long id) {
     return new PredicateBuilder()
-        .property(ClusterPrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID)
+        .property(ClusterPrivilegeResourceProvider.PRIVILEGE_ID)
         .equals(id)
         .toPredicate();
   }

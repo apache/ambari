@@ -45,3 +45,17 @@ export function uniqueServiceNameValidator(
   };
 }
 
+export function getConfigurationServiceValidator(configControl: AbstractControl): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    let components: string[];
+    try {
+      const inputs: {[key: string]: any}[] = (configControl.value ? JSON.parse(configControl.value) : {}).input;
+      components = inputs && inputs.length ? inputs.map(input => input.type) : [];
+    } catch (error) {
+      components = [];
+    }
+    return components.length && components.indexOf(control.value) === -1 ? {
+      serviceNameDoesNotExistInConfiguration: {value: control.value}
+    } : null;
+  };
+}

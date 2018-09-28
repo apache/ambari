@@ -18,6 +18,7 @@
 
 import DS from 'ember-data';
 import Ember from 'ember';
+import ENV from 'files-view/config/environment';
 
 export default DS.RESTAdapter.extend({
   init: function () {
@@ -38,10 +39,26 @@ export default DS.RESTAdapter.extend({
       instance = parts[parts.length - 2];
       version = '';
     }
+
+    if (ENV.environment === 'development') {
+      return '/resources/files/fileops';
+    }
+
     return 'api/v1/views/' + view + version + '/instances/' + instance + '/resources/files/fileops';
   }),
 
-  headers: {
-    'X-Requested-By': 'ambari'
-  }
+ headers: Ember.computed(function () {
+    let headers = {
+      'X-Requested-By': 'ambari',
+      'Content-Type': 'application/json'
+    };
+
+    if (ENV.environment === 'development') {
+      // In development mode when the UI is served using ember serve the xhr requests are proxied to ambari server
+      // by setting the proxyurl parameter in ember serve and for ambari to authenticate the requests, it needs this
+      // basic authorization. This is for default admin/admin username/password combination.
+      headers['Authorization'] = 'Basic YWRtaW46YWRtaW4=';
+    }
+    return headers;
+  })
 });

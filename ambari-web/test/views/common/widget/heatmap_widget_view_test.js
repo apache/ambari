@@ -124,7 +124,7 @@ describe('App.HeatmapWidgetView', function () {
         isLoaded: true,
         racks: [],
         content: Em.Object.create({
-          displayName: 'm1',
+          widgetName: 'm1',
           properties: {
             display_unit: 'u1'
           }
@@ -152,7 +152,7 @@ describe('App.HeatmapWidgetView', function () {
           isLoaded: true
         }],
         content: Em.Object.create({
-          displayName: 'm1',
+          widgetName: 'm1',
           properties: {
             display_unit: 'u1'
           }

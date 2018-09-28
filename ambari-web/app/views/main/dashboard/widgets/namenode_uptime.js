@@ -21,6 +21,6 @@ var App = require('app');
 App.NameNodeUptimeView = App.UptimeTextDashboardWidgetView.extend(App.NameNodeWidgetMixin, {
 
   component: 'NameNode',
-  modelValue: Em.computed.getByKey('model.nameNodeStartTimeValues', 'clusterId')
+  modelValue: Em.computed.getByKey('model.nameNodeStartTimeValues', 'hostName')
 
 });

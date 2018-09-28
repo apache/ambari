@@ -38,7 +38,7 @@ import java.util.concurrent.Callable;
  * does not add a watcher on the znode.
  */
 public class MetricCollectorHAHelper {
-  private final String zookeeperQuorum;
+  private final String zookeeperConnectionURL;
   private final int tryCount;
   private final int sleepMsBetweenRetries;
 
@@ -52,8 +52,8 @@ public class MetricCollectorHAHelper {
 
   private static final Log LOG = LogFactory.getLog(MetricCollectorHAHelper.class);
 
-  public MetricCollectorHAHelper(String zookeeperQuorum, int tryCount, int sleepMsBetweenRetries) {
-    this.zookeeperQuorum = zookeeperQuorum;
+  public MetricCollectorHAHelper(String zookeeperConnectionURL, int tryCount, int sleepMsBetweenRetries) {
+    this.zookeeperConnectionURL = zookeeperConnectionURL;
     this.tryCount = tryCount;
     this.sleepMsBetweenRetries = sleepMsBetweenRetries;
   }
@@ -66,7 +66,7 @@ public class MetricCollectorHAHelper {
     Set<String> collectors = new HashSet<>();
 
     RetryPolicy retryPolicy = new BoundedExponentialBackoffRetry(sleepMsBetweenRetries, 10*sleepMsBetweenRetries, tryCount);
-    final CuratorZookeeperClient client = new CuratorZookeeperClient(zookeeperQuorum,
+    final CuratorZookeeperClient client = new CuratorZookeeperClient(zookeeperConnectionURL,
       SESSION_TIMEOUT, CONNECTION_TIMEOUT, null, retryPolicy);
 
     List<String> liveInstances = null;

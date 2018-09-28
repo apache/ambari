@@ -25,9 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
@@ -39,6 +37,8 @@ import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
@@ -51,6 +51,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
@@ -113,6 +114,18 @@ public interface AmbariManagementController {
    */
   Set<ServiceComponentHostResponse> createHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
+
+  /**
+   * Create the host component defined by the attributes in the given request object.
+   *
+   * @param requests  the request object which defines the host component to be created
+   *
+   * @param isBlueprintProvisioned  means host components will be created during blueprint deploy
+   *
+   * @throws AmbariException thrown if the host component cannot be created
+   */
+  Set<ServiceComponentHostResponse> createHostComponents(
+      Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned) throws AmbariException, AuthorizationException;
 
   /**
    * Creates a configuration.
@@ -262,6 +275,26 @@ public interface AmbariManagementController {
    */
   RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                               Map<String, String> requestProperties)
+      throws AmbariException, AuthorizationException;
+
+  /**
+   * Update the cluster identified by the given request object with the
+   * values carried by the given request object.
+   *
+   *
+   * @param requests          request objects which define which cluster to
+   *                          update and the values to set
+   * @param requestProperties request specific properties independent of resource
+   *
+   * @param fireAgentUpdates  should agent updates (configurations, metadata etc.) be fired inside
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
+   */
+  RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
+                                              Map<String, String> requestProperties, boolean fireAgentUpdates)
       throws AmbariException, AuthorizationException;
 
   /**
@@ -661,7 +694,35 @@ public interface AmbariManagementController {
                              Map<State, List<ServiceComponent>> changedComponents,
                              Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
                              Collection<ServiceComponentHost> ignoredHosts,
-                             boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs) throws AmbariException;
+
+  /**
+   * Add stages to the request.
+   *
+   * @param requestStages       Stages currently associated with request
+   * @param cluster             cluster being acted on
+   * @param requestProperties   the request properties
+   * @param requestParameters   the request parameters; may be null
+   * @param changedServices     the services being changed; may be null
+   * @param changedComponents   the components being changed
+   * @param changedHosts        the hosts being changed
+   * @param ignoredHosts        the hosts to be ignored
+   * @param runSmokeTest        indicates whether or not the smoke tests should be run
+   * @param reconfigureClients  indicates whether or not the clients should be reconfigured
+   * @param useGeneratedConfigs indicates whether or not the actual configs should be a part of the stage
+   * @param useClusterHostInfo  indicates whether or not the cluster topology info  should be a part of the stage
+   *
+   * @return request stages
+   *
+   * @throws AmbariException if stages can't be created
+   */
+  RequestStageContainer addStages(RequestStageContainer requestStages, Cluster cluster, Map<String, String> requestProperties,
+                             Map<String, String> requestParameters,
+                             Map<State, List<Service>> changedServices,
+                             Map<State, List<ServiceComponent>> changedComponents,
+                             Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                             Collection<ServiceComponentHost> ignoredHosts,
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs, boolean useClusterHostInfo) throws AmbariException;
 
   /**
    * Getter for the url of JDK, stored at server resources folder
@@ -863,14 +924,6 @@ public interface AmbariManagementController {
   void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException;
 
   /**
-   * Gets an execution command for host component life cycle command
-   * @return
-   */
-  ExecutionCommand getExecutionCommand(Cluster cluster,
-                                              ServiceComponentHost scHost,
-                                              RoleCommand roleCommand) throws AmbariException;
-
-  /**
    * Get configuration dependencies which are specific for a specific service configuration property
    * @param requests
    * @return
@@ -1010,5 +1063,11 @@ public interface AmbariManagementController {
 
   HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException;
 
+  MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cluster) throws AmbariException;
+
+  TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
+      throws AmbariException;
+
+  Map<String, BlueprintProvisioningState> getBlueprintProvisioningStates(Long clusterId, Long hostId) throws AmbariException;
 }
 

@@ -44,6 +44,12 @@ import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dr
 
 import {ContextMenuComponent} from './context-menu.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
 
 describe('ContextMenuComponent', () => {
   let component: ContextMenuComponent;
@@ -54,7 +60,7 @@ describe('ContextMenuComponent', () => {
       return {
         subscribe: () => {
         }
-      }
+      };
     }
   };
 
@@ -65,6 +71,7 @@ describe('ContextMenuComponent', () => {
         DropdownListComponent
       ],
       imports: [
+        RouterTestingModule,
         ...TranslationModules,
         StoreModule.provideStore({
           hosts,
@@ -102,7 +109,12 @@ describe('ContextMenuComponent', () => {
         TabsService,
         AuthService,
         UtilsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService,
+        NotificationsService,
+        NotificationService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

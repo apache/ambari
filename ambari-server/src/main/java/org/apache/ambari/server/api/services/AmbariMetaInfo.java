@@ -302,7 +302,8 @@ public class AmbariMetaInfo {
     readServerVersion();
 
     stackManager = stackManagerFactory.create(resourcesRoot, stackRoot, commonServicesRoot, extensionsRoot,
-        osFamily, false /* validate = false */, true /* refreshArchives = true */);
+        osFamily, false /* validate = false */,
+        conf.isStackResourceHashAndArchiveGenerationEnabled());
 
     mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
 
@@ -1248,9 +1249,7 @@ public class AmbariMetaInfo {
    * @param updateScriptPaths whether existing script-based alerts should be updated
    *        with possibly new paths from the stack definition
    */
-  public void reconcileAlertDefinitions(Clusters clusters, boolean updateScriptPaths)
-      throws AmbariException {
-
+  public void reconcileAlertDefinitions(Clusters clusters, boolean updateScriptPaths)  throws AmbariException {
     Map<String, Cluster> clusterMap = clusters.getClusters();
     if (null == clusterMap || clusterMap.size() == 0) {
       return;
@@ -1258,6 +1257,29 @@ public class AmbariMetaInfo {
 
     // for every cluster
     for (Cluster cluster : clusterMap.values()) {
+       reconcileAlertDefinitions(cluster, updateScriptPaths);
+    }
+
+  }
+
+  /**
+   * Compares the alert definitions defined on the stack with those in the
+   * database and merges any new or updated definitions. This method will first
+   * determine the services that are installed on each cluster to prevent alert
+   * definitions from undeployed services from being shown.
+   * <p/>
+   * This method will also detect "agent" alert definitions, which are
+   * definitions that should be run on agent hosts but are not associated with a
+   * service.
+   *
+   * @param cluster cluster
+   * @param updateScriptPaths whether existing script-based alerts should be updated
+   *        with possibly new paths from the stack definition
+   */
+  public void reconcileAlertDefinitions(Cluster cluster, boolean updateScriptPaths) throws AmbariException {
+      if (null == cluster) {
+        return;
+      }
 
       long clusterId = cluster.getClusterId();
       Map<String, ServiceInfo> stackServiceMap = new HashMap<>();
@@ -1310,11 +1332,6 @@ public class AmbariMetaInfo {
         // use the REST APIs to modify them instead
         AlertDefinition databaseDefinition = alertDefinitionFactory.coerce(entity);
         if (!stackDefinition.deeplyEquals(databaseDefinition)) {
-
-          LOG.debug(
-              "The alert named {} has been modified from the stack definition and will not be merged",
-              stackDefinition.getName());
-
           if (updateScriptPaths) {
             Source databaseSource = databaseDefinition.getSource();
             Source stackSource = stackDefinition.getSource();
@@ -1333,6 +1350,9 @@ public class AmbariMetaInfo {
                 );
               }
             }
+          } else {
+            LOG.debug("The alert named {} has been modified from the stack definition and will not be merged",
+              stackDefinition.getName());
           }
         }
       }
@@ -1352,9 +1372,7 @@ public class AmbariMetaInfo {
       // all definition resolved; publish their registration
       for (AlertDefinitionEntity def : alertDefinitionDao.findAll(cluster.getClusterId())) {
         AlertDefinition realDef = alertDefinitionFactory.coerce(def);
-
-        AlertDefinitionRegistrationEvent event = new AlertDefinitionRegistrationEvent(
-            cluster.getClusterId(), realDef);
+        AlertDefinitionRegistrationEvent event = new AlertDefinitionRegistrationEvent(cluster.getClusterId(), realDef);
 
         eventPublisher.publish(event);
       }
@@ -1396,13 +1414,9 @@ public class AmbariMetaInfo {
       for (AlertDefinitionEntity definition : definitionsToDisable) {
         definition.setEnabled(false);
         alertDefinitionDao.merge(definition);
-
-        AlertDefinitionDisabledEvent event = new AlertDefinitionDisabledEvent(
-            clusterId, definition.getDefinitionId());
-
-        eventPublisher.publish(event);
+        eventPublisher.publish(new AlertDefinitionDisabledEvent(clusterId, definition.getDefinitionId(),
+            definition.getDefinitionName()));
       }
-    }
   }
 
   /**

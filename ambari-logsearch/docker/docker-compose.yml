@@ -26,7 +26,7 @@ services:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zookeeper:2888:3888
   solr:
-    image: solr:${SOLR_VERSION:-7.2.1}
+    image: solr:${SOLR_VERSION:-7.4.0}
     restart: always
     hostname: solr
     ports:
@@ -47,6 +47,8 @@ services:
     image: ambari-logsearch:v1.0
     restart: always
     hostname: logsearch.apache.org
+    labels:
+      logfeeder.log.type: "logsearch_server"
     networks:
       - logsearch-network
     env_file:
@@ -59,7 +61,7 @@ services:
       COMPONENT: logsearch
       COMPONENT_LOG: logsearch
       ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
-      DISPLAY: $DOCKERIP:0
+      DISPLAY: $DISPLAY_MAC
     volumes:
       - $AMBARI_LOCATION:/root/ambari
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
@@ -68,6 +70,9 @@ services:
     image: ambari-logsearch:v1.0
     restart: always
     hostname: logfeeder.apache.org
+    privileged: true
+    labels:
+      logfeeder.log.type: "logfeeder"
     networks:
       - logsearch-network
     env_file:
@@ -82,6 +87,9 @@ services:
       - $AMBARI_LOCATION:/root/ambari
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/local/bin/docker:/usr/local/bin/docker
+      - /var/lib/docker:/var/lib/docker
 networks:
    logsearch-network:
       driver: bridge

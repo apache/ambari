@@ -61,6 +61,10 @@
         <component>
           <name>HBASE_CLIENT</name>
           <category>CLIENT</category>
+          <commandScript>
+            <script>scripts/hbase_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>          
         </component>
       </components>
 

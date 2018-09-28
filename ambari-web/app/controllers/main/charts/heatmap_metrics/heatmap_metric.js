@@ -51,31 +51,11 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * @type {Array}
    */
   slotColors: [
-    { // Green
-      r: 0x00,
-      g: 0xcc,
-      b: 0x00
-    },
-    { //Light green
-      r: 0x9f,
-      g: 0xee,
-      b: 0x00
-    },
-    { // Yellow
-      r: 0xff,
-      g: 0xff,
-      b: 0x00
-    },
-    { // Orange
-      r: 0xff,
-      g: 0xc0,
-      b: 0x00
-    },
-    { // Red
-      r: 0xff,
-      g: 0x00,
-      b: 0x00
-    }
+    '#1EB475',
+    '#1FB418',
+    '#E9E23F',
+    '#E9A840',
+    '#EF6162'
   ],
 
   /**
@@ -140,13 +120,13 @@ App.MainChartHeatmapMetric = Em.Object.extend({
       notAvailable: true,
       index: defs.length,
       label: Em.I18n.t('charts.heatmap.label.notAvailable'),
-      cssStyle: "background-color: dimgray"
+      cssStyle: "background-color: #666"
     }));
     defs.push(Em.Object.create({
       notApplicable: true,
       index: defs.length,
       label: Em.I18n.t('charts.heatmap.label.notApplicable'),
-      cssStyle: "background-color:rgb(200, 200, 200)"
+      cssStyle: "background-color:#ccc"
     }));
     return defs;
   }.property('minimumValue', 'maximumValue', 'numberOfSlots'),
@@ -171,7 +151,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
       from: from,
       to: to,
       label: fromLabel + " - " + toLabel,
-      cssStyle: "background-color:rgb(" + slotColor.r + "," + slotColor.g + "," + slotColor.b + ")"
+      cssStyle: "background-color:" + slotColor
     });
   },
 
@@ -180,15 +160,15 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * @return {String}
    */
   getHatchStyle: function () {
-    var hatchStyle = "background-color:rgb(135, 206, 250)";
+    var hatchStyle = "background-color:#666";
     if (jQuery.browser.webkit) {
-      hatchStyle = "background-image:-webkit-repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)";
+      hatchStyle = "background-image:-webkit-repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)";
     } else if (jQuery.browser.mozilla) {
-      hatchStyle = "background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)";
+      hatchStyle = "background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)";
     } else if (jQuery.browser.msie && jQuery.browser.version) {
       var majorVersion = parseInt(jQuery.browser.version.split('.')[0]);
       if (majorVersion > 9) {
-        hatchStyle = "background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)";
+        hatchStyle = "background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)";
       }
     }
     return hatchStyle;

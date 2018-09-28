@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.orm;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -44,6 +47,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.state.State;
+import org.eclipse.persistence.platform.database.DatabasePlatform;
 import org.eclipse.persistence.sessions.DatabaseSession;
 import org.junit.After;
 import org.junit.Before;
@@ -365,6 +370,28 @@ public class DBAccessorImplTest {
             tableName + " (id)");
 
     Assert.assertEquals("FK_TEST1", dbAccessor.getCheckedForeignKey(foreignTableName, "fk_test1"));
+  }
+
+  @Test
+  public void getCheckedForeignKeyReferencingUniqueKey() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    Statement statement = dbAccessor.getConnection().createStatement();
+    statement.execute(String.format("ALTER TABLE %s ADD CONSTRAINT UC_name UNIQUE (%s)", tableName, "name"));
+
+    List<DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("fname", String.class, null, null, false));
+
+    String foreignTableName = getFreeTableName();
+    dbAccessor.createTable(foreignTableName, columns);
+
+    statement = dbAccessor.getConnection().createStatement();
+    statement.execute(String.format("ALTER TABLE %s ADD CONSTRAINT FK_name FOREIGN KEY (%s) REFERENCES %s (%s)", foreignTableName, "fname", tableName, "name"));
+
+    Assert.assertEquals("FK_NAME", dbAccessor.getCheckedForeignKey(foreignTableName, "fk_name"));
   }
 
   @Test
@@ -853,6 +880,33 @@ public class DBAccessorImplTest {
     catch (IllegalArgumentException e) {
       // This is expected
     }
+  }
+
+  @Test
+  public void escapesEnumValue() {
+    DatabasePlatform platform = createNiceMock(DatabasePlatform.class);
+    Object value = State.UNKNOWN;
+    expect(platform.convertToDatabaseType(value)).andReturn(value).anyTimes();
+    reset(platform);
+    assertEquals("'" + value + "'", DBAccessorImpl.escapeParameter(value, platform));
+  }
+
+  @Test
+  public void escapesString() {
+    DatabasePlatform platform = createNiceMock(DatabasePlatform.class);
+    Object value = "hello, world";
+    expect(platform.convertToDatabaseType(value)).andReturn(value).anyTimes();
+    reset(platform);
+    assertEquals("'" + value + "'", DBAccessorImpl.escapeParameter(value, platform));
+  }
+
+  @Test
+  public void doesNotEscapeNumbers() {
+    DatabasePlatform platform = createNiceMock(DatabasePlatform.class);
+    Object value = 123;
+    expect(platform.convertToDatabaseType(value)).andReturn(value).anyTimes();
+    reset(platform);
+    assertEquals("123", DBAccessorImpl.escapeParameter(value, platform));
   }
 
 }

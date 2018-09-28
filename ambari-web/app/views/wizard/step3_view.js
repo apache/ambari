@@ -154,13 +154,16 @@ App.WizardStep3View = App.TableView.extend({
     this.set('selectionInProgress', false);
     var noNotRunningHostsSelected = true;
     var selectedNotRunningHostsCount = 0;
+    var selectedHostsCount = 0;
     this.get('content').forEach(function(host){
       var isSelectedAndNotRunning = host.get('isChecked') && (host.get('bootStatus') !== 'RUNNING');
+      selectedHostsCount += host.get('isChecked') ? 1 : 0;
       selectedNotRunningHostsCount += isSelectedAndNotRunning ? 1 : 0;
       noNotRunningHostsSelected = (noNotRunningHostsSelected) ? !isSelectedAndNotRunning : noNotRunningHostsSelected;
     });
     this.set('noNotRunningHostsSelected', noNotRunningHostsSelected);
     this.set('selectedNotRunningHostsCount', selectedNotRunningHostsCount);
+    this.set('selectedHostsCount', selectedHostsCount);
   },
 
   /**

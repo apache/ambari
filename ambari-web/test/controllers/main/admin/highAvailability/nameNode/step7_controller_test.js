@@ -30,16 +30,20 @@ describe('App.HighAvailabilityWizardStep7Controller', function() {
   describe('#initializeTasks', function() {
     beforeEach(function() {
       sinon.stub(controller, 'removeTasks');
-      sinon.stub(App.Service, 'find').returns([]);
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({isLoaded: false}));
+      sinon.stub(App.ClientComponent, 'getModelByComponentName').returns(Em.Object.create({
+        installedCount: 0
+      }));
     });
     afterEach(function() {
       controller.removeTasks.restore();
       App.Service.find.restore();
+      App.ClientComponent.getModelByComponentName.restore();
     });
 
     it('removeTasks should be called', function() {
       controller.initializeTasks();
-      expect(controller.removeTasks.calledWith(['startAmbariInfra', 'startRanger'])).to.be.true;
+      expect(controller.removeTasks.calledWith(['startAmbariInfra', 'startRanger', 'startMysqlServer'])).to.be.true;
     });
   });
 
@@ -74,6 +78,24 @@ describe('App.HighAvailabilityWizardStep7Controller', function() {
       ]);
       controller.startRanger();
       expect(controller.updateComponent.calledWith('RANGER_ADMIN', ['host1'], "RANGER", "Start")).to.be.true;
+    });
+  });
+
+  describe('#startMysqlServer', function() {
+    beforeEach(function() {
+      sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create({
+        hostNames: ['host1']
+      }));
+      sinon.stub(controller, 'updateComponent');
+    });
+    afterEach(function() {
+      App.MasterComponent.find.restore();
+      controller.updateComponent.restore();
+    });
+
+    it('updateComponent should be called', function() {
+      controller.startMysqlServer();
+      expect(controller.updateComponent.calledWith('MYSQL_SERVER', ['host1'], "HIVE", "Start")).to.be.true;
     });
   });
 

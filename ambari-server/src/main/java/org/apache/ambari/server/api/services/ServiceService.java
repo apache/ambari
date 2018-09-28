@@ -128,10 +128,10 @@ public class ServiceService extends BaseService {
       responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
       @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
-          defaultValue = "ServiceInfo/service_name, ServiceInfo/cluster_name",
+          defaultValue = "ServiceInfo/service_name,ServiceInfo/cluster_name",
           dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
       @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
-          defaultValue = "ServiceInfo/service_name.asc, ServiceInfo/cluster_name.asc",
+          defaultValue = "ServiceInfo/service_name.asc,ServiceInfo/cluster_name.asc",
           dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
       @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
       @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),

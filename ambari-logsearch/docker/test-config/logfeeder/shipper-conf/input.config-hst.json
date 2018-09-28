@@ -27,7 +27,7 @@
           }
         },
         "level": {
-          "map_fieldvalue": {
+          "map_field_value": {
             "pre_value": "WARNING",
             "post_value": "WARN"
           }

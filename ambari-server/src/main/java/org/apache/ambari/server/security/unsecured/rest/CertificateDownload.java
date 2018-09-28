@@ -41,8 +41,8 @@ public class CertificateDownload {
 
   @GET @ApiIgnore // until documented
   @Produces({MediaType.TEXT_PLAIN})
-  public String downloadSrvrCrt() {
-    return certMan.getServerCert();
+  public String downloadCACertificateChainFile() {
+    return certMan.getCACertificateChainContent();
   }
 
 }

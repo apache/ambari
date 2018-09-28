@@ -50,7 +50,7 @@ class AlertSchedulerHandler():
   TYPE_RECOVERY = 'RECOVERY'
 
   def __init__(self, initializer_module, in_minutes=True):
-
+    self.initializer_module = initializer_module
     self.cachedir = initializer_module.config.alerts_cachedir
     self.stacks_dir = initializer_module.config.stacks_dir
     self.common_services_dir = initializer_module.config.common_services_dir
@@ -168,6 +168,8 @@ class AlertSchedulerHandler():
 
     definitions = self.__load_definitions()
     scheduled_jobs = self.__scheduler.get_jobs()
+
+    self.initializer_module.alert_status_reporter.reported_alerts.clear()
 
     # for every scheduled job, see if its UUID is still valid
     for scheduled_job in scheduled_jobs:

@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * Tests for the upgrade pack
  */
+// TODO: [AMP] Revisit unit tests
 public class UpgradePackTest {
 
   @Test

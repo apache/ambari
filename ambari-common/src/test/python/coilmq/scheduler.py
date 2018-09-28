@@ -32,7 +32,7 @@ class SubscriberPriorityScheduler(object):
     @abc.abstractmethod
     def choice(self, subscribers, message):
         """
-        Chooses which subscriber (from list) should recieve specified message.
+        Chooses which subscriber (from list) should receive specified message.
 
         @param subscribers: Collection of subscribed connections eligible to receive message. 
         @type subscribers: C{list} of L{coilmq.server.StompConnection}

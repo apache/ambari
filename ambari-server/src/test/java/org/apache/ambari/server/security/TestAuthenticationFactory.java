@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.security;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
@@ -28,10 +28,13 @@ import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
+import org.apache.ambari.server.security.authentication.AmbariUserDetails;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.security.authorization.UserIdAuthentication;
+import org.apache.ambari.server.security.authorization.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -41,7 +44,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createAdministrator(String name) {
-    return new TestAuthorization(1, name, Collections.singleton(createAdministratorGrantedAuthority()));
+    return createAmbariUserAuthentication(1, name, Collections.singleton(createAdministratorGrantedAuthority()));
   }
 
   public static Authentication createClusterAdministrator() {
@@ -53,11 +56,11 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createClusterAdministrator(String name, Long clusterResourceId) {
-    return new TestAuthorization(1, name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
+    return createAmbariUserAuthentication(1, name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createClusterOperator(String name, Long clusterResourceId) {
-    return new TestAuthorization(1, name, Collections.singleton(createClusterOperatorGrantedAuthority(clusterResourceId)));
+    return createAmbariUserAuthentication(1, name, Collections.singleton(createClusterOperatorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createServiceAdministrator() {
@@ -65,7 +68,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createServiceAdministrator(String name, Long clusterResourceId) {
-    return new TestAuthorization(1, name, Collections.singleton(createServiceAdministratorGrantedAuthority(clusterResourceId)));
+    return createAmbariUserAuthentication(1, name, Collections.singleton(createServiceAdministratorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createServiceOperator() {
@@ -73,7 +76,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createServiceOperator(String name, Long clusterResourceId) {
-    return new TestAuthorization(1, name, Collections.singleton(createServiceOperatorGrantedAuthority(clusterResourceId)));
+    return createAmbariUserAuthentication(1, name, Collections.singleton(createServiceOperatorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createClusterUser() {
@@ -81,7 +84,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createClusterUser(String name, Long clusterResourceId) {
-    return new TestAuthorization(1, name, Collections.singleton(createClusterUserGrantedAuthority(clusterResourceId)));
+    return createAmbariUserAuthentication(1, name, Collections.singleton(createClusterUserGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createViewUser(Long viewResourceId) {
@@ -89,7 +92,15 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createViewUser(String name, Long viewResourceId) {
-    return new TestAuthorization(1, name, Collections.singleton(createViewUserGrantedAuthority(viewResourceId)));
+    return createAmbariUserAuthentication(1, name, Collections.singleton(createViewUserGrantedAuthority(viewResourceId)));
+  }
+
+  public static Authentication createNoRoleUser() {
+    return createNoRoleUser("noRoleUser", 4L);
+  }
+
+  public static Authentication createNoRoleUser(String name, Long clusterResourceId) {
+    return createAmbariUserAuthentication(1, name, Collections.emptySet());
   }
 
   private static GrantedAuthority createAdministratorGrantedAuthority() {
@@ -171,45 +182,49 @@ public class TestAuthenticationFactory {
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setPrincipal(createPrincipalEntity(2L));
     permissionEntity.addAuthorizations(EnumSet.of(
-        RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
-        RoleAuthorization.CLUSTER_MODIFY_CONFIGS,
-        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.CLUSTER_TOGGLE_ALERTS,
-        RoleAuthorization.CLUSTER_MANAGE_ALERTS,
-        RoleAuthorization.CLUSTER_TOGGLE_KERBEROS,
-        RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK,
-        RoleAuthorization.CLUSTER_VIEW_ALERTS,
-        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
-        RoleAuthorization.CLUSTER_VIEW_METRICS,
-        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
-        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
-        RoleAuthorization.HOST_ADD_DELETE_COMPONENTS,
-        RoleAuthorization.HOST_ADD_DELETE_HOSTS,
-        RoleAuthorization.HOST_TOGGLE_MAINTENANCE,
-        RoleAuthorization.HOST_VIEW_CONFIGS,
-        RoleAuthorization.HOST_VIEW_METRICS,
-        RoleAuthorization.HOST_VIEW_STATUS_INFO,
-        RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,
-        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
-        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
-        RoleAuthorization.SERVICE_ENABLE_HA,
-        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
-        RoleAuthorization.SERVICE_MOVE,
-        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
-        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
-        RoleAuthorization.SERVICE_START_STOP,
-        RoleAuthorization.SERVICE_TOGGLE_ALERTS,
-        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
-        RoleAuthorization.SERVICE_VIEW_ALERTS,
-        RoleAuthorization.SERVICE_VIEW_CONFIGS,
-        RoleAuthorization.SERVICE_VIEW_METRICS,
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
         RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS,
-        RoleAuthorization.CLUSTER_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
+        RoleAuthorization.SERVICE_TOGGLE_ALERTS,
+        RoleAuthorization.SERVICE_START_STOP,
+        RoleAuthorization.SERVICE_SET_SERVICE_USERS_GROUPS,
+        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
+        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_MOVE,
+        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
+        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
         RoleAuthorization.SERVICE_MANAGE_AUTO_START,
+        RoleAuthorization.SERVICE_MANAGE_ALERTS,
+        RoleAuthorization.SERVICE_ENABLE_HA,
+        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,
+        RoleAuthorization.HOST_VIEW_STATUS_INFO,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
+        RoleAuthorization.HOST_TOGGLE_MAINTENANCE,
+        RoleAuthorization.HOST_ADD_DELETE_HOSTS,
+        RoleAuthorization.HOST_ADD_DELETE_COMPONENTS,
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_METRICS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
+        RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK,
+        RoleAuthorization.CLUSTER_TOGGLE_KERBEROS,
+        RoleAuthorization.CLUSTER_TOGGLE_ALERTS,
+        RoleAuthorization.CLUSTER_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.CLUSTER_MODIFY_CONFIGS,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA,
+        RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
+        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
         RoleAuthorization.CLUSTER_MANAGE_AUTO_START,
-        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA));
+        RoleAuthorization.CLUSTER_MANAGE_ALERTS,
+        RoleAuthorization.CLUSTER_MANAGE_ALERT_NOTIFICATIONS
+    ));
     return permissionEntity;
   }
 
@@ -219,39 +234,38 @@ public class TestAuthenticationFactory {
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setPrincipal(createPrincipalEntity(3L));
     permissionEntity.addAuthorizations(EnumSet.of(
-        RoleAuthorization.HOST_VIEW_CONFIGS,
-        RoleAuthorization.HOST_ADD_DELETE_COMPONENTS,
-        RoleAuthorization.HOST_VIEW_METRICS,
-        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
-        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
-        RoleAuthorization.SERVICE_MANAGE_ALERTS,
-        RoleAuthorization.SERVICE_ENABLE_HA,
-        RoleAuthorization.SERVICE_VIEW_METRICS,
-        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
-        RoleAuthorization.HOST_VIEW_STATUS_INFO,
-        RoleAuthorization.CLUSTER_VIEW_METRICS,
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
-        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
-        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
-        RoleAuthorization.SERVICE_VIEW_ALERTS,
-        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.SERVICE_TOGGLE_ALERTS,
-        RoleAuthorization.SERVICE_MOVE,
-        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
-        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
-        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
-        RoleAuthorization.SERVICE_VIEW_CONFIGS,
-        RoleAuthorization.HOST_ADD_DELETE_HOSTS,
-        RoleAuthorization.SERVICE_START_STOP,
-        RoleAuthorization.CLUSTER_VIEW_ALERTS,
-        RoleAuthorization.HOST_TOGGLE_MAINTENANCE,
-        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
-        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA,
         RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
+        RoleAuthorization.SERVICE_START_STOP,
+        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
+        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_MOVE,
+        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
+        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
         RoleAuthorization.SERVICE_MANAGE_AUTO_START,
-        RoleAuthorization.CLUSTER_MANAGE_AUTO_START,
-        RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS));
+        RoleAuthorization.SERVICE_ENABLE_HA,
+        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.HOST_VIEW_STATUS_INFO,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
+        RoleAuthorization.HOST_TOGGLE_MAINTENANCE,
+        RoleAuthorization.HOST_ADD_DELETE_HOSTS,
+        RoleAuthorization.HOST_ADD_DELETE_COMPONENTS,
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_METRICS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA,
+        RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
+        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
+        RoleAuthorization.CLUSTER_MANAGE_AUTO_START
+    ));
     return permissionEntity;
   }
 
@@ -261,33 +275,31 @@ public class TestAuthenticationFactory {
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setPrincipal(createPrincipalEntity(4L));
     permissionEntity.addAuthorizations(EnumSet.of(
-        RoleAuthorization.CLUSTER_VIEW_ALERTS,
-        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
-        RoleAuthorization.CLUSTER_VIEW_METRICS,
-        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
-        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
-        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.HOST_VIEW_CONFIGS,
-        RoleAuthorization.HOST_VIEW_METRICS,
-        RoleAuthorization.HOST_VIEW_STATUS_INFO,
-        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
-        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
-        RoleAuthorization.SERVICE_ENABLE_HA,
-        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
-        RoleAuthorization.SERVICE_MOVE,
-        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
-        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
-        RoleAuthorization.SERVICE_START_STOP,
-        RoleAuthorization.SERVICE_TOGGLE_ALERTS,
-        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
-        RoleAuthorization.SERVICE_VIEW_ALERTS,
-        RoleAuthorization.SERVICE_VIEW_CONFIGS,
-        RoleAuthorization.SERVICE_VIEW_METRICS,
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
         RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
+        RoleAuthorization.SERVICE_START_STOP,
+        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
+        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
+        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
         RoleAuthorization.SERVICE_MANAGE_AUTO_START,
-        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA));
+        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.HOST_VIEW_STATUS_INFO,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_METRICS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA,
+        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS
+    ));
     return permissionEntity;
   }
 
@@ -297,22 +309,24 @@ public class TestAuthenticationFactory {
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setPrincipal(createPrincipalEntity(5L));
     permissionEntity.addAuthorizations(EnumSet.of(
-        RoleAuthorization.SERVICE_VIEW_CONFIGS,
-        RoleAuthorization.SERVICE_VIEW_METRICS,
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
-        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
         RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
         RoleAuthorization.SERVICE_START_STOP,
-        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
-        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
         RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
-        RoleAuthorization.HOST_VIEW_CONFIGS,
-        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
         RoleAuthorization.HOST_VIEW_STATUS_INFO,
-        RoleAuthorization.CLUSTER_VIEW_ALERTS,
-        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
-        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
         RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_METRICS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
         RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA
     ));
     return permissionEntity;
@@ -324,20 +338,22 @@ public class TestAuthenticationFactory {
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setPrincipal(createPrincipalEntity(6L));
     permissionEntity.addAuthorizations(EnumSet.of(
-        RoleAuthorization.SERVICE_VIEW_CONFIGS,
-        RoleAuthorization.SERVICE_VIEW_METRICS,
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
-        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
         RoleAuthorization.SERVICE_VIEW_ALERTS,
-        RoleAuthorization.HOST_VIEW_CONFIGS,
-        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
         RoleAuthorization.HOST_VIEW_STATUS_INFO,
-        RoleAuthorization.CLUSTER_VIEW_ALERTS,
-        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
-        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
         RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_METRICS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
         RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA
     ));
+
     return permissionEntity;
   }
 
@@ -402,56 +418,15 @@ public class TestAuthenticationFactory {
     return principalTypeEntity;
   }
 
+  private static Authentication createAmbariUserAuthentication(int userId, String username, Set<GrantedAuthority> authorities) {
+    PrincipalEntity principal = new PrincipalEntity();
+    principal.setPrivileges(Collections.emptySet());
 
-  private static class TestAuthorization implements Authentication, UserIdAuthentication {
-    private final Integer userId;
-    private final String name;
-    private final Collection<? extends GrantedAuthority> authorities;
+    UserEntity userEntity = new UserEntity();
+    userEntity.setUserId(userId);
+    userEntity.setUserName(username);
+    userEntity.setPrincipal(principal);
 
-    private TestAuthorization(Integer userId, String name, Collection<? extends GrantedAuthority> authorities) {
-      this.userId = userId;
-      this.name = name;
-      this.authorities = authorities;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-      return authorities;
-    }
-
-    @Override
-    public Object getCredentials() {
-      return null;
-    }
-
-    @Override
-    public Object getDetails() {
-      return null;
-    }
-
-    @Override
-    public Object getPrincipal() {
-      return null;
-    }
-
-    @Override
-    public boolean isAuthenticated() {
-      return true;
-    }
-
-    @Override
-    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-
-    }
-
-    @Override
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public Integer getUserId() {
-      return userId;
-    }
+    return new AmbariUserAuthentication(null, new AmbariUserDetails(new User(userEntity), null, authorities), true);
   }
 }

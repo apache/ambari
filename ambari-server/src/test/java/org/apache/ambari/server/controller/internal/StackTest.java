@@ -28,7 +28,9 @@ import static org.junit.Assert.assertSame;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.StackLevelConfigurationResponse;
@@ -45,6 +47,7 @@ import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -57,6 +60,7 @@ public class StackTest {
   private static final String STACK_CONFIG_FILE = STACK_CONFIG_TYPE + ".xml";
   private static final String SERVICE_CONFIG_TYPE = "test-site";
   private static final String SERVICE_CONFIG_FILE = SERVICE_CONFIG_TYPE + ".xml";
+  public static final String SERVICE_NAME = "some service";
 
   private StackInfo stackInfo;
   private ServiceInfo serviceInfo;
@@ -73,7 +77,7 @@ public class StackTest {
     stackInfo.setVersion(STACK_ID.getStackVersion());
 
     serviceInfo = new ServiceInfo();
-    serviceInfo.setName("some service");
+    serviceInfo.setName(SERVICE_NAME);
     stackInfo.getServices().add(serviceInfo);
 
     componentInfo = new ComponentInfo();
@@ -133,6 +137,54 @@ public class StackTest {
 
     // THEN
     assertEquals(ImmutableSet.of(serviceInfo.getName()), ImmutableSet.copyOf(services));
+  }
+
+  @Test
+  public void getServicesForConfigType() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    List<String> services = stack.getServicesForConfigType(SERVICE_CONFIG_TYPE).collect(Collectors.toList());
+
+    // THEN
+    assertEquals(ImmutableList.of(SERVICE_NAME), services);
+  }
+
+  @Test
+  public void getServicesForConfigType_ClusterEnv() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    List<String> services = stack.getServicesForConfigType(STACK_CONFIG_TYPE).collect(Collectors.toList());
+
+    // THEN
+    assertEquals(ImmutableList.of(), services);
+  }
+
+  @Test
+  public void getStackServicesForConfigType() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    List<Pair<StackId, String>> stackServices = stack.getStackServicesForConfigType(SERVICE_CONFIG_TYPE).collect(Collectors.toList());
+
+    // THEN
+    assertEquals(ImmutableList.of(Pair.of(STACK_ID, SERVICE_NAME)), stackServices);
+  }
+
+  @Test
+  public void getStackServicesForConfigType_ClusterEnv() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    List<String> stackServices = stack.getServicesForConfigType(STACK_CONFIG_TYPE).collect(Collectors.toList());
+
+    // THEN
+    assertEquals(ImmutableList.of(), stackServices);
   }
 
   @Test

@@ -16,41 +16,43 @@
 
 What's New with Ambari?
 
-  * The latest release of Ambari is Ambari 2.6.1.
+  * The latest release of Ambari is Ambari 2.7.1.
 
-  * Ambari 2.6.1 added the following feature:
+  * Ambari 2.7.0 added the following features:
 
-    * Conditionally Install LZO packages through Ambari (AMBARI-22457)
+    * The Ambari UI, Ambari Server, and Ambari Agent have been significantly reworked to more efficiently handle large cluster management
 
-  * Ambari 2.6.0 added the following features:
+    * In order to more efficiently manage large clusters, the AMS schema has been updated, and metric aggregation has been improved.
 
-    * Ambari Metrics System's (AMS) distributed mode with multiple Collectors (General Availability) (AMBARI-15901)
+    * Updated default configurations, and configuration recommendations to ensure AMS is tuned well out of the box.
 
-    * Improvements in Host Recovery (Restart only), moving masters with minimum impact and scale testing (AMBARI-21898, AMBARI-21929, AMBARI-21834)
+    * Added support for easily adding and managing new HDFS namespaces.
 
-    * Improvement in Data Archival & Purging in Ambari Infra (AMBARI-21810)
+    * Added support for managing ViewFS mount table configuration.
 
-  * Ambari 2.5.2 added the following features:
-  
-    * Cross Stack upgrade support.
+    * Added FreeIPA as a supported KDC implementation.
 
-  * Ambari 2.5.0 added the following features:
+    * Added support for a new Isilon Management Pack that can be used to easily install HDP on an existing Isilon OneFS implementation.
 
-    * LLAP GA support via Ambari (AMBARI-18901)
+    * Ambari Infra Solr now uses Solr 7.
 
-    * Ambari authentication with Kerberos token (AMBARI-18364)
+    * Amazon Linux is now a supported deployment platform.
 
-    * Support Offline Stack Upgrades In a Cluster (AMBARI-18634)
+    * Commonly customized properties are now confgurable all in one place during the installation, making it much easier to quickly configure your installation.
 
-    * Ambari Metrics System Distributed mode - multiple Collectors (Tech Preview) (AMBARI-15901)
+    * Added the ability for teams to quickly see who initiated operations like Add Service, Add Host, Enable HA, etc.
 
-    * Service Auto Start support in Ambari (AMBARI-2330)
+    * Added the ability for teams to quickly see who performed operations like restarting services, etc.
 
-    * Ambari scale testing on 2500 Agents (AMBARI-18731)
+    * Made it easier to find hosts when adding services to a large cluster with many components deployed to it.
 
-    * Single API to download all client configs  (AMBARI-19275)
+    * Added the ability to bulk add and delete components to multiple hosts.
 
-    * Support topN user and operations visualization for HDFS in AMS-Grafana (AMBARI-19320)
+    * Added the ability to delete hosts in bulk.
+
+    * Created a new API portal in the Ambari Server to quickly understand and try out the Ambari API. Navigate to http://ambari.server:8080/api-docs to view the portal.
+
+    * Made it easer to setup SSO for Ambari, Atlas, and Ranger.
 
 Getting Ambari Source
 
@@ -65,7 +67,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.5.1} how to install a Hadoop cluster using Ambari 2.5.1}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.1} how to install a Hadoop cluster using Ambari 2.7.1}}.
 
 Stay Tuned
 

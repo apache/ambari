@@ -32,14 +32,14 @@
 {{#each endpoint in hiveServerEndPoints}}
   {{#if endpoint.isVisible}}
     <div {{bindAttr class=":row :component endpoint.componentName"}}>
-      <div class="col-md-2 col-lg-3 summary-label" style="margin-top: 0px;">{{endpoint.label}}</div>
-      <div class="col-md-9 col-lg-9 summary-value">
-        {{#view view.summaryValueView titleBinding="endpoint.tooltipText" data-toggle="tooltip"}}
+      <div class="col-md-2 col-lg-2 summary-label" style="margin-top: 0px;">{{endpoint.label}}</div>
+      <div class="col-md-10 col-lg-10 summary-value">
+        <span class="endpoint-value">
           {{endpoint.value}}
-        {{/view}}
-        {{#view view.clipBoardView data-clipboard-action= "copy" data-clipboard-textBinding="endpoint.value"}}
-          <img src="/img/clippy.svg" alt="Copy" rel="clipboard-tooltip" data-toggle="tooltip" data-placement="bottom" title="Copied!"/>
-        {{/view}}
+          {{#view view.clipBoardView data-clipboard-action= "copy" data-clipboard-textBinding="endpoint.value"}}
+            <img src="/img/clippy.svg" alt="Copy" rel="clipboard-tooltip" data-toggle="tooltip" data-placement="bottom" title="Copied!"/>
+          {{/view}}
+        </span>
       </div>
     </div>
   {{/if}}

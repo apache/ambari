@@ -19,18 +19,20 @@ limitations under the License.
 '''
 
 import logging
+import logging.handlers
 import os
 import sys
 import signal
 from ambari_commons.os_utils import remove_file
 
 from core.controller import Controller
-from core.config_reader import Configuration, PID_OUT_FILE, SERVER_LOG_FILE, SERVER_OUT_FILE
+from core.config_reader import Configuration, PID_OUT_FILE
 from core.stop_handler import bind_signal_handlers
 
 
 logger = logging.getLogger()
 
+main_config = Configuration()
 
 def save_pid(pid, pidfile):
   """
@@ -58,15 +60,14 @@ def server_process_main(stop_handler, scmStatus=None):
   if scmStatus is not None:
     scmStatus.reportStartPending()
 
-  config = Configuration()
-  _init_logging(config)
-  controller = Controller(config, stop_handler)
+  _init_logging(main_config)
+  controller = Controller(main_config, stop_handler)
 
   logger.info('Starting Server RPC Thread: %s' % ' '.join(sys.argv))
   controller.start()
 
-  print "Server out at: " + SERVER_OUT_FILE
-  print "Server log at: " + SERVER_LOG_FILE
+  print "Server out at: " + main_config.ams_monitor_out_file()
+  print "Server log at: " + main_config.ams_monitor_log_file()
 
   save_pid(os.getpid(), PID_OUT_FILE)
 
@@ -97,9 +98,9 @@ def _init_logging(config):
     level = _levels.get(config.get_log_level())
   logger.setLevel(level)
   formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d - %(message)s")
-  stream_handler = logging.StreamHandler()
-  stream_handler.setFormatter(formatter)
-  logger.addHandler(stream_handler)
+  rotateLog = logging.handlers.RotatingFileHandler(config.ams_monitor_log_file(), "a", 10000000, 25)
+  rotateLog.setFormatter(formatter)
+  logger.addHandler(rotateLog)
   
 
 if __name__ == '__main__':

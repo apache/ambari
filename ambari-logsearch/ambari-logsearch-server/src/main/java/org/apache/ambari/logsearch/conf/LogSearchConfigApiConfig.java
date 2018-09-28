@@ -18,8 +18,10 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.ambari.logsearch.conf.global.LogLevelFilterManagerState;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
@@ -27,7 +29,6 @@ import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PR
 @Configuration
 public class LogSearchConfigApiConfig {
 
-  @Value("${logsearch.config.api.enabled:true}")
   @LogSearchPropertyDescription(
     name = "logsearch.config.api.enabled",
     description = "Enable config API feature and shipperconfig API endpoints.",
@@ -35,7 +36,33 @@ public class LogSearchConfigApiConfig {
     defaultValue = "true",
     sources = {LOGSEARCH_PROPERTIES_FILE}
   )
+  @Value("${logsearch.config.api.enabled:true}")
   private boolean configApiEnabled;
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.api.filter.solr.enabled",
+    description = "Use solr as a log level filter storage",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  @Value("${logsearch.config.api.filter.solr.enabled:false}")
+  public boolean solrFilterStorage;
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.api.filter.zk-only.enabled",
+    description = "Use zookeeper as a log level filter storage",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  @Value("${logsearch.config.api.filter.zk.enabled:false}")
+  public boolean zkFilterStorage;
+
+  @Bean(name = "logLevelFilterManagerState")
+  public LogLevelFilterManagerState logLevelFilterManagerState() {
+    return new LogLevelFilterManagerState();
+  }
 
   public boolean isConfigApiEnabled() {
     return configApiEnabled;
@@ -43,5 +70,21 @@ public class LogSearchConfigApiConfig {
 
   public void setConfigApiEnabled(boolean configApiEnabled) {
     this.configApiEnabled = configApiEnabled;
+  }
+
+  public boolean isSolrFilterStorage() {
+    return this.solrFilterStorage;
+  }
+
+  public void setSolrFilterStorage(boolean solrFilterStorage) {
+    this.solrFilterStorage = solrFilterStorage;
+  }
+
+  public boolean isZkFilterStorage() {
+    return zkFilterStorage;
+  }
+
+  public void setZkFilterStorage(boolean zkFilterStorage) {
+    this.zkFilterStorage = zkFilterStorage;
   }
 }

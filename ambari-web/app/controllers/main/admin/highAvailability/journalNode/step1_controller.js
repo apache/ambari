@@ -65,6 +65,18 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
   },
 
   /**
+   * Override of method from <code>App.AssignMasterComponents</code>
+   * Added to satisfy the requirement that maximum number of new JournalNodes to be added
+   * should be 1 less that total of the existing JournalNodes
+   * @returns {number}
+   */
+  getMaxNumberOfMasters: function () {
+    const defaultLimitation = this._super('JOURNALNODE'),
+      installedJournalNodesCount = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').length;
+    return Math.min(defaultLimitation, installedJournalNodesCount * 2 - 1);
+  },
+
+  /**
    * Enable/Disable show/hide operation for each JournalNode
    */
   showHideJournalNodesAddRemoveControl: function () {

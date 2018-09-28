@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import alert_ulimit
-from mock.mock import patch, MagicMock
+from mock.mock import patch
 from unittest import TestCase
 
 

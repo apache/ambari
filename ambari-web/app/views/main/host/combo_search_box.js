@@ -34,6 +34,7 @@ App.MainHostComboSearchBoxView = App.SearchBoxView.extend({
       unquotable: [
         'text'
       ],
+      remainder: 'Host Name',
       callbacks: {
         search: this.search.bind(this),
         facetMatches: this.facetMatches.bind(this),
@@ -48,11 +49,6 @@ App.MainHostComboSearchBoxView = App.SearchBoxView.extend({
    * @param searchCollection
    */
   search: function (query, searchCollection) {
-    this.clearErrMsg();
-    var invalidFacet = this.findInvalidFacet(searchCollection);
-    if (invalidFacet) {
-      this.showErrMsg(invalidFacet);
-    }
     var tableView = this.get('parentView');
     App.db.setComboSearchQuery(tableView.get('controller.name'), query);
     var filterConditions = this.createFilterConditions(searchCollection);
@@ -250,19 +246,6 @@ App.MainHostComboSearchBoxView = App.SearchBoxView.extend({
       }
     }
     callback(list, {preserveOrder: true});
-  },
-
-  findInvalidFacet: function(searchCollection) {
-    var result = null;
-    var map = App.router.get('mainHostController.labelValueMap');
-    for (var i = 0; i < searchCollection.models.length; i++) {
-      var facet = searchCollection.models[i];
-      if (!map[facet.attributes.category]) {
-        result = facet;
-        break;
-      }
-    }
-    return result;
   },
 
   getHostComponentList: function() {

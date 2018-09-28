@@ -30,6 +30,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -39,6 +40,8 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.ViewPermissionResponse;
 import org.apache.ambari.server.controller.spi.Resource;
+
+import org.apache.http.HttpStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -67,17 +70,23 @@ public class ViewPermissionService extends BaseService {
    * @return permission collection resource representation
    */
   @GET
-  @Produces("text/plain")
-  @ApiOperation(value = "Get all permissions for a view", nickname = "ViewPermissionService#getPermissions", notes = "Returns all permission details for the version of a view.", response = ViewPermissionResponse.class, responseContainer = "List")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all permissions for a view", response = ViewPermissionResponse.class, responseContainer = "List")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter privileges", defaultValue = "PermissionInfo/*", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "page_size", value = "The number of resources to be returned for the paged response.", defaultValue = "10", dataType = "integer", paramType = "query"),
-    @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "PermissionInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = ViewPermissionResponse.class, responseContainer = "List")}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getPermissions(@Context HttpHeaders headers, @Context UriInfo ui,
                                  @ApiParam(value = "view name") @PathParam("viewName") String viewName,
                                  @ApiParam(value = "view version") @PathParam("version") String version) {
@@ -99,14 +108,19 @@ public class ViewPermissionService extends BaseService {
    */
   @GET
   @Path("{permissionId}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Get single view permission", nickname = "ViewPermissionService#getPermission", notes = "Returns permission details for a single version of a view.", response = ViewPermissionResponse.class)
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get single view permission", response = ViewPermissionResponse.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter view permission details", defaultValue = "PermissionInfo", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "PermissionInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = ViewPermissionResponse.class)}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getPermission(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @ApiParam(value = "view name") @PathParam("viewName") String viewName,
                                 @ApiParam(value = "view version") @PathParam("version") String version,
@@ -128,9 +142,9 @@ public class ViewPermissionService extends BaseService {
    *
    * @return information regarding the created permission
    */
-  @POST @ApiIgnore // until documented
+  @POST @ApiIgnore // until documented, not supported
   @Path("{permissionId}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response createPermission(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
                                    @ApiParam(value = "view version") @PathParam("version") String version,
@@ -151,9 +165,9 @@ public class ViewPermissionService extends BaseService {
    * @param permissionId  permission id
    * @return information regarding the updated permission
    */
-  @PUT @ApiIgnore // until documented
+  @PUT @ApiIgnore // until documented, not supported
   @Path("{permissionId}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response updatePermission(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
                                    @ApiParam(value = "view version") @PathParam("version") String version,
@@ -175,7 +189,7 @@ public class ViewPermissionService extends BaseService {
    *
    * @return information regarding the deleted permission
    */
-  @DELETE @ApiIgnore // until documented
+  @DELETE @ApiIgnore // until documented, not supported
   @Path("{permissionId}")
   @Produces("text/plain")
   public Response deletePermission(@Context HttpHeaders headers, @Context UriInfo ui,

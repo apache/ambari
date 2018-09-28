@@ -24,10 +24,13 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.StructuredOutputType;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.controller.internal.UpgradePlanInstallResourceProvider;
 import org.apache.ambari.server.events.CommandReportReceivedEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
@@ -49,6 +52,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.Striped;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
@@ -85,6 +90,9 @@ public class MpackInstallStateListener {
    */
   @Inject
   private Gson m_gson;
+
+  @Inject
+  private Provider<HostLevelParamsHolder> hostLevelParamsHolderProvider;
 
   /**
    * Used for ensuring that the concurrent nature of the event handler methods
@@ -124,6 +132,7 @@ public class MpackInstallStateListener {
     MpackHostStateDAO mpackHostStateDAO = m_mpackHostStateDAOProvider.get();
     List<MpackEntity> mpackEntities = m_mpackDAOProvider.get().findAll();
 
+    HostLevelParamsHolder hostLevelParamsHolder = hostLevelParamsHolderProvider.get();
     for (String hostName : event.getHostNames()) {
       Lock lock = m_locksByHost.get(hostName);
       lock.lock();
@@ -142,6 +151,12 @@ public class MpackInstallStateListener {
           hostEntity.getMpackInstallStates().add(mpackHostStateEntity);
           hostEntity = hostDAO.merge(hostEntity);
         }
+        try {
+          hostLevelParamsHolder.updateData(hostLevelParamsHolder.getCurrentData(hostEntity.getHostId()));
+        } catch (AmbariException e) {
+          LOG.warn("Exception during host level params update on mpack assigning during host adding for host with id = " +
+              hostEntity.getHostId(), e);
+        }
       } catch (Throwable throwable) {
         LOG.error(throwable.getMessage(), throwable);
       } finally {
@@ -155,16 +170,32 @@ public class MpackInstallStateListener {
    * every host.
    */
   @Subscribe
-  @Transactional
   public void onMpackEvent(MpackRegisteredEvent event) {
+    HostDAO hostDAO = m_hostDAOProvider.get();
+    List<HostEntity> hosts = hostDAO.findAll();
+    processMpackRegister(event, hosts);
+
+    //update all host level params
+    HostLevelParamsHolder hostLevelParamsHolder = hostLevelParamsHolderProvider.get();
+    for (HostEntity host : hosts) {
+      try {
+        hostLevelParamsHolder.updateData(hostLevelParamsHolder.getCurrentData(host.getHostId()));
+      } catch (AmbariException e) {
+        LOG.warn("Exception during host level params update on mpack registering for host with id = " + host.getHostId(), e);
+      }
+    }
+  }
+
+  @Transactional
+  protected void processMpackRegister(MpackRegisteredEvent event, List<HostEntity> hosts) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
 
-    HostDAO hostDAO = m_hostDAOProvider.get();
     MpackHostStateDAO mpackHostStateDAO = m_mpackHostStateDAOProvider.get();
 
-    List<HostEntity> hosts = hostDAO.findAll();
+    HostDAO hostDAO = m_hostDAOProvider.get();
+
     MpackEntity mpackEntity = m_mpackDAOProvider.get().findById(event.getMpackIdId());
 
     for (HostEntity hostEntity : hosts) {
@@ -234,9 +265,16 @@ public class MpackInstallStateListener {
     Long mpackId = null;
 
     try {
-      // try to parse the structured output of the install command
-      structuredOutput = m_gson.fromJson(commandReport.getStructuredOut(),
-          InstallCommandStructuredOutput.class);
+      if(null != commandReport.getStructuredOut()) {
+        JsonElement element = m_gson.fromJson (commandReport.getStructuredOut(), JsonElement.class);
+        JsonObject jsonObj = element.getAsJsonObject();
+        JsonElement installReportingElement = jsonObj.get(StructuredOutputType.MPACK_INSTALLATION.getRoot());
+        if(null != installReportingElement) {
+          // try to parse the structured output of the install command
+          structuredOutput = m_gson.fromJson(installReportingElement,
+              InstallCommandStructuredOutput.class);
+        }
+      }
     } catch (JsonSyntaxException jsonException) {
       LOG.error(
           "Unable to parse the installation structured output for command {} for {} on host {}",
@@ -313,12 +351,6 @@ public class MpackInstallStateListener {
    */
   private static class InstallCommandStructuredOutput {
     /**
-     * Either SUCCESS or FAIL
-     */
-    @SerializedName("package_installation_result")
-    private String packageInstallationResult;
-
-    /**
      * The actual version returned, even when a failure during install occurs.
      */
     @SerializedName("mpackName")
@@ -329,5 +361,11 @@ public class MpackInstallStateListener {
      */
     @SerializedName("mpackId")
     private Long mpackId = null;
+
+    /**
+     * The version of the mpack, including build number.
+     */
+    @SerializedName("mpackVersion")
+    private String mpackVersion = null;
   }
 }

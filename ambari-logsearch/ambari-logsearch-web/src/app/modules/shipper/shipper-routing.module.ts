@@ -23,6 +23,7 @@ import {AuthGuardService} from '@app/services/auth-guard.service';
 import {CanDeactivateGuardService} from '@modules/shared/services/can-deactivate-guard.service';
 
 import {ShipperConfigurationComponent} from './components/shipper-configuration/shipper-configuration.component';
+import {ShipperGuard} from '@modules/shipper/services/shipper.guard';
 
 const shipperRoutes: Routes = [{
   path: 'shipper/:cluster/add',
@@ -40,7 +41,7 @@ const shipperRoutes: Routes = [{
     breadcrumbs: ['shipperConfiguration.breadcrumbs.title', 'shipperConfiguration.breadcrumbs.update'],
     multiClusterFilter: false
   },
-  canActivate: [AuthGuardService],
+  canActivate: [AuthGuardService, ShipperGuard],
   canDeactivate: [CanDeactivateGuardService]
 }, {
   path: 'shipper/:cluster',
@@ -49,7 +50,7 @@ const shipperRoutes: Routes = [{
     breadcrumbs: 'shipperConfiguration.breadcrumbs.title',
     multiClusterFilter: false
   },
-  canActivate: [AuthGuardService]
+  canActivate: [AuthGuardService, ShipperGuard]
 }, {
   path: 'shipper',
   component: ShipperConfigurationComponent,
@@ -57,7 +58,7 @@ const shipperRoutes: Routes = [{
     breadcrumbs: 'shipperConfiguration.breadcrumbs.title',
     multiClusterFilter: false
   },
-  canActivate: [AuthGuardService]
+  canActivate: [AuthGuardService, ShipperGuard]
 }];
 
 @NgModule({
@@ -68,5 +69,4 @@ const shipperRoutes: Routes = [{
     RouterModule
   ]
 })
-export class ShipperRoutingModule {
-}
+export class ShipperRoutingModule {}

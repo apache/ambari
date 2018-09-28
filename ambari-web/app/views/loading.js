@@ -19,6 +19,7 @@
 var App = require('app');
 
 App.LoadingView = Em.View.extend({
-    tagName: 'h2',
-    template: Ember.Handlebars.compile('{{t common.loading.eclipses}}')
+  tagName: 'h2',
+  classNames: ['col-md-9', 'align-center'],
+  template: Ember.Handlebars.compile('{{t common.loading.eclipses}}')
 });

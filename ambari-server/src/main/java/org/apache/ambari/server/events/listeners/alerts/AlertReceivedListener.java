@@ -37,7 +37,7 @@ import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -97,7 +97,7 @@ public class AlertReceivedListener {
   private Provider<Clusters> m_clusters;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   /**
    * Used to calculate the maintenance state of new alerts being created.
@@ -254,6 +254,14 @@ public class AlertReceivedListener {
 
           // create the event to fire later
           alertEvents.add(new InitialAlertEvent(clusterId, alert, current));
+
+          if (!alertUpdates.containsKey(clusterId)) {
+            alertUpdates.put(clusterId, new HashMap<>());
+          }
+          Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = alertUpdates.get(clusterId);
+
+          AlertSummaryGroupedRenderer.updateSummary(summaries, definition.getDefinitionId(),
+              definition.getDefinitionName(), alertState, alert.getTimestamp(), maintenanceState, alert.getText());
         } finally {
           // release the lock for this alert
           lock.unlock();
@@ -384,7 +392,7 @@ public class AlertReceivedListener {
       m_alertEventPublisher.publish(eventToFire);
     }
     if (!alertUpdates.isEmpty()) {
-      stateUpdateEventPublisher.publish(new AlertUpdateEvent(alertUpdates));
+      STOMPUpdatePublisher.publish(new AlertUpdateEvent(alertUpdates));
     }
   }
 

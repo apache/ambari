@@ -328,7 +328,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
         // a disabled event
         if (oldEnabled && !entity.getEnabled()) {
           AlertDefinitionDisabledEvent event = new AlertDefinitionDisabledEvent(
-              entity.getClusterId(), entity.getDefinitionId());
+              entity.getClusterId(), entity.getDefinitionId(), entity.getDefinitionName());
 
           eventPublisher.publish(event);
         }

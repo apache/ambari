@@ -18,37 +18,12 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.FormatParamDefinition;
 import org.apache.ambari.logsearch.model.request.UtcOffsetParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class ServiceLogExportRequest extends ServiceLogRequest implements FormatParamDefinition, UtcOffsetParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FORMAT)
-  private String format;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_UTC_OFFSET)
-  private String utcOffset;
-
-  @Override
-  public String getFormat() {
-    return format;
-  }
-
-  @Override
-  public void setFormat(String format) {
-    this.format = format;
-  }
-
-  @Override
-  public String getUtcOffset() {
-    return utcOffset;
-  }
-
-  @Override
-  public void setUtcOffset(String utcOffset) {
-    this.utcOffset = utcOffset;
-  }
+@Marker
+public interface ServiceLogExportRequest extends ServiceLogRequest, FormatParamDefinition, UtcOffsetParamDefinition {
 }

@@ -75,13 +75,6 @@ public interface PersistedState {
   void registerInTopologyHostInfo(Host host);
 
   /**
-   * Returns provision request for a cluster
-   * @param clusterId
-   * @return
-   */
-  LogicalRequest getProvisionRequest(long clusterId);
-
-  /**
    * Remove the given host requests (must belong to the same topology request),
    * and also the topology request if it does not have any host requests left.
    */

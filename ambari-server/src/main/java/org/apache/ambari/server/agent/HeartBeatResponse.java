@@ -21,6 +21,8 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.agent.stomp.StompResponse;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
@@ -29,7 +31,7 @@ import com.google.gson.annotations.SerializedName;
  * Controller to Agent response data model.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class HeartBeatResponse {
+public class HeartBeatResponse extends StompResponse {
 
   @SerializedName("responseId")
   @com.fasterxml.jackson.annotation.JsonProperty("id")

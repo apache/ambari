@@ -41,7 +41,9 @@
 @health-status-yellow: #FFD13D;
 @health-status-orange: #e98a41;
 @maintenance-black: #000;
+@maintenance-grey: #999999;
 @gray-text: #666;
+@dark-gray: #333;
 /************************************************************************
 * Health status(service/host/host component health)icon colors ends
 ***********************************************************************/
@@ -80,22 +82,6 @@
 @bootstrap-warning: #f0ad4e;
 @bootstrap-danger: #d9534f;
 @bootstrap-primary: #337ab7;
-
-.@{health-status-red-icon} {
-  color: @health-status-red;
-}
-.@{health-status-green-icon} {
-  color: @health-status-green;
-}
-.@{health-status-yellow-icon} {
-  color: @health-status-yellow;
-}
-.@{health-status-orange-icon} {
-  color: @health-status-orange;
-}
-.@{maintenance-icon} {
-  color: @maintenance-black;
-}
 
 @-webkit-keyframes orangePulse {
   from { background-color: @restart-indicator-color; }
@@ -214,6 +200,10 @@
 
 @default-font-size: 14px;
 @smaller-font-size: 12px;
+@default-button-height: 34px;
+@default-line-height: 1.3em;
+@default-line-height-calculated: @default-font-size * unit(@default-line-height);
+@default-paragraph-margin-bottom: 10px;
 
 /************************************************************************
 * Modal popup properties
@@ -224,12 +214,10 @@
 @modal-header-height: 57px;
 // modal footer height
 @modal-footer-height: 75px;
-
-.btn-primary[disabled] {
-  .icon-spinner {
-    color: white;
-  }
-}
+// default modal top margin
+@modal-dialog-margin-top-default: 10px;
+// modal top margin for wide screen
+@modal-dialog-margin-top-wide-screen: 30px;
 
 .ellipsis-overflow {
   overflow: hidden;
@@ -240,3 +228,33 @@
   .ellipsis-overflow;
   white-space: nowrap;
 }
+
+@dashboard-widget-height: 157px;
+
+/************************************************************************
+* Top navbar styles
+***********************************************************************/
+@navbar-header-vertical-padding: 19px;
+@navbar-header-padding-right: 15px;
+@navbar-header-padding-left: 0;
+@navbar-header-font-size: 20px;
+
+/************************************************************************
+* Table styles
+***********************************************************************/
+@table-color: @gray-text;
+@table-font-size: 13px;
+@table-hover-background-color: #E7F6FC;
+@table-hover-border-color: #A7DFF2;
+@table-margin-bottom: 20px;
+@table-footer-color: #999;
+@table-footer-border: 2px solid #EEE;
+@table-cell-padding: 8px;
+
+/************************************************************************
+* Checkbox styles
+***********************************************************************/
+@checkbox-color: #1491C1;
+@checkbox-size: 10px;
+@checkbox-border-radius: 2px;
+@checkbox-top: 4px;

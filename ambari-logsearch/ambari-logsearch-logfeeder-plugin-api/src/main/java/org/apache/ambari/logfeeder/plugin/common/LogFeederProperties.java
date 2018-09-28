@@ -18,12 +18,13 @@
  */
 package org.apache.ambari.logfeeder.plugin.common;
 
+import java.io.Serializable;
 import java.util.Properties;
 
 /**
  * Static application level configuration interface for Log Feeder
  */
-public interface LogFeederProperties {
+public interface LogFeederProperties extends Serializable {
 
   /**
    * Get all key-value pairs from static application level Log Feeder configuration

@@ -17,11 +17,20 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import static java.util.Collections.emptySet;
+import static org.apache.ambari.server.controller.RootComponent.AMBARI_AGENT;
+import static org.apache.ambari.server.controller.RootService.AMBARI;
+
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -418,5 +427,34 @@ public class AlertDefinition {
   @Override
   public String toString() {
     return name;
+  }
+
+  /**
+   * Collect the host names from the cluster where the given alert is allowed to run.
+   * A host is able to run an alert if the service component of the alert is installed on that particular host.
+   * In case of AMBARI server alerts or AGGREGATE alerts, an empty host set is returned.
+   * @return matching host names
+   */
+  public Set<String> matchingHosts(Clusters clusters) throws AmbariException {
+    Cluster cluster = clusters.getCluster(clusterId);
+    if (source.getType() == SourceType.AGGREGATE) {
+      return emptySet();
+    }
+    if (AMBARI.name().equals(serviceName)) {
+      return AMBARI_AGENT.name().equals(componentName) ? cluster.getHostNames() : emptySet();
+    }
+    Set<String> matchingHosts = new HashSet<>();
+    for (String host : cluster.getHostNames()) {
+      for (ServiceComponentHost component : cluster.getServiceComponentHosts(host)) {
+        if (belongsTo(component)) {
+          matchingHosts.add(host);
+        }
+      }
+    }
+    return matchingHosts;
+  }
+
+  private boolean belongsTo(ServiceComponentHost component) {
+    return component.getServiceName().equals(serviceName) && component.getServiceComponentName().equals(componentName);
   }
 }

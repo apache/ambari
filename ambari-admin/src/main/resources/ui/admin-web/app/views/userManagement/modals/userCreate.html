@@ -124,7 +124,11 @@
     <div class="form-group">
       <label>
         {{'users.isAmbariAdmin' | translate}}<span>&nbsp;*</span>
-        <i class="fa fa-question-circle" aria-hidden="true"></i>
+        <i class="fa fa-question-circle"
+           aria-hidden="true"
+           tooltip="{{'users.adminTip' | translate}}"
+           tooltip-trigger="click"
+           tooltip-placement="top"></i>
       </label>
       <div>
         <toggle-switch model="formData.isAdmin" class="switch-success" data-off-color="danger"></toggle-switch>
@@ -136,7 +140,11 @@
     <div class="form-group">
       <label>
         {{'users.isActive' | translate}}<span>&nbsp;*</span>
-        <i class="fa fa-question-circle" aria-hidden="true"></i>
+        <i class="fa fa-question-circle"
+           aria-hidden="true"
+           tooltip="{{'users.deactivateTip' | translate}}"
+           tooltip-trigger="click"
+           tooltip-placement="top"></i>
       </label>
       <div>
         <toggle-switch model="formData.isActive" class="switch-success" data-off-color="danger"></toggle-switch>

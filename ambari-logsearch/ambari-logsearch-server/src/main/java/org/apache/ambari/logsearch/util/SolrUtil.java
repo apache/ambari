@@ -31,12 +31,12 @@ import org.apache.lucene.analysis.path.PathHierarchyTokenizerFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.schema.TrieDoubleField;
-import org.apache.solr.schema.TrieFloatField;
-import org.apache.solr.schema.TrieIntField;
-import org.apache.solr.schema.TrieLongField;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.schema.DoublePointField;
+import org.apache.solr.schema.FloatPointField;
+import org.apache.solr.schema.IntPointField;
+import org.apache.solr.schema.LongPointField;
 
 public class SolrUtil {
   private SolrUtil() {
@@ -122,10 +122,10 @@ public class SolrUtil {
       return false;
     }
     String fieldTypeClassName = (String) fieldTypeInfoMap.get("class");
-    return fieldTypeClassName.equalsIgnoreCase(TrieIntField.class.getSimpleName()) ||
-           fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class.getSimpleName()) ||
-           fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class.getSimpleName()) ||
-           fieldTypeClassName.equalsIgnoreCase(TrieLongField.class.getSimpleName());
+    return fieldTypeClassName.equalsIgnoreCase(IntPointField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(DoublePointField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(FloatPointField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(LongPointField.class.getSimpleName());
   }
 
   public static String putWildCardByType(String str, String fieldType, String fieldTypeMetaData) {
@@ -166,11 +166,11 @@ public class SolrUtil {
   private static String parseInputValueAsPerFieldType(String str, Map<String, Object> fieldTypeInfoMap) {
     try {
       String className = (String) fieldTypeInfoMap.get("class");
-      if (className.equalsIgnoreCase(TrieDoubleField.class.getSimpleName())) {
+      if (className.equalsIgnoreCase(DoublePointField.class.getSimpleName())) {
         return "" + Double.parseDouble(str);
-      } else if (className.equalsIgnoreCase(TrieFloatField.class.getSimpleName())) {
+      } else if (className.equalsIgnoreCase(FloatPointField.class.getSimpleName())) {
         return "" + Float.parseFloat(str);
-      } else if (className.equalsIgnoreCase(TrieLongField.class.getSimpleName())) {
+      } else if (className.equalsIgnoreCase(LongPointField.class.getSimpleName())) {
         return "" + Long.parseLong(str);
       } else {
         return "" + Integer.parseInt(str);

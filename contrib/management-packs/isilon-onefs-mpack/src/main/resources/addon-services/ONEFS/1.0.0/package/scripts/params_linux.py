@@ -24,7 +24,6 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import format
 
 config = Script.get_config()
 
@@ -37,15 +36,12 @@ user_group = config['configurations']['cluster-env']['user_group']
 hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-
-java64_home = config['hostLevelParams']['java_home']
-java_exec = format("{java64_home}/bin/java")
 
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 

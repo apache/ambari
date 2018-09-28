@@ -31,10 +31,6 @@ import {GraphScaleItem} from '@app/classes/graph';
 })
 export class TimeHistogramComponent extends TimeGraphComponent {
 
-  constructor() {
-    super();
-  }
-
   @Input()
   columnWidth = {
     second: 40,
@@ -43,6 +39,10 @@ export class TimeHistogramComponent extends TimeGraphComponent {
     day: 20,
     base: 20
   };
+
+  constructor() {
+    super();
+  }
 
   protected setYScaleDomain(data: GraphScaleItem[]): void {
     const keys = Object.keys(this.labels);
@@ -81,6 +81,7 @@ export class TimeHistogramComponent extends TimeGraphComponent {
       .enter().append('g')
       .attr('class', 'value');
     layer.selectAll().data(item => item).enter().append('rect')
+        .attr('transform', `translate(${(columnWidth / 2) + 2}, 0)`)
         .attr('x', item => this.xScale(item.data.tick) - columnWidth / 2)
         .attr('y', item => this.yScale(item[1]))
         .attr('height', item => this.yScale(item[0]) - this.yScale(item[1]))

@@ -45,14 +45,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
-import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.metadata.ClusterMetadataGenerator;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -641,11 +638,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                 + "tag='" + baseConfig.getTag() + "'"
                 + oldConfigString);
             }
-            MetadataHolder metadataHolder = injector.getInstance(MetadataHolder.class);
-            AgentConfigsHolder agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
-            ClusterMetadataGenerator metadataGenerator = injector.getInstance(ClusterMetadataGenerator.class);
-            metadataHolder.updateData(metadataGenerator.getClusterMetadataOnConfigsUpdate(cluster));
-            agentConfigsHolder.updateData(cluster.getClusterId(), null);
+
+            ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+            configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
           }
         } else {
           LOG.info("No changes detected to config " + configType + ". Skipping configuration properties update");

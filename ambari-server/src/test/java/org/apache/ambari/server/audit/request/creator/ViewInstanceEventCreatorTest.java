@@ -42,11 +42,11 @@ public class ViewInstanceEventCreatorTest extends AuditEventCreatorTestBase{
     ViewInstanceEventCreator creator = new ViewInstanceEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "MyView");
-    properties.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.9");
-    properties.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "MyViewInstance");
-    properties.put(ViewInstanceResourceProvider.LABEL_PROPERTY_ID, "MyViewLabel");
-    properties.put(ViewInstanceResourceProvider.DESCRIPTION_PROPERTY_ID, "Test view");
+    properties.put(ViewInstanceResourceProvider.VIEW_NAME, "MyView");
+    properties.put(ViewInstanceResourceProvider.VERSION, "1.9");
+    properties.put(ViewInstanceResourceProvider.INSTANCE_NAME, "MyViewInstance");
+    properties.put(ViewInstanceResourceProvider.LABEL, "MyViewLabel");
+    properties.put(ViewInstanceResourceProvider.DESCRIPTION, "Test view");
 
     Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.POST, Resource.Type.ViewInstance, properties, null);
     Result result = AuditEventCreatorTestHelper.createResult(new ResultStatus(ResultStatus.STATUS.OK));
@@ -66,11 +66,11 @@ public class ViewInstanceEventCreatorTest extends AuditEventCreatorTestBase{
     ViewInstanceEventCreator creator = new ViewInstanceEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "MyView");
-    properties.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.9");
-    properties.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "MyViewInstance");
-    properties.put(ViewInstanceResourceProvider.LABEL_PROPERTY_ID, "MyViewLabel");
-    properties.put(ViewInstanceResourceProvider.DESCRIPTION_PROPERTY_ID, "Test view");
+    properties.put(ViewInstanceResourceProvider.VIEW_NAME, "MyView");
+    properties.put(ViewInstanceResourceProvider.VERSION, "1.9");
+    properties.put(ViewInstanceResourceProvider.INSTANCE_NAME, "MyViewInstance");
+    properties.put(ViewInstanceResourceProvider.LABEL, "MyViewLabel");
+    properties.put(ViewInstanceResourceProvider.DESCRIPTION, "Test view");
 
     Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.PUT, Resource.Type.ViewInstance, properties, null);
     Result result = AuditEventCreatorTestHelper.createResult(new ResultStatus(ResultStatus.STATUS.OK));

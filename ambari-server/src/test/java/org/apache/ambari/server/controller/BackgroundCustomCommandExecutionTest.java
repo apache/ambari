@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -171,6 +172,10 @@ public class BackgroundCustomCommandExecutionTest {
 
     addHost(HOSTNAME, clusterName);
     clusters.updateHostMappings(clusters.getHost(HOSTNAME));
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.addClusterSetting("smokeuser","dummy" );
+    cluster.addClusterSetting("user_group","dummy" );
 
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, STACK_ID.getStackId());

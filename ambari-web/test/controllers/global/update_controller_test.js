@@ -65,16 +65,21 @@ describe('App.UpdateController', function () {
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(6);
+      expect(App.updater.run.callCount).to.equal(7);
     });
   });
 
   describe('#startSubscriptions()', function () {
+    var mock = {
+      subscribeToUpdates: sinon.spy()
+    };
     beforeEach(function() {
       sinon.stub(App.StompClient, 'subscribe');
+      sinon.stub(App.router, 'get').returns(mock);
     });
     afterEach(function() {
       App.StompClient.subscribe.restore();
+      App.router.get.restore();
     });
 
     it('should subscribe to all topics', function () {
@@ -88,6 +93,12 @@ describe('App.UpdateController', function () {
       expect(App.StompClient.subscribe.calledWith('/events/alert_definitions')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alert_group')).to.be.true;
     });
+
+    it('subscribeToUpdates should be called', function () {
+      controller.startSubscriptions();
+      expect(mock.subscribeToUpdates.called).to.be.true;
+    });
+
   });
 
   describe('#getConditionalFields()', function () {
@@ -149,7 +160,7 @@ describe('App.UpdateController', function () {
         "host_components/metrics/hbase/master/MasterStartTime," +
         "host_components/metrics/hbase/master/MasterActiveTime," +
         "host_components/metrics/hbase/master/AverageLoad," +
-        "host_components/metrics/master/AssignmentManger/ritCount"]
+        "host_components/metrics/master/AssignmentManager/ritCount"]
       },
       {
         title: 'STORM service',
@@ -527,17 +538,24 @@ describe('App.UpdateController', function () {
     });
   });
 
-  describe('#makeCallForClusterEnv', function() {
+  describe('#configsChangedHandler', function() {
     beforeEach(function() {
       sinon.stub(c, 'updateClusterEnv');
+      sinon.stub(App.router.get('configurationController'), 'updateConfigTags');
     });
     afterEach(function() {
       c.updateClusterEnv.restore();
+      App.router.get('configurationController').updateConfigTags.restore();
     });
 
     it('updateClusterEnv should be called', function() {
-      c.makeCallForClusterEnv({configs: [{type: 'cluster-env'}]});
+      c.configsChangedHandler({configs: [{type: 'cluster-env'}]});
       expect(c.updateClusterEnv.calledOnce).to.be.true;
+    });
+
+    it('updateConfigTags should be called', function() {
+      c.configsChangedHandler({configs: [{type: 'cluster-env'}]});
+      expect(App.router.get('configurationController').updateConfigTags.calledOnce).to.be.true;
     });
   });
 });

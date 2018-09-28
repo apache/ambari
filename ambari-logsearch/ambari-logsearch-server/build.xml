@@ -48,7 +48,7 @@
       <fileset file="target/classes/logsearch.properties"/>
       <fileset file="target/classes/info.properties"/>
       <fileset file="target/classes/user_pass.json"/>
-      <fileset file="target/classes/HadoopServiceConfig.json"/>
+      <fileset file="target/classes/roles.json"/>
     </copy>
     <copy todir="target/package/conf/solr_configsets" includeEmptyDirs="yes">
       <fileset dir="src/main/configsets"/>
@@ -60,10 +60,10 @@
     <chmod file="target/package/conf/logsearch-env.sh" perm="755"/>
     <tar compression="gzip" destfile="target/ambari-logsearch-portal.tar.gz">
       <tarfileset mode="755" dir="target/package">
-        <include name="*.sh"/>
+        <include name="**/*.sh"/>
       </tarfileset>
       <tarfileset mode="664" dir="target/package">
-        <exclude name="*.sh"/>
+        <exclude name="**/*.sh"/>
       </tarfileset>
     </tar>
   </target>

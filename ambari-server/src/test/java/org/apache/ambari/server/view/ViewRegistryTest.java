@@ -198,6 +198,17 @@ public class ViewRegistryTest {
       "    </auto-instance>\n" +
       "</view>";
 
+  private static final String AUTO_VIEW_WILD_ALL_STACKS_XML = "<view>\n" +
+    "    <name>MY_VIEW</name>\n" +
+    "    <label>My View!</label>\n" +
+    "    <version>1.0.0</version>\n" +
+    "    <auto-instance>\n" +
+    "        <name>AUTO-INSTANCE</name>\n" +
+    "        <stack-id>*</stack-id>\n" +
+    "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
+    "    </auto-instance>\n" +
+    "</view>";
+
   private static final String AUTO_VIEW_BAD_STACK_XML = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
@@ -208,6 +219,8 @@ public class ViewRegistryTest {
       "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
       "    </auto-instance>\n" +
       "</view>";
+
+  private static final String EXPECTED_HDP_2_0_STACK_NAME = "HDP-2.0";
 
   // registry mocks
   private static final ViewDAO viewDAO = createMock(ViewDAO.class);
@@ -224,6 +237,7 @@ public class ViewRegistryTest {
   private static final ViewInstanceHandlerList handlerList = createNiceMock(ViewInstanceHandlerList.class);
   private static final AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
   private static final Clusters clusters = createNiceMock(Clusters.class);
+
 
 
   @Before
@@ -1347,7 +1361,7 @@ public class ViewRegistryTest {
     serviceNames.add("HDFS");
     serviceNames.add("HIVE");
 
-    testOnAmbariEventServiceCreation(AUTO_VIEW_XML, serviceNames, true);
+    testOnAmbariEventServiceCreation(AUTO_VIEW_XML, serviceNames, EXPECTED_HDP_2_0_STACK_NAME,true);
   }
 
   @Test
@@ -1356,7 +1370,16 @@ public class ViewRegistryTest {
     serviceNames.add("HDFS");
     serviceNames.add("HIVE");
 
-    testOnAmbariEventServiceCreation(AUTO_VIEW_WILD_STACK_XML, serviceNames, true);
+    testOnAmbariEventServiceCreation(AUTO_VIEW_WILD_STACK_XML, serviceNames, EXPECTED_HDP_2_0_STACK_NAME,true);
+  }
+
+  @Test
+  public void testOnAmbariEventServiceCreation_widcardAllStacks() throws Exception {
+    Set<String> serviceNames = new HashSet<>();
+    serviceNames.add("HDFS");
+    serviceNames.add("HIVE");
+
+    testOnAmbariEventServiceCreation(AUTO_VIEW_WILD_ALL_STACKS_XML, serviceNames, "HDF-3.1", true);
   }
 
   @Test
@@ -1365,7 +1388,7 @@ public class ViewRegistryTest {
     serviceNames.add("HDFS");
     serviceNames.add("HIVE");
 
-    testOnAmbariEventServiceCreation(AUTO_VIEW_BAD_STACK_XML, serviceNames, false);
+    testOnAmbariEventServiceCreation(AUTO_VIEW_BAD_STACK_XML, serviceNames, EXPECTED_HDP_2_0_STACK_NAME, false);
   }
 
   @Test
@@ -1374,7 +1397,7 @@ public class ViewRegistryTest {
     serviceNames.add("STORM");
     serviceNames.add("HIVE");
 
-    testOnAmbariEventServiceCreation(AUTO_VIEW_XML, serviceNames, false);
+    testOnAmbariEventServiceCreation(AUTO_VIEW_XML, serviceNames, EXPECTED_HDP_2_0_STACK_NAME, false);
   }
 
   @Test
@@ -1494,6 +1517,7 @@ public class ViewRegistryTest {
     File viewDir = createNiceMock(File.class);
     File extractedArchiveDir = createNiceMock(File.class);
     File viewArchive = createNiceMock(File.class);
+
     File archiveDir = createNiceMock(File.class);
     File entryFile  = createNiceMock(File.class);
     File classesDir = createNiceMock(File.class);
@@ -1590,7 +1614,7 @@ public class ViewRegistryTest {
     else {
       expect(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work")).andReturn(true);
     }
-    expect(viewExtractor.extractViewArchive(capture(viewEntityCapture), eq(viewArchive), eq(archiveDir))).andReturn(null);
+    expect(viewExtractor.extractViewArchive(capture(viewEntityCapture), eq(viewArchive), eq(archiveDir), anyObject(List.class))).andReturn(null);
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -1879,7 +1903,7 @@ public class ViewRegistryTest {
     return viewInstanceDefinition;
   }
 
-  private void testOnAmbariEventServiceCreation(String xml, Set<String> serviceNames, boolean success) throws Exception {
+  private void testOnAmbariEventServiceCreation(String xml, Set<String> serviceNames, String stackName, boolean success) throws Exception {
     ViewConfig config = ViewConfigTest.getConfig(xml);
 
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity(config);
@@ -1890,7 +1914,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
-    StackId stackId = new StackId("HDP-2.0");
+    StackId stackId = new StackId(stackName);
 
 
     Map<String, Service> serviceMap = new HashMap<>();

@@ -71,7 +71,15 @@ resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 *.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 *.sink.timeline.period={{metrics_collection_period}}
 *.sink.timeline.sendInterval={{metrics_report_interval}}000
-*.sink.timeline.slave.host.name = {{hostname}}
+*.sink.timeline.slave.host.name={{hostname}}
+*.sink.timeline.zookeeper.quorum={{zookeeper_quorum}}
+*.sink.timeline.protocol={{metric_collector_protocol}}
+*.sink.timeline.port={{metric_collector_port}}
+*.sink.timeline.host_in_memory_aggregation = {{host_in_memory_aggregation}}
+*.sink.timeline.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+*.sink.timeline.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
 
 # HTTPS properties
 *.sink.timeline.truststore.path = {{metric_truststore_path}}

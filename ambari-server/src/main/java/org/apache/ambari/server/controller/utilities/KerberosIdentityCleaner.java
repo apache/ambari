@@ -17,11 +17,14 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +34,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
+@Experimental(
+    feature = ExperimentalFeature.ORPHAN_KERBEROS_IDENTITY_REMOVAL,
+    comment = "This might need to have a switch so that it can be turned off if it is found to be desctructive to certain clusters")
 public class KerberosIdentityCleaner {
   private final static Logger LOG = LoggerFactory.getLogger(KerberosIdentityCleaner.class);
   private final AmbariEventPublisher eventPublisher;
@@ -45,7 +51,7 @@ public class KerberosIdentityCleaner {
   }
 
   public void register() {
-    this.eventPublisher.register(this);
+    eventPublisher.register(this);
   }
 
   /**
@@ -55,6 +61,14 @@ public class KerberosIdentityCleaner {
   @Subscribe
   public void componentRemoved(ServiceComponentUninstalledEvent event) throws KerberosMissingAdminCredentialsException {
     try {
+      Cluster cluster = clusters.getCluster(event.getClusterId());
+      if (null != cluster.getUpgradeInProgress()) {
+        LOG.info("Skipping removal of identities for {} since there is an upgrade in progress",
+            event.getComponentName());
+
+        return;
+      }
+
       LOG.info("Removing identities after {}", event);
       RemovableIdentities
         .ofComponent(clusters.getCluster(event.getClusterId()), event, kerberosHelper)
@@ -71,6 +85,14 @@ public class KerberosIdentityCleaner {
   @Subscribe
   public void serviceRemoved(ServiceRemovedEvent event) {
     try {
+      Cluster cluster = clusters.getCluster(event.getClusterId());
+      if (null != cluster.getUpgradeInProgress()) {
+        LOG.info("Skipping removal of identities for {} since there is an upgrade in progress",
+            event.getServiceName());
+
+        return;
+      }
+
       LOG.info("Removing identities after {}", event);
       RemovableIdentities
         .ofService(clusters.getCluster(event.getClusterId()), event, kerberosHelper)

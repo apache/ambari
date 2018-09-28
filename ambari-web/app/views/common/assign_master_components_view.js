@@ -131,6 +131,8 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
 
 App.SelectHostView = App.DropdownView.extend(App.SelectHost, {
 
+  qaAttr: 'select-host-for-component',
+
   didInsertElement: function () {
     this.initContent();
     this.set("value", this.get("component.selectedHost"));

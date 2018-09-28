@@ -154,11 +154,11 @@ class TestHardware(TestCase):
     get_os_version_mock.return_value = "11"
     Hardware(cache_info=False).osdisks()
     timeout = 10
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     config = AmbariConfig()
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     config.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "true")

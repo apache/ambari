@@ -26,8 +26,8 @@ import org.apache.ambari.logfeeder.plugin.filter.Filter;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterJsonDescriptorImpl;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.FilterJsonDescriptorImpl;
+import org.apache.ambari.logsearch.config.json.model.inputconfig.impl.InputDescriptorImpl;
 import org.apache.commons.collections.MapUtils;
 import org.apache.solr.common.util.Base64;
 import org.slf4j.Logger;
@@ -168,8 +168,14 @@ public class InputSimulate extends InputFile {
     return lineNumber;
   }
 
-  public String getBase64FileKey() throws Exception {
-    String fileKey = InetAddress.getLocalHost().getHostAddress() + "|" + getFilePath();
+  public String getBase64FileKey() {
+    String fileKey;
+    try {
+      fileKey = InetAddress.getLocalHost().getHostAddress() + "|" + getFilePath();
+    } catch (Exception e) {
+      // skip
+      fileKey = "localhost|" + getFilePath();
+    }
     return Base64.byteArrayToBase64(fileKey.getBytes());
   }
 

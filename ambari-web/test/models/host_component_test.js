@@ -146,18 +146,38 @@ describe('App.HostComponent', function() {
     });
   });
 
-  App.TestAliases.testAsComputedEqual(hc, 'isActive', 'passiveState', 'OFF');
-
   App.TestAliases.testAsComputedIfThenElse(hc, 'passiveTooltip', 'isActive', '', Em.I18n.t('hosts.component.passive.mode'));
 
   describe('#isActive', function() {
-    it('passiveState is ON', function() {
-      hc.set('passiveState', "ON");
-      hc.propertyDidChange('isActive');
-      expect(hc.get('isActive')).to.be.false;
-    });
     it('passiveState is OFF', function() {
       hc.set('passiveState', "OFF");
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.true;
+    });
+    it('passiveState is IMPLIED_FROM_HOST', function() {
+      hc.set('passiveState', "IMPLIED_FROM_HOST");
+      hc.set('host', {
+        passiveState: 'OFF'
+      });
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.true;
+    });
+    it('passiveState is IMPLIED_FROM_SERVICE', function() {
+      hc.set('passiveState', "IMPLIED_FROM_SERVICE");
+      hc.set('service', {
+        passiveState: 'OFF'
+      });
+      hc.propertyDidChange('isActive');
+      expect(hc.get('isActive')).to.be.true;
+    });
+    it('passiveState is IMPLIED_FROM_SERVICE_AND_HOST', function() {
+      hc.set('passiveState', "IMPLIED_FROM_SERVICE_AND_HOST");
+      hc.set('host', {
+        passiveState: 'OFF'
+      });
+      hc.set('service', {
+        passiveState: 'OFF'
+      });
       hc.propertyDidChange('isActive');
       expect(hc.get('isActive')).to.be.true;
     });
@@ -276,64 +296,9 @@ describe('App.HostComponent', function() {
 
   App.TestAliases.testAsComputedExistsIn(hc, 'isNotInstalled', 'workStatus', ['INIT', 'INSTALL_FAILED']);
 
-  describe("#getDisplayName",function(){
-    var testCases = [
-      {
-        testName: 'for displayName of length < 19',
-        displayName: 'abc',
-        result: 'abc'
-      },
-      {
-        testName:'for displayName of length = 19',
-        displayName: '1234567890123456789',
-        result: '1234567890123456789'
-      },
-      {
-        testName:'for displayName of length > 19',
-        displayName: '12345678901234567890',
-        result: '1234567890123456...'
-      }
-    ];
-
-    testCases.forEach(function(test){
-      it(test.testName, function(){
-        hc.set('displayName',test.displayName);
-        expect(hc.get('getDisplayName')).to.equal(test.result);
-      });
-    });
-  });
-
-  describe("#getDisplayNameAdvanced",function(){
-    var testCases = [
-      {
-        testName: 'for displayNameAdvanced of length < 19',
-        displayNameAdvanced: 'abc',
-        result: 'abc'
-      },
-      {
-        testName:'for displayNameAdvanced of length = 19',
-        displayNameAdvanced: '1234567890123456789',
-        result: '1234567890123456789'
-      },
-      {
-        testName:'for displayNameAdvanced of length > 19',
-        displayNameAdvanced: '12345678901234567890',
-        result: '1234567890123456...'
-      }
-    ];
-
-    testCases.forEach(function(test){
-      it(test.testName, function(){
-        hc.set('displayNameAdvanced',test.displayNameAdvanced);
-        expect(hc.get('getDisplayNameAdvanced')).to.equal(test.result);
-      });
-    });
-  });
-
-
   App.TestAliases.testAsComputedTruncate(hc, 'serviceDisplayName', 'service.displayName', 14, 11);
-  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayName', 'displayName', 19, 16);
-  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayNameAdvanced', 'displayNameAdvanced', 19, 16);
+  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayName', 'displayName', 30, 25);
+  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayNameAdvanced', 'displayNameAdvanced', 30, 25);
 
   describe("#serviceDisplayName",function(){
     var testCases = [

@@ -14,11 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-if [ "$1" == "upgrade" ]; # Action is upgrade
-then
-  if [ -d "/etc/ambari-agent/conf.save" ]
-  then
-      cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
-      mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+INSTALL_HELPER="/var/lib/ambari-agent/install-helper.sh"
+
+if [ "$1" == "upgrade" ]; then
+  if [ -f "${INSTALL_HELPER}" ]; then
+    ${INSTALL_HELPER} upgrade
+  fi
+else
+  if  [ -f "/var/lib/ambari-agent/install-helper.sh.orig" ]; then
+    /var/lib/ambari-agent/install-helper.sh.orig cleanup
+    rm -f /var/lib/ambari-agent/install-helper.sh.orig 1>/dev/null 2>&1
   fi
 fi

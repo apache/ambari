@@ -41,7 +41,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.LocalUriInfo;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
@@ -49,7 +48,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.DateUtils;
@@ -189,13 +187,8 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
    *
    * @param root The JSON document that will become service.json when passed to the stack advisor engine
    */
-  void populateAmbariConfiguration(ObjectNode root) throws NoSuchResourceException {
-    Map<String, RootServiceComponentConfiguration> config = ambariServerConfigurationHandler.getConfigurations(null);
-    Map<String, Map<String,String>> result = new HashMap<>();
-    for (String category : config.keySet()) {
-      result.put(category, config.get(category).getProperties());
-    }
-    root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, mapper.valueToTree(result));
+  void populateAmbariConfiguration(ObjectNode root) {
+    root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, mapper.valueToTree(ambariServerConfigurationHandler.getConfigurations()));
   }
 
   protected void populateAmbariServerInfo(ObjectNode root) {
@@ -210,7 +203,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private void populateConfigurations(ObjectNode root,
                                       StackAdvisorRequest request) {
     Map<String, Map<String, Map<String, String>>> configurations =
-      request.getConfigurations();
+        request.getConfigurations();
     ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
     for (String siteName : configurations.keySet()) {
       ObjectNode siteNode = configurationsNode.putObject(siteName);
@@ -238,7 +231,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private void populateConfigGroups(ObjectNode root,
                                     StackAdvisorRequest request) {
     if (request.getConfigGroups() != null &&
-      !request.getConfigGroups().isEmpty()) {
+        !request.getConfigGroups().isEmpty()) {
       JsonNode configGroups = mapper.valueToTree(request.getConfigGroups());
       root.put(CONFIG_GROUPS_PROPERTY, configGroups);
     }
@@ -299,8 +292,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
           serviceVersion.put("advisor_name", serviceInfo.getAdvisorName());
           serviceVersion.put("advisor_path", serviceInfo.getAdvisorFile().getAbsolutePath());
         }
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         LOG.error("Error adding service advisor information to services.json", e);
       }
     }
@@ -376,11 +368,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       }
     });
 
-    if(oldDirectories.length > 0) {
+    if (oldDirectories.length > 0) {
       LOG.info(String.format("Deleting old directories %s from %s", StringUtils.join(oldDirectories, ", "), recommendationsDir));
     }
 
-    for(String oldDirectory:oldDirectories) {
+    for (String oldDirectory : oldDirectories) {
       FileUtils.deleteQuietly(new File(recommendationsDir, oldDirectory));
     }
   }

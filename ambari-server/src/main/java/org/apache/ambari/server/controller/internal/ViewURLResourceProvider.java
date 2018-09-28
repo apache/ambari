@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ViewURLDAO;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -54,35 +55,39 @@ import com.google.inject.Inject;
 /**
  * Resource provider for view URLs.
  */
-@SuppressWarnings("Duplicates")
 @StaticallyInject
 public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider {
 
-  /**
-   * view URL property id constants.
-   */
-  public static final String URL_NAME_PROPERTY_ID                       = "ViewUrlInfo/url_name";
-  public static final String URL_SUFFIX_PROPERTY_ID                     = "ViewUrlInfo/url_suffix";
-  public static final String VIEW_INSTANCE_VERSION_PROPERTY_ID          = "ViewUrlInfo/view_instance_version";
-  public static final String VIEW_INSTANCE_NAME_PROPERTY_ID             = "ViewUrlInfo/view_instance_name";
-  public static final String VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID      = "ViewUrlInfo/view_instance_common_name";
+  public static final String VIEW_URL_INFO = "ViewUrlInfo";
+
+  public static final String URL_NAME_PROPERTY_ID = "url_name";
+  public static final String URL_SUFFIX_PROPERTY_ID = "url_suffix";
+  public static final String VIEW_INSTANCE_VERSION_PROPERTY_ID = "view_instance_version";
+  public static final String VIEW_INSTANCE_NAME_PROPERTY_ID = "view_instance_name";
+  public static final String VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID = "view_instance_common_name";
+
+  public static final String URL_NAME = VIEW_URL_INFO + PropertyHelper.EXTERNAL_PATH_SEP + URL_NAME_PROPERTY_ID;
+  public static final String URL_SUFFIX = VIEW_URL_INFO + PropertyHelper.EXTERNAL_PATH_SEP + URL_SUFFIX_PROPERTY_ID;
+  public static final String VIEW_INSTANCE_VERSION = VIEW_URL_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VIEW_INSTANCE_VERSION_PROPERTY_ID;
+  public static final String VIEW_INSTANCE_NAME = VIEW_URL_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VIEW_INSTANCE_NAME_PROPERTY_ID;
+  public static final String VIEW_INSTANCE_COMMON_NAME = VIEW_URL_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID;
 
   /**
    * The key property ids for a view URL resource.
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.ViewURL, URL_NAME_PROPERTY_ID)
+      .put(Resource.Type.ViewURL, URL_NAME)
       .build();
 
   /**
    * The property ids for a view URL resource.
    */
   private static Set<String> propertyIds = Sets.newHashSet(
-      URL_NAME_PROPERTY_ID,
-      URL_SUFFIX_PROPERTY_ID,
-      VIEW_INSTANCE_VERSION_PROPERTY_ID,
-      VIEW_INSTANCE_NAME_PROPERTY_ID,
-      VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID);
+          URL_NAME,
+          URL_SUFFIX,
+          VIEW_INSTANCE_VERSION,
+          VIEW_INSTANCE_NAME,
+          VIEW_INSTANCE_COMMON_NAME);
 
   @Inject
   private static ViewURLDAO viewURLDAO;
@@ -125,7 +130,7 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
     for (Map<String, Object> propertyMap : propertyMaps) {
-      String urlNameProperty = (String) propertyMap.get(URL_NAME_PROPERTY_ID);
+      String urlNameProperty = (String) propertyMap.get(URL_NAME);
       if (!Strings.isNullOrEmpty(urlNameProperty)) {
         Optional<ViewURLEntity> urlEntity = viewURLDAO.findByName(urlNameProperty);
         if(urlEntity.isPresent()){
@@ -191,8 +196,8 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
   protected Resource toResource(ViewURLEntity viewURLEntity) {
     Resource   resource   = new ResourceImpl(Resource.Type.ViewURL);
 
-    resource.setProperty(URL_NAME_PROPERTY_ID,viewURLEntity.getUrlName());
-    resource.setProperty(URL_SUFFIX_PROPERTY_ID,viewURLEntity.getUrlSuffix());
+    resource.setProperty(URL_NAME,viewURLEntity.getUrlName());
+    resource.setProperty(URL_SUFFIX,viewURLEntity.getUrlSuffix());
     ViewInstanceEntity viewInstanceEntity = viewURLEntity.getViewInstanceEntity();
     if(viewInstanceEntity == null)
       return resource;
@@ -200,9 +205,9 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
     String viewName = viewEntity.getCommonName();
     String version  = viewEntity.getVersion();
     String name     = viewInstanceEntity.getName();
-    resource.setProperty(VIEW_INSTANCE_NAME_PROPERTY_ID,name);
-    resource.setProperty(VIEW_INSTANCE_VERSION_PROPERTY_ID,version);
-    resource.setProperty(VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID,viewName);
+    resource.setProperty(VIEW_INSTANCE_NAME,name);
+    resource.setProperty(VIEW_INSTANCE_VERSION,version);
+    resource.setProperty(VIEW_INSTANCE_COMMON_NAME,viewName);
     return resource;
   }
 
@@ -213,15 +218,15 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
    * @throws AmbariException
      */
   private ViewURLEntity toEntity(Map<String, Object> properties) throws AmbariException {
-    String name = (String) properties.get(URL_NAME_PROPERTY_ID);
+    String name = (String) properties.get(URL_NAME);
     if (name == null || name.isEmpty()) {
       throw new IllegalArgumentException("The View URL is a required property.");
     }
 
-    String suffix = (String) properties.get(URL_SUFFIX_PROPERTY_ID);
-    String commonName = (String) properties.get(VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID);
-    String instanceName = (String) properties.get(VIEW_INSTANCE_NAME_PROPERTY_ID);
-    String instanceVersion = (String) properties.get(VIEW_INSTANCE_VERSION_PROPERTY_ID);
+    String suffix = (String) properties.get(URL_SUFFIX);
+    String commonName = (String) properties.get(VIEW_INSTANCE_COMMON_NAME);
+    String instanceName = (String) properties.get(VIEW_INSTANCE_NAME);
+    String instanceVersion = (String) properties.get(VIEW_INSTANCE_VERSION);
     ViewRegistry viewRegistry = ViewRegistry.getInstance();
     ViewInstanceEntity instanceEntity = viewRegistry.getInstanceDefinition(commonName, instanceVersion, instanceName);
 
@@ -262,15 +267,16 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
           throw new IllegalStateException("The view " + viewName + " is not loaded.");
         }
 
-        ViewURLEntity viewUrl = viewInstanceEntity.getViewUrl();
-        Optional<ViewURLEntity> savedUrl = viewURLDAO.findByName(urlEntity.getUrlName());
+        if(viewInstanceEntity.getViewUrl() != null) {
+          throw new AmbariException("The view instance selected already has a linked URL");
+        }
 
-        if(savedUrl.isPresent()){
+        if(viewURLDAO.findByName(urlEntity.getUrlName()).isPresent()){
           throw new AmbariException("This view URL name exists, URL names should be unique");
         }
 
-        if(viewUrl != null) {
-          throw new AmbariException("The view instance selected already has a linked URL");
+        if (viewURLDAO.findBySuffix(urlEntity.getUrlSuffix()).isPresent()) {
+          throw new AmbariException("This view URL suffix has already been recorded, URL suffixes should be unique");
         }
 
         viewURLDAO.save(urlEntity);
@@ -299,8 +305,8 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
       @Override
       public Void invoke() throws AmbariException {
         ViewRegistry registry = ViewRegistry.getInstance();
-        String name = (String) properties.get(URL_NAME_PROPERTY_ID);
-        String suffix = (String) properties.get(URL_SUFFIX_PROPERTY_ID);
+        String name = (String) properties.get(URL_NAME);
+        String suffix = (String) properties.get(URL_SUFFIX);
         Optional<ViewURLEntity> entity = viewURLDAO.findByName(name);
         if(!entity.isPresent()){
           throw new AmbariException("URL with name "+ name +"was not found");

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +48,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -54,6 +56,7 @@ import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
@@ -171,7 +174,12 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   private final BlueprintValidator validator;
 
   /**
-   * Used to get stack metainfo.
+   * Topology request dao
+   */
+  private static TopologyRequestDAO topologyRequestDAO;
+
+  /**
+   * Used to serialize to/from json.
    */
   private final AmbariMetaInfo ambariMetaInfo;
 
@@ -187,7 +195,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   BlueprintResourceProvider(
     BlueprintValidator validator,
     BlueprintFactory factory,
-    BlueprintDAO dao,
+    BlueprintDAO bpDao,
+    TopologyRequestDAO trDao,
     SecurityConfigurationFactory securityFactory,
     AmbariMetaInfo metaInfo,
     @Assisted AmbariManagementController controller
@@ -195,7 +204,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     super(Resource.Type.Blueprint, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
     this.validator = validator;
     blueprintFactory = factory;
-    blueprintDAO = dao;
+    blueprintDAO = bpDao;
+    topologyRequestDAO = trDao;
     securityConfigurationFactory = securityFactory;
     ambariMetaInfo = metaInfo;
   }
@@ -287,18 +297,20 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     Set<Resource> setResources = getResources(
         new RequestImpl(null, null, null, null), predicate);
 
+    List<TopologyRequestEntity> provisionRequests = topologyRequestDAO.findAllProvisionRequests();
+    // Blueprints for which a provision request was submitted. This blueprints (should be zero or one) are read only.
+    Set<String> provisionedBlueprints =
+      provisionRequests.stream().map(TopologyRequestEntity::getBlueprintName).collect(toSet());
+
     for (final Resource resource : setResources) {
       final String blueprintName =
         (String) resource.getPropertyValue(BLUEPRINT_NAME_PROPERTY_ID);
-
+      Preconditions.checkArgument(!provisionedBlueprints.contains(blueprintName),
+        "Blueprint %s cannot be deleted as cluster provisioning was initiated on it.", blueprintName);
       LOG.info("Deleting Blueprint, name = " + blueprintName);
-
-      modifyResources(new Command<Void>() {
-        @Override
-        public Void invoke() throws AmbariException {
-          blueprintDAO.removeByName(blueprintName);
-          return null;
-        }
+      modifyResources(() -> {
+        blueprintDAO.removeByName(blueprintName);
+        return null;
       });
     }
 
@@ -393,23 +405,29 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       if(config instanceof BlueprintConfigEntity) {
         Map<String, String> properties = JsonUtils.fromJson(config.getConfigData(), new TypeReference<Map<String, String>>(){});
 
-        // TODO: use multiple mpacks
-        BlueprintMpackInstanceEntity mpack =
-          ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackInstances().iterator().next();
-        StackInfo metaInfoStack;
-
-        try {
-          metaInfoStack = ambariMetaInfo.getStack(mpack.getMpackName(), mpack.getMpackVersion());
-        } catch (AmbariException e) {
-          throw new NoSuchResourceException(e.getMessage());
+        // TODO: use multiple mpacks, + make it work with blueprints with no mpack
+        Collection<BlueprintMpackInstanceEntity> mpackInstances = ((BlueprintConfigEntity) config).getBlueprintEntity().getMpackInstances();
+        if (mpackInstances.isEmpty()) {
+          LOG.warn("This blueprint does not specify any mpacks/stacks. Configurations cannot be retrieved.");
         }
+        else {
+          BlueprintMpackInstanceEntity mpack =
+            ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackInstances().iterator().next();
+          StackInfo metaInfoStack;
 
-        Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
-          metaInfoStack.getConfigPropertiesTypes(type);
+          try {
+            metaInfoStack = ambariMetaInfo.getStack(mpack.getMpackName(), mpack.getMpackVersion());
+          } catch (AmbariException e) {
+            throw new NoSuchResourceException(e.getMessage());
+          }
 
-        SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1L);
+          Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
+            metaInfoStack.getConfigPropertiesTypes(type);
 
-        configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+          SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1L);
+
+          configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+        }
       } else {
         Map<String, Object> properties = JsonUtils.fromJson(config.getConfigData(), new TypeReference<Map<String, Object>>(){});
         configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);

@@ -21,6 +21,12 @@ var App = require('app');
 App.WizardSelectMpacksView = Em.View.extend({
   templateName: require('templates/wizard/selectMpacks'),
 
+  serviceGroups: Em.computed.alias('controller.allServiceGroups'),
+
+  hasServiceGroups: function () {
+    return this.get('serviceGroups').length > 0;
+  }.property('serviceGroups.@each'),
+
   didInsertElement: function () {
     this.get('controller').loadStep();
 
@@ -35,8 +41,8 @@ App.WizardSelectMpacksView = Em.View.extend({
   },
 
   toggleMode: function () {
-    const isAdvancedMode = this.get('controller.content.advancedMode');
     const controller = this.get('controller');
+    const isAdvancedMode = controller.get('content.advancedMode');
     const toggleMode = controller.toggleMode.bind(controller);
 
     if (isAdvancedMode) { //toggling to Basic (Use Cases) Mode
@@ -94,14 +100,14 @@ App.WizardSelectMpacksView = Em.View.extend({
 /**
  * View for each use case in the registry
  */
-App.WizardUsecaseView = Em.View.extend({
-  templateName: require('templates/wizard/selectMpacks/usecase'),
+App.WizardUseCaseView = Em.View.extend({
+  templateName: require('templates/wizard/selectMpacks/useCase'),
 
   /**
    * Handle add/remove button clicked
    */
   toggle: function () {
-    this.get('controller').toggleUsecaseHandler(this.get('usecase.id'));
+    this.get('controller').toggleUseCaseHandler(this.get('useCase.id'));
   }
 });
 
@@ -167,28 +173,28 @@ App.WizardServiceView = Em.View.extend({
 });
 
 /**
- * View for each selected mpack
+ * View for each service group in the cart.
  */
-App.WizardSelectedMpackVersionView = Em.View.extend({
-  templateName: require('templates/wizard/selectMpacks/selectedMpackVersion'),
+App.WizardServiceGroupView = Em.View.extend({
+  templateName: require('templates/wizard/selectMpacks/serviceGroup'),
 
   /**
-   * Handle remove service button clicked.
+   * Handle remove service instance button clicked.
    *
    * @param  {type} event
    */
-  removeService: function (event) {
-    const serviceId = event.context;
-    this.get('controller').removeServiceHandler(serviceId);
+  removeServiceInstance: function (event) {
+    const serviceInstanceId = event.context;
+    this.get('controller').removeServiceInstanceHandler(serviceInstanceId);
   },
 
   /**
-   * Handle remove mpack button clicked.
+   * Handle remove service group button clicked.
    * 
    * @param {any} event 
    */
-  removeMpack: function (event) {
-    const mpackId = event.context;
-    this.get('controller').removeMpackHandler(mpackId);
+  removeServiceGroup: function (event) {
+    const serviceGroupName = event.context;
+    this.get('controller').removeServiceGroupHandler(serviceGroupName);
   }
 });

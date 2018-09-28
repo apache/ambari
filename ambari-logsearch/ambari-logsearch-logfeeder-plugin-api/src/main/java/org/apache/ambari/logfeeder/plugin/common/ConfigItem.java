@@ -24,12 +24,13 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ConfigItem<PROP_TYPE extends LogFeederProperties> implements Cloneable {
+public abstract class ConfigItem<PROP_TYPE extends LogFeederProperties> implements Cloneable, Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigItem.class);
 
@@ -108,6 +109,19 @@ public abstract class ConfigItem<PROP_TYPE extends LogFeederProperties> implemen
 
   public void setDrain(boolean drain) {
     this.drain = drain;
+  }
+
+  public List<String> getListValue(String key) {
+    return getListValue(key, null);
+  }
+
+  public List<String> getListValue(String key, List<String> defaultValue) {
+    Object value = configs.get(key);
+    if (value != null) {
+      return (List<String>)value;
+    } else {
+      return defaultValue;
+    }
   }
 
   public String getStringValue(String property) {

@@ -20,7 +20,6 @@ package org.apache.ambari.server.security.authentication;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.slf4j.Logger;
@@ -94,10 +93,8 @@ public class AmbariLocalAuthenticationProvider extends AmbariAuthenticationProvi
           }
         }
 
-        User user = new User(userEntity);
-        Authentication auth = new AmbariUserAuthentication(password, user, users.getUserAuthorities(userEntity));
-        auth.setAuthenticated(true);
-        return auth;
+        AmbariUserDetails userDetails = new AmbariUserDetails(users.getUser(userEntity), password, users.getUserAuthorities(userEntity));
+        return new AmbariUserAuthentication(password, userDetails, true);
       }
     }
 

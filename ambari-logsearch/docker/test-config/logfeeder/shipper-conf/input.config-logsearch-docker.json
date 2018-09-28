@@ -1,0 +1,34 @@
+{
+  "input": [
+    {
+      "type": "logsearch_server",
+      "rowtype": "service",
+      "docker": "true",
+      "default_log_levels" : [
+       "FATAL", "ERROR", "WARN", "INFO", "DEBUG"
+      ]
+    }
+  ],
+  "filter": [
+    {
+      "filter": "grok",
+      "conditions": {
+        "fields": {
+          "type": [
+            "logsearch_server"
+          ]
+        }
+      },
+      "log4j_format": "",
+      "multiline_pattern": "^(%{DATESTAMP:logtime})",
+      "message_pattern": "(?m)^%{DATESTAMP:logtime}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS}%{SPACE}\\(%{JAVAFILE:file}:%{INT:line_number}\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values": {
+        "logtime": {
+          "map_date": {
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    }
+  ]
+}

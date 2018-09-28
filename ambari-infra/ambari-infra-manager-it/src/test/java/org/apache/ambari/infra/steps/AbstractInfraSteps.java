@@ -18,67 +18,57 @@
  */
 package org.apache.ambari.infra.steps;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
+import static org.apache.ambari.infra.Solr.AUDIT_LOGS_COLLECTION;
+import static org.apache.ambari.infra.Solr.HADOOP_LOGS_COLLECTION;
+import static org.apache.ambari.infra.TestUtil.doWithin;
+import static org.apache.ambari.infra.TestUtil.getDockerHost;
+import static org.apache.ambari.infra.TestUtil.runCommand;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.time.OffsetDateTime;
+import java.util.Date;
+
 import org.apache.ambari.infra.InfraClient;
+import org.apache.ambari.infra.Solr;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.jbehave.core.annotations.AfterStories;
 import org.jbehave.core.annotations.BeforeStories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.util.Date;
-import java.util.function.BooleanSupplier;
-
-import static java.lang.System.currentTimeMillis;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
 
 public abstract class AbstractInfraSteps {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractInfraSteps.class);
 
-  private static final int SOLR_PORT = 8983;
   private static final int INFRA_MANAGER_PORT = 61890;
   private static final int FAKE_S3_PORT = 4569;
   private static final int HDFS_PORT = 9000;
-  private static final String AUDIT_LOGS_COLLECTION = "audit_logs";
-  private static final String HADOOP_LOGS_COLLECTION = "hadoop_logs";
   protected static final String S3_BUCKET_NAME = "testbucket";
   private String ambariFolder;
   private String shellScriptLocation;
   private String dockerHost;
-  private SolrClient solrClient;
   private AmazonS3Client s3client;
   private int documentId = 0;
+  private Solr solr;
 
   public InfraClient getInfraClient() {
     return new InfraClient(String.format("http://%s:%d/api/v1/jobs", dockerHost, INFRA_MANAGER_PORT));
   }
 
-  public SolrClient getSolrClient() {
-    return solrClient;
+  public Solr getSolr() {
+    return solr;
   }
 
   public AmazonS3Client getS3client() {
@@ -103,17 +93,13 @@ public abstract class AbstractInfraSteps {
     LOG.info("Create new docker container for testing Ambari Infra Manager ...");
     runCommand(new String[]{shellScriptLocation, "start"});
 
-    dockerHost = System.getProperty("docker.host") != null ? System.getProperty("docker.host") : "localhost";
+    dockerHost = getDockerHost();
 
-    waitUntilSolrIsUp();
+    solr = new Solr();
+    solr.waitUntilSolrIsUp();
 
-    solrClient = new LBHttpSolrClient.Builder().withBaseSolrUrls(String.format("http://%s:%d/solr/%s_shard1_replica1",
-            dockerHost,
-            SOLR_PORT,
-            AUDIT_LOGS_COLLECTION)).build();
-
-    createSolrCollection(AUDIT_LOGS_COLLECTION);
-    createSolrCollection(HADOOP_LOGS_COLLECTION);
+    solr.createSolrCollection(AUDIT_LOGS_COLLECTION);
+    solr.createSolrCollection(HADOOP_LOGS_COLLECTION);
 
     LOG.info("Initializing s3 client");
     s3client = new AmazonS3Client(new BasicAWSCredentials("remote-identity", "remote-credential"));
@@ -123,71 +109,6 @@ public abstract class AbstractInfraSteps {
     checkInfraManagerReachable();
   }
 
-  private void createSolrCollection(String collectionName) {
-    LOG.info("Creating collection");
-    runCommand(new String[]{"docker", "exec", "docker_solr_1", "solr", "create_collection", "-c", collectionName, "-d", "configsets/"+ collectionName +"/conf", "-n", collectionName + "_conf"});
-  }
-
-  private void runCommand(String[] command) {
-    try {
-      LOG.info("Exec command: {}", StringUtils.join(command, " "));
-      Process process = Runtime.getRuntime().exec(command);
-      String stdout = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
-      LOG.info("Exec command result {}", stdout);
-    } catch (Exception e) {
-      throw new RuntimeException("Error during execute shell command: ", e);
-    }
-  }
-
-  private void waitUntilSolrIsUp() throws Exception {
-    try(CloseableHttpClient httpClient = HttpClientBuilder.create().setRetryHandler(new DefaultHttpRequestRetryHandler(0, false)).build()) {
-      doWithin(60, "Start Solr", () -> pingSolr(httpClient));
-    }
-  }
-
-  protected void doWithin(int sec, String actionName, BooleanSupplier predicate) {
-    doWithin(sec, actionName, () -> {
-      if (!predicate.getAsBoolean())
-        throw new RuntimeException("Predicate was false!");
-    });
-  }
-
-  protected void doWithin(int sec, String actionName, Runnable runnable) {
-    long start = currentTimeMillis();
-    Exception exception;
-    while (true) {
-      try {
-        runnable.run();
-        return;
-      }
-      catch (Exception e) {
-        exception = e;
-      }
-
-      if (currentTimeMillis() - start > sec * 1000) {
-        throw new AssertionError(String.format("Unable to perform action '%s' within %d seconds", actionName, sec), exception);
-      }
-      else {
-        LOG.info("Performing action '{}' failed. retrying...", actionName);
-      }
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  private boolean pingSolr(CloseableHttpClient httpClient) {
-    try (CloseableHttpResponse response = httpClient.execute(new HttpGet(String.format("http://%s:%d/solr/admin/collections?action=LIST", dockerHost, SOLR_PORT)))) {
-      return response.getStatusLine().getStatusCode() == 200;
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   private void checkInfraManagerReachable() throws Exception {
     try (InfraClient httpClient = getInfraClient()) {
       doWithin(30, "Start Ambari Infra Manager", httpClient::getJobs);
@@ -195,7 +116,7 @@ public abstract class AbstractInfraSteps {
     }
   }
 
-  protected void addDocument(OffsetDateTime logtime) throws SolrServerException, IOException {
+  protected void addDocument(OffsetDateTime logtime) {
     SolrInputDocument solrInputDocument = new SolrInputDocument();
     solrInputDocument.addField("logType", "HDFSAudit");
     solrInputDocument.addField("cluster", "cl1");
@@ -228,7 +149,7 @@ public abstract class AbstractInfraSteps {
     solrInputDocument.addField("logtime", new Date(logtime.toInstant().toEpochMilli()));
     solrInputDocument.addField("_ttl_", "+7DAYS");
     solrInputDocument.addField("_expire_at_", "2017-12-15T10:23:19.106Z");
-    solrClient.add(solrInputDocument);
+    solr.add(solrInputDocument);
   }
 
   @AfterStories

@@ -51,14 +51,17 @@ App.MainController = Em.Controller.extend({
     App.store.defaultTransaction.reopen({
       removeCleanRecords: Em.K
     });
-    App.StompClient.connect();
+    const startSubscription = App.router.get('updateController').startSubscriptions.bind(App.router.get('updateController'));
+    App.StompClient.connect()
+      .done(startSubscription)
+      .fail((dfd) => {dfd.always(startSubscription)});
     App.router.get('clusterController').loadClusterData();
   },
 
   dataLoading: function () {
     var self = this;
     var dfd = $.Deferred();
-    if (App.router.get('clusterController.isLoaded')) {
+    if (self.get('isClusterDataLoaded')) {
       dfd.resolve();
     } else {
       var interval = setInterval(function () {
@@ -101,14 +104,11 @@ App.MainController = Em.Controller.extend({
   startPolling: function () {
     if (App.router.get('applicationController.isExistingClusterDataLoaded')) {
       App.router.get('updateController').set('isWorking', true);
-      App.router.get('updateController').startSubscriptions();
-      App.router.get('backgroundOperationsController').set('isWorking', true);
     }
   }.observes('App.router.applicationController.isExistingClusterDataLoaded'),
 
   stopPolling: function(){
     App.router.get('updateController').set('isWorking', false);
-    App.router.get('backgroundOperationsController').set('isWorking', false);
   },
 
   reloadTimeOut: null,

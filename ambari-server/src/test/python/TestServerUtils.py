@@ -22,6 +22,8 @@ os.environ["ROOT"] = ""
 from mock.mock import patch, MagicMock
 from unittest import TestCase
 import platform
+import socket 
+import ssl
 
 from ambari_commons import os_utils
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
@@ -33,7 +35,8 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        from ambari_server.serverUtils import get_ambari_server_api_base
+        from ambari_server.serverUtils import get_ambari_server_api_base, get_ambari_admin_username_password_pair, \
+          is_api_ssl_enabled, get_ssl_context
         from ambari_server.serverConfiguration import CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
 
 @patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
@@ -58,14 +61,86 @@ class TestServerUtils(TestCase):
     self.assertEquals(result, 'http://127.0.0.1:8033/api/v1/')
 
     # Test case of using https protocol (and ssl port)
+    fqdn = socket.getfqdn()
+    self.assertTrue(len(fqdn)>0)
+
     properties = FakeProperties({
       SSL_API: "true",
       SSL_API_PORT : "8443",
       CLIENT_API_PORT_PROPERTY: None
     })
     result = get_ambari_server_api_base(properties)
-    self.assertEquals(result, 'https://127.0.0.1:8443/api/v1/')
+    self.assertEquals(result, 'https://{0}:8443/api/v1/'.format(fqdn))
 
+
+  def test_get_ambari_admin_credentials_from_cli_options(self):
+    user_name = "admin"
+    password = "s#perS3cr3tP4ssw0d!"
+    options = MagicMock()
+    options.ambari_admin_username = user_name
+    options.ambari_admin_password = password
+    user, pw = get_ambari_admin_username_password_pair(options)
+    self.assertEquals(user, user_name)
+    self.assertEquals(pw, password)
+    
+  @patch("ambari_server.serverUtils.get_validated_string_input")
+  def test_get_ambari_admin_credentials_from_user_input(self, get_validated_string_input_mock):
+    user_name = "admin"
+    password = "s#perS3cr3tP4ssw0d!"
+    options = MagicMock()
+    options.ambari_admin_username = None
+    options.ambari_admin_password = None
+
+    def valid_input_side_effect(*args, **kwargs):
+      return user_name if 'Ambari Admin login' in args[0] else password
+
+    get_validated_string_input_mock.side_effect = valid_input_side_effect
+
+    user, pw = get_ambari_admin_username_password_pair(options)
+    self.assertEquals(user, user_name)
+    self.assertEquals(pw, password)
+
+  def test_is_api_ssl_enabled(self):
+    properties = FakeProperties({
+      SSL_API: "true"
+    })
+    self.assertTrue(is_api_ssl_enabled(properties))
+
+    properties = FakeProperties({
+      SSL_API: "false"
+    })
+    self.assertFalse(is_api_ssl_enabled(properties))
+
+    properties = FakeProperties({
+      SSL_API: None
+    })
+    self.assertFalse(is_api_ssl_enabled(properties))
+
+
+  def test_get_ssl_context(self):
+    properties = FakeProperties({
+      SSL_API: "true"
+    })
+    context = get_ssl_context(properties)
+    if hasattr(ssl, 'SSLContext'):
+      self.assertIsNotNone(context)
+    else:
+      self.assertIsNone(context)
+
+    context = get_ssl_context(properties, ssl.PROTOCOL_TLSv1)
+    if hasattr(ssl, 'SSLContext'):
+      self.assertIsNotNone(context)
+      self.assertEqual(ssl.PROTOCOL_TLSv1, context.protocol)
+    else:
+      self.assertIsNone(context)
+
+
+
+    properties = FakeProperties({
+      SSL_API: "false"
+    })
+    context = get_ssl_context(properties)
+    self.assertIsNone(context)
 
 
 class FakeProperties(object):

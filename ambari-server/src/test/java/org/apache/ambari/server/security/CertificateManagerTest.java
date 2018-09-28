@@ -21,7 +21,9 @@ package org.apache.ambari.server.security;
 import static org.easymock.EasyMock.expect;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -161,6 +163,42 @@ public class CertificateManagerTest extends EasyMockSupport {
 
     Assert.assertEquals(SignCertResponse.ERROR_STATUS, response.getResult());
     Assert.assertEquals("Incorrect passphrase from the agent", response.getMessage());
+  }
+
+  @Test
+  public void testGetCACertificateChain() throws IOException {
+    Injector injector = getInjector();
+
+    File directory = folder.newFolder();
+    String caCertFileName = "myca.crt";
+    String caCertChainFileName = "myca_chain.pem";
+
+    Configuration configuration = injector.getInstance(Configuration.class);
+    expect(configuration.getProperty(Configuration.SRVR_KSTR_DIR)).andReturn(directory.getAbsolutePath()).anyTimes();
+    expect(configuration.getProperty(Configuration.SRVR_CRT_NAME)).andReturn(caCertFileName).anyTimes();
+    expect(configuration.getProperty(Configuration.SRVR_CRT_CHAIN_NAME)).andReturn(caCertChainFileName).anyTimes();
+
+    final File caCertFile = new File(directory, caCertFileName);
+    final File caCertChainFile = new File(directory, caCertChainFileName);
+
+    CertificateManager certificateManager = new CertificateManager();
+    injector.injectMembers(certificateManager);
+
+    replayAll();
+
+    String content;
+
+    // Only the CA certificate file is available, this is the fallback option
+    Files.write(caCertFile.toPath(), Collections.singleton(caCertFile.getAbsolutePath()));
+    content = certificateManager.getCACertificateChainContent();
+    Assert.assertEquals(caCertFile.getAbsolutePath(), content.trim());
+
+    // The CA certificate chain file is available, this is the preferred option
+    Files.write(caCertChainFile.toPath(), Collections.singleton(caCertChainFile.getAbsolutePath()));
+    content = certificateManager.getCACertificateChainContent();
+    Assert.assertEquals(caCertChainFile.getAbsolutePath(), content.trim());
+
+    verifyAll();
   }
 
   private Injector getInjector() {

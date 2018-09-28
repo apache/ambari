@@ -24,30 +24,36 @@ module.exports = App.ServiceConfigModificationHandler.create({
     var affectedProperties = [];
     var newValue = changedConfig.get("value");
     var curConfigs = "";
-    var affectedPropertyName = "dfs.permissions.superusergroup";
+    var affectedPropertyName;
+    var affectedPropery;
     if (changedConfig.get("name") == "hdfs_user") {
       curConfigs = allConfigs.findProperty("serviceName", "HDFS").get("configs");
-      if (newValue != curConfigs.findProperty("name", affectedPropertyName).get("value")) {
+      affectedPropertyName = "dfs.permissions.superusergroup";
+      affectedPropery = curConfigs.findProperty("name", affectedPropertyName);
+      if (affectedPropery && newValue != affectedPropery.get('value')) {
         affectedProperties.push({
           serviceName : "HDFS",
           sourceServiceName : "MISC",
           propertyName : affectedPropertyName,
           propertyDisplayName : affectedPropertyName,
           newValue : newValue,
-          curValue : curConfigs.findProperty("name", affectedPropertyName).get("value"),
+          curValue : affectedPropery.get("value"),
           changedPropertyName : "hdfs_user",
           remove : false,
           filename : 'hdfs-site.xml'
         });
       }
-      if ($.trim(newValue) != $.trim(curConfigs.findProperty("name", "dfs.cluster.administrators").get("value"))) {
+
+      affectedPropertyName = "dfs.cluster.administrators";
+      affectedPropery = curConfigs.findProperty("name", affectedPropertyName);
+      if (affectedPropery && $.trim(newValue) != $.trim(affectedPropery.get("value"))) {
         affectedProperties.push({
           serviceName : "HDFS",
           sourceServiceName : "MISC",
-          propertyName : "dfs.cluster.administrators",
-          propertyDisplayName : "dfs.cluster.administrators",
+          propertyName : affectedPropertyName,
+          propertyDisplayName : affectedPropertyName,
           newValue : " " + $.trim(newValue),
-          curValue : curConfigs.findProperty("name", "dfs.cluster.administrators").get("value"),
+          curValue : affectedPropery.get("value"),
           changedPropertyName : "hdfs_user",
           remove : false,
           filename : 'hdfs-site.xml'

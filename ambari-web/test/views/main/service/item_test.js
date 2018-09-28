@@ -425,7 +425,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "restartAllHostComponents", "context": "KNOX", "label": "Restart All", "cssClass": "glyphicon glyphicon-time", "disabled": false},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "glyphicon glyphicon-thumbs-up", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Knox", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
-            {"action": "startLdapKnox", "customCommand": "STARTDEMOLDAP", "context": "Start Demo LDAP", "label": "Start Demo LDAP", "cssClass": "glyphicon glyphicon-play-sign", "disabled": false},
+            {"action": "startLdapKnox", "customCommand": "STARTDEMOLDAP", "context": "Start Demo LDAP", "label": "Start Demo LDAP", "cssClass": "icon icon-play-sign", "disabled": false},
             {"action": "stopLdapKnox", "customCommand": "STOPDEMOLDAP", "context": "Stop Demo LDAP", "label": "Stop Demo LDAP", "cssClass": "glyphicon glyphicon-stop", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "glyphicon glyphicon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]

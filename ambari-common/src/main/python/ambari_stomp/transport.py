@@ -17,7 +17,7 @@ try:
     import ssl
     from ssl import SSLError
 
-    DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1
+    DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
 except (ImportError, AttributeError):  # python version < 2.6 without the backported ssl module
     ssl = None
 
@@ -814,7 +814,7 @@ class Transport(BaseTransport):
                                where OK is a boolean, and cert is a certificate structure
                                as returned by ssl.SSLSocket.getpeercert()
         :param ssl_version: SSL protocol to use for the connection. This should be one of the PROTOCOL_x
-                            constants provided by the ssl module. The default is ssl.PROTOCOL_TLSv1
+                            constants provided by the ssl module. The default is ssl.PROTOCOL_TLSv1_2
         """
         if not ssl:
             raise Exception("SSL connection requested, but SSL library not found")

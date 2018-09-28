@@ -15,7 +15,6 @@
   ".+/etc/hive/.+/log4j.properties" : "hive-log4j",
   ".+/etc/kafka/.+/log4j.properties" : "kafka-log4j",
   ".+/etc/oozie/.+/log4j.properties" : "oozie-log4j",
-  ".+/etc/slider/.+/log4j.properties" : "slider-log4j",
   ".+/etc/ambari-metrics-collector/.+/log4j.properties" : "ams-log4j",
   ".+/storm.yaml" : "storm-site",
   ".+/runtime.properties" : "falcon-runtime",

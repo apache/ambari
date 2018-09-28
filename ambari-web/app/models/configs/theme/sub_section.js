@@ -28,6 +28,11 @@ App.SubSection = DS.Model.extend({
   name: DS.attr('string'),
 
   /**
+   * theme from which this is coming from , eg: default, database, credentials, etc.
+   */
+  themeName: DS.attr('string'),
+
+  /**
    * @type {string}
    */
   displayName: DS.attr('string'),

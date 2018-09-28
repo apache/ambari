@@ -22,6 +22,7 @@ import {Moment} from 'moment-timezone';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ListItem} from '@app/classes/list-item';
 import {TimeUnitListItem} from '@app/classes/filtering';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 @Component({
   selector: 'time-range-picker',
@@ -37,20 +38,22 @@ import {TimeUnitListItem} from '@app/classes/filtering';
 })
 export class TimeRangePickerComponent implements ControlValueAccessor {
 
-  constructor(private logsContainer: LogsContainerService) {
-  }
-
   startTime: Moment;
 
   endTime: Moment;
 
   private onChange: (fn: any) => void;
 
+  private timeRange?: TimeUnitListItem;
+
+  constructor(
+    private logsContainer: LogsContainerService,
+    private logsFilteringUtilsService: LogsFilteringUtilsService
+  ) {}
+
   get quickRanges(): (ListItem | TimeUnitListItem[])[] {
     return this.logsContainer.filters.timeRange.options;
   }
-
-  private timeRange?: TimeUnitListItem;
 
   get selection(): TimeUnitListItem {
     return this.timeRange;
@@ -61,8 +64,10 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
     if (this.onChange) {
       this.onChange(newValue);
     }
-    this.setEndTime(this.logsContainer.getEndTimeMoment(newValue));
-    this.setStartTime(this.logsContainer.getStartTimeMoment(newValue, this.endTime));
+    this.setEndTime(this.logsFilteringUtilsService.getEndTimeMomentFromTimeUnitListItem(newValue, this.logsContainer.timeZone));
+    this.setStartTime(this.logsFilteringUtilsService.getStartTimeMomentFromTimeUnitListItem(
+      newValue, this.endTime, this.logsContainer.timeZone
+    ));
   }
 
   setStartTime(timeObject: Moment): void {

@@ -37,6 +37,8 @@ from resource_management.libraries.functions.cluster_settings import get_cluster
 config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
+stack_settings = Script.get_stack_settings()
+cluster_settings = Script.get_cluster_settings()
 module_name = execution_command.get_module_name()
 tmp_dir = Script.get_tmp_dir()
 artifact_dir = tmp_dir + "/AMBARI-artifacts"
@@ -54,9 +56,9 @@ host_sys_prepped = execution_command.is_host_system_prepared()
 sysprep_skip_copy_fast_jar_hdfs = host_sys_prepped and get_cluster_setting_value('sysprep_skip_copy_fast_jar_hdfs')
 
 # Whether to skip setting up the unlimited key JCE policy
-sysprep_skip_setup_jce = host_sys_prepped and get_cluster_setting_value('sysprep_skip_setup_jce')
+sysprep_skip_setup_jce = host_sys_prepped and cluster_settings.check_sysprep_skip_setup_jce()
 
-stack_version_unformatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
@@ -79,7 +81,7 @@ create_lib_snappy_symlinks = False
 current_service = module_name
 
 #security params
-security_enabled = get_cluster_setting_value('security_enabled')
+security_enabled = cluster_settings.is_cluster_security_enabled()
 
 ambari_server_resources_url = execution_command.get_jdk_location()
 if ambari_server_resources_url and ambari_server_resources_url.endswith('/'):
@@ -150,16 +152,24 @@ if has_metric_collector:
     metric_collector_protocol = 'https'
   else:
     metric_collector_protocol = 'http'
-  metric_truststore_path= module_configs.get_property_value(module_name, 'ams-ssl-client', 'ams-ssl-client/ssl.client.truststore.location', '')
-  metric_truststore_type= module_configs.get_property_value(module_name, 'ams-ssl-client', 'ams-ssl-client/ssl.client.truststore.type', '')
+  metric_truststore_path= module_configs.get_property_value(module_name, 'ams-ssl-client', 'ssl.client.truststore.location', '')
+  metric_truststore_type= module_configs.get_property_value(module_name, 'ams-ssl-client', 'ssl.client.truststore.type', '')
   metric_truststore_password= module_configs.get_property_value(module_name, 'ams-ssl-client', 'ssl.client.truststore.password', '')
+  metric_legacy_hadoop_sink = check_stack_feature(StackFeature.AMS_LEGACY_HADOOP_SINK, version_for_stack_feature_checks)
 
   pass
+
 metrics_report_interval = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.sink.report.interval', 60)
 metrics_collection_period = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.sink.collection.period', 10)
 
 host_in_memory_aggregation = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation', True)
 host_in_memory_aggregation_port = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation.port', 61888)
+is_aggregation_https_enabled = False
+if module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation.http.policy', "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = None
@@ -257,7 +267,7 @@ net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_
 has_core_site = bool(module_configs.get_all_properties(module_name, "core-site"))
 hdfs_user_keytab = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user_keytab')
 kinit_path_local = get_kinit_path()
-stack_version_unformatted = execution_command.get_mpack_version()
+stack_version_unformatted = stack_settings.get_mpack_version()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_principal_name')

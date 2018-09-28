@@ -21,7 +21,6 @@ package org.apache.ambari.server.events;
 /**
  * Is used to inform the agent about update assignment.
  */
-//TODO refactor other update events to use this class instead own update types.
 public enum UpdateEventType {
   CREATE,
   UPDATE,

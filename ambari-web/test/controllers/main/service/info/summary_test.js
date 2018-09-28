@@ -113,17 +113,20 @@ describe('App.MainServiceInfoSummaryController', function () {
           configTypes: {}
         })
       ]);
+      this.mock = sinon.stub(App, 'get');
     });
 
     afterEach(function () {
       App.Service.find.restore();
       App.StackService.find.restore();
+      this.mock.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
         controller.set('isRangerPluginsArraySet', item.isRangerPluginsArraySet);
-        App.set('router.clusterController.isLoaded', item.isLoaded);
+        this.mock.withArgs('router.clusterController.isLoaded').returns(item.isLoaded);
+        controller.setRangerPlugins();
         expect(controller.get('isRangerPluginsArraySet')).to.equal(item.expectedIsRangerPluginsArraySet);
         expect(controller.get('rangerPlugins').filterProperty('isDisplayed').mapProperty('serviceName').sort()).to.eql(['HDFS', 'HIVE']);
       });

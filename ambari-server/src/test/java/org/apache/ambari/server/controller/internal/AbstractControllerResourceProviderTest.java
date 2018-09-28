@@ -30,7 +30,6 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.junit.Test;
 
 import junit.framework.Assert;
@@ -46,16 +45,15 @@ public class AbstractControllerResourceProviderTest {
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
 
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
 
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController, maintenanceStateHelper, topologyDeleteFormer);
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController, maintenanceStateHelper);
 
     expect(factory.getServiceResourceProvider(managementController)).andReturn(
         serviceResourceProvider);
 
     AbstractControllerResourceProvider.init(factory);
 
-    replay(managementController, factory, maintenanceStateHelper, topologyDeleteFormer);
+    replay(managementController, factory, maintenanceStateHelper);
 
     AbstractResourceProvider provider =
         (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(

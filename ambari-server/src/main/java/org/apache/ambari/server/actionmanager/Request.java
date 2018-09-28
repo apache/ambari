@@ -91,7 +91,7 @@ public class Request {
   @AssistedInject
   public Request(@Assisted long requestId, @Assisted("clusterId") Long clusterId, Clusters clusters) {
     this.requestId = requestId;
-    this.clusterId = clusterId.longValue();
+    this.clusterId = clusterId;
     this.createTime = System.currentTimeMillis();
     this.startTime = -1;
     this.endTime = -1;
@@ -102,8 +102,7 @@ public class Request {
       try {
         this.clusterName = clusters.getClusterById(this.clusterId).getClusterName();
       } catch (AmbariException e) {
-        LOG.debug("Could not load cluster with id {}, the cluster may have been removed for request {}",
-            clusterId, Long.valueOf(requestId));
+        LOG.debug("Could not load cluster with id {}, the cluster may have been removed for request {}", clusterId, requestId);
       }
     }
   }

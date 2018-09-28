@@ -19,10 +19,20 @@
 
 package org.apache.ambari.logsearch.rest;
 
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_LOG_LEVEL_FILTER_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SERVICE_NAMES_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.SET_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.TEST_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.UPDATE_LOG_LEVEL_FILTER_OD;
+
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.Valid;
 import javax.validation.executable.ValidateOnExecution;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -31,23 +41,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-
 import org.apache.ambari.logsearch.manager.ShipperConfigManager;
 import org.apache.ambari.logsearch.model.common.LSServerInputConfig;
 import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.apache.ambari.logsearch.model.request.impl.ShipperConfigTestRequest;
 import org.springframework.context.annotation.Scope;
 
-import java.util.List;
-
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_LOG_LEVEL_FILTER_OD;
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SERVICE_NAMES_OD;
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SHIPPER_CONFIG_OD;
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.SET_SHIPPER_CONFIG_OD;
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.TEST_SHIPPER_CONFIG_OD;
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.UPDATE_LOG_LEVEL_FILTER_OD;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 @Api(value = "shipper", description = "Shipper config operations")
 @Path("shipper")
@@ -99,7 +100,7 @@ public class ShipperConfigResource {
   @Path("/input/{clusterName}/test")
   @Produces({"application/json"})
   @ApiOperation(TEST_SHIPPER_CONFIG_OD)
-  public Response testShipperConfig(@Valid ShipperConfigTestRequest request, @PathParam("clusterName") String clusterName) {
+  public Response testShipperConfig(@Valid @BeanParam ShipperConfigTestRequest request, @PathParam("clusterName") String clusterName) {
     return shipperConfigManager.testShipperConfig(request.getShipperConfig(), request.getLogId(), request.getTestEntry(), clusterName);
   }
 

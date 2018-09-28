@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Contains list of updated hostcomponents. This update will be sent to all subscribed recipients.
  */
-public class HostComponentsUpdateEvent extends AmbariUpdateEvent {
+public class HostComponentsUpdateEvent extends STOMPEvent {
 
   @JsonProperty("hostComponents")
   private List<HostComponentUpdate> hostComponentUpdates = new ArrayList<>();

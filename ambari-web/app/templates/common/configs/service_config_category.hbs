@@ -22,7 +22,11 @@
       <a class="panel-toggle category-header" {{QAAttr "category-header"}}>
         <span class="category-name" {{QAAttr "category-name"}}>{{view.category.displayName}}</span>
         {{#if view.category.errorCount}}
-          <span class="badge badge-important">{{view.category.errorCount}}</span>
+          <span class="alert-badge" {{QAAttr "error-badge"}}>
+            <span class="counter label alerts-crit-count position-top">
+              {{view.category.errorCount}}
+            </span>
+          </span>
         {{/if}}
       </a>
     </h3>

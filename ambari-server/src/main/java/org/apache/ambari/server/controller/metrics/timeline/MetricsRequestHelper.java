@@ -87,7 +87,7 @@ public class MetricsRequestHelper {
           uriBuilder.setParameter("precision", higherPrecision);
           String newSpec = uriBuilder.toString();
           connection = streamProvider.processURL(newSpec, HttpMethod.GET, (String) null,
-            Collections.emptyMap());
+            Collections.<String, List<String>>  emptyMap());
           if (!checkConnectionForPrecisionException(connection)) {
             throw new IOException("Encountered Precision exception : Higher precision request also failed.");
           }
@@ -102,8 +102,8 @@ public class MetricsRequestHelper {
 
       if (LOG.isTraceEnabled()) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-          LOG.trace("metric: {}, size = {}, host = {}, app = {}, instance = {}, time = {}, startTime = {}",
-            metric.getMetricName(), metric.getMetricValues().size(), metric.getHostName(), metric.getAppId(), metric.getInstanceId(), metric.getTimestamp(),
+          LOG.trace("metric: {}, size = {}, host = {}, app = {}, instance = {}, startTime = {}",
+            metric.getMetricName(), metric.getMetricValues().size(), metric.getHostName(), metric.getAppId(), metric.getInstanceId(),
             new Date(metric.getStartTime()));
         }
       }

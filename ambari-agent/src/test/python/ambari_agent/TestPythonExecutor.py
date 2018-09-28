@@ -43,7 +43,7 @@ class TestPythonExecutor(TestCase):
     Tests whether watchdog works
     """
     subproc_mock = self.subprocess32_mockup()
-    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor = PythonExecutor("/tmp", AmbariConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     _, tmpstrucout = tempfile.mkstemp()
@@ -76,7 +76,7 @@ class TestPythonExecutor(TestCase):
     Tries to catch false positive watchdog invocations
     """
     subproc_mock = self.subprocess32_mockup()
-    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor = PythonExecutor("/tmp", AmbariConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     _, tmpstrucout = tempfile.mkstemp()
@@ -107,7 +107,7 @@ class TestPythonExecutor(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_execution_results(self):
     subproc_mock = self.subprocess32_mockup()
-    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor = PythonExecutor("/tmp", AmbariConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     
@@ -115,7 +115,7 @@ class TestPythonExecutor(TestCase):
     tmpstructuredoutfile = tmp_file.name
     tmp_file.close()
 
-    PYTHON_TIMEOUT_SECONDS =  5
+    PYTHON_TIMEOUT_SECONDS = 5
 
     def launch_python_subprocess32_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
@@ -137,20 +137,20 @@ class TestPythonExecutor(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_is_successfull(self):
-    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor = PythonExecutor("/tmp", AmbariConfig())
 
     executor.python_process_has_been_killed = False
-    self.assertTrue(executor.isSuccessfull(0))
-    self.assertFalse(executor.isSuccessfull(1))
+    self.assertTrue(executor.is_successful(0))
+    self.assertFalse(executor.is_successful(1))
 
     executor.python_process_has_been_killed = True
-    self.assertFalse(executor.isSuccessfull(0))
-    self.assertFalse(executor.isSuccessfull(1))
+    self.assertFalse(executor.is_successful(0))
+    self.assertFalse(executor.is_successful(1))
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_python_command(self):
-    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor = PythonExecutor("/tmp", AmbariConfig())
     command = executor.python_command("script", ["script_param1"])
     self.assertEqual(3, len(command))
     self.assertTrue("python" in command[0].lower())
@@ -164,7 +164,7 @@ class TestPythonExecutor(TestCase):
     # Test case when previous log file is absent
     isfile_mock.return_value = False
     log_file = "/var/lib/ambari-agent/data/output-13.txt"
-    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor = PythonExecutor("/tmp", AmbariConfig())
     executor.back_up_log_file_if_exists(log_file)
     self.assertEquals(isfile_mock.called, True)
     self.assertEquals(rename_mock.called, False)
@@ -174,7 +174,7 @@ class TestPythonExecutor(TestCase):
     # Test case when 3 previous log files are absent
     isfile_mock.side_effect = [True, True, True, False]
     log_file = "/var/lib/ambari-agent/data/output-13.txt"
-    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor = PythonExecutor("/tmp", AmbariConfig())
     executor.back_up_log_file_if_exists(log_file)
     self.assertEquals(isfile_mock.called, True)
     self.assertEquals(rename_mock.call_args_list[0][0][0], "/var/lib/ambari-agent/data/output-13.txt")

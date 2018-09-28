@@ -38,11 +38,11 @@ class PythonReflectiveExecutor(PythonExecutor):
   Running the commands not in new proccess, but reflectively makes this really fast.
   """
   
-  def __init__(self, tmpDir, config):
-    super(PythonReflectiveExecutor, self).__init__(tmpDir, config)
+  def __init__(self, tmp_dir, config):
+    super(PythonReflectiveExecutor, self).__init__(tmp_dir, config)
     
-  def run_file(self, script, script_params, tmpoutfile, tmperrfile,
-               timeout, tmpstructedoutfile, callback, task_id,
+  def run_file(self, script, script_params, tmp_out_file, tmp_err_file,
+               timeout, tmp_structed_outfile, callback, task_id,
                override_output_files = True, backup_log_files = True,
                handle = None, log_info_on_failure=True):
     pythonCommand = self.python_command(script, script_params)
@@ -50,7 +50,7 @@ class PythonReflectiveExecutor(PythonExecutor):
       logger.debug("Running command reflectively %s", pprint.pformat(pythonCommand))
     
     script_dir = os.path.dirname(script)
-    self.open_subprocess32_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
+    self.open_subprocess32_files(tmp_out_file, tmp_err_file, override_output_files, backup_log_files)
     returncode = 1
 
     try:
@@ -69,7 +69,7 @@ class PythonReflectiveExecutor(PythonExecutor):
     else: 
       returncode = 0
       
-    return self.prepare_process_result(returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
+    return self.prepare_process_result(returncode, tmp_out_file, tmp_err_file, tmp_structed_outfile, timeout=timeout)
   
 class PythonContext:
   """

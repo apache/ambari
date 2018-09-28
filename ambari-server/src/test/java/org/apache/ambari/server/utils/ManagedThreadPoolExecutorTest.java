@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,35 +17,55 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.awaitility.Awaitility;
+import org.junit.Assert;
 import org.junit.Test;
-
-import junit.framework.Assert;
 
 public class ManagedThreadPoolExecutorTest {
 
   @Test
-  public void testGetHostAndPortFromProperty() {
+  public void isStoppedAfterCreation() {
+    ManagedThreadPoolExecutor executor = createExecutor(1);
+    executor.execute(Assert::fail);
+    assertFalse(executor.isRunning());
+  }
 
-    ManagedThreadPoolExecutor  topologyTaskExecutor = new ManagedThreadPoolExecutor(1,
-            1, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>());
-    Future<Boolean> feature = topologyTaskExecutor.submit(new Callable<Boolean>() {
-      @Override
-      public Boolean call() {
-        return Boolean.TRUE;
-      }
-    });
+  @Test
+  public void canBeStartedAndStopped() {
+    ManagedThreadPoolExecutor executor = createExecutor(1);
+    executor.submit(() -> Boolean.TRUE);
 
-    Assert.assertTrue(!topologyTaskExecutor.isRunning());
-    topologyTaskExecutor.start();
-    Assert.assertTrue(topologyTaskExecutor.isRunning());
-    topologyTaskExecutor.stop();
-    Assert.assertTrue(!topologyTaskExecutor.isRunning());
+    executor.start();
+    assertTrue(executor.isRunning());
+    executor.stop();
+    assertFalse(executor.isRunning());
+  }
 
+  @Test
+  public void retainsTasksUntilStarted() {
+    final int taskCount = 60;
+    final AtomicInteger counter = new AtomicInteger();
+    ManagedThreadPoolExecutor executor = createExecutor(10);
+
+    for (int i = 0; i < taskCount; ++i) {
+      executor.execute(counter::incrementAndGet);
+    }
+
+    executor.start();
+    Awaitility.await().atMost(2, TimeUnit.SECONDS)
+      .until(() -> counter.get() == taskCount);
+  }
+
+  private static ManagedThreadPoolExecutor createExecutor(int poolSize) {
+    return new ManagedThreadPoolExecutor(poolSize, poolSize,
+      0L, TimeUnit.MILLISECONDS,
+      new LinkedBlockingQueue<>());
   }
 }

@@ -112,44 +112,6 @@ describe('App.KerberosWizardStep7Controller', function () {
     });
   });
 
-  describe("#postKerberosDescriptor()", function () {
-
-    it("App.ajax.send should be called", function () {
-      controller.postKerberosDescriptor(true);
-      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.create');
-      expect(args[0]).to.be.eql({
-        name: 'admin.kerberos.cluster.artifact.create',
-        sender: controller,
-        data: {
-          artifactName: 'kerberos_descriptor',
-          data: {
-            artifact_data: true
-          }
-        }
-      });
-    });
-  });
-
-  describe("#putKerberosDescriptor()", function () {
-
-    it("App.ajax.send should be called", function () {
-      controller.putKerberosDescriptor(true);
-      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.update');
-      expect(args[0]).to.be.eql({
-        name: 'admin.kerberos.cluster.artifact.update',
-        sender: controller,
-        data: {
-          artifactName: 'kerberos_descriptor',
-          data: {
-            artifact_data: true
-          }
-        },
-        success: 'unkerberizeCluster',
-        error: 'unkerberizeCluster'
-      });
-    });
-  });
-
   describe("#retry()", function () {
 
     beforeEach(function() {

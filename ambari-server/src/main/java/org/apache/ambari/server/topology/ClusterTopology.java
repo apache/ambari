@@ -49,11 +49,6 @@ public interface ClusterTopology {
   void setClusterId(Long clusterId);
 
   /**
-   * @return the cluster name
-   */
-  String getClusterName();
-
-  /**
    * Get the blueprint associated with the cluster.
    *
    * @return associated blueprint
@@ -140,11 +135,11 @@ public interface ClusterTopology {
   Collection<String> getHostAssignmentsForComponent(String component);
 
   /**
-   * Get all of the services represented in the blueprint.
+   * Get all of the service types represented in the blueprint.
    *
-   * @return collection of all represented service names
+   * @return collection of all represented service types
    */
-  Collection<String> getServices();
+  Collection<String> getServiceTypes();
 
   /**
    * Get all of the components represented in the blueprint.
@@ -152,6 +147,8 @@ public interface ClusterTopology {
    * @return collection of all represented components
    */
   Stream<ResolvedComponent> getComponents();
+
+  Map<String, Set<ResolvedComponent>> getComponentsByHostGroup();
 
   /**
    * Get the components that are included in the specified host group.
@@ -257,4 +254,8 @@ public interface ClusterTopology {
   ClusterTopology withAdditionalComponents(Map<String, Set<ResolvedComponent>> additionalComponents) throws InvalidTopologyException;
 
   Set<String> getHostNames();
+
+  SecurityConfiguration getSecurity();
+
+  Set<MpackInstance> getMpacks();
 }

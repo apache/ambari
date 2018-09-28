@@ -16,5 +16,5 @@ Examples:
 |logsearch_app|1|
 |zookeeper|3|
 |hst_agent|4|
-|secure_log|11|
+|secure_log|8|
 |system_message|17|

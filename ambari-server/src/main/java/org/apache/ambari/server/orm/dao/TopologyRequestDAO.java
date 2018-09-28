@@ -57,6 +57,12 @@ public class TopologyRequestDAO {
     return daoUtils.selectAll(entityManagerProvider.get(), TopologyRequestEntity.class);
   }
 
+  @RequiresSession
+  public List<TopologyRequestEntity> findAllProvisionRequests() {
+    return daoUtils.selectList(entityManagerProvider.get().createNamedQuery("TopologyRequestEntity.findProvisionRequests",
+      TopologyRequestEntity.class));
+  }
+
   @Transactional
   public void create(TopologyRequestEntity requestEntity) {
     entityManagerProvider.get().persist(requestEntity);

@@ -207,39 +207,15 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * Load configurations for implicit usage for service actions
    * not related to configs displayed on Configs page
    */
-  loadConfigs: function(){
+  loadConfigs: function() {
     this.set('isServiceConfigsLoaded', false);
     this.set('stepConfigs', []);
-    App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      success: 'onLoadConfigsTags',
-      error: 'onTaskError'
-    });
-  },
-
-  /**
-   * Load all configs for sites from <code>serviceConfigsMap</code> for current service
-   * @param data
-   */
-  onLoadConfigsTags: function (data) {
-    var self = this;
-    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(function () {
-      var sitesToLoad = self.get('sitesToLoad'),
-        allConfigs = [],
-        loadedSites = data.Clusters.desired_configs,
-        siteTagsToLoad = [];
-      for (var site in loadedSites) {
-        if (sitesToLoad.contains(site)) {
-          siteTagsToLoad.push({
-            siteName: site,
-            tagName: loadedSites[site].tag
-          });
-        }
-      }
-      App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
-        configs.forEach(function (site) {
-          self.get('configs')[site.type] = site.properties;
+    let self = this;
+    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(() => {
+      App.router.get('configurationController').getCurrentConfigsBySites(this.get('sitesToLoad')).done((configs) => {
+        let allConfigs = [];
+        configs.forEach((site) => {
+          this.get('configs')[site.type] = site.properties;
           allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
         });
 
@@ -255,7 +231,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           }
         });
 
-        self.set('isServiceConfigsLoaded', true);
+        this.set('isServiceConfigsLoaded', true);
       });
     });
   },
@@ -322,7 +298,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
     // check HDFS NameNode checkpoint before stop service
     if (serviceHealth === 'INSTALLED' && this.hasStartedNameNode()) {
-      this.checkNnLastCheckpointTime(function () {
+      this.checkNnLastCheckpointTime(() => {
         return App.showConfirmationFeedBackPopup((query, runMmOperation) => {
           this.set('isPending', true);
           this.startStopWithMmode(serviceHealth, query, runMmOperation);
@@ -434,8 +410,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   pullNnCheckPointTime: function (haNameSpace) {
-    const correspondingComponent = App.HDFSService.find().objectAt(0).get('hostComponents').findProperty('haNameSpace', haNameSpace),
-      clusterIdValue = correspondingComponent.get('clusterIdValue');
+    let clusterIdValue;
+    if (haNameSpace) {
+      const hostComponents = App.HDFSService.find().objectAt(0).get('hostComponents'),
+        correspondingComponent = hostComponents && hostComponents.findProperty('haNameSpace', haNameSpace);
+      clusterIdValue = correspondingComponent && correspondingComponent.get('clusterIdValue');
+    }
     return App.ajax.send({
       name: 'common.service.hdfs.getNnCheckPointTime',
       sender: this,
@@ -610,7 +590,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           sender: this,
           data: {
             context,
-            serviceName: serviceName.toUpperCase(),
+            serviceName: serviceName,
             serviceGroupName: serviceGroupName,
             state: serviceHealth,
             query: requestQuery
@@ -1214,17 +1194,20 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('content.serviceName'),
 
   isStartDisabled: function () {
-    if(this.get('isPending')) return true;
-
-    var isDisabled = true;
-    this.get('nonClientServiceComponents').forEach(function(component) {
-      isDisabled = isDisabled ? !(component.get('installedAndMaintenanceOffCount') > 0) : false;
+    let allComponentsStarted = true;
+    if (this.get('isPending')) return true;
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('installedCount') > 0)
+        allComponentsStarted = false;
     });
-    return isDisabled;
-  }.property('isPending', 'nonClientServiceComponents'),
+    return allComponentsStarted && this.get('content.isStarted');
+  }.property('content.isStarted', 'isPending'),
+
 
   isStopDisabled: function () {
+    let allComponentsStopped = true;
     if(this.get('isPending')) return true;
+
     if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
@@ -1234,8 +1217,14 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (this.get('content.serviceName') == 'PXF' && App.HostComponent.find().filterProperty('componentName', 'PXF').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
-    return (this.get('content.healthStatus') != 'green');
-  }.property('content.healthStatus','isPending', 'App.isHaEnabled'),
+
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('startedCount') > 0)
+        allComponentsStopped = false;
+    });
+
+    return allComponentsStopped && !this.get('content.isStarted');
+  }.property('content.isStarted','isPending', 'App.isHaEnabled'),
 
   isSmokeTestDisabled: function () {
     if (this.get('isClientsOnlyService')) return false;
@@ -1542,7 +1531,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var self = this,
       displayName = App.format.role(serviceName, true),
       popupHeader = Em.I18n.t('services.service.delete.popup.header'),
-      popupPrimary = Em.I18n.t('common.delete'),
+      popupPrimary = Em.I18n.t('common.proceed'),
       warningMessage = Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
         (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
       callback = this.loadConfigRecommendations.bind(this, null, function () {
@@ -1566,8 +1555,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       primary: popupPrimary,
       primaryClass: 'btn-danger',
       disablePrimary: Em.computed.alias('controller.isRecommendationInProgress'),
-      classNameBindings: ['controller.changedProperties.length:common-modal-wrapper', 'controller.changedProperties.length:modal-full-width'],
-      modalDialogClasses: Em.computed.ifThenElse('controller.changedProperties.length', ['modal-lg'], []),
+      classNameBindings: ['controller.changedProperties.length:common-modal-wrapper'],
+      modalDialogClasses: Em.computed.ifThenElse('controller.changedProperties.length', ['modal-xlg'], []),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/delete_service_warning_popup'),
         warningMessage: new Em.Handlebars.SafeString(warningMessage)

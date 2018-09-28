@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * Contains info about configs update. This update will be sent to all subscribed recipients.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ConfigsUpdateEvent extends AmbariUpdateEvent {
+public class ConfigsUpdateEvent extends STOMPEvent {
 
   private Long serviceConfigId;
   private Long clusterId;

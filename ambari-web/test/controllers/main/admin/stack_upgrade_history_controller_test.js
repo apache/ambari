@@ -122,4 +122,57 @@ describe('App.MainAdminStackUpgradeHistoryController', function() {
       });
     });
   });
+
+  describe("#getUpgradeTask()", function() {
+
+    it("default callback", function() {
+      var task = Em.Object.create({
+        request_id: 1,
+        group_id: 2,
+        stage_id: 3,
+        id: 4
+      });
+      controller.getUpgradeTask(task);
+      var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.upgrade_task');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].success).to.be.equal('getUpgradeTaskSuccessCallback');
+      expect(args[0].data).to.be.eql({
+        upgradeId: 1,
+        groupId: 2,
+        stageId: 3,
+        taskId: 4,
+        task: task
+      });
+    });
+  });
+
+  describe('#getUpgradeTaskSuccessCallback', function() {
+
+    it('should update volatile properties', function() {
+      var data = {
+        Tasks: {
+          status: 'IN_PROGRESS',
+          id: 1,
+          stderr: 'Error',
+          error_log: '',
+          host_name: 'host1',
+          output_log: '',
+          stdout: ''
+        }
+      };
+      var params = {
+        task: Em.Object.create()
+      };
+      controller.getUpgradeTaskSuccessCallback(data, {}, params);
+      expect(params.task).to.be.eql(Em.Object.create({
+        status: 'IN_PROGRESS',
+        stderr: 'Error',
+        error_log: '',
+        host_name: 'host1',
+        output_log: '',
+        stdout: ''
+      }))
+    });
+  });
 });

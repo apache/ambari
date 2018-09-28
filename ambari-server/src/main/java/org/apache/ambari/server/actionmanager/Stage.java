@@ -419,7 +419,7 @@ public class Stage {
    */
   public synchronized void addHostRoleExecutionCommand(Host host, Role role, RoleCommand command,
       ServiceComponentHostEvent event, Cluster cluster, Long mpackId, String serviceGroupName,
-      String serviceName, boolean retryAllowed,
+      String serviceType, String serviceName, boolean retryAllowed,
       boolean autoSkipFailure) {
 
     boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
@@ -431,6 +431,7 @@ public class Stage {
     commandWrapper.getExecutionCommand().setMpackId(mpackId);
     commandWrapper.getExecutionCommand().setServiceGroupName(serviceGroupName);
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
+    commandWrapper.getExecutionCommand().setServiceType(serviceType);
   }
 
   /**

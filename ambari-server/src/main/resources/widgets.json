@@ -25,7 +25,7 @@
           "values": [
             {
               "name": "Host Disk Space Used %",
-              "value": "${((disk_total-disk_free)/disk_total)*100}"
+              "value": "${((disk_total - disk_free)/disk_total)*100}"
             }
           ],
           "properties": {
@@ -58,7 +58,7 @@
           "values": [
             {
               "name": "Host Memory Used %",
-              "value": "${((mem_total-mem_free-mem_cached)/mem_total)*100}"
+              "value": "${((mem_total - mem_free - mem_cached)/mem_total)*100}"
             }
           ],
           "properties": {

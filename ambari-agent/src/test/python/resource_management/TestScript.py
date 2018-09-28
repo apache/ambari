@@ -86,27 +86,6 @@ class TestScript(RMFTestCase):
     self.assertEquals({}, Script.structuredOut)
 
 
-  @patch.object(Logger, "error", new = MagicMock())
-  @patch.object(Script, "put_structured_out")
-  @patch("resource_management.libraries.functions.version_select_util.get_component_version_from_symlink", new = MagicMock(return_value=None))
-  @patch("resource_management.libraries.functions.stack_select.get_package_name", new = MagicMock(return_value="foo-package"))
-  @patch("resource_management.libraries.functions.stack_select.unsafe_get_stack_versions", new = MagicMock(return_value=("",0,["2.6.0.0-1234"])))
-  def test_save_version_structured_out_stack_select(self, pso_mock):
-    """
-    Tests that when writing out the version of the component to the structure output,
-    if all else fails, we'll invoke the stack-select tool to see if there are any versions
-    reported.
-    :param pso_mock:
-    :return:
-    """
-    script = Script()
-    script.stroutfile = ''
-    script.save_component_version_to_structured_out("start")
-
-    self.assertEqual(pso_mock.call_count, 1)
-    self.assertEquals(pso_mock.call_args[0][0], {'version':'2.6.0.0-1234'})
-
-
   def tearDown(self):
     # enable stdout
     sys.stdout = sys.__stdout__

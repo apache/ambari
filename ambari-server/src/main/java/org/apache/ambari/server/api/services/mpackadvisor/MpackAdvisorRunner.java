@@ -100,7 +100,7 @@ public class MpackAdvisorRunner {
     } catch (Exception ioe) {
       String message = "Error executing Mpack Advisor: ";
       LOG.error(message, ioe);
-      throw new MpackAdvisorException(message + ioe.getMessage());
+      throw new MpackAdvisorException(message + ioe.getMessage(), ioe);
     } finally {
       if (process != null) {
         process.destroy();

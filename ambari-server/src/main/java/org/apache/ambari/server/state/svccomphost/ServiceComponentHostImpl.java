@@ -19,10 +19,8 @@
 package org.apache.ambari.server.state.svccomphost;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,10 +30,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
-import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
-import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
@@ -47,7 +46,7 @@ import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.StaleConfigsUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -58,6 +57,7 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -126,10 +126,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private RepositoryVersionHelper repositoryVersionHelper;
 
   @Inject
-  StateUpdateEventPublisher stateUpdateEventPublisher;
+  STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
+
+  @Inject
+  private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
 
   /**
    * Used for creating commands to send to the agents when alert definitions are
@@ -137,6 +140,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    */
   @Inject
   private AlertDefinitionHash alertDefinitionHash;
+
+  /**
+   * Used for topology event creation updates
+   */
+  @Inject
+  private Provider<AmbariManagementController> controller;
 
   /**
    * Used to publish events relating to service CRUD operations.
@@ -902,7 +911,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       }
       stateEntity = hostComponentStateDAO.merge(stateEntity);
       if (!oldState.equals(state)) {
-        stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+        STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
             HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
       }
     } else {
@@ -943,34 +952,52 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     if (stateEntity != null) {
       return stateEntity.getVersion();
     } else {
-      LOG.warn("Trying to fetch a member from an entity object that may "
-          + "have been previously deleted, serviceName = " + getServiceName() + ", "
-          + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
+      LOG.warn(
+          "Trying to fetch a member from an entity object that may "
+              + "have been previously deleted, serviceName = {}, componentName = {}, hostName = ",
+          getServiceName(), getServiceComponentName(), getHost());
     }
 
     return null;
   }
 
   @Override
+  public String getMpackVersion() {
+    HostComponentStateEntity stateEntity = getStateEntity();
+    if (stateEntity != null) {
+      return stateEntity.getMpackVersion();
+    } else {
+      LOG.warn(
+          "Trying to fetch a member from an entity object that may "
+              + "have been previously deleted, serviceName = {}, componentName = {}, hostName = ",
+          getServiceName(), getServiceComponentName(), getHost());
+    }
+
+    return null;
+  }
+
+  @Override
+  public Long getDesiredMpackId() throws AmbariException {
+    return clusters.getClusterById(getClusterId()).getServiceGroup(getServiceGroupId()).getMpackId();
+  }
+
+  @Override
   @Transactional
-  public void setVersion(String version) throws AmbariException {
+  public void setVersions(String mpackVersion, String version) throws AmbariException {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setVersion(version);
+      stateEntity.setMpackVersion(mpackVersion);
       stateEntity = hostComponentStateDAO.merge(stateEntity);
-      TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
-      topologyUpdates.put(Long.toString(getClusterId()), new TopologyCluster());
-      Long hostId = getHost().getHostId();
-      topologyUpdates.get(Long.toString(getClusterId())).addTopologyComponent(TopologyComponent.newBuilder()
-          .setComponentName(getServiceComponentName())
-          .setServiceName(getServiceName())
-          .setVersion(stateEntity.getVersion())
-          .setHostIds(new HashSet<>(Collections.singletonList(hostId)))
-          .setHostNames(new HashSet<>(Collections.singletonList(hostName)))
-          .build());
-      TopologyUpdateEvent hostComponentVersionUpdate = new TopologyUpdateEvent(topologyUpdates,
-          TopologyUpdateEvent.EventType.UPDATE);
-      m_topologyHolder.get().updateData(hostComponentVersionUpdate);
+
+      ServiceComponentHostRequest serviceComponentHostRequest = new ServiceComponentHostRequest(
+          serviceComponent.getClusterName(), serviceComponent.getServiceGroupName(), serviceComponent.getServiceName(),
+          serviceComponent.getName(), serviceComponent.getType(), hostName, getDesiredState().name());
+
+      TopologyUpdateEvent updateEvent = controller.get().getAddedComponentsTopologyEvent(
+          Collections.singleton(serviceComponentHostRequest));
+
+      m_topologyHolder.get().updateData(updateEvent);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
@@ -1033,8 +1060,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         stateEntity.setCurrentState(stateMachine.getCurrentState());
         stateEntity = hostComponentStateDAO.merge(stateEntity);
         if (statusUpdated) {
-          stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+          STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
               HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
+        }
+        if (event.getType().equals(ServiceComponentHostEventType.HOST_SVCCOMP_START)) {
+          HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+          if (desiredStateEntity.getBlueprintProvisioningState() == BlueprintProvisioningState.IN_PROGRESS) {
+            desiredStateEntity.setBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
+            hostComponentDesiredStateDAO.merge(desiredStateEntity);
+            m_hostLevelParamsHolder.get().updateData(m_hostLevelParamsHolder.get().getCurrentData(getHost().getHostId()));
+          }
         }
         // TODO Audit logs
       } catch (InvalidStateTransitionException e) {
@@ -1046,6 +1081,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             + ", eventType=" + event.getType()
             + ", event=" + event);
         throw e;
+      } catch (AmbariException e) {
+        LOG.error("Can't update topology on hosts on ServiceComponentHostEvent event: "
+            + "serviceComponentName=" + getServiceComponentName()
+            + ", hostName=" + getHostName()
+            + ", currentState=" + oldState
+            + ", eventType=" + event.getType()
+            + ", event=" + event);
       }
     } finally {
       writeLock.unlock();
@@ -1434,6 +1476,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       String serviceGroupName  = getServiceGroupName();
       String componentName = getServiceComponentName();
       String hostName = getHostName();
+      State lastComponentState = getState();
       boolean recoveryEnabled = isRecoveryEnabled();
       boolean masterComponent = serviceComponent.isMasterComponent();
 
@@ -1443,10 +1486,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       eventPublisher.publish(event);
       deleteMetaData.addDeletedHostComponent(componentName,
           serviceName,
+          serviceGroupName,
           hostName,
           getHost().getHostId(),
           Long.toString(clusterId),
-          version);
+          version,
+          lastComponentState);
     }
   }
 

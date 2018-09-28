@@ -435,7 +435,7 @@ public class WidgetResourceProviderTest {
     Cluster cluster = createMock(Cluster.class);
     expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
+    expect(cluster.getResourceId()).andReturn(Long.valueOf(1)).atLeastOnce();
 
     Capture<WidgetEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));

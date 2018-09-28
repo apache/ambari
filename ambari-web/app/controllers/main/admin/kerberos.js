@@ -562,7 +562,8 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
             artifact_data: kerberosDescriptor
           }
         },
-        success: '_updateConfigs'
+        success: '_updateConfigs',
+        error: 'createKerberosDescriptor'
       });
     };
     this.updateKerberosDescriptor(kerberosDescriptor, configs);
@@ -572,6 +573,21 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       });
     } else {
       this.restartServicesAfterRegenerate(false, callback);
+    }
+  },
+
+  createKerberosDescriptor: function (requestData, ajaxOptions, error, opt, params) {
+    if (requestData && requestData.status === 404) {
+      const {artifactName, data} = params;
+      App.ajax.send({
+        name: 'admin.kerberos.cluster.artifact.create',
+        sender: self,
+        data: {
+          artifactName,
+          data
+        },
+        success: '_updateConfigs'
+      });
     }
   },
 
@@ -639,6 +655,15 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     }).always(function() {
       self.set('isRecommendedLoaded', true);
     });
+  },
+
+  showDownloadCsv: function () {
+    var hasUpgradePrivilege = App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK');
+    return hasUpgradePrivilege;
+  }.property(),
+
+  downloadCSV: function() {
+    App.router.get('kerberosWizardStep5Controller').getCSVData(false);
   }
 
 });

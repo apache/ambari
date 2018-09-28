@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.ambari.server.agent.HeartbeatProcessor.ComponentVersionStructuredOut;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -61,7 +62,12 @@ public class VersionEventPublisherTest {
 
     Listener listener = injector.getInstance(Listener.class);
 
-    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, "1.2.3.4-5678");
+    ComponentVersionStructuredOut componentVersionStructuredOut = new ComponentVersionStructuredOut();
+    componentVersionStructuredOut.mpackVersion = "1.0.0.0-b1234";
+    componentVersionStructuredOut.version = "1.2.3.4-5678";
+
+    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster,
+        sch, componentVersionStructuredOut);
 
     publisher.publish(event);
 

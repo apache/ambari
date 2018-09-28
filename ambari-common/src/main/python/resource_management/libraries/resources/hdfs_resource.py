@@ -103,6 +103,9 @@ class HdfsResource(Resource):
   # To support HCFS
   dfs_type = ResourceArgument(default="")
 
+  # default None - means all nameservices
+  nameservices = ResourceArgument()
+
   #action 'execute' immediately performs all pending actions in an efficient manner
   #action 'create_on_execute/delete_on_execute/download_on_execute' adds to the list of pending actions
   actions = Resource.actions + ["create_on_execute", "delete_on_execute", "download_on_execute", "execute"]

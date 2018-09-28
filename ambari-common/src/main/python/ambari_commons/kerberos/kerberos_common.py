@@ -52,10 +52,13 @@ class MissingKeytabs(object):
 
   @classmethod
   def from_kerberos_records(self, kerberos_record, hostname):
-    with_missing_keytab = (each for each in kerberos_record \
+    if kerberos_record is not None:
+      with_missing_keytab = (each for each in kerberos_record \
                            if not self.keytab_exists(each) or not self.keytab_has_principal(each, hostname))
-    return MissingKeytabs(
-      set(MissingKeytabs.Identity.from_kerberos_record(each, hostname) for each in with_missing_keytab))
+      return MissingKeytabs(
+        set(MissingKeytabs.Identity.from_kerberos_record(each, hostname) for each in with_missing_keytab))
+    else:
+      return MissingKeytabs(None)
 
   @staticmethod
   def keytab_exists(kerberos_record):
@@ -72,10 +75,10 @@ class MissingKeytabs(object):
     self.items = items
 
   def as_dict(self):
-    return [each._asdict() for each in self.items]
+    return [each._asdict() for each in self.items] if self.items is not None else []
 
   def __str__(self):
-    return "Missing keytabs:\n%s" % ("\n".join(map(str, self.items))) if self.items else 'No missing keytabs'
+    return "Missing keytabs:\n%s" % ("\n".join(map(str, self.items))) if self.items and self.items is not None else 'No missing keytabs'
 
 
 def write_krb5_conf(params):

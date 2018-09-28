@@ -36,6 +36,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.CommandScriptDefinition;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -116,7 +117,7 @@ public class ServiceCheckGrouping extends Grouping {
      * {@inheritDoc}
      */
     @Override
-    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+    public void add(UpgradeContext ctx, Mpack mpack, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
       // !!! nothing to do here
     }
@@ -125,7 +126,7 @@ public class ServiceCheckGrouping extends Grouping {
      * {@inheritDoc}
      */
     @Override
-    public List<StageWrapper> build(UpgradeContext upgradeContext,
+    public List<StageWrapper> build(UpgradeContext upgradeContext, Mpack mpack,
         List<StageWrapper> stageWrappers) {
       m_cluster = upgradeContext.getCluster();
       m_metaInfo = upgradeContext.getAmbariMetaInfo();
@@ -143,7 +144,7 @@ public class ServiceCheckGrouping extends Grouping {
       for (String service : priorityServices) {
         if (checkServiceValidity(upgradeContext, service, serviceMap)) {
           StageWrapper wrapper = new ServiceCheckStageWrapper(service,
-              upgradeContext.getDisplayName(null, service), true);
+              upgradeContext.getDisplayName(mpack, service), true);
 
           result.add(wrapper);
           clusterServices.remove(service);
@@ -159,7 +160,7 @@ public class ServiceCheckGrouping extends Grouping {
 
           if (checkServiceValidity(upgradeContext, service, serviceMap)) {
             StageWrapper wrapper = new ServiceCheckStageWrapper(service,
-                upgradeContext.getDisplayName(null, service), false);
+                upgradeContext.getDisplayName(mpack, service), false);
 
             result.add(wrapper);
           }

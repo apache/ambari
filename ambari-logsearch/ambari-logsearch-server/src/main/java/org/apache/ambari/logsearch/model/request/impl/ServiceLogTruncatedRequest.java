@@ -18,49 +18,9 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.LogTruncatedParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class ServiceLogTruncatedRequest extends ServiceLogRequest implements LogTruncatedParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_ID)
-  private String id;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_SCROLL_TYPE)
-  private String scrollType;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_NUMBER_ROWS)
-  private Integer numberRows;
-
-  @Override
-  public String getId() {
-    return id;
-  }
-
-  @Override
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  @Override
-  public String getScrollType() {
-    return scrollType;
-  }
-
-  @Override
-  public void setScrollType(String scrollType) {
-    this.scrollType = scrollType;
-  }
-
-  @Override
-  public Integer getNumberRows() {
-    return numberRows;
-  }
-
-  @Override
-  public void setNumberRows(Integer numberRows) {
-    this.numberRows = numberRows;
-  }
+@Marker
+public interface ServiceLogTruncatedRequest extends ServiceLogRequest, LogTruncatedParamDefinition {
 }

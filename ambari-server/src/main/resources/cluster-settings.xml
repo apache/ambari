@@ -329,4 +329,25 @@ gpgcheck=0
         </description>
         <on-ambari-upgrade add="false"/>
     </property>
+    <property>
+        <name>command_retry_enabled</name>
+        <value>true</value>
+        <description>If flag is set to true, ambari will retry failed commands.
+        </description>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>commands_to_retry</name>
+        <value>INSTALL,START</value>
+        <description>Specifies what kinds of commands should be retried on failure
+        </description>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>command_retry_max_time_in_sec</name>
+        <value>600</value>
+        <description>Sets the timeframe in which a failed command should be retried.
+        </description>
+        <on-ambari-upgrade add="true"/>
+    </property>
 </configuration>

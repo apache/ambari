@@ -21,6 +21,7 @@ package org.apache.ambari.logfeeder.conf;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.plugin.common.LogFeederProperties;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
@@ -50,7 +51,7 @@ public class LogFeederProps implements LogFeederProperties {
     examples = {"cl1"},
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
-  @Value("${" + LogFeederConstants.CLUSTER_NAME_PROPERTY + "}")
+  @Value("#{'${" + LogFeederConstants.CLUSTER_NAME_PROPERTY + "}'.toLowerCase()}")
   private String clusterName;
 
   @LogSearchPropertyDescription(
@@ -72,6 +73,16 @@ public class LogFeederProps implements LogFeederProperties {
   )
   @Value("${"+ LogFeederConstants.LOG_FILTER_ENABLE_PROPERTY + "}")
   private boolean logLevelFilterEnabled;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_IMPLICIT_ROUTING_PROPERTY,
+    description = "Use implicit routing for Solr Collections.",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LogFeederConstants.SOLR_IMPLICIT_ROUTING_PROPERTY}
+  )
+  @Value("${"+ LogFeederConstants.SOLR_IMPLICIT_ROUTING_PROPERTY + ":false}")
+  private boolean solrImplicitRouting;
 
   @LogSearchPropertyDescription(
     name = LogFeederConstants.INCLUDE_DEFAULT_LEVEL_PROPERTY,
@@ -119,6 +130,74 @@ public class LogFeederProps implements LogFeederProperties {
   )
   @Value("${" + LogFeederConstants.CHECKPOINT_FOLDER_PROPERTY + ":/usr/lib/ambari-logsearch-logfeeder/conf/checkpoints}")
   public String checkpointFolder;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY,
+    description = "Enable to monitor docker containers and store their metadata in an in-memory registry.",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.DOCKER_CONTAINER_REGISTRY_ENABLED_PROPERTY + ":false}")
+  public boolean dockerContainerRegistryEnabled;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.USE_LOCAL_CONFIGS_PROPERTY,
+    description = "Monitor local input.config-*.json files (do not upload them to zookeeper or solr)",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.USE_LOCAL_CONFIGS_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.USE_LOCAL_CONFIGS_PROPERTY + ":" + LogFeederConstants.USE_LOCAL_CONFIGS_DEFAULT +"}")
+  public boolean useLocalConfigs;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.USE_SOLR_FILTER_STORAGE_PROPERTY,
+    description = "Use solr as a log level filter storage",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.USE_SOLR_FILTER_STORAGE_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.USE_SOLR_FILTER_STORAGE_PROPERTY + ":" + LogFeederConstants.USE_SOLR_FILTER_STORAGE_DEFAULT +"}")
+  public boolean solrFilterStorage;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.USE_ZK_FILTER_STORAGE_PROPERTY,
+    description = "Use zk as a log level filter storage (works only with local config)",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.USE_ZK_FILTER_STORAGE_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.USE_ZK_FILTER_STORAGE_PROPERTY + ":" + LogFeederConstants.USE_ZK_FILTER_STORAGE_DEFAULT +"}")
+  public boolean zkFilterStorage;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_PROPERTY,
+    description = "Monitor log level filters (in solr) periodically - used for checking updates.",
+    examples = {"false"},
+    defaultValue = LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_DEFAULT + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_PROPERTY + ":" + LogFeederConstants.MONITOR_SOLR_FILTER_STORAGE_DEFAULT +"}")
+  public boolean solrFilterMonitor;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_ZK_CONNECTION_STRING,
+    description = "Zookeeper connection string for Solr.",
+    examples = {"localhost1:2181,localhost2:2181/mysolr_znode"},
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.SOLR_ZK_CONNECTION_STRING + ":}")
+  private String solrZkConnectString;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_URLS,
+    description = "Comma separated solr urls (with protocol and port), override "+ LogFeederConstants.SOLR_ZK_CONNECTION_STRING + " config",
+    examples = {"https://localhost1:8983/solr,https://localhost2:8983"},
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.SOLR_URLS + ":}")
+  private String solrUrlsStr;
 
   @Inject
   private LogEntryCacheConfig logEntryCacheConfig;
@@ -209,6 +288,77 @@ public class LogFeederProps implements LogFeederProperties {
     this.checkpointFolder = checkpointFolder;
   }
 
+  public boolean isSolrImplicitRouting() {
+    return solrImplicitRouting;
+  }
+
+  public void setSolrImplicitRouting(boolean solrImplicitRouting) {
+    this.solrImplicitRouting = solrImplicitRouting;
+  }
+
+  public boolean isDockerContainerRegistryEnabled() {
+    return dockerContainerRegistryEnabled;
+  }
+
+  public void setDockerContainerRegistryEnabled(boolean dockerContainerRegistryEnabled) {
+    this.dockerContainerRegistryEnabled = dockerContainerRegistryEnabled;
+  }
+
+  public boolean isUseLocalConfigs() {
+    return this.useLocalConfigs;
+  }
+
+  public void setUseLocalConfigs(boolean useLocalConfigs) {
+    this.useLocalConfigs = useLocalConfigs;
+  }
+
+  public boolean isSolrFilterStorage() {
+    return solrFilterStorage;
+  }
+
+  public void setSolrFilterStorage(boolean solrFilterStorage) {
+    this.solrFilterStorage = solrFilterStorage;
+  }
+
+  public String getSolrZkConnectString() {
+    return solrZkConnectString;
+  }
+
+  public void setSolrZkConnectString(String solrZkConnectString) {
+    this.solrZkConnectString = solrZkConnectString;
+  }
+
+  public boolean isSolrFilterMonitor() {
+    return solrFilterMonitor;
+  }
+
+  public void setSolrFilterMonitor(boolean solrFilterMonitor) {
+    this.solrFilterMonitor = solrFilterMonitor;
+  }
+
+  public String getSolrUrlsStr() {
+    return this.solrUrlsStr;
+  }
+
+  public void setSolrUrlsStr(String solrUrlsStr) {
+    this.solrUrlsStr = solrUrlsStr;
+  }
+
+  public boolean isZkFilterStorage() {
+    return zkFilterStorage;
+  }
+
+  public void setZkFilterStorage(boolean zkFilterStorage) {
+    this.zkFilterStorage = zkFilterStorage;
+  }
+
+  public String[] getSolrUrls() {
+    if (StringUtils.isNotBlank(this.solrUrlsStr)) {
+      return this.solrUrlsStr.split(",");
+    }
+    return null;
+  }
+
   @PostConstruct
   public void init() {
     properties = new Properties();
@@ -224,4 +374,5 @@ public class LogFeederProps implements LogFeederProperties {
       throw new IllegalArgumentException("Cannot find logfeeder.properties on the classpath");
     }
   }
+
 }

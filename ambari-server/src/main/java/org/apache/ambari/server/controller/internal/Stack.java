@@ -431,11 +431,20 @@ public class Stack implements StackDefinition {
 
   @Override
   public Stream<String> getServicesForConfigType(String config) {
+    if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
+      return Stream.empty();
+    }
     return serviceConfigurations.entrySet().stream()
       .filter(e -> e.getValue().containsKey(config))
       .filter(e -> !getExcludedConfigurationTypes(e.getKey()).contains(config))
       .map(Map.Entry::getKey);
   }
+
+  @Override
+  public Stream<Pair<StackId, String>> getStackServicesForConfigType(String config) {
+    return getServicesForConfigType(config).map(service -> Pair.of(getStackId(), service));
+  }
+
 
   @Override
   public Collection<DependencyInfo> getDependenciesForComponent(String component) {

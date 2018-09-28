@@ -22,9 +22,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewService;
+import org.apache.ambari.server.controller.internal.ViewResourceProvider;
 
 import io.swagger.annotations.ApiModelProperty;
-
 /**
  * Response schema for endpoint {@link ViewService#getViews(String, HttpHeaders, UriInfo)}
  */
@@ -43,7 +43,7 @@ public class ViewResponse implements ApiModel {
    * Returns view information wrapper class instance
    * @return {@link #viewInfo}
    */
-  @ApiModelProperty(name = "ViewInfo")
+  @ApiModelProperty(name = ViewResourceProvider.VIEW_INFO)
   public ViewInfo getViewInfo() {
     return viewInfo;
   }
@@ -66,7 +66,7 @@ public class ViewResponse implements ApiModel {
      * Returns view name
      * @return view name
      */
-    @ApiModelProperty(name = "view_name")
+    @ApiModelProperty(name = ViewResourceProvider.VIEW_NAME_PROPERTY_ID)
     public String getViewName() {
       return viewName;
     }

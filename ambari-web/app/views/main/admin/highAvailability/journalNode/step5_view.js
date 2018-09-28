@@ -16,32 +16,23 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
 App.ManageJournalNodeWizardStep5View = Em.View.extend({
 
   templateName: require('templates/main/admin/highAvailability/journalNode/step5'),
 
-  didInsertElement: function() {
-    this.get('controller').loadStep();
-  },
-
   step5BodyText: function () {
-    var activeNN = this.get('controller.content.activeNN');
-    return Em.I18n.t('admin.manageJournalNode.wizard.step5.body').format(this.get('controller.content.hdfsUser'), activeNN.host_name);
-  }.property('controller.content.masterComponentHosts'),
-
-  jnCheckPointText: function () {
-    switch (this.get('controller.status')) {
-      case 'waiting':
-        return Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
-      case 'done':
-        return Em.I18n.t('admin.highAvailability.wizard.step6.jsInit');
-      case 'journalnode_stopped':
-        return Em.I18n.t('admin.highAvailability.wizard.step6.jnStopped');
-      default:
-        return Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
-    }
-  }.property('controller.status')
+    const existingJournalNode = this.get('controller.content.masterComponentHosts').find(hc => {
+        return hc.component === 'JOURNALNODE' && hc.isInstalled;
+      }),
+      nameSpaces = App.HDFSService.find('HDFS').get('masterComponentGroups').mapProperty('name'),
+      hdfsSiteConfigs = this.get('controller.content.serviceConfigProperties.items').findProperty('type', 'hdfs-site'),
+      configProperties = hdfsSiteConfigs ? hdfsSiteConfigs.properties : {},
+      directories = nameSpaces.length > 1
+        ? nameSpaces.map(ns => configProperties[`dfs.journalnode.edits.dir.${ns}`]).uniq()
+        : [configProperties['dfs.journalnode.edits.dir']],
+      directoriesString = directories.map(dir => `<b>${dir}</b>`).join(', ');
+    return Em.I18n.t('admin.manageJournalNode.wizard.step5.body').format(existingJournalNode.hostName, directoriesString);
+  }.property('controller.content.masterComponentHosts', 'controller.isHDFSNameSpacesLoaded')
 });

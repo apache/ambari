@@ -55,8 +55,8 @@ public class StatusCommand extends AgentCommand {
   @com.fasterxml.jackson.annotation.JsonProperty("configurations")
   private Map<String, Map<String, String>> configurations;
 
-  @SerializedName("configuration_attributes")
-  @com.fasterxml.jackson.annotation.JsonProperty("configuration_attributes")
+  @SerializedName("configurationAttributes")
+  @com.fasterxml.jackson.annotation.JsonProperty("configurationAttributes")
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
   @SerializedName("commandParams")

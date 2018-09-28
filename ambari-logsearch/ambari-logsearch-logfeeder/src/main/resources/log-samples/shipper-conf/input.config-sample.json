@@ -5,6 +5,14 @@
       "rowtype": "service",
       "path": "target/classes/log-samples/logs/service_sample.txt",
       "group": "Ambari"
+    },
+    {
+      "type": "service_socket",
+      "rowtype": "service",
+      "port": 61999,
+      "protocol" : "tcp",
+      "source" : "socket",
+      "log4j": "true"
     }
   ],
   "filter": [
@@ -25,6 +33,16 @@
           "map_date": {
             "target_date_pattern": "yyyy-MM-dd HH:mm:ss,SSS"
           }
+        }
+      }
+    },
+    {
+      "filter": "json",
+      "conditions": {
+        "fields": {
+          "type": [
+            "service_socket"
+          ]
         }
       }
     }

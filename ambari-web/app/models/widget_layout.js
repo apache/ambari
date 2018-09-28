@@ -24,7 +24,11 @@ App.WidgetLayout = DS.Model.extend({
   sectionName: DS.attr('string'),
   widgets: DS.hasMany('App.Widget'),
   scope: DS.attr('string'),
-  user: DS.attr('string')
+  user: DS.attr('string'),
+
+  nameServiceId: function () {
+    return this.get('layoutName').split('_nameservice_')[1] || '';
+  }.property('layoutName')
 });
 
 

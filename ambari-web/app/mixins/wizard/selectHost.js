@@ -159,11 +159,11 @@ App.SelectHost = Em.Mixin.create({
         .without(this.get('component.selectedHost'));
 
     if (multipleComponents.contains(componentName)) {
-      return hosts.filter(function (host) {
+      hosts = hosts.filter(function (host) {
         return !occupiedHosts.contains(host.get('host_name'));
       }, this);
     }
-    return hosts;
+    return hosts.sortProperty('host_name');
   },
 
   /**

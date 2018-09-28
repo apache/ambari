@@ -45,6 +45,15 @@ import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dr
 
 import {LogIndexFilterComponent} from './log-index-filter.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
+import {ComponentLabelPipe} from '@app/pipes/component-label';
+
+import { dataAvailabilityStates, DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 
 describe('LogIndexFilterComponent', () => {
   let component: LogIndexFilterComponent;
@@ -53,6 +62,7 @@ describe('LogIndexFilterComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         FormsModule,
         ...TranslationModules,
         StoreModule.provideStore({
@@ -68,13 +78,15 @@ describe('LogIndexFilterComponent', () => {
           components,
           hosts,
           serviceLogsTruncated,
-          tabs
+          tabs,
+          dataAvailabilityStates
         })
       ],
       declarations: [
         LogIndexFilterComponent,
         DropdownButtonComponent,
-        DropdownListComponent
+        DropdownListComponent,
+        ComponentLabelPipe
       ],
       providers: [
         ...MockHttpRequestModules,
@@ -95,7 +107,13 @@ describe('LogIndexFilterComponent', () => {
         HostsService,
         ServiceLogsTruncatedService,
         TabsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService,
+        NotificationsService,
+        NotificationService,
+        DataAvailabilityStatesStore
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

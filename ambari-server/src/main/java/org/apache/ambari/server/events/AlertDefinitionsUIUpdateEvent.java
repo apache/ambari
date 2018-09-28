@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AlertDefinitionsUIUpdateEvent extends AmbariUpdateEvent {
+public class AlertDefinitionsUIUpdateEvent extends STOMPEvent {
 
   private final Map<Long, AlertCluster> clusters;
   private final AlertDefinitionEventType eventType;

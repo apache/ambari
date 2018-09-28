@@ -294,7 +294,7 @@ public class ClusterDAO {
     return daoUtils.selectOne(query);
   }
 
-  /**
+  /**8
    * Create Cluster entity in Database
    * @param clusterEntity entity to create
    */
@@ -364,7 +364,7 @@ public class ClusterDAO {
       entityManager.flush();
     }
 
-    return clusterEntity;
+    return findById(clusterEntity.getClusterId());
   }
 
   /**

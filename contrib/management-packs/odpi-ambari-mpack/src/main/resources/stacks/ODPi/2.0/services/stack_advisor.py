@@ -581,16 +581,14 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
     putAmsSiteProperty = self.putProperty(configurations, "ams-site", services)
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env", services)
-    putGrafanaProperty = self.putProperty(configurations, "ams-grafana-env", services)
     putGrafanaPropertyAttribute = self.putPropertyAttribute(configurations, "ams-grafana-env")
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
-
     if 'cluster-env' in services['configurations'] and \
-        'metrics_collector_vip_host' in services['configurations']['cluster-env']['properties']:
-      metric_collector_host = services['configurations']['cluster-env']['properties']['metrics_collector_vip_host']
-    else:
-      metric_collector_host = 'localhost' if len(amsCollectorHosts) == 0 else amsCollectorHosts[0]
+        'metrics_collector_external_hosts' in services['configurations']['cluster-env']:
+      amsCollectorHosts = services['configurations']['cluster-env']['metrics_collector_external_hosts']
+
+    metric_collector_host = 'localhost' if len(amsCollectorHosts) == 0 else amsCollectorHosts[0]
 
     putAmsSiteProperty("timeline.metrics.service.webapp.address", str(metric_collector_host) + ":6188")
 
@@ -1314,6 +1312,9 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
+
+    if mountPoint is None:
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \

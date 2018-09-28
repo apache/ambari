@@ -24,7 +24,7 @@ import org.apache.http.client.utils.URIBuilder;
 
 public class AmbariConfig {
 
-  private static final String JDK_RESOURCE_LOCATION = "/resources/";
+  private static final String JDK_RESOURCE_LOCATION = "/resources";
 
   private final String masterHostname;
   private final Integer masterPort;

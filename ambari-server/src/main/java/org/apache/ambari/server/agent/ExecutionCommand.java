@@ -28,6 +28,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.utils.StageUtils;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 
@@ -52,21 +54,15 @@ public class ExecutionCommand extends AgentCommand {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
 
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterId")
+  @JsonProperty("clusterId")
   private String clusterId;
 
   @SerializedName("clusterName")
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
+  @JsonProperty("clusterName")
   private String clusterName;
 
-  @SerializedName("clusterSettings")
-  private Map<String, String> clusterSettings;
-
-  @SerializedName("stackSettings")
-  private Map<String, String> stackSettings;
-
   @SerializedName("requestId")
-  @com.fasterxml.jackson.annotation.JsonProperty("requestId")
+  @JsonProperty("requestId")
   private long requestId;
 
   @SerializedName("stageId")
@@ -74,11 +70,11 @@ public class ExecutionCommand extends AgentCommand {
   private long stageId;
 
   @SerializedName("taskId")
-  @com.fasterxml.jackson.annotation.JsonProperty("taskId")
+  @JsonProperty("taskId")
   private long taskId;
 
   @SerializedName("commandId")
-  @com.fasterxml.jackson.annotation.JsonProperty("commandId")
+  @JsonProperty("commandId")
   private String commandId;
 
   @SerializedName("hostname")
@@ -86,7 +82,7 @@ public class ExecutionCommand extends AgentCommand {
   private String hostname;
 
   @SerializedName("role")
-  @com.fasterxml.jackson.annotation.JsonProperty("role")
+  @JsonProperty("role")
   private String role;
 
   @SerializedName("hostLevelParams")
@@ -94,15 +90,14 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("roleParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("roleParams")
+  @JsonProperty("roleParams")
   private Map<String, String> roleParams = null;
 
   @SerializedName("roleCommand")
-  @com.fasterxml.jackson.annotation.JsonProperty("roleCommand")
+  @JsonProperty("roleCommand")
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
-  @JsonIgnore
   private Map<String, Set<String>> clusterHostInfo =
     new HashMap<>();
 
@@ -110,7 +105,7 @@ public class ExecutionCommand extends AgentCommand {
   @JsonIgnore
   private Map<String, Map<String, String>> configurations;
 
-  @SerializedName("configuration_attributes")
+  @SerializedName("configurationAttributes")
   @JsonIgnore
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
@@ -123,7 +118,7 @@ public class ExecutionCommand extends AgentCommand {
   private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("commandParams")
+  @JsonProperty("commandParams")
   private Map<String, String> commandParams = new HashMap<>();
 
   /**
@@ -136,11 +131,11 @@ public class ExecutionCommand extends AgentCommand {
   private String serviceGroupName;
 
   @SerializedName("serviceName")
-  @com.fasterxml.jackson.annotation.JsonProperty("serviceName")
+  @JsonProperty("serviceName")
   private String serviceName;
 
   @SerializedName("serviceType")
-  @JsonIgnore
+  @JsonProperty("serviceType")
   private String serviceType;
 
   @SerializedName("componentName")
@@ -148,7 +143,7 @@ public class ExecutionCommand extends AgentCommand {
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("kerberosCommandParams")
+  @JsonProperty("kerberosCommandParams")
   private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")
@@ -195,8 +190,7 @@ public class ExecutionCommand extends AgentCommand {
 
 
   /**
-   * Provides information regarding the content of repositories.  This structure replaces
-   * the deprecated use of {@link KeyNames#REPO_INFO}
+   * Provides information regarding the content of repositories.
    */
   @SerializedName("repositoryFile")
   private CommandRepository commandRepository;
@@ -209,6 +203,9 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("roleParameters")
   private Map<String, Object> roleParameters;
+
+  @SerializedName("useLatestConfigs")
+  private Boolean useLatestConfigs = null;
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
@@ -323,23 +320,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setHostLevelParams(Map<String, String> params) {
     hostLevelParams = params;
-  }
-
-  public Map<String, String> getClusterSettings() {
-    return clusterSettings;
-  }
-
-  public void setClusterSettings(Map<String, String> clusterSettings) {
-    this.clusterSettings = clusterSettings;
-  }
-
-
-  public Map<String, String> getStackSettings() {
-    return stackSettings;
-  }
-
-  public void setStackSettings(Map<String, String> stackSettings) {
-    this.stackSettings = stackSettings;
   }
 
   public Map<String, Set<String>> getClusterHostInfo() {
@@ -486,14 +466,33 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
+   * Gets the repository file which was set on this command. The repository can
+   * be set either by the creator of the command or by the
+   * {@link ExecutionCommandWrapper} when it is about to execute the command.
+   *
    * @return the repository file that is to be written.
+   * @see #setRepositoryFile(CommandRepository)
    */
   public CommandRepository getRepositoryFile() {
     return commandRepository;
   }
 
   /**
-   * @param repository  the command repository instance.
+   * Sets the {@link CommandRepository} which will be sent down to the agent
+   * instructing it on which repository file to create on the host. In most
+   * cases, it is not necessary to set this file since the
+   * {@link ExecutionCommandWrapper} will set it in the event that it is
+   * missing. In fact, it is only appropriate to set this file in the following
+   * cases:
+   * <ul>
+   * <li>When distributing a repository to hosts in preparation for upgrade.
+   * This is because the service/component desired stack is not pointing to the
+   * new repository yet</li>
+   * <li>If the command does not contain a host or service/component></li>
+   * </ul>
+   *
+   * @param repository
+   *          the command repository instance.
    */
   public void setRepositoryFile(CommandRepository repository) {
     commandRepository = repository;
@@ -514,6 +513,15 @@ public class ExecutionCommand extends AgentCommand {
    */
   public void setRoleParameters(Map<String, Object> params) {
     roleParameters = params;
+  }
+
+
+  public Boolean getUseLatestConfigs() {
+    return useLatestConfigs;
+  }
+
+  public void setUseLatestConfigs(Boolean useLatestConfigs) {
+    this.useLatestConfigs = useLatestConfigs;
   }
 
   /**
@@ -560,6 +568,7 @@ public class ExecutionCommand extends AgentCommand {
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
     String USER_GROUPS = "user_groups";
+    String BLUEPRINT_PROVISIONING_STATE = "blueprint_provisioning_state";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
@@ -568,6 +577,7 @@ public class ExecutionCommand extends AgentCommand {
     String AGENT_STACK_RETRY_ON_UNAVAILABILITY = "agent_stack_retry_on_unavailability";
     String AGENT_STACK_RETRY_COUNT = "agent_stack_retry_count";
     String LOG_OUTPUT = "log_output";
+    String DFS_TYPE = "dfs_type";
 
     /**
      * A boolean indicating whether configuration tags should be refreshed
@@ -582,6 +592,8 @@ public class ExecutionCommand extends AgentCommand {
      * The key indicating that there is an un-finalized upgrade which is suspended.
      */
     String UPGRADE_SUSPENDED = "upgrade_suspended";
+
+    String CLUSTER_NAME = "cluster_name";
 
     /**
      * The version of the component to send down with the command. Normally,

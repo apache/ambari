@@ -78,19 +78,19 @@
                   <div class="accordion-inner">
                       {{#each service in item.services}}
                         <div class="row service-version-info">
-                          <div class="col-xs-4 service-name">
+                          <div class="col-xs-3 service-name">
                             {{service.displayName}}
                           </div>
                           <div class="col-xs-3">
-                            <span class="label available">
+                            <span class="label label-from available">
                               {{service.fromVersion}}
                             </span>
                           </div>
-                          <div class="col-xs-2 align-center">
+                          <div class="col-xs-3 align-center">
                             <i class="icon-arrow-right"></i>
                           </div>
                           <div class="col-xs-3">
-                            <span class="label available">
+                            <span class="label label-to available">
                               {{service.toVersion}}
                             </span>
                           </div>

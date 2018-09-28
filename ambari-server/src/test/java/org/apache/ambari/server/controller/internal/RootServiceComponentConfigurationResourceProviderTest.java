@@ -39,9 +39,11 @@ import java.util.TreeMap;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -53,11 +55,14 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.ldap.service.LdapFacade;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
@@ -93,6 +98,8 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   private AmbariConfigurationDAO dao;
   private Configuration configuration;
   private AmbariEventPublisher publisher;
+  private AmbariServerLDAPConfigurationHandler ambariServerLDAPConfigurationHandler;
+  private AmbariServerSSOConfigurationHandler ambariServerSSOConfigurationHandler;
 
   @Before
   public void init() {
@@ -104,6 +111,8 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     configuration = injector.getInstance(Configuration.class);
     factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
     publisher = injector.getInstance(AmbariEventPublisher.class);
+    ambariServerLDAPConfigurationHandler = injector.getInstance(AmbariServerLDAPConfigurationHandler.class);
+    ambariServerSSOConfigurationHandler = injector.getInstance(AmbariServerSSOConfigurationHandler.class);
   }
 
   @After
@@ -171,7 +180,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
 
     Map<String, String> properties2 = new HashMap<>();
     if (opDirective == null) {
-      properties2.put(AmbariServerConfigurationKey.SSO_ENABED_SERVICES.key(), "true");
+      properties2.put(AmbariServerConfigurationKey.SSO_ENABLED_SERVICES.key(), "true");
       propertySets.add(toRequestProperties(SSO_CONFIG_CATEGORY, properties2));
     }
 
@@ -195,6 +204,9 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
       expect(dao.reconcileCategory(eq(SSO_CONFIG_CATEGORY), capture(capturedProperties2), eq(true)))
           .andReturn(true)
           .once();
+      expect(dao.findByCategory(eq(SSO_CONFIG_CATEGORY)))
+          .andReturn(Collections.emptyList())
+          .once();
 
 
       publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
@@ -202,11 +214,11 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     }
 
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY))
-        .andReturn(new AmbariServerConfigurationHandler())
+        .andReturn(ambariServerLDAPConfigurationHandler)
         .once();
     if (opDirective == null) {
       expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), SSO_CONFIG_CATEGORY))
-          .andReturn(new AmbariServerConfigurationHandler())
+          .andReturn(ambariServerSSOConfigurationHandler)
           .once();
     }
 
@@ -272,7 +284,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     expectLastCall().once();
 
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY))
-        .andReturn(new AmbariServerConfigurationHandler())
+        .andReturn(ambariServerLDAPConfigurationHandler)
         .once();
 
     replayAll();
@@ -319,7 +331,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(LDAP_CONFIG_CATEGORY, properties)).once();
 
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY))
-        .andReturn(new AmbariServerLDAPConfigurationHandler())
+        .andReturn(ambariServerLDAPConfigurationHandler)
         .once();
 
     replayAll();
@@ -431,7 +443,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     }
 
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY))
-        .andReturn(new AmbariServerConfigurationHandler())
+        .andReturn(ambariServerLDAPConfigurationHandler)
         .once();
 
     replayAll();
@@ -537,7 +549,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     expect(request.getProperties()).andReturn(propertySets).once();
     expect(request.getRequestInfoProperties()).andReturn(new HashMap<>());
     expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), expectedProperties)).times(2);
-    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY)).andReturn(new AmbariServerLDAPConfigurationHandler()).once();
+    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY)).andReturn(ambariServerLDAPConfigurationHandler).once();
   }
 
   private Predicate createPredicate(String serviceName, String componentName, String categoryName) {
@@ -597,14 +609,25 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(Configuration.class).toInstance(createNiceMock(Configuration.class));
-        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
-        bind(AmbariConfigurationDAO.class).toInstance(createMock(AmbariConfigurationDAO.class));
-        bind(AmbariEventPublisher.class).toInstance(createMock(AmbariEventPublisher.class));
-        bind(RootServiceComponentConfigurationHandlerFactory.class).toInstance(createMock(RootServiceComponentConfigurationHandlerFactory.class));
+        AmbariEventPublisher publisher = createMock(AmbariEventPublisher.class);
+        AmbariConfigurationDAO ambariConfigurationDAO = createMock(AmbariConfigurationDAO.class);
+        Configuration configuration = createNiceMock(Configuration.class);
+        Clusters clusters = createNiceMock(Clusters.class);
+        ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+        AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+        StackAdvisorHelper stackAdvisorHelper = createNiceMock(StackAdvisorHelper.class);
+        LdapFacade ldapFacade = createNiceMock(LdapFacade.class);
 
-        binder().requestStaticInjection(AmbariServerConfigurationHandler.class);
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Configuration.class).toInstance(configuration);
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(AmbariConfigurationDAO.class).toInstance(ambariConfigurationDAO);
+        bind(AmbariEventPublisher.class).toInstance(publisher);
+
+        bind(AmbariServerConfigurationHandler.class).toInstance(new AmbariServerConfigurationHandler(ambariConfigurationDAO, publisher, configuration));
+        bind(AmbariServerSSOConfigurationHandler.class).toInstance(new AmbariServerSSOConfigurationHandler(clusters, configHelper, managementController, stackAdvisorHelper, ambariConfigurationDAO, publisher, configuration));
+        bind(AmbariServerLDAPConfigurationHandler.class).toInstance(new AmbariServerLDAPConfigurationHandler(ldapFacade, ambariConfigurationDAO, publisher, configuration));
+        bind(RootServiceComponentConfigurationHandlerFactory.class).toInstance(createMock(RootServiceComponentConfigurationHandlerFactory.class));
       }
     });
   }

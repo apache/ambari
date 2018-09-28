@@ -18,7 +18,7 @@
 
 <div class="col-md-7">
   <p class="step-description">{{t installer.step7.accountsTab.body}}</p>
-  <div class="use-ambari-chekboxes">
+  <div class="use-ambari-checkboxes">
     {{#each checkbox in view.checkboxes}}
       <div>
         {{view checkbox.viewClass serviceConfigBinding="checkbox" labelBinding="checkbox.displayName"}}
@@ -38,7 +38,7 @@
         <td class="account-title">{{property.displayName}}</td>
         <td>
           <div {{bindAttr class="property.errorMessage:has-error"}}>
-            {{view property.viewClass serviceConfigBinding="property" fullWidth=true}}
+            {{view property.viewClass serviceConfigBinding="property" fullWidth=true isPopoverEnabled="false"}}
           </div>
         </td>
       </tr>

@@ -82,7 +82,6 @@ class DeleteIdentityHandler {
   {
     ServiceComponentHostServerActionEvent event = new ServiceComponentHostServerActionEvent(RootComponent.AMBARI_SERVER.name(), StageUtils.getHostName(), System.currentTimeMillis());
     String hostParamsJson = StageUtils.getGson().toJson(customCommandExecutionHelper.createDefaultHostParams(cluster, cluster.getDesiredStackVersion()));
-    stageContainer.setClusterHostInfo(StageUtils.getGson().toJson(StageUtils.getClusterHostInfo(cluster)));
     if (manageIdentities) {
       addPrepareDeleteIdentity(cluster, hostParamsJson, event, commandParameters, stageContainer);
       addDestroyPrincipals(cluster, hostParamsJson, event, commandParameters, stageContainer);
@@ -325,7 +324,7 @@ class DeleteIdentityHandler {
     }
 
     @Override
-    protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, Map<String, Object> requestSharedDataContext) throws AmbariException {
+    protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, boolean includedInFilter, Map<String, Object> requestSharedDataContext) throws AmbariException {
       return null;
     }
   }

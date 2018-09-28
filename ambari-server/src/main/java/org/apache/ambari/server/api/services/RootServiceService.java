@@ -57,7 +57,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @Path("/services")
-@Api(value = "/services", description = "Endpoint for querying root-level services, ie. Ambari Server and Ambari Agents")
+@Api(value = "Services", description = "Endpoint for querying root-level services, ie. Ambari Server and Ambari Agents")
 public class RootServiceService extends BaseService {
 
   private static final String KEY_COMPONENTS = "components";
@@ -138,7 +138,7 @@ public class RootServiceService extends BaseService {
   @Path("{serviceName}/hosts")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Returns the list of hosts for the given root-level service",
-    response = HostResponse.Wrapper.class, responseContainer = RESPONSE_CONTAINER_LIST)
+    response = HostResponse.HostResponseWrapper.class, responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY,
       defaultValue = DEFAULT_FIELDS_HOSTS),
@@ -158,7 +158,7 @@ public class RootServiceService extends BaseService {
   @GET
   @Path("{serviceName}/hosts/{hostName}")
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Returns information about the given host", response = HostResponse.Wrapper.class)
+  @ApiOperation(value = "Returns information about the given host", response = HostResponse.HostResponseWrapper.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY,
       defaultValue = DEFAULT_FIELDS_HOST),

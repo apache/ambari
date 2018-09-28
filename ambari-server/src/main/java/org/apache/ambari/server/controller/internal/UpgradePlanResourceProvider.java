@@ -78,12 +78,23 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
 
   public static final String UPGRADE_PLAN_TYPE                        = UPGRADE_PLAN + "upgrade_type";
   public static final String UPGRADE_PLAN_DIRECTION                   = UPGRADE_PLAN + "direction";
+  /**
+   * Skip slave/client component failures if the tasks are skippable.
+   */
   public static final String UPGRADE_PLAN_SKIP_FAILURES               = UPGRADE_PLAN + "skip_failures";
   public static final String UPGRADE_PLAN_SKIP_PREREQUISITE_CHECKS    = UPGRADE_PLAN + "skip_prerequisite_checks";
   public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECKS         = UPGRADE_PLAN + "skip_service_checks";
+  /**
+   * Skip service check failures if the tasks are skippable.
+   */
   public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECK_FAILURES = UPGRADE_PLAN + "skip_service_check_failures";
   public static final String UPGRADE_PLAN_FAIL_ON_CHECK_WARNINGS      = UPGRADE_PLAN + "fail_on_check_warnings";
   public static final String UPGRADE_PLAN_SERVICE_GROUPS              = UPGRADE_PLAN + "servicegroups";
+  /**
+   * Skip manual verification tasks for hands-free upgrade/downgrade experience.
+   */
+  public static final String UPGRADE_SKIP_MANUAL_VERIFICATION = UPGRADE_PLAN + "skip_manual_verification";
+
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.UpgradePlan, UPGRADE_PLAN_ID)
@@ -293,7 +304,6 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
       entity.setSkipServiceChecks(skip);
     }
 
-    Long clusterId = cluster.getClusterId();
     List<UpgradePlanDetailEntity> details = new ArrayList<>();
 
     serviceGroupJsons.stream()
@@ -321,7 +331,7 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
         } else {
           // !!! TODO find the upgrade pack in the target that will update the
           // service group
-          detail.setUpgradePack("foo");
+          detail.setUpgradePack("TODO");
         }
 
         // !!! TODO During create, we have to resolve the config changes and persist them

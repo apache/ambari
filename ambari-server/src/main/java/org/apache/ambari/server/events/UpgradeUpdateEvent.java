@@ -39,7 +39,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Used for messaging to UI.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class UpgradeUpdateEvent extends AmbariUpdateEvent {
+public class UpgradeUpdateEvent extends STOMPEvent {
 
   @JsonProperty("cluster_id")
   private Long clusterId;

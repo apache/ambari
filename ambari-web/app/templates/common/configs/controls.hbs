@@ -21,7 +21,7 @@
 {{else}}
   {{#if view.showIsFinal}}
     <a href="#" data-toggle="tooltip"
-      {{bindAttr class=":btn-sm :btn-final view.serviceConfigProperty.isFinal:active view.serviceConfigProperty.hideFinalIcon:hidden" disabled="view.serviceConfigProperty.isNotEditable"}}
+      {{bindAttr class=":btn-sm :display-inline-block :btn-final view.serviceConfigProperty.isFinal:active view.serviceConfigProperty.hideFinalIcon:hidden" disabled="view.serviceConfigProperty.isNotEditable"}}
       {{action "toggleFinalFlag" view.serviceConfigProperty target="view.parentView"}}
       {{translateAttr data-original-title="services.service.config.final"}}>
       <i class="glyphicon glyphicon-lock"></i>
@@ -49,10 +49,10 @@
     </a>
   {{/if}}
   {{#if view.showSetRecommended}}
-    <a href="#" data-toggle="tooltip" class="btn-sm"
+    <a href="#" data-toggle="tooltip"
       {{action "setRecommendedValue" view.serviceConfigProperty target="view.parentView"}}
       {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}>
-      <i class="glyphicon glyphicon-repeat"></i>
+      <i class="icon-repeat"></i>
     </a>
   {{/if}}
 {{/if}}

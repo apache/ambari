@@ -136,13 +136,22 @@ describe('App.DashboardWidgetView', function () {
   describe('#deleteWidget()', function() {
 
     beforeEach(function() {
-      view.get('parentView').set('allWidgets', [Em.Object.create({id: 1, isVisible: true})]);
-      view.set('widget.id', 1);
-      view.set('parentView.userPreferences', {
-        visible: [1],
-        hidden: [],
-        threshold: []
+      view.get('parentView').setProperties({
+        allWidgets: [
+          Em.Object.create({
+            id: 1,
+            isVisible: true
+          })
+        ],
+        userPreferences: {
+          visible: [1],
+          hidden: [],
+          threshold: [],
+          groups: {}
+        },
+        widgetGroups: []
       });
+      view.set('widget.id', 1);
       view.deleteWidget();
     });
 

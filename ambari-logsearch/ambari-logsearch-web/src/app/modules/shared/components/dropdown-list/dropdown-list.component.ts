@@ -17,9 +17,10 @@
  */
 
 import {
-  Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
-  QueryList, ChangeDetectorRef
+  Component, OnChanges, AfterViewChecked, OnDestroy, SimpleChanges, Input, Output, EventEmitter,
+  ViewChildren, ViewContainerRef, QueryList, ChangeDetectorRef, ElementRef, ViewChild, OnInit
 } from '@angular/core';
+import {Subscription} from 'rxjs/Subscription';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 
@@ -28,15 +29,84 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
   templateUrl: './dropdown-list.component.html',
   styleUrls: ['./dropdown-list.component.less']
 })
-export class DropdownListComponent implements OnChanges, AfterViewChecked {
+export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecked, OnDestroy {
 
-  constructor(private componentGenerator: ComponentGeneratorService, private changeDetector: ChangeDetectorRef) {
+  private shouldRenderAdditionalComponents = false;
+
+  @Input()
+  items: ListItem[] = [];
+
+  itemsSelected: ListItem[] = [];
+
+  itemsUnSelected: ListItem[] = [];
+
+  defaultSelection: ListItem[] = [];
+
+  @Input()
+  isMultipleChoice? = false;
+
+  @Input()
+  additionalLabelComponentSetter?: string;
+
+  @Input()
+  actionArguments = [];
+
+  @Output()
+  selectedItemChange: EventEmitter<ListItem | ListItem[]> = new EventEmitter();
+
+  @ViewChildren('additionalComponent', {
+    read: ViewContainerRef
+  })
+  containers: QueryList<ViewContainerRef>;
+
+  @Input()
+  useLocalFilter = false;
+
+  @Input()
+  useClearToDefaultSelection = false;
+
+  @ViewChild('filter')
+  filterRef: ElementRef;
+
+  @Input()
+  filterStr = '';
+
+
+  @ViewChild('selectAll')
+  selectAllRef: ElementRef;
+
+  private filterRegExp: RegExp;
+
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private componentGenerator: ComponentGeneratorService,
+    private changeDetector: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    this.separateSelections();
+    this.setDefaultSelection(this.items);
+    // trigger selection if any of the items has been checked
+    if (this.items.some((item: ListItem) => item.isChecked)) {
+      this.selectedItemChange.emit(this.items);
+    }
+    this.subscriptions.push(
+      this.selectedItemChange.subscribe(this.separateSelections)
+    );
   }
 
-  private shouldRenderAdditionalComponents: boolean = false;
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.hasOwnProperty('items')) {
+      const previousItems = changes.items.previousValue;
+      this.separateSelections();
+      if ((!this.defaultSelection || !this.defaultSelection.length) && (!previousItems || !previousItems.length)) {
+        this.setDefaultSelection(this.items);
+      }
       this.shouldRenderAdditionalComponents = true;
     }
   }
@@ -45,29 +115,103 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     this.renderAdditionalComponents();
   }
 
-  @Input()
-  items: ListItem[];
+  getSelectedItems(): ListItem[] {
+    return this.items ? this.items.filter((item: ListItem) => item.isChecked) : [];
+  }
 
-  @Input()
-  isMultipleChoice?: boolean = false;
+  getUnSelectedItems(): ListItem[] {
+    return this.items ? this.items.filter((item: ListItem) => !item.isChecked) : [];
+  }
 
-  @Input()
-  additionalLabelComponentSetter?: string;
+  private setDefaultSelection(items) {
+    this.defaultSelection = this.getSelectedItems();
+  }
 
-  @Input()
-  actionArguments: any[] = [];
+  private separateSelections = () => {
+    this.itemsSelected = this.getSelectedItems();
+    this.itemsUnSelected = this.getUnSelectedItems();
+    this.shouldRenderAdditionalComponents = true;
+  }
 
-  @Output()
-  selectedItemChange: EventEmitter<ListItem> = new EventEmitter();
+  private clearSelection() {
+    this.unSelectAll();
+  }
 
-  @ViewChildren('additionalComponent', {
-    read: ViewContainerRef
-  })
-  containers: QueryList<ViewContainerRef>;
+  private clearToDefaultSelection() {
+    if (this.defaultSelection && this.defaultSelection.length) {
+      this.items.forEach((item: ListItem) => {
+        item.isChecked = this.defaultSelection.findIndex((defaultItem) => defaultItem.value === item.value) !== -1;
+        if (item.onSelect && item.isChecked) {
+          item.onSelect(...this.actionArguments);
+        }
+      });
+      this.selectedItemChange.emit(this.items);
+    }
+  }
+
+  onClearToDefaultSelectionClick = (event): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearToDefaultSelection();
+  }
+  onClearSelectionClick = (event): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearSelection();
+  }
+
+  private changeAllSelection(event) {
+    event.stopPropagation();
+    if (!this.selectAllRef.nativeElement.checked) {
+      this.selectAll();
+    } else {
+      this.unSelectAll();
+    }
+  }
+
+  selectAll() {
+    this.items.forEach((item: ListItem) => {
+      item.isChecked = true;
+      if (item.onSelect) {
+        item.onSelect(...this.actionArguments);
+      }
+    });
+    this.selectedItemChange.emit(this.items);
+  }
+
+  unSelectAll() {
+    this.items.forEach((item: ListItem) => {
+      item.isChecked = false;
+      if (item.onSelect) {
+        item.onSelect(...this.actionArguments);
+      }
+    });
+    this.selectedItemChange.emit(this.items);
+  }
+
+  private onFilterInputKeyUp(event) {
+    if (this.useLocalFilter) {
+      this.filterRegExp = event.target.value ? new RegExp(`${event.target.value}`, 'gi') : null;
+      this.filterStr = event.target.value;
+    }
+  }
+
+  private isFiltered = (item: ListItem): boolean => {
+    return this.useLocalFilter && this.filterRegExp && (
+      !this.filterRegExp.test(item.value)
+      &&
+      !this.filterRegExp.test(item.label)
+    );
+  }
+
+  private clearFilter = (event: MouseEvent): void => {
+    this.filterRegExp = null;
+    this.filterStr = '';
+  }
 
   private renderAdditionalComponents(): void {
-    const setter = this.additionalLabelComponentSetter,
-      containers = this.containers;
+    const setter = this.additionalLabelComponentSetter;
+    const containers = this.containers;
     if (this.shouldRenderAdditionalComponents && setter && containers) {
       containers.forEach((container, index) => this.componentGenerator[setter](this.items[index].value, container));
       this.shouldRenderAdditionalComponents = false;
@@ -75,11 +219,15 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     }
   }
 
-  changeSelectedItem(options: ListItem): void {
-    if (options.onSelect) {
-      options.onSelect(...this.actionArguments);
+  changeSelectedItem(item: ListItem, event?: MouseEvent): void {
+    if (item.onSelect) {
+      item.onSelect(...this.actionArguments);
     }
-    this.selectedItemChange.emit(options);
+    this.selectedItemChange.emit(item);
+  }
+
+  doItemsCheck() {
+    this.separateSelections();
   }
 
 }

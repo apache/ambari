@@ -18,24 +18,6 @@
  */
 package org.apache.ambari.logsearch.steps;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.zjsonpatch.JsonDiff;
-import com.google.common.io.Resources;
-import org.apache.ambari.logsearch.domain.StoryDataRegistry;
-import org.glassfish.jersey.client.JerseyClient;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.jbehave.core.annotations.Named;
-import org.jbehave.core.annotations.Then;
-import org.jbehave.core.annotations.When;
-import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -43,6 +25,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.logsearch.domain.StoryDataRegistry;
+import org.jbehave.core.annotations.Named;
+import org.jbehave.core.annotations.Then;
+import org.jbehave.core.annotations.When;
+import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.zjsonpatch.JsonDiff;
+import com.google.common.io.Resources;
 
 public class LogSearchApiSteps {
 
@@ -52,22 +47,7 @@ public class LogSearchApiSteps {
 
   @When("LogSearch api query sent: <apiQuery>")
   public void sendApiQuery(@Named("apiQuery") String apiQuery) {
-    JerseyClient jerseyClient = JerseyClientBuilder.createClient();
-    HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder()
-      .credentials("admin", "admin")
-      .build();
-    jerseyClient.register(authFeature);
-
-    String logsearchUrl = String.format("http://%s:%d%s",
-      StoryDataRegistry.INSTANCE.getDockerHost(),
-      StoryDataRegistry.INSTANCE.getLogsearchPort(),
-      apiQuery);
-
-    LOG.info("Url: {}", logsearchUrl);
-
-    WebTarget target = jerseyClient.target(logsearchUrl);
-    Invocation.Builder invocationBuilder =  target.request(MediaType.APPLICATION_JSON_TYPE);
-    response = invocationBuilder.get().readEntity(String.class);
+    response = StoryDataRegistry.INSTANCE.logsearchClient().get(apiQuery);
   }
 
 

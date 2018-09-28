@@ -401,7 +401,7 @@ public class ConfigImpl implements Config {
 
       // save the entity, forcing a flush to ensure the refresh picks up the
       // newest data
-      clusterDAO.merge(clusterEntity, true);
+      clusterEntity = clusterDAO.merge(clusterEntity, true);
 
       // re-load the entity associations for the cluster
       cluster.refresh();

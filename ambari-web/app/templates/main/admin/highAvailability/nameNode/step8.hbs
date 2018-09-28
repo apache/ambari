@@ -17,11 +17,18 @@
 }}
 <div id="ha-step8" class="wizard-content col-md-9">
   <h4 class="step-title">{{t admin.highAvailability.wizard.step8.bodyHeader}}</h4>
-  {{{view.step8BodyText}}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{{view.step8BodyText}}}
+    </div>
+  </div>
+  <div>
+    {{t admin.highAvailability.wizard.step8.proceed}}
+  </div>
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <a class="btn btn-success pull-right" {{action done target="controller"}}>{{t common.next}} &rarr;</a>
+    <button class="btn btn-success pull-right" {{action done target="controller"}}>{{t common.next}} &rarr;</button>
     <span class="pull-right btn-extra-info">{{!t admin.highAvailability.wizard.step8.metaNoInit}}</span>
   </div>
 </div>

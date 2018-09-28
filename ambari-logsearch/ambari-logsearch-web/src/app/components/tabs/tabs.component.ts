@@ -16,7 +16,15 @@
  */
 
 import {Component, Input, Output, EventEmitter} from '@angular/core';
-import {Tab} from '@app/classes/models/tab';
+import {LogTypeTab} from '@app/classes/models/log-type-tab';
+import { LogsFilteringUtilsService } from '@app/services/logs-filtering-utils.service';
+
+export enum TabsSwitchMode {
+  Click = 'CLICK',
+  RouteSegment = 'ROUTE_SEGMENT',
+  RouteFragment= 'ROUTE_FRAGMENT',
+  RouteParam = 'ROUTE_PARAM'
+};
 
 @Component({
   selector: 'tabs',
@@ -26,25 +34,72 @@ import {Tab} from '@app/classes/models/tab';
 export class TabsComponent {
 
   @Input()
-  items: Tab[] = [];
+  items: LogTypeTab[] = [];
+
+  @Input()
+  switchMode: TabsSwitchMode = TabsSwitchMode.Click;
+
+  @Input()
+  basePathForRoutingMode: string[];
+
+  @Input()
+  paramNameForRouteParamMode: string;
+
+  @Input()
+  queryParams: {[key: string]: any};
+
+  @Input()
+  queryParamsHandling = 'merge';
 
   @Output()
-  tabSwitched: EventEmitter<Tab> = new EventEmitter();
+  tabSwitched: EventEmitter<LogTypeTab> = new EventEmitter();
 
   @Output()
-  tabClosed: EventEmitter<Tab[]> = new EventEmitter();
+  tabClosed: EventEmitter<LogTypeTab[]> = new EventEmitter();
 
-  switchTab(tab: Tab, event?: MouseEvent): void {
-    event && event.preventDefault();
-    this.items.forEach((item: Tab) => item.isActive = item.id === tab.id);
+  constructor(
+    private logsFilterUtilsService: LogsFilteringUtilsService
+  ) {}
+
+  switchTab(tab: LogTypeTab, event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.items.forEach((item: LogTypeTab) => item.isActive = item.id === tab.id);
     this.tabSwitched.emit(tab);
   }
 
-  closeTab(tab: Tab): void {
+  closeTab(tab: LogTypeTab): void {
     const tabs = this.items,
       tabsCount = tabs.length,
       newActiveTab = tabs[tabsCount - 1] === tab ? tabs[tabsCount - 2] : tabs[tabsCount - 1];
     this.tabClosed.emit([tab, newActiveTab]);
+  }
+
+  /**
+   * Get a route array for router.navigate.
+   * @ToDo it's been called too many times. Check what is this.
+   * @param tab {LogTypeTab}
+   */
+  getRouterLinkForTab(tab: LogTypeTab): (string | {[key: string]: any})[] | string {
+    let link: (string | {[key: string]: any})[] | string;
+    switch (this.switchMode) {
+      case TabsSwitchMode.RouteSegment:
+        link = [...this.basePathForRoutingMode, ...this.logsFilterUtilsService.getNavigationForTab(tab)];
+        break;
+      case TabsSwitchMode.RouteParam:
+        link = [...this.basePathForRoutingMode, {
+          [this.paramNameForRouteParamMode]: tab.id
+        }];
+        break;
+      case TabsSwitchMode.RouteFragment:
+        link = [...this.basePathForRoutingMode];
+        break;
+      default:
+        link = '#';
+        break;
+    }
+    return link;
   }
 
 }

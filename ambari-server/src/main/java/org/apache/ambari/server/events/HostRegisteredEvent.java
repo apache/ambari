@@ -22,13 +22,20 @@ package org.apache.ambari.server.events;
  * the server.
  */
 public class HostRegisteredEvent extends HostEvent {
+
+  private Long hostId;
   /**
    * Constructor.
    *
    * @param hostName
    */
-  public HostRegisteredEvent(String hostName) {
+  public HostRegisteredEvent(String hostName, Long hostId) {
     super(AmbariEventType.HOST_REGISTERED, hostName);
+    this.hostId = hostId;
+  }
+
+  public Long getHostId() {
+    return hostId;
   }
 
   /**

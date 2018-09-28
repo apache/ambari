@@ -419,6 +419,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
      */
     var correctConfigValue = this.get('config.value');
 
+    // workaround for cases when slider input is hidden in DOM
+    try {
+      $(this.get('element')).find('.ui-slider-wrapper').removeClass('hide');
+    } catch (e) {
+      console.error('Error when trying to show slider input');
+    }
+
     var slider = new Slider(this.$('input.slider-input')[0], {
       value: this.get('mirrorValue'),
       ticks: ticks,

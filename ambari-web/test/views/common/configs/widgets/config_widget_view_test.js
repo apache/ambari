@@ -327,63 +327,31 @@ describe('App.ConfigWidgetView', function () {
       {
         config: {
           isFinal: true,
-          isNotEditable: true,
-          isHover: true
+          isNotEditable: true
         },
         e: true
       },
       {
         config: {
           isFinal: true,
-          isNotEditable: false,
-          isHover: true
-        },
-        e: true
-      },{
-        config: {
-          isFinal: true,
-          isNotEditable: true,
-          isHover: false
-        },
-        e: true
-      },{
-        config: {
-          isFinal: true,
-          isNotEditable: false,
-          isHover: false
+          isNotEditable: false
         },
         e: true
       },
       {
         config: {
           isFinal: false,
-          isNotEditable: true,
-          isHover: true
+          isNotEditable: true
         },
         e: false
       },
       {
         config: {
           isFinal: false,
-          isNotEditable: false,
-          isHover: true
+          isNotEditable: false
         },
-        e: false
-      },{
-      config: {
-        isFinal: false,
-        isNotEditable: true,
-        isHover: false
-      },
-      e: false
-    },{
-      config: {
-        isFinal: false,
-        isNotEditable: false,
-        isHover: false
-      },
-      e: false
-    }
+        e: true
+      }
     ].forEach(function (test) {
 
       it(JSON.stringify(test.config), function () {

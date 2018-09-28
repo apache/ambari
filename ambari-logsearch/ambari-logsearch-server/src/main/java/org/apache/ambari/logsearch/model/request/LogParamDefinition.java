@@ -30,15 +30,15 @@ import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.EX
 
 public interface LogParamDefinition {
 
-  String getiMessage();
+  String getIncludeMessage();
 
   @ApiParam(value = I_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_I_MESSAGE)
-  void setiMessage(String iMessage);
+  void setIncludeMessage(String includeMessage);
 
-  String geteMessage();
+  String getExcludeMessage();
 
   @ApiParam(value = E_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_E_MESSAGE)
-  void seteMessage(String eMessage);
+  void setExcludeMessage(String excludeMessage);
 
   String getMustBe();
 

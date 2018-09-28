@@ -19,7 +19,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -31,10 +31,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -48,10 +45,7 @@ import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -60,8 +54,7 @@ import com.google.common.collect.ImmutableSet;
  */
 public class ExportBlueprintRequest implements TopologyRequest {
 
-  private final static Logger LOG = LoggerFactory.getLogger(ExportBlueprintRequest.class);
-  private static AmbariManagementController controller = AmbariServer.getController();
+  private final Set<StackId> stackIds;
 
   private String clusterName;
   private Long clusterId;
@@ -69,20 +62,25 @@ public class ExportBlueprintRequest implements TopologyRequest {
   private Configuration configuration;
   //todo: Should this map be represented by a new class?
   private Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
-  private Map<String, StackId> serviceGroupToMpack = new HashMap<>();
 
-
-  public ExportBlueprintRequest(TreeNode<Resource> clusterNode) throws InvalidTopologyTemplateException {
+  public ExportBlueprintRequest(TreeNode<Resource> clusterNode) {
     Resource clusterResource = clusterNode.getObject();
     clusterName = String.valueOf(clusterResource.getPropertyValue(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
     clusterId = Long.valueOf(String.valueOf(clusterResource.getPropertyValue(
             ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID)));
 
-    // create service group to mpack map
-    serviceGroupToMpack = clusterNode.getChild("servicegroups").getChildren().stream().
-      map(tn -> tn.getObject().getPropertiesMap().get(ServiceGroupResourceProvider.RESPONSE_KEY)).
-      collect(toMap(m -> m.get("service_group_name").toString(), m -> new StackId(m.get("stack").toString())));
+    TreeNode<Resource> serviceGroups = clusterNode.getChild("servicegroups");
+    if (serviceGroups != null) {
+      stackIds = serviceGroups.getChildren().stream()
+        .map(TreeNode::getObject)
+        .map(Resource::getPropertiesMap)
+        .map(each -> each.get(ServiceGroupResourceProvider.RESPONSE_KEY))
+        .map(m -> new StackId(m.get(ServiceGroupResourceProvider.MPACK_NAME).toString(), m.get(ServiceGroupResourceProvider.MPACK_VERSION).toString()))
+        .collect(toSet());
+    } else {
+      stackIds = ImmutableSet.of(parseStack(clusterResource));
+    }
 
     createConfiguration(clusterNode);
     //todo: should be parsing Configuration from the beginning
@@ -90,7 +88,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
 
     Collection<ExportedHostGroup> exportedHostGroups = processHostGroups(clusterNode.getChild("hosts"));
     createHostGroupInfo(exportedHostGroups);
-    createBlueprint(exportedHostGroups, createStack(parseStack(clusterResource)));
+    createBlueprint(exportedHostGroups);
   }
 
   public String getClusterName() {
@@ -127,10 +125,15 @@ public class ExportBlueprintRequest implements TopologyRequest {
     return String.format("Export Command For Cluster '%s'", clusterName);
   }
 
+  @Override
+  public Set<StackId> getStackIds() {
+    return stackIds;
+  }
+
   // ----- private instance methods ------------------------------------------
 
 
-  private void createBlueprint(Collection<ExportedHostGroup> exportedHostGroups, Stack stack) {
+  private void createBlueprint(Collection<ExportedHostGroup> exportedHostGroups) {
     String bpName = "exported-blueprint";
 
     Collection<HostGroup> hostGroups = new ArrayList<>();
@@ -139,7 +142,6 @@ public class ExportBlueprintRequest implements TopologyRequest {
         exportedHostGroup.getComponents(), exportedHostGroup.getConfiguration(),
         String.valueOf(exportedHostGroup.getCardinality())));
     }
-    ImmutableSet<StackId> stackIds = ImmutableSet.of(stack.getStackId());
     blueprint = new BlueprintImpl(bpName, hostGroups, stackIds, Collections.emptySet(), configuration, null, null);
   }
 
@@ -156,14 +158,6 @@ public class ExportBlueprintRequest implements TopologyRequest {
 
   private StackId parseStack(Resource clusterResource) {
     return new StackId(String.valueOf(clusterResource.getPropertyValue(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID)));
-  }
-
-  private Stack createStack(StackId stackId) throws InvalidTopologyTemplateException {
-    try {
-      return new Stack(stackId, controller.getAmbariMetaInfo());
-    } catch (StackAccessException e) {
-      throw new InvalidTopologyTemplateException(String.format("The specified stack doesn't exist: %s", stackId));
-    }
   }
 
   /**
@@ -267,11 +261,11 @@ public class ExportBlueprintRequest implements TopologyRequest {
       for (TreeNode<Resource> component : components.getChildren()) {
         Resource resource = component.getObject();
         String componentName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.COMPONENT_NAME));
         String serviceName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.SERVICE_NAME));
         String serviceGroupName =
-          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID));
+          String.valueOf(resource.getPropertyValue(HostComponentResourceProvider.SERVICE_GROUP_NAME));
         getComponents().add(new Component(componentName, serviceGroupName, serviceName, null));
       }
       addAmbariComponentIfLocalhost((String) host.getObject().getPropertyValue(

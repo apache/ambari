@@ -445,7 +445,7 @@ def main(argv):
   parser.add_option('--repo', action='store_true', dest='repo',
     help="Add repository data with options: --repo-os, --repo-url, --repo-id, --repo-name, --repo-unique")
   parser.add_option('--repo-os', dest='repo_os',
-    help="The operating system type: i.e. redhat6, redhat7, debian7, ubuntu12, ubuntu14, ubuntu16, suse11, suse12")
+    help="The operating system type: i.e. redhat6, redhat7, debian7, debian9, ubuntu12, ubuntu14, ubuntu16, suse11, suse12")
   parser.add_option('--repo-url', dest='repo_url',
     help="The base url for the repository data")
   parser.add_option('--repo-unique', dest='unique', type='choice', choices=['true', 'false'],

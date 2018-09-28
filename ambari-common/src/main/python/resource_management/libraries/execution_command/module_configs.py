@@ -30,6 +30,13 @@ class ModuleConfigs(object):
     self.__module_configs = configs
     self.__module_config_attributes = configAttributes
 
+  def get_raw_config_dict(self):
+    """
+    Sometimes the caller needs to access to module_configs directly
+    :return: config dict
+    """
+    return self.__module_configs
+
   def get_all_attributes(self, module_name, config_type):
     """
     Retrieve attributes from /configurationAttributes/config_type

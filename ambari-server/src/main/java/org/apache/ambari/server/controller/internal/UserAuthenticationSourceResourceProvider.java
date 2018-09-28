@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -388,8 +389,8 @@ public class UserAuthenticationSourceResourceProvider extends AbstractAuthorized
         entity.getUserAuthenticationId(),
         entity.getAuthenticationType(),
         entity.getAuthenticationKey(),
-        entity.getCreateTime(),
-        entity.getUpdateTime());
+        new Date(entity.getCreateTime()),
+        new Date(entity.getUpdateTime()));
   }
 
 

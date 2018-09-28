@@ -22,6 +22,8 @@ App.DropdownView = Em.View.extend({
 
   templateName: require('templates/common/form/dropdown'),
 
+  qaAttr: '',
+
   selection: null,
 
   value: '',
@@ -38,6 +40,10 @@ App.DropdownView = Em.View.extend({
 
   change: Em.K,
 
+  didInsertElement: function() {
+    this.observeEmptySelection();
+  },
+
   /**
    * value should be updated after updating selection and vise versa
    */
@@ -50,7 +56,7 @@ App.DropdownView = Em.View.extend({
     if (property === 'value') {
       this.set('selection', optionValuePath ? content.findProperty(optionValuePath, value) : value);
     } else if (property === 'selection') {
-      this.set('value', Em.getWithDefault(selection, optionValuePath, selection) || '');
+      this.set('value', selection && Em.getWithDefault(selection, optionValuePath, selection) || '');
     }
     this.set('isUpdating', false);
   }.observes('selection', 'value'),
@@ -70,6 +76,8 @@ App.DropdownView = Em.View.extend({
 });
 
 App.DropdownOptionView = Em.View.extend({
+
+  tagName: 'span',
 
   template: Em.Handlebars.compile('{{view.optionLabel}}'),
 

@@ -48,7 +48,7 @@ public class User {
   public User(UserEntity userEntity) {
     userId = userEntity.getUserId();
     userName = userEntity.getUserName();
-    createTime = userEntity.getCreateTime();
+    createTime = new Date(userEntity.getCreateTime());
     active = userEntity.getActive();
 
     groups = new ArrayList<>();

@@ -241,7 +241,7 @@ public class MITKerberosOperationHandler extends KDCKerberosOperationHandler {
     }
 
     // Add explicit KDC admin host, if available
-    String adminSeverHost = getAdminServerHost();
+    String adminSeverHost = getAdminServerHost(true);
     if (!StringUtils.isEmpty(adminSeverHost)) {
       command.add("-s");
       command.add(adminSeverHost);
@@ -340,7 +340,7 @@ public class MITKerberosOperationHandler extends KDCKerberosOperationHandler {
         "-c",
         credentialsCache,
         "-S",
-        String.format("kadmin/%s", getAdminServerHost()),
+        String.format("kadmin/%s", getAdminServerHost(false)),
         credentials.getPrincipal()
     };
   }

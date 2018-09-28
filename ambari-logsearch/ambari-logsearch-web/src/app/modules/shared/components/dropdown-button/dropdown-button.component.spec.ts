@@ -41,6 +41,8 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {AuthService} from '@app/services/auth.service';
 
 import {DropdownButtonComponent} from './dropdown-button.component';
+import {NotificationsService} from 'angular2-notifications/src/notifications.service';
+import {NotificationService} from '@modules/shared/services/notification.service';
 
 describe('DropdownButtonComponent', () => {
   let component: DropdownButtonComponent;
@@ -52,7 +54,7 @@ describe('DropdownButtonComponent', () => {
         return {
           subscribe: () => {
           }
-        }
+        };
       }
     };
     TestBed.configureTestingModule({
@@ -95,7 +97,9 @@ describe('DropdownButtonComponent', () => {
           useValue: httpClient
         },
         LogsContainerService,
-        AuthService
+        AuthService,
+        NotificationsService,
+        NotificationService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

@@ -82,7 +82,7 @@ angular.module('ambariAdminConsole')
         $scope.appliedFilters = $scope.appliedFilters.filter(function(item) {
           return filter.id !== item.id;
         });
-        $scope.observeSearchFilterInput(event);
+        $scope.observeSearchFilterInput();
         mainInputElement.focus();
         $scope.updateFilters($scope.appliedFilters);
       };

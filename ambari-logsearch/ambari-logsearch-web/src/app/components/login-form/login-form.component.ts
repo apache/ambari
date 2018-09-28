@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {Response} from '@angular/http';
+import {Component, ViewChild, OnInit, OnDestroy} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/finally';
+import {Subscription} from 'rxjs/Subscription';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
-import {Subscription} from "rxjs/Subscription";
-import {TakeUntilDestroy} from "angular2-take-until-destroy";
+import {TranslateService} from '@ngx-translate/core';
+import {FormGroup} from '@angular/forms';
 
 @Component({
   selector: 'login-form',
@@ -31,46 +32,55 @@ import {TakeUntilDestroy} from "angular2-take-until-destroy";
 })
 export class LoginFormComponent implements OnInit, OnDestroy {
 
-  constructor(private authService: AuthService, private appState: AppStateService) {}
-
-  ngOnInit() {
-    this.appStateIsLoginInProgressSubscription = this.appState.getParameter('isLoginInProgress')
-      .subscribe(value => this.isLoginInProgress = value);
-  }
-
-  ngOnDestroy(){
-    this.appStateIsLoginInProgressSubscription.unsubscribe();
-  }
-
-  private appStateIsLoginInProgressSubscription: Subscription;
-
   username: string;
 
   password: string;
 
   isLoginAlertDisplayed: boolean;
 
-  isLoginInProgress: boolean;
+  isLoginInProgress$: Observable<boolean> = this.appState.getParameter('isLoginInProgress');
 
-  /**
-   * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
-   * When it gets error response it shows.
-   * @param {Response} resp
-   */
-  private onLoginError = (resp: Response): void => {
-    this.isLoginAlertDisplayed = true;
-  };
-  /**
-   * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
-   * When it gets success response it hides.
-   * @param {Response} resp
-   */
-  private onLoginSuccess = (resp: Response): void => {
+  errorMessage: string;
+
+  @ViewChild('loginForm')
+  loginForm: FormGroup;
+
+  subscriptions: Subscription[] = [];
+
+  constructor(
+    private authService: AuthService,
+    private appState: AppStateService,
+    private translateService: TranslateService
+  ) {}
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.loginForm.valueChanges.subscribe(this.onLoginFormChange)
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
+  onLoginFormChange = (event) => {
     this.isLoginAlertDisplayed = false;
-  };
+  }
+
+  private onLoginSuccess = (result: Boolean): void => {
+    this.isLoginAlertDisplayed = false;
+    this.errorMessage = '';
+  }
+
+  private onLoginError = (resp: Boolean): void => {
+    this.translateService.get('authorization.error.401').first().subscribe((message: string) => {
+      this.errorMessage = message;
+      this.isLoginAlertDisplayed = true;
+    });
+  }
 
   login() {
-    this.authService.login(this.username,this.password).subscribe(this.onLoginSuccess, this.onLoginError);
+    this.authService.login(this.username, this.password).subscribe(this.onLoginSuccess, this.onLoginError);
   }
 
 }

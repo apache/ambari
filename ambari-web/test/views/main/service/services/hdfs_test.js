@@ -31,10 +31,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
     view = getView({service: Em.Object.create()});
   });
 
-  App.TestAliases.testAsComputedAlias(getView(), 'dataNodesDead', 'service.dataNodesInstalled', 'boolean');
-
-  App.TestAliases.testAsComputedAlias(getView(), 'journalNodesTotal', 'service.journalNodes.length', 'number');
-
   describe("#metricsNotAvailableObserver()", function() {
 
     beforeEach(function() {
@@ -69,42 +65,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
     it("tooltip destroy should be called", function() {
       view.willDestroyElement();
       expect(mock.tooltip.calledWith('destroy')).to.be.true;
-    });
-  });
-
-  describe("#journalNodesLive", function() {
-
-    it("should return live journal nodes count", function() {
-      view.set('service', Em.Object.create({
-        journalNodes: [
-          Em.Object.create({workStatus: 'STARTED'}),
-          Em.Object.create()
-        ]
-      }));
-      view.propertyDidChange('journalNodesLive');
-      expect(view.get('journalNodesLive')).to.be.equal(1);
-    });
-  });
-
-  describe("#isNfsInStack", function() {
-
-    beforeEach(function() {
-      this.mock = sinon.stub(App.StackServiceComponent, 'find');
-    });
-    afterEach(function() {
-      this.mock.restore();
-    });
-
-    it("no NFS_GATEWAY component", function() {
-      this.mock.returns([]);
-      view.propertyDidChange('isNfsInStack');
-      expect(view.get('isNfsInStack')).to.be.false;
-    });
-
-    it("NFS_GATEWAY component present", function() {
-      this.mock.returns([{componentName: 'NFS_GATEWAY'}]);
-      view.propertyDidChange('isNfsInStack');
-      expect(view.get('isNfsInStack')).to.be.true;
     });
   });
 

@@ -16,59 +16,44 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
-require('controllers/main/admin/highAvailability/journalNode/step1_controller');
+require('controllers/main/admin/highAvailability/journalNode/step6_controller');
 
-describe('App.ManageJournalNodeWizardStep6Controller', function () {
+describe('App.ManageJournalNodeWizardStep7Controller', function () {
   var controller;
 
   beforeEach(function () {
-    controller = App.ManageJournalNodeWizardStep6Controller.create({
-      content: Em.Object.create()
-    });
+    controller = App.ManageJournalNodeWizardStep6Controller.create();
   });
 
-  describe('#startZooKeeperServers', function() {
+  describe('#startJournalNodes', function () {
 
-    beforeEach(function() {
+    beforeEach(function () {
       sinon.stub(controller, 'updateComponent');
-    });
-
-    afterEach(function() {
-      controller.updateComponent.restore();
-    });
-
-    it('updateComponent should be called', function() {
-      controller.set('content.masterComponentHosts', [
+      sinon.stub(App.HostComponent, 'find').returns([
         {
-          component: 'ZOOKEEPER_SERVER',
-          hostName: 'host1'
+          componentName: 'JOURNALNODE',
+          hostName: 'h0'
+        },
+        {
+          componentName: 'JOURNALNODE',
+          hostName: 'h1'
         }
       ]);
-      controller.startZooKeeperServers();
-      expect(controller.updateComponent.calledWith('ZOOKEEPER_SERVER', ['host1'], "ZOOKEEPER", "Start")).to.be.true;
-    });
-  });
-
-  describe('#startActiveNameNode', function() {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'updateComponent');
+      controller.startJournalNodes();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       controller.updateComponent.restore();
+      App.HostComponent.find.restore();
     });
 
-    it('updateComponent should be called', function() {
-      controller.set('content.activeNN', {
-        host_name: 'host1'
-      });
-      controller.startActiveNameNode();
-      expect(controller.updateComponent.calledWith('NAMENODE', 'host1', "HDFS", "Start")).to.be.true;
+    it('updateComponent should be called', function () {
+      expect(controller.updateComponent.calledOnce).to.be.true;
+    });
+
+    it('updateComponent should be called with correct arguments', function () {
+      expect(controller.updateComponent.firstCall.args).to.eql(['JOURNALNODE', ['h0', 'h1'], 'HDFS', 'Start']);
     });
   });
-
 });
-

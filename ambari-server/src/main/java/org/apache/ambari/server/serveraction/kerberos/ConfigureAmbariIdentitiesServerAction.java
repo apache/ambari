@@ -54,7 +54,7 @@ import com.google.inject.Inject;
  * This class mainly relies on the KerberosServerAction to iterate through metadata identifying
  * the Kerberos keytab files that need to be created. For each identity in the metadata, this
  * implementation's
- * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, Map)}
+ * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, boolean, Map)}
  * is invoked attempting the creation of the relevant keytab file.
  */
 public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction {
@@ -108,6 +108,8 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
    * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
+   * @param includedInFilter         a Boolean value indicating whather the principal is included in
+   *                                 the current filter or not
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request  @return a CommandReport, indicating an error
    *                                 condition; or null, indicating a success condition
@@ -117,22 +119,19 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
   protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                           KerberosOperationHandler operationHandler,
                                           Map<String, String> kerberosConfiguration,
+                                          boolean includedInFilter,
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
     CommandReport commandReport = null;
 
-    if (resolvedPrincipal != null) {
-      String dataDirectory = getDataDirectoryPath();
-      String hostName = resolvedPrincipal.getHostName();
-      for (Map.Entry<String, String> serviceMappingEntry : resolvedPrincipal.getServiceMapping().entries()){
-        String serviceName = serviceMappingEntry.getKey();
-        // distribute ambari keytabs only if host id is null, otherwise they will
-        // be distributed by usual process using ambari-agent.
+    if (includedInFilter && resolvedPrincipal != null && StageUtils.getHostName().equals(resolvedPrincipal.getHostName())) {
+      final String hostName = resolvedPrincipal.getHostName();
+      final String dataDirectory = getDataDirectoryPath();
+      for (Map.Entry<String, String> serviceMappingEntry : resolvedPrincipal.getServiceMapping().entries()) {
         // TODO check if changes needed for multiple principals in one keytab
-        if (resolvedPrincipal.getHostId() == null && hostName != null && serviceName.equals(RootService.AMBARI.name())) {
+        if (RootService.AMBARI.name().equals(serviceMappingEntry.getKey())) {
           ResolvedKerberosKeytab keytab = resolvedPrincipal.getResolvedKerberosKeytab();
           String destKeytabFilePath = resolvedPrincipal.getResolvedKerberosKeytab().getFile();
-          hostName = StageUtils.getHostName();
           File hostDirectory = new File(dataDirectory, hostName);
           File srcKeytabFile = new File(hostDirectory, DigestUtils.sha256Hex(destKeytabFilePath));
 

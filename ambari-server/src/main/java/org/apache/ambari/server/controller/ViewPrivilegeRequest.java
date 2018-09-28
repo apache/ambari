@@ -22,6 +22,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewPrivilegeService;
+import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -34,7 +36,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide privilege id in request body schema
    * @return privilege id
    */
-  @ApiModelProperty(name = "PrivilegeInfo/privilege_id", hidden = true)
+  @ApiModelProperty(name = PrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID, hidden = true)
   public Integer getPrivilegeId() {
     return privilegeId;
   }
@@ -43,7 +45,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide permission label in request body schema
    * @return permission label
    */
-  @ApiModelProperty(name = "PrivilegeInfo/permission_label", hidden = true)
+  @ApiModelProperty(name = PrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID, hidden = true)
   public String getPermissionLabel() {
     return permissionLabel;
   }
@@ -52,7 +54,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide view name in request body schema
    * @return view name
    */
-  @ApiModelProperty(name = "PrivilegeInfo/view_name", hidden = true)
+  @ApiModelProperty(name = ViewPrivilegeResourceProvider.VIEW_NAME_PROPERTY_ID, hidden = true)
   public String getViewName() {
     return viewName;
   }
@@ -61,7 +63,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide view version in request body schema
    * @return view version
    */
-  @ApiModelProperty(name = "PrivilegeInfo/version", hidden = true)
+  @ApiModelProperty(name = ViewPrivilegeResourceProvider.VERSION_PROPERTY_ID, hidden = true)
   public String getVersion() {
     return version;
   }
@@ -70,7 +72,7 @@ public class ViewPrivilegeRequest extends ViewPrivilegeResponse implements ApiMo
    * Hide view instance name in request body schema
    * @return view instance name
    */
-  @ApiModelProperty(name = "PrivilegeInfo/instance_name", hidden = true)
+  @ApiModelProperty(name = ViewPrivilegeResourceProvider.INSTANCE_NAME_PROPERTY_ID, hidden = true)
   public String getInstanceName() {
     return instanceName;
   }

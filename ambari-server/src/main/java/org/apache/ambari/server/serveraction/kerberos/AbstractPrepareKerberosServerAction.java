@@ -34,15 +34,19 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +68,11 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
   @Inject
   private KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory;
 
+  @Inject
+  private ConfigHelper configHelper;
+
   @Override
-  protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, Map<String, Object> requestSharedDataContext) throws AmbariException {
+  protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, boolean includedInFilter, Map<String, Object> requestSharedDataContext) throws AmbariException {
     throw new UnsupportedOperationException();
   }
 
@@ -74,12 +81,12 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
   }
 
   public void processServiceComponentHosts(Cluster cluster, KerberosDescriptor kerberosDescriptor,
-                                    List<ServiceComponentHost> schToProcess,
-                                    Collection<String> identityFilter, String dataDirectory,
-                                    Map<String, Map<String, String>> currentConfigurations,
-                                    Map<String, Map<String, String>> kerberosConfigurations,
-                                    boolean includeAmbariIdentity,
-                                    Map<String, Set<String>> propertiesToBeIgnored) throws AmbariException {
+                                           List<ServiceComponentHost> schToProcess,
+                                           Collection<String> identityFilter, String dataDirectory,
+                                           Map<String, Map<String, String>> currentConfigurations,
+                                           Map<String, Map<String, String>> kerberosConfigurations,
+                                           boolean includeAmbariIdentity,
+                                           Map<String, Set<String>> propertiesToBeIgnored) throws AmbariException {
     List<Component> components = new ArrayList<>();
     for (ServiceComponentHost each : schToProcess) {
       components.add(Component.fromServiceComponentHost(each));
@@ -266,15 +273,19 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
    * If work is to be done, a data file containing the details is created so it they changes may be
    * processed in the appropriate stage.
    *
-   * @param dataDirectory          the directory in which to write the configuration changes data file
-   * @param kerberosConfigurations the Kerberos-specific configuration map
-   * @param propertiesToBeRemoved  a map of properties to be removed from the current configuration,
-   *                               grouped by configuration type.
+   * @param dataDirectory             the directory in which to write the configuration changes data file
+   * @param kerberosConfigurations    the Kerberos-specific configuration map
+   * @param propertiesToBeRemoved     a map of properties to be removed from the current configuration,
+   *                                  grouped by configuration type.
+   * @param kerberosDescriptor        the Kerberos descriptor
+   * @param updateConfigurationPolicy the policy used to determine which configurations to update
    * @throws AmbariException
    */
   protected void processConfigurationChanges(String dataDirectory,
                                              Map<String, Map<String, String>> kerberosConfigurations,
-                                             Map<String, Set<String>> propertiesToBeRemoved)
+                                             Map<String, Set<String>> propertiesToBeRemoved,
+                                             KerberosDescriptor kerberosDescriptor,
+                                             UpdateConfigurationPolicy updateConfigurationPolicy)
       throws AmbariException {
     actionLog.writeStdOut("Determining configuration changes");
 
@@ -286,6 +297,12 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
         LOG.error(message);
         throw new AmbariException(message);
       }
+
+      // Determine what the relevant Kerberos identity-related properties are...
+      Map<String, Set<String>> kerberosIdentityProperties = getIdentityProperties(kerberosDescriptor, null);
+
+      // Determine what the existing properties are...
+      Map<String, Map<String, String>> existingProperties = configHelper.getEffectiveConfigProperties(getClusterName(), null);
 
       File configFile = new File(dataDirectory, KerberosConfigDataFileWriter.DATA_FILE_NAME);
       KerberosConfigDataFileWriter kerberosConfDataFileWriter = null;
@@ -300,10 +317,15 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
           if (properties != null) {
             for (Map.Entry<String, String> configTypeEntry : properties.entrySet()) {
-              kerberosConfDataFileWriter.addRecord(type,
-                  configTypeEntry.getKey(),
-                  configTypeEntry.getValue(),
-                  KerberosConfigDataFileWriter.OPERATION_TYPE_SET);
+
+              // Determine if this configuration should be written or not...
+              String propertyName = configTypeEntry.getKey();
+              if (includeConfiguration(type, propertyName, updateConfigurationPolicy, existingProperties, kerberosIdentityProperties)) {
+                kerberosConfDataFileWriter.addRecord(type,
+                    propertyName,
+                    configTypeEntry.getValue(),
+                    KerberosConfigDataFileWriter.OPERATION_TYPE_SET);
+              }
             }
           }
         }
@@ -342,5 +364,121 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
         }
       }
     }
+  }
+
+  /**
+   * Determine of the configuration should be included in the set of configurations to update.
+   *
+   * @param configType
+   * @param propertyName
+   * @param updateConfigurationPolicy
+   * @param existingProperties
+   * @param kerberosIdentityProperties
+   * @return
+   */
+  private boolean includeConfiguration(String configType, String propertyName,
+                                       UpdateConfigurationPolicy updateConfigurationPolicy,
+                                       Map<String, Map<String, String>> existingProperties,
+                                       Map<String, Set<String>> kerberosIdentityProperties) {
+
+    // Determine if the property represents a Kerberos identity-related property
+    boolean isIdentity;
+    if (kerberosIdentityProperties == null) {
+      isIdentity = false;
+    } else {
+      Set<String> propertyNames = kerberosIdentityProperties.get(configType);
+      isIdentity = !CollectionUtils.isEmpty(propertyNames) && propertyNames.contains(propertyName);
+    }
+
+    if (isIdentity) {
+      return updateConfigurationPolicy.applyIdentityChanges();
+    }
+
+    // Determine if the property is a new property
+    boolean isNew;
+    if (existingProperties == null) {
+      isNew = true;
+    } else {
+      Map<String, String> propertyNames = existingProperties.get(configType);
+      isNew = (propertyNames == null) || !propertyNames.containsKey(propertyName);
+    }
+
+    if (isNew) {
+      return updateConfigurationPolicy.applyAdditions();
+    }
+
+    // All other properties...
+    return updateConfigurationPolicy.applyOtherChanges();
+  }
+
+  /**
+   * Recursively processes a Kerberos descriptor container and it children to find the
+   * Kerberos identity-related properties.
+   * <p>
+   * Kerberos identity-related properties are those that contain the following information:
+   * <ul>
+   * <li>principal names</li>
+   * <li>keytab file paths</li>
+   * <li>auth-to-local rules</li>
+   * </ul>
+   *
+   * @param container          the AbstractKerberosDescriptorContainer to process
+   * @param identityProperties a map of config-types to sets of property names to append data
+   * @return a map of config-types to sets of property names
+   */
+  private Map<String, Set<String>> getIdentityProperties(AbstractKerberosDescriptorContainer container, Map<String, Set<String>> identityProperties) {
+    if (container != null) {
+      if (identityProperties == null) {
+        identityProperties = new HashMap<>();
+      }
+
+      // Process the Kerberos identities - principal and keytab file properties.
+      List<KerberosIdentityDescriptor> identityDescriptors;
+      try {
+        // There is no need to resolve references since we just need to get the set of configurations that can be changed.
+        identityDescriptors = container.getIdentities(false, null);
+      } catch (AmbariException e) {
+        LOG.error("An exception occurred getting the Kerberos identity descriptors.  No configurations will be identified.", e);
+        identityDescriptors = null;
+      }
+
+      if (identityDescriptors != null) {
+        Map<String, Map<String, String>> identityConfigurations = kerberosHelper.getIdentityConfigurations(identityDescriptors);
+
+        if (identityConfigurations != null) {
+          for (Map.Entry<String, Map<String, String>> entry : identityConfigurations.entrySet()) {
+            Map<String, String> properties = entry.getValue();
+            if (properties != null) {
+              Set<String> configProperties = identityProperties.computeIfAbsent(entry.getKey(), k -> new HashSet<>());
+              configProperties.addAll(properties.keySet());
+            }
+          }
+        }
+      }
+
+      // Process any auth-to-local rule properties
+      Map<String, Set<String>> authToLocalProperties = kerberosHelper.translateConfigurationSpecifications(container.getAuthToLocalProperties());
+      if (authToLocalProperties != null) {
+        for (Map.Entry<String, Set<String>> entry : authToLocalProperties.entrySet()) {
+          String configType = entry.getKey();
+          Set<String> propertyNames = entry.getValue();
+
+          if (propertyNames != null) {
+            Set<String> configProperties = identityProperties.computeIfAbsent(configType, k -> new HashSet<>());
+            configProperties.addAll(propertyNames);
+          }
+        }
+      }
+
+      // Process the children...
+      Collection<? extends AbstractKerberosDescriptorContainer> childContainers = container.getChildContainers();
+      if (childContainers != null) {
+        for (AbstractKerberosDescriptorContainer childContainer : childContainers) {
+          getIdentityProperties(childContainer, identityProperties);
+        }
+      }
+    }
+
+    return identityProperties;
   }
 }

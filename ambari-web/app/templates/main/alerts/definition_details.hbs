@@ -67,11 +67,11 @@
     <div class="col-md-8">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <div class="row">
-          <div class="pull-left col-md-7">
+        <div class="row no-vertical-padding">
+          <div class="col-md-7">
             <h4 class="panel-title">{{t common.configuration}}</h4>
           </div>
-          <div class="pull-right col-md-5">
+          <div class="col-md-5">
             {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
               {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
                 <a href="#" {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right btn btn-link">
@@ -101,97 +101,102 @@
 
     {{! Right column }}
     <div class="col-md-4 right-column">
-      <div class="properties-list background-text">
-        <div class="row">
-          <div class="col-md-5 property-name">{{t alerts.table.state}}:</div>
-          <div class="col-md-7">
-            {{#if controller.content.enabled}}
-              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
-                <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">{{t alerts.definition.details.infoSection}}</h4>
+        </div>
+        <div class="properties-list background-text panel-body">
+          <div class="row">
+            <div class="col-md-5 property-name">{{t alerts.table.state}}:</div>
+            <div class="col-md-7">
+              {{#if controller.content.enabled}}
+                {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                  <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span
-                      class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
+                    class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
                     {{view.enabledDisplay}}
                   </span>
-                </a>
+                  </a>
+                {{else}}
+                  {{view.enabledDisplay}}
+                {{/isAuthorized}}
               {{else}}
-                {{view.enabledDisplay}}
-              {{/isAuthorized}}
-            {{else}}
-              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
-                <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                  <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span
-                      class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
+                    class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
                     {{view.disabledDisplay}}
                   </span>
-                </a>
-              {{else}}
-                {{view.disabledDisplay}}
-              {{/isAuthorized}}
-            {{/if}}
-          </div>
-        </div>
-        {{#if controller.content.serviceDisplayName}}
-          <div class="row">
-            <div class="col-md-5 property-name">{{t common.service}}:</div>
-            <div class="col-md-7"><span>{{controller.content.serviceDisplayName}}</span></div>
-          </div>
-        {{/if}}
-        {{#if controller.content.componentNameFormatted}}
-          <div class="row">
-            <div class="col-md-5 property-name">{{t common.component}}:</div>
-            <div class="col-md-7">{{controller.content.componentNameFormatted}}</div>
-          </div>
-        {{/if}}
-        <div class="row">
-          <div class="col-md-5 property-name">{{t common.type}}:</div>
-          <div class="col-md-7">
-            <span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}
-          </div>
-        </div>
-        {{#if controller.groupsList.length}}
-          <div class="row">
-            <div class="col-md-5 property-name">{{t alerts.definition.details.groups}}:</div>
-            <div class="col-md-7">
-              <ul class="list-unstyled">
-                {{#each groupName in controller.groupsList}}
-                  <li>{{groupName}}</li>
-                {{/each}}
-              </ul>
-            </div>
-          </div>
-        {{/if}}
-        <div class="row">
-          <div class="col-md-5 property-name">{{t alerts.table.header.lastTrigger}}:</div>
-          <div class="col-md-7">{{controller.content.lastTriggeredFormatted}}</div>
-        </div>
-        {{#unless controller.content.isTypeAggregate}}
-          <div class="row">
-            <div class="col-md-5 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
-            <div class="col-md-7">
-              {{#if controller.content.repeat_tolerance_enabled}}
-                <span>
-                  {{controller.content.repeat_tolerance}}
-                </span>
-              {{else}}
-                <span>
-                  {{controller.globalAlertsRepeatTolerance}}
-                  {{t alerts.table.header.default}}
-                </span>
+                  </a>
+                {{else}}
+                  {{view.disabledDisplay}}
+                {{/isAuthorized}}
               {{/if}}
-              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
-                <a href="#" {{action editRepeatTolerance target="controller"}} class="edit-description-button">
-                  <i class="glyphicon glyphicon-pencil"></i>
-                </a>
-              {{/isAuthorized}}
             </div>
           </div>
-        {{/unless}}
-        {{#if controller.content.hasHelpUrl}}
+          {{#if controller.content.serviceDisplayName}}
+            <div class="row">
+              <div class="col-md-5 property-name">{{t common.service}}:</div>
+              <div class="col-md-7"><span>{{controller.content.serviceDisplayName}}</span></div>
+            </div>
+          {{/if}}
+          {{#if controller.content.componentNameFormatted}}
+            <div class="row">
+              <div class="col-md-5 property-name">{{t common.component}}:</div>
+              <div class="col-md-7">{{controller.content.componentNameFormatted}}</div>
+            </div>
+          {{/if}}
           <div class="row">
-            <div class="col-md-5 property-name">{{t alerts.table.header.helpUrl}}:</div>
-            <div class="col-md-7"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank">{{t common.link}}</a></label></div>
+            <div class="col-md-5 property-name">{{t common.type}}:</div>
+            <div class="col-md-7">
+              <span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}
+            </div>
           </div>
-        {{/if}}
+          {{#if controller.groupsList.length}}
+            <div class="row">
+              <div class="col-md-5 property-name">{{t alerts.definition.details.groups}}:</div>
+              <div class="col-md-7">
+                <ul class="list-unstyled">
+                  {{#each groupName in controller.groupsList}}
+                    <li>{{groupName}}</li>
+                  {{/each}}
+                </ul>
+              </div>
+            </div>
+          {{/if}}
+          <div class="row">
+            <div class="col-md-5 property-name">{{t alerts.table.header.lastTrigger}}:</div>
+            <div class="col-md-7">{{controller.content.lastTriggeredFormatted}}</div>
+          </div>
+          {{#unless controller.content.isTypeAggregate}}
+            <div class="row">
+              <div class="col-md-5 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
+              <div class="col-md-7">
+                {{#if controller.content.repeat_tolerance_enabled}}
+                  <span>
+                    {{controller.content.repeat_tolerance}}
+                  </span>
+                {{else}}
+                  <span>
+                  {{controller.globalAlertsRepeatTolerance}}
+                    {{t alerts.table.header.default}}
+                </span>
+                {{/if}}
+                {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                  <a href="#" {{action editRepeatTolerance target="controller"}} class="edit-description-button">
+                    <i class="glyphicon glyphicon-pencil"></i>
+                  </a>
+                {{/isAuthorized}}
+              </div>
+            </div>
+          {{/unless}}
+          {{#if controller.content.hasHelpUrl}}
+            <div class="row">
+              <div class="col-md-5 property-name">{{t alerts.table.header.helpUrl}}:</div>
+              <div class="col-md-7"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank" rel="noopener noreferrer">{{t common.link}}</a></label></div>
+            </div>
+          {{/if}}
+        </div>
       </div>
     </div>
   </div>

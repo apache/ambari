@@ -19,6 +19,7 @@
 // Variables
 @base-font-color: #666;
 @navbar-background-color: #323544;
+@navbar-logo-background-color: #303d54;
 @h1-vertical-margin: 20px;
 @button-border-radius: 4px;
 @input-border-width: 1px;
@@ -35,7 +36,7 @@
 @list-header-background-color: #F2F2F2;
 @checkbox-top: 4px;
 @dropdown-min-width: 160px;
-@dropdown-max-height: 500px; // TODO get rid of magic number, base on actual design
+@dropdown-max-height: 60vh; // TODO get rid of magic number, base on actual design
 @dropdown-border-radius: 2px;
 @input-height: 34px;
 @input-padding: 10px;
@@ -46,6 +47,7 @@
 @form-success-color: #1eb475;
 @form-error-color: #ef6162;
 @form-warning-color: #e98a40;
+@form-info-color: @debug-color;
 
 
 @fatal-color: #830A0A;
@@ -75,6 +77,7 @@
 
 // Graph
 @graph-padding: .5rem;
+@graph-invert-selection-background: @grey-color;
 
 // Log list
 @log-list-row-data-padding: 8px;
@@ -84,3 +87,9 @@
 
 // Modals
 @large-modal-width: 1200px;
+
+// Notifications
+@notification-color: @base-font-color;
+@notification-title-font-size: 14px;
+@notification-content-font-size: 12px;
+@notification-background-color: #FFF;

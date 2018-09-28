@@ -61,6 +61,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.events.listeners.upgrade.MpackInstallStateListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -75,7 +76,9 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MpackInstallState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -93,9 +96,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 
 public class HeartbeatProcessorTest {
 
@@ -1082,12 +1087,27 @@ public class HeartbeatProcessorTest {
 
   @Test
   public void testInstallPackagesWithId() throws Exception {
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    Service svc = cluster.getService("HDFS");
+    ServiceComponent svcComp = EasyMock.mock(ServiceComponent.class);
+    expect(svcComp.getName()).andReturn("mpack_packages").anyTimes();
+    ServiceComponentHost scHost = EasyMock.mock(ServiceComponentHost.class);
+    expect(svcComp.getServiceComponentHost(EasyMock.anyString())).andReturn(scHost).anyTimes();
+    expect(svcComp.isClientComponent()).andReturn(false).anyTimes();
+    expect(scHost.getServiceComponentName()).andReturn("mpack_packages").anyTimes();
+    expect(scHost.getState()).andReturn(State.INSTALLED).anyTimes();
+    ServiceComponentHostEvent event = EasyMock.mock(ServiceComponentHostEvent.class);
+    scHost.handleEvent(EasyMock.anyObject(ServiceComponentHostEvent.class));
+    EasyMock.expectLastCall();
+    replay(svcComp, scHost);
+    svc.addServiceComponent(svcComp);
     // required since this test method checks the DAO result of handling a
     // heartbeat which performs some async tasks
     EventBusSynchronizer.synchronizeCommandReportEventPublisher(injector);
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
+    command.setTaskId(1L);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
@@ -1105,16 +1125,19 @@ public class HeartbeatProcessorTest {
     json.addProperty("mpackId", mpackEntity.getId());
     json.addProperty("mpackName", mpackEntity.getMpackName());
     json.addProperty("package_installation_result", "SUCCESS");
+    JsonObject mpackJson = new JsonObject();
+    mpackJson.add("mpack_installation", json);
 
     CommandReport cmdReport = new CommandReport();
     cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
     cmdReport.setTaskId(1);
     cmdReport.setCustomCommand("install_packages");
-    cmdReport.setStructuredOut(json.toString());
-    cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
+    cmdReport.setStructuredOut(mpackJson.toString());
+    cmdReport.setRoleCommand(RoleCommand.INSTALL.name());
     cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
-    cmdReport.setRole("install_packages");
+    cmdReport.setRole("mpack_packages");
     cmdReport.setClusterId("1");
+    cmdReport.setServiceName("HDFS");
 
     List<CommandReport> reports = new ArrayList<>();
     reports.add(cmdReport);
@@ -1217,7 +1240,27 @@ public class HeartbeatProcessorTest {
    * @throws AmbariException
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    return cluster.addService(serviceGroup, serviceName, serviceName);
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
+    Service service = cluster.getService(serviceName);
+    if (service == null) {
+      service = cluster.addService(serviceGroup, serviceName, serviceName);
+    }
+    return service;
+  }
+
+  /**
+   *
+   */
+  private class MockModule implements Module {
+    /**
+     *
+     */
+    @Override
+    public void configure(Binder binder) {
+      // this listener gets in the way of actually testing the concurrency
+      // between the threads; it slows them down too much, so mock it out
+      binder.bind(MpackInstallStateListener.class).toInstance(
+          EasyMock.createNiceMock(MpackInstallStateListener.class));
+    }
   }
 }

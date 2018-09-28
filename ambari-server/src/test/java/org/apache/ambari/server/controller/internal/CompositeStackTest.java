@@ -29,8 +29,11 @@ import java.util.Set;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerTest;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 public class CompositeStackTest {
 
@@ -63,6 +66,22 @@ public class CompositeStackTest {
       services.removeAll(stack.getServices());
     }
     assertEquals(emptySet(), services);
+  }
+
+  @Test
+  public void getServicesByConfigType() {
+    assertEquals(
+      ImmutableSet.of("HDFS"),
+      composite.getServicesForConfigType("hdfs-site").collect(toSet()));
+  }
+
+  @Test
+  public void getStackServicesByConfigType() {
+    assertEquals(
+      ImmutableSet.of(
+        Pair.of(new StackId("HDP", "0.1"), "HDFS"),
+        Pair.of(new StackId("OTHER", "1.0"), "HDFS")),
+      composite.getStackServicesForConfigType("hdfs-site").collect(toSet()));
   }
 
   @Test

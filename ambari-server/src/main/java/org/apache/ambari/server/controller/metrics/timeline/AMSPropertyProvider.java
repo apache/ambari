@@ -360,6 +360,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         uriBuilder.setParameter("appId", componentName);
       }
 
+      if (clusterName != null && hostProvider.isCollectorHostExternal(clusterName)) {
+        uriBuilder.setParameter("instanceId", clusterName);
+      }
+
       if (temporalInfo != null) {
         long startTime = temporalInfo.getStartTime();
         if (startTime != -1) {

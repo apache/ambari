@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services.mpackadvisor;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,6 +35,7 @@ import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.ServiceInstance;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -42,8 +45,8 @@ public class MpackAdvisorRequest {
 
   private MpackAdvisorRequestType requestType;
   private List<String> hosts = new ArrayList<>();
-  //      Mpack Instance Name -> Component Name -> host(s)
-  private Map<String, Map<String, Set<String>>> componentHostsMap = new HashMap<>();
+  // Mpack Instance Name -> Component Name -> host(s)
+  private Map<String, Map<String, Set<String>>> mpackComponentHostsMap = new HashMap<>();
   private Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
   private List<ChangedConfigInfo> changedConfigurations = new LinkedList<>();
   private Map<String, String> userContext = new HashMap<>();
@@ -96,6 +99,16 @@ public class MpackAdvisorRequest {
     public Collection<MpackInstance> getMpackInstances() {
       return this.mpacks;
     }
+
+    @JsonIgnore
+    public Collection<String> getServiceInstanceNames() {
+      return mpacks.stream()
+        .flatMap(mpack -> mpack.getServiceInstances().stream())
+        .map(ServiceInstance::getName)
+        .collect(toSet());
+    }
+
+
   }
 
   public Recommendation getRecommendation() {
@@ -180,7 +193,7 @@ public class MpackAdvisorRequest {
 
     public MpackAdvisorRequest.MpackAdvisorRequestBuilder withMpacksToComponentsHostsMap(
         Map<String, Map<String, Set<String>>> componentHostsMap) {
-      this.instance.componentHostsMap = componentHostsMap;
+      this.instance.mpackComponentHostsMap = componentHostsMap;
       return this;
     }
 
@@ -256,8 +269,8 @@ public class MpackAdvisorRequest {
     return StringUtils.join(serviceInstancesTypeList, ",");
   }
 
-  public Map<String, Map<String, Set<String>>> getComponentHostsMap() {
-    return componentHostsMap;
+  public Map<String, Map<String, Set<String>>> getMpackComponentHostsMap() {
+    return mpackComponentHostsMap;
   }
 
   public String getHostsCommaSeparated() {

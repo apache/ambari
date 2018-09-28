@@ -375,21 +375,20 @@ describe('App.HostComponentView', function() {
 
   describe("#isReassignable", function() {
     beforeEach(function(){
-      sinon.stub(App, 'get').returns(['C1']);
-      this.mock = sinon.stub(App.router, 'get');
+      this.mock = sinon.stub(App, 'get');
+      this.mock.withArgs('components.reassignable').returns(['C1'])
     });
     afterEach(function(){
-      App.get.restore();
       this.mock.restore();
     });
     it("component reassignable and count is 2", function() {
-      this.mock.returns({TOTAL: 2});
+      this.mock.withArgs('allHostNames.length').returns(2);
       hostComponentView.set('content.componentName', 'C1');
       hostComponentView.propertyDidChange('isReassignable');
       expect(hostComponentView.get('isReassignable')).to.be.true;
     });
     it("component reassignable and count is 1", function() {
-      this.mock.returns({TOTAL: 1});
+      this.mock.withArgs('allHostNames.length').returns(1);
       hostComponentView.set('content.componentName', 'C1');
       hostComponentView.propertyDidChange('isReassignable');
       expect(hostComponentView.get('isReassignable')).to.be.false;

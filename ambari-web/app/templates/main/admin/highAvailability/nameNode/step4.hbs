@@ -22,13 +22,15 @@
       {{t admin.highAvailability.wizard.step4.error.nameNode}}
     </p>
   {{/unless}}
-  <div class="alert alert-info">
-    {{{view.step4BodyText}}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{{view.step4BodyText}}}
+    </div>
   </div>
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <a  {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
+    <button  {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</button>
     <span class="pull-right btn-extra-info">{{view.nnCheckPointText}}</span>
   </div>
 </div>

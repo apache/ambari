@@ -19,10 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
-import os, sys
-
 from mock.mock import patch
-from mock.mock import MagicMock
 from unittest import TestCase
 
 from resource_management import *

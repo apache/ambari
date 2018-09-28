@@ -61,6 +61,8 @@ App.Host = DS.Model.extend({
    */
   selected:DS.attr('boolean'),
 
+  isActive: Em.computed.equal('passiveState', 'OFF'),
+
   criticalWarningAlertsCount: function() {
     const alertsSummary = this.get('alertsSummary');
     return alertsSummary ? (alertsSummary.CRITICAL || 0) + (alertsSummary.WARNING || 0) : 0;
@@ -214,7 +216,7 @@ App.Host = DS.Model.extend({
       'ALERT': 'health-status-DEAD-ORANGE'
     };
     return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
-  }.property('healthStatus'),
+  }.property('healthStatus', 'passiveState'),
 
   healthIconClass: Em.computed.getByKey('healthIconClassMap', 'healthClass', ''),
 

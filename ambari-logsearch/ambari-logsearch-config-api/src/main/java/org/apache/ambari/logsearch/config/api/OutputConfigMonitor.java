@@ -19,8 +19,6 @@
 
 package org.apache.ambari.logsearch.config.api;
 
-import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
-
 /**
  * Monitors output configuration changes.
  */
@@ -34,11 +32,4 @@ public interface OutputConfigMonitor {
    * @return The type of the output logs.
    */
   String getOutputType();
-
-  /**
-   * Will be called whenever there is a change in the configuration of the output.
-   * 
-   * @param outputProperties The modified properties of the output.
-   */
-  void outputConfigChanged(OutputProperties outputProperties);
 }
