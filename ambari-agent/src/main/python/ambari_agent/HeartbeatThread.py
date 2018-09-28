@@ -134,15 +134,22 @@ class HeartbeatThread(threading.Thread):
     self.handle_registration_response(response)
 
     for endpoint, cache, listener, subscribe_to in self.post_registration_requests:
-      # should not hang forever on these requests
-      response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
       try:
-        listener.on_event({}, response)
-      except:
-        logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
-        raise
+        listener.enabled = False
+        self.subscribe_to_topics([subscribe_to])
+        response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
 
-      self.subscribe_to_topics([subscribe_to])
+        try:
+          listener.on_event({}, response)
+        except:
+          logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
+          raise
+      finally:
+        with listener.event_queue_lock:
+          logger.info("Enabling events for listener {0}".format(listener))
+          listener.enabled = True
+          # Process queued messages if any
+          listener.dequeue_unprocessed_events()
 
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
 
