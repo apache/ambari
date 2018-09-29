@@ -89,7 +89,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   protected static final String ALERT_REPEAT_TOLERANCE_REMAINING = "Alert/repeat_tolerance_remaining";
   protected static final String ALERT_FIRMNESS = "Alert/firmness";
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
+  private static final Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(ALERT_ID, ALERT_DEFINITION_NAME));
 
   @Inject
@@ -213,7 +213,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
           }
           else if(StringUtils.isNumeric(definitionId)) {
             // Make sure the user has access to the alert
-            AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findById(Long.valueOf(definitionId));
+            AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findById(Long.parseLong(definitionId));
             AlertResourceProviderUtils.verifyViewAuthorization(alertDefinition);
           }
           else {

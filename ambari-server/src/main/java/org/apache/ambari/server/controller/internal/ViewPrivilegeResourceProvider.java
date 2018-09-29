@@ -58,7 +58,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       VIEW_NAME,
       VERSION,
       INSTANCE_NAME,
@@ -71,7 +71,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.View, VIEW_NAME)
       .put(Resource.Type.ViewVersion, VERSION)
       .put(Resource.Type.ViewInstance, INSTANCE_NAME)

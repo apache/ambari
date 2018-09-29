@@ -50,6 +50,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.Users;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -77,30 +78,30 @@ public class GroupPrivilegeResourceProvider extends ReadOnlyResourceProvider {
    * Data access object used to obtain cluster entities.
    */
   @Inject
-  protected static ClusterDAO clusterDAO;
+  private static ClusterDAO clusterDAO;
 
   /**
    * Data access object used to obtain group entities.
    */
   @Inject
-  protected static GroupDAO groupDAO;
+  private static GroupDAO groupDAO;
 
   /**
    * Data access object used to obtain view instance entities.
    */
   @Inject
-  protected static ViewInstanceDAO viewInstanceDAO;
+  private static ViewInstanceDAO viewInstanceDAO;
 
   /**
    * Users (helper) object used to obtain privilege entities.
    */
   @Inject
-  protected static Users users;
+  private static Users users;
 
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       PRIVILEGE_ID,
       PERMISSION_NAME,
       PERMISSION_LABEL,
@@ -129,16 +130,14 @@ public class GroupPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   }
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(PRIVILEGE_ID);
-    }
-  };
+  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
+    .add(PRIVILEGE_ID)
+    .build();
 
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Group, GROUP_NAME)
       .put(Resource.Type.GroupPrivilege, PRIVILEGE_ID)
       .build();

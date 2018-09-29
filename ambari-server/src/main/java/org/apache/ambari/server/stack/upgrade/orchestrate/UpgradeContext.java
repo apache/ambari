@@ -331,7 +331,7 @@ public class UpgradeContext {
     m_isRevert = upgradeRequestMap.containsKey(UPGRADE_REVERT_UPGRADE_ID);
 
     if (m_isRevert) {
-      m_revertUpgradeId = Long.valueOf(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
+      m_revertUpgradeId = Long.parseLong(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
       UpgradeEntity revertUpgrade = m_upgradeDAO.findUpgrade(m_revertUpgradeId);
       UpgradeEntity revertableUpgrade = m_upgradeDAO.findRevertable(cluster.getClusterId());
 
@@ -1080,7 +1080,7 @@ public class UpgradeContext {
       RepositoryVersionEntity repositoryVersion) throws AmbariException {
 
     // keep track of the services which will be in this upgrade
-    Set<String> servicesForUpgrade = new HashSet<>();
+    Set<String> servicesForUpgrade;
 
     // standard repo types use all services of the cluster
     if (repositoryVersion.getType() == RepositoryType.STANDARD) {

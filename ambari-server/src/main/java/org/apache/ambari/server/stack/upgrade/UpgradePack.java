@@ -314,7 +314,7 @@ public class UpgradePack {
    * @return the list of groups
    */
   public List<Grouping> getGroups(Direction direction) {
-    List<Grouping> list = new ArrayList<>();
+    List<Grouping> list;
     if (direction.isUpgrade()) {
       list = groups;
     } else {

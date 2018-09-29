@@ -20,7 +20,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -46,6 +45,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.commons.lang.BooleanUtils;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 public class RepositoryResourceProvider extends AbstractControllerResourceProvider {
 
   public static final String REPOSITORY_REPO_NAME_PROPERTY_ID             = PropertyHelper.getPropertyId("Repositories", "repo_name");
@@ -69,50 +71,44 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID   = PropertyHelper.getPropertyId("Repositories", "applicable_services");
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(REPOSITORY_STACK_NAME_PROPERTY_ID);
-      add(REPOSITORY_STACK_VERSION_PROPERTY_ID);
-      add(REPOSITORY_OS_TYPE_PROPERTY_ID);
-      add(REPOSITORY_REPO_ID_PROPERTY_ID);
-    }
-  };
+  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
+    .add(REPOSITORY_STACK_NAME_PROPERTY_ID)
+    .add(REPOSITORY_STACK_VERSION_PROPERTY_ID)
+    .add(REPOSITORY_OS_TYPE_PROPERTY_ID)
+    .add(REPOSITORY_REPO_ID_PROPERTY_ID)
+    .build();
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(REPOSITORY_REPO_NAME_PROPERTY_ID);
-      add(REPOSITORY_DISTRIBUTION_PROPERTY_ID);
-      add(REPOSITORY_COMPONENTS_PROPERTY_ID);
-      add(REPOSITORY_STACK_NAME_PROPERTY_ID);
-      add(REPOSITORY_STACK_VERSION_PROPERTY_ID);
-      add(REPOSITORY_OS_TYPE_PROPERTY_ID);
-      add(REPOSITORY_BASE_URL_PROPERTY_ID);
-      add(REPOSITORY_REPO_ID_PROPERTY_ID);
-      add(REPOSITORY_MIRRORS_LIST_PROPERTY_ID);
-      add(REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID);
-      add(REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID);
-      add(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID);
-      add(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
-      add(REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
-      add(REPOSITORY_UNIQUE_PROPERTY_ID);
-      add(REPOSITORY_TAGS_PROPERTY_ID);
-      add(REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID);
-    }
-  };
+  public static final Set<String> propertyIds = ImmutableSet.<String>builder()
+    .add(REPOSITORY_REPO_NAME_PROPERTY_ID)
+    .add(REPOSITORY_DISTRIBUTION_PROPERTY_ID)
+    .add(REPOSITORY_COMPONENTS_PROPERTY_ID)
+    .add(REPOSITORY_STACK_NAME_PROPERTY_ID)
+    .add(REPOSITORY_STACK_VERSION_PROPERTY_ID)
+    .add(REPOSITORY_OS_TYPE_PROPERTY_ID)
+    .add(REPOSITORY_BASE_URL_PROPERTY_ID)
+    .add(REPOSITORY_REPO_ID_PROPERTY_ID)
+    .add(REPOSITORY_MIRRORS_LIST_PROPERTY_ID)
+    .add(REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID)
+    .add(REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID)
+    .add(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID)
+    .add(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID)
+    .add(REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID)
+    .add(REPOSITORY_UNIQUE_PROPERTY_ID)
+    .add(REPOSITORY_TAGS_PROPERTY_ID)
+    .add(REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID)
+    .build();
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Resource.Type.Stack, REPOSITORY_STACK_NAME_PROPERTY_ID);
-      put(Resource.Type.StackVersion, REPOSITORY_STACK_VERSION_PROPERTY_ID);
-      put(Resource.Type.ClusterStackVersion, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
-      put(Resource.Type.OperatingSystem, REPOSITORY_OS_TYPE_PROPERTY_ID);
-      put(Resource.Type.Repository, REPOSITORY_REPO_ID_PROPERTY_ID);
-      put(Resource.Type.RepositoryVersion, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID);
-      put(Resource.Type.VersionDefinition, REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
-    }
-  };
+  public static final Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String>builder()
+    .put(Resource.Type.Stack, REPOSITORY_STACK_NAME_PROPERTY_ID)
+    .put(Resource.Type.StackVersion, REPOSITORY_STACK_VERSION_PROPERTY_ID)
+    .put(Resource.Type.ClusterStackVersion, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID)
+    .put(Resource.Type.OperatingSystem, REPOSITORY_OS_TYPE_PROPERTY_ID)
+    .put(Resource.Type.Repository, REPOSITORY_REPO_ID_PROPERTY_ID)
+    .put(Resource.Type.RepositoryVersion, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID)
+    .put(Resource.Type.VersionDefinition, REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID)
+    .build();
 
   public RepositoryResourceProvider(AmbariManagementController managementController) {
     super(Resource.Type.Repository, propertyIds, keyPropertyIds, managementController);

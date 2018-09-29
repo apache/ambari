@@ -69,6 +69,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
@@ -81,14 +82,12 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
   private static final Map<String, String> timelineAppIdCache = new ConcurrentHashMap<>(10);
 
-  private static final Map<String, String> JVM_PROCESS_NAMES = new HashMap<>(2);
+  private static final Map<String, String> JVM_PROCESS_NAMES = ImmutableMap.<String, String>builder()
+    .put("HBASE_MASTER", "Master.")
+    .put("HBASE_REGIONSERVER", "RegionServer.")
+    .build();
 
   private AmbariEventPublisher ambariEventPublisher;
-
-  static {
-    JVM_PROCESS_NAMES.put("HBASE_MASTER", "Master.");
-    JVM_PROCESS_NAMES.put("HBASE_REGIONSERVER", "RegionServer.");
-  }
 
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                              URLStreamProvider streamProvider,

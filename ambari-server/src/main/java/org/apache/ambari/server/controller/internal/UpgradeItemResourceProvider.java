@@ -196,7 +196,6 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      String clusterName = (String) propertyMap.get(UPGRADE_CLUSTER_NAME);
       String requestIdStr = (String) propertyMap.get(UPGRADE_REQUEST_ID);
       String groupIdStr = (String) propertyMap.get(UPGRADE_GROUP_ID);
       String stageIdStr = (String) propertyMap.get(UPGRADE_ITEM_STAGE_ID);

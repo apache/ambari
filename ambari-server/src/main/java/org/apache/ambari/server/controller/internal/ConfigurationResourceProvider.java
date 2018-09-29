@@ -98,7 +98,7 @@ public class ConfigurationResourceProvider extends AbstractControllerResourcePro
   /**
    * The primary key property ids for the configuration resource type.
    */
-  private static Set<String> pkPropertyIds =
+  private static final Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       CLUSTER_NAME,
       TYPE}));

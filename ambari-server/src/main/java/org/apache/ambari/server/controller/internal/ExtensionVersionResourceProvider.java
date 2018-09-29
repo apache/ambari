@@ -59,7 +59,7 @@ public class ExtensionVersionResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The key property ids for a ExtensionVersion resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Type.Extension, EXTENSION_NAME_PROPERTY_ID)
       .put(Type.ExtensionVersion, EXTENSION_VERSION_PROPERTY_ID)
       .build();
@@ -67,7 +67,7 @@ public class ExtensionVersionResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a ExtensionVersion resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       EXTENSION_VERSION_PROPERTY_ID,
       EXTENSION_NAME_PROPERTY_ID,
       EXTENSION_VALID_PROPERTY_ID,

@@ -112,7 +112,7 @@ public class ConfigGroupResourceProvider extends
   /**
    * The key property ids for a ConfigGroup resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Cluster, CLUSTER_NAME)
       .put(Resource.Type.ConfigGroup, ID)
       .build();
@@ -120,7 +120,7 @@ public class ConfigGroupResourceProvider extends
   /**
    * The property ids for a ConfigGroup resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
     CLUSTER_NAME,
     ID,
     GROUP_NAME,
@@ -248,7 +248,7 @@ public class ConfigGroupResourceProvider extends
       }
     }
 
-    RequestStatus status = updateResources(requests);
+    updateResources(requests);
 
     Set<Resource> associatedResources = new HashSet<>();
     for (ConfigGroupRequest configGroupRequest : requests) {

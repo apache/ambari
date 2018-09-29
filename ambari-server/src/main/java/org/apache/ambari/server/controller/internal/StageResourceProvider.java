@@ -59,7 +59,8 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * ResourceProvider for Stage
@@ -107,40 +108,41 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   /**
    * The property ids for a stage resource.
    */
-  static final Set<String> PROPERTY_IDS = new HashSet<>();
+  static final Set<String> PROPERTY_IDS = ImmutableSet.<String>builder()
+    .add(STAGE_STAGE_ID)
+    .add(STAGE_CLUSTER_NAME)
+    .add(STAGE_REQUEST_ID)
+    .add(STAGE_LOG_INFO)
+    .add(STAGE_CONTEXT)
+    .add(STAGE_COMMAND_PARAMS)
+    .add(STAGE_HOST_PARAMS)
+    .add(STAGE_SKIPPABLE)
+    .add(STAGE_PROGRESS_PERCENT)
+    .add(STAGE_STATUS)
+    .add(STAGE_DISPLAY_STATUS)
+    .add(STAGE_START_TIME)
+    .add(STAGE_END_TIME)
+    .build();
 
   /**
    * The key property ids for a stage resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS =
-    new HashMap<>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.<Resource.Type, String>builder()
+    .put(Resource.Type.Stage, STAGE_STAGE_ID)
+    .put(Resource.Type.Cluster, STAGE_CLUSTER_NAME)
+    .put(Resource.Type.Request, STAGE_REQUEST_ID)
+    .build();
 
   static {
     // properties
-    PROPERTY_IDS.add(STAGE_STAGE_ID);
-    PROPERTY_IDS.add(STAGE_CLUSTER_NAME);
-    PROPERTY_IDS.add(STAGE_REQUEST_ID);
-    PROPERTY_IDS.add(STAGE_LOG_INFO);
-    PROPERTY_IDS.add(STAGE_CONTEXT);
-    PROPERTY_IDS.add(STAGE_COMMAND_PARAMS);
-    PROPERTY_IDS.add(STAGE_HOST_PARAMS);
-    PROPERTY_IDS.add(STAGE_SKIPPABLE);
-    PROPERTY_IDS.add(STAGE_PROGRESS_PERCENT);
-    PROPERTY_IDS.add(STAGE_STATUS);
-    PROPERTY_IDS.add(STAGE_DISPLAY_STATUS);
-    PROPERTY_IDS.add(STAGE_START_TIME);
-    PROPERTY_IDS.add(STAGE_END_TIME);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Stage, STAGE_STAGE_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, STAGE_CLUSTER_NAME);
-    KEY_PROPERTY_IDS.put(Resource.Type.Request, STAGE_REQUEST_ID);
   }
 
   /**
    * These fields may contain password in them, so have to mask with.
    */
-  static final Set<String> PROPERTIES_TO_MASK_PASSWORD_IN = Sets.newHashSet(STAGE_COMMAND_PARAMS, STAGE_HOST_PARAMS);
+  static final Set<String> PROPERTIES_TO_MASK_PASSWORD_IN = ImmutableSet.of(STAGE_COMMAND_PARAMS, STAGE_HOST_PARAMS);
 
   // ----- Constructors ------------------------------------------------------
 

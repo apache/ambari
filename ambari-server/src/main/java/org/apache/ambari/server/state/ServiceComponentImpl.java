@@ -647,7 +647,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Transactional
   public void updateRepositoryState(String reportedVersion) throws AmbariException {
 
-    ServiceComponentDesiredStateEntity component = serviceComponentDesiredStateDAO.findById(
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
 
     List<ServiceComponentVersionEntity> componentVersions = serviceComponentDesiredStateDAO.findVersions(
@@ -680,10 +680,10 @@ public class ServiceComponentImpl implements ServiceComponent {
         componentVersion.setUserName("auto-reported");
 
         // since we've never seen this version before, mark the component as CURRENT
-        component.setRepositoryState(RepositoryVersionState.CURRENT);
-        component.addVersion(componentVersion);
+        serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.CURRENT);
+        serviceComponentDesiredStateEntity.addVersion(componentVersion);
 
-        component = serviceComponentDesiredStateDAO.merge(component);
+        serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
 
         map.put(reportedVersion, componentVersion);
 
@@ -694,35 +694,35 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
 
     if (MapUtils.isNotEmpty(map)) {
-      String desiredVersion = component.getDesiredVersion();
+      String desiredVersion = serviceComponentDesiredStateEntity.getDesiredVersion();
       RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
 
       List<HostComponentStateEntity> hostComponents = hostComponentDAO.findByServiceAndComponentAndNotVersion(
-          component.getServiceName(), component.getComponentName(), reportedVersion);
+          serviceComponentDesiredStateEntity.getServiceName(), serviceComponentDesiredStateEntity.getComponentName(), reportedVersion);
 
       LOG.debug("{}/{} reportedVersion={}, desiredVersion={}, non-matching desired count={}, repo_state={}",
-          component.getServiceName(), component.getComponentName(), reportedVersion,
-          desiredVersion, hostComponents.size(), component.getRepositoryState());
+          serviceComponentDesiredStateEntity.getServiceName(), serviceComponentDesiredStateEntity.getComponentName(), reportedVersion,
+          desiredVersion, hostComponents.size(), serviceComponentDesiredStateEntity.getRepositoryState());
 
       // !!! if we are unknown, that means it's never been set.  Try to determine it.
       if (StackVersionListener.UNKNOWN_VERSION.equals(desiredVersion)) {
         if (CollectionUtils.isEmpty(hostComponents)) {
           // all host components are the same version as reported
-          component.setDesiredRepositoryVersion(desiredRepositoryVersion);
-          component.setRepositoryState(RepositoryVersionState.CURRENT);
+          serviceComponentDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
+          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.CURRENT);
         } else {
           // desired is UNKNOWN and there's a mix of versions in the host components
-          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
+          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
         }
       } else {
         if (!reportedVersion.equals(desiredVersion)) {
-          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
+          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
         } else if (CollectionUtils.isEmpty(hostComponents)) {
-          component.setRepositoryState(RepositoryVersionState.CURRENT);
+          serviceComponentDesiredStateEntity.setRepositoryState(RepositoryVersionState.CURRENT);
         }
       }
 
-      component = serviceComponentDesiredStateDAO.merge(component);
+      serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
     }
   }
 

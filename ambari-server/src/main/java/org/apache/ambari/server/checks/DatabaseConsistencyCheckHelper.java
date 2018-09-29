@@ -59,7 +59,6 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.Cluster;
@@ -671,8 +670,6 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     for (HostComponentDesiredStateEntity hostComponentDesiredStateEntity : missedHostComponentDesiredStates) {
-      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = hostComponentDesiredStateEntity.getServiceComponentDesiredStateEntity();
-
       HostComponentStateEntity stateEntity = new HostComponentStateEntity();
       stateEntity.setClusterId(hostComponentDesiredStateEntity.getClusterId());
       stateEntity.setComponentName(hostComponentDesiredStateEntity.getComponentName());
@@ -820,8 +817,6 @@ public class DatabaseConsistencyCheckHelper {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
 
     Clusters clusters = injector.getInstance(Clusters.class);
-    Map<String, Cluster> clusterMap = clusters.getClusters();
-
 
     Multimap<String, String> clusterConfigTypeMap = HashMultimap.create();
     ResultSet rs = null;

@@ -187,7 +187,7 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
         }
         else if(StringUtils.isNumeric(definitionId)) {
           // Make sure the user has access to the alert
-          AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findById(Long.valueOf(definitionId));
+          AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findById(Long.parseLong(definitionId));
           AlertResourceProviderUtils.verifyViewAuthorization(alertDefinition);
         }
         else {

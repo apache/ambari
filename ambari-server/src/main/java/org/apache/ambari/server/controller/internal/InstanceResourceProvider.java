@@ -61,7 +61,7 @@ public class InstanceResourceProvider extends AbstractDRResourceProvider {
   /**
    * The key property ids for a Instance resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.DRInstance, INSTANCE_FEED_NAME_PROPERTY_ID)
       .put(Resource.Type.Workflow, INSTANCE_ID_PROPERTY_ID)
       .build();
@@ -69,7 +69,7 @@ public class InstanceResourceProvider extends AbstractDRResourceProvider {
   /**
    * The property ids for a Instance resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       INSTANCE_FEED_NAME_PROPERTY_ID,
       INSTANCE_ID_PROPERTY_ID,
       INSTANCE_STATUS_PROPERTY_ID,
