@@ -45,7 +45,7 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
   /**
    * Data access object used to obtain permission entities.
    */
-  protected static PermissionDAO permissionDAO;
+  private static PermissionDAO permissionDAO;
 
   /**
    * Permission property id constants.
@@ -60,14 +60,14 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a permission resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Permission, PERMISSION_ID_PROPERTY_ID)
       .build();
 
   /**
    * The property ids for a permission resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       PERMISSION_ID_PROPERTY_ID,
       PERMISSION_NAME_PROPERTY_ID,
       PERMISSION_LABEL_PROPERTY_ID,

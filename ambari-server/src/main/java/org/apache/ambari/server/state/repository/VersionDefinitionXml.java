@@ -82,7 +82,7 @@ public class VersionDefinitionXml {
 
   private static final Logger LOG = LoggerFactory.getLogger(VersionDefinitionXml.class);
 
-  public static String SCHEMA_LOCATION = "version_definition.xsd";
+  public static final String SCHEMA_LOCATION = "version_definition.xsd";
 
   /**
    * Release details.

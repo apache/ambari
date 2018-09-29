@@ -50,7 +50,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   /**
    * Data access object used to obtain permission entities.
    */
-  protected static PermissionDAO permissionDAO;
+  private static PermissionDAO permissionDAO;
 
   public static final String PERMISSION_INFO = "PermissionInfo";
 
@@ -69,7 +69,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a permission resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.View, VIEW_NAME)
       .put(Resource.Type.ViewVersion, VERSION)
       .put(Resource.Type.ViewPermission, PERMISSION_ID)
@@ -78,7 +78,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   /**
    * The property ids for a permission resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       VIEW_NAME,
       VERSION,
       PERMISSION_ID,

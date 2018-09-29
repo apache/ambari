@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -695,7 +696,7 @@ public class TopologyManager {
       if (!matchedToRequest) {
         boolean addToAvailableList = true;
         for (HostImpl registered : availableHosts) {
-          if (registered.getHostId() == host.getHostId()) {
+          if (Objects.equals(registered.getHostId(), host.getHostId())) {
             LOG.info("Host {} re-registered, will not be added to the available hosts list", hostName);
             addToAvailableList = false;
             break;

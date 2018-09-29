@@ -55,23 +55,23 @@ public class SecurePasswordHelper {
   /**
    * The set of available lowercase letters to use when generating a secure password
    */
-  protected final static char[] SECURE_PASSWORD_CHARACTER_CLASS_LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+  final static char[] SECURE_PASSWORD_CHARACTER_CLASS_LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz".toCharArray();
   /**
    * The set of available uppercase letters to use when generating a secure password
    */
-  protected final static char[] SECURE_PASSWORD_CHARACTER_CLASS_UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+  final static char[] SECURE_PASSWORD_CHARACTER_CLASS_UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
   /**
    * The set of available digits to use when generating a secure password
    */
-  protected final static char[] SECURE_PASSWORD_CHARACTER_CLASS_DIGITS = "0123456789".toCharArray();
+  final static char[] SECURE_PASSWORD_CHARACTER_CLASS_DIGITS = "0123456789".toCharArray();
   /**
    * The set of available punctuation characters to use when generating a secure password
    */
-  protected final static char[] SECURE_PASSWORD_CHARACTER_CLASS_PUNCTUATION = "?.!$%^*()-_+=~".toCharArray();
+  final static char[] SECURE_PASSWORD_CHARACTER_CLASS_PUNCTUATION = "?.!$%^*()-_+=~".toCharArray();
   /**
    * The set of available whitespace characters to use when generating a secure password
    */
-  protected final static char[] SECURE_PASSWORD_CHARACTER_CLASS_WHITESPACE = " ".toCharArray();
+  final static char[] SECURE_PASSWORD_CHARACTER_CLASS_WHITESPACE = " ".toCharArray();
   /**
    * The collection of available character classes
    */

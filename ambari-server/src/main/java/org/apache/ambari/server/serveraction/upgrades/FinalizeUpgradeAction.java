@@ -208,9 +208,9 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // mark revertable
       if (repositoryType.isRevertable() && direction == Direction.UPGRADE) {
-        UpgradeEntity upgrade = cluster.getUpgradeInProgress();
-        upgrade.setRevertAllowed(true);
-        upgrade = m_upgradeDAO.merge(upgrade);
+        UpgradeEntity upgradeEntity = cluster.getUpgradeInProgress();
+        upgradeEntity.setRevertAllowed(true);
+        upgradeEntity = m_upgradeDAO.merge(upgradeEntity);
       }
 
       // Reset upgrade state
@@ -425,11 +425,11 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     List<HostVersionEntity> currentHostVersions = hostVersionDAO.findByClusterAndState(
         cluster.getClusterName(), RepositoryVersionState.CURRENT);
 
-    for (HostVersionEntity hostVersion : currentHostVersions) {
-      RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
+    for (HostVersionEntity hostVersionEntity : currentHostVersions) {
+      RepositoryVersionEntity hostRepoVersion = hostVersionEntity.getRepositoryVersion();
       if (!desiredRepoVersions.contains(hostRepoVersion)) {
-        hostVersion.setState(RepositoryVersionState.INSTALLED);
-        hostVersion = hostVersionDAO.merge(hostVersion);
+        hostVersionEntity.setState(RepositoryVersionState.INSTALLED);
+        hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
       }
     }
 

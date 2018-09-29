@@ -151,7 +151,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   /**
    * The key property ids for a Request resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Request, REQUEST_ID_PROPERTY_ID)
       .put(Resource.Type.Cluster, REQUEST_CLUSTER_NAME_PROPERTY_ID)
       .build();
@@ -260,9 +260,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             }
           } else {
             // A custom action has been requested
-            ActionDefinition actionDefinition = (actionName == null)
-                ? null
-                : getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
+            ActionDefinition actionDefinition = getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
 
             Set<RoleAuthorization> permissions = (actionDefinition == null)
                 ? null
@@ -423,7 +421,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     // Cluster name may be empty for custom actions
     String clusterNameStr = (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
     String requestIdStr = (String) propertyMap.get(REQUEST_ID_PROPERTY_ID);
-    long requestId = Integer.valueOf(requestIdStr);
+    long requestId = Integer.parseInt(requestIdStr);
     String requestStatusStr = (String) propertyMap.get(REQUEST_STATUS_PROPERTY_ID);
     HostRoleStatus requestStatus = null;
     if (requestStatusStr != null) {

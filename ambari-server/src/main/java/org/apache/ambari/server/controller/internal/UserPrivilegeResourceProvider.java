@@ -57,6 +57,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -81,22 +82,22 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   /**
    * Data access object used to obtain user entities.
    */
-  protected static UserDAO userDAO;
+  private static UserDAO userDAO;
 
   /**
    * Data access object used to obtain cluster entities.
    */
-  protected static ClusterDAO clusterDAO;
+  private static ClusterDAO clusterDAO;
 
   /**
    * Data access object used to obtain group entities.
    */
-  protected static GroupDAO groupDAO;
+  private static GroupDAO groupDAO;
 
   /**
    * Data access object used to obtain view instance entities.
    */
-  protected static ViewInstanceDAO viewInstanceDAO;
+  private static ViewInstanceDAO viewInstanceDAO;
 
   /**
    * Helper to obtain privilege data for requested users
@@ -106,7 +107,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
+  private static final Set<String> propertyIds = Sets.newHashSet(
       PRIVILEGE_ID,
       PERMISSION_NAME,
       PERMISSION_LABEL,
@@ -137,16 +138,14 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   }
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(PRIVILEGE_ID);
-    }
-  };
+  private static final Set<String> pkPropertyIds = ImmutableSet.<String>builder()
+    .add(PRIVILEGE_ID)
+    .build();
 
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+  private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.User, USER_NAME)
       .put(Resource.Type.UserPrivilege, PRIVILEGE_ID)
       .build();

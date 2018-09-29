@@ -27,7 +27,7 @@ import com.google.gson.JsonSyntaxException;
  */
 public class JsonUtils {
 
-  public static JsonParser jsonParser = new JsonParser();
+  public static final JsonParser jsonParser = new JsonParser();
 
   /**
    * Checks if an input string is in valid JSON format

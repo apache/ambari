@@ -356,7 +356,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     throws InvalidTopologyTemplateException {
 
     if (hostGroupProperties.containsKey(HOSTGROUP_HOST_COUNT_PROPERTY)) {
-      hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(
+      hostGroupInfo.setRequestedCount(Integer.parseInt(String.valueOf(
         hostGroupProperties.get(HOSTGROUP_HOST_COUNT_PROPERTY))));
       LOG.info("Stored expected hosts count {} for group {}",
         hostGroupInfo.getRequestedHostCount(), hostGroupInfo.getHostGroupName());

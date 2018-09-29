@@ -36,8 +36,6 @@ import org.apache.ambari.server.api.services.stackadvisor.validations.Validation
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -45,8 +43,6 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class StackAdvisorHelper {
-
-  protected static Log LOG = LogFactory.getLog(StackAdvisorHelper.class);
 
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;

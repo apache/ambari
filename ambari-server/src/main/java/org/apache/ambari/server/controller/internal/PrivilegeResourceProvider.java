@@ -62,22 +62,22 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   /**
    * Data access object used to obtain privilege entities.
    */
-  protected static PrivilegeDAO privilegeDAO;
+  private static PrivilegeDAO privilegeDAO;
 
   /**
    * Data access object used to obtain user entities.
    */
-  protected static UserDAO userDAO;
+  private static UserDAO userDAO;
 
   /**
    * Data access object used to obtain group entities.
    */
-  protected static GroupDAO groupDAO;
+  private static GroupDAO groupDAO;
 
   /**
    * Data access object used to obtain principal entities.
    */
-  protected static PrincipalDAO principalDAO;
+  private static PrincipalDAO principalDAO;
 
   /**
    * Data access object used to obtain permission entities.
@@ -87,7 +87,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   /**
    * Data access object used to obtain resource entities.
    */
-  protected static ResourceDAO resourceDAO;
+  private static ResourceDAO resourceDAO;
 
   public static final String PRIVILEGE_INFO = "PrivilegeInfo";
 

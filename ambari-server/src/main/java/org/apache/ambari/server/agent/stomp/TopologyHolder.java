@@ -41,7 +41,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +102,6 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
               .collect(Collectors.toSet());
             String serviceName = sch.getServiceName();
             String componentName = sch.getServiceComponentName();
-            StackId stackId = cl.getDesiredStackVersion();
 
             TopologyComponent topologyComponent = TopologyComponent.newBuilder()
                 .setComponentName(sch.getServiceComponentName())
