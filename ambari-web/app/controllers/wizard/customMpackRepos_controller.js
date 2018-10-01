@@ -24,7 +24,7 @@ App.WizardCustomMpackReposController = App.WizardStepController.extend({
 
   stepName: 'customMpackRepos',
 
-  mpacks: Em.computed.alias('content.selectedMpacks'),
+  mpacks: Em.computed.alias('content.mpacksToRegister'),
   
   isStepDisabled: function (stepIndex, currentIndex) {
     const normallyDisabled = this._super(stepIndex, currentIndex);

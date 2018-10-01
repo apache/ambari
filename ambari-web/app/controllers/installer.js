@@ -18,8 +18,6 @@
 
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
-var validator = require('utils/validator');
 
 App.InstallerController = App.WizardController.extend(App.Persist, {
 
@@ -68,17 +66,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   clearErrors: function () {
     this.set('errors', []);
-  },
-
-  getStepController: function (stepName) {
-    if (typeof (stepName) === "number") {
-      stepName = this.get('steps')[stepName];
-    }
-
-    stepName = stepName.charAt(0).toUpperCase() + stepName.slice(1);
-    const stepController = App.router.get('wizard' + stepName + 'Controller');
-
-    return stepController;
   },
 
   isInstallerWizard: true,
@@ -153,6 +140,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'operatingSystems',
     'repositories',
     'selectedMpacks',
+    'mpacksToRegister',
+    'allMpacks',
     'selectedServices',
     'selectedStack',
     'downloadConfig',
@@ -201,7 +190,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.setDBProperty('hosts', dbHosts);
   },
 
-  cancelInstall: function() {
+  cancelInstall: function () {
     return App.showConfirmationPopup(() => {
       App.router.get('applicationController').goToAdminView();
     });
@@ -402,7 +391,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         this.getSupportedOSList(versionDefinition, stackInfo, params.dfd);
       }, this);
     } else {
-      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('installer.step1.noVersionDefinitions'), function() {
+      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('installer.step1.noVersionDefinitions'), function () {
         App.router.send('back');
       });
     }
@@ -760,8 +749,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       this.showStackErrorAndSkipStepIfNeeded(response);
       return;
     }
-    response.operating_systems.forEach(function(supportedOS) {
-      if(!existedMap[supportedOS.OperatingSystems.os_type]) {
+    response.operating_systems.forEach(function (supportedOS) {
+      if (!existedMap[supportedOS.OperatingSystems.os_type]) {
         supportedOS.isSelected = false;
         existedOS.push(supportedOS);
       } else {
@@ -778,7 +767,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
             });
           });
         }
-        else{
+        else {
           existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
             supportedOS.repositories.forEach(function (supportedRepo) {
               if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
@@ -821,11 +810,11 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   getSupportedOSListErrorCallback: function (request, ajaxOptions, error, data, params) {
     var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.error.title');
     var body = "";
-    if(request && request.responseText){
+    if (request && request.responseText) {
       try {
         var json = $.parseJSON(request.responseText);
         body = json.message;
-      } catch (err) {}
+      } catch (err) { }
     }
     App.showAlertPopup(header, body);
   },
@@ -842,9 +831,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         repoVersionId: repoToUpdate.id,
         repoVersion: repoVersion
       }
-    }).success(function() {
+    }).success(function () {
       deferred.resolve([]);
-    }).error(function() {
+    }).error(function () {
       deferred.resolve([]);
     });
     return deferred.promise();
@@ -856,7 +845,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    * @param {Em.Object} repo
    * @returns {{operating_systems: Array}}
    */
-  prepareRepoForSaving: function(repo) {
+  prepareRepoForSaving: function (repo) {
     var repoVersion = { "operating_systems": [] };
     var ambariManagedRepositories = !repo.get('useRedhatSatellite');
     var k = 0;
@@ -879,7 +868,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
                 "components": repository.get('components'),
                 "tags": repository.get('tags'),
                 "distribution": repository.get('distribution'),
-                "applicable_services" : repository.get('applicable_services')
+                "applicable_services": repository.get('applicable_services')
               }
             });
           }
@@ -985,6 +974,18 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     }
     this.set('content.isCheckInProgress', false);
     params.dfd.reject();
+  },
+
+  /**
+   * In addition to the default behavior, we want to always treat mpacks
+   * as being added in the current wizard when are in the Install wizard.
+   */
+  loadRegisteredMpacksCallback: function (response) {
+    this._super(response);
+
+    const registeredMpacks = this.get('content.registeredMpacks');
+    registeredMpacks.forEach(mpack => mpack.currentWizard = true);
+    this.setDBProperty('registeredMpacks', registeredMpacks);
   },
 
   loadMap: {
@@ -1299,22 +1300,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     });
   },
 
-  setStepsEnable: function () {
-    const steps = this.get('steps');
-    for (let i = 0, length = steps.length; i < length; i++) {
-      let stepDisabled = true;
-      
-      const stepController = this.getStepController(steps[i]);
-      if (stepController) {
-        stepController.set('wizardController', this);
-        stepDisabled = stepController.isStepDisabled();
-      }
-
-      const stepIndex = this.getStepIndex(steps[i]);
-      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepDisabled);
-    }
-  },
-
   clearStackServices: function (deleteAll) {
     var dfd = $.Deferred();
 
@@ -1412,6 +1397,28 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       dfd.resolve();
     });
     
-    return dfd;
+    return dfd.promise();
+  },
+  
+  /**
+   * Load config themes for enhanced config layout.
+   *
+   * @method loadConfigThemes
+   * @return {$.Deferred}
+   */
+  loadConfigThemes: function () {
+    const self = this;
+    const dfd = $.Deferred();
+    
+    if (!this.get('stackConfigsLoaded')) {
+      // Load stack configs before loading themes
+      App.config.loadClusterConfigsFromStack().always(self.loadServiceConfigs.bind(self)).always(() => {
+        dfd.resolve();
+      });
+    } else {
+      dfd.resolve();
+    }
+
+    return dfd.promise();
   }
 });

@@ -49,9 +49,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     'componentsFromConfigs',
     'stepsSavedState',
     'operatingSystems',
-    'repositories',
-    'selectedMpacks',
-    'selectedServices'
+    'repositories'
   ],
 
   sensibleConfigs: [
@@ -149,16 +147,32 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return hosts;
   }.property('content.hosts'),
 
-  setStepsEnable: function () {
-    for (var i = 1; i <= this.get('totalSteps'); i++) {
-      var step = this.get('isStepDisabled').findProperty('step', i);
-      if (i <= this.get('currentStep')) {
-        step.set('value', false);
-      } else {
-        step.set('value', true);
-      }
+  getStepController: function (stepName) {
+    if (typeof (stepName) === "number") {
+      stepName = this.get('steps')[stepName];
     }
-  }.observes('currentStep', 'totalSteps'),
+
+    stepName = stepName.charAt(0).toUpperCase() + stepName.slice(1);
+    const stepController = App.router.get('wizard' + stepName + 'Controller');
+
+    return stepController;
+  },
+
+  setStepsEnable: function () {
+    const steps = this.get('steps');
+    for (let i = 0, length = steps.length; i < length; i++) {
+      let stepDisabled = true;
+      
+      const stepController = this.getStepController(steps[i]);
+      if (stepController) {
+        stepController.set('wizardController', this);
+        stepDisabled = stepController.isStepDisabled();
+      }
+
+      const stepIndex = this.getStepIndex(steps[i]);
+      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepDisabled);
+    }
+  },
 
   /**
    * Enable step link in left nav menu
@@ -177,16 +191,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     }
   },
 
-  /**
-   * Set current step to new value.
-   * Method moved from App.router.setInstallerCurrentStep
-   * @param currentStep
-   * @param completed
-   */
   currentStep: function () {
     return App.get('router').getWizardCurrentStep(this.get('name').substr(0, this.get('name').length - 10));
-  }.property(),
-
+  }.property().volatile(),
 
   /**
    * Get the wizard type based on the wizard name set in the specific controller.
@@ -199,12 +206,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   }.property('name'),
 
   /**
-   * Get the name of the current step.
+   * Get step name by index.
    *
    * @return {string}
    */
-  currentStepName: function () {
-    const index = this.get('currentStep');
+  getStepName: function (index) {
     const steps = this.get('steps');
 
     if (steps) {
@@ -213,12 +219,50 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
     //legacy support
     return 'step' + index;
-  }.property('steps', 'currentStep'),
+  },
+
+  /**
+   * Get the name of the first step.
+   *
+   * @return {string}
+   */
+  firstStepName: function () {
+    return this.getStepName(0);
+  }.property('steps'),
+
+  /**
+   * Get the name of the last step.
+   *
+   * @return {string}
+   */
+  lastStepName: function () {
+    const steps = this.get('steps');
+    if (steps) {
+      return this.getStepName(steps.length - 1);
+    }
+
+    //legacy support
+    const totalSteps = this.get('totalSteps');
+    if (totalSteps) {
+      return this.getStepName(totalSteps);
+    }
+
+    return null;
+  }.property('steps'),
+
+  /**
+   * Get the name of the current step.
+   *
+   * @return {string}
+   */
+  currentStepName: function () {
+    const index = this.get('currentStep');
+    return this.getStepName(index);
+  }.property().volatile(),
 
   /**
    * Set current step to new value.
    * If no new value is provided, it sets current step to same value.
-   * Method moved from App.router.setInstallerCurrentStep
    * @param currentStep
    * @param completed
    */
@@ -230,7 +274,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
     this.set('previousStep', this.get('currentStep'));
     App.db.setWizardCurrentStep(this.get('wizardType'), index, completed);
-    this.set('currentStep', index);
   },
 
   getPreviousStepName: function () {
@@ -723,7 +766,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content', Ember.Object.create({
       'controllerName': this.get('content.controllerName')
     }));
-    this.set('currentStep', 0);
     this.clearStorageData();
   },
 
@@ -745,6 +787,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       hash[key] = undefined;
     }, this);
     this.setDBProperties(hash);
+    this.resetDbNamespace();
   },
 
   getInstallOptions: function() {
@@ -1356,7 +1399,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    */
   loadClients: function () {
     var clients = this.getDBProperty('clients');
-    this.set('content.clients', clients);
+    this.set('content.clients', clients || []);
   },
 
   /**
@@ -1399,8 +1442,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * If not, it is loaded from the server and stored in both localStorage and the controller's content.
    */
   loadRegisteredMpacks: function () {
-    let dfd;
-    let registeredMpacks = this.getDBProperty('registeredMpacks');
+    const dfd = $.Deferred();
+    const registeredMpacks = this.getDBProperty('registeredMpacks');
     
     if (registeredMpacks) {
       this.set('content.registeredMpacks', registeredMpacks);
@@ -1410,15 +1453,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         App.stackMapper.map(JSON.parse(JSON.stringify(rmp)));
       });
 
-      dfd = $.Deferred();
       dfd.resolve();
     } else {
-      dfd = App.ajax.send({
+      App.ajax.send({
         name: 'mpack.get_registered_mpacks',
         sender: this,
         success: 'loadRegisteredMpacksCallback',
         error: 'defaultErrorCallback'
-      });
+      })
+      .done(() => dfd.resolve())
+      .fail(() => dfd.reject());
     }
 
     return dfd.promise();
@@ -1480,21 +1524,24 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   loadHosts: function () {
-    var dfd;
-    var hostsInDb = this.getDBProperty('hosts');
+    const dfd = $.Deferred();
+    const hostsInDb = this.getDBProperty('hosts');
+    
     if (hostsInDb) {
       this.set('content.hosts', hostsInDb);
-      dfd = $.Deferred();
       dfd.resolve();
     } else {
-      dfd = App.ajax.send({
+      App.ajax.send({
         name: 'hosts.confirmed',
         sender: this,
         data: {},
         success: 'loadHostsSuccessCallback',
         error: 'defaultErrorCallback'
-      });
+      })
+        .done(() => dfd.resolve())
+        .fail(() => dfd.reject());
     }
+
     return dfd.promise();
   },
 
@@ -1520,22 +1567,24 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * If not, it is loaded from the server and stored in both localStorage and the controller's content.
    */
   loadServiceGroups: function () {
-    let dfd;
+    const dfd = $.Deferred();  
     const serviceGroups = this.getDBProperty('serviceGroups');
     const serviceInstances = this.getDBProperty('serviceInstances');
 
     if (serviceGroups && serviceInstances) {
       this.set('content.serviceGroups', serviceGroups);
       this.set('content.serviceInstances', serviceInstances);
-      dfd = $.Deferred();
+      
       dfd.resolve();
     } else {
-      dfd = App.ajax.send({
+      App.ajax.send({
         name: 'servicegroup.get_all_details',
         sender: this,
         success: 'loadServiceGroupsCallback',
         error: 'loadServiceGroupsErrorCallback'
-      });
+      })
+      .done(() => dfd.resolve())
+      .fail(() => dfd.reject());
     }
 
     return dfd.promise();
@@ -1547,8 +1596,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadServiceGroupsCallback: function (response) {
     const serviceGroups = response.items.map(item =>
       ({
-        name: item.service_group_name,
-        mpackVersionId: item.mpack_name + item.mpack_version
+        name: item.ServiceGroupInfo.service_group_name,
+        mpackVersionId: `${item.ServiceGroupInfo.mpack_name}-${item.ServiceGroupInfo.mpack_version}`
       })
     );
     this.setDBProperty('serviceGroups', serviceGroups);
@@ -1558,7 +1607,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       serviceInstances.concat(item.services.map(service => 
         ({
           name: service.ServiceInfo.service_name,
-          serviceGroupName: service.ServiceInfo.service_group_name
+          serviceGroupName: service.ServiceInfo.service_group_name,
+          serviceName: service.ServiceInfo.service_name
         })
       ))
     , []);
@@ -1644,42 +1694,33 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return result;
   },
 
-  /**
-   * Load config themes for enhanced config layout.
-   *
-   * @method loadConfigThemes
-   * @return {$.Deferred}
-   */
-  loadConfigThemes: function () {
+  loadServiceConfigs: function () {
     const self = this;
     const dfd = $.Deferred();
-    
-    if (!this.get('stackConfigsLoaded')) {
-      // Load stack configs before loading themes
-      App.config.loadClusterConfigsFromStack().always(() => {
-        const mpacks = self.get('content.selectedMpacks');
-        const configPromises = mpacks.map(mpack => {
-          const stackName = mpack.name;
-          const stackVersion = mpack.version;
-          
-          const serviceNames = App.StackService.find().filter(service => {
-            return service.get('stackName') === stackName && service.get('stackVersion') === stackVersion
-              && (service.get('isSelected') || service.get('isInstalled'));
-          }).mapProperty('serviceName');
+    const mpacks = this.get('content.selectedMpacks');
 
-          return App.config.loadConfigsFromStack(serviceNames, stackName, stackVersion)
-            .done(App.config.saveConfigsToModel)
-            .done(() => self.loadConfigThemeForServices(serviceNames, stackName, stackVersion));
-        });
+    const configPromises = mpacks.map(mpack => {
+      const stackName = mpack.name;
+      const stackVersion = mpack.version;
+      
+      const serviceNames = App.StackService.find().filter(service => {
+        return service.get('stackName') === stackName && service.get('stackVersion') === stackVersion
+          && (service.get('isSelected') || service.get('isInstalled'));
+      }).mapProperty('serviceName');
 
-        $.when(...configPromises).always(() => {
-          self.set('stackConfigsLoaded', true);
-          dfd.resolve();
-        });  
-      });
-    } else {
+      if (serviceNames.length > 0) {
+        return App.config.loadConfigsFromStack(serviceNames, stackName, stackVersion)
+          .done(App.config.saveConfigsToModel)
+          .done(() => self.loadConfigThemeForServices(serviceNames, stackName, stackVersion));
+      } else {
+        return $.Deferred().resolve().promise();
+      }
+    });
+
+    $.when(...configPromises).always(() => {
+      self.set('stackConfigsLoaded', true);
       dfd.resolve();
-    }
+    });
 
     return dfd.promise();
   },

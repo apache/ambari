@@ -243,6 +243,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var comp = this.parseIt(host_component, this.config3);
           comp.id = id;
           comp.service_id = serviceName;
+          comp.service_name = serviceName;
+          comp.service_group_name = service.ServiceInfo.service_group_name;
           if (comp.component_name === 'HIVE_SERVER_INTERACTIVE') {
             hiveInteractiveServers.push(comp);
           }

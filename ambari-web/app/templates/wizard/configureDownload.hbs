@@ -77,12 +77,14 @@
 </div>
 
 <div class="wizard-footer col-md-12">
-  <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action backTransition}} {{QAAttr "wizard-back"}}>
-    &larr; {{t common.back}}
-    {{#if App.router.backBtnClickInProgress}}
-      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
-    {{/if}}
-  </button>
+  {{#unless view.parentView.controller.hideBackButton}}
+    <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action backTransition}} {{QAAttr "wizard-back"}}>
+      &larr; {{t common.back}}
+      {{#if App.router.backBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+      {{/if}}
+    </button>
+  {{/unless}}
   <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
     {{#if App.router.nextBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

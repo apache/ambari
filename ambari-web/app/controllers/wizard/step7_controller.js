@@ -960,23 +960,8 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
       masterComponentHosts: this.get('wizardController.content.masterComponentHosts'),
       slaveComponentHosts: this.get('wizardController.content.slaveComponentHosts')
     };
-
-    var selectedRepoVersion,
-        repoVersion;
-
-    if (this.get('wizardController.name') === 'addServiceController') {
-      repoVersion = App.RepositoryVersion.find().filter(function(i) {
-        return i.get('stackVersionType') === App.get('currentStackName') &&
-          i.get('stackVersionNumber') === App.get('currentStackVersionNumber');
-      })[0];
-      if (repoVersion) {
-        selectedRepoVersion = Em.get(repoVersion, 'repositoryVersion').split('-')[0];
-      }
-    } else {
-      selectedRepoVersion = Em.getWithDefault(App.Stack.find().findProperty('isSelected', true) || {}, 'repositoryVersion', false);
-    }
-
-    var configsByService = {}, dependencies = this.get('configDependencies');
+    var configsByService = {};
+    var dependencies = this.get('configDependencies');
 
     configs.forEach(function (_config) {
       if (!configsByService[_config.serviceName]) {

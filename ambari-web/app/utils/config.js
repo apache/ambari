@@ -218,7 +218,7 @@ App.config = Em.Object.create({
       });
     });
     return ret;
-  }.property(),
+  }.property().volatile(),
 
   /**
    * Generate configs collection with Ember or plain config objects
@@ -867,7 +867,7 @@ App.config = Em.Object.create({
    *
    * @param configs
    */
-  addYarnCapacityScheduler: function(configs) {
+  addYarnCapacityScheduler: function (configs) {
     var value = '', savedValue = '', recommendedValue = '',
       excludedConfigs = App.config.getPropertiesFromTheme('YARN');
 

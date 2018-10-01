@@ -36,18 +36,8 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
 
   filterServicesPlaceholder: Em.I18n.t('installer.selectMpacks.filterServices'),
 
-  /** 
-   * Mpacks already registered on the server.
-   */
-  registeredMpacks: Em.computed.alias('content.registeredMpacks'),
-
   /**
-   * Mpacks selected to be registered via the current wizard.
-   */
-  selectedMpacks: Em.computed.alias('content.selectedMpacks'),
-
-  /**
-   * Service instances already existin in the cluster.
+   * Service instances already existing in the cluster.
    */
   serviceInstances: [],
 
@@ -84,21 +74,21 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     return this.get('serviceGroups').concat(this.get('addedServiceGroups'));
   }.property('serviceGroups.@each', 'addedServiceGroups.@each'),
 
-  selectedUseCases: function selectedUseCases() {
+  selectedUseCases: function () {
     return this.get('content.mpackUseCases').filterProperty('selected');
   }.property('content.mpackUseCases.@each.selected'),
 
-  selectedServices: function selectedServices() {
+  selectedServices: function () {
     const mpackServiceVersions = this.get('content.mpackServiceVersions');
     return mpackServiceVersions ? mpackServiceVersions.filter(s => s.get('selected') === true) : [];
   }.property('content.mpackServiceVersions.@each.selected'),
 
-  selectedMpackVersions: function selectedMpackVersions() {
+  selectedMpackVersions: function () {
     const versions = this.get('content.mpackVersions');
     return versions ? versions.filter(v => v.get('selected') === true) : [];
-  }.property('content.mpackVersions.@each.selected', 'selectedServices'),
+  }.property('content.mpackVersions.@each.selected'),
 
-  isSaved: function isSaved() {
+  isSaved: function () {
     const wizardController = this.get('wizardController');
     if (wizardController) {
       return wizardController.getStepSavedState('selectMpacks');
@@ -106,12 +96,11 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     return false;
   }.property('wizardController.content.stepsSavedState'),
 
-  isSubmitDisabled: function isSubmitDisabled() {
-    const mpackServiceVersions = this.get('content.mpackServiceVersions');
+  isSubmitDisabled: function () {
     return App.get('router.btnClickInProgress')
       || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
-      || mpackServiceVersions.filterProperty('selected', true).length === 0;
-  }.property('content.mpackServiceVersions.@each.selected', 'App.router.btnClickInProgress', 'wizardController.errors'),
+      || this.get('addedServiceInstances.length') === 0;
+  }.property('addedServiceInstances.length', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   //#endregion
 
@@ -173,7 +162,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
               return Em.Object.create({
                 selected: false,
                 displayed: index === 0 ? true : false, //by default, display first version
-                id: mpack.RegistryMpackInfo.mpack_name + version.RegistryMpackVersionInfo.mpack_version,
+                id: `${mpack.RegistryMpackInfo.mpack_name}-${version.RegistryMpackVersionInfo.mpack_version}`,
                 version: version.RegistryMpackVersionInfo.mpack_version,
                 mpackUrl: version.RegistryMpackVersionInfo.mpack_uri,
                 logoUrl: version.RegistryMpackVersionInfo.mpack_logo_uri,
@@ -182,7 +171,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
                   return Em.Object.create({
                     selected: false,
                     displayed: index === 0 ? true : false, //by default, display first version
-                    id: mpack.RegistryMpackInfo.mpack_name + version.RegistryMpackVersionInfo.mpack_version + service.name,
+                    id: `${mpack.RegistryMpackInfo.mpack_name}-${version.RegistryMpackVersionInfo.mpack_version}-${service.name}`,
                     name: service.name,
                     displayName: service.displayName,
                     version: service.version
@@ -313,6 +302,25 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     }
 
     return deferred.promise();
+  },
+
+  /**
+   * Updates the loaded registry state based on the service groups and instances in the cluster.
+   */
+  updateRegistry: function () {
+    const serviceGroups = this.get('serviceGroups');
+    if (serviceGroups) {
+      serviceGroups.forEach(serviceGroup => {
+        serviceGroup.set('mpackVersion.selected', true);
+      })
+    }
+
+    const serviceInstances = this.get('serviceInstances');
+    if (serviceInstances) {
+      serviceInstances.forEach(serviceInstance => {
+        serviceInstance.set('service.selected', true);
+      })
+    }
   },
 
   //#endregion
@@ -456,7 +464,8 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     
     if (recommendations && recommendations.length > 0 && recommendations[0].mpacks && recommendations[0].mpacks.length > 0) {
       recommendations[0].mpacks.forEach(mpack => {
-        const serviceGroup = this.addServiceGroup(mpack.mpack_name + mpack.mpack_version, mpack.mpack_name);
+        const serviceGroup = this.getServiceGroup(mpack.mpack_name) || this.addServiceGroup(`${mpack.mpack_name}-${mpack.mpack_version}`, mpack.mpack_name); //TODO: this is hard-coding the service group name
+        serviceGroup.mpackVersion.set('selected', true);
         serviceGroup.mpackVersion.services.forEach(service => this.addServiceInstance(service.name, service.name, serviceGroup));
       });
     } else {
@@ -568,7 +577,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
    */
   createServiceInstance: function (name, service, serviceGroup, canRemove) {
     return Em.Object.create({
-      id: serviceGroup.get('name') + name,
+      id: `${serviceGroup.get('name')}-${name}`,
       name: name,
       service: service,
       serviceGroup: serviceGroup,
@@ -627,7 +636,8 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     const mpackVersion = this.addMpackVersion(mpackVersionId);
     
     if (mpackVersion) {
-      const serviceGroup = this.addServiceGroup(mpackVersionId, mpackVersion.get('mpack.name')); //TODO: for now we are setting the service group name equal to the mpack name
+      const serviceGroupName = mpackVersion.get('mpack.name'); //TODO: for now we are setting the service group name equal to the mpack name
+      const serviceGroup = this.getServiceGroup(serviceGroupName) || this.addServiceGroup(mpackVersionId, serviceGroupName);
       
       if (serviceGroup) {
         mpackVersion.get('services').forEach(service => this.addServiceInstance(service.get('name'), service.get('name'), serviceGroup)); //TODO: for now we are setting the service instance name equal to the service name
@@ -786,10 +796,22 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
 
   //#region Load/Save
 
+  clearStep: function () {
+    this.set('serviceGroups', []);
+    this.set('addedServiceGroups', []);
+    this.set('serviceInstances', []);
+    this.set('addedServiceInstances', []);
+  },
+
   loadStep: function () {
+    var self = this;
+
+    this.clearStep();
+
     this.getRegistry().done(() => {
-      this.getServiceGroups();
-      this.getServiceInstances();
+      self.getServiceGroups();
+      self.getServiceInstances();
+      self.updateRegistry();
     });
   },
 
@@ -811,7 +833,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     const addedServiceGroups = this.get('content.addedServiceGroups');
     if (addedServiceGroups) {
       addedServiceGroups.forEach(serviceGroup => {
-        this.addServiceGroup(serviceGroup.mpackVersionId, serviceGroup.name);
+        this.addServiceGroup(`${serviceGroup.mpackName}-${serviceGroup.mpackVersion}`, serviceGroup.name);
       });
     }
   },
@@ -829,13 +851,8 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
           const service = serviceGroup.get('mpackVersion.services').findProperty('name', serviceInstance.serviceName);
         
           if (service) {
-            this.get('serviceInstances').pushObject({
-              id: serviceInstance.serviceGroupName + serviceInstance.name,
-              name: serviceInstance.name,
-              service: service,
-              serviceGroup: serviceGroup,
-              canRemove: false
-            });
+            const si = this.createServiceInstance(serviceInstance.name, service, serviceGroup, false);
+            this.get('serviceInstances').pushObject(si);
           }
         }
       });
@@ -861,7 +878,9 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     } else { //toggling to Advanced Mode
       this.set('noRecommendationAvailable', false);
     }
-    
+
+    this.updateRegistry();
+
     this.set('content.advancedMode', !isAdvancedMode);
   },
 
@@ -959,6 +978,14 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
         return selectedMpack;
       });
       this.set('content.selectedMpacks', selectedMpacks);
+      
+      //Gather ids of mpacks that were already registered before this wizard began
+      const registeredMpackIds = this.get('content.registeredMpacks').filter(mpack => !mpack.currentWizard) //Exclude mpacks that were registered during the current wizard; user is just moving back/forward
+        .map(mpack => `${mpack.MpackInfo.mpack_name}-${mpack.MpackInfo.mpack_version}`);
+      
+      //Get mpacks that need to be registered, which are the mpacks indicated by the current selection, but not those already registered on the server before this wizard began
+      const mpacksToRegister = selectedMpacks.reject(mpack => registeredMpackIds.contains(mpack.id));
+      this.set('content.mpacksToRegister', mpacksToRegister);
 
       App.router.send('next');
     }

@@ -228,7 +228,7 @@ describe('App.ConfigRecommendationParser', function() {
     cases.forEach(function(c) {
       describe('update recommendation', function() {
         beforeEach(function() {
-          sinon.spy(instanceObject, 'applyRecommendation');
+          sinon.stub(instanceObject, 'applyRecommendation');
           sinon.stub(instanceObject, 'getRecommendation').returns(false);
           sinon.stub(instanceObject, 'allowUpdateProperty').returns(c.allowUpdateProperty);
           sinon.stub(instanceObject, 'updateInitialOnRecommendations').returns(c.updateInitialOnRecommendations);
@@ -264,7 +264,7 @@ describe('App.ConfigRecommendationParser', function() {
 
   describe('#_createNewProperty', function() {
     beforeEach(function() {
-      sinon.spy(instanceObject, 'applyRecommendation');
+      sinon.stub(instanceObject, 'applyRecommendation');
       sinon.stub(instanceObject, '_getCoreProperties').returns({
         'value': 'recommendedValue',
         'recommendedValue': 'recommendedValue',
@@ -306,7 +306,7 @@ describe('App.ConfigRecommendationParser', function() {
 
   describe('#_removeConfigByRecommendation', function() {
     beforeEach(function() {
-      sinon.spy(instanceObject, 'applyRecommendation');
+      sinon.stub(instanceObject, 'applyRecommendation');
     });
     afterEach(function() {
       instanceObject.applyRecommendation.restore();
