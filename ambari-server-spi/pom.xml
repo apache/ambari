@@ -24,7 +24,7 @@
   <artifactId>ambari-server-spi</artifactId>
   <url>http://ambari.apache.org</url>
   <name>Ambari Server SPI</name>
-  <description>A client library which is used for providing plugins for the Ambari Server framework.</description>
+  <description>A client library which is used for providing plugins for the Ambari Server framework.</description>  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <xlint>none</xlint>
@@ -66,7 +66,7 @@
           </execution>
         </executions>
       </plugin>
-
+      
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
@@ -87,7 +87,7 @@
           </execution>
         </executions>
       </plugin>
-
+     
      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -96,7 +96,7 @@
           <argLine>${surefire.argLine}</argLine>
         </configuration>
       </plugin>
-
+      
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -151,10 +151,10 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin>      
     </plugins>
-  </build>
-
+  </build>  
+  
   <dependencies>
     <dependency>
       <groupId>com.google.code.gson</groupId>

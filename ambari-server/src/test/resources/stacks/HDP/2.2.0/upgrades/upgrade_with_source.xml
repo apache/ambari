@@ -55,7 +55,7 @@
         </task>
       </execute-stage>
     </group>
-
+  
     <group name="ZOOKEEPER" title="Zookeeper">
       <skippable>true</skippable>
       <allow-retry>false</allow-retry>
@@ -64,7 +64,7 @@
         <component>ZOOKEEPER_CLIENT</component>
       </service>
     </group>
-
+    
     <group name="CORE_MASTER" title="Core Masters">
       <service name="HDFS">
         <component>JOURNALNODE</component>
@@ -74,7 +74,7 @@
         <component>RESOURCEMANAGER</component>
       </service>
     </group>
-
+    
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
       <skippable>true</skippable>      <!-- set skippable for test -->
       <allow-retry>false</allow-retry> <!-- set no retry for test -->
@@ -87,13 +87,13 @@
       <service name="YARN">
         <component>NODEMANAGER</component>
       </service>
-
+      
       <batch>
         <percent>20</percent>
         <message>Please run additional tests on {{components}}</message>
       </batch>
     </group>
-
+    
     <group name="HIVE" title="Hive">
       <skippable>true</skippable>
       <service name="HIVE">
@@ -101,8 +101,8 @@
         <component>HIVE_SERVER</component>
         <component>WEBHCAT_SERVER</component>
       </service>
-    </group>
-
+    </group>    
+    
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
@@ -120,9 +120,9 @@
         </task>
       </execute-stage>
     </group>
-
+        
   </order>
-
+  
 
   <processing>
     <service name="ZOOKEEPER">
@@ -143,7 +143,7 @@
         <post-downgrade copy-upgrade="true" />
       </component>
     </service>
-
+    
     <service name="HDFS">
       <component name="NAMENODE">
         <pre-upgrade>
@@ -180,7 +180,7 @@
         </post-downgrade>
       </component>
     </service>
-
+    
     <service name="YARN">
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
@@ -203,7 +203,7 @@
         <upgrade />
       </component>
     </service>
-
+    
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <pre-upgrade>
@@ -215,6 +215,6 @@
         <pre-downgrade copy-upgrade="true" />
         <upgrade />
        </component>
-     </service>
+     </service>    
   </processing>
 </upgrade>

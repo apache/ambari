@@ -116,7 +116,7 @@ describe('App.clusterController', function () {
       expect(App.get('currentStackVersion')).to.equal('HDP-2.0.5');
       expect(App.get('clusterId')).to.equal(1);
     });
-
+  
     it('reload is false and clusterName is set and clusterId is null', function () {
       App.set('clusterName', 'c1');
       App.set('clusterId', null);

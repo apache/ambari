@@ -23,7 +23,7 @@ Apache Ambari is a tool for provisioning, managing, and monitoring Apache Hadoop
 ## Sub-projects
 
 - Ambari Metrics ([GitHub](https://github.com/apache/ambari-metrics), [GitBox](https://gitbox.apache.org/repos/asf?p=ambari-metrics.git))
-- Ambari Log Search ([GitHub](https://github.com/apache/ambari-logsearch), [GitBox](https://gitbox.apache.org/repos/asf?p=ambari-logsearch.git))
+- Ambari Log Search ([GitHub](https://github.com/apache/ambari-logsearch), [GitBox](https://gitbox.apache.org/repos/asf?p=ambari-logsearch.git)) 
 - Ambari Infra ([GitHub](https://github.com/apache/ambari-infra), [GitBox](https://gitbox.apache.org/repos/asf?p=ambari-infra.git))
 
 ## Getting Started

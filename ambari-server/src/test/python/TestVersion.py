@@ -174,3 +174,6 @@ class TestVersion(TestCase):
     m1 = ModuleVersion.parse("1.2.3.4-h0-b10")
     m2 = ModuleVersion.parse("1.2.3.4-b10")
     self.assertTrue(m1 == m2)
+
+
+

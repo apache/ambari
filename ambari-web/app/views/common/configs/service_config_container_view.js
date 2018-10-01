@@ -25,6 +25,8 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
   view: null,
 
   lazyLoading: null,
+  
+  pushViewTimeout: null,
 
   pushViewTimeout: null,
 
